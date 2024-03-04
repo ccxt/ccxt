@@ -13,7 +13,7 @@ import { DECIMAL_PLACES } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class wavesexchange
- * @extends Exchange
+ * @augments Exchange
  */
 export default class wavesexchange extends Exchange {
     describe() {
@@ -314,7 +314,7 @@ export default class wavesexchange extends Exchange {
                 },
             },
             'currencies': {
-                'WX': this.safeCurrencyStructure({ 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': this.parseNumber('8') }),
+                'WX': this.safeCurrencyStructure({ 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': this.parseToInt('8') }),
             },
             'precisionMode': DECIMAL_PLACES,
             'options': {
@@ -398,7 +398,7 @@ export default class wavesexchange extends Exchange {
         //        "matcherFee":"4077612"
         //     }
         //  }
-        const isDiscountFee = this.safeValue(params, 'isDiscountFee', false);
+        const isDiscountFee = this.safeBool(params, 'isDiscountFee', false);
         let mode = undefined;
         if (isDiscountFee) {
             mode = this.safeValue(response, 'discount');
@@ -1256,7 +1256,8 @@ export default class wavesexchange extends Exchange {
         // precise.decimals should be integer
         precise.decimals = this.parseToInt(Precise.stringSub(this.numberToString(precise.decimals), this.numberToString(scale)));
         precise.reduce();
-        return precise;
+        const stringValue = precise.toString();
+        return stringValue;
     }
     currencyFromPrecision(currency, amount) {
         const scale = this.currencies[currency]['precision'];
@@ -1380,7 +1381,7 @@ export default class wavesexchange extends Exchange {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
         };
-        const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const chainId = (sandboxMode) ? 84 : 87;
         const body = {
             'senderPublicKey': this.apiKey,
@@ -1635,7 +1636,7 @@ export default class wavesexchange extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2095,7 +2096,7 @@ export default class wavesexchange extends Exchange {
             'priceAsset': market['quoteId'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 100);
         }
         if (since !== undefined) {
             request['timeStart'] = since;
@@ -2415,7 +2416,7 @@ export default class wavesexchange extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'error');
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         const Exception = this.safeValue(this.exceptions, errorCode);
         if (Exception !== undefined) {
             const messageInner = this.safeString(response, 'message');

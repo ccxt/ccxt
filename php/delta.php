@@ -28,6 +28,8 @@ class delta extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => true,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
@@ -246,7 +248,7 @@ class delta extends Exchange {
         return $reconstructedDate;
     }
 
-    public function create_expired_option_market($symbol) {
+    public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USDT';
         $optionParts = explode('-', $symbol);
@@ -313,25 +315,8 @@ class delta extends Exchange {
         );
     }
 
-    public function market($symbol) {
-        if ($this->markets === null) {
-            throw new ExchangeError($this->id . ' $markets not loaded');
-        }
-        if (gettype($symbol) === 'string') {
-            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                return $this->markets[$symbol];
-            } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                $markets = $this->markets_by_id[$symbol];
-                return $markets[0];
-            } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1) || (mb_strpos($symbol, 'C')) || (mb_strpos($symbol, 'P'))) {
-                return $this->create_expired_option_market($symbol);
-            }
-        }
-        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
-    }
-
     public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
-        $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1) || (mb_strpos($marketId, 'C')) || (mb_strpos($marketId, 'P')));
+        $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')) || (str_starts_with($marketId, 'C-')) || (str_starts_with($marketId, 'P-')));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
@@ -1784,7 +1769,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.delta.exchange/#place-order
@@ -1865,7 +1850,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://docs.delta.exchange/#edit-order
@@ -2050,7 +2035,12 @@ class delta extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'privateGetOrders') {
+            $response = $this->privateGetOrders (array_merge($request, $params));
+        } elseif ($method === 'privateGetOrdersHistory') {
+            $response = $this->privateGetOrdersHistory (array_merge($request, $params));
+        }
         //
         //     {
         //         "success" => true,
@@ -2786,7 +2776,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
         /**
          * fetch the set leverage for a $market
          * @see https://docs.delta.exchange/#get-order-leverage
@@ -2799,6 +2789,7 @@ class delta extends Exchange {
         $request = array(
             'product_id' => $market['numericId'],
         );
+        $response = $this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params));
         //
         //     {
         //         "result" => array(
@@ -2812,10 +2803,23 @@ class delta extends Exchange {
         //         "success" => true
         //     }
         //
-        return $this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params));
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_leverage($result, $market);
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'index_symbol');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'margin_mode'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
+    }
+
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://docs.delta.exchange/#change-order-$leverage
@@ -3152,6 +3156,28 @@ class delta extends Exchange {
             'underlyingPrice' => $this->safe_number($greeks, 'spot_price'),
             'info' => $greeks,
         );
+    }
+
+    public function close_all_positions($params = array ()): array {
+        /**
+         * closes all open positions for a market type
+         * @see https://docs.delta.exchange/#close-all-positions
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->user_id] the users id
+         * @return {array[]} A list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structures~
+         */
+        $this->load_markets();
+        $request = array(
+            'close_all_portfolio' => true,
+            'close_all_isolated' => true,
+            // 'user_id' => 12345,
+        );
+        $response = $this->privatePostPositionsCloseAll (array_merge($request, $params));
+        //
+        // array("result":array(),"success":true)
+        //
+        $position = $this->parse_position($this->safe_value($response, 'result', array()));
+        return array( $position );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

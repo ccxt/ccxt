@@ -6,7 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int, Str, Strings } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -100,10 +100,10 @@ export default class krakenfutures extends krakenfuturesRest {
          * @ignore
          * @method
          * @description Connects to a websocket channel
-         * @param {String} name name of the channel
+         * @param {string} name name of the channel
          * @param {string[]} symbols CCXT market symbols
-         * @param {Object} [params] extra parameters specific to the krakenfutures api
-         * @returns {Object} data from the websocket stream
+         * @param {object} [params] extra parameters specific to the krakenfutures api
+         * @returns {object} data from the websocket stream
          */
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
@@ -135,10 +135,10 @@ export default class krakenfutures extends krakenfuturesRest {
          * @ignore
          * @method
          * @description Connects to a websocket channel
-         * @param {String} name name of the channel
+         * @param {string} name name of the channel
          * @param {string[]} symbols CCXT market symbols
-         * @param {Object} [params] extra parameters specific to the krakenfutures api
-         * @returns {Object} data from the websocket stream
+         * @param {object} [params] extra parameters specific to the krakenfutures api
+         * @returns {object} data from the websocket stream
          */
         await this.loadMarkets ();
         await this.authenticate ();
@@ -154,7 +154,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name krakenfutures#watchTicker
@@ -171,7 +171,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return await this.subscribePublic (name, [ symbol ], params);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name krakenfutures#watchTicker
@@ -185,10 +185,16 @@ export default class krakenfutures extends krakenfuturesRest {
         const name = this.safeString2 (params, 'method', 'watchTickerMethod', method);
         params = this.omit (params, [ 'watchTickerMethod', 'method' ]);
         symbols = this.marketSymbols (symbols, undefined, false);
-        return await this.subscribePublic (name, symbols, params);
+        const ticker = await this.subscribePublic (name, symbols, params);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async watchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name krakenfutures#watchTrades
@@ -209,7 +215,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name krakenfutures#watchOrderBook
@@ -224,7 +230,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return orderbook.limit ();
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name krakenfutures#watchPositions
@@ -354,7 +360,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name krakenfutures#watchOrders
@@ -381,7 +387,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name krakenfutures#watchMyTrades
@@ -389,7 +395,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
@@ -407,7 +413,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name krakenfutures#watchOrders
@@ -1079,13 +1085,15 @@ export default class krakenfutures extends krakenfuturesRest {
             const bid = bids[i];
             const price = this.safeNumber (bid, 'price');
             const qty = this.safeNumber (bid, 'qty');
-            orderbook['bids'].store (price, qty);
+            const bidsSide = orderbook['bids'];
+            bidsSide.store (price, qty);
         }
         for (let i = 0; i < asks.length; i++) {
             const ask = asks[i];
             const price = this.safeNumber (ask, 'price');
             const qty = this.safeNumber (ask, 'qty');
-            orderbook['asks'].store (price, qty);
+            const asksSide = orderbook['asks'];
+            asksSide.store (price, qty);
         }
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -1115,9 +1123,11 @@ export default class krakenfutures extends krakenfuturesRest {
         const qty = this.safeNumber (message, 'qty');
         const timestamp = this.safeInteger (message, 'timestamp');
         if (side === 'sell') {
-            orderbook['asks'].store (price, qty);
+            const asks = orderbook['asks'];
+            asks.store (price, qty);
         } else {
-            orderbook['bids'].store (price, qty);
+            const bids = orderbook['bids'];
+            bids.store (price, qty);
         }
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -1456,7 +1466,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);
         } else if (event === 'alert') {
-            return this.handleErrorMessage (client, message);
+            this.handleErrorMessage (client, message);
         } else if (event === 'pong') {
             client.lastPong = this.milliseconds ();
         } else if (event === undefined) {
@@ -1481,7 +1491,7 @@ export default class krakenfutures extends krakenfuturesRest {
             };
             const method = this.safeValue (methods, feed);
             if (method !== undefined) {
-                return method.call (this, client, message);
+                method.call (this, client, message);
             }
         }
     }

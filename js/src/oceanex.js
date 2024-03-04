@@ -13,7 +13,7 @@ import { jwt } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class oceanex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class oceanex extends Exchange {
     describe() {
@@ -50,6 +50,9 @@ export default class oceanex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarkets': true,
@@ -475,7 +478,7 @@ export default class oceanex extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         const response = await this.publicGetTrades(this.extend(request, params));
         //
@@ -706,7 +709,7 @@ export default class oceanex extends Exchange {
          * @see https://api.oceanex.pro/doc/v1/#order-status-get
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

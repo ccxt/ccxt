@@ -1,8 +1,8 @@
 import Exchange from './abstract/currencycom.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage } from './base/types.js';
 /**
  * @class currencycom
- * @extends Exchange
+ * @augments Exchange
  */
 export default class currencycom extends Exchange {
     describe(): any;
@@ -27,7 +27,7 @@ export default class currencycom extends Exchange {
     parseOrderType(status: any): string;
     parseOrderTimeInForce(status: any): string;
     parseOrderSide(status: any): string;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -35,7 +35,7 @@ export default class currencycom extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchTransactionsByMethod(method: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactionsByMethod(method: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
@@ -59,7 +59,8 @@ export default class currencycom extends Exchange {
     };
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
-    fetchLeverage(symbol: string, params?: {}): Promise<number>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    parseLeverage(leverage: any, market?: any): Leverage;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;

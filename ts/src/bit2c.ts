@@ -6,13 +6,13 @@ import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, Not
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class bit2c
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bit2c extends Exchange {
     describe () {
@@ -30,6 +30,7 @@ export default class bit2c extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -211,6 +212,7 @@ export default class bit2c extends Exchange {
          * @method
          * @name bit2c#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://bit2c.co.il/home/api#balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -266,6 +268,7 @@ export default class bit2c extends Exchange {
          * @method
          * @name bit2c#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://bit2c.co.il/home/api#orderb
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -282,14 +285,13 @@ export default class bit2c extends Exchange {
 
     parseTicker (ticker, market: Market = undefined): Ticker {
         const symbol = this.safeSymbol (undefined, market);
-        const timestamp = this.milliseconds ();
         const averagePrice = this.safeString (ticker, 'av');
         const baseVolume = this.safeString (ticker, 'a');
         const last = this.safeString (ticker, 'll');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': this.safeString (ticker, 'h'),
@@ -315,6 +317,7 @@ export default class bit2c extends Exchange {
          * @method
          * @name bit2c#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://bit2c.co.il/home/api#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -333,6 +336,8 @@ export default class bit2c extends Exchange {
          * @method
          * @name bit2c#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://bit2c.co.il/home/api#transactions
+         * @see https://bit2c.co.il/home/api#trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -351,7 +356,12 @@ export default class bit2c extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 100000
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'public_get_exchanges_pair_trades') {
+            response = await this.publicGetExchangesPairTrades (this.extend (request, params));
+        } else {
+            response = await this.publicGetExchangesPairLasttrades (this.extend (request, params));
+        }
         //
         //     [
         //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
@@ -370,6 +380,7 @@ export default class bit2c extends Exchange {
          * @method
          * @name bit2c#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://bit2c.co.il/home/api#balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -414,11 +425,12 @@ export default class bit2c extends Exchange {
         return result;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#createOrder
          * @description create a trade order
+         * @see https://bit2c.co.il/home/api#addo
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -440,7 +452,7 @@ export default class bit2c extends Exchange {
             request['Price'] = price;
             const amountString = this.numberToString (amount);
             const priceString = this.numberToString (price);
-            request['Total'] = this.parseNumber (Precise.stringMul (amountString, priceString));
+            request['Total'] = this.parseToNumeric (Precise.stringMul (amountString, priceString));
             request['IsBid'] = (side === 'buy');
         }
         const response = await this[method] (this.extend (request, params));
@@ -452,6 +464,7 @@ export default class bit2c extends Exchange {
          * @method
          * @name bit2c#cancelOrder
          * @description cancels an open order
+         * @see https://bit2c.co.il/home/api#cancelo
          * @param {string} id order id
          * @param {string} symbol Not used by bit2c cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -468,6 +481,7 @@ export default class bit2c extends Exchange {
          * @method
          * @name bit2c#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://bit2c.co.il/home/api#geto
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -494,6 +508,7 @@ export default class bit2c extends Exchange {
          * @method
          * @name bit2c#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://bit2c.co.il/home/api#getoid
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -641,6 +656,7 @@ export default class bit2c extends Exchange {
          * @method
          * @name bit2c#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://bit2c.co.il/home/api#orderh
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -822,6 +838,7 @@ export default class bit2c extends Exchange {
          * @method
          * @name bit2c#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://bit2c.co.il/home/api#addc
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}

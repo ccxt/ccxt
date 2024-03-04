@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -44,7 +44,6 @@ class mexc(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': True,
-                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
@@ -86,6 +85,8 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchL2OrderBook': True,
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
+                'fetchLeverage': True,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': True,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': None,
@@ -121,7 +122,8 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
-                'repayMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': True,
                 'setMarginMode': None,
                 'setPositionMode': True,
@@ -150,8 +152,7 @@ class mexc(Exchange, ImplicitAPI):
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
-                    'https://mexcdevelop.github.io/apidocs/spot_v3_en/',
-                    'https://mexcdevelop.github.io/APIDoc/',  # v1 & v2 : soon to be deprecated
+                    'https://mexcdevelop.github.io/apidocs/',
                 ],
                 'fees': [
                     'https://www.mexc.com/fee',
@@ -164,9 +165,9 @@ class mexc(Exchange, ImplicitAPI):
                         'get': {
                             'ping': 1,
                             'time': 1,
-                            'exchangeInfo': 1,
+                            'exchangeInfo': 10,
                             'depth': 1,
-                            'trades': 1,
+                            'trades': 5,
                             'historicalTrades': 1,
                             'aggTrades': 1,
                             'klines': 1,
@@ -179,17 +180,18 @@ class mexc(Exchange, ImplicitAPI):
                     },
                     'private': {
                         'get': {
-                            'order': 1,
-                            'openOrders': 1,
-                            'allOrders': 1,
+                            'order': 2,
+                            'openOrders': 3,
+                            'allOrders': 10,
                             'account': 10,
-                            'myTrades': 1,
+                            'myTrades': 10,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
-                            'capital/config/getall': 1,
+                            'capital/config/getall': 10,
                             'capital/deposit/hisrec': 1,
                             'capital/withdraw/history': 1,
-                            'capital/deposit/address': 1,
+                            'capital/withdraw/address': 10,
+                            'capital/deposit/address': 10,
                             'capital/transfer': 1,
                             'capital/transfer/tranId': 1,
                             'capital/transfer/internal': 1,
@@ -233,7 +235,7 @@ class mexc(Exchange, ImplicitAPI):
                             'capital/transfer/internal': 1,
                             'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 1,
+                            'capital/convert': 10,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                         },
@@ -448,246 +450,352 @@ class mexc(Exchange, ImplicitAPI):
                 'defaultNetwork': 'ETH',
                 'defaultNetworks': {
                     'ETH': 'ETH',
-                    'USDT': 'TRC20',
+                    'USDT': 'ERC20',
+                    'USDC': 'ERC20',
+                    'BTC': 'BTC',
+                    'LTC': 'LTC',
                 },
                 'networks': {
-                    'BTC': 'BTC',
-                    'BCH': 'BCH',
-                    'TRC20': 'Tron(TRC20)',
-                    'ERC20': 'Ethereum(ERC20)',
-                    'BEP20': 'BNBSmartChain(BEP20)',
-                    'OPTIMISM': 'Optimism(OP)',
-                    'SOL': 'Solana(SOL)',
-                    'CRC20': 'CRONOS',
-                    'ALGO': 'Algorand(ALGO)',
-                    'XRP': 'XRP',
-                    'MATIC': 'Polygon(MATIC)',
-                    'AVAXX': 'AVAX_XCHAIN',
-                    'AVAXC': 'AvalancheCChain(AVAXCCHAIN)',
-                    'ARBONE': 'ArbitrumOne(ARB)',
-                    'ARBNOVA': 'ARBNOVA',
-                    'FTM': 'FTM',
-                    'WAVES': 'WAVES',
-                    'CHZ': 'Chiliz Chain(CHZ)',
-                    'HRC20': 'HECO',
-                    'TRC10': 'TRC10',
-                    'DASH': 'DASH',
-                    'LTC': 'LTC',
-                    # 'DOGECOIN': ['DOGE', 'DOGECHAIN'],  # todo after unification
-                    'XTZ': 'XTZ',
-                    'OMNI': 'OMNI',
-                    'APT': 'APTOS',
-                    'ONT': 'ONT',
-                    'BSV': 'BSV',
-                    'OKC': 'OKT',
-                    'CELO': 'CELO',
-                    'KLAY': 'KLAY',
-                    'BEP2': 'BEP2',
-                    'EGLD': 'EGLD',
-                    'EOS': 'EOS',
-                    'ZIL': 'ZIL',
-                    'ETHW': 'ETHW',
-                    'IOTX': 'IOTX',
-                    'IOTA': 'IOTA',
-                    'SYS': 'SYS',
-                    'XCH': 'CHIA',
-                    'KMA': 'KMA',
-                    'ONE': 'ONE',
-                    'METIS': 'METIS',
-                    'KAVA': 'KAVA',
-                    'KDA': 'KDA',
-                    'IOST': 'IOST',
-                    'XEC': 'XEC',
-                    'VET': 'VET',
-                    'XLM': 'XLM',
-                    'KSM': 'KSM',
-                    'MOVR': 'MOVR',
-                    'XMR': 'XMR',
-                    'LAT': 'LAT',
-                    'ETC': 'ETC',
-                    # 'TLOS': 'TELOS',  # todo
-                    # 'TELOSCOIN': 'TLOS',  # todo
-                    'GLMR': 'GLMR',
-                    'DOT': 'DOT',
-                    'SC': 'SC',
-                    'ICP': 'ICP',
-                    'AOK': 'AOK',
-                    'ZEC': 'ZEC',
+                    'ABBC': 'ABBC',
                     'ACA': 'ACALA',
+                    'ADA': 'Cardano(ADA)',
+                    'AE': 'AE',
+                    'ALGO': 'Algorand(ALGO)',
+                    'ALPH': 'Alephium(ALPH)',
+                    'AME': 'AME',
+                    'AOK': 'AOK',
+                    'APT': 'APTOS(APT)',
+                    'AR': 'AR',
+                    'ARB': 'Arbitrum One(ARB)',
+                    'ARBNOVA': 'ARBNOVA',
+                    'ARBONE': 'ArbitrumOne(ARB)',
+                    'ARK': 'ARK',
                     'ASTR': 'ASTAR',  # ASTAREVM is different
-                    'FIL': 'FIL',
-                    'NEAR': 'NEAR',
-                    'OSMO': 'OSMO',
-                    'SDN': 'SDN',
+                    'ATOM': 'Cosmos(ATOM)',
+                    'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
+                    'AVAXX': 'Avalanche X Chain(AVAX XCHAIN)',
+                    'AZERO': 'Aleph Zero(AZERO)',
+                    'BCH': 'Bitcoin Cash(BCH)',
+                    'BDX': 'BDX',
+                    'BEAM': 'BEAM',
+                    'BEP2': 'BNB Beacon Chain(BEP2)',
+                    'BEP20': 'BNB Smart Chain(BEP20)',
                     'BITCI': 'BITCI',
-                    'NEO': 'NEO',
-                    'ADA': 'ADA',
-                    'RVN': 'RVN',
                     'BNC': 'BNC',
                     'BNCDOT': 'BNCPOLKA',
-                    'ETHF': 'ETF',
-                    'STEEM': 'STEEM',
-                    'OASYS': 'OASYS',
-                    'BEAM': 'BEAM',
-                    'VSYS': 'VSYS',
-                    'OASIS': 'ROSE',
-                    'AR': 'AR',
-                    'AE': 'AE',
-                    'QTUM': 'QTUM',
-                    'ATOM': 'ATOM',
-                    'HBAR': 'HBAR',
-                    'CSPR': 'CSPR',
-                    'WEMIX': 'WEMIX',
-                    'SGB': 'SGB',
-                    'XPR': 'PROTON',
-                    'HYDRA': 'HYDRA',
-                    'SCRT': 'SCRT',
-                    'TOMO': 'TOMO',
-                    'WAX': 'WAX',
-                    'KAR': 'KAR',
-                    'KILT': 'KILT',
-                    'XDC': 'XDC',
-                    'GRIN': 'GRIN',
-                    'PLCU': 'PLCU',
-                    'MINA': 'MINA',
-                    'ABBC': 'ABBC',
-                    'ZEN': 'ZEN',
-                    'FLOW': 'FLOW',
-                    'RSK': 'RBTC',
-                    'DCR': 'DCR',
-                    'HIVE': 'HIVE',
-                    'XYM': 'XYM',
-                    'CKB': 'CKB',
-                    'XRD': 'XRD',
-                    'XVG': 'XVG',
                     'BOBA': 'BOBA',
-                    'AZERO': 'AZERO',
-                    'ARK': 'ARK',
-                    'NULS': 'NULS',
-                    'POKT': 'POKT',
-                    'NEO3': 'NEO3',
-                    'FIO': 'FIO',
-                    'MASS': 'MASS',
-                    'AME': 'AME',
-                    'REI': 'REI',
-                    'IRIS': 'IRIS',
-                    'ZTG': 'ZTG',
+                    'BSC': 'BEP20(BSC)',
+                    'BSV': 'Bitcoin SV(BSV)',
+                    'BTC': 'Bitcoin(BTC)',
+                    'BTM': 'BTM2',
+                    'CELO': 'CELO',
+                    'CFX': 'CFX',
+                    'CHZ': 'Chiliz Legacy Chain(CHZ)',
+                    'CHZ2': 'Chiliz Chain(CHZ2)',
+                    'CKB': 'CKB',
+                    'CLORE': 'Clore.ai(CLORE)',
+                    'CRC20': 'CRONOS',
+                    'CSPR': 'CSPR',
+                    'DASH': 'DASH',
+                    'DC': 'Dogechain(DC)',
+                    'DCR': 'DCR',
+                    'DNX': 'Dynex(DNX)',
+                    'DOGE': 'Dogecoin(DOGE)',
+                    'DOT': 'Polkadot(DOT)',
+                    'DYM': 'Dymension(DYM)',
                     'EDG': 'EDG',
-                    'FUSE': 'FUSE',
+                    'EGLD': 'EGLD',
+                    'EOS': 'EOS',
+                    'ERC20': 'Ethereum(ERC20)',
+                    'ETC': 'Ethereum Classic(ETC)',
+                    'ETHF': 'ETF',
+                    'ETHW': 'ETHW',
                     'EVER': 'EVER',
                     'FET': 'FET',
-                    'CFX': 'CFX',
-                    'NEBL': 'NEBL',
-                    'STAR': 'STAR',
-                    'NEM': 'NEM',
-                    'BDX': 'BDX',
-                    'TON': 'TONCOIN',
-                    'NAS': 'NAS',
-                    'QKC': 'QKC',
-                    'BTM': 'BTM2',
+                    'FIL': 'FIL',
+                    'FIO': 'FIO',
+                    'FLOW': 'FLOW',
                     'FSN': 'FSN',
+                    'FTM': 'Fantom(FTM)',
+                    'FUSE': 'FUSE',
+                    'GLMR': 'GLMR',
+                    'GRIN': 'GRIN',
+                    'HBAR': 'Hedera(HBAR)',
+                    'HIVE': 'HIVE',
+                    'HRC20': 'HECO',
+                    'HYDRA': 'HYDRA',
+                    'ICP': 'Internet Computer(ICP)',
+                    'INDEX': 'Index Chain',
+                    'IOST': 'IOST',
+                    'IOTA': 'IOTA',
+                    'IOTX': 'IOTX',
+                    'IRIS': 'IRIS',
+                    'KAR': 'KAR',
+                    'KAS': 'Kaspa(KAS)',
+                    'KAVA': 'KAVA',
+                    'KDA': 'KDA',
+                    'KILT': 'KILT',
+                    'KLAY': 'Klaytn(KLAY)',
+                    'KMA': 'KMA',
+                    'KSM': 'KSM',
+                    'LAT': 'LAT',
+                    'LAVA': 'Elysium(LAVA)',
+                    'LTC': 'Litecoin(LTC)',
+                    'LUNA': 'Terra(LUNA)',
+                    'MASS': 'MASS',
+                    'MATIC': 'Polygon(MATIC)',
+                    'MCOIN': 'Mcoin Network',
+                    'METIS': 'METIS',
+                    'MINA': 'MINA',
+                    'MNT': 'Mantle(MNT)',
+                    'MOVR': 'MOVR',
+                    'MTRG': 'Meter(MTRG)',
+                    'NAS': 'NAS',
+                    'NEAR': 'NEAR Protocol(NEAR)',
+                    'NEBL': 'NEBL',
+                    'NEM': 'NEM',
+                    'NEO': 'NEO',
+                    'NEO3': 'NEO3',
+                    'NEOXA': 'Neoxa Network',
+                    'NULS': 'NULS',
+                    'OASIS': 'ROSE',
+                    'OASYS': 'OASYS',
+                    'OKC': 'OKT',
+                    'OMN': 'Omega Network(OMN)',
+                    'OMNI': 'OMNI',
+                    'ONE': 'ONE',
+                    'ONT': 'ONT',
+                    'OPTIMISM': 'Optimism(OP)',
+                    'OSMO': 'OSMO',
+                    'PLCU': 'PLCU',
+                    'POKT': 'POKT',
+                    'QKC': 'QKC',
+                    'QTUM': 'QTUM',
+                    'RAP20': 'RAP20(Rangers Mainnet)',
+                    'REI': 'REI',
+                    'RSK': 'RBTC',
+                    'RVN': 'Ravencoin(RVN)',
+                    'SATOX': 'Satoxcoin(SATOX)',
+                    'SC': 'SC',
+                    'SCRT': 'SCRT',
+                    'SDN': 'SDN',
+                    'SGB': 'SGB',
+                    'SOL': 'Solana(SOL)',
+                    'STAR': 'STAR',
+                    'STARK': 'Starknet(STARK)',
+                    'STEEM': 'STEEM',
+                    'SYS': 'SYS',
+                    'TAO': 'Bittensor(TAO)',
+                    'TIA': 'Celestia(TIA)',
+                    'TOMO': 'TOMO',
+                    'TON': 'Toncoin(TON)',
+                    'TRC10': 'TRC10',
+                    'TRC20': 'Tron(TRC20)',
+                    'UGAS': 'UGAS(Ultrain)',
+                    'VET': 'VeChain(VET)',
+                    'VEX': 'Vexanium(VEX)',
+                    'VSYS': 'VSYS',
+                    'WAVES': 'WAVES',
+                    'WAX': 'WAX',
+                    'WEMIX': 'WEMIX',
+                    'XCH': 'Chia(XCH)',
+                    'XDC': 'XDC',
+                    'XEC': 'XEC',
+                    'XLM': 'Stellar(XLM)',
+                    'XMR': 'Monero(XMR)',
+                    'XNA': 'Neurai(XNA)',
+                    'XPR': 'XPR Network',
+                    'XRD': 'XRD',
+                    'XRP': 'Ripple(XRP)',
+                    'XTZ': 'XTZ',
+                    'XVG': 'XVG',
+                    'XYM': 'XYM',
+                    'ZEC': 'ZEC',
+                    'ZEN': 'ZEN',
+                    'ZIL': 'Zilliqa(ZIL)',
+                    'ZTG': 'ZTG',
                     # todo: uncomment below after concensus
-                    # 'TERRACLASSIC': 'LUNC',
-                    # 'TERRA': 'LUNA2',
-                    # 'PHALA': 'Khala',
-                    # 'NODLE': 'NODLE',
-                    # 'KUJIRA': 'KUJI',
-                    # 'HUAHUA': 'HUAHUA',
-                    # 'FRUITS': 'FRTS',
-                    # 'IOEX': 'IOEX',
-                    # 'TOMAINFO': 'TON',
-                    # 'BITCOINHD': 'BHD',
-                    # 'CENNZ': 'CENNZ',
-                    # 'WAYKICHAIN': 'WICC',
-                    # 'EMERALD': 'EMERALD',  # sits on top of OASIS
-                    # 'CONTENTVALUENETWORK': 'CVNT',
-                    # 'ORIGYN': 'OGY',
-                    # 'KASPA': 'KASPA',
-                    # 'CANTO': 'CANTO',  # CANTOEVM
-                    # 'DARWINIASMARTCHAIN': 'Darwinia Smart Chain',
-                    # 'KEKCHAIN': 'KEKCHAIN',
-                    # 'ZENITH': 'ZENITH',
-                    # 'ECOCHAIN': 'ECOC',
-                    # 'ELECTRAPROTOCOL': 'XEP',
-                    # 'KULUPU': 'KLP',
-                    # 'KINTSUGI': 'KINT',
-                    # 'PLEX': 'PLEX',
-                    # 'CONCODRIUM': 'CCD',
-                    # 'REBUS': 'REBUS',  # REBUSEVM is different
-                    # 'BITKUB': 'KUB',
-                    # 'BITCOINVAULT': 'BTCV',
-                    # 'PROXIMAX': 'XPX',
-                    # 'PAC': 'PAC',
-                    # 'CHAINX': 'PCX',
-                    # 'DRAC': 'DRAC',
-                    # 'WHITECOIN': 'XWC',
-                    # 'TECHPAY': 'TPC',
-                    # 'GXCHAIN': 'GXC',
-                    # 'CYPHERIUM': 'CPH',
-                    # 'LBRY': 'LBC',
-                    # 'TONGTONG': 'TTC',
-                    # 'LEDGIS': 'LED',
-                    # 'PMG': 'PMG',
-                    # 'PROOFOFMEMES': 'POM',
-                    # 'SENTINEL': 'DVPN',
-                    # 'METER': 'MTRG',
-                    # 'YAS': 'YAS',
-                    # 'ULTRAIN': 'UGAS',
-                    # 'PASTEL': 'PSL',
-                    # 'KONSTELLATION': 'DARC',
+                    # 'ALAYA': 'ATP',
                     # 'ANDUSCHAIN': 'DEB',
-                    # 'FIRMACHAIN': 'FCT',
-                    # 'HANDSHAKE': 'HNS',
-                    # 'DANGNN': 'DGC',
-                    # 'SERO': 'SERO',
-                    # 'HPB': 'HPB',
-                    # 'XDAI': 'XDAI',
-                    # 'EXOSAMA': 'SAMA',
-                    # 'DHEALTH': 'DHP',
-                    # 'HUPAYX': 'HPX',
-                    # 'GLEEC': 'GLEEC',
-                    # 'FIBOS': 'FO',
-                    # 'MDNA': 'DNA',
-                    # 'HSHARE': 'HC',
-                    # 'BYTZ': 'BYTZ',
-                    # 'DRAKEN': 'DRK',
-                    # 'LINE': 'LINE',
-                    # 'MDUKEY': 'MDU',
-                    # 'KOINOS': 'KOINOS',
-                    # 'MEVERSE': 'MEVerse',
-                    # 'POINT': 'POINT',  # POINTEVM is different
-                    # 'INDEXCHAIN': 'IDX',
-                    # 'ULORD': 'UT',
-                    # 'INTEGRITEE': 'TEER',
-                    # 'XX': 'XX',
-                    # 'CORTEX': 'CTXC',
-                    # 'RIZON': 'ATOLO',
-                    # 'VDIMENSION': 'VOLLAR',
-                    # 'JUNO': 'JUNO',
-                    # 'VEXANIUM': 'VEX',
-                    # 'INTCHAIN': 'INT',
-                    # 'METAMUI': 'MMUI',
-                    # 'RCHAIN': 'REV',
-                    # 'EVMOS': 'EVMOS',  # EVMOSETH is different
-                    # 'ZKSYNC': 'ZKSYNC',
+                    # 'ASSETMANTLE': 'MNTL',
+                    # 'AXE': 'AXE',
+                    # 'BITCOINHD': 'BHD',
+                    # 'BITCOINVAULT': 'BTCV',
+                    # 'BITKUB': 'KUB',
                     # 'BITSHARES_OLD': 'BTS',
                     # 'BITSHARES': 'NBS',
-                    # 'UMEE': 'UMEE',
-                    # 'VNT': 'VNT',
-                    # 'TURTLECOIN': 'TRTL',
-                    # 'METAVERSE_ETP': 'ETP',
-                    # 'NEWTON': 'NEW',
-                    #  # 'BAJUN': '',
-                    # 'INTERLAY': 'INTR',
-                    # 'LIGHTNINGBITCOIN': 'LBTC',
-                    # 'FIRO': 'XZC',
-                    # 'ALAYA': 'ATP',
-                    # 'AXE': 'AXE',
-                    # 'FNCY': 'FNCY',
-                    # 'WITNET': 'WIT',
+                    # 'BYTZ': 'BYTZ',
+                    # 'CANTO': 'CANTO',  # CANTOEVM
+                    # 'CENNZ': 'CENNZ',
+                    # 'CHAINX': 'PCX',
+                    # 'CONCODRIUM': 'CCD',
+                    # 'CONTENTVALUENETWORK': 'CVNT',
+                    # 'CORTEX': 'CTXC',
+                    # 'CYPHERIUM': 'CPH',
+                    # 'DANGNN': 'DGC',
+                    # 'DARWINIASMARTCHAIN': 'Darwinia Smart Chain',
+                    # 'DHEALTH': 'DHP',
+                    # 'DOGECOIN': ['DOGE', 'DOGECHAIN'],  # todo after unification
+                    # 'DRAC': 'DRAC',
+                    # 'DRAKEN': 'DRK',
+                    # 'ECOCHAIN': 'ECOC',
+                    # 'ELECTRAPROTOCOL': 'XEP',
+                    # 'EMERALD': 'EMERALD',  # sits on top of OASIS
+                    # 'EVMOS': 'EVMOS',  # EVMOSETH is different
+                    # 'EXOSAMA': 'SAMA',
+                    # 'FIBOS': 'FO',
                     # 'FILECASH': 'FIC',
-                    # 'ASSETMANTLE': 'MNTL',
+                    # 'FIRMACHAIN': 'FCT',
+                    # 'FIRO': 'XZC',
+                    # 'FNCY': 'FNCY',
+                    # 'FRUITS': 'FRTS',
+                    # 'GLEEC': 'GLEEC',
+                    # 'GXCHAIN': 'GXC',
+                    # 'HANDSHAKE': 'HNS',
+                    # 'HPB': 'HPB',
+                    # 'HSHARE': 'HC',
+                    # 'HUAHUA': 'HUAHUA',
+                    # 'HUPAYX': 'HPX',
+                    # 'INDEXCHAIN': 'IDX',
+                    # 'INTCHAIN': 'INT',
+                    # 'INTEGRITEE': 'TEER',
+                    # 'INTERLAY': 'INTR',
+                    # 'IOEX': 'IOEX',
+                    # 'JUNO': 'JUNO',
+                    # 'KASPA': 'KASPA',
+                    # 'KEKCHAIN': 'KEKCHAIN',
+                    # 'KINTSUGI': 'KINT',
+                    # 'KOINOS': 'KOINOS',
+                    # 'KONSTELLATION': 'DARC',
+                    # 'KUJIRA': 'KUJI',
+                    # 'KULUPU': 'KLP',
+                    # 'LBRY': 'LBC',
+                    # 'LEDGIS': 'LED',
+                    # 'LIGHTNINGBITCOIN': 'LBTC',
+                    # 'LINE': 'LINE',
+                    # 'MDNA': 'DNA',
+                    # 'MDUKEY': 'MDU',
+                    # 'METAMUI': 'MMUI',
+                    # 'METAVERSE_ETP': 'ETP',
+                    # 'METER': 'MTRG',
+                    # 'MEVERSE': 'MEVerse',
+                    # 'NEWTON': 'NEW',
+                    # 'NODLE': 'NODLE',
+                    # 'ORIGYN': 'OGY',
+                    # 'PAC': 'PAC',
+                    # 'PASTEL': 'PSL',
+                    # 'PHALA': 'Khala',
+                    # 'PLEX': 'PLEX',
+                    # 'PMG': 'PMG',
+                    # 'POINT': 'POINT',  # POINTEVM is different
+                    # 'PROOFOFMEMES': 'POM',
+                    # 'PROXIMAX': 'XPX',
+                    # 'RCHAIN': 'REV',
+                    # 'REBUS': 'REBUS',  # REBUSEVM is different
+                    # 'RIZON': 'ATOLO',
+                    # 'SENTINEL': 'DVPN',
+                    # 'SERO': 'SERO',
+                    # 'TECHPAY': 'TPC',
+                    # 'TELOSCOIN': 'TLOS',  # todo
+                    # 'TERRA': 'LUNA2',
+                    # 'TERRACLASSIC': 'LUNC',
+                    # 'TLOS': 'TELOS',  # todo
+                    # 'TOMAINFO': 'TON',
+                    # 'TONGTONG': 'TTC',
+                    # 'TURTLECOIN': 'TRTL',
+                    # 'ULORD': 'UT',
+                    # 'ULTRAIN': 'UGAS',
+                    # 'UMEE': 'UMEE',
+                    # 'VDIMENSION': 'VOLLAR',
+                    # 'VEXANIUM': 'VEX',
+                    # 'VNT': 'VNT',
+                    # 'WAYKICHAIN': 'WICC',
+                    # 'WHITECOIN': 'XWC',
+                    # 'WITNET': 'WIT',
+                    # 'XDAI': 'XDAI',
+                    # 'XX': 'XX',
+                    # 'YAS': 'YAS',
+                    # 'ZENITH': 'ZENITH',
+                    # 'ZKSYNC': 'ZKSYNC',
+                    #  # 'BAJUN': '',
                     # OKB <> OKT(for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
+                },
+                'networksById': {
+                    'Aleph Zero(AZERO)': 'AZERO',
+                    'Alephium(ALPH)': 'ALPH',
+                    'Algorand(ALGO)': 'ALGO',
+                    'APTOS(APT)': 'APT',
+                    'Arbitrum One(ARB)': 'ARB',
+                    'Avalanche C Chain(AVAX CCHAIN)': 'AVAXC',
+                    'Avalanche X Chain(AVAX XCHAIN)': 'AVAXX',
+                    'BEP20(BSC)': 'BSC',
+                    'Bitcoin Cash(BCH)': 'BCH',
+                    'Bitcoin SV(BSV)': 'BSV',
+                    'Bitcoin(BTC)': 'BTC',
+                    'Bittensor(TAO)': 'TAO',
+                    'BNB Beacon Chain(BEP2)': 'BEP2',
+                    'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
+                    'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
+                    'BNB Smart Chain(BEP20)': 'BSC',
+                    'Cardano(ADA)': 'ADA',
+                    'Celestia(TIA)': 'TIA',
+                    'Chia(XCH)': 'XCH',
+                    'Chiliz Chain(CHZ2)': 'CHZ2',
+                    'Chiliz Legacy Chain(CHZ)': 'CHZ',
+                    'Clore.ai(CLORE)': 'CLORE',
+                    'Cosmos(ATOM)': 'ATOM',
+                    'Dogechain(DC)': 'DC',
+                    'Dogecoin(DOGE)': 'DOGE',
+                    'Dymension(DYM)': 'DYM',
+                    'Dynex(DNX)': 'DNX',
+                    'Elysium(LAVA)': 'LAVA',
+                    'Ethereum Classic(ETC)': 'ETC',
+                    'Ethereum(ERC20)': 'ERC20',
+                    'Fantom(FTM)': 'FTM',
+                    'Hedera(HBAR)': 'HBAR',
+                    'Index Chain': 'INDEX',
+                    'Internet Computer(ICP)': 'ICP',
+                    'Kaspa(KAS)': 'KAS',
+                    'Klaytn(KLAY)': 'KLAY',
+                    'Litecoin(LTC)': 'LTC',
+                    'Mantle(MNT)': 'MNT',
+                    'Mcoin Network': 'MCOIN',
+                    'Meter(MTRG)': 'MTRG',
+                    'Monero(XMR)': 'XMR',
+                    'NEAR Protocol(NEAR)': 'NEAR',
+                    'Neoxa Network': 'NEOXA',
+                    'Neurai(XNA)': 'XNA',
+                    'Omega Network(OMN)': 'OMN',
+                    'Optimism(OP)': 'OPTIMISM',
+                    'Polkadot(DOT)': 'DOT',
+                    'Polygon(MATIC)': 'MATIC',
+                    'RAP20(Rangers Mainnet)': 'RAP20',
+                    'Ravencoin(RVN)': 'RVN',
+                    'Ripple(XRP)': 'XRP',
+                    'Satoxcoin(SATOX)': 'SATOX',
+                    'Solana(SOL)': 'SOL',
+                    'Starknet(STARK)': 'STARK',
+                    'Stellar(XLM)': 'XLM',
+                    'Terra(LUNA)': 'LUNA',
+                    'Toncoin(TON)': 'TON',
+                    'Tron(TRC20)': 'TRC20',
+                    'UGAS(Ultrain)': 'UGAS',
+                    'VeChain(VET)': 'VET',
+                    'Vexanium(VEX)': 'VEX',
+                    'XPR Network': 'XPR',
+                    'Zilliqa(ZIL)': 'ZIL',
+                    # TODO: uncomment below after deciding unified name
+                    # 'PEPE COIN BSC':
+                    # 'SMART BLOCKCHAIN':
+                    # 'f(x)Core':
+                    # 'Syscoin Rollux':
+                    # 'Syscoin UTXO':
+                    # 'zkSync Era':
+                    # 'zkSync Lite':
+                    # 'Darwinia Smart Chain':
+                    # 'Arbitrum One(ARB-Bridged)':
+                    # 'Optimism(OP-Bridged)':
+                    # 'Polygon(MATIC-Bridged)':
                 },
                 'recvWindow': 5 * 1000,  # 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1,  # 90 days
@@ -797,6 +905,7 @@ class mexc(Exchange, ImplicitAPI):
                     '700006': BadRequest,  # IP non white list
                     '700007': AuthenticationError,  # No permission to access the endpoint
                     '700008': BadRequest,  # Illegal characters found in parameter
+                    '700013': AuthenticationError,  # Invalid Content-Type v3
                     '730001': BadRequest,  # Pair not found
                     '730002': BadRequest,  # Your input param is invalid
                     '730000': ExchangeError,  # Request failed, please contact the customer service
@@ -957,9 +1066,9 @@ class mexc(Exchange, ImplicitAPI):
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'network')
-                network = self.safe_network(networkId)
-                isDepositEnabled = self.safe_value(chain, 'depositEnable', False)
-                isWithdrawEnabled = self.safe_value(chain, 'withdrawEnable', False)
+                network = self.network_id_to_code(networkId)
+                isDepositEnabled = self.safe_bool(chain, 'depositEnable', False)
+                isWithdrawEnabled = self.safe_bool(chain, 'withdrawEnable', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
                 currencyActive = active or currencyActive
                 withdrawMin = self.safe_string(chain, 'withdrawMin')
@@ -1022,28 +1131,9 @@ class mexc(Exchange, ImplicitAPI):
             }
         return result
 
-    def safe_network(self, networkId):
-        if networkId.find('BSC') >= 0:
-            return 'BEP20'
-        parts = networkId.split(' ')
-        networkId = ''.join(parts)
-        networkId = networkId.replace('-20', '20')
-        networksById = {
-            'Ethereum(ERC20)': 'ERC20',
-            'Algorand(ALGO)': 'ALGO',
-            'ArbitrumOne(ARB)': 'ARBONE',
-            'AvalancheCChain(AVAXCCHAIN)': 'AVAXC',
-            'BNBSmartChain(BEP20)': 'BEP20',
-            'Polygon(MATIC)': 'MATIC',
-            'Optimism(OP)': 'OPTIMISM',
-            'Solana(SOL)': 'SOL',
-            'Tron(TRC20)': 'TRC20',
-        }
-        return self.safe_string(networksById, networkId, networkId)
-
     async def fetch_markets(self, params={}):
         """
-        retrieves data on all markets for mexc3
+        retrieves data on all markets for mexc
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -1310,7 +1400,8 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            orderbook = self.parse_order_book(response, symbol)
+            spotTimestamp = self.safe_integer(response, 'timestamp')
+            orderbook = self.parse_order_book(response, symbol, spotTimestamp)
             orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         elif market['swap']:
             response = await self.contractPublicGetDepthSymbol(self.extend(request, params))
@@ -1338,7 +1429,8 @@ class mexc(Exchange, ImplicitAPI):
             orderbook['nonce'] = self.safe_integer(data, 'version')
         return orderbook
 
-    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2):
+    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        countKey = 2
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         count = self.safe_number(bidask, countKey)
@@ -1379,7 +1471,15 @@ class mexc(Exchange, ImplicitAPI):
                 request['endTime'] = until
             method = self.safe_string(self.options, 'fetchTradesMethod', 'spotPublicGetAggTrades')
             method = self.safe_string(params, 'method', method)  # AggTrades, HistoricalTrades, Trades
-            trades = await getattr(self, method)(self.extend(request, params))
+            params = self.omit(params, ['method'])
+            if method == 'spotPublicGetAggTrades':
+                trades = await self.spotPublicGetAggTrades(self.extend(request, params))
+            elif method == 'spotPublicGetHistoricalTrades':
+                trades = await self.spotPublicGetHistoricalTrades(self.extend(request, params))
+            elif method == 'spotPublicGetTrades':
+                trades = await self.spotPublicGetTrades(self.extend(request, params))
+            else:
+                raise NotSupported(self.id + ' fetchTrades() not support self method')
             #
             #     /trades, /historicalTrades
             #
@@ -1655,12 +1755,15 @@ class mexc(Exchange, ImplicitAPI):
                 request['end'] = until
             priceType = self.safe_string(params, 'price', 'default')
             params = self.omit(params, 'price')
-            method = self.get_supported_mapping(priceType, {
-                'default': 'contractPublicGetKlineSymbol',
-                'index': 'contractPublicGetKlineIndexPriceSymbol',
-                'mark': 'contractPublicGetKlineFairPriceSymbol',
-            })
-            response = await getattr(self, method)(self.extend(request, params))
+            response = None
+            if priceType == 'default':
+                response = await self.contractPublicGetKlineSymbol(self.extend(request, params))
+            elif priceType == 'index':
+                response = await self.contractPublicGetKlineIndexPriceSymbol(self.extend(request, params))
+            elif priceType == 'mark':
+                response = await self.contractPublicGetKlineFairPriceSymbol(self.extend(request, params))
+            else:
+                raise NotSupported(self.id + ' fetchOHLCV() not support self price type, [default, index, mark]')
             #
             #     {
             #         "success":true,
@@ -1989,7 +2092,7 @@ class mexc(Exchange, ImplicitAPI):
             tickers = [tickers]
         return self.parse_tickers(tickers, symbols)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
@@ -2005,7 +2108,7 @@ class mexc(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
@@ -2018,6 +2121,7 @@ class mexc(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: only 'isolated' is supported for spot-margin trading
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2103,7 +2207,7 @@ class mexc(Exchange, ImplicitAPI):
         await self.load_markets()
         symbol = market['symbol']
         unavailableContracts = self.safe_value(self.options, 'unavailableContracts', {})
-        isContractUnavaiable = self.safe_value(unavailableContracts, symbol, False)
+        isContractUnavaiable = self.safe_bool(unavailableContracts, symbol, False)
         if isContractUnavaiable:
             raise NotSupported(self.id + ' createSwapOrder() does not support yet self symbol:' + symbol)
         openType = None
@@ -2152,23 +2256,13 @@ class mexc(Exchange, ImplicitAPI):
             # 'trend': 1,  # Required for trigger order 1: latest price, 2: fair price, 3: index price
             # 'orderType': 1,  # Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         }
-        method = 'contractPrivatePostOrderSubmit'
-        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        params = self.omit(params, ['stopPrice', 'triggerPrice'])
-        if stopPrice:
-            method = 'contractPrivatePostPlanorderPlace'
-            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-            request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
-            request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
-            request['trend'] = self.safe_integer(params, 'trend', 1)
-            request['orderType'] = self.safe_integer(params, 'orderType', 1)
         if (type != 5) and (type != 6) and (type != 'market'):
             request['price'] = float(self.price_to_precision(symbol, price))
         if openType == 1:
             leverage = self.safe_integer(params, 'leverage')
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders')
-        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         if reduceOnly:
             request['side'] = 2 if (side == 'buy') else 4
         else:
@@ -2176,8 +2270,18 @@ class mexc(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly'])
-        response = await getattr(self, method)(self.extend(request, params))
+        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice'])
+        response = None
+        if stopPrice:
+            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
+            request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
+            request['trend'] = self.safe_integer(params, 'trend', 1)
+            request['orderType'] = self.safe_integer(params, 'orderType', 1)
+            response = await self.contractPrivatePostPlanorderPlace(self.extend(request, params))
+        else:
+            response = await self.contractPrivatePostOrderSubmit(self.extend(request, params))
         #
         # Swap
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -2192,7 +2296,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         *spot only*  *all orders must have the same symbol* create a list of trade orders
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2269,12 +2373,12 @@ class mexc(Exchange, ImplicitAPI):
             else:
                 request['orderId'] = id
             marginMode, query = self.handle_margin_mode_and_params('fetchOrder', params)
-            method = 'spotPrivateGetOrder'
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' fetchOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                method = 'spotPrivateGetMarginOrder'
-            data = await getattr(self, method)(self.extend(request, query))
+                data = await self.spotPrivateGetMarginOrder(self.extend(request, query))
+            else:
+                data = await self.spotPrivateGetOrder(self.extend(request, query))
             #
             # spot
             #
@@ -2362,7 +2466,7 @@ class mexc(Exchange, ImplicitAPI):
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: only 'isolated' is supported, for spot-margin trading
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2378,16 +2482,17 @@ class mexc(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for spot market')
             marginMode, queryInner = self.handle_margin_mode_and_params('fetchOrders', params)
-            method = 'spotPrivateGetAllOrders'
-            if marginMode is not None:
-                if marginMode != 'isolated':
-                    raise BadRequest(self.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                method = 'spotPrivateGetMarginAllOrders'
             if since is not None:
                 request['startTime'] = since
             if limit is not None:
                 request['limit'] = limit
-            response = await getattr(self, method)(self.extend(request, queryInner))
+            response = None
+            if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
+                response = await self.spotPrivateGetMarginAllOrders(self.extend(request, queryInner))
+            else:
+                response = await self.spotPrivateGetAllOrders(self.extend(request, queryInner))
             #
             # spot
             #
@@ -2590,13 +2695,14 @@ class mexc(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for spot market')
             request['symbol'] = market['id']
-            method = 'spotPrivateGetOpenOrders'
             marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
+            response = None
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                method = 'spotPrivateGetMarginOpenOrders'
-            response = await getattr(self, method)(self.extend(request, query))
+                response = await self.spotPrivateGetMarginOpenOrders(self.extend(request, query))
+            else:
+                response = await self.spotPrivateGetOpenOrders(self.extend(request, query))
             #
             # spot
             #
@@ -2655,7 +2761,7 @@ class mexc(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2716,12 +2822,12 @@ class mexc(Exchange, ImplicitAPI):
                 requestInner['origClientOrderId'] = clientOrderId
             else:
                 requestInner['orderId'] = id
-            method = 'spotPrivateDeleteOrder'
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                method = 'spotPrivateDeleteMarginOrder'
-            data = await getattr(self, method)(self.extend(requestInner, query))
+                data = await self.spotPrivateDeleteMarginOrder(self.extend(requestInner, query))
+            else:
+                data = await self.spotPrivateDeleteOrder(self.extend(requestInner, query))
             #
             # spot
             #
@@ -2760,7 +2866,13 @@ class mexc(Exchange, ImplicitAPI):
             # TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
             method = self.safe_string(self.options, 'cancelOrder', 'contractPrivatePostOrderCancel')  # contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = self.safe_string(query, 'method', method)
-            response = await getattr(self, method)([id])  # the request cannot be changed or extended. This is the only way to send.
+            response = None
+            if method == 'contractPrivatePostOrderCancel':
+                response = await self.contractPrivatePostOrderCancel([id])  # the request cannot be changed or extended. This is the only way to send.
+            elif method == 'contractPrivatePostPlanorderCancel':
+                response = await self.contractPrivatePostPlanorderCancel([id])  # the request cannot be changed or extended. This is the only way to send.
+            else:
+                raise NotSupported(self.id + ' cancelOrder() not support self method')
             #
             #     {
             #         "success": True,
@@ -2830,12 +2942,13 @@ class mexc(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument on spot')
             request['symbol'] = market['id']
-            method = 'spotPrivateDeleteOpenOrders'
+            response = None
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                method = 'spotPrivateDeleteMarginOpenOrders'
-            response = await getattr(self, method)(self.extend(request, query))
+                response = await self.spotPrivateDeleteMarginOpenOrders(self.extend(request, query))
+            else:
+                response = await self.spotPrivateDeleteOpenOrders(self.extend(request, query))
             #
             # spot
             #
@@ -2880,7 +2993,11 @@ class mexc(Exchange, ImplicitAPI):
             # the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             method = self.safe_string(self.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll')
             method = self.safe_string(query, 'method', method)
-            response = await getattr(self, method)(self.extend(request, query))
+            response = None
+            if method == 'contractPrivatePostOrderCancelAll':
+                response = await self.contractPrivatePostOrderCancelAll(self.extend(request, query))
+            elif method == 'contractPrivatePostPlanorderCancelAll':
+                response = await self.contractPrivatePostPlanorderCancelAll(self.extend(request, query))
             #
             #     {
             #         "success": True,
@@ -3370,13 +3487,10 @@ class mexc(Exchange, ImplicitAPI):
         marketType = None
         request = {}
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPrivateGetAccount',
-            'swap': 'contractPrivateGetAccountAssets',
-            'margin': 'spotPrivateGetMarginIsolatedAccount',
-        })
         marginMode = self.safe_string(params, 'marginMode')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
+        params = self.omit(params, ['margin', 'marginMode'])
+        response = None
         if (marginMode is not None) or (isMargin) or (marketType == 'margin'):
             parsedSymbols = None
             symbol = self.safe_string(params, 'symbol')
@@ -3388,11 +3502,16 @@ class mexc(Exchange, ImplicitAPI):
                 market = self.market(symbol)
                 parsedSymbols = market['id']
             self.check_required_argument('fetchBalance', parsedSymbols, 'symbol or symbols')
-            method = 'spotPrivateGetMarginIsolatedAccount'
             marketType = 'margin'
             request['symbols'] = parsedSymbols
-        params = self.omit(params, ['margin', 'marginMode', 'symbol', 'symbols'])
-        response = await getattr(self, method)(self.extend(request, params))
+            params = self.omit(params, ['symbol', 'symbols'])
+            response = await self.spotPrivateGetMarginIsolatedAccount(self.extend(request, params))
+        elif marketType == 'spot':
+            response = await self.spotPrivateGetAccount(self.extend(request, params))
+        elif marketType == 'swap':
+            response = await self.contractPrivateGetAccountAssets(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchBalance() not support self method')
         #
         # spot
         #
@@ -3670,7 +3789,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'ADD', params)
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -3991,23 +4110,22 @@ class mexc(Exchange, ImplicitAPI):
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
-        #     {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
-        #     {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
-        #     {"chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"},
-        #     {"chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"},
-        #     {"chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU"}
-        #
+        #    {
+        #        coin: "USDT",
+        #        network: "BNB Smart Chain(BEP20)",
+        #        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        #        memo:  null
+        #    }
         #
         address = self.safe_string(depositAddress, 'address')
-        code = self.safe_currency_code(None, currency)
-        networkId = self.safe_string(depositAddress, 'chain')
-        network = self.safe_network(networkId)
+        currencyId = self.safe_string(depositAddress, 'coin')
+        networkId = self.safe_string(depositAddress, 'network')
         self.check_address(address)
         return {
-            'currency': code,
+            'currency': self.safe_currency_code(currencyId, currency),
             'address': address,
-            'tag': None,
-            'network': network,
+            'tag': self.safe_string(depositAddress, 'memo'),
+            'network': self.network_id_to_code(networkId),
             'info': depositAddress,
         }
 
@@ -4025,32 +4143,31 @@ class mexc(Exchange, ImplicitAPI):
             'coin': currency['id'],
         }
         networkCode = self.safe_string(params, 'network')
-        networkId = self.network_code_to_id(networkCode, code)
+        networkId = None
+        if networkCode is not None:
+            networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['network'] = networkId
         params = self.omit(params, 'network')
         response = await self.spotPrivateGetCapitalDepositAddress(self.extend(request, params))
-        result = []
-        for i in range(0, len(response)):
-            depositAddress = response[i]
-            coin = self.safe_string(depositAddress, 'coin')
-            currencyInner = self.currency(coin)
-            networkIdInner = self.safe_string(depositAddress, 'network')
-            network = self.safe_network(networkIdInner)
-            address = self.safe_string(depositAddress, 'address', None)
-            tag = self.safe_string_2(depositAddress, 'tag', 'memo', None)
-            result.append({
-                'currency': currencyInner['id'],
-                'network': network,
-                'address': address,
-                'tag': tag,
-            })
-        return result
+        #
+        #    [
+        #        {
+        #            coin: "USDT",
+        #            network: "BNB Smart Chain(BEP20)",
+        #            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        #            memo:  null
+        #        }
+        #        ...
+        #    ]
+        #
+        addressStructures = self.parse_deposit_addresses(response, None, False)
+        return self.index_by(addressStructures, 'network')
 
     async def create_deposit_address(self, code: str, params={}):
         """
-        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
         create a currency deposit address
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: the blockchain network name
@@ -4075,13 +4192,7 @@ class mexc(Exchange, ImplicitAPI):
         #        "address": "zzqqqqqqqqqq",
         #        "memo": "MX10068"
         #     }
-        return {
-            'info': response,
-            'currency': self.safe_string(response, 'coin'),
-            'network': self.safe_string(response, 'network'),
-            'address': self.safe_string(response, 'address'),
-            'tag': self.safe_string(response, 'memo'),
-        }
+        return self.parse_deposit_address(response, currency)
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
@@ -4089,20 +4200,26 @@ class mexc(Exchange, ImplicitAPI):
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the chain of currency, self only apply for multi-chain currency, and there is no need for single chain currency
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
-        rawNetwork = self.safe_string_upper(params, 'network')
-        params = self.omit(params, 'network')
-        response = await self.fetch_deposit_addresses_by_network(code, params)
-        if rawNetwork is not None:
-            for i in range(0, len(response)):
-                depositAddress = response[i]
-                network = self.safe_string_upper(depositAddress, 'network')
-                if rawNetwork == network:
-                    return depositAddress
-        result = self.safe_value(response, 0)
+        network = self.safe_string(params, 'network')
+        params = self.omit(params, ['network'])
+        addressStructures = await self.fetch_deposit_addresses_by_network(code, params)
+        result = None
+        if network is not None:
+            result = self.safe_dict(addressStructures, self.network_id_to_code(network, code))
+        else:
+            options = self.safe_dict(self.options, 'defaultNetworks')
+            defaultNetworkForCurrency = self.safe_string(options, code)
+            if defaultNetworkForCurrency is not None:
+                result = self.safe_dict(addressStructures, defaultNetworkForCurrency)
+            else:
+                keys = list(addressStructures.keys())
+                key = self.safe_string(keys, 0)
+                result = self.safe_dict(addressStructures, key)
         if result is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', consider creating one using the MEXC platform')
+            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using the MEXC platform')
         return result
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -4259,7 +4376,7 @@ class mexc(Exchange, ImplicitAPI):
         network = None
         rawNetwork = self.safe_string(transaction, 'network')
         if rawNetwork is not None:
-            network = self.safe_network(rawNetwork)
+            network = self.network_id_to_code(rawNetwork)
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amountString = self.safe_string(transaction, 'amount')
@@ -4418,7 +4535,7 @@ class mexc(Exchange, ImplicitAPI):
         marginType = 'isolated' if (openType == '1') else 'cross'
         leverage = self.safe_number(position, 'leverage')
         liquidationPrice = self.safe_number(position, 'liquidatePrice')
-        timestamp = self.safe_number(position, 'updateTime')
+        timestamp = self.safe_integer(position, 'updateTime')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -4554,7 +4671,7 @@ class mexc(Exchange, ImplicitAPI):
             #
         return self.parse_transfers(resultList, currency, since, limit)
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
@@ -4679,7 +4796,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
@@ -4715,7 +4832,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         request = {
             'positionMode': 1 if hedged else 2,  # 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         }
@@ -4743,7 +4860,7 @@ class mexc(Exchange, ImplicitAPI):
             'hedged': (positionMode == 1),
         }
 
-    async def fetch_transaction_fees(self, codes=None, params={}):
+    async def fetch_transaction_fees(self, codes: List[str] = None, params={}):
         """
         fetch deposit and withdrawal fees
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
@@ -4922,16 +5039,84 @@ class mexc(Exchange, ImplicitAPI):
             }
         return self.assign_default_deposit_withdraw_fees(result)
 
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+        """
+        fetch the set leverage for a market
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.contractPrivateGetPositionLeverage(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "level": 1,
+        #                 "maxVol": 463300,
+        #                 "mmr": 0.004,
+        #                 "imr": 0.005,
+        #                 "positionType": 1,
+        #                 "openType": 1,
+        #                 "leverage": 20,
+        #                 "limitBySys": False,
+        #                 "currentMmr": 0.004
+        #             },
+        #             {
+        #                 "level": 1,
+        #                 "maxVol": 463300,
+        #                 "mmr": 0.004,
+        #                 "imr": 0.005,
+        #                 "positionType": 2,
+        #                 "openType": 1,
+        #                 "leverage": 20,
+        #                 "limitBySys": False,
+        #                 "currentMmr": 0.004
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_leverage(data, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marginMode = None
+        longLeverage = None
+        shortLeverage = None
+        for i in range(0, len(leverage)):
+            entry = leverage[i]
+            openType = self.safe_integer(entry, 'openType')
+            positionType = self.safe_integer(entry, 'positionType')
+            if positionType == 1:
+                longLeverage = self.safe_integer(entry, 'leverage')
+            elif positionType == 2:
+                shortLeverage = self.safe_integer(entry, 'leverage')
+            marginMode = 'isolated' if (openType == 1) else 'cross'
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        }
+
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.margin]: True for trading spot-margin
-        :returns array: the marginMode in lowercase
+        :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         marginMode = None
         marginMode, params = super(mexc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if (defaultType == 'margin') or (isMargin is True):
@@ -4963,7 +5148,7 @@ class mexc(Exchange, ImplicitAPI):
                     'X-MEXC-APIKEY': self.apiKey,
                     'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
-            if method == 'POST':
+            if (method == 'POST') or (method == 'PUT') or (method == 'DELETE'):
                 headers['Content-Type'] = 'application/json'
         elif section == 'contract' or section == 'spot2':
             url = self.urls['api'][section][access] + '/' + self.implode_params(path, params)
@@ -5007,7 +5192,7 @@ class mexc(Exchange, ImplicitAPI):
         #     {"code":10216,"msg":"No available deposit address"}
         #     {"success":true, "code":0, "data":1634095541710}
         #
-        success = self.safe_value(response, 'success', False)  # v1
+        success = self.safe_bool(response, 'success', False)  # v1
         if success is True:
             return None
         responseCode = self.safe_string(response, 'code', None)

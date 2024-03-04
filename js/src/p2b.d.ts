@@ -1,9 +1,9 @@
 import { Market } from '../ccxt.js';
 import Exchange from './abstract/p2b.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Int, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers } from './base/types.js';
 /**
  * @class p2b
- * @extends Exchange
+ * @augments Exchange
  */
 export default class p2b extends Exchange {
     describe(): any;
@@ -19,7 +19,7 @@ export default class p2b extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseBalance(response: any): import("./base/types.js").Balances;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;

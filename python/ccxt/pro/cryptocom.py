@@ -6,10 +6,11 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, OrderSide, OrderType, Str, Strings
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NetworkError
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
 
 
@@ -21,7 +22,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 'ws': True,
                 'watchBalance': True,
                 'watchTicker': True,
-                'watchTickers': False,  # for now
+                'watchTickers': False,
                 'watchMyTrades': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
@@ -68,83 +69,168 @@ class cryptocom(ccxt.async_support.cryptocom):
             error = NetworkError(self.id + ' pong failed with error ' + self.json(e))
             client.reset(error)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
+        :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
-        market = self.market(symbol)
-        messageHash = 'book' + '.' + market['id']
-        orderbook = await self.watch_public(messageHash, params)
-        return orderbook.limit()
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
+        :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
+        messageHashes = []
+        if not limit:
+            limit = 50
+        topicParams = self.safe_value(params, 'params')
+        if topicParams is None:
+            params['params'] = {}
+        bookSubscriptionType = None
+        bookSubscriptionType, params = self.handle_option_and_params_2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
+        if bookSubscriptionType is not None:
+            params['params']['bookSubscriptionType'] = bookSubscriptionType
+        bookUpdateFrequency = None
+        bookUpdateFrequency, params = self.handle_option_and_params_2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency')
+        if bookUpdateFrequency is not None:
+            params['params']['bookSubscriptionType'] = bookSubscriptionType
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            currentMessageHash = 'book' + '.' + market['id']
-            topics.append(currentMessageHash)
-        messageHash = 'multipleOrderbooks::' + ','.join(symbols)
-        orderbook = await self.watch_public_multiple(messageHash, topics, params)
+            currentTopic = 'book' + '.' + market['id'] + '.' + str(limit)
+            messageHash = 'orderbook:' + market['symbol']
+            messageHashes.append(messageHash)
+            topics.append(currentTopic)
+        orderbook = await self.watch_public_multiple(messageHashes, topics, params)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client: Client, message):
-        # full snapshot
+    def handle_delta(self, bookside, delta):
+        price = self.safe_float(delta, 0)
+        amount = self.safe_float(delta, 1)
+        count = self.safe_integer(delta, 2)
+        bookside.store(price, amount, count)
+
+    def handle_deltas(self, bookside, deltas):
+        for i in range(0, len(deltas)):
+            self.handle_delta(bookside, deltas[i])
+
+    def handle_order_book(self, client: Client, message):
         #
-        # {
-        #     "instrument_name":"LTC_USDT",
-        #     "subscription":"book.LTC_USDT.150",
-        #     "channel":"book",
-        #     "depth":150,
-        #     "data": [
-        #          {
-        #              "bids": [
-        #                  [122.21, 0.74041, 4]
-        #              ],
-        #              "asks": [
-        #                  [122.29, 0.00002, 1]
-        #              ]
-        #              "t": 1648123943803,
-        #              "s":754560122
-        #          }
-        #      ]
-        # }
+        # snapshot
+        #    {
+        #        "instrument_name":"LTC_USDT",
+        #        "subscription":"book.LTC_USDT.150",
+        #        "channel":"book",
+        #        "depth":150,
+        #        "data": [
+        #             {
+        #                 "bids": [
+        #                     [122.21, 0.74041, 4]
+        #                 ],
+        #                 "asks": [
+        #                     [122.29, 0.00002, 1]
+        #                 ]
+        #                 "t": 1648123943803,
+        #                 "s":754560122
+        #             }
+        #         ]
+        #    }
+        #  update
+        #    {
+        #        "instrument_name":"BTC_USDT",
+        #        "subscription":"book.BTC_USDT.50",
+        #        "channel":"book.update",
+        #        "depth":50,
+        #        "data":[
+        #           {
+        #              "update":{
+        #                 "asks":[
+        #                    [
+        #                       "43755.46",
+        #                       "0.10000",
+        #                       "1"
+        #                    ],
+        #                    ...
+        #                 ],
+        #                 "bids":[
+        #                    [
+        #                       "43737.46",
+        #                       "0.14096",
+        #                       "1"
+        #                    ],
+        #                    ...
+        #                 ]
+        #              },
+        #              "t":1704484068898,
+        #              "tt":1704484068892,
+        #              "u":78795598253024,
+        #              "pu":78795598162080,
+        #              "cs":-781431132
+        #           }
+        #        ]
+        #    }
         #
-        messageHash = self.safe_string(message, 'subscription')
         marketId = self.safe_string(message, 'instrument_name')
         market = self.safe_market(marketId)
         symbol = market['symbol']
         data = self.safe_value(message, 'data')
         data = self.safe_value(data, 0)
         timestamp = self.safe_integer(data, 't')
-        snapshot = self.parse_order_book(data, symbol, timestamp)
-        snapshot['nonce'] = self.safe_integer(data, 's')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             limit = self.safe_integer(message, 'depth')
-            orderbook = self.order_book({}, limit)
-        orderbook.reset(snapshot)
+            orderbook = self.counted_order_book({}, limit)
+        channel = self.safe_string(message, 'channel')
+        nonce = self.safe_integer_2(data, 'u', 's')
+        books = data
+        if channel == 'book':  # snapshot
+            orderbook.reset({})
+            orderbook['symbol'] = symbol
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+            orderbook['nonce'] = nonce
+        else:
+            books = self.safe_value(data, 'update', {})
+            previousNonce = self.safe_integer(data, 'pu')
+            currentNonce = orderbook['nonce']
+            if currentNonce != previousNonce:
+                raise InvalidNonce(self.id + ' watchOrderBook() ' + symbol + ' ' + previousNonce + ' != ' + nonce)
+        self.handle_deltas(orderbook['asks'], self.safe_value(books, 'asks', []))
+        self.handle_deltas(orderbook['bids'], self.safe_value(books, 'bids', []))
+        orderbook['nonce'] = nonce
         self.orderbooks[symbol] = orderbook
+        messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
-        self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbooks::', symbol, orderbook)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a particular symbol
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
@@ -155,34 +241,14 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
-        market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'trade' + '.' + market['id']
-        trades = await self.watch_public(messageHash, params)
-        if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
-
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
-        """
-        get the list of most recent trades for a particular symbol
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
-        :param str symbol: unified symbol of the market to fetch trades for
-        :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
-        """
-        await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            currentMessageHash = 'trade' + '.' + market['id']
-            topics.append(currentMessageHash)
-        messageHash = 'multipleTrades::' + ','.join(symbols)
-        trades = await self.watch_public_multiple(messageHash, topics, params)
+            currentTopic = 'trade' + '.' + market['id']
+            topics.append(currentTopic)
+        trades = await self.watch_public_multiple(topics, topics, params)
         if self.newUpdates:
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
@@ -232,9 +298,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         channelReplaced = channel.replace('.' + marketId, '')
         client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, channelReplaced)
-        self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, stored)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-trade-instrument_name
@@ -256,7 +321,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
@@ -303,7 +368,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             self.tickers[symbol] = parsed
             client.resolve(parsed, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#candlestick-time_frame-instrument_name
@@ -354,7 +419,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-order-instrument_name
@@ -424,7 +489,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             client.resolve(stored, channel)  # channel might have a symbol-specific suffix
             client.resolve(stored, 'user.order')
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
         watch all open positions
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
@@ -450,7 +515,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
@@ -533,7 +598,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
@@ -606,7 +671,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHashRequest = self.safe_string(message, 'id')
         client.resolve(self.balance, messageHashRequest)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
         """
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
         create a trade order
@@ -619,7 +684,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        params = self.createOrderRequest(symbol, type, side, amount, price, params)
+        params = self.create_order_request(symbol, type, side, amount, price, params)
         request = {
             'method': 'private/create-order',
             'params': params,
@@ -644,7 +709,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         order = self.parse_order(rawOrder)
         client.resolve(order, messageHash)
 
-    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         cancels an open order
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
@@ -708,7 +773,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_public_multiple(self, messageHash, topics, params={}):
+    async def watch_public_multiple(self, messageHashes, topics, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
         request = {
@@ -718,8 +783,8 @@ class cryptocom(ccxt.async_support.cryptocom):
             },
             'nonce': id,
         }
-        message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, messageHash)
+        message = self.deep_extend(request, params)
+        return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
     async def watch_private_request(self, nonce, params={}):
         await self.authenticate()
@@ -778,7 +843,8 @@ class cryptocom(ccxt.async_support.cryptocom):
             'candlestick': self.handle_ohlcv,
             'ticker': self.handle_ticker,
             'trade': self.handle_trades,
-            'book': self.handle_order_book_snapshot,
+            'book': self.handle_order_book,
+            'book.update': self.handle_order_book,
             'user.order': self.handle_orders,
             'user.trade': self.handle_trades,
             'user.balance': self.handle_balance,

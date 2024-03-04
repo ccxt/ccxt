@@ -3,7 +3,7 @@
 import wazirxRest from '../wazirx.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
-import { Int, OHLCV, Str, Strings } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ export default class wazirx extends wazirxRest {
         });
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name wazirx#watchBalance
@@ -166,7 +166,7 @@ export default class wazirx extends wazirxRest {
         }, market);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name wazirx#watchTicker
@@ -190,7 +190,7 @@ export default class wazirx extends wazirxRest {
         return await this.watch (url, messageHash, request, subscribeHash);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name wazirx#watchTickers
@@ -292,7 +292,7 @@ export default class wazirx extends wazirxRest {
         }, market);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name wazirx#watchTrades
@@ -359,7 +359,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name wazirx#watchMyTrades
@@ -392,7 +392,7 @@ export default class wazirx extends wazirxRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name wazirx#watchOHLCV
@@ -483,7 +483,7 @@ export default class wazirx extends wazirxRest {
         ];
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name wazirx#watchOrderBook
@@ -560,7 +560,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -748,7 +748,8 @@ export default class wazirx extends wazirxRest {
     handleMessage (client: Client, message) {
         const status = this.safeString (message, 'status');
         if (status === 'error') {
-            return this.handleError (client, message);
+            this.handleError (client, message);
+            return;
         }
         const event = this.safeString (message, 'event');
         const eventHandlers = {
@@ -758,7 +759,8 @@ export default class wazirx extends wazirxRest {
         };
         const eventHandler = this.safeValue (eventHandlers, event);
         if (eventHandler !== undefined) {
-            return eventHandler.call (this, client, message);
+            eventHandler.call (this, client, message);
+            return;
         }
         const stream = this.safeString (message, 'stream', '');
         const streamHandlers = {
@@ -774,7 +776,8 @@ export default class wazirx extends wazirxRest {
         for (let i = 0; i < streams.length; i++) {
             if (this.inArray (streams[i], stream)) {
                 const handler = streamHandlers[streams[i]];
-                return handler.call (this, client, message);
+                handler.call (this, client, message);
+                return;
             }
         }
         throw new NotSupported (this.id + ' this message type is not supported yet. Message: ' + this.json (message));

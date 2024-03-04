@@ -5,13 +5,13 @@ import { BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class ace
- * @extends Exchange
+ * @augments Exchange
  */
 export default class ace extends Exchange {
     describe () {
@@ -596,7 +596,7 @@ export default class ace extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name ace#createOrder
@@ -713,7 +713,7 @@ export default class ace extends Exchange {
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1070,8 +1070,9 @@ export default class ace extends Exchange {
         const feedback = this.id + ' ' + body;
         const status = this.safeNumber (response, 'status', 200);
         if (status > 200) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], status, feedback);
+            const statusStr = status.toString ();
+            this.throwExactlyMatchedException (this.exceptions['exact'], statusStr, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], statusStr, feedback);
         }
         return undefined;
     }

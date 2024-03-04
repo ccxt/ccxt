@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_proxies(exchange, skipped_properties):
     test_proxy_url(exchange, skipped_properties)
@@ -27,7 +25,7 @@ def test_proxy_url(exchange, skipped_properties):
     method = 'proxyUrl'
     proxy_server_ip = '5.75.153.75'
     [proxy_url, http_proxy, https_proxy, socks_proxy] = test_shared_methods.remove_proxy_options(exchange, skipped_properties)
-    exchange.proxy_url = 'http://' + proxy_server_ip + ':8090/proxy.php?url='
+    exchange.proxy_url = 'http://' + proxy_server_ip + ':8090/proxy_url.php?caller=https://ccxt.com&url='
     encoded_colon = '%3A'
     encoded_slash = '%2F'
     ip_check_url = 'https' + encoded_colon + encoded_slash + encoded_slash + 'api.ipify.org'

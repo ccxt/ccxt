@@ -1,9 +1,8 @@
 import Exchange from './abstract/wavesexchange.js';
-import { Precise } from './base/Precise.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class wavesexchange
- * @extends Exchange
+ * @augments Exchange
  */
 export default class wavesexchange extends Exchange {
     describe(): any;
@@ -48,12 +47,12 @@ export default class wavesexchange extends Exchange {
     customAmountToPrecision(symbol: any, amount: any): number;
     currencyToPrecision(code: any, amount: any, networkCode?: any): number;
     fromPrecision(amount: any, scale: any): string;
-    toPrecision(amount: any, scale: any): Precise;
+    toPrecision(amount: any, scale: any): string;
     currencyFromPrecision(currency: any, amount: any): string;
     priceFromPrecision(symbol: any, price: any): string;
     safeGetDynamic(settings: any): any;
     safeGetRates(dynamic: any): any;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<{
         info: any;
         id: string;
@@ -89,6 +88,6 @@ export default class wavesexchange extends Exchange {
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): any;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
 }

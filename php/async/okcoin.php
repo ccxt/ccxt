@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -35,12 +36,24 @@ class okcoin extends Exchange {
                 'future' => true,
                 'option' => null,
                 'cancelOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true, // see below
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -58,6 +71,10 @@ class okcoin extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'setMargin' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -850,7 +867,7 @@ class okcoin extends Exchange {
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
-        $spot = $this->safe_value($market, 'spot', false);
+        $spot = $this->safe_bool($market, 'spot', false);
         $quoteVolume = $spot ? $this->safe_string($ticker, 'volCcy24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         $high = $this->safe_string($ticker, 'high24h');
@@ -1267,7 +1284,28 @@ class okcoin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a $market buy order by providing the $symbol and $cost
+             * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+            }
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            $params['tgtCcy'] = 'quote_ccy';
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-$order
@@ -1292,6 +1330,7 @@ class okcoin extends Exchange {
              * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
              * @param {float} [$params->stopLoss.price] used for stop loss limit orders, not used for stop loss $market $price orders
              * @param {string} [$params->stopLoss.type] 'market' or 'limit' used to specify the stop loss $price $type
+             * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -1302,16 +1341,22 @@ class okcoin extends Exchange {
             if (($requestOrdType === 'trigger') || ($requestOrdType === 'conditional') || ($type === 'oco') || ($type === 'move_order_stop') || ($type === 'iceberg') || ($type === 'twap')) {
                 $method = 'privatePostTradeOrderAlgo';
             }
-            if (($method !== 'privatePostTradeOrder') && ($method !== 'privatePostTradeOrderAlgo') && ($method !== 'privatePostTradeBatchOrders')) {
-                throw new ExchangeError($this->id . ' createOrder() $this->options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo');
-            }
             if ($method === 'privatePostTradeBatchOrders') {
                 // keep the $request body the same
                 // submit a single $order in an array to the batch $order endpoint
                 // because it has a lower ratelimit
                 $request = array( $request );
             }
-            $response = Async\await($this->$method ($request));
+            $response = null;
+            if ($method === 'privatePostTradeOrder') {
+                $response = Async\await($this->privatePostTradeOrder ($request));
+            } elseif ($method === 'privatePostTradeOrderAlgo') {
+                $response = Async\await($this->privatePostTradeOrderAlgo ($request));
+            } elseif ($method === 'privatePostTradeBatchOrders') {
+                $response = Async\await($this->privatePostTradeBatchOrders ($request));
+            } else {
+                throw new ExchangeError($this->id . ' createOrder() $this->options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo');
+            }
             $data = $this->safe_value($response, 'data', array());
             $first = $this->safe_value($data, 0);
             $order = $this->parse_order($first, $market);
@@ -1321,7 +1366,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
@@ -1333,7 +1378,7 @@ class okcoin extends Exchange {
             'ordType' => $type,
             // 'ordType' => $type, // privatePostTradeOrder => $market, limit, post_only, $fok, $ioc, optimal_limit_ioc
             // 'ordType' => $type, // privatePostTradeOrderAlgo => $conditional, oco, $trigger, move_order_stop, iceberg, twap
-            'sz' => $this->amount_to_precision($symbol, $amount),
+            // 'sz' => $this->amount_to_precision($symbol, $amount),
             // 'px' => $this->price_to_precision($symbol, $price), // limit orders only
             // 'reduceOnly' => false,
             //
@@ -1369,7 +1414,7 @@ class okcoin extends Exchange {
             $margin = true;
         } else {
             $marginMode = $defaultMarginMode;
-            $margin = $this->safe_value($params, 'margin', false);
+            $margin = $this->safe_bool($params, 'margin', false);
         }
         if ($margin) {
             $defaultCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
@@ -1394,32 +1439,39 @@ class okcoin extends Exchange {
         }
         if ($isMarketOrder || $marketIOC) {
             $request['ordType'] = 'market';
-            if (($side === 'buy')) {
+            if ($side === 'buy') {
                 // spot $market buy => "sz" can refer either to base $currency units or to quote $currency units
                 // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if ($tgtCcy === 'quote_ccy') {
                     // quote_ccy => sz refers to units of quote $currency
-                    $notional = $this->safe_number_2($params, 'cost', 'sz');
-                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                    if ($createMarketBuyOrderRequiresPrice) {
-                        if ($price !== null) {
-                            if ($notional === null) {
-                                $amountString = $this->number_to_string($amount);
-                                $priceString = $this->number_to_string($price);
-                                $quoteAmount = Precise::string_mul($amountString, $priceString);
-                                $notional = $this->parse_number($quoteAmount);
-                            }
-                        } elseif ($notional === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
+                    $quoteAmount = null;
+                    $createMarketBuyOrderRequiresPrice = true;
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    $cost = $this->safe_number_2($params, 'cost', 'sz');
+                    $params = $this->omit($params, array( 'cost', 'sz' ));
+                    if ($cost !== null) {
+                        $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                    } elseif ($createMarketBuyOrderRequiresPrice) {
+                        if ($price === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                        } else {
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $costRequest = Precise::string_mul($amountString, $priceString);
+                            $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                         }
                     } else {
-                        $notional = ($notional === null) ? $amount : $notional;
+                        $quoteAmount = $this->cost_to_precision($symbol, $amount);
                     }
-                    $request['sz'] = $this->cost_to_precision($symbol, $notional);
-                    $params = $this->omit($params, array( 'cost', 'sz' ));
+                    $request['sz'] = $quoteAmount;
+                } else {
+                    $request['sz'] = $this->amount_to_precision($symbol, $amount);
                 }
+            } else {
+                $request['sz'] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
+            $request['sz'] = $this->amount_to_precision($symbol, $amount);
             if ((!$trigger) && (!$conditional)) {
                 $request['px'] = $this->price_to_precision($symbol, $price);
             }
@@ -1907,7 +1959,7 @@ class okcoin extends Exchange {
                 // 'ordId' => $id,
             );
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
             if ($stop) {
                 if ($clientOrderId !== null) {
                     $request['algoClOrdId'] = $clientOrderId;
@@ -1921,7 +1973,7 @@ class okcoin extends Exchange {
                     $request['ordId'] = $id;
                 }
             }
-            $query = $this->omit($params, array( 'clientOrderId', 'stop' ));
+            $query = $this->omit($params, array( 'clientOrderId', 'stop', 'trigger' ));
             $response = null;
             if ($stop) {
                 $response = Async\await($this->privateGetTradeOrderAlgo (array_merge($request, $query)));
@@ -1991,7 +2043,7 @@ class okcoin extends Exchange {
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->stop] True if fetching trigger or conditional orders
              * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
@@ -2228,7 +2280,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
@@ -2374,7 +2426,7 @@ class okcoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
@@ -2807,7 +2859,14 @@ class okcoin extends Exchange {
                 $request['ccy'] = $currency['id'];
             }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($method === 'privateGetAccountBillsArchive') {
+                $response = Async\await($this->privateGetAccountBillsArchive (array_merge($request, $params)));
+            } elseif ($method === 'privateGetAssetBills') {
+                $response = Async\await($this->privateGetAssetBills (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetAccountBills (array_merge($request, $params)));
+            }
             //
             // privateGetAccountBills, privateGetAccountBillsArchive
             //

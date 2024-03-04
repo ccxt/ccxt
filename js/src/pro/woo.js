@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 import wooRest from '../woo.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
-import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
@@ -24,6 +24,7 @@ export default class woo extends wooRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -48,6 +49,10 @@ export default class woo extends wooRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'requestId': {},
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true,
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -146,11 +151,10 @@ export default class woo extends wooRest {
         //         "count": 3689
         //     }
         //
-        const timestamp = this.safeInteger(ticker, 'date', this.milliseconds());
         return this.safeTicker({
             'symbol': this.safeSymbol(undefined, market),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
             'bid': undefined,
@@ -409,7 +413,7 @@ export default class woo extends wooRest {
         }
         return true;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const url = this.urls['api']['ws']['private'] + '/' + this.uid;
         const client = this.client(url);
@@ -607,6 +611,126 @@ export default class woo extends wooRest {
             client.resolve(this.orders, messageHashSymbol);
         }
     }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchPositions
+         * @see https://docs.woo.org/#position-push
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets();
+        let messageHash = '';
+        symbols = this.marketSymbols(symbols);
+        if (!this.isEmpty(symbols)) {
+            messageHash = '::' + symbols.join(',');
+        }
+        messageHash = 'positions' + messageHash;
+        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const client = this.client(url);
+        this.setPositionsCache(client, symbols);
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+            const snapshot = await client.future('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+        }
+        const request = {
+            'event': 'subscribe',
+            'topic': 'position',
+        };
+        const newPositions = await this.watchPrivate(messageHash, request, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+    }
+    setPositionsCache(client, type, symbols = undefined) {
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadPositionsSnapshot, client, messageHash);
+            }
+        }
+        else {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+    }
+    async loadPositionsSnapshot(client, messageHash) {
+        const positions = await this.fetchPositions();
+        this.positions = new ArrayCacheBySymbolBySide();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const contracts = this.safeNumber(position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append(position);
+            }
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve(cache);
+        client.resolve(cache, 'positions');
+    }
+    handlePositions(client, message) {
+        //
+        //    {
+        //        "topic":"position",
+        //        "ts":1705292345255,
+        //        "data":{
+        //           "positions":{
+        //              "PERP_LTC_USDT":{
+        //                 "holding":1,
+        //                 "pendingLongQty":0,
+        //                 "pendingShortQty":0,
+        //                 "averageOpenPrice":71.53,
+        //                 "pnl24H":0,
+        //                 "fee24H":0.07153,
+        //                 "settlePrice":71.53,
+        //                 "markPrice":71.32098452065145,
+        //                 "version":7886,
+        //                 "openingTime":1705292304267,
+        //                 "pnl24HPercentage":0,
+        //                 "adlQuantile":1,
+        //                 "positionSide":"BOTH"
+        //              }
+        //           }
+        //        }
+        //    }
+        //
+        const data = this.safeValue(message, 'data', {});
+        const rawPositions = this.safeValue(data, 'positions', {});
+        const postitionsIds = Object.keys(rawPositions);
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+        const cache = this.positions;
+        const newPositions = [];
+        for (let i = 0; i < postitionsIds.length; i++) {
+            const marketId = postitionsIds[i];
+            const market = this.safeMarket(marketId);
+            const rawPosition = rawPositions[marketId];
+            const position = this.parsePosition(rawPosition, market);
+            newPositions.push(position);
+            cache.append(position);
+        }
+        const messageHashes = this.findMessageHashes(client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(newPositions, 'positions');
+    }
     async watchBalance(params = {}) {
         /**
          * @method
@@ -690,17 +814,20 @@ export default class woo extends wooRest {
             'executionreport': this.handleOrderUpdate,
             'trade': this.handleTrade,
             'balance': this.handleBalance,
+            'position': this.handlePositions,
         };
         const event = this.safeString(message, 'event');
         let method = this.safeValue(methods, event);
         if (method !== undefined) {
-            return method.call(this, client, message);
+            method.call(this, client, message);
+            return;
         }
         const topic = this.safeString(message, 'topic');
         if (topic !== undefined) {
             method = this.safeValue(methods, topic);
             if (method !== undefined) {
-                return method.call(this, client, message);
+                method.call(this, client, message);
+                return;
             }
             const splitTopic = topic.split('@');
             const splitLength = splitTopic.length;
@@ -708,19 +835,19 @@ export default class woo extends wooRest {
                 const name = this.safeString(splitTopic, 1);
                 method = this.safeValue(methods, name);
                 if (method !== undefined) {
-                    return method.call(this, client, message);
+                    method.call(this, client, message);
+                    return;
                 }
                 const splitName = name.split('_');
                 const splitNameLength = splitTopic.length;
                 if (splitNameLength === 2) {
                     method = this.safeValue(methods, this.safeString(splitName, 0));
                     if (method !== undefined) {
-                        return method.call(this, client, message);
+                        method.call(this, client, message);
                     }
                 }
             }
         }
-        return message;
     }
     ping(client) {
         return { 'event': 'ping' };

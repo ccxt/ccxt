@@ -5,8 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, Str
+from ccxt.base.types import Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from typing import List
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
 
@@ -68,7 +69,7 @@ class idex(ccxt.async_support.idex):
         }
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -137,7 +138,7 @@ class idex(ccxt.async_support.idex):
         })
         client.resolve(ticker, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -227,7 +228,7 @@ class idex(ccxt.async_support.idex):
             'fee': fee,
         })
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -318,7 +319,7 @@ class idex(ccxt.async_support.idex):
                         symbol = self.safe_symbol(marketId)
                         if not (symbol in self.orderbooks):
                             orderbook = self.counted_order_book({})
-                            orderbook.cache = []
+                            # orderbook.cache = []  # cache is never used?
                             self.orderbooks[symbol] = orderbook
                         self.spawn(self.fetch_order_book_snapshot, client, symbol)
                 break
@@ -379,7 +380,7 @@ class idex(ccxt.async_support.idex):
             subscription['fetchingOrderBookSnapshot'] = False
             client.reject(e, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -474,12 +475,12 @@ class idex(ccxt.async_support.idex):
             self.options['token'] = self.safe_string(response, 'token')
         return self.options['token']
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

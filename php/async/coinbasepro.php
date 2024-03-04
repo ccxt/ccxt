@@ -10,7 +10,6 @@ use ccxt\async\abstract\coinbasepro as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidAddress;
-use ccxt\NotSupported;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
@@ -47,6 +46,7 @@ class coinbasepro extends Exchange {
                 'fetchDepositAddress' => false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
+                'fetchFundingRate' => false,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -151,6 +151,7 @@ class coinbasepro extends Exchange {
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                         'conversions/{conversion_id}',
+                        'conversions/fees',
                     ),
                     'post' => array(
                         'conversions',
@@ -1153,7 +1154,7 @@ class coinbasepro extends Exchange {
              * fetches information on multiple orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch open orders for
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1213,7 +1214,7 @@ class coinbasepro extends Exchange {
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch open orders for
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1225,7 +1226,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
@@ -1378,49 +1379,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function deposit(string $code, $amount, $address, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $address, $params) {
-            /**
-             * Creates a new deposit $address, by coinbasepro
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositpaymentmethod
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositcoinbaseaccount
-             * @param {string} $code Unified CCXT $currency $code (e.g. `"USDT"`)
-             * @param {float} $amount The $amount of $currency to send in the deposit (e.g. `20`)
-             * @param {string} $address Not used by coinbasepro
-             * @param {array} [$params] Parameters specific to the exchange API endpoint (e.g. `array("network" => "TRX")`)
-             * @return a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
-             */
-            Async\await($this->load_markets());
-            $currency = $this->currency($code);
-            $request = array(
-                'currency' => $currency['id'],
-                'amount' => $amount,
-            );
-            $method = 'privatePostDeposits';
-            if (is_array($params) && array_key_exists('payment_method_id', $params)) {
-                // deposit from a payment_method, like a bank account
-                $method .= 'PaymentMethod';
-            } elseif (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
-                // deposit into Coinbase Pro account from a Coinbase account
-                $method .= 'CoinbaseAccount';
-            } else {
-                // deposit methodotherwise we did not receive a supported deposit location
-                // relevant docs link for the Googlers
-                // https://docs.pro.coinbase.com/#deposits
-                throw new NotSupported($this->id . ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
-            }
-            $response = Async\await($this->$method (array_merge($request, $params)));
-            if (!$response) {
-                throw new ExchangeError($this->id . ' deposit() error => ' . $this->json($response));
-            }
-            return array(
-                'info' => $response,
-                'id' => $response['id'],
-            );
-        }) ();
-    }
-
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

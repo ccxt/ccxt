@@ -29,6 +29,175 @@
                 ],
                 "output": "api_key=ab14677d-2555-4280-856d-4ccb60f8f1e8&sign=4235e196a21ec34b6dc07030102170eeade2e9b7fbfc2aa87b0d63f0955797bc"
             }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to true",
+                "method": "createOrder",
+                "url": "https://api.lbank.info/v2/supplement/create_order.do",
+                "input": [
+                    "LBK/USDT",
+                    "market",
+                    "buy",
+                    2,
+                    0.01376,
+                    {
+                        "createMarketBuyOrderRequiresPrice": true
+                    }
+                ],
+                "output": "api_key=41b03aa0-69d1-4d93-93cb-274470458c35&price=0.02752&sign=QIrm9%2B04WUXBs0608OwKVHxW%2FX38r%2Bbt91u6R9ryFqepDN7BrgG2KX0rt50caLXexE0r%2FuQNUvWgHbr7XxynccbahsDRzFN4rPnkyEfWwRLjKuWD3iwJNbAKlHL7yxifjHG1%2Fbhg1%2FqWbdy3GuhU9q1K9mvsOqUjU1vQw0Z00Qg%3D&symbol=lbk_usdt&type=buy_market"
+            },
+            {
+                "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://api.lbank.info/v2/supplement/create_order.do",
+                "input": [
+                    "LBK/USDT",
+                    "market",
+                    "buy",
+                    2,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
+                ],
+                "output": "api_key=41b03aa0-69d1-4d93-93cb-274470458c35&price=2&sign=oZ9YdxFx%2F4HonQcO7z3XlorAkwXAmrYGrV49pVfMsALWMJOoeBySPUwssOcD7BolCf%2BVHxReXXhz7FtbblsMGdxxTwHUo7P34vWXlQilCAhI4ErpxZ251KftVL%2FGIadkIAp9PjTlAH9r%2BVDL8gmhnIb%2BGCnXqS5VXS%2BPINSfDDc%3D&symbol=lbk_usdt&type=buy_market"
+            },
+            {
+                "description": "Spot market buy using the cost param",
+                "method": "createOrder",
+                "url": "https://api.lbank.info/v2/supplement/create_order.do",
+                "input": [
+                    "LBK/USDT",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 2
+                    }
+                ],
+                "output": "api_key=41b03aa0-69d1-4d93-93cb-274470458c35&price=2&sign=NBYGa7S42oCh1677mRZoM8jSUDJz6ucU86gfbYw7FseeoKK8gC0797t%2BvuhxYk4QzxutD3eGi6iiAylgaMQ1pjfJQUpu3ouR4DkaekJGe0pWSz2HzbvDkoyHedEdsE8maYlt7CVYeQmj5fNSGwKdSoi6yo6Gnym1CoeNNqTcMfY%3D&symbol=lbk_usdt&type=buy_market"
+            },
+            {
+                "description": "Spot market sell order",
+                "method": "createOrder",
+                "url": "https://api.lbank.info/v2/supplement/create_order.do",
+                "input": [
+                    "LBK/USDT",
+                    "market",
+                    "sell",
+                    579,
+                    null
+                ],
+                "output": "amount=579&api_key=41b03aa0-69d1-4d93-93cb-274470458c35&sign=pYy6x8l3taHsI30AEf7Awo0kqcX%2FOvl5qPtid2kYjQvJ9ZuJquXwQO77zWFG0EdwVJZTEM6TxkfkWRDgUgQgnerp%2FUvMdkQTfQRjiECDPRkVYdkYk5fr1IsvWIZCEbY%2FndRHMrgpvdLnxRkNpaMms%2BOJEf7T7HADfMFJTzEqq%2F8%3D&symbol=lbk_usdt&type=sell_market"
+            },
+            {
+                "description": "Spot limit sell order",
+                "method": "createOrder",
+                "url": "https://api.lbank.info/v2/supplement/create_order.do",
+                "input": [
+                    "LBK/USDT",
+                    "limit",
+                    "sell",
+                    145,
+                    0.015
+                ],
+                "output": "amount=145&api_key=41b03aa0-69d1-4d93-93cb-274470458c35&price=0.015&sign=YXclgHSvuBTBmbgsgLCNXfF6WSJr6mMR0Z8YoSvGadS9DUfPlttQAnEBHDT7YGB%2BmG6JHkfDPGom5LH3HPnFyCjcpXXtcPTl8uKNDELGCaeSe58cwutHvbxI%2BlE55gc3XFr6xAfCMpprAKFOIHm93r1ncUvQFqhyihxVV%2B7Sros%3D&symbol=lbk_usdt&type=sell"
+            },
+            {
+                "description": "Spot limit buy order",
+                "method": "createOrder",
+                "url": "https://api.lbank.info/v2/supplement/create_order.do",
+                "input": [
+                    "LBK/USDT",
+                    "limit",
+                    "buy",
+                    145,
+                    0.012
+                ],
+                "output": "amount=145&api_key=41b03aa0-69d1-4d93-93cb-274470458c35&price=0.012&sign=eEUmqDcJID4jWhU3V%2FBYwPKaper6uu5%2FiTOMNed3mQLH12VSGa1VqbjZvPxYFg8Ui5EyaffGo7IN%2BtgClOOKYbSYSS%2F%2F4QAh07TRtap31zLsTtnQcHUVAaNsgPfaLUbK4m5s3bWTTXu1IappCeTkJY6Te%2B0WQ8mkrfvdalZA2tE%3D&symbol=lbk_usdt&type=buy"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Spot market buy order using the cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.lbank.info/v2/supplement/create_order.do",
+                "input": [
+                    "LBK/USDT",
+                    2
+                ],
+                "output": "api_key=41b03aa0-69d1-4d93-93cb-274470458c35&price=2&sign=bBXd3WzsftbFBDrQMrY42WfTESsAVn80Z072XMyL25qq7Dv8BUtuGeIpuOH0J7tM8kzCoJ6Q6L%2BOO82TU3rlq23ier7eitWlUeoCXh4AB3Qs4PqQ7ea%2Bnj%2BzLwkbyaYbxOy%2Bos%2FxIXljuiTFNIXk29ZulaYIioqU%2BbQzH3fbjcg%3D&symbol=lbk_usdt&type=buy_market"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades - default",
+                "method": "fetchTrades",
+                "url": "https://api.lbank.info/v2/trades.do?size=5&symbol=ltc_usdt&time=1704896297866",
+                "input": [
+                    "LTC/USDT",
+                    1704896297866,
+                    5
+                ]
+            },
+            {
+                "description": "Fetch trades - supplement",
+                "method": "fetchTrades",
+                "url": "https://api.lbank.info/v2/supplement/trades.do?size=5&symbol=ltc_usdt&time=1704896297866",
+                "input": [
+                    "LTC/USDT",
+                    1704896297866,
+                    5,
+                    {
+                        "method": "spotPublicGetSupplementTrades"
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address - default",
+                "method": "fetchDepositAddress",
+                "url": "https://api.lbank.info/v2/get_deposit_address.do",
+                "input": [
+                    "USDT"
+                ],
+                "output": "api_key=41b03aa0-69d1-4d93-93cb-274470458c35&sign=NBYGa7S42oCh1677mRZoM8jSUDJz6ucU86gfbYw7FseeoKK8gC0797t%2BvuhxYk4QzxutD3eGi6iiAylgaMQ1pjfJQUpu3ouR4DkaekJGe0pWSz2HzbvDkoyHedEdsE8maYlt7CVYeQmj5fNSGwKdSoi6yo6Gnym1CoeNNqTcMfY%3D&assetCode=usdt&netWork=trc20"
+            },
+            {
+                "description": "Fetch deposit address - supplement",
+                "method": "fetchDepositAddress",
+                "url": "https://api.lbank.info/v2/supplement/get_deposit_address.do",
+                "input": [
+                    "USDT",
+                    {
+                        "method": "fetchDepositAddressSupplement"
+                    }
+                ],
+                "output": "api_key=41b03aa0-69d1-4d93-93cb-274470458c35&sign=NBYGa7S42oCh1677mRZoM8jSUDJz6ucU86gfbYw7FseeoKK8gC0797t%2BvuhxYk4QzxutD3eGi6iiAylgaMQ1pjfJQUpu3ouR4DkaekJGe0pWSz2HzbvDkoyHedEdsE8maYlt7CVYeQmj5fNSGwKdSoi6yo6Gnym1CoeNNqTcMfY%3D&coin=usdt"
+            }
+        ],
+        "fetchTransactionFees": [
+            {
+                "description": "Fetch transaction fees",
+                "method": "fetchTransactionFees",
+                "url": "https://api.lbank.info/v2/supplement/user_info.do",
+                "input": [],
+                "output": "api_key=41b03aa0-69d1-4d93-93cb-274470458c35&sign=NBYGa7S42oCh1677mRZoM8jSUDJz6ucU86gfbYw7FseeoKK8gC0797t%2BvuhxYk4QzxutD3eGi6iiAylgaMQ1pjfJQUpu3ouR4DkaekJGe0pWSz2HzbvDkoyHedEdsE8maYlt7CVYeQmj5fNSGwKdSoi6yo6Gnym1CoeNNqTcMfY%3D"
+            },
+            {
+                "description": "Fetch transaction fees",
+                "method": "fetchTransactionFees",
+                "url": "https://api.lbank.info/v2/withdrawConfigs.do",
+                "input": [
+                    null,
+                    {
+                        "method": "fetchPublicTransactionFees"
+                    }
+                ]
+            }
         ]
     }
 }

@@ -6,13 +6,13 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Dictionary, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Transaction, Balances, Dictionary, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
 /**
  * @class yobit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class yobit extends Exchange {
     describe () {
@@ -788,7 +788,7 @@ export default class yobit extends Exchange {
         return result;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name yobit#createOrder
@@ -1196,15 +1196,33 @@ export default class yobit extends Exchange {
         const address = this.safeString (response['return'], 'address');
         this.checkAddress (address);
         return {
+            'id': undefined,
             'currency': code,
             'address': address,
             'tag': undefined,
             'network': undefined,
             'info': response,
+            'txid': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name yobit#withdraw
@@ -1234,7 +1252,28 @@ export default class yobit extends Exchange {
         return {
             'info': response,
             'id': undefined,
-        };
+            'txid': undefined,
+            'type': undefined,
+            'currency': undefined,
+            'network': undefined,
+            'amount': undefined,
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
+        } as Transaction;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1307,7 +1346,7 @@ export default class yobit extends Exchange {
             //
             // To cover points 1, 2, 3 and 4 combined this handler should work like this:
             //
-            let success = this.safeValue (response, 'success', false);
+            let success = this.safeBool (response, 'success', false);
             if (typeof success === 'string') {
                 if ((success === 'true') || (success === '1')) {
                     success = true;

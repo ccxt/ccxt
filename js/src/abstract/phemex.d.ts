@@ -22,6 +22,7 @@ interface Exchange {
     v1GetMdSpotTicker24hrAll(params?: {}): Promise<implicitReturnType>;
     v1GetExchangePublicProducts(params?: {}): Promise<implicitReturnType>;
     v1GetApiDataPublicDataFundingRateHistory(params?: {}): Promise<implicitReturnType>;
+    v2GetPublicProducts(params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Orderbook(params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Trade(params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Ticker24hr(params?: {}): Promise<implicitReturnType>;
@@ -47,6 +48,7 @@ interface Exchange {
     privateGetApiDataGFuturesTrades(params?: {}): Promise<implicitReturnType>;
     privateGetApiDataFuturesTradingFees(params?: {}): Promise<implicitReturnType>;
     privateGetApiDataGFuturesTradingFees(params?: {}): Promise<implicitReturnType>;
+    privateGetApiDataFuturesV2TradeAccountDetail(params?: {}): Promise<implicitReturnType>;
     privateGetGOrdersActiveList(params?: {}): Promise<implicitReturnType>;
     privateGetOrdersActiveList(params?: {}): Promise<implicitReturnType>;
     privateGetExchangeOrderList(params?: {}): Promise<implicitReturnType>;

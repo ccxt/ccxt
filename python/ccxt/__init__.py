@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.1.78'
+__version__ = '4.2.59'
 
 # ----------------------------------------------------------------------------
 
@@ -50,9 +50,9 @@ from ccxt.base.errors import AccountSuspended                         # noqa: F4
 from ccxt.base.errors import ArgumentsRequired                        # noqa: F401
 from ccxt.base.errors import BadRequest                               # noqa: F401
 from ccxt.base.errors import BadSymbol                                # noqa: F401
-from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
-from ccxt.base.errors import NoChange                                 # noqa: F401
 from ccxt.base.errors import OperationRejected                        # noqa: F401
+from ccxt.base.errors import NoChange                                 # noqa: F401
+from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
@@ -67,6 +67,7 @@ from ccxt.base.errors import OrderNotFillable                         # noqa: F4
 from ccxt.base.errors import DuplicateOrderId                         # noqa: F401
 from ccxt.base.errors import ContractUnavailable                      # noqa: F401
 from ccxt.base.errors import NotSupported                             # noqa: F401
+from ccxt.base.errors import ProxyError                               # noqa: F401
 from ccxt.base.errors import OperationFailed                          # noqa: F401
 from ccxt.base.errors import NetworkError                             # noqa: F401
 from ccxt.base.errors import DDoSProtection                           # noqa: F401
@@ -75,6 +76,7 @@ from ccxt.base.errors import ExchangeNotAvailable                     # noqa: F4
 from ccxt.base.errors import OnMaintenance                            # noqa: F401
 from ccxt.base.errors import InvalidNonce                             # noqa: F401
 from ccxt.base.errors import RequestTimeout                           # noqa: F401
+from ccxt.base.errors import ExchangeClosedByUser                     # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 from ccxt.ace import ace                                              # noqa: F401
@@ -95,7 +97,6 @@ from ccxt.bitcoincom import bitcoincom                                # noqa: F4
 from ccxt.bitfinex import bitfinex                                    # noqa: F401
 from ccxt.bitfinex2 import bitfinex2                                  # noqa: F401
 from ccxt.bitflyer import bitflyer                                    # noqa: F401
-from ccxt.bitforex import bitforex                                    # noqa: F401
 from ccxt.bitget import bitget                                        # noqa: F401
 from ccxt.bithumb import bithumb                                      # noqa: F401
 from ccxt.bitmart import bitmart                                      # noqa: F401
@@ -105,10 +106,11 @@ from ccxt.bitpanda import bitpanda                                    # noqa: F4
 from ccxt.bitrue import bitrue                                        # noqa: F401
 from ccxt.bitso import bitso                                          # noqa: F401
 from ccxt.bitstamp import bitstamp                                    # noqa: F401
-from ccxt.bittrex import bittrex                                      # noqa: F401
+from ccxt.bitteam import bitteam                                      # noqa: F401
 from ccxt.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.bl3p import bl3p                                            # noqa: F401
 from ccxt.blockchaincom import blockchaincom                          # noqa: F401
+from ccxt.blofin import blofin                                        # noqa: F401
 from ccxt.btcalpha import btcalpha                                    # noqa: F401
 from ccxt.btcbox import btcbox                                        # noqa: F401
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
@@ -116,12 +118,12 @@ from ccxt.btcturk import btcturk                                      # noqa: F4
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
-from ccxt.coinbaseprime import coinbaseprime                          # noqa: F401
 from ccxt.coinbasepro import coinbasepro                              # noqa: F401
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
 from ccxt.coinlist import coinlist                                    # noqa: F401
 from ccxt.coinmate import coinmate                                    # noqa: F401
+from ccxt.coinmetro import coinmetro                                  # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
 from ccxt.coinsph import coinsph                                      # noqa: F401
 from ccxt.coinspot import coinspot                                    # noqa: F401
@@ -160,6 +162,7 @@ from ccxt.novadax import novadax                                      # noqa: F4
 from ccxt.oceanex import oceanex                                      # noqa: F401
 from ccxt.okcoin import okcoin                                        # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
+from ccxt.onetrading import onetrading                                # noqa: F401
 from ccxt.p2b import p2b                                              # noqa: F401
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
@@ -196,7 +199,6 @@ exchanges = [
     'bitfinex',
     'bitfinex2',
     'bitflyer',
-    'bitforex',
     'bitget',
     'bithumb',
     'bitmart',
@@ -206,10 +208,11 @@ exchanges = [
     'bitrue',
     'bitso',
     'bitstamp',
-    'bittrex',
+    'bitteam',
     'bitvavo',
     'bl3p',
     'blockchaincom',
+    'blofin',
     'btcalpha',
     'btcbox',
     'btcmarkets',
@@ -217,12 +220,12 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
-    'coinbaseprime',
     'coinbasepro',
     'coincheck',
     'coinex',
     'coinlist',
     'coinmate',
+    'coinmetro',
     'coinone',
     'coinsph',
     'coinspot',
@@ -261,6 +264,7 @@ exchanges = [
     'oceanex',
     'okcoin',
     'okx',
+    'onetrading',
     'p2b',
     'paymium',
     'phemex',

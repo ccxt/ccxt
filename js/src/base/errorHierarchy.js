@@ -16,9 +16,11 @@ const errorHierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
-                'MarginModeAlreadySet': {},
-                'NoChange': {},
-                'OperationRejected': {},
+            },
+            'OperationRejected': {
+                'NoChange': {
+                    'MarginModeAlreadySet': {},
+                },
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -37,12 +39,12 @@ const errorHierarchy = {
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
+            'ProxyError': {},
         },
         'OperationFailed': {
             'NetworkError': {
-                'DDoSProtection': {
-                    'RateLimitExceeded': {},
-                },
+                'DDoSProtection': {},
+                'RateLimitExceeded': {},
                 'ExchangeNotAvailable': {
                     'OnMaintenance': {},
                 },
@@ -50,6 +52,7 @@ const errorHierarchy = {
                 'RequestTimeout': {},
             },
         },
+        'ExchangeClosedByUser': {},
     },
 };
 export default errorHierarchy;

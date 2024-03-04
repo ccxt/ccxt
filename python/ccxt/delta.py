@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -41,6 +41,8 @@ class delta(Exchange, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': True,
+                'closePosition': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'editOrder': True,
@@ -257,7 +259,7 @@ class delta(Exchange, ImplicitAPI):
         reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
         return reconstructedDate
 
-    def create_expired_option_market(self, symbol):
+    def create_expired_option_market(self, symbol: str):
         # support expired option contracts
         quote = 'USDT'
         optionParts = symbol.split('-')
@@ -322,21 +324,8 @@ class delta(Exchange, ImplicitAPI):
             'info': None,
         }
 
-    def market(self, symbol):
-        if self.markets is None:
-            raise ExchangeError(self.id + ' markets not loaded')
-        if isinstance(symbol, str):
-            if symbol in self.markets:
-                return self.markets[symbol]
-            elif symbol in self.markets_by_id:
-                markets = self.markets_by_id[symbol]
-                return markets[0]
-            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1) or (symbol.find('C')) or (symbol.find('P')):
-                return self.create_expired_option_market(symbol)
-        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
-
     def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
-        isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1) or (marketId.find('C')) or (marketId.find('P')))
+        isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')) or (marketId.startswith('C-')) or (marketId.startswith('P-')))
         if isOption and not (marketId in self.markets_by_id):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
@@ -1744,7 +1733,7 @@ class delta(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.delta.exchange/#place-order
@@ -1821,7 +1810,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.delta.exchange/#edit-order
@@ -1994,7 +1983,11 @@ class delta(Exchange, ImplicitAPI):
             request['start_time'] = str(since) + '000'
         if limit is not None:
             request['page_size'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetOrders':
+            response = self.privateGetOrders(self.extend(request, params))
+        elif method == 'privateGetOrdersHistory':
+            response = self.privateGetOrdersHistory(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -2704,7 +2697,7 @@ class delta(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def fetch_leverage(self, symbol: str, params={}):
+    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
         :see: https://docs.delta.exchange/#get-order-leverage
@@ -2717,6 +2710,7 @@ class delta(Exchange, ImplicitAPI):
         request = {
             'product_id': market['numericId'],
         }
+        response = self.privateGetProductsProductIdOrdersLeverage(self.extend(request, params))
         #
         #     {
         #         "result": {
@@ -2730,9 +2724,21 @@ class delta(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        return self.privateGetProductsProductIdOrdersLeverage(self.extend(request, params))
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_leverage(result, market)
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'index_symbol')
+        leverageValue = self.safe_integer(leverage, 'leverage')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': self.safe_string_lower(leverage, 'margin_mode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
+
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://docs.delta.exchange/#change-order-leverage
@@ -3060,6 +3066,27 @@ class delta(Exchange, ImplicitAPI):
             'underlyingPrice': self.safe_number(greeks, 'spot_price'),
             'info': greeks,
         }
+
+    def close_all_positions(self, params={}) -> List[Position]:
+        """
+        closes all open positions for a market type
+        :see: https://docs.delta.exchange/#close-all-positions
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.user_id]: the users id
+        :returns dict[]: A list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        request = {
+            'close_all_portfolio': True,
+            'close_all_isolated': True,
+            # 'user_id': 12345,
+        }
+        response = self.privatePostPositionsCloseAll(self.extend(request, params))
+        #
+        # {"result":{},"success":true}
+        #
+        position = self.parse_position(self.safe_value(response, 'result', {}))
+        return [position]
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)

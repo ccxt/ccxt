@@ -4,9 +4,9 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { RequestTimeout, NetworkError, NotSupported, BaseError } from '../../base/errors.js';
+import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
-import { createFuture } from './Future.js';
+import { Future } from './Future.js';
 import { isNode, isJsonEncodedObject, deepExtend, milliseconds, } from '../../base/functions.js';
 import { utf8 } from '../../static_dependencies/scure-base/index.js';
 export default class Client {
@@ -43,11 +43,11 @@ export default class Client {
         };
         Object.assign(this, deepExtend(defaults, config));
         // connection-related Future
-        this.connected = createFuture();
+        this.connected = Future();
     }
     future(messageHash) {
         if (!(messageHash in this.futures)) {
-            this.futures[messageHash] = createFuture();
+            this.futures[messageHash] = Future();
         }
         const future = this.futures[messageHash];
         if (messageHash in this.rejections) {
@@ -143,8 +143,14 @@ export default class Client {
                 this.onError(new RequestTimeout('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'));
             }
             else {
+                let message;
                 if (this.ping) {
-                    this.send(this.ping(this));
+                    message = this.ping(this);
+                }
+                if (message) {
+                    this.send(message).catch((error) => {
+                        this.onError(error);
+                    });
                 }
                 else if (isNode) {
                     // can't do this inside browser
@@ -208,6 +214,9 @@ export default class Client {
             // todo: exception types for server-side disconnects
             this.reset(new NetworkError('connection closed by remote server, closing code ' + String(event.code)));
         }
+        if (this.error instanceof ExchangeClosedByUser) {
+            this.reset(this.error);
+        }
         if (this.disconnected !== undefined) {
             this.disconnected.resolve(true);
         }
@@ -225,9 +234,10 @@ export default class Client {
             this.log(new Date(), 'sending', message);
         }
         message = (typeof message === 'string') ? message : JSON.stringify(message);
-        const future = createFuture();
+        const future = Future();
         if (isNode) {
             /* eslint-disable no-inner-declarations */
+            /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete(error) {
                 if (error) {
                     future.reject(error);

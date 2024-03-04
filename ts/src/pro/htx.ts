@@ -5,7 +5,7 @@ import htxRest from '../htx.js';
 import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str, Strings } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -130,7 +130,7 @@ export default class htx extends htxRest {
         return requestId.toString ();
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name huobi#watchTicker
@@ -200,7 +200,7 @@ export default class htx extends htxRest {
         return message;
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name huobi#watchTrades
@@ -265,7 +265,7 @@ export default class htx extends htxRest {
         return message;
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name huobi#watchOHLCV
@@ -327,7 +327,7 @@ export default class htx extends htxRest {
         client.resolve (stored, ch);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name huobi#watchOrderBook
@@ -477,6 +477,7 @@ export default class htx extends htxRest {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
         }
+        return undefined;
     }
 
     handleDelta (bookside, delta) {
@@ -670,7 +671,7 @@ export default class htx extends htxRest {
         }
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name huobi#watchMyTrades
@@ -768,14 +769,14 @@ export default class htx extends htxRest {
         return [ channel, messageHash ];
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name huobi#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -937,11 +938,16 @@ export default class htx extends htxRest {
                 // inject trade in existing order by faking an order object
                 const orderId = this.safeString (parsedTrade, 'order');
                 const trades = [ parsedTrade ];
+                const status = this.parseOrderStatus (this.safeString2 (data, 'orderStatus', 'status', 'closed'));
+                const filled = this.safeString (data, 'execAmt');
+                const remaining = this.safeString (data, 'remainAmt');
                 const order = {
                     'id': orderId,
                     'trades': trades,
-                    'status': 'closed',
+                    'status': status,
                     'symbol': market['symbol'],
+                    'filled': this.parseNumber (filled),
+                    'remaining': this.parseNumber (remaining),
                 };
                 parsedOrder = order;
             } else {
@@ -1216,7 +1222,7 @@ export default class htx extends htxRest {
         }, market);
     }
 
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name huobi#watchPositions
@@ -1338,7 +1344,7 @@ export default class htx extends htxRest {
         client.resolve (newPositions, marginMode + ':positions');
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name huobi#watchBalance
@@ -1682,14 +1688,14 @@ export default class htx extends htxRest {
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
-                return method.call (this, client, message, subscription);
+                method.call (this, client, message, subscription);
+                return;
             }
             // clean up
             if (id in client.subscriptions) {
                 delete client.subscriptions[id];
             }
         }
-        return message;
     }
 
     handleSystemStatus (client: Client, message) {
@@ -1800,10 +1806,9 @@ export default class htx extends htxRest {
                 'kline': this.handleOHLCV,
             };
             const method = this.safeValue (methods, methodName);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
+                return;
             }
         }
         // private spot subjects

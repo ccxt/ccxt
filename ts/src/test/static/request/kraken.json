@@ -29,6 +29,143 @@
                     0.1
                 ],
                 "output": "nonce=1698834105321&pair=LTCUSDT&type=sell&ordertype=market&volume=0.1"
+            },
+            {
+                "description": "Margin stopLossPrice order (type 2)",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "limit",
+                  "sell",
+                  0.00012,
+                  34000,
+                  {
+                    "stopLossPrice": 35000,
+                    "leverage": 5,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "nonce=1702704715667&pair=XXBTZUSD&type=sell&ordertype=stop-loss-limit&volume=0.00012&price=35000&price2=34000&reduce_only=true&leverage=5"
+            },
+            {
+                "description": "Margin takeProfitPrice order (type 2)",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "limit",
+                  "sell",
+                  0.0001,
+                  46000,
+                  {
+                    "takeProfitPrice": 45000,
+                    "leverage": 5,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "nonce=1703055164304&pair=XXBTZUSD&type=sell&ordertype=take-profit-limit&volume=0.0001&price=45000&price2=46000&reduce_only=true&leverage=5"
+            },
+            {
+                "description": "Margin trailing order",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "market",
+                  "sell",
+                  0.0002,
+                  null,
+                  {
+                    "trailingAmount": 100,
+                    "leverage": 5,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "nonce=1703236727221&pair=XXBTZUSD&type=sell&ordertype=trailing-stop&volume=0.0002&trigger=last&price=%2B100&reduce_only=true&leverage=5"
+            },
+            {
+                "description": "Margin trailing limit order",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "limit",
+                  "sell",
+                  0.0002,
+                  null,
+                  {
+                    "trailingAmount": 100,
+                    "trailingLimitAmount": 100,
+                    "leverage": 5,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "nonce=1703236604802&pair=XXBTZUSD&type=sell&ordertype=trailing-stop-limit&volume=0.0002&trigger=last&price=%2B100&price2=-100&reduce_only=true&leverage=5"
+            },
+            {
+                "description": "Stop loss market order (type 2)",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1,
+                  null,
+                  {
+                    "stopLossPrice": 55
+                  }
+                ],
+                "output": "nonce=1705242635875&pair=LTCUSDT&type=sell&ordertype=stop-loss&volume=0.1&price=55"
+            },
+            {
+                "description": "Stop loss limit order (type 2)",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "sell",
+                  0.1,
+                  54,
+                  {
+                    "stopLossPrice": 55
+                  }
+                ],
+                "output": "nonce=1705242679268&pair=LTCUSDT&type=sell&ordertype=stop-loss-limit&volume=0.1&price=55&price2=54"
+            },
+            {
+                "description": "take profit limit order",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "sell",
+                  0.1,
+                  110,
+                  {
+                    "takeProfitPrice": 120
+                  }
+                ],
+                "output": "nonce=1705242729895&pair=LTCUSDT&type=sell&ordertype=take-profit-limit&volume=0.1&price=120&price2=110"
+            },
+            {
+                "description": "take profit market order (type 2)",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1,
+                  null,
+                  {
+                    "takeProfitPrice": 120
+                  }
+                ],
+                "output": "nonce=1705242796801&pair=LTCUSDT&type=sell&ordertype=take-profit&volume=0.1&price=120"
             }
         ],
         "fetchMyTrades": [
@@ -84,6 +221,17 @@
                     "LTC/USDT"
                 ],
                 "output": "nonce=1699458295807"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel open trailing percent order",
+                "method": "cancelOrder",
+                "url": "https://api.kraken.com/0/private/CancelOrder",
+                "input": [
+                  "OF7S76-H2IMS-N2ML4U"
+                ],
+                "output": "nonce=1706895560930&txid=OF7S76-H2IMS-N2ML4U"
             }
         ],
         "fetchBalance": [
@@ -154,6 +302,18 @@
 
                 ],
                 "output": "nonce=1699458295995&asset=USDT&start=1670935203"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv with since",
+                "method": "fetchOHLCV",
+                "url": "https://api.kraken.com/0/public/OHLC?pair=XBTUSDT&interval=60&since=1706628191000000000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1706628191000
+                ]
             }
         ]
     }

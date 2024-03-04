@@ -6,13 +6,13 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class zonda
- * @extends Exchange
+ * @augments Exchange
  */
 export default class zonda extends Exchange {
     describe () {
@@ -667,7 +667,7 @@ export default class zonda extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name zonda#fetchTicker
@@ -1346,7 +1346,7 @@ export default class zonda extends Exchange {
         return this.parseTrades (items, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name zonda#createOrder
@@ -1449,7 +1449,7 @@ export default class zonda extends Exchange {
         //     }
         //
         const id = this.safeString2 (response, 'offerId', 'stopOfferId');
-        const completed = this.safeValue (response, 'completed', false);
+        const completed = this.safeBool (response, 'completed', false);
         const status = completed ? 'closed' : 'open';
         const transactions = this.safeValue (response, 'transactions');
         return this.safeOrder ({
@@ -1513,7 +1513,7 @@ export default class zonda extends Exchange {
             'EUR': true,
             'PLN': true,
         };
-        return this.safeValue (fiatCurrencies, currency, false);
+        return this.safeBool (fiatCurrencies, currency, false);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
@@ -1573,7 +1573,7 @@ export default class zonda extends Exchange {
         return this.parseDepositAddress (first, currency);
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchDepositAddresses
@@ -1602,7 +1602,7 @@ export default class zonda extends Exchange {
         return this.parseDepositAddresses (data, codes);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name zonda#transfer
@@ -1654,7 +1654,7 @@ export default class zonda extends Exchange {
         //
         const transfer = this.parseTransfer (response, currency);
         const transferOptions = this.safeValue (this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['amount'] = amount;
         }
@@ -1717,7 +1717,7 @@ export default class zonda extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name zonda#withdraw

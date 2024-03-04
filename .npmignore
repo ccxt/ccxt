@@ -4,6 +4,8 @@ examples/
 node_modules/
 python/
 php/
+cs/
+c#/
 tmp/
 vendor/
 wiki/
@@ -14,6 +16,7 @@ wiki/
 .travis.yml
 appveyor.yml
 *.php
+*.cs
 *.py
 *.pyc
 ccxt.sublime-workspace

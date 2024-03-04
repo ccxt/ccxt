@@ -1,4 +1,39 @@
 {
+    "LBK/USDT": {
+        "id": "lbk_usdt",
+        "symbol": "LBK/USDT",
+        "base": "LBK",
+        "quote": "USDT",
+        "baseId": "lbk",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "precision": {
+            "amount": 1,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "lbk_usdt",
+            "quantityAccuracy": "0",
+            "minTranQua": "1",
+            "priceAccuracy": "6"
+        },
+        "taker": 0.001,
+        "maker": 0.001
+    },
     "BTC/USDT": {
         "id": "btc_usdt",
         "symbol": "BTC/USDT",

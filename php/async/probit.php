@@ -35,7 +35,10 @@ class probit extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
                 'createMarketOrder' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -290,7 +293,7 @@ class probit extends Exchange {
         $quoteId = $this->safe_string($market, 'quote_currency_id');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $closed = $this->safe_value($market, 'closed', false);
+        $closed = $this->safe_bool($market, 'closed', false);
         $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
         $taker = Precise::string_div($takerFeeRate, '100');
         $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');
@@ -324,6 +327,7 @@ class probit extends Exchange {
             'precision' => array(
                 'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_precision'))),
                 'price' => $this->safe_number($market, 'price_increment'),
+                'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'cost_precision'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -427,8 +431,8 @@ class probit extends Exchange {
                 $networkList = array();
                 for ($j = 0; $j < count($platformsByPriority); $j++) {
                     $network = $platformsByPriority[$j];
-                    $networkId = $this->safe_string($network, 'id');
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $idInner = $this->safe_string($network, 'id');
+                    $networkCode = $this->network_id_to_code($idInner);
                     $currentDepositSuspended = $this->safe_value($network, 'deposit_suspended');
                     $currentWithdrawalSuspended = $this->safe_value($network, 'withdrawal_suspended');
                     $currentDeposit = !$currentDepositSuspended;
@@ -439,14 +443,22 @@ class probit extends Exchange {
                     }
                     $precision = $this->parse_precision($this->safe_string($network, 'precision'));
                     $withdrawFee = $this->safe_value($network, 'withdrawal_fee', array());
-                    $networkfee = $this->safe_value($withdrawFee, 0, array());
+                    $networkFee = $this->safe_value($withdrawFee, 0, array());
+                    for ($k = 0; $k < count($withdrawFee); $k++) {
+                        $withdrawPlatform = $withdrawFee[$k];
+                        $feeCurrencyId = $this->safe_string($withdrawPlatform, 'currency_id');
+                        if ($feeCurrencyId === $id) {
+                            $networkFee = $withdrawPlatform;
+                            break;
+                        }
+                    }
                     $networkList[$networkCode] = array(
-                        'id' => $networkId,
+                        'id' => $idInner,
                         'network' => $networkCode,
                         'active' => $currentActive,
                         'deposit' => $currentDeposit,
                         'withdraw' => $currentWithdraw,
-                        'fee' => $this->safe_number($networkfee, 'amount'),
+                        'fee' => $this->safe_number($networkFee, 'amount'),
                         'precision' => $this->parse_number($precision),
                         'limits' => array(
                             'withdraw' => array(
@@ -781,7 +793,6 @@ class probit extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'market_id' => $market['id'],
-                'limit' => 100,
                 'start_time' => '1970-01-01T00:00:00.000Z',
                 'end_time' => $this->iso8601($this->milliseconds()),
             );
@@ -789,7 +800,9 @@ class probit extends Exchange {
                 $request['start_time'] = $this->iso8601($since);
             }
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 10000);
+                $request['limit'] = min ($limit, 1000);
+            } else {
+                $request['limit'] = 1000; // required to set any value
             }
             $response = Async\await($this->publicGetTrade (array_merge($request, $params)));
             //
@@ -1063,7 +1076,7 @@ class probit extends Exchange {
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -1200,17 +1213,18 @@ class probit extends Exchange {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
-             * @see https://docs-en.probit.com/reference/order-1
              * create a trade $order
+             * @see https://docs-en.probit.com/reference/order-1
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} $amount how much you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -1228,30 +1242,32 @@ class probit extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
             }
-            $costToPrecision = null;
+            $quoteAmount = null;
             if ($type === 'limit') {
                 $request['limit_price'] = $this->price_to_precision($symbol, $price);
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             } elseif ($type === 'market') {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($side === 'buy') {
-                    $cost = $this->safe_number($params, 'cost');
-                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                    if ($createMarketBuyOrderRequiresPrice) {
-                        if ($price !== null) {
-                            if ($cost === null) {
-                                $amountString = $this->number_to_string($amount);
-                                $priceString = $this->number_to_string($price);
-                                $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                            }
-                        } elseif ($cost === null) {
-                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total $cost value in the "amount" argument or in the "cost" extra parameter (the exchange-specific behaviour)');
+                    $createMarketBuyOrderRequiresPrice = true;
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    $cost = $this->safe_string($params, 'cost');
+                    $params = $this->omit($params, 'cost');
+                    if ($cost !== null) {
+                        $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                    } elseif ($createMarketBuyOrderRequiresPrice) {
+                        if ($price === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        } else {
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $costRequest = Precise::string_mul($amountString, $priceString);
+                            $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                         }
                     } else {
-                        $cost = ($cost === null) ? $amount : $cost;
+                        $quoteAmount = $this->cost_to_precision($symbol, $amount);
                     }
-                    $costToPrecision = $this->cost_to_precision($symbol, $cost);
-                    $request['cost'] = $costToPrecision;
+                    $request['cost'] = $quoteAmount;
                 } else {
                     $request['quantity'] = $this->amount_to_precision($symbol, $amount);
                 }
@@ -1285,7 +1301,7 @@ class probit extends Exchange {
             // returned by the exchange on $market buys
             if (($type === 'market') && ($side === 'buy')) {
                 $order['amount'] = null;
-                $order['cost'] = $this->parse_number($costToPrecision);
+                $order['cost'] = $this->parse_number($quoteAmount);
                 $order['remaining'] = null;
             }
             return $order;
@@ -1389,7 +1405,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * @see https://docs-en.probit.com/reference/deposit_address
@@ -1414,7 +1430,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://docs-en.probit.com/reference/withdrawal
@@ -1560,7 +1576,7 @@ class probit extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit);
         }) ();
     }
@@ -1598,12 +1614,12 @@ class probit extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency_id');
         $code = $this->safe_currency_code($currencyId);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $feeCostString = $this->safe_string($transaction, 'fee');
         $fee = null;
-        if ($feeCost !== null && $feeCost !== 0) {
+        if ($feeCostString !== null && $feeCostString !== '0') {
             $fee = array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCostString),
             );
         }
         return array(

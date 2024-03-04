@@ -14,7 +14,7 @@ import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class coinex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinex extends Exchange {
     describe() {
@@ -33,6 +33,7 @@ export default class coinex extends Exchange {
             // 20 per 2 seconds => 10 per second => weight = 40
             'rateLimit': 2.5,
             'pro': true,
+            'certified': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -48,9 +49,14 @@ export default class coinex extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
+                'createStopLossOrder': true,
+                'createTakeProfitOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
@@ -208,6 +214,8 @@ export default class coinex extends Exchange {
                     },
                     'put': {
                         'balance/deposit/address/{coin_type}': 40,
+                        'sub_account/unfrozen': 40,
+                        'sub_account/frozen': 40,
                         'sub_account/auth/api/{user_auth_id}': 40,
                         'v1/account/settings': 40,
                     },
@@ -217,7 +225,10 @@ export default class coinex extends Exchange {
                         'order/pending': 13.334,
                         'order/stop/pending': 40,
                         'order/stop/pending/{id}': 13.334,
+                        'order/pending/by_client_id': 40,
+                        'order/stop/pending/by_client_id': 40,
                         'sub_account/auth/api/{user_auth_id}': 40,
+                        'sub_account/authorize/{id}': 40,
                     },
                 },
                 'perpetualPublic': {
@@ -231,12 +242,12 @@ export default class coinex extends Exchange {
                         'market/depth': 1,
                         'market/deals': 1,
                         'market/funding_history': 1,
-                        'market/user_deals': 1,
                         'market/kline': 1,
                     },
                 },
                 'perpetualPrivate': {
                     'get': {
+                        'market/user_deals': 1,
                         'asset/query': 40,
                         'order/pending': 8,
                         'order/finished': 40,
@@ -244,8 +255,13 @@ export default class coinex extends Exchange {
                         'order/stop_pending': 8,
                         'order/status': 8,
                         'order/stop_status': 8,
+                        'position/finished': 40,
                         'position/pending': 40,
                         'position/funding': 40,
+                        'position/adl_history': 40,
+                        'market/preference': 40,
+                        'position/margin_history': 40,
+                        'position/settle_history': 40,
                     },
                     'post': {
                         'market/adjust_leverage': 1,
@@ -267,6 +283,9 @@ export default class coinex extends Exchange {
                         'position/stop_loss': 20,
                         'position/take_profit': 20,
                         'position/market_close': 20,
+                        'order/cancel/by_client_id': 20,
+                        'order/cancel_stop/by_client_id': 20,
+                        'market/preference': 20,
                     },
                 },
             },
@@ -469,6 +488,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchMarkets
          * @description retrieves data on all markets for coinex
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http006_market_list
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -740,6 +761,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market007_single_market_ticker
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -749,8 +772,13 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const method = market['swap'] ? 'perpetualPublicGetMarketTicker' : 'publicGetMarketTicker';
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.perpetualPublicGetMarketTicker(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetMarketTicker(this.extend(request, params));
+        }
         //
         // Spot
         //
@@ -826,8 +854,13 @@ export default class coinex extends Exchange {
             market = this.market(symbol);
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTickers', market, params);
-        const method = (marketType === 'swap') ? 'perpetualPublicGetMarketTickerAll' : 'publicGetMarketTickerAll';
-        const response = await this[method](query);
+        let response = undefined;
+        if (marketType === 'swap') {
+            response = await this.perpetualPublicGetMarketTickerAll(query);
+        }
+        else {
+            response = await this.publicGetMarketTickerAll();
+        }
         //
         // Spot
         //
@@ -909,6 +942,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http005_system_time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -927,6 +961,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market004_market_depth
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http010_market_depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -942,8 +978,13 @@ export default class coinex extends Exchange {
             'merge': '0',
             'limit': limit.toString(),
         };
-        const method = market['swap'] ? 'perpetualPublicGetMarketDepth' : 'publicGetMarketDepth';
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.perpetualPublicGetMarketDepth(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetMarketDepth(this.extend(request, params));
+        }
         //
         // Spot
         //
@@ -1065,9 +1106,10 @@ export default class coinex extends Exchange {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'amount');
         const marketId = this.safeString(trade, 'market');
-        const defaultType = this.safeString(this.options, 'defaultType');
+        const marketType = this.safeString(trade, 'market_type');
+        const defaultType = (marketType === undefined) ? 'spot' : 'swap';
         market = this.safeMarket(marketId, market, undefined, defaultType);
-        const symbol = this.safeSymbol(marketId, market, undefined, defaultType);
+        const symbol = market['symbol'];
         const costString = this.safeString(trade, 'deal_money');
         let fee = undefined;
         const feeCostString = this.safeString2(trade, 'fee', 'deal_fee');
@@ -1123,6 +1165,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market005_market_deals
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http011_market_deals
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1138,8 +1182,13 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = market['swap'] ? 'perpetualPublicGetMarketDeals' : 'publicGetMarketDeals';
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.perpetualPublicGetMarketDeals(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetMarketDeals(this.extend(request, params));
+        }
         //
         // Spot and Swap
         //
@@ -1165,6 +1214,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market003_single_market_info
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1199,6 +1249,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1271,6 +1322,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market006_market_kline
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http012_market_kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1287,8 +1340,13 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = market['swap'] ? 'perpetualPublicGetMarketKline' : 'publicGetMarketKline';
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.perpetualPublicGetMarketKline(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetMarketKline(this.extend(request, params));
+        }
         //
         // Spot
         //
@@ -1522,8 +1580,9 @@ export default class coinex extends Exchange {
          */
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        const isMargin = this.safeValue(params, 'margin', false);
-        marketType = isMargin ? 'margin' : marketType;
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
+        marketType = (marginMode !== undefined) ? 'margin' : marketType;
         params = this.omit(params, 'margin');
         if (marketType === 'margin') {
             return await this.fetchMarginBalance(params);
@@ -1890,13 +1949,19 @@ export default class coinex extends Exchange {
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
         /**
          * @method
-         * @name coinex#createMarketBuyWithCost
+         * @name coinex#createMarketBuyOrderWithCost
          * @description create a market buy order by providing the symbol and cost
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
         params['createMarketBuyOrderRequiresPrice'] = false;
         return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
@@ -2047,8 +2112,9 @@ export default class coinex extends Exchange {
             }
         }
         const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new BadRequest(this.id + ' createOrder() requires an account_id parameter for margin orders');
             }
@@ -2062,6 +2128,11 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#createOrder
          * @description create a trade order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade001_limit_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade004_IOC_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade005_stop_limit_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade006_stop_market_order
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
@@ -2235,7 +2306,7 @@ export default class coinex extends Exchange {
          * @name coinex#createOrders
          * @description create a list of trade orders (all orders should be of the same symbol)
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade002_batch_limit_orders
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2536,9 +2607,19 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#cancelOrder
          * @description cancels an open order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade024_cancel_order_by_client_id
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade025_cancel_stop_order_by_client_id
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http023_cancel_stop_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021_cancel_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http042_cancel_order_by_client_id
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http043_cancel_stop_order_by_client_id
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
+         * @param {boolean} [params.stop] if stop order = true, default = false
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2551,27 +2632,57 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const idRequest = swap ? 'order_id' : 'id';
-        request[idRequest] = id;
-        let method = swap ? 'perpetualPrivatePostOrderCancel' : 'privateDeleteOrderPending';
-        if (stop) {
-            if (swap) {
-                method = 'perpetualPrivatePostOrderCancelStop';
-            }
-            else {
-                method = 'privateDeleteOrderStopPendingId';
-            }
-        }
         const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
+        const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new BadRequest(this.id + ' cancelOrder() requires an account_id parameter for margin orders');
             }
             request['account_id'] = accountId;
         }
-        const query = this.omit(params, ['stop', 'account_id']);
-        const response = await this[method](this.extend(request, query));
+        const query = this.omit(params, ['stop', 'account_id', 'clientOrderId']);
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            request['client_id'] = clientOrderId;
+            if (stop) {
+                if (swap) {
+                    response = await this.perpetualPrivatePostOrderCancelStopByClientId(this.extend(request, query));
+                }
+                else {
+                    response = await this.privateDeleteOrderStopPendingByClientId(this.extend(request, query));
+                }
+            }
+            else {
+                if (swap) {
+                    response = await this.perpetualPrivatePostOrderCancelByClientId(this.extend(request, query));
+                }
+                else {
+                    response = await this.privateDeleteOrderPendingByClientId(this.extend(request, query));
+                }
+            }
+        }
+        else {
+            const idRequest = swap ? 'order_id' : 'id';
+            request[idRequest] = id;
+            if (stop) {
+                if (swap) {
+                    response = await this.perpetualPrivatePostOrderCancelStop(this.extend(request, query));
+                }
+                else {
+                    response = await this.privateDeleteOrderStopPendingId(this.extend(request, query));
+                }
+            }
+            else {
+                if (swap) {
+                    response = await this.perpetualPrivatePostOrderCancel(this.extend(request, query));
+                }
+                else {
+                    response = await this.privateDeleteOrderPending(this.extend(request, query));
+                }
+            }
+        }
         //
         // Spot and Margin
         //
@@ -2686,6 +2797,10 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#cancelAllOrders
          * @description cancel all open orders in a market
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http024_cancel_stop_all
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http022_cancel_all
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2704,22 +2819,25 @@ export default class coinex extends Exchange {
         };
         const swap = market['swap'];
         const stop = this.safeValue(params, 'stop');
-        let method;
+        params = this.omit(params, ['stop', 'account_id']);
+        let response = undefined;
         if (swap) {
-            method = 'perpetualPrivatePostOrderCancelAll';
             if (stop) {
-                method = 'perpetualPrivatePostOrderCancelStopAll';
+                response = await this.perpetualPrivatePostOrderCancelStopAll(this.extend(request, params));
+            }
+            else {
+                response = await this.perpetualPrivatePostOrderCancelAll(this.extend(request, params));
             }
         }
         else {
-            method = 'privateDeleteOrderPending';
-            if (stop) {
-                method = 'privateDeleteOrderStopPending';
-            }
             request['account_id'] = accountId;
+            if (stop) {
+                response = await this.privateDeleteOrderStopPending(this.extend(request, params));
+            }
+            else {
+                response = await this.privateDeleteOrderPending(this.extend(request, params));
+            }
         }
-        params = this.omit(params, ['stop', 'account_id']);
-        const response = await this[method](this.extend(request, params));
         //
         // Spot and Margin
         //
@@ -2736,6 +2854,9 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http028_stop_status
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http026_order_status
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade007_order_status
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2747,6 +2868,7 @@ export default class coinex extends Exchange {
         const market = this.market(symbol);
         const swap = market['swap'];
         const stop = this.safeValue(params, 'stop');
+        params = this.omit(params, 'stop');
         const request = {
             'market': market['id'],
             // 'id': id, // SPOT
@@ -2754,15 +2876,18 @@ export default class coinex extends Exchange {
         };
         const idRequest = swap ? 'order_id' : 'id';
         request[idRequest] = id;
-        let method = undefined;
+        let response = undefined;
         if (swap) {
-            method = stop ? 'perpetualPrivateGetOrderStopStatus' : 'perpetualPrivateGetOrderStatus';
+            if (stop) {
+                response = await this.perpetualPrivateGetOrderStopStatus(this.extend(request, params));
+            }
+            else {
+                response = await this.perpetualPrivateGetOrderStatus(this.extend(request, params));
+            }
         }
         else {
-            method = 'privateGetOrderStatus';
+            response = await this.privateGetOrderStatus(this.extend(request, params));
         }
-        params = this.omit(params, 'stop');
-        const response = await this[method](this.extend(request, params));
         //
         // Spot
         //
@@ -2882,14 +3007,20 @@ export default class coinex extends Exchange {
             request['market'] = market['id'];
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
-        let method = undefined;
+        const accountId = this.safeInteger(params, 'account_id');
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchOrdersByStatus', params);
+        if (marginMode !== undefined) {
+            if (accountId === undefined) {
+                throw new BadRequest(this.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
+            }
+            request['account_id'] = accountId;
+        }
+        params = this.omit(query, 'account_id');
+        let response = undefined;
         if (marketType === 'swap') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchOrdersByStatus() requires a symbol argument for swap markets');
-            }
-            method = 'perpetualPrivateGetOrder' + this.capitalize(status);
-            if (stop) {
-                method = 'perpetualPrivateGetOrderStopPending';
             }
             if (side !== undefined) {
                 request['side'] = side;
@@ -2898,24 +3029,37 @@ export default class coinex extends Exchange {
                 request['side'] = 0;
             }
             request['offset'] = 0;
+            if (stop) {
+                response = await this.perpetualPrivateGetOrderStopPending(this.extend(request, params));
+            }
+            else {
+                if (status === 'finished') {
+                    response = await this.perpetualPrivateGetOrderFinished(this.extend(request, params));
+                }
+                else if (status === 'pending') {
+                    response = await this.perpetualPrivateGetOrderPending(this.extend(request, params));
+                }
+            }
         }
         else {
-            method = 'privateGetOrder' + this.capitalize(status);
-            if (stop) {
-                method = 'privateGetOrderStop' + this.capitalize(status);
-            }
             request['page'] = 1;
-        }
-        const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        if (defaultType === 'margin') {
-            if (accountId === undefined) {
-                throw new BadRequest(this.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
+            if (status === 'finished') {
+                if (stop) {
+                    response = await this.privateGetOrderStopFinished(this.extend(request, params));
+                }
+                else {
+                    response = await this.privateGetOrderFinished(this.extend(request, params));
+                }
             }
-            request['account_id'] = accountId;
+            else if (status === 'pending') {
+                if (stop) {
+                    response = await this.privateGetOrderStopPending(this.extend(request, params));
+                }
+                else {
+                    response = await this.privateGetOrderPending(this.extend(request, params));
+                }
+            }
         }
-        params = this.omit(query, 'account_id');
-        const response = await this[method](this.extend(request, params));
         //
         // Spot and Margin
         //
@@ -3076,6 +3220,10 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http027_query_pending_stop
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http025_query_pending
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade013_stop_pending_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade011_pending_order
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -3089,9 +3237,12 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http029_query_finished
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade010_stop_finished_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade012_finished_order
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3102,6 +3253,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#createDepositAddress
          * @description create a currency deposit address
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account019_update_deposit_address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -3134,6 +3286,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account020_query_deposit_address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -3174,7 +3327,7 @@ export default class coinex extends Exchange {
         const data = this.safeValue(response, 'data', {});
         const depositAddress = this.parseDepositAddress(data, currency);
         const options = this.safeValue(this.options, 'fetchDepositAddress', {});
-        const fillResponseFromRequest = this.safeValue(options, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             depositAddress['network'] = this.safeNetworkCode(network, currency);
         }
@@ -3228,6 +3381,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http013_user_deals
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade014_user_deals
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -3257,33 +3412,28 @@ export default class coinex extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument for non-spot markets');
         }
         const swap = (type === 'swap');
-        let method = undefined;
-        if (swap) {
-            method = 'perpetualPublicGetMarketUserDeals';
-            const side = this.safeInteger(params, 'side');
-            if (side === undefined) {
-                throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a side parameter for swap markets');
-            }
-            if (since !== undefined) {
-                request['start_time'] = since;
-            }
-            request['side'] = side;
-            params = this.omit(params, 'side');
-        }
-        else {
-            method = 'privateGetOrderUserDeals';
-            request['page'] = 1;
-        }
         const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new BadRequest(this.id + ' fetchMyTrades() requires an account_id parameter for margin trades');
             }
             request['account_id'] = accountId;
             params = this.omit(params, 'account_id');
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (swap) {
+            if (since !== undefined) {
+                request['start_time'] = since;
+            }
+            request['side'] = 0;
+            response = await this.perpetualPrivateGetMarketUserDeals(this.extend(request, params));
+        }
+        else {
+            request['page'] = 1;
+            response = await this.privateGetOrderUserDeals(this.extend(request, params));
+        }
         //
         // Spot and Margin
         //
@@ -3366,11 +3516,18 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchPositions
          * @description fetch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
+         * @param {int} [params.side] *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
+        let defaultMethod = undefined;
+        [defaultMethod, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method', 'perpetualPrivateGetPositionPending');
+        const isHistory = (defaultMethod === 'perpetualPrivateGetPositionFinished');
         symbols = this.marketSymbols(symbols);
         const request = {};
         let market = undefined;
@@ -3389,7 +3546,22 @@ export default class coinex extends Exchange {
             market = this.market(symbol);
             request['market'] = market['id'];
         }
-        const response = await this.perpetualPrivateGetPositionPending(this.extend(request, params));
+        else {
+            if (isHistory) {
+                throw new ArgumentsRequired(this.id + ' fetchPositions() requires a symbol argument for closed positions');
+            }
+        }
+        if (isHistory) {
+            request['limit'] = 100;
+            request['side'] = this.safeInteger(params, 'side', 0); // 0: All, 1: Sell, 2: Buy
+        }
+        let response = undefined;
+        if (defaultMethod === 'perpetualPrivateGetPositionPending') {
+            response = await this.perpetualPrivateGetPositionPending(this.extend(request, params));
+        }
+        else {
+            response = await this.perpetualPrivateGetPositionFinished(this.extend(request, params));
+        }
         //
         //     {
         //         "code": 0,
@@ -3461,6 +3633,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchPosition
          * @description fetch data on a single open contract trade position
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -3643,6 +3816,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3732,6 +3906,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http007_market_limit
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
@@ -3896,6 +4071,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#addMargin
          * @description add margin
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3908,6 +4084,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#reduceMargin
          * @description remove margin from a position
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http032_adjust_position_margin
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3920,6 +4097,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http034_funding_position
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -3995,6 +4173,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchFundingRate
          * @description fetch the current funding rate
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -4103,6 +4282,7 @@ export default class coinex extends Exchange {
          *  @method
          * @name coinex#fetchFundingRates
          * @description fetch the current funding rates
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -4193,7 +4373,7 @@ export default class coinex extends Exchange {
         const request = {
             'coin_type': currency['id'],
             'coin_address': address,
-            'actual_amount': parseFloat(amount),
+            'actual_amount': parseFloat(this.numberToString(amount)),
             'transfer_method': 'onchain', // onchain, local
         };
         if (networkCode !== undefined) {
@@ -4429,6 +4609,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account013_margin_transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -4443,12 +4625,14 @@ export default class coinex extends Exchange {
             'amount': amountToPrecision,
             'coin_type': currency['id'],
         };
-        let method = 'privatePostContractBalanceTransfer';
+        let response = undefined;
         if ((fromAccount === 'spot') && (toAccount === 'swap')) {
             request['transfer_side'] = 'in'; // 'in' spot to swap, 'out' swap to spot
+            response = await this.privatePostContractBalanceTransfer(this.extend(request, params));
         }
         else if ((fromAccount === 'swap') && (toAccount === 'spot')) {
             request['transfer_side'] = 'out'; // 'in' spot to swap, 'out' swap to spot
+            response = await this.privatePostContractBalanceTransfer(this.extend(request, params));
         }
         else {
             const accountsById = this.safeValue(this.options, 'accountsById', {});
@@ -4458,9 +4642,8 @@ export default class coinex extends Exchange {
             // spot is 0, use fetchBalance() to find the margin account id
             request['from_account'] = parseInt(fromId);
             request['to_account'] = parseInt(toId);
-            method = 'privatePostMarginTransfer';
+            response = await this.privatePostMarginTransfer(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //     {"code": 0, "data": null, "message": "Success"}
         //
@@ -4542,6 +4725,8 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchTransfers
          * @description fetch a history of internal transfers made on an account
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account024_contract_transfer_history
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -4552,7 +4737,7 @@ export default class coinex extends Exchange {
         let currency = undefined;
         const request = {
             'page': 1,
-            'limit': limit,
+            // 'limit': limit,
             // 'asset': 'USDT',
             // 'start_time': since,
             // 'end_time': 1515806440,
@@ -4563,16 +4748,28 @@ export default class coinex extends Exchange {
             request['page'] = page;
         }
         if (code !== undefined) {
-            currency = this.safeCurrencyCode(code);
+            currency = this.currency(code);
             request['asset'] = currency['id'];
         }
         if (since !== undefined) {
             request['start_time'] = since;
         }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        else {
+            request['limit'] = 100;
+        }
         params = this.omit(params, 'page');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        const method = (defaultType === 'margin') ? 'privateGetMarginTransferHistory' : 'privateGetContractTransferHistory';
-        const response = await this[method](this.extend(request, params));
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchTransfers', params);
+        let response = undefined;
+        if (marginMode !== undefined) {
+            response = await this.privateGetMarginTransferHistory(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetContractTransferHistory(this.extend(request, params));
+        }
         //
         // Swap
         //
@@ -4626,6 +4823,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account026_withdraw_list
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -4692,6 +4890,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account009_deposit_list
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -4791,6 +4990,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchIsolatedBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
          * @param {string} symbol unified symbol of the market to fetch the borrow rate for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
@@ -4829,6 +5029,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchIsolatedBorrowRates
          * @description fetch the borrow interest rates of all currencies
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
          */
@@ -5144,6 +5345,25 @@ export default class coinex extends Exchange {
         }
         return depositWithdrawFees;
     }
+    handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {Array} the marginMode in lowercase
+         */
+        const defaultType = this.safeString(this.options, 'defaultType');
+        const isMargin = this.safeBool(params, 'margin', false);
+        let marginMode = undefined;
+        [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
+        if (marginMode === undefined) {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'isolated';
+            }
+        }
+        return [marginMode, params];
+    }
     nonce() {
         return this.milliseconds();
     }
@@ -5178,7 +5398,7 @@ export default class coinex extends Exchange {
                 }
             }
         }
-        if (api === 'perpetualPrivate' || url === 'https://api.coinex.com/perpetual/v1/market/user_deals') {
+        if (api === 'perpetualPrivate') {
             this.checkRequiredCredentials();
             query = this.extend({
                 'access_id': this.apiKey,

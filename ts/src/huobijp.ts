@@ -2,17 +2,17 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/huobijp.js';
-import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, ArgumentsRequired } from './base/errors.js';
+import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
 /**
  * @class huobijp
- * @extends Exchange
+ * @augments Exchange
  */
 export default class huobijp extends Exchange {
     describe () {
@@ -36,6 +36,9 @@ export default class huobijp extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
@@ -866,7 +869,7 @@ export default class huobijp extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}): Promise<Trade[]> {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = 1000, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name huobijp#fetchTrades
@@ -946,7 +949,7 @@ export default class huobijp extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = 1000, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name huobijp#fetchOHLCV
@@ -1058,7 +1061,7 @@ export default class huobijp extends Exchange {
             const depositEnabled = this.safeValue (currency, 'deposit-enabled');
             const withdrawEnabled = this.safeValue (currency, 'withdraw-enabled');
             const countryDisabled = this.safeValue (currency, 'country-disabled');
-            const visible = this.safeValue (currency, 'visible', false);
+            const visible = this.safeBool (currency, 'visible', false);
             const state = this.safeString (currency, 'state');
             const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
             const name = this.safeString (currency, 'display-name');
@@ -1195,7 +1198,7 @@ export default class huobijp extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1231,7 +1234,7 @@ export default class huobijp extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1387,7 +1390,26 @@ export default class huobijp extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+        /**
+         * @method
+         * @name huobijp#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#createOrder
@@ -1418,9 +1440,16 @@ export default class huobijp extends Exchange {
         }
         params = this.omit (params, [ 'clientOrderId', 'client-order-id' ]);
         if ((type === 'market') && (side === 'buy')) {
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber (params, 'cost');
+            params = this.omit (params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.amountToPrecision (symbol, cost);
+            } else if (createMarketBuyOrderRequiresPrice) {
                 if (price === undefined) {
-                    throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
                     // despite that cost = amount * price is in quote currency and should have quote precision
                     // the exchange API requires the cost supplied in 'amount' to be of base precision
@@ -1430,12 +1459,12 @@ export default class huobijp extends Exchange {
                     // we use amountToPrecision here because the exchange requires cost in base precision
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
-                    const baseAmount = Precise.stringMul (amountString, priceString);
-                    request['amount'] = this.costToPrecision (symbol, baseAmount);
+                    quoteAmount = this.amountToPrecision (symbol, Precise.stringMul (amountString, priceString));
                 }
             } else {
-                request['amount'] = this.costToPrecision (symbol, amount);
+                quoteAmount = this.amountToPrecision (symbol, amount);
             }
+            request['amount'] = quoteAmount;
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
@@ -1444,13 +1473,12 @@ export default class huobijp extends Exchange {
         }
         const method = this.options['createOrderMethod'];
         const response = await this[method] (this.extend (request, params));
-        const timestamp = this.milliseconds ();
         const id = this.safeString (response, 'data');
         return this.safeOrder ({
             'info': response,
             'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'symbol': symbol,
@@ -1798,7 +1826,7 @@ export default class huobijp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#withdraw

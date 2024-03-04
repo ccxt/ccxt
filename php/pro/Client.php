@@ -62,7 +62,6 @@ class Client {
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;
-    public $default_connector = null;
 
 
     // ------------------------------------------------------------------------
@@ -135,16 +134,24 @@ class Client {
                     $value;
         }
 
-        $this->default_connector = new React\Socket\Connector();
         $this->connected = new Future();
-        $this->set_ws_connector($this->default_connector);
     }
 
-    public function set_ws_connector($connector = null) {
-        if ($this->noOriginHeader) {
-            $this->connector = new NoOriginHeaderConnector(Loop::get(), $connector);
+    public function set_ws_connector($proxy_address = null, $proxy_conenctor = null) {
+        // set default connector
+        if (!$proxy_address) {
+            $react_default_connector = new React\Socket\Connector();
+            if ($this->noOriginHeader) {
+                $this->connector = new NoOriginHeaderConnector(Loop::get(), $react_default_connector);
+            } else {
+                $this->connector = new Connector(Loop::get(), $react_default_connector);
+            }
         } else {
-            $this->connector = new Connector(Loop::get(), $connector);
+            if ($this->noOriginHeader) {
+                $this->connector = new NoOriginHeaderConnector(Loop::get(), $proxy_conenctor);
+            } else {
+                $this->connector = new Connector(Loop::get(), $proxy_conenctor);
+            }
         }
     }
 
@@ -247,6 +254,9 @@ class Client {
             // todo: exception types for server-side disconnects
             $this->reset(new NetworkError($message));
         }
+        if ($this->error) {
+            $this->reset($this->error);
+        }
     }
 
     public function on_message(Message $message) {
@@ -309,9 +319,17 @@ class Client {
                 $this->on_error(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
             } else {
                 if ($this->ping) {
-                    $this->send(call_user_func($this->ping, $this));
+                    try {
+                        $this->send(call_user_func($this->ping, $this));
+                    } catch (Exception $e) {
+                        $this->on_error($e);
+                    }
                 } else {
-                    $this->connection->send(new Frame('', true, Frame::OP_PING));
+                    try {
+                        $this->connection->send(new Frame('', true, Frame::OP_PING));
+                    } catch (Exception $e) {
+                        $this->on_error($e);
+                    }
                 }
             }
         }

@@ -27,7 +27,6 @@ class coinlist extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -106,7 +105,8 @@ class coinlist extends Exchange {
                 'fetchWithdrawals' => false,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => false,
-                'repayMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -147,6 +147,9 @@ class coinlist extends Exchange {
                         'v1/symbols/{symbol}/auctions/{auction_code}' => 1, // not unified
                         'v1/time' => 1,
                         'v1/assets' => 1,
+                        'v1/leaderboard' => 1,
+                        'v1/affiliate/{competition_code}' => 1,
+                        'v1/competition/{competition_id}' => 1,
                     ),
                 ),
                 'private' => array(
@@ -154,6 +157,7 @@ class coinlist extends Exchange {
                         'v1/fees' => 1,
                         'v1/accounts' => 1,
                         'v1/accounts/{trader_id}' => 1, // not unified
+                        'v1/accounts/{trader_id}/alias' => 1,
                         'v1/accounts/{trader_id}/ledger' => 1,
                         'v1/accounts/{trader_id}/wallets' => 1, // not unified
                         'v1/accounts/{trader_id}/wallet-ledger' => 1,
@@ -167,6 +171,8 @@ class coinlist extends Exchange {
                         'v1/transfers' => 1,
                         'v1/user' => 1, // not unified
                         'v1/credits' => 1, // not unified
+                        'v1/positions' => 1,
+                        'v1/accounts/{trader_id}/competitions' => 1,
                     ),
                     'post' => array(
                         'v1/keys' => 1, // not unified
@@ -178,6 +184,8 @@ class coinlist extends Exchange {
                         'v1/transfers/internal-transfer' => 1,
                         'v1/transfers/withdrawal-request' => 1,
                         'v1/orders/bulk' => 1, // not unified
+                        'v1/accounts/{trader_id}/competitions' => 1,
+                        'v1/accounts/{trader_id}/create-competition' => 1,
                     ),
                     'patch' => array(
                         'v1/orders/{order_id}' => 1,
@@ -351,7 +359,7 @@ class coinlist extends Exchange {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'asset');
             $code = $this->safe_currency_code($id);
-            $isTransferable = $this->safe_value($currency, 'is_transferable', false);
+            $isTransferable = $this->safe_bool($currency, 'is_transferable', false);
             $withdrawEnabled = $isTransferable;
             $depositEnabled = $isTransferable;
             $active = $isTransferable;
@@ -744,7 +752,7 @@ class coinlist extends Exchange {
             $request['start_time'] = $this->iso8601($since);
         }
         if ($limit !== null) {
-            $request['count'] = $limit;
+            $request['count'] = min ($limit, 500);
         }
         $until = $this->safe_integer_2($params, 'till', 'until');
         if ($until !== null) {
@@ -1018,13 +1026,15 @@ class coinlist extends Exchange {
             }
             $takerFees = $this->sort_by($takerFees, 1, true);
             $makerFees = $this->sort_by($makerFees, 1, true);
-            $firstTier = $this->safe_value($takerFees, 0, array());
-            $exchangeFees = $this->safe_value($this, 'fees', array());
-            $exchangeFeesTrading = $this->safe_value($exchangeFees, 'trading', array());
-            $exchangeFeesTradingTiers = $this->safe_value($exchangeFeesTrading, 'tiers', array());
-            $exchangeFeesTradingTiersTaker = $this->safe_value($exchangeFeesTradingTiers, 'taker', array());
-            $exchangeFeesTradingTiersMaker = $this->safe_value($exchangeFeesTradingTiers, 'maker', array());
-            if (($keysLength === strlen($exchangeFeesTradingTiersTaker)) && (strlen($firstTier) > 0)) {
+            $firstTier = $this->safe_dict($takerFees, 0, array());
+            $exchangeFees = $this->safe_dict($this, 'fees', array());
+            $exchangeFeesTrading = $this->safe_dict($exchangeFees, 'trading', array());
+            $exchangeFeesTradingTiers = $this->safe_dict($exchangeFeesTrading, 'tiers', array());
+            $exchangeFeesTradingTiersTaker = $this->safe_list($exchangeFeesTradingTiers, 'taker', array());
+            $exchangeFeesTradingTiersMaker = $this->safe_list($exchangeFeesTradingTiers, 'maker', array());
+            $exchangeFeesTradingTiersTakerLength = count($exchangeFeesTradingTiersTaker);
+            $firstTierLength = count($firstTier);
+            if (($keysLength === $exchangeFeesTradingTiersTakerLength) && ($firstTierLength > 0)) {
                 for ($i = 0; $i < $keysLength; $i++) {
                     $takerFees[$i][0] = $exchangeFeesTradingTiersTaker[$i][0];
                     $makerFees[$i][0] = $exchangeFeesTradingTiersMaker[$i][0];
@@ -1101,11 +1111,10 @@ class coinlist extends Exchange {
         //         "net_liquidation_value_usd" => "string"
         //     }
         //
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $totalBalances = $this->safe_value($response, 'asset_balances', array());
         $usedBalances = $this->safe_value($response, 'asset_holds', array());
@@ -1206,7 +1215,7 @@ class coinlist extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$orders
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve (default 200, max 500)
+         * @param {int} [$limit] the maximum number of order structures to retrieve (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {string|string[]} [$params->status] the $status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending' (default array( 'accepted', 'done', 'canceled', 'rejected', 'pending' ))
@@ -1427,7 +1436,7 @@ class coinlist extends Exchange {
         return $response;
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#create-new-$order
@@ -1500,7 +1509,7 @@ class coinlist extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
@@ -1680,7 +1689,7 @@ class coinlist extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#$transfer-funds-between-entities
@@ -1927,7 +1936,7 @@ class coinlist extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * $request a withdrawal from CoinList wallet. (Disabled by default. Contact CoinList to apply for an exception.)
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#$request-withdrawal-from-wallet

@@ -5,13 +5,13 @@ import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class probit
- * @extends Exchange
+ * @augments Exchange
  */
 export default class probit extends Exchange {
     describe () {
@@ -30,7 +30,10 @@ export default class probit extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -285,7 +288,7 @@ export default class probit extends Exchange {
         const quoteId = this.safeString (market, 'quote_currency_id');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const closed = this.safeValue (market, 'closed', false);
+        const closed = this.safeBool (market, 'closed', false);
         const takerFeeRate = this.safeString (market, 'taker_fee_rate');
         const taker = Precise.stringDiv (takerFeeRate, '100');
         const makerFeeRate = this.safeString (market, 'maker_fee_rate');
@@ -319,6 +322,7 @@ export default class probit extends Exchange {
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_precision'))),
                 'price': this.safeNumber (market, 'price_increment'),
+                'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'cost_precision'))),
             },
             'limits': {
                 'leverage': {
@@ -423,8 +427,8 @@ export default class probit extends Exchange {
             const networkList = {};
             for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
-                const networkId = this.safeString (network, 'id');
-                const networkCode = this.networkIdToCode (networkId);
+                const idInner = this.safeString (network, 'id');
+                const networkCode = this.networkIdToCode (idInner);
                 const currentDepositSuspended = this.safeValue (network, 'deposit_suspended');
                 const currentWithdrawalSuspended = this.safeValue (network, 'withdrawal_suspended');
                 const currentDeposit = !currentDepositSuspended;
@@ -435,14 +439,22 @@ export default class probit extends Exchange {
                 }
                 const precision = this.parsePrecision (this.safeString (network, 'precision'));
                 const withdrawFee = this.safeValue (network, 'withdrawal_fee', []);
-                const networkfee = this.safeValue (withdrawFee, 0, {});
+                let networkFee = this.safeValue (withdrawFee, 0, {});
+                for (let k = 0; k < withdrawFee.length; k++) {
+                    const withdrawPlatform = withdrawFee[k];
+                    const feeCurrencyId = this.safeString (withdrawPlatform, 'currency_id');
+                    if (feeCurrencyId === id) {
+                        networkFee = withdrawPlatform;
+                        break;
+                    }
+                }
                 networkList[networkCode] = {
-                    'id': networkId,
+                    'id': idInner,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,
                     'withdraw': currentWithdraw,
-                    'fee': this.safeNumber (networkfee, 'amount'),
+                    'fee': this.safeNumber (networkFee, 'amount'),
                     'precision': this.parseNumber (precision),
                     'limits': {
                         'withdraw': {
@@ -777,7 +789,6 @@ export default class probit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market_id': market['id'],
-            'limit': 100,
             'start_time': '1970-01-01T00:00:00.000Z',
             'end_time': this.iso8601 (this.milliseconds ()),
         };
@@ -785,7 +796,9 @@ export default class probit extends Exchange {
             request['start_time'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 10000);
+            request['limit'] = Math.min (limit, 1000);
+        } else {
+            request['limit'] = 1000; // required to set any value
         }
         const response = await this.publicGetTrade (this.extend (request, params));
         //
@@ -1059,7 +1072,7 @@ export default class probit extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1195,18 +1208,19 @@ export default class probit extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name probit#createOrder
-         * @see https://docs-en.probit.com/reference/order-1
          * @description create a trade order
+         * @see https://docs-en.probit.com/reference/order-1
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1224,30 +1238,32 @@ export default class probit extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        let costToPrecision = undefined;
+        let quoteAmount = undefined;
         if (type === 'limit') {
             request['limit_price'] = this.priceToPrecision (symbol, price);
             request['quantity'] = this.amountToPrecision (symbol, amount);
         } else if (type === 'market') {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
-                let cost = this.safeNumber (params, 'cost');
-                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (createMarketBuyOrderRequiresPrice) {
-                    if (price !== undefined) {
-                        if (cost === undefined) {
-                            const amountString = this.numberToString (amount);
-                            const priceString = this.numberToString (price);
-                            cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-                        }
-                    } else if (cost === undefined) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total cost value in the "amount" argument or in the "cost" extra parameter (the exchange-specific behaviour)');
+                let createMarketBuyOrderRequiresPrice = true;
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeString (params, 'cost');
+                params = this.omit (params, 'cost');
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision (symbol, cost);
+                } else if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const costRequest = Precise.stringMul (amountString, priceString);
+                        quoteAmount = this.costToPrecision (symbol, costRequest);
                     }
                 } else {
-                    cost = (cost === undefined) ? amount : cost;
+                    quoteAmount = this.costToPrecision (symbol, amount);
                 }
-                costToPrecision = this.costToPrecision (symbol, cost);
-                request['cost'] = costToPrecision;
+                request['cost'] = quoteAmount;
             } else {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             }
@@ -1281,7 +1297,7 @@ export default class probit extends Exchange {
         // returned by the exchange on market buys
         if ((type === 'market') && (side === 'buy')) {
             order['amount'] = undefined;
-            order['cost'] = this.parseNumber (costToPrecision);
+            order['cost'] = this.parseNumber (quoteAmount);
             order['remaining'] = undefined;
         }
         return order;
@@ -1384,7 +1400,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddress (firstAddress, currency);
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchDepositAddresses
@@ -1409,7 +1425,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddresses (data, codes);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name probit#withdraw
@@ -1556,7 +1572,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1593,12 +1609,12 @@ export default class probit extends Exchange {
         const currencyId = this.safeString (transaction, 'currency_id');
         const code = this.safeCurrencyCode (currencyId);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const feeCostString = this.safeString (transaction, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined && feeCost !== 0) {
+        if (feeCostString !== undefined && feeCostString !== '0') {
             fee = {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCostString),
             };
         }
         return {

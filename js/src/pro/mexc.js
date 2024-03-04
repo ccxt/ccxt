@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import mexcRest from '../mexc.js';
-import { ExchangeError, AuthenticationError } from '../base/errors.js';
+import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -247,7 +247,7 @@ export default class mexc extends mexcRest {
         //        "d": {
         //            "e": "spot@public.kline.v3.api",
         //            "k": {
-        //                "t": 1678642260,
+        //                "t": 1678642261,
         //                "o": 20626.94,
         //                "c": 20599.69,
         //                "h": 20626.94,
@@ -453,26 +453,27 @@ export default class mexc extends mexcRest {
         const symbol = this.safeSymbol(marketId);
         const messageHash = 'orderbook:' + symbol;
         const subscription = this.safeValue(client.subscriptions, messageHash);
+        const limit = this.safeInteger(subscription, 'limit');
         if (subscription === true) {
             // we set client.subscriptions[messageHash] to 1
             // once we have received the first delta and initialized the orderbook
             client.subscriptions[messageHash] = 1;
             this.orderbooks[symbol] = this.countedOrderBook({});
         }
-        const storedOrderBook = this.safeValue(this.orderbooks, symbol);
+        const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             storedOrderBook.cache.push(data);
             return;
         }
         try {
             this.handleDelta(storedOrderBook, data);
-            const timestamp = this.safeInteger(message, 't');
+            const timestamp = this.safeInteger2(message, 't', 'ts');
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
         }
@@ -502,10 +503,12 @@ export default class mexc extends mexcRest {
         }
     }
     handleDelta(orderbook, delta) {
-        const nonce = this.safeInteger(orderbook, 'nonce');
+        const existingNonce = this.safeInteger(orderbook, 'nonce');
         const deltaNonce = this.safeInteger2(delta, 'r', 'version');
-        if (deltaNonce !== nonce && deltaNonce !== nonce + 1) {
-            throw new ExchangeError(this.id + ' handleOrderBook received an out-of-order nonce');
+        if (deltaNonce < existingNonce) {
+            // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         orderbook['nonce'] = deltaNonce;
         const asks = this.safeValue(delta, 'asks', []);
@@ -740,9 +743,9 @@ export default class mexc extends mexcRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @params {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
+         * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1109,7 +1112,7 @@ export default class mexc extends mexcRest {
         //
         const msg = this.safeString(message, 'msg');
         if (msg === 'PONG') {
-            return this.handlePong(client, message);
+            this.handlePong(client, message);
         }
         else if (msg.indexOf('@') > -1) {
             const parts = msg.split('@');
@@ -1132,7 +1135,8 @@ export default class mexc extends mexcRest {
             return;
         }
         if ('msg' in message) {
-            return this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, message);
+            return;
         }
         const c = this.safeString(message, 'c');
         let channel = undefined;

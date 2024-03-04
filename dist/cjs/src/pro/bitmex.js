@@ -18,8 +18,9 @@ class bitmex extends bitmex$1 {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
+                'watchPostions': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
             },
@@ -59,17 +60,50 @@ class bitmex extends bitmex$1 {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        const market = this.market(symbol);
+        symbol = this.symbol(symbol);
+        const tickers = await this.watchTickers([symbol], params);
+        return tickers[symbol];
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true);
         const name = 'instrument';
-        const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
+        const messageHashes = [];
+        const rawSubscriptions = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market(symbol);
+                const subscription = name + ':' + market['id'];
+                rawSubscriptions.push(subscription);
+                const messageHash = 'ticker:' + symbol;
+                messageHashes.push(messageHash);
+            }
+        }
+        else {
+            rawSubscriptions.push(name);
+            messageHashes.push('alltickers');
+        }
         const request = {
             'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
+            'args': rawSubscriptions,
         };
-        return await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        const ticker = await this.watchMultiple(url, messageHashes, this.extend(request, params), rawSubscriptions);
+        if (this.newUpdates) {
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
         //
@@ -298,19 +332,20 @@ class bitmex extends bitmex$1 {
         //         ]
         //     }
         //
-        const table = this.safeString(message, 'table');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const update = data[i];
-            const marketId = this.safeValue(update, 'symbol');
-            const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
-            const messageHash = table + ':' + marketId;
-            let ticker = this.safeValue(this.tickers, symbol, {});
-            const info = this.safeValue(ticker, 'info', {});
-            ticker = this.parseTicker(this.extend(info, update), market);
-            this.tickers[symbol] = ticker;
-            client.resolve(ticker, messageHash);
+            const marketId = this.safeString(update, 'symbol');
+            const symbol = this.safeSymbol(marketId);
+            if (!(symbol in this.tickers)) {
+                this.tickers[symbol] = this.parseTicker({});
+            }
+            const updatedTicker = this.parseTicker(update);
+            const fullParsedTicker = this.deepExtend(this.tickers[symbol], updatedTicker);
+            this.tickers[symbol] = fullParsedTicker;
+            const messageHash = 'ticker:' + symbol;
+            client.resolve(fullParsedTicker, messageHash);
+            client.resolve(fullParsedTicker, 'alltickers');
         }
         return message;
     }
@@ -519,7 +554,6 @@ class bitmex extends bitmex$1 {
                 stored.append(trades[j]);
             }
             client.resolve(stored, messageHash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, stored);
         }
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -576,7 +610,7 @@ class bitmex extends bitmex$1 {
         return future;
     }
     handleAuthenticationMessage(client, message) {
-        const authenticated = this.safeValue(message, 'success', false);
+        const authenticated = this.safeBool(message, 'success', false);
         const messageHash = 'authenticated';
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
@@ -591,6 +625,210 @@ class bitmex extends bitmex$1 {
             }
         }
     }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchPositions
+         * @see https://www.bitmex.com/app/wsAPI
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets();
+        await this.authenticate();
+        const subscriptionHash = 'position';
+        let messageHash = 'positions';
+        if (!this.isEmpty(symbols)) {
+            messageHash = '::' + symbols.join(',');
+        }
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': [
+                subscriptionHash,
+            ],
+        };
+        const newPositions = await this.watch(url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+    }
+    handlePositions(client, message) {
+        //
+        // partial
+        //    {
+        //        table: 'position',
+        //        action: 'partial',
+        //        keys: [ 'account', 'symbol' ],
+        //        types: {
+        //            account: 'long',
+        //            symbol: 'symbol',
+        //            currency: 'symbol',
+        //            underlying: 'symbol',
+        //            quoteCurrency: 'symbol',
+        //            commission: 'float',
+        //            initMarginReq: 'float',
+        //            maintMarginReq: 'float',
+        //            riskLimit: 'long',
+        //            leverage: 'float',
+        //            crossMargin: 'boolean',
+        //            deleveragePercentile: 'float',
+        //            rebalancedPnl: 'long',
+        //            prevRealisedPnl: 'long',
+        //            prevUnrealisedPnl: 'long',
+        //            openingQty: 'long',
+        //            openOrderBuyQty: 'long',
+        //            openOrderBuyCost: 'long',
+        //            openOrderBuyPremium: 'long',
+        //            openOrderSellQty: 'long',
+        //            openOrderSellCost: 'long',
+        //            openOrderSellPremium: 'long',
+        //            currentQty: 'long',
+        //            currentCost: 'long',
+        //            currentComm: 'long',
+        //            realisedCost: 'long',
+        //            unrealisedCost: 'long',
+        //            grossOpenPremium: 'long',
+        //            isOpen: 'boolean',
+        //            markPrice: 'float',
+        //            markValue: 'long',
+        //            riskValue: 'long',
+        //            homeNotional: 'float',
+        //            foreignNotional: 'float',
+        //            posState: 'symbol',
+        //            posCost: 'long',
+        //            posCross: 'long',
+        //            posComm: 'long',
+        //            posLoss: 'long',
+        //            posMargin: 'long',
+        //            posMaint: 'long',
+        //            initMargin: 'long',
+        //            maintMargin: 'long',
+        //            realisedPnl: 'long',
+        //            unrealisedPnl: 'long',
+        //            unrealisedPnlPcnt: 'float',
+        //            unrealisedRoePcnt: 'float',
+        //            avgCostPrice: 'float',
+        //            avgEntryPrice: 'float',
+        //            breakEvenPrice: 'float',
+        //            marginCallPrice: 'float',
+        //            liquidationPrice: 'float',
+        //            bankruptPrice: 'float',
+        //            timestamp: 'timestamp'
+        //        },
+        //        filter: { account: 412475 },
+        //        data: [
+        //            {
+        //                account: 412475,
+        //                symbol: 'XBTUSD',
+        //                currency: 'XBt',
+        //                underlying: 'XBT',
+        //                quoteCurrency: 'USD',
+        //                commission: 0.00075,
+        //                initMarginReq: 0.01,
+        //                maintMarginReq: 0.0035,
+        //                riskLimit: 20000000000,
+        //                leverage: 100,
+        //                crossMargin: true,
+        //                deleveragePercentile: 1,
+        //                rebalancedPnl: 0,
+        //                prevRealisedPnl: 0,
+        //                prevUnrealisedPnl: 0,
+        //                openingQty: 400,
+        //                openOrderBuyQty: 0,
+        //                openOrderBuyCost: 0,
+        //                openOrderBuyPremium: 0,
+        //                openOrderSellQty: 0,
+        //                openOrderSellCost: 0,
+        //                openOrderSellPremium: 0,
+        //                currentQty: 400,
+        //                currentCost: -912269,
+        //                currentComm: 684,
+        //                realisedCost: 0,
+        //                unrealisedCost: -912269,
+        //                grossOpenPremium: 0,
+        //                isOpen: true,
+        //                markPrice: 43772,
+        //                markValue: -913828,
+        //                riskValue: 913828,
+        //                homeNotional: 0.00913828,
+        //                foreignNotional: -400,
+        //                posCost: -912269,
+        //                posCross: 1559,
+        //                posComm: 694,
+        //                posLoss: 0,
+        //                posMargin: 11376,
+        //                posMaint: 3887,
+        //                initMargin: 0,
+        //                maintMargin: 9817,
+        //                realisedPnl: -684,
+        //                unrealisedPnl: -1559,
+        //                unrealisedPnlPcnt: -0.0017,
+        //                unrealisedRoePcnt: -0.1709,
+        //                avgCostPrice: 43846.7643,
+        //                avgEntryPrice: 43846.7643,
+        //                breakEvenPrice: 43880,
+        //                marginCallPrice: 20976,
+        //                liquidationPrice: 20976,
+        //                bankruptPrice: 20941,
+        //                timestamp: '2023-12-07T00:09:00.709Z'
+        //            }
+        //        ]
+        //    }
+        // update
+        //    {
+        //        table: 'position',
+        //        action: 'update',
+        //        data: [
+        //            {
+        //                account: 412475,
+        //                symbol: 'XBTUSD',
+        //                currency: 'XBt',
+        //                currentQty: 400,
+        //                markPrice: 43772.75,
+        //                markValue: -913812,
+        //                riskValue: 913812,
+        //                homeNotional: 0.00913812,
+        //                posCross: 1543,
+        //                posComm: 693,
+        //                posMargin: 11359,
+        //                posMaint: 3886,
+        //                maintMargin: 9816,
+        //                unrealisedPnl: -1543,
+        //                unrealisedRoePcnt: -0.1691,
+        //                liquidationPrice: 20976,
+        //                timestamp: '2023-12-07T00:09:10.760Z'
+        //            }
+        //        ]
+        //    }
+        //
+        if (this.positions === undefined) {
+            this.positions = new Cache.ArrayCacheBySymbolBySide();
+        }
+        const cache = this.positions;
+        const rawPositions = this.safeValue(message, 'data', []);
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parsePosition(rawPosition);
+            newPositions.push(position);
+            cache.append(position);
+        }
+        const messageHashes = this.findMessageHashes(client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(newPositions, 'positions');
+    }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -598,7 +836,7 @@ class bitmex extends bitmex$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -933,31 +1171,7 @@ class bitmex extends bitmex$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        let table = undefined;
-        if (limit === undefined) {
-            table = this.safeString(this.options, 'watchOrderBookLevel', 'orderBookL2');
-        }
-        else if (limit === 25) {
-            table = 'orderBookL2_25';
-        }
-        else if (limit === 10) {
-            table = 'orderBookL10';
-        }
-        else {
-            throw new errors.ExchangeError(this.id + ' watchOrderBook limit argument must be undefined (L2), 25 (L2) or 10 (L3)');
-        }
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const messageHash = table + ':' + market['id'];
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
-        };
-        const orderbook = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
-        return orderbook.limit();
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         /**
@@ -985,19 +1199,21 @@ class bitmex extends bitmex$1 {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const topics = [];
+        const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const currentMessageHash = table + ':' + market['id'];
-            topics.push(currentMessageHash);
+            const topic = table + ':' + market['id'];
+            topics.push(topic);
+            const messageHash = table + ':' + symbol;
+            messageHashes.push(messageHash);
         }
-        const messageHash = 'multipleOrderbook::' + symbols.join(',');
         const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
             'args': topics,
         };
-        const orderbook = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        const orderbook = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), topics);
         return orderbook.limit();
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1110,7 +1326,7 @@ class bitmex extends bitmex$1 {
             const messageHash = table + ':' + market['id'];
             const result = [
                 this.parse8601(this.safeString(candle, 'timestamp')) - duration * 1000,
-                this.safeFloat(candle, 'open'),
+                undefined,
                 this.safeFloat(candle, 'high'),
                 this.safeFloat(candle, 'low'),
                 this.safeFloat(candle, 'close'),
@@ -1220,9 +1436,8 @@ class bitmex extends bitmex$1 {
                 orderbook['timestamp'] = this.parse8601(datetime);
                 orderbook['datetime'] = datetime;
             }
-            const messageHash = table + ':' + marketId;
+            const messageHash = table + ':' + symbol;
             client.resolve(orderbook, messageHash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbook::', symbol, orderbook);
         }
         else {
             const numUpdatesByMarketId = {};
@@ -1249,12 +1464,11 @@ class bitmex extends bitmex$1 {
             const marketIds = Object.keys(numUpdatesByMarketId);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
-                const messageHash = table + ':' + marketId;
                 const market = this.safeMarket(marketId);
                 const symbol = market['symbol'];
+                const messageHash = table + ':' + symbol;
                 const orderbook = this.orderbooks[symbol];
                 client.resolve(orderbook, messageHash);
-                this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbook::', symbol, orderbook);
             }
         }
     }
@@ -1301,7 +1515,7 @@ class bitmex extends bitmex$1 {
         //
         //     { "error": "Rate limit exceeded, retry in 29 seconds." }
         //
-        const error = this.safeValue(message, 'error');
+        const error = this.safeString(message, 'error');
         if (error !== undefined) {
             const request = this.safeValue(message, 'request', {});
             const args = this.safeValue(request, 'args', []);
@@ -1312,7 +1526,7 @@ class bitmex extends bitmex$1 {
                 const broadKey = this.findBroadlyMatchedKey(broad, error);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new errors.ExchangeError(error);
+                    exception = new errors.ExchangeError(error); // c# requirement for now
                 }
                 else {
                     exception = new broad[broadKey](error);
@@ -1373,20 +1587,18 @@ class bitmex extends bitmex$1 {
                 'order': this.handleOrders,
                 'execution': this.handleMyTrades,
                 'margin': this.handleBalance,
+                'position': this.handlePositions,
             };
             const method = this.safeValue(methods, table);
             if (method === undefined) {
                 const request = this.safeValue(message, 'request', {});
                 const op = this.safeValue(request, 'op');
                 if (op === 'authKeyExpires') {
-                    return this.handleAuthenticationMessage.call(this, client, message);
-                }
-                else {
-                    return message;
+                    this.handleAuthenticationMessage(client, message);
                 }
             }
             else {
-                return method.call(this, client, message);
+                method.call(this, client, message);
             }
         }
     }

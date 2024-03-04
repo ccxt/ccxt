@@ -353,6 +353,22 @@ class bitstamp(Exchange, ImplicitAPI):
                         'earn/subscribe/': 1,
                         'earn/subscriptions/setting/': 1,
                         'earn/unsubscribe': 1,
+                        'wecan_withdrawal/': 1,
+                        'wecan_address/': 1,
+                        'trac_withdrawal/': 1,
+                        'trac_address/': 1,
+                        'eurcv_withdrawal/': 1,
+                        'eurcv_address/': 1,
+                        'pyusd_withdrawal/': 1,
+                        'pyusd_address/': 1,
+                        'lmwr_withdrawal/': 1,
+                        'lmwr_address/': 1,
+                        'pepe_withdrawal/': 1,
+                        'pepe_address/': 1,
+                        'blur_withdrawal/': 1,
+                        'blur_address/': 1,
+                        'vext_withdrawal/': 1,
+                        'vext_address/': 1,
                     },
                 },
             },
@@ -454,6 +470,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for bitstamp
+        :see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -592,6 +609,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        :see: https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -635,6 +653,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://www.bitstamp.net/api/#tag/Order-book/operation/GetOrderBook
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -718,6 +737,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://www.bitstamp.net/api/#tag/Tickers/operation/GetMarketTicker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -748,7 +768,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://www.bitstamp.net/api/#all-tickers
+        :see: https://www.bitstamp.net/api/#tag/Tickers/operation/GetCurrencyPairTickers
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -802,7 +822,7 @@ class bitstamp(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             id = ids[i]
             if id.find('_') < 0:
-                value = self.safe_number(transaction, id)
+                value = self.safe_integer(transaction, id)
                 if (value is not None) and (value != 0):
                     return id
         return None
@@ -951,6 +971,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://www.bitstamp.net/api/#tag/Transactions-public/operation/GetTransactions
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1075,6 +1096,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://www.bitstamp.net/api/#tag/Account-balances/operation/GetAccountBalances
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1103,6 +1125,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
+        :see: https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1140,6 +1163,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
+        :see: https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -1147,7 +1171,7 @@ class bitstamp(Exchange, ImplicitAPI):
         response = self.privatePostBalance(params)
         return self.parse_trading_fees(response)
 
-    def fetch_transaction_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes: List[str] = None, params={}):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
@@ -1205,7 +1229,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://www.bitstamp.net/api/#balance
+        :see: https://www.bitstamp.net/api/#tag/Fees/operation/GetAllWithdrawalFees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1267,9 +1291,15 @@ class bitstamp(Exchange, ImplicitAPI):
                 result[code]['info'][id] = dictValue
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1280,23 +1310,32 @@ class bitstamp(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        method = 'privatePost' + self.capitalize(side)
         request = {
             'pair': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
         }
-        if type == 'market':
-            method += 'Market'
-        elif type == 'instant':
-            method += 'Instant'
-        else:
-            request['price'] = self.price_to_precision(symbol, price)
-        method += 'Pair'
         clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-            params = self.omit(params, ['client_order_id', 'clientOrderId'])
-        response = getattr(self, method)(self.extend(request, params))
+            params = self.omit(params, ['clientOrderId'])
+        response = None
+        capitalizedSide = self.capitalize(side)
+        if type == 'market':
+            if capitalizedSide == 'Buy':
+                response = self.privatePostBuyMarketPair(self.extend(request, params))
+            else:
+                response = self.privatePostSellMarketPair(self.extend(request, params))
+        elif type == 'instant':
+            if capitalizedSide == 'Buy':
+                response = self.privatePostBuyInstantPair(self.extend(request, params))
+            else:
+                response = self.privatePostSellInstantPair(self.extend(request, params))
+        else:
+            request['price'] = self.price_to_precision(symbol, price)
+            if capitalizedSide == 'Buy':
+                response = self.privatePostBuyPair(self.extend(request, params))
+            else:
+                response = self.privatePostSellPair(self.extend(request, params))
         order = self.parse_order(response, market)
         order['type'] = type
         return order
@@ -1304,6 +1343,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrder
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1318,6 +1358,8 @@ class bitstamp(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1325,12 +1367,14 @@ class bitstamp(Exchange, ImplicitAPI):
         self.load_markets()
         market = None
         request = {}
-        method = 'privatePostCancelAllOrders'
+        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method = 'privatePostCancelAllOrdersPair'
-        return getattr(self, method)(self.extend(request, params))
+            response = self.privatePostCancelAllOrdersPair(self.extend(request, params))
+        else:
+            response = self.privatePostCancelAllOrders(self.extend(request, params))
+        return response
 
     def parse_order_status(self, status):
         statuses = {
@@ -1356,6 +1400,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/GetOrderStatus
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1395,6 +1440,8 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
+        :see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+        :see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactionsForMarket
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1418,6 +1465,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
+        :see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
@@ -1464,6 +1512,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
+        :see: https://www.bitstamp.net/api/#tag/Withdrawals/operation/GetWithdrawalRequests
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -1808,6 +1857,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
@@ -1827,6 +1877,8 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/GetAllOpenOrders
+        :see: https://www.bitstamp.net/api/#tag/Orders/operation/GetOpenOrdersForMarket
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -1870,6 +1922,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        :see: https://www.bitstamp.net/api/#tag/Deposits/operation/GetCryptoDepositAddress
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1890,9 +1943,11 @@ class bitstamp(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
+        :see: https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal
+        :see: https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestCryptoWithdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to

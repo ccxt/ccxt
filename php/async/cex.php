@@ -36,6 +36,9 @@ class cex extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => false,
                 'createDepositAddress' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
@@ -756,7 +759,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://docs.cex.io/#place-order
@@ -768,30 +771,42 @@ class cex extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
-            // for $market buy it requires the $amount of quote currency to spend
-            if (($type === 'market') && ($side === 'buy')) {
-                if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
-                    } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $baseAmount = Precise::string_mul($amountString, $priceString);
-                        $amount = $this->parse_number($baseAmount);
-                    }
-                }
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
                 'type' => $side,
-                'amount' => $amount,
             );
+            // for $market buy it requires the $amount of quote currency to spend
+            if (($type === 'market') && ($side === 'buy')) {
+                $quoteAmount = null;
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_string($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($cost !== null) {
+                    $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                } elseif ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
+                    }
+                } else {
+                    $quoteAmount = $this->cost_to_precision($symbol, $amount);
+                }
+                $request['amount'] = $quoteAmount;
+            } else {
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            }
             if ($type === 'limit') {
-                $request['price'] = $price;
+                $request['price'] = $this->number_to_string($price);
             } else {
                 $request['order_type'] = $type;
             }
@@ -1166,14 +1181,15 @@ class cex extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $method = 'privatePostOpenOrders';
             $market = null;
+            $orders = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
-                $method .= 'Pair';
+                $orders = Async\await($this->privatePostOpenOrdersPair (array_merge($request, $params)));
+            } else {
+                $orders = Async\await($this->privatePostOpenOrders (array_merge($request, $params)));
             }
-            $orders = Async\await($this->$method (array_merge($request, $params)));
             for ($i = 0; $i < count($orders); $i++) {
                 $orders[$i] = array_merge($orders[$i], array( 'status' => 'open' ));
             }
@@ -1196,10 +1212,9 @@ class cex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $method = 'privatePostArchivedOrdersPair';
             $market = $this->market($symbol);
             $request = array( 'pair' => $market['id'] );
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->privatePostArchivedOrdersPair (array_merge($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -1330,7 +1345,7 @@ class cex extends Exchange {
              * fetches information on multiple orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest $time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of $order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
              */
@@ -1549,7 +1564,7 @@ class cex extends Exchange {
         return $this->safe_string($this->options['order']['status'], $status, $status);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order

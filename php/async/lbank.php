@@ -10,6 +10,7 @@ use ccxt\async\abstract\lbank as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -26,6 +27,7 @@ class lbank extends Exchange {
             // 50 per second for making and cancelling orders 1000ms / 50 = 20
             // 20 per second for all other requests, cost = 50 / 20 = 2.5
             'rateLimit' => 20,
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
@@ -36,6 +38,9 @@ class lbank extends Exchange {
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -47,6 +52,7 @@ class lbank extends Exchange {
                 'fetchClosedOrders' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
@@ -106,10 +112,10 @@ class lbank extends Exchange {
                     'contract' => 'https://lbkperp.lbank.com',
                 ),
                 'api2' => 'https://api.lbkex.com',
-                'www' => 'https://www.lbank.info',
-                'doc' => 'https://www.lbank.info/en-US/docs/index.html',
-                'fees' => 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
-                'referral' => 'https://www.lbank.info/invitevip?icode=7QCY',
+                'www' => 'https://www.lbank.com',
+                'doc' => 'https://www.lbank.com/en-US/docs/index.html',
+                'fees' => 'https://support.lbank.site/hc/en-gb/articles/900000535703-Trading-Fees-From-14-00-on-April-7-2020-UTC-8-',
+                'referral' => 'https://www.lbank.com/login/?icode=7QCY',
             ),
             'api' => array(
                 'spot' => array(
@@ -297,7 +303,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @see https://www.lbank.info/en-US/docs/index.html#get-timestamp
+             * @see https://www.lbank.com/en-US/docs/index.html#get-timestamp
              * @see https://www.lbank.com/en-US/docs/contract.html#get-the-current-time
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -337,7 +343,7 @@ class lbank extends Exchange {
     public function fetch_markets($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * retrieves data on all markets for lbank2
+             * retrieves data on all markets for lbank
              * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
              * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -600,7 +606,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @see https://www.lbank.info/en-US/docs/index.html#query-current-$market-$data-new
+             * @see https://www.lbank.com/en-US/docs/index.html#query-current-$market-$data-new
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -646,7 +652,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             * @see https://www.lbank.info/en-US/docs/index.html#query-current-$market-$data-new
+             * @see https://www.lbank.com/en-US/docs/index.html#query-current-$market-$data-new
              * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-$market-list
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -726,7 +732,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @see https://www.lbank.info/en-US/docs/index.html#query-$market-depth
+             * @see https://www.lbank.com/en-US/docs/index.html#query-$market-depth
              * @see https://www.lbank.com/en-US/docs/contract.html#get-handicap
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -915,8 +921,8 @@ class lbank extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
-             * @see https://www.lbank.info/en-US/docs/index.html#query-historical-transactions
-             * @see https://www.lbank.info/en-US/docs/index.html#recent-transactions-list
+             * @see https://www.lbank.com/en-US/docs/index.html#query-historical-transactions
+             * @see https://www.lbank.com/en-US/docs/index.html#recent-transactions-list
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -936,13 +942,16 @@ class lbank extends Exchange {
             } else {
                 $request['size'] = 600; // max
             }
-            $method = $this->safe_string($params, 'method');
+            $options = $this->safe_value($this->options, 'fetchTrades', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'spotPublicGetTrades');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchTrades', array());
-                $method = $this->safe_string($options, 'method', 'spotPublicGetTrades');
+            $response = null;
+            if ($method === 'spotPublicGetSupplementTrades') {
+                $response = Async\await($this->spotPublicGetSupplementTrades (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->spotPublicGetTrades (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //      {
             //          "result":"true",
@@ -989,7 +998,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @see https://www.lbank.info/en-US/docs/index.html#query-k-bar-data
+             * @see https://www.lbank.com/en-US/docs/index.html#query-k-bar-data
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1176,19 +1185,24 @@ class lbank extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @see https://www.lbank.info/en-US/docs/index.html#asset-information
-             * @see https://www.lbank.info/en-US/docs/index.html#account-information
-             * @see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
+             * @see https://www.lbank.com/en-US/docs/index.html#asset-information
+             * @see https://www.lbank.com/en-US/docs/index.html#account-information
+             * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $method = $this->safe_string($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchBalance', array());
-                $method = $this->safe_string($options, 'method', 'spotPrivatePostSupplementUserInfo');
+            $options = $this->safe_value($this->options, 'fetchBalance', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementUserInfo');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
+            $response = null;
+            if ($method === 'spotPrivatePostSupplementUserInfoAccount') {
+                $response = Async\await($this->spotPrivatePostSupplementUserInfoAccount ());
+            } elseif ($method === 'spotPrivatePostUserInfo') {
+                $response = Async\await($this->spotPrivatePostUserInfo ());
+            } else {
+                $response = Async\await($this->spotPrivatePostSupplementUserInfo ());
             }
-            $response = Async\await($this->$method ());
             //
             //    {
             //        "result" => "true",
@@ -1245,7 +1259,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
-             * @see https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
+             * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -1260,7 +1274,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets
-             * @see https://www.lbank.info/en-US/docs/index.html#transaction-$fee-rate-query
+             * @see https://www.lbank.com/en-US/docs/index.html#transaction-$fee-rate-query
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
              */
@@ -1278,12 +1292,33 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a $market buy order by providing the $symbol and $cost
+             * @see https://www.lbank.com/en-US/docs/index.html#place-order
+             * @see https://www.lbank.com/en-US/docs/index.html#place-an-order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+            }
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
-             * @see https://www.lbank.info/en-US/docs/index.html#place-order
-             * @see https://www.lbank.info/en-US/docs/index.html#place-an-order
+             * @see https://www.lbank.com/en-US/docs/index.html#place-order
+             * @see https://www.lbank.com/en-US/docs/index.html#place-an-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1295,7 +1330,7 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $clientOrderId = $this->safe_string_2($params, 'custom_id', 'clientOrderId');
-            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $postOnly = $this->safe_bool($params, 'postOnly', false);
             $timeInForce = $this->safe_string_upper($params, 'timeInForce');
             $params = $this->omit($params, array( 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ));
             $request = array(
@@ -1324,32 +1359,42 @@ class lbank extends Exchange {
                     $request['amount'] = $this->amount_to_precision($symbol, $amount);
                 } elseif ($side === 'buy') {
                     $request['type'] = $side . '_' . 'market';
-                    if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                    $quoteAmount = null;
+                    $createMarketBuyOrderRequiresPrice = true;
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    $cost = $this->safe_number($params, 'cost');
+                    $params = $this->omit($params, 'cost');
+                    if ($cost !== null) {
+                        $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                    } elseif ($createMarketBuyOrderRequiresPrice) {
                         if ($price === null) {
-                            throw new InvalidOrder($this->id . " createOrder () requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply the $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                         } else {
                             $amountString = $this->number_to_string($amount);
                             $priceString = $this->number_to_string($price);
-                            $quoteAmount = Precise::string_mul($amountString, $priceString);
-                            $cost = $this->parse_number($quoteAmount);
-                            $request['price'] = $this->price_to_precision($symbol, $cost);
+                            $costRequest = Precise::string_mul($amountString, $priceString);
+                            $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                         }
                     } else {
-                        $request['price'] = $amount;
+                        $quoteAmount = $this->cost_to_precision($symbol, $amount);
                     }
+                    // $market buys require filling the $price param instead of the $amount param, for $market buys the $price is treated $cost by lbank
+                    $request['price'] = $quoteAmount;
                 }
             }
             if ($clientOrderId !== null) {
                 $request['custom_id'] = $clientOrderId;
             }
-            $method = null;
-            $method = $this->safe_string($params, 'method');
+            $options = $this->safe_value($this->options, 'createOrder', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementCreateOrder');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'createOrder', array());
-                $method = $this->safe_string($options, 'method', 'spotPrivatePostSupplementCreateOrder');
+            $response = null;
+            if ($method === 'spotPrivatePostCreateOrder') {
+                $response = Async\await($this->spotPrivatePostCreateOrder (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->spotPrivatePostSupplementCreateOrder (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //      {
             //          "result":true,
@@ -1511,8 +1556,8 @@ class lbank extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
-             * @see https://www.lbank.info/en-US/docs/index.html#query-order
-             * @see https://www.lbank.info/en-US/docs/index.html#query-order-new
+             * @see https://www.lbank.com/en-US/docs/index.html#query-order
+             * @see https://www.lbank.com/en-US/docs/index.html#query-order-new
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1621,7 +1666,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
-             * @see https://www.lbank.info/en-US/docs/index.html#past-transaction-details
+             * @see https://www.lbank.com/en-US/docs/index.html#past-transaction-details
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
@@ -1681,7 +1726,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
-             * @see https://www.lbank.info/en-US/docs/index.html#query-all-$orders
+             * @see https://www.lbank.com/en-US/docs/index.html#query-all-$orders
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1742,7 +1787,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
-             * @see https://www.lbank.info/en-US/docs/index.html#current-pending-order
+             * @see https://www.lbank.com/en-US/docs/index.html#current-pending-order
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
@@ -1800,7 +1845,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
-             * @see https://www.lbank.info/en-US/docs/index.html#cancel-order-new
+             * @see https://www.lbank.com/en-US/docs/index.html#cancel-order-new
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1843,7 +1888,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
-             * @see https://www.lbank.info/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
+             * @see https://www.lbank.com/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1892,20 +1937,24 @@ class lbank extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
-             * @see https://www.lbank.info/en-US/docs/index.html#get-deposit-address
-             * @see https://www.lbank.info/en-US/docs/index.html#the-user-obtains-the-deposit-address
+             * @see https://www.lbank.com/en-US/docs/index.html#get-deposit-address
+             * @see https://www.lbank.com/en-US/docs/index.html#the-user-obtains-the-deposit-address
              * @param {string} $code unified currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
-            $method = $this->safe_string($params, 'method');
+            $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'fetchDepositAddressDefault');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
-                $method = $this->safe_string($options, 'method', 'fetchDepositAddressDefault');
+            $response = null;
+            if ($method === 'fetchDepositAddressSupplement') {
+                $response = Async\await($this->fetch_deposit_address_supplement($code, $params));
+            } else {
+                $response = Async\await($this->fetch_deposit_address_default($code, $params));
             }
-            return Async\await($this->$method ($code, $params));
+            return $response;
         }) ();
     }
 
@@ -1994,11 +2043,11 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
-             * @see https://www.lbank.info/en-US/docs/index.html#withdrawal
+             * @see https://www.lbank.com/en-US/docs/index.html#withdrawal
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -2165,7 +2214,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all $deposits made to an account
-             * @see https://www.lbank.info/en-US/docs/index.html#get-recharge-history
+             * @see https://www.lbank.com/en-US/docs/index.html#get-recharge-history
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch $deposits for
              * @param {int} [$limit] the maximum number of $deposits structures to retrieve
@@ -2219,7 +2268,7 @@ class lbank extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
-             * @see https://www.lbank.info/en-US/docs/index.html#get-withdrawal-history
+             * @see https://www.lbank.com/en-US/docs/index.html#get-withdrawal-history
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -2273,12 +2322,12 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function fetch_transaction_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * @deprecated
              * please use fetchDepositWithdrawFees instead
-             * @param {string[]|null} $codes not used by lbank2 fetchTransactionFees ()
+             * @param {string[]|null} $codes not used by lbank fetchTransactionFees ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
@@ -2287,13 +2336,15 @@ class lbank extends Exchange {
             $isAuthorized = $this->check_required_credentials(false);
             $result = null;
             if ($isAuthorized === true) {
-                $method = $this->safe_string($params, 'method');
+                $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
+                $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
+                $method = $this->safe_string($params, 'method', $defaultMethod);
                 $params = $this->omit($params, 'method');
-                if ($method === null) {
-                    $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
-                    $method = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
+                if ($method === 'fetchPublicTransactionFees') {
+                    $result = Async\await($this->fetch_public_transaction_fees($params));
+                } else {
+                    $result = Async\await($this->fetch_private_transaction_fees($params));
                 }
-                $result = Async\await($this->$method ($params));
             } else {
                 $result = Async\await($this->fetch_public_transaction_fees($params));
             }
@@ -2429,26 +2480,29 @@ class lbank extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * when using private endpoint, only returns information for currencies with non-zero balance, use public $method by specifying $this->options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
-             * @see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
-             * @see https://www.lbank.info/en-US/docs/index.html#withdrawal-configurations
+             * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
+             * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
              * @param {string[]|null} $codes array of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
             $isAuthorized = $this->check_required_credentials(false);
-            $method = null;
+            $response = null;
             if ($isAuthorized === true) {
-                $method = $this->safe_string($params, 'method');
+                $options = $this->safe_value($this->options, 'fetchDepositWithdrawFees', array());
+                $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
+                $method = $this->safe_string($params, 'method', $defaultMethod);
                 $params = $this->omit($params, 'method');
-                if ($method === null) {
-                    $options = $this->safe_value($this->options, 'fetchDepositWithdrawFees', array());
-                    $method = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
+                if ($method === 'fetchPublicDepositWithdrawFees') {
+                    Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
+                } else {
+                    Async\await($this->fetch_private_deposit_withdraw_fees($codes, $params));
                 }
             } else {
-                $method = 'fetchPublicDepositWithdrawFees';
+                Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
             }
-            return Async\await($this->$method ($codes, $params));
+            return $response;
         }) ();
     }
 
@@ -2678,7 +2732,7 @@ class lbank extends Exchange {
             $uppercaseHash = strtoupper($hash);
             $sign = null;
             if ($signatureMethod === 'RSA') {
-                $cacheSecretAsPem = $this->safe_value($this->options, 'cacheSecretAsPem', true);
+                $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
                 $pem = null;
                 if ($cacheSecretAsPem) {
                     $pem = $this->safe_value($this->options, 'pem');

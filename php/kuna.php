@@ -25,7 +25,6 @@ class kuna extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
@@ -90,7 +89,8 @@ class kuna extends Exchange {
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
-                'repayMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -796,7 +796,7 @@ class kuna extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'pair' => $market['id'],
+            'pairs' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -804,18 +804,21 @@ class kuna extends Exchange {
         $response = $this->v4PublicGetTradePublicBookPairs (array_merge($request, $params));
         //
         //    {
-        //        "data" => {
-        //            "id" => "3e5591ba-2778-4d85-8851-54284045ea44",       // Unique identifier of a trade
-        //            "pair" => "BTC_USDT",                                 // Market pair that is being traded
-        //            "quoteQuantity" => "11528.8118",                      // Qty of the quote asset, property_exists($this, USDT) example
-        //            "matchPrice" => "18649",                              // Exchange price at the moment of execution
-        //            "matchQuantity" => "0.6182",                          // Qty of the base asset, property_exists($this, BTC) example
-        //            "createdAt" => "2022-09-23T14:30:41.486Z",            // Date-time of trade execution, UTC
-        //            "side" => "Ask"                                       // Trade type => `Ask` or `Bid`. Bid for buying base asset, Ask for selling base asset (e.g. for BTC_USDT trading pair, BTC is the base asset).
-        //        }
+        //        'data' => array(
+        //            array(
+        //                'createdAt' => '2024-03-02T00:10:49.385Z',
+        //                'id' => '3b42878a-3688-4bc1-891e-5cc2fc902142',
+        //                'matchPrice' => '62181.31',
+        //                'matchQuantity' => '0.00568',
+        //                'pair' => 'BTC_USDT',
+        //                'quoteQuantity' => '353.1898408',
+        //                'side' => 'Bid'
+        //            ),
+        //            ...
+        //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -923,7 +926,7 @@ class kuna extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.kuna.io/docs/create-a-new-order-private
@@ -1252,7 +1255,7 @@ class kuna extends Exchange {
          * @see https://docs.kuna.io/docs/get-private-orders-history
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch orders for
          *
@@ -1373,7 +1376,7 @@ class kuna extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.kuna.io/docs/create-a-withdraw

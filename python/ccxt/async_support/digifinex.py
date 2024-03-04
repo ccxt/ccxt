@@ -8,7 +8,7 @@ from ccxt.abstract.digifinex import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -50,6 +50,9 @@ class digifinex(Exchange, ImplicitAPI):
                 'addMargin': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
                 'createPostOnlyOrder': True,
@@ -428,7 +431,9 @@ class digifinex(Exchange, ImplicitAPI):
             minFoundPrecision = Precise.string_min(feeString, Precise.string_min(minDepositString, minWithdrawString))
             precision = self.parse_number(minFoundPrecision)
             networkId = self.safe_string(currency, 'chain')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = None
+            if networkId is not None:
+                networkCode = self.network_id_to_code(networkId)
             network = {
                 'info': currency,
                 'id': networkId,
@@ -533,9 +538,13 @@ class digifinex(Exchange, ImplicitAPI):
     async def fetch_markets_v2(self, params={}):
         defaultType = self.safe_string(self.options, 'defaultType')
         marginMode, query = self.handle_margin_mode_and_params('fetchMarketsV2', params)
-        method = 'publicSpotGetMarginSymbols' if (marginMode is not None) else 'publicSpotGetTradesSymbols'
-        promises = [getattr(self, method)(query), self.publicSwapGetPublicInstruments(params)]
-        promises = await asyncio.gather(*promises)
+        promisesRaw = []
+        if marginMode is not None:
+            promisesRaw.append(self.publicSpotGetMarginSymbols(query))
+        else:
+            promisesRaw.append(self.publicSpotGetTradesSymbols(query))
+        promisesRaw.append(self.publicSwapGetPublicInstruments(params))
+        promises = await asyncio.gather(*promisesRaw)
         spotMarkets = promises[0]
         swapMarkets = promises[1]
         #
@@ -806,16 +815,17 @@ class digifinex(Exchange, ImplicitAPI):
         await self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotGetSpotAssets',
-            'margin': 'privateSpotGetMarginAssets',
-            'swap': 'privateSwapGetAccountBalance',
-        })
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
-        if marginMode is not None:
-            method = 'privateSpotGetMarginAssets'
+        response = None
+        if marginMode is not None or marketType == 'margin':
             marketType = 'margin'
-        response = await getattr(self, method)(query)
+            response = await self.privateSpotGetMarginAssets(query)
+        elif marketType == 'spot':
+            response = await self.privateSpotGetSpotAssets(query)
+        elif marketType == 'swap':
+            response = await self.privateSwapGetAccountBalance(query)
+        else:
+            raise NotSupported(self.id + ' fetchBalance() not support self market type')
         #
         # spot and margin
         #
@@ -870,16 +880,15 @@ class digifinex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrderBook', market, params)
         request = {}
-        method = None
-        if marketType == 'swap':
-            method = 'publicSwapGetPublicDepth'
-            request['instrument_id'] = market['id']
-        else:
-            method = 'publicSpotGetOrderBook'
-            request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if marketType == 'swap':
+            request['instrument_id'] = market['id']
+            response = await self.publicSwapGetPublicDepth(self.extend(request, query))
+        else:
+            request['symbol'] = market['id']
+            response = await self.publicSpotGetOrderBook(self.extend(request, query))
         #
         # spot
         #
@@ -945,11 +954,12 @@ class digifinex(Exchange, ImplicitAPI):
             market = self.market(first)
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        method = 'publicSpotGetTicker'
         request = {}
+        response = None
         if type == 'swap':
-            method = 'publicSwapGetPublicTickers'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.publicSwapGetPublicTickers(self.extend(request, params))
+        else:
+            response = await self.publicSpotGetTicker(self.extend(request, params))
         #
         # spot
         #
@@ -1021,14 +1031,14 @@ class digifinex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        method = 'publicSpotGetTicker'
         request = {}
+        response = None
         if market['swap']:
-            method = 'publicSwapGetPublicTicker'
             request['instrument_id'] = market['id']
+            response = await self.publicSwapGetPublicTicker(self.extend(request, params))
         else:
             request['symbol'] = market['id']
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.publicSpotGetTicker(self.extend(request, params))
         #
         # spot
         #
@@ -1125,9 +1135,11 @@ class digifinex(Exchange, ImplicitAPI):
         #         "timestamp": 1663221614998
         #     }
         #
+        indexPrice = self.safe_number(ticker, 'index_price')
+        marketType = 'contract' if (indexPrice is not None) else 'spot'
         marketId = self.safe_string_upper_2(ticker, 'symbol', 'instrument_id')
-        symbol = self.safe_symbol(marketId, market)
-        market = self.safe_market(marketId)
+        symbol = self.safe_symbol(marketId, market, None, marketType)
+        market = self.safe_market(marketId, market, None, marketType)
         timestamp = self.safe_timestamp(ticker, 'date')
         if market['swap']:
             timestamp = self.safe_integer(ticker, 'timestamp')
@@ -1334,16 +1346,16 @@ class digifinex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        method = 'publicSpotGetTrades'
         request = {}
-        if market['swap']:
-            method = 'publicSwapGetPublicTrades'
-            request['instrument_id'] = market['id']
-        else:
-            request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = min(limit, 100) if market['swap'] else limit
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if market['swap']:
+            request['instrument_id'] = market['id']
+            response = await self.publicSwapGetPublicTrades(self.extend(request, params))
+        else:
+            request['symbol'] = market['id']
+            response = await self.publicSpotGetTrades(self.extend(request, params))
         #
         # spot
         #
@@ -1432,14 +1444,14 @@ class digifinex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        method = 'publicSpotGetKline'
         request = {}
+        response = None
         if market['swap']:
-            method = 'publicSwapGetPublicCandles'
             request['instrument_id'] = market['id']
             request['granularity'] = timeframe
             if limit is not None:
                 request['limit'] = limit
+            response = await self.publicSwapGetPublicCandles(self.extend(request, params))
         else:
             request['symbol'] = market['id']
             request['period'] = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -1453,7 +1465,7 @@ class digifinex(Exchange, ImplicitAPI):
                 endTime = self.seconds()
                 duration = self.parse_timeframe(timeframe)
                 request['start_time'] = self.sum(endTime, -limit * duration)
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.publicSpotGetKline(self.extend(request, params))
         #
         # spot
         #
@@ -1489,7 +1501,7 @@ class digifinex(Exchange, ImplicitAPI):
             candles = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
@@ -1504,6 +1516,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: True or False
         :param bool [params.reduceOnly]: True or False
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1547,7 +1560,7 @@ class digifinex(Exchange, ImplicitAPI):
         create a list of trade orders(all orders should be of the same symbol)
         :see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-multiple-order
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchorder
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1625,7 +1638,7 @@ class digifinex(Exchange, ImplicitAPI):
             result.append(individualOrder)
         return self.parse_orders(result, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -1653,7 +1666,7 @@ class digifinex(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarketOrder, False, params)
         postOnlyParsed = None
         if swap:
-            reduceOnly = self.safe_value(params, 'reduceOnly', False)
+            reduceOnly = self.safe_bool(params, 'reduceOnly', False)
             timeInForce = self.safe_string(params, 'timeInForce')
             orderType = None
             if side == 'buy':
@@ -1688,15 +1701,23 @@ class digifinex(Exchange, ImplicitAPI):
             request['type'] = side + suffix
             # limit orders require the amount in the base currency, market orders require the amount in the quote currency
             quantity = None
-            createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-            if createMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
-                if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', True)
+            if isMarketOrder and (side == 'buy'):
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
+                if cost is not None:
+                    quantity = self.cost_to_precision(symbol, cost)
+                elif createMarketBuyOrderRequiresPrice:
+                    if price is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    else:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        costRequest = self.parse_number(Precise.string_mul(amountString, priceString))
+                        quantity = self.cost_to_precision(symbol, costRequest)
                 else:
-                    amountString = self.number_to_string(amount)
-                    priceString = self.number_to_string(price)
-                    cost = self.parse_number(Precise.string_mul(amountString, priceString))
-                    quantity = self.price_to_precision(symbol, cost)
+                    quantity = self.cost_to_precision(symbol, amount)
             else:
                 quantity = self.amount_to_precision(symbol, amount)
             request['amount'] = quantity
@@ -1707,6 +1728,22 @@ class digifinex(Exchange, ImplicitAPI):
                 request['post_only'] = postOnly
         params = self.omit(params, ['postOnly'])
         return self.extend(request, params)
+
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1722,18 +1759,9 @@ class digifinex(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        id = str(id)
         marketType = None
         marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotPostSpotOrderCancel',
-            'margin': 'privateSpotPostMarginOrderCancel',
-            'swap': 'privateSwapPostTradeCancelOrder',
-        })
-        marginMode, query = self.handle_margin_mode_and_params('cancelOrder', params)
-        if marginMode is not None:
-            method = 'privateSpotPostMarginOrderCancel'
-            marketType = 'margin'
-        id = str(id)
         request = {
             'order_id': id,
         }
@@ -1743,7 +1771,17 @@ class digifinex(Exchange, ImplicitAPI):
             request['instrument_id'] = market['id']
         else:
             request['market'] = marketType
-        response = await getattr(self, method)(self.extend(request, query))
+        marginMode, query = self.handle_margin_mode_and_params('cancelOrder', params)
+        response = None
+        if marginMode is not None or marketType == 'margin':
+            marketType = 'margin'
+            response = await self.privateSpotPostMarginOrderCancel(self.extend(request, query))
+        elif marketType == 'spot':
+            response = await self.privateSpotPostSpotOrderCancel(self.extend(request, query))
+        elif marketType == 'swap':
+            response = await self.privateSwapPostTradeCancelOrder(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' cancelOrder() not support self market type')
         #
         # spot and margin
         #
@@ -1967,15 +2005,7 @@ class digifinex(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotGetSpotOrderCurrent',
-            'margin': 'privateSpotGetMarginOrderCurrent',
-            'swap': 'privateSwapGetTradeOpenOrders',
-        })
         marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
-        if marginMode is not None:
-            method = 'privateSpotGetMarginOrderCurrent'
-            marketType = 'margin'
         request = {}
         swap = (marketType == 'swap')
         if swap:
@@ -1988,7 +2018,16 @@ class digifinex(Exchange, ImplicitAPI):
         if market is not None:
             marketIdRequest = 'instrument_id' if swap else 'symbol'
             request[marketIdRequest] = market['id']
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if marginMode is not None or marketType == 'margin':
+            marketType = 'margin'
+            response = await self.privateSpotGetMarginOrderCurrent(self.extend(request, query))
+        elif marketType == 'spot':
+            response = await self.privateSpotGetSpotOrderCurrent(self.extend(request, query))
+        elif marketType == 'swap':
+            response = await self.privateSwapGetTradeOpenOrders(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchOpenOrders() not support self market type')
         #
         # spot and margin
         #
@@ -2050,7 +2089,7 @@ class digifinex(Exchange, ImplicitAPI):
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#historyorder
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2060,15 +2099,7 @@ class digifinex(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotGetSpotOrderHistory',
-            'margin': 'privateSpotGetMarginOrderHistory',
-            'swap': 'privateSwapGetTradeHistoryOrders',
-        })
         marginMode, query = self.handle_margin_mode_and_params('fetchOrders', params)
-        if marginMode is not None:
-            method = 'privateSpotGetMarginOrderHistory'
-            marketType = 'margin'
         request = {}
         if marketType == 'swap':
             if since is not None:
@@ -2082,7 +2113,16 @@ class digifinex(Exchange, ImplicitAPI):
             request[marketIdRequest] = market['id']
         if limit is not None:
             request['limit'] = limit
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if marginMode is not None or marketType == 'margin':
+            marketType = 'margin'
+            response = await self.privateSpotGetMarginOrderHistory(self.extend(request, query))
+        elif marketType == 'spot':
+            response = await self.privateSpotGetSpotOrderHistory(self.extend(request, query))
+        elif marketType == 'swap':
+            response = await self.privateSwapGetTradeHistoryOrders(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchOrders() not support self market type')
         #
         # spot and margin
         #
@@ -2153,15 +2193,7 @@ class digifinex(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrder', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotGetSpotOrder',
-            'margin': 'privateSpotGetMarginOrder',
-            'swap': 'privateSwapGetTradeOrderInfo',
-        })
         marginMode, query = self.handle_margin_mode_and_params('fetchOrder', params)
-        if marginMode is not None:
-            method = 'privateSpotGetMarginOrder'
-            marketType = 'margin'
         request = {
             'order_id': id,
         }
@@ -2170,7 +2202,16 @@ class digifinex(Exchange, ImplicitAPI):
                 request['instrument_id'] = market['id']
         else:
             request['market'] = marketType
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if (marginMode is not None) or (marketType == 'margin'):
+            marketType = 'margin'
+            response = await self.privateSpotGetMarginOrder(self.extend(request, query))
+        elif marketType == 'spot':
+            response = await self.privateSpotGetSpotOrder(self.extend(request, query))
+        elif marketType == 'swap':
+            response = await self.privateSwapGetTradeOrderInfo(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchOrder() not support self market type')
         #
         # spot and margin
         #
@@ -2243,15 +2284,7 @@ class digifinex(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotGetSpotMytrades',
-            'margin': 'privateSpotGetMarginMytrades',
-            'swap': 'privateSwapGetTradeHistoryTrades',
-        })
         marginMode, query = self.handle_margin_mode_and_params('fetchMyTrades', params)
-        if marginMode is not None:
-            method = 'privateSpotGetMarginMytrades'
-            marketType = 'margin'
         if marketType == 'swap':
             if since is not None:
                 request['start_timestamp'] = since
@@ -2264,7 +2297,16 @@ class digifinex(Exchange, ImplicitAPI):
             request[marketIdRequest] = market['id']
         if limit is not None:
             request['limit'] = limit
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if marginMode is not None or marketType == 'margin':
+            marketType = 'margin'
+            response = await self.privateSpotGetMarginMytrades(self.extend(request, query))
+        elif marketType == 'spot':
+            response = await self.privateSpotGetSpotMytrades(self.extend(request, query))
+        elif marketType == 'swap':
+            response = await self.privateSwapGetTradeHistoryTrades(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchMyTrades() not support self market type')
         #
         # spot and margin
         #
@@ -2379,15 +2421,7 @@ class digifinex(Exchange, ImplicitAPI):
         request = {}
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchLedger', None, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotGetSpotFinancelog',
-            'margin': 'privateSpotGetMarginFinancelog',
-            'swap': 'privateSwapGetAccountFinanceRecord',
-        })
         marginMode, query = self.handle_margin_mode_and_params('fetchLedger', params)
-        if marginMode is not None:
-            method = 'privateSpotGetMarginFinancelog'
-            marketType = 'margin'
         if marketType == 'swap':
             if since is not None:
                 request['start_timestamp'] = since
@@ -2402,7 +2436,16 @@ class digifinex(Exchange, ImplicitAPI):
             request[currencyIdRequest] = currency['id']
         if limit is not None:
             request['limit'] = limit
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if marginMode is not None or marketType == 'margin':
+            marketType = 'margin'
+            response = await self.privateSpotGetMarginFinancelog(self.extend(request, query))
+        elif marketType == 'spot':
+            response = await self.privateSpotGetSpotFinancelog(self.extend(request, query))
+        elif marketType == 'swap':
+            response = await self.privateSwapGetAccountFinanceRecord(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchLedger() not support self market type')
         #
         # spot and margin
         #
@@ -2512,8 +2555,11 @@ class digifinex(Exchange, ImplicitAPI):
             request['currency'] = currency['id']
         if limit is not None:
             request['size'] = min(500, limit)
-        method = 'privateSpotGetDepositHistory' if (type == 'deposit') else 'privateSpotGetWithdrawHistory'
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if type == 'deposit':
+            response = await self.privateSpotGetDepositHistory(self.extend(request, params))
+        else:
+            response = await self.privateSpotGetWithdrawHistory(self.extend(request, params))
         #
         #     {
         #         "code": 200,
@@ -2679,7 +2725,7 @@ class digifinex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'code')),
         }
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2708,7 +2754,7 @@ class digifinex(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3106,12 +3152,13 @@ class digifinex(Exchange, ImplicitAPI):
         if market is not None:
             marketIdRequest = 'instrument_id' if (marketType == 'swap') else 'symbol'
             request[marketIdRequest] = market['id']
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotGetMarginPositions',
-            'margin': 'privateSpotGetMarginPositions',
-            'swap': 'privateSwapGetAccountPositions',
-        })
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if marketType == 'spot' or marketType == 'margin':
+            response = await self.privateSpotGetMarginPositions(self.extend(request, query))
+        elif marketType == 'swap':
+            response = await self.privateSwapGetAccountPositions(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchPositions() not support self market type')
         #
         # swap
         #
@@ -3189,14 +3236,15 @@ class digifinex(Exchange, ImplicitAPI):
         marginMode, query = self.handle_margin_mode_and_params('fetchPosition', params)
         if marginMode is not None:
             marketType = 'margin'
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotGetMarginPositions',
-            'margin': 'privateSpotGetMarginPositions',
-            'swap': 'privateSwapGetAccountPositions',
-        })
         marketIdRequest = 'instrument_id' if (marketType == 'swap') else 'symbol'
         request[marketIdRequest] = market['id']
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if marketType == 'spot' or marketType == 'margin':
+            response = await self.privateSpotGetMarginPositions(self.extend(request, query))
+        elif marketType == 'swap':
+            response = await self.privateSwapGetAccountPositions(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchPosition() not support self market type')
         #
         # swap
         #
@@ -3339,7 +3387,7 @@ class digifinex(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#setleverage
@@ -3607,10 +3655,10 @@ class digifinex(Exchange, ImplicitAPI):
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns array: the marginMode in lowercase
+        :returns Array: the marginMode in lowercase
         """
         defaultType = self.safe_string(self.options, 'defaultType')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         marginMode = None
         marginMode, params = super(digifinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is not None:
@@ -3867,7 +3915,7 @@ class digifinex(Exchange, ImplicitAPI):
             'amount': self.safe_number(income, 'amount'),
         }
 
-    async def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmode

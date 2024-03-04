@@ -45,6 +45,9 @@ class cex(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createDepositAddress': False,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
@@ -717,7 +720,7 @@ class cex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://docs.cex.io/#place-order
         create a trade order
@@ -728,27 +731,39 @@ class cex(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        # for market buy it requires the amount of quote currency to spend
-        if (type == 'market') and (side == 'buy'):
-            if self.options['createMarketBuyOrderRequiresPrice']:
-                if price is None:
-                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
-                else:
-                    amountString = self.number_to_string(amount)
-                    priceString = self.number_to_string(price)
-                    baseAmount = Precise.string_mul(amountString, priceString)
-                    amount = self.parse_number(baseAmount)
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
             'type': side,
-            'amount': amount,
         }
+        # for market buy it requires the amount of quote currency to spend
+        if (type == 'market') and (side == 'buy'):
+            quoteAmount = None
+            createMarketBuyOrderRequiresPrice = True
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            cost = self.safe_string(params, 'cost')
+            params = self.omit(params, 'cost')
+            if cost is not None:
+                quoteAmount = self.cost_to_precision(symbol, cost)
+            elif createMarketBuyOrderRequiresPrice:
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    costRequest = Precise.string_mul(amountString, priceString)
+                    quoteAmount = self.cost_to_precision(symbol, costRequest)
+            else:
+                quoteAmount = self.cost_to_precision(symbol, amount)
+            request['amount'] = quoteAmount
+        else:
+            request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit':
-            request['price'] = price
+            request['price'] = self.number_to_string(price)
         else:
             request['order_type'] = type
         response = await self.privatePostPlaceOrderPair(self.extend(request, params))
@@ -1094,13 +1109,14 @@ class cex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        method = 'privatePostOpenOrders'
         market = None
+        orders = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method += 'Pair'
-        orders = await getattr(self, method)(self.extend(request, params))
+            orders = await self.privatePostOpenOrdersPair(self.extend(request, params))
+        else:
+            orders = await self.privatePostOpenOrders(self.extend(request, params))
         for i in range(0, len(orders)):
             orders[i] = self.extend(orders[i], {'status': 'open'})
         return self.parse_orders(orders, market, since, limit)
@@ -1118,10 +1134,9 @@ class cex(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
-        method = 'privatePostArchivedOrdersPair'
         market = self.market(symbol)
         request = {'pair': market['id']}
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await self.privatePostArchivedOrdersPair(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -1246,7 +1261,7 @@ class cex(Exchange, ImplicitAPI):
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1459,7 +1474,7 @@ class cex(Exchange, ImplicitAPI):
     def parse_order_status(self, status):
         return self.safe_string(self.options['order']['status'], status, status)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.cex.io/#cancel-replace-order

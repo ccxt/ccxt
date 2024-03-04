@@ -1,742 +1,1252 @@
 {
-    "exchange": "okx",
-    "skipKeys": ["clOrdId", "tag"],
-    "outputType": "json",
-    "methods": {
-        "createOrder": [
+  "exchange": "okx",
+  "skipKeys": [
+    "clOrdId",
+    "tag"
+  ],
+  "outputType": "json",
+  "methods": {
+    "createOrder": [
+      {
+        "description": "Spot limit buy order",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "LTC/USDT",
+          "limit",
+          "buy",
+          2,
+          50
+        ],
+        "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"2\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"50\",\"clOrdId\":\"e847386590ce4dBCbc180f9bc47b8d2b\",\"tag\":\"e847386590ce4dBC\"}]"
+      },
+      {
+        "description": "Spot market buy order",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "LTC/USDT",
+          "market",
+          "buy",
+          0.1
+        ],
+        "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"0.1\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"clOrdId\":\"e847386590ce4dBCb5b084423460a131\",\"tag\":\"e847386590ce4dBC\"}]"
+      },
+      {
+        "description": "Swap market buy with posSide = long",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "LTC/USDT:USDT",
+          "market",
+          "buy",
+          1,
+          null,
           {
-            "description": "Spot limit buy order",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "LTC/USDT",
-              "limit",
-              "buy",
-              2,
-              50
-            ],
-            "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"2\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"50\",\"clOrdId\":\"e847386590ce4dBCbc180f9bc47b8d2b\",\"tag\":\"e847386590ce4dBC\"}]"
-          },
-          {
-            "description": "Spot market buy order",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "LTC/USDT",
-              "market",
-              "buy",
-              0.1
-            ],
-            "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"0.1\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"clOrdId\":\"e847386590ce4dBCb5b084423460a131\",\"tag\":\"e847386590ce4dBC\"}]"
-          },
-          {
-            "description": "Swap market buy with posSide = long",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "LTC/USDT:USDT",
-              "market",
-              "buy",
-              1,
-              null,
-              {
-                "posSide": "long"
-              }
-            ],
-            "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"e847386590ce4dBC3301800ce435865e\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
-          },
-          {
-            "description": "Swap limit buy with stopPrice and posSide = long.",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/order-algo",
-            "input": [
-              "LTC/USDT:USDT",
-              "limit",
-              "buy",
-              1,
-              50,
-              {
-                "stopPrice": 55,
-                "posSide": "long"
-              }
-            ],
-            "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"1\",\"tdMode\":\"cross\",\"triggerPx\":\"55\",\"orderPx\":\"50\",\"clOrdId\":\"e847386590ce4dBCf7eca4f2a4d4ba1d\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
-          },
-          {
-            "description": "Swap limit sell with takeProfitPrice and posSide = long.",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/order-algo",
-            "input": [
-              "LTC/USDT:USDT",
-              "limit",
-              "sell",
-              1,
-              100,
-              {
-                "takeProfitPrice": 105,
-                "posSide": "long"
-              }
-            ],
-            "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"tpTriggerPx\":\"105\",\"tpOrdPx\":\"100\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC9b57d34d045f95f1\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
-          },
-          {
-            "description": "Swap limit sell with stopLossPrice and posSide = long.",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/order-algo",
-            "input": [
-              "LTC/USDT:USDT",
-              "limit",
-              "sell",
-              1,
-              49,
-              {
-                "stopLossPrice": 50,
-                "posSide": "long"
-              }
-            ],
-            "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"50\",\"slOrdPx\":\"49\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC1a8839ce945a9b70\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
-          },
-          {
-            "description": "Opening position with tp + sl attached (type 3)",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "ADA/USDT:USDT",
-              "limit",
-              "buy",
-              50,
-              0.2,
-              {
-                "takeProfit": {
-                  "stopPrice": 5
-                },
-                "stopLoss": {
-                  "stopPrice": 0.1
-                },
-                "posSide": "long"
-              }
-            ],
-            "output": "[{\"instId\":\"ADA-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"50\",\"tdMode\":\"cross\",\"px\":\"0.2\",\"slTriggerPx\":\"0.1\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"tpTriggerPx\":\"5\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBCe3cef3837420904f\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
-          },
-          {
-            "description": "Spot margin limit buy order",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "BTC/USDT",
-              "limit",
-              "buy",
-              0.0001,
-              25000,
-              {
-                "marginMode": "cross"
-              }
-            ],
-            "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"ccy\":\"USDT\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC6df0e66db47f8d29\",\"tag\":\"e847386590ce4dBC\"}]"
-          },
-          {
-            "description": "Swap inverse market long order",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "BTC/USD:BTC",
-              "market",
-              "buy",
-              1,
-              null,
-              {
-                "posSide": "long"
-              }
-            ],
-            "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"e847386590ce4dBCe6a4f3b1d4f5ac60\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"        
-          },
-          {
-            "description": "Close an inverse swap position with a market reduceOnly order",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "BTC/USD:BTC",
-              "market",
-              "sell",
-              1,
-              null,
-              {
-                "posSide": "long",
-                "reduceOnly": true
-              }
-            ],
-            "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"e847386590ce4dBCa2c3414b74678559\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\",\"reduceOnly\":true}]"
-          },
-          {
-            "description": "Create a one-way-mode order with position side set to net",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "BTC/USD:BTC",
-              "limit",
-              "buy",
-              1,
-              25000,
-              {
-                "posSide": "net"
-              }
-            ],
-            "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC9febcde144e6b64b\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"net\"}]"
-          },
-          {
-            "description": "Create a swap postOnly limit order with tp + sl attached (type 3)",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "BTC/USDT:USDT",
-              "limit",
-              "buy",
-              1,
-              25000,
-              {
-                "posSide": "long",
-                "postOnly": true,
-                "stopLoss": {
-                  "triggerPrice": 24000
-                },
-                "takeProfit": {
-                  "triggerPrice": 26000
-                }
-              }
-            ],
-            "output": "[{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"post_only\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"slTriggerPx\":\"24000\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"tpTriggerPx\":\"26000\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC6798012df444b042\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
-          },
-          {
-            "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
-            "method": "createOrder",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "BTC/USDT",
-              "market",
-              "buy",
-              10,
-              null,
-              {
-                "createMarketBuyOrderRequiresPrice": false,
-                "tgtCcy": "quote_ccy"
-              }
-            ],
-            "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBCdbc74f1714de86ed\",\"tag\":\"e847386590ce4dBC\"}]"      
+            "posSide": "long"
           }
         ],
-        "createMarketBuyOrderWithCost": [
+        "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"e847386590ce4dBC3301800ce435865e\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+      },
+      {
+        "description": "Swap limit buy with stopPrice and posSide = long.",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/order-algo",
+        "input": [
+          "LTC/USDT:USDT",
+          "limit",
+          "buy",
+          1,
+          50,
           {
-            "description": "market buy",
-            "method": "createMarketBuyOrderWithCost",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "LTC/USDT",
-              10
-            ],
-            "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBC8ce3873ff4a2839e\",\"tag\":\"e847386590ce4dBC\"}]"
+            "stopPrice": 55,
+            "posSide": "long"
           }
         ],
-        "createMarketSellOrderWithCost": [
+        "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"1\",\"tdMode\":\"cross\",\"triggerPx\":\"55\",\"orderPx\":\"50\",\"clOrdId\":\"e847386590ce4dBCf7eca4f2a4d4ba1d\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+      },
+      {
+        "description": "Swap limit sell with takeProfitPrice and posSide = long.",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/order-algo",
+        "input": [
+          "LTC/USDT:USDT",
+          "limit",
+          "sell",
+          1,
+          100,
           {
-            "description": "Market sell",
-            "method": "createMarketSellOrderWithCost",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              "LTC/USDT",
-              10
-            ],
-            "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBC7b6fec7f0455b533\",\"tag\":\"e847386590ce4dBC\",\"createMarketBuyOrderRequiresPrice\":false}]"
+            "takeProfitPrice": 105,
+            "posSide": "long"
           }
         ],
-        "createOrders": [
+        "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"tpTriggerPx\":\"105\",\"tpOrdPx\":\"100\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC9b57d34d045f95f1\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+      },
+      {
+        "description": "Swap limit sell with stopLossPrice and posSide = long.",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/order-algo",
+        "input": [
+          "LTC/USDT:USDT",
+          "limit",
+          "sell",
+          1,
+          49,
           {
-            "description": "Create multiple spot orders at the same time",
-            "method": "createOrders",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              [
-                {
-                  "symbol": "BTC/USDT",
-                  "type": "limit",
-                  "side": "buy",
-                  "amount": 0.0001,
-                  "price": 25000
-                },
-                {
-                  "symbol": "BTC/USDT",
-                  "type": "limit",
-                  "side": "buy",
-                  "amount": 0.0001,
-                  "price": 27000
-                }
-              ]
-            ],
-            "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC1bfb3daac4a18656\",\"tag\":\"e847386590ce4dBC\"},{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"27000\",\"clOrdId\":\"e847386590ce4dBC6790e61a14bca5ec\",\"tag\":\"e847386590ce4dBC\"}]"
-          },
-          {
-            "description": "Create multiple swap orders at the same time",
-            "method": "createOrders",
-            "url": "https://www.okx.com/api/v5/trade/batch-orders",
-            "input": [
-              [
-                {
-                  "symbol": "BTC/USDT:USDT",
-                  "type": "limit",
-                  "side": "buy",
-                  "amount": 1,
-                  "price": 25000
-                },
-                {
-                  "symbol": "BTC/USDT:USDT",
-                  "type": "limit",
-                  "side": "buy",
-                  "amount": 1,
-                  "price": 27000
-                }
-              ],
-              {
-                "posSide": "long"
-              }
-            ],
-            "output": "[{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC44a5b3b804059d11\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"},{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"27000\",\"clOrdId\":\"e847386590ce4dBC9585ce40c4ddab20\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+            "stopLossPrice": 50,
+            "posSide": "long"
           }
         ],
-        "editOrder": [
+        "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"50\",\"slOrdPx\":\"49\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC1a8839ce945a9b70\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+      },
+      {
+        "description": "Opening position with tp + sl attached (type 3)",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "ADA/USDT:USDT",
+          "limit",
+          "buy",
+          50,
+          0.2,
           {
-            "description": "Spot edit an orders price and amount",
-            "method": "editOrder",
-            "url": "https://www.okx.com/api/v5/trade/amend-order",
-            "input": [
-              "617122719557050368",
-              "BTC/USDT",
-              "limit",
-              "buy",
-              0.05,
-              55
-            ],
-            "output": "{\"instId\":\"BTC-USDT\",\"ordId\":\"617122719557050368\",\"newSz\":\"0.05\",\"newPx\":\"55\"}"
-          },
-          {
-            "description": "Swap edit an orders stopLossPrice",
-            "method": "editOrder",
-            "url": "https://www.okx.com/api/v5/trade/amend-order",
-            "input": [
-              "641788883193122816",
-              "ADA/USDT:USDT",
-              "limit",
-              "buy",
-              50,
-              0.2,
-              {
-                "stopLossPrice": 0.15,
-                "newSlOrdPx": 0.16
-              }
-            ],
-            "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"641788883193122816\",\"newSlTriggerPx\":\"0.15\",\"newSlOrdPx\":0.16,\"newSlTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.2\",\"stopLossPrice\":0.15}"
-          },
-          {
-            "description": "Swap edit an orders take profit price",
-            "method": "editOrder",
-            "url": "https://www.okx.com/api/v5/trade/amend-order",
-            "input": [
-              "641788883193122816",
-              "ADA/USDT:USDT",
-              "limit",
-              "buy",
-              50,
-              0.2,
-              {
-                "takeProfitPrice": 7,
-                "newTpOrdPx": 4
-              }
-            ],
-            "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"641788883193122816\",\"newTpTriggerPx\":\"7\",\"newTpOrdPx\":4,\"newTpTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.2\",\"takeProfitPrice\":7}"
-          },
-          {
-            "description": "Swap edit an orders takeProfit",
-            "method": "editOrder",
-            "url": "https://www.okx.com/api/v5/trade/amend-order",
-            "input": [
-              "641788883193122816",
-              "ADA/USDT:USDT",
-              "limit",
-              "buy",
-              50,
-              0.2,
-              {
-                "takeProfit": {
-                  "triggerPrice": 7,
-                  "price": 4
-                }
-              }
-            ],
-            "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"641788883193122816\",\"newTpTriggerPx\":\"7\",\"newTpOrdPx\":\"4\",\"newTpTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.2\",\"takeProfit\":{\"triggerPrice\":7,\"price\":4}}"
-          },
-          {
-            "description": "Swap edit an orders stopLoss",
-            "method": "editOrder",
-            "url": "https://www.okx.com/api/v5/trade/amend-order",
-            "input": [
-              "641788883193122816",
-              "ADA/USDT:USDT",
-              "limit",
-              "buy",
-              50,
-              0.2,
-              {
-                "stopLoss": {
-                  "triggerPrice": 0.15,
-                  "price": 0.14
-                }
-              }
-            ],
-            "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"641788883193122816\",\"newSlTriggerPx\":\"0.15\",\"newSlOrdPx\":\"0.14\",\"newSlTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.2\",\"stopLoss\":{\"triggerPrice\":0.15,\"price\":0.14}}"
+            "takeProfit": {
+              "stopPrice": 5
+            },
+            "stopLoss": {
+              "stopPrice": 0.1
+            },
+            "posSide": "long"
           }
         ],
-        "fetchOrder": [
+        "output": "[{\"instId\":\"ADA-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"50\",\"tdMode\":\"cross\",\"px\":\"0.2\",\"slTriggerPx\":\"0.1\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"tpTriggerPx\":\"5\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBCe3cef3837420904f\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+      },
+      {
+        "description": "Spot margin limit buy order",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "BTC/USDT",
+          "limit",
+          "buy",
+          0.0001,
+          25000,
           {
-            "description": "Spot fetch order",
-            "method": "fetchOrder",
-            "url": "https://www.okx.com/api/v5/trade/order?instId=LTC-USDT&ordId=636708553755021312",
-            "input": [
-              "636708553755021312",
-              "LTC/USDT"
-            ]
-          },
-          {
-            "description": "Swap fetch order",
-            "method": "fetchOrder",
-            "url": "https://www.okx.com/api/v5/trade/order?instId=ADA-USDT-SWAP&ordId=641788883193122816",
-            "input": [
-              "641788883193122816",
-              "ADA/USDT:USDT"
-            ]
-          },
-          {
-            "description": "Fetch stop order",
-            "method": "fetchOrder",
-            "url": "https://www.okx.com/api/v5/trade/order-algo?instId=LTC-USDT-SWAP&algoId=641788035268431872",
-            "input": [
-              "641788035268431872",
-              "LTC/USDT:USDT",
-              {
-                "stop": true
-              }
-            ]
+            "marginMode": "cross"
           }
         ],
-        "fetchOpenOrders": [
+        "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"ccy\":\"USDT\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC6df0e66db47f8d29\",\"tag\":\"e847386590ce4dBC\"}]"
+      },
+      {
+        "description": "Swap inverse market long order",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "BTC/USD:BTC",
+          "market",
+          "buy",
+          1,
+          null,
           {
-            "description": "Fetch open orders with no arguments",
-            "method": "fetchOpenOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-pending",
-            "input": []
-          },
-          {
-            "description": "Spot fetch open orders",
-            "method": "fetchOpenOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-pending?instId=LTC-USDT",
-            "input": [
-              "LTC/USDT"
-            ]
-          },
-          {
-            "description": "Swap fetch open orders",
-            "method": "fetchOpenOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-pending?instId=ADA-USDT-SWAP",
-            "input": [
-              "ADA/USDT:USDT"
-            ]
-          },
-          {
-            "description": "Fetch open stop orders",
-            "method": "fetchOpenOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-algo-pending?ordType=conditional",
-            "input": [
-              null,
-              null,
-              null,
-              {
-                "stop": true,
-                "ordType": "conditional"
-              }
-            ]
+            "posSide": "long"
           }
         ],
-        "fetchCanceledOrders": [
+        "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"e847386590ce4dBCe6a4f3b1d4f5ac60\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+      },
+      {
+        "description": "Close an inverse swap position with a market reduceOnly order",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "BTC/USD:BTC",
+          "market",
+          "sell",
+          1,
+          null,
           {
-            "description": "Fetch canceled orders with no arguments",
-            "method": "fetchCanceledOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-history?instType=SPOT&state=canceled",
-            "input": []
-          },
-          {
-            "description": "Spot fetch canceled orders",
-            "method": "fetchCanceledOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-history?instId=LTC-USDT&instType=SPOT&state=canceled",
-            "input": [
-              "LTC/USDT"
-            ]
-          },
-          {
-            "description": "Swap fetch canceled orders",
-            "method": "fetchCanceledOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-history?instId=LTC-USDT-SWAP&instType=SWAP&state=canceled",
-            "input": [
-              "LTC/USDT:USDT"
-            ]
-          },
-          {
-            "description": "Fetch canceled stop orders",
-            "method": "fetchCanceledOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-algo-history?instType=SPOT&state=canceled&ordType=trigger",
-            "input": [
-              null,
-              null,
-              null,
-              {
-                "stop": true,
-                "ordType": "trigger"
-              }
-            ]
+            "posSide": "long",
+            "reduceOnly": true
           }
         ],
-        "fetchClosedOrders": [
+        "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"e847386590ce4dBCa2c3414b74678559\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\",\"reduceOnly\":true}]"
+      },
+      {
+        "description": "Create a one-way-mode order with position side set to net",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "BTC/USD:BTC",
+          "limit",
+          "buy",
+          1,
+          25000,
           {
-            "description": "Fetch closed orders with no arguments",
-            "method": "fetchClosedOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-history?instType=SPOT&state=filled",
-            "input": []
-          },
-          {
-            "description": "Spot fetch closed orders",
-            "method": "fetchClosedOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-history?instId=BTC-USDT&instType=SPOT&state=filled",
-            "input": [
-              "BTC/USDT"
-            ]
-          },
-          {
-            "description": "Swap fetch closed orders",
-            "method": "fetchClosedOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-history?instId=BTC-USDT-SWAP&instType=SWAP&state=filled",
-            "input": [
-              "BTC/USDT:USDT"
-            ]
-          },
-          {
-            "description": "Fetch closed stop orders",
-            "method": "fetchClosedOrders",
-            "url": "https://www.okx.com/api/v5/trade/orders-algo-history?instType=SPOT&state=effective&ordType=conditional",
-            "input": [
-              null,
-              null,
-              null,
-              {
-                "stop": true,
-                "ordType": "conditional"
-              }
-            ]
+            "posSide": "net"
           }
         ],
-        "cancelOrder": [
+        "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC9febcde144e6b64b\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"net\"}]"
+      },
+      {
+        "description": "Create a swap postOnly limit order with tp + sl attached (type 3)",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "BTC/USDT:USDT",
+          "limit",
+          "buy",
+          1,
+          25000,
           {
-            "description": "Spot cancel order",
-            "method": "cancelOrder",
-            "url": "https://www.okx.com/api/v5/trade/cancel-order",
-            "input": [
-              "635561007938625536",
-              "LTC/USDT"
-            ],
-            "output": "{\"instId\":\"LTC-USDT\",\"ordId\":\"635561007938625536\"}"
-          },
-          {
-            "description": "Swap cancel order",
-            "method": "cancelOrder",
-            "url": "https://www.okx.com/api/v5/trade/cancel-order",
-            "input": [
-              "642666885133189120",
-              "BTC/USDT:USDT"
-            ],
-            "output": "{\"instId\":\"BTC-USDT-SWAP\",\"ordId\":\"642666885133189120\"}"
-          },
-          {
-            "description": "Cancel stop order",
-            "method": "cancelOrder",
-            "url": "https://www.okx.com/api/v5/trade/cancel-algos",
-            "input": [
-              "641788035268431872",
-              "LTC/USDT:USDT",
-              {
-                "stop": true
-              }
-            ],
-            "output": "[{\"algoId\":\"641788035268431872\",\"instId\":\"LTC-USDT-SWAP\"}]"
+            "posSide": "long",
+            "postOnly": true,
+            "stopLoss": {
+              "triggerPrice": 24000
+            },
+            "takeProfit": {
+              "triggerPrice": 26000
+            }
           }
         ],
-        "cancelOrders": [
+        "output": "[{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"post_only\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"slTriggerPx\":\"24000\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"tpTriggerPx\":\"26000\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC6798012df444b042\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+      },
+      {
+        "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "BTC/USDT",
+          "market",
+          "buy",
+          10,
+          null,
           {
-            "description": "Cancel multiple spot orders",
-            "method": "cancelOrders",
-            "url": "https://www.okx.com/api/v5/trade/cancel-batch-orders",
-            "input": [
-              [
-                "639634940954492928",
-                "637051741938204684"
-              ],
-              "LTC/USDT"
-            ],
-            "output": "[{\"ordId\":\"639634940954492928\",\"instId\":\"LTC-USDT\"},{\"ordId\":\"637051741938204684\",\"instId\":\"LTC-USDT\"}]"
-          },
-          {
-            "description": "Cancel multiple swap orders",
-            "method": "cancelOrders",
-            "url": "https://www.okx.com/api/v5/trade/cancel-batch-orders",
-            "input": [
-              [
-                "600038002475229184",
-                "600410267155169280",
-                "622144973181374464"
-              ],
-              "LTC/USDT:USDT"
-            ],
-            "output": "[{\"ordId\":\"600038002475229184\",\"instId\":\"LTC-USDT-SWAP\"},{\"ordId\":\"600410267155169280\",\"instId\":\"LTC-USDT-SWAP\"},{\"ordId\":\"622144973181374464\",\"instId\":\"LTC-USDT-SWAP\"}]"
-          },
-          {
-            "description": "Cancel multiple spot stop orders",
-            "method": "cancelOrders",
-            "url": "https://www.okx.com/api/v5/trade/cancel-algos",
-            "input": [
-              [
-                "635561454703480832",
-                "637051086087655424"
-              ],
-              "LTC/USDT",
-              {
-                "stop": true,
-                "ordType": "trigger"
-              }
-            ],
-            "output": "[{\"algoId\":\"635561454703480832\",\"instId\":\"LTC-USDT\"},{\"algoId\":\"637051086087655424\",\"instId\":\"LTC-USDT\"}]"
-          },
-          {
-            "description": "Cancel multiple swap stop orders",
-            "method": "cancelOrders",
-            "url": "https://www.okx.com/api/v5/trade/cancel-algos",
-            "input": [
-              [
-                "639637720528322560",
-                "635260475386888192"
-              ],
-              "LTC/USDT:USDT",
-              {
-                "stop": true,
-                "ordType": "trigger"
-              }
-            ],
-            "output": "[{\"algoId\":\"639637720528322560\",\"instId\":\"LTC-USDT-SWAP\"},{\"algoId\":\"635260475386888192\",\"instId\":\"LTC-USDT-SWAP\"}]"
+            "createMarketBuyOrderRequiresPrice": false,
+            "tgtCcy": "quote_ccy"
           }
         ],
-        "fetchMyTrades": [
+        "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBCdbc74f1714de86ed\",\"tag\":\"e847386590ce4dBC\"}]"
+      },
+      {
+        "description": "Swap trailingPercent order",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/order-algo",
+        "input": [
+          "BTC/USDT:USDT",
+          "market",
+          "sell",
+          1,
+          null,
           {
-            "description": "Spot fetch my trades with no arguments",
-            "method": "fetchMyTrades",
-            "url": "https://www.okx.com/api/v5/trade/fills-history?instType=SPOT",
-            "input": []
-          },
-          {
-            "description": "Spot fetch my trades with a defined symbol",
-            "method": "fetchMyTrades",
-            "url": "https://www.okx.com/api/v5/trade/fills-history?instId=LTC-USDT&instType=SPOT",
-            "input": [
-              "LTC/USDT"
-            ]
-          },
-          {
-            "description": "Swap fetch my trades",
-            "method": "fetchMyTrades",
-            "url": "https://www.okx.com/api/v5/trade/fills-history?instId=LTC-USDT-SWAP&instType=SWAP",
-            "input": [
-              "LTC/USDT:USDT"
-            ]
+            "trailingPercent": "5",
+            "reduceOnly": true,
+            "posSide": "long"
           }
         ],
-        "fetchPosition": [
+        "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"move_order_stop\",\"sz\":\"1\",\"tdMode\":\"cross\",\"callbackRatio\":\"0.05\",\"clOrdId\":\"e847386590ce4dBC5328f747a43e97d9\",\"tag\":\"e847386590ce4dBC\",\"reduceOnly\":true,\"posSide\":\"long\"}"
+      },
+      {
+        "description": "spot order with clientOrderid",
+        "method": "createOrder",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "LTC/USDT",
+          "limit",
+          "buy",
+          0.5,
+          50,
           {
-            "description": "Swap fetch position",
-            "method": "fetchPosition",
-            "url": "https://www.okx.com/api/v5/account/positions?instId=LTC-USDT-SWAP&instType=SWAP",
-            "input": [
-              "LTC/USDT:USDT"
-            ]
+            "clientOrderId": "mycustomid"
           }
         ],
-        "fetchPositions": [
+        "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.5\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"50\",\"clOrdId\":\"mycustomid\"}]"
+      }
+    ],
+    "createMarketBuyOrderWithCost": [
+      {
+        "description": "market buy",
+        "method": "createMarketBuyOrderWithCost",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "LTC/USDT",
+          10
+        ],
+        "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBC8ce3873ff4a2839e\",\"tag\":\"e847386590ce4dBC\"}]"
+      }
+    ],
+    "createMarketSellOrderWithCost": [
+      {
+        "description": "Market sell",
+        "method": "createMarketSellOrderWithCost",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "LTC/USDT",
+          10
+        ],
+        "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBC7b6fec7f0455b533\",\"tag\":\"e847386590ce4dBC\",\"createMarketBuyOrderRequiresPrice\":false}]"
+      }
+    ],
+    "createOrders": [
+      {
+        "description": "Create multiple spot orders at the same time",
+        "method": "createOrders",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          [
+            {
+              "symbol": "BTC/USDT",
+              "type": "limit",
+              "side": "buy",
+              "amount": 0.0001,
+              "price": 25000
+            },
+            {
+              "symbol": "BTC/USDT",
+              "type": "limit",
+              "side": "buy",
+              "amount": 0.0001,
+              "price": 27000
+            }
+          ]
+        ],
+        "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC1bfb3daac4a18656\",\"tag\":\"e847386590ce4dBC\"},{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"27000\",\"clOrdId\":\"e847386590ce4dBC6790e61a14bca5ec\",\"tag\":\"e847386590ce4dBC\"}]"
+      },
+      {
+        "description": "Create multiple swap orders at the same time",
+        "method": "createOrders",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          [
+            {
+              "symbol": "BTC/USDT:USDT",
+              "type": "limit",
+              "side": "buy",
+              "amount": 1,
+              "price": 25000
+            },
+            {
+              "symbol": "BTC/USDT:USDT",
+              "type": "limit",
+              "side": "buy",
+              "amount": 1,
+              "price": 27000
+            }
+          ],
           {
-            "description": "Fetch positions with no arguments",
-            "method": "fetchPositions",
-            "url": "https://www.okx.com/api/v5/account/positions",
-            "input": []
-          },
-          {
-            "description": "Fetch positions with a symbols argument",
-            "method": "fetchPositions",
-            "url": "https://www.okx.com/api/v5/account/positions?instId=LTC-USDT-SWAP%2CBTC-USDT-SWAP",
-            "input": [
-              [
-                "LTC/USDT:USDT",
-                "BTC/USDT:USDT"
-              ]
-            ]
+            "posSide": "long"
           }
         ],
-        "addMargin": [
+        "output": "[{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC44a5b3b804059d11\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"},{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"27000\",\"clOrdId\":\"e847386590ce4dBC9585ce40c4ddab20\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+      }
+    ],
+    "editOrder": [
+      {
+        "description": "Spot edit an orders price and amount",
+        "method": "editOrder",
+        "url": "https://www.okx.com/api/v5/trade/amend-order",
+        "input": [
+          "617122719557050368",
+          "BTC/USDT",
+          "limit",
+          "buy",
+          0.05,
+          55
+        ],
+        "output": "{\"instId\":\"BTC-USDT\",\"ordId\":\"617122719557050368\",\"newSz\":\"0.05\",\"newPx\":\"55\"}"
+      },
+      {
+        "description": "Swap edit an orders stopLossPrice",
+        "method": "editOrder",
+        "url": "https://www.okx.com/api/v5/trade/amend-order",
+        "input": [
+          "641788883193122816",
+          "ADA/USDT:USDT",
+          "limit",
+          "buy",
+          50,
+          0.2,
           {
-            "description": "Add margin to an inverse swap long position",
-            "method": "addMargin",
-            "url": "https://www.okx.com/api/v5/account/position/margin-balance",
-            "input": [
-              "BTC/USD:BTC",
-              0.0001,
-              {
-                "posSide": "long"
-              }
-            ],
-            "output": "{\"instId\":\"BTC-USD-SWAP\",\"amt\":0.0001,\"type\":\"add\",\"posSide\":\"long\"}"
+            "stopLossPrice": 0.15,
+            "newSlOrdPx": 0.16
           }
         ],
-        "reduceMargin": [
+        "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"641788883193122816\",\"newSlTriggerPx\":\"0.15\",\"newSlOrdPx\":0.16,\"newSlTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.2\",\"stopLossPrice\":0.15}"
+      },
+      {
+        "description": "Swap edit an orders take profit price",
+        "method": "editOrder",
+        "url": "https://www.okx.com/api/v5/trade/amend-order",
+        "input": [
+          "641788883193122816",
+          "ADA/USDT:USDT",
+          "limit",
+          "buy",
+          50,
+          0.2,
           {
-            "description": "Reduce margin from an inverse swap long position",
-            "method": "reduceMargin",
-            "url": "https://www.okx.com/api/v5/account/position/margin-balance",
-            "input": [
-              "BTC/USD:BTC",
-              0.0001,
-              {
-                "posSide": "long"
-              }
-            ],
-            "output": "{\"instId\":\"BTC-USD-SWAP\",\"amt\":0.0001,\"type\":\"reduce\",\"posSide\":\"long\"}"
+            "takeProfitPrice": 7,
+            "newTpOrdPx": 4
           }
         ],
-        "fetchCrossBorrowRate": [
+        "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"641788883193122816\",\"newTpTriggerPx\":\"7\",\"newTpOrdPx\":4,\"newTpTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.2\",\"takeProfitPrice\":7}"
+      },
+      {
+        "description": "Swap edit an orders take profit",
+        "method": "editOrder",
+        "url": "https://www.okx.com/api/v5/trade/amend-order",
+        "input": [
+          "682998640696188928",
+          "ADA/USDT:USDT",
+          "limit",
+          "buy",
+          50,
+          0.5,
           {
-            "description": "Fetch cross borrow rate",
-            "method": "fetchCrossBorrowRate",
-            "url": "https://www.okx.com/api/v5/account/interest-rate?ccy=USDT",
-            "input": [
-              "USDT"
-            ]
+            "posSide": "long",
+            "takeProfit": {
+              "triggerPrice": 1.6,
+              "price": 1.7
+            }
           }
         ],
-        "fetchCrossBorrowRates": [
+        "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"682998640696188928\",\"newTpOrdKind\":\"condition\",\"newTpTriggerPx\":\"1.6\",\"newTpOrdPx\":\"1.7\",\"newTpTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.5\",\"posSide\":\"long\",\"takeProfit\":{\"triggerPrice\":1.6,\"price\":1.7}}"
+      },
+      {
+        "description": "Swap edit an orders stopLoss",
+        "method": "editOrder",
+        "url": "https://www.okx.com/api/v5/trade/amend-order",
+        "input": [
+          "641788883193122816",
+          "ADA/USDT:USDT",
+          "limit",
+          "buy",
+          50,
+          0.2,
           {
-            "description": "Fetch cross borrow rates",
-            "method": "fetchCrossBorrowRates",
-            "url": "https://www.okx.com/api/v5/account/interest-rate",
-            "input": []
+            "stopLoss": {
+              "triggerPrice": 0.15,
+              "price": 0.14
+            }
+          }
+        ],
+        "output": "{\"instId\":\"ADA-USDT-SWAP\",\"ordId\":\"641788883193122816\",\"newSlTriggerPx\":\"0.15\",\"newSlOrdPx\":\"0.14\",\"newSlTriggerPxType\":\"last\",\"newSz\":\"50\",\"newPx\":\"0.2\",\"stopLoss\":{\"triggerPrice\":0.15,\"price\":0.14}}"
+      },
+      {
+        "description": "Swap edit an algo order",
+        "method": "editOrder",
+        "url": "https://www.okx.com/api/v5/trade/amend-algos",
+        "input": [
+          "670963589699682304",
+          "BTC/USDT:USDT",
+          "conditional",
+          "buy",
+          1,
+          null,
+          {
+            "stopLossPrice": 62000,
+            "newSlOrdPx": 33000
+          }
+        ],
+        "output": "{\"instId\":\"BTC-USDT-SWAP\",\"algoId\":\"670963589699682304\",\"newSlTriggerPx\":\"62000\",\"newSlOrdPx\":33000,\"newSlTriggerPxType\":\"last\",\"newSz\":\"1\",\"stopLossPrice\":62000}"
+      }
+    ],
+    "fetchOrder": [
+      {
+        "description": "Spot fetch order",
+        "method": "fetchOrder",
+        "url": "https://www.okx.com/api/v5/trade/order?instId=LTC-USDT&ordId=636708553755021312",
+        "input": [
+          "636708553755021312",
+          "LTC/USDT"
+        ]
+      },
+      {
+        "description": "Swap fetch order",
+        "method": "fetchOrder",
+        "url": "https://www.okx.com/api/v5/trade/order?instId=ADA-USDT-SWAP&ordId=641788883193122816",
+        "input": [
+          "641788883193122816",
+          "ADA/USDT:USDT"
+        ]
+      },
+      {
+        "description": "Fetch stop order",
+        "method": "fetchOrder",
+        "url": "https://www.okx.com/api/v5/trade/order-algo?instId=LTC-USDT-SWAP&algoId=641788035268431872",
+        "input": [
+          "641788035268431872",
+          "LTC/USDT:USDT",
+          {
+            "stop": true
           }
         ]
-    }
+      }
+    ],
+    "fetchOpenOrders": [
+      {
+        "description": "Fetch open orders with no arguments",
+        "method": "fetchOpenOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-pending",
+        "input": []
+      },
+      {
+        "description": "Spot fetch open orders",
+        "method": "fetchOpenOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-pending?instId=LTC-USDT",
+        "input": [
+          "LTC/USDT"
+        ]
+      },
+      {
+        "description": "Swap fetch open orders",
+        "method": "fetchOpenOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-pending?instId=ADA-USDT-SWAP",
+        "input": [
+          "ADA/USDT:USDT"
+        ]
+      },
+      {
+        "description": "Fetch open stop orders",
+        "method": "fetchOpenOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-pending?ordType=conditional",
+        "input": [
+          null,
+          null,
+          null,
+          {
+            "stop": true,
+            "ordType": "conditional"
+          }
+        ]
+      },
+      {
+        "description": "Swap fetch open trailing orders",
+        "method": "fetchOpenOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-pending?instId=BTC-USDT-SWAP&ordType=move_order_stop",
+        "input": [
+          "BTC/USDT:USDT",
+          null,
+          null,
+          {
+            "trailing": true
+          }
+        ]
+      },
+      {
+        "description": "fetch open trigger orders",
+        "method": "fetchOpenOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-pending?ordType=trigger",
+        "input": [
+          null,
+          null,
+          null,
+          {
+            "trigger": true
+          }
+        ]
+      }
+    ],
+    "fetchCanceledOrders": [
+      {
+        "description": "Fetch canceled orders with no arguments",
+        "method": "fetchCanceledOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-history?instType=SPOT&state=canceled",
+        "input": []
+      },
+      {
+        "description": "Spot fetch canceled orders",
+        "method": "fetchCanceledOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-history?instId=LTC-USDT&instType=SPOT&state=canceled",
+        "input": [
+          "LTC/USDT"
+        ]
+      },
+      {
+        "description": "Swap fetch canceled orders",
+        "method": "fetchCanceledOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-history?instId=LTC-USDT-SWAP&instType=SWAP&state=canceled",
+        "input": [
+          "LTC/USDT:USDT"
+        ]
+      },
+      {
+        "description": "Fetch canceled stop orders",
+        "method": "fetchCanceledOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-history?instType=SPOT&state=canceled&ordType=trigger",
+        "input": [
+          null,
+          null,
+          null,
+          {
+            "stop": true,
+            "ordType": "trigger"
+          }
+        ]
+      },
+      {
+        "description": "Swap fetch canceled trailing orders",
+        "method": "fetchCanceledOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-history?instId=BTC-USDT-SWAP&instType=SWAP&state=canceled&ordType=move_order_stop",
+        "input": [
+          "BTC/USDT:USDT",
+          null,
+          null,
+          {
+            "trailing": true
+          }
+        ]
+      }
+    ],
+    "fetchClosedOrders": [
+      {
+        "description": "Fetch closed orders with no arguments",
+        "method": "fetchClosedOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-history?instType=SPOT&state=filled",
+        "input": []
+      },
+      {
+        "description": "Spot fetch closed orders",
+        "method": "fetchClosedOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-history?instId=BTC-USDT&instType=SPOT&state=filled",
+        "input": [
+          "BTC/USDT"
+        ]
+      },
+      {
+        "description": "Swap fetch closed orders",
+        "method": "fetchClosedOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-history?instId=BTC-USDT-SWAP&instType=SWAP&state=filled",
+        "input": [
+          "BTC/USDT:USDT"
+        ]
+      },
+      {
+        "description": "Fetch closed stop orders",
+        "method": "fetchClosedOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-history?instType=SPOT&state=effective&ordType=conditional",
+        "input": [
+          null,
+          null,
+          null,
+          {
+            "stop": true,
+            "ordType": "conditional"
+          }
+        ]
+      },
+      {
+        "description": "closed orders using archive endpoint",
+        "method": "fetchClosedOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-history-archive?instId=LTC-USDT-SWAP&instType=SWAP&limit=1&state=filled",
+        "input": [
+          "LTC/USDT:USDT",
+          null,
+          1,
+          {
+            "method": "privateGetTradeOrdersHistoryArchive"
+          }
+        ]
+      },
+      {
+        "description": "Swap fetch closed trailing orders",
+        "method": "fetchClosedOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-history?instId=BTC-USDT-SWAP&instType=SWAP&state=effective&ordType=move_order_stop",
+        "input": [
+          "BTC/USDT:USDT",
+          null,
+          null,
+          {
+            "trailing": true
+          }
+        ]
+      },
+      {
+        "description": "closed trigger orders",
+        "method": "fetchClosedOrders",
+        "url": "https://www.okx.com/api/v5/trade/orders-algo-history?instType=SPOT&state=effective&ordType=trigger",
+        "input": [
+          null,
+          null,
+          null,
+          {
+            "trigger": true
+          }
+        ]
+      }
+    ],
+    "cancelOrder": [
+      {
+        "description": "Spot cancel order",
+        "method": "cancelOrder",
+        "url": "https://www.okx.com/api/v5/trade/cancel-order",
+        "input": [
+          "635561007938625536",
+          "LTC/USDT"
+        ],
+        "output": "{\"instId\":\"LTC-USDT\",\"ordId\":\"635561007938625536\"}"
+      },
+      {
+        "description": "Swap cancel order",
+        "method": "cancelOrder",
+        "url": "https://www.okx.com/api/v5/trade/cancel-order",
+        "input": [
+          "642666885133189120",
+          "BTC/USDT:USDT"
+        ],
+        "output": "{\"instId\":\"BTC-USDT-SWAP\",\"ordId\":\"642666885133189120\"}"
+      },
+      {
+        "description": "Cancel stop order",
+        "method": "cancelOrder",
+        "url": "https://www.okx.com/api/v5/trade/cancel-algos",
+        "input": [
+          "641788035268431872",
+          "LTC/USDT:USDT",
+          {
+            "stop": true
+          }
+        ],
+        "output": "[{\"algoId\":\"641788035268431872\",\"instId\":\"LTC-USDT-SWAP\"}]"
+      },
+      {
+        "description": "Swap cancel trailing order",
+        "method": "cancelOrder",
+        "url": "https://www.okx.com/api/v5/trade/cancel-algos",
+        "input": [
+          "663756560224751616",
+          "BTC/USDT:USDT",
+          {
+            "trailing": true
+          }
+        ],
+        "output": "[{\"algoId\":\"663756560224751616\",\"instId\":\"BTC-USDT-SWAP\"}]"
+      }
+    ],
+    "cancelOrders": [
+      {
+        "description": "Cancel multiple spot orders",
+        "method": "cancelOrders",
+        "url": "https://www.okx.com/api/v5/trade/cancel-batch-orders",
+        "input": [
+          [
+            "639634940954492928",
+            "637051741938204684"
+          ],
+          "LTC/USDT"
+        ],
+        "output": "[{\"ordId\":\"639634940954492928\",\"instId\":\"LTC-USDT\"},{\"ordId\":\"637051741938204684\",\"instId\":\"LTC-USDT\"}]"
+      },
+      {
+        "description": "Cancel multiple swap orders",
+        "method": "cancelOrders",
+        "url": "https://www.okx.com/api/v5/trade/cancel-batch-orders",
+        "input": [
+          [
+            "600038002475229184",
+            "600410267155169280",
+            "622144973181374464"
+          ],
+          "LTC/USDT:USDT"
+        ],
+        "output": "[{\"ordId\":\"600038002475229184\",\"instId\":\"LTC-USDT-SWAP\"},{\"ordId\":\"600410267155169280\",\"instId\":\"LTC-USDT-SWAP\"},{\"ordId\":\"622144973181374464\",\"instId\":\"LTC-USDT-SWAP\"}]"
+      },
+      {
+        "description": "Cancel multiple spot stop orders",
+        "method": "cancelOrders",
+        "url": "https://www.okx.com/api/v5/trade/cancel-algos",
+        "input": [
+          [
+            "635561454703480832",
+            "637051086087655424"
+          ],
+          "LTC/USDT",
+          {
+            "stop": true,
+            "ordType": "trigger"
+          }
+        ],
+        "output": "[{\"algoId\":\"635561454703480832\",\"instId\":\"LTC-USDT\"},{\"algoId\":\"637051086087655424\",\"instId\":\"LTC-USDT\"}]"
+      },
+      {
+        "description": "Cancel multiple swap stop orders",
+        "method": "cancelOrders",
+        "url": "https://www.okx.com/api/v5/trade/cancel-algos",
+        "input": [
+          [
+            "639637720528322560",
+            "635260475386888192"
+          ],
+          "LTC/USDT:USDT",
+          {
+            "stop": true,
+            "ordType": "trigger"
+          }
+        ],
+        "output": "[{\"algoId\":\"639637720528322560\",\"instId\":\"LTC-USDT-SWAP\"},{\"algoId\":\"635260475386888192\",\"instId\":\"LTC-USDT-SWAP\"}]"
+      },
+      {
+        "description": "Swap cancel multiple trailing orders",
+        "method": "cancelOrders",
+        "url": "https://www.okx.com/api/v5/trade/cancel-algos",
+        "input": [
+          [
+            "663748219972878336"
+          ],
+          "BTC/USDT:USDT",
+          {
+            "trailing": true
+          }
+        ],
+        "output": "[{\"algoId\":\"663748219972878336\",\"instId\":\"BTC-USDT-SWAP\"}]"
+      }
+    ],
+    "closePosition": [
+      {
+        "description": "Closing positiion in net mode",
+        "method": "closePosition",
+        "url": "https://www.okx.com/api/v5/trade/close-position",
+        "input": [
+          "ADA/USDT:USDT"
+        ],
+        "output": "{\"instId\":\"ADA-USDT-SWAP\",\"mgnMode\":\"cross\"}"
+      },
+      {
+        "description": "Closing a short position in dual mode",
+        "method": "closePosition",
+        "url": "https://www.okx.com/api/v5/trade/close-position",
+        "input": [
+          "ADA/USDT:USDT",
+          "sell"
+        ],
+        "output": "{\"instId\":\"ADA-USDT-SWAP\",\"mgnMode\":\"cross\",\"posSide\":\"short\"}"
+      },
+      {
+        "description": "closing a long position in dual mode",
+        "method": "closePosition",
+        "url": "https://www.okx.com/api/v5/trade/close-position",
+        "input": [
+          "ADA/USDT:USDT",
+          "buy"
+        ],
+        "output": "{\"instId\":\"ADA-USDT-SWAP\",\"mgnMode\":\"cross\",\"posSide\":\"long\"}"
+      }
+    ],
+    "fetchMyTrades": [
+      {
+        "description": "Spot fetch my trades with no arguments",
+        "method": "fetchMyTrades",
+        "url": "https://www.okx.com/api/v5/trade/fills-history?instType=SPOT",
+        "input": []
+      },
+      {
+        "description": "Spot fetch my trades with a defined symbol",
+        "method": "fetchMyTrades",
+        "url": "https://www.okx.com/api/v5/trade/fills-history?instId=LTC-USDT&instType=SPOT",
+        "input": [
+          "LTC/USDT"
+        ]
+      },
+      {
+        "description": "Swap fetch my trades",
+        "method": "fetchMyTrades",
+        "url": "https://www.okx.com/api/v5/trade/fills-history?instId=LTC-USDT-SWAP&instType=SWAP",
+        "input": [
+          "LTC/USDT:USDT"
+        ]
+      }
+    ],
+    "fetchPosition": [
+      {
+        "description": "Swap fetch position",
+        "method": "fetchPosition",
+        "url": "https://www.okx.com/api/v5/account/positions?instId=LTC-USDT-SWAP&instType=SWAP",
+        "input": [
+          "LTC/USDT:USDT"
+        ]
+      }
+    ],
+    "fetchPositions": [
+      {
+        "description": "Fetch positions with no arguments",
+        "method": "fetchPositions",
+        "url": "https://www.okx.com/api/v5/account/positions",
+        "input": []
+      },
+      {
+        "description": "Fetch positions with a symbols argument",
+        "method": "fetchPositions",
+        "url": "https://www.okx.com/api/v5/account/positions?instId=LTC-USDT-SWAP%2CBTC-USDT-SWAP",
+        "input": [
+          [
+            "LTC/USDT:USDT",
+            "BTC/USDT:USDT"
+          ]
+        ]
+      }
+    ],
+    "addMargin": [
+      {
+        "description": "Add margin to an inverse swap long position",
+        "method": "addMargin",
+        "url": "https://www.okx.com/api/v5/account/position/margin-balance",
+        "input": [
+          "BTC/USD:BTC",
+          0.0001,
+          {
+            "posSide": "long"
+          }
+        ],
+        "output": "{\"instId\":\"BTC-USD-SWAP\",\"amt\":0.0001,\"type\":\"add\",\"posSide\":\"long\"}"
+      }
+    ],
+    "reduceMargin": [
+      {
+        "description": "Reduce margin from an inverse swap long position",
+        "method": "reduceMargin",
+        "url": "https://www.okx.com/api/v5/account/position/margin-balance",
+        "input": [
+          "BTC/USD:BTC",
+          0.0001,
+          {
+            "posSide": "long"
+          }
+        ],
+        "output": "{\"instId\":\"BTC-USD-SWAP\",\"amt\":0.0001,\"type\":\"reduce\",\"posSide\":\"long\"}"
+      }
+    ],
+    "fetchCrossBorrowRate": [
+      {
+        "description": "Fetch cross borrow rate",
+        "method": "fetchCrossBorrowRate",
+        "url": "https://www.okx.com/api/v5/account/interest-rate?ccy=USDT",
+        "input": [
+          "USDT"
+        ]
+      }
+    ],
+    "fetchCrossBorrowRates": [
+      {
+        "description": "Fetch cross borrow rates",
+        "method": "fetchCrossBorrowRates",
+        "url": "https://www.okx.com/api/v5/account/interest-rate",
+        "input": []
+      }
+    ],
+    "fetchLedger": [
+      {
+        "description": "Fetch Ledger",
+        "method": "fetchLedger",
+        "url": "https://www.okx.com/api/v5/account/bills?instType=SPOT&ccy=USDT",
+        "input": [
+          "USDT"
+        ]
+      },
+      {
+        "description": "Fetch Ledger",
+        "method": "fetchLedger",
+        "url": "https://www.okx.com/api/v5/account/bills-archive?instType=SPOT&ccy=USDT",
+        "input": [
+          "USDT",
+          null,
+          null,
+          {
+            "method": "privateGetAccountBillsArchive"
+          }
+        ]
+      },
+      {
+        "description": "Fetch Ledger",
+        "method": "fetchLedger",
+        "url": "https://www.okx.com/api/v5/asset/bills?instType=SPOT&ccy=USDT",
+        "input": [
+          "USDT",
+          null,
+          null,
+          {
+            "method": "privateGetAssetBills"
+          }
+        ]
+      }
+    ],
+    "fetchOHLCV": [
+      {
+        "description": "fetchOHLCV using a timestamp that is 1439 candles in the past so that the history endpoint is used",
+        "method": "fetchOHLCV",
+        "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT&bar=1H&limit=300&before=1699931781032&after=1701011781033",
+        "input": [
+          "BTC/USDT",
+          "1h",
+          1699931781033,
+          300
+        ]
+      },
+      {
+        "description": "fetchOHLCV using a timestamp that is 1438 candles in the past so that the current endpoint is used",
+        "method": "fetchOHLCV",
+        "disabled": true,
+        "reason": "relies on the current timestamp, which is not deterministic",
+        "url": "https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=1H&limit=300&before=1699935566969&after=1701015566969",
+        "input": [
+          "BTC/USDT",
+          "1h",
+          1699935566969,
+          300
+        ]
+      },
+      {
+        "description": "spot ohlcv",
+        "method": "fetchOHLCV",
+        "url": "https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=1m&limit=100",
+        "input": [
+          "BTC/USDT"
+        ]
+      }
+    ],
+    "createTriggerOrder": [
+      {
+        "description": "Swap create a stop order using the createTriggerOrder method (type 1)",
+        "method": "createTriggerOrder",
+        "url": "https://www.okx.com/api/v5/trade/order-algo",
+        "input": [
+          "BTC/USDT:USDT",
+          "limit",
+          "buy",
+          1,
+          50000,
+          49000,
+          {
+            "posSide": "long",
+            "triggerPrice": 49000
+          }
+        ],
+        "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"1\",\"tdMode\":\"cross\",\"triggerPx\":\"49000\",\"orderPx\":\"50000\",\"clOrdId\":\"e847386590ce4dBC7eba5daba4bc902c\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+      }
+    ],
+    "createTakeProfitOrder": [
+      {
+        "description": "Swap create a take profit trigger order using the createTakeProfitOrder method (type 2)",
+        "method": "createTakeProfitOrder",
+        "url": "https://www.okx.com/api/v5/trade/order-algo",
+        "input": [
+          "BTC/USDT:USDT",
+          "limit",
+          "sell",
+          1,
+          50000,
+          49000,
+          {
+            "posSide": "long",
+            "takeProfitPrice": 49000
+          }
+        ],
+        "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"tpTriggerPx\":\"49000\",\"tpOrdPx\":\"50000\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC8a51e4172402892a\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+      }
+    ],
+    "createStopLossOrder": [
+      {
+        "description": "Swap create a stop loss trigger order using the createStopLossOrder method (type 2)",
+        "method": "createStopLossOrder",
+        "url": "https://www.okx.com/api/v5/trade/order-algo",
+        "input": [
+          "BTC/USDT:USDT",
+          "limit",
+          "sell",
+          1,
+          31000,
+          30000,
+          {
+            "posSide": "long",
+            "stopLossPrice": 30000
+          }
+        ],
+        "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"30000\",\"slOrdPx\":\"31000\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC062a009804dcb58e\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+      }
+    ],
+    "createOrderWithTakeProfitAndStopLoss": [
+      {
+        "description": "Swap create an order with a take profit and stop loss attached using the createOrderWithTakeProfitAndStopLoss method (type 3)",
+        "method": "createOrderWithTakeProfitAndStopLoss",
+        "url": "https://www.okx.com/api/v5/trade/batch-orders",
+        "input": [
+          "LTC/USDT:USDT",
+          "limit",
+          "buy",
+          1,
+          60,
+          70,
+          50,
+          {
+            "posSide": "long",
+            "takeProfit": {
+              "triggerPrice": 70
+            },
+            "stopLoss": {
+              "triggerPrice": 50
+            }
+          }
+        ],
+        "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"60\",\"slTriggerPx\":\"50\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"tpTriggerPx\":\"70\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBCdb76299fc4b696da\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+      }
+    ],
+    "fetchOrderBook": [
+      {
+        "description": "spot orderbook",
+        "method": "fetchOrderBook",
+        "url": "https://www.okx.com/api/v5/market/books?instId=BTC-USDT&sz=5",
+        "input": [
+          "BTC/USDT",
+          5
+        ]
+      },
+      {
+        "description": "Swap orderbook",
+        "method": "fetchOrderBook",
+        "url": "https://www.okx.com/api/v5/market/books?instId=BTC-USDT-SWAP&sz=5",
+        "input": [
+          "BTC/USDT:USDT",
+          5
+        ]
+      },
+      {
+        "description": "fetch full spot orderbook",
+        "method": "fetchOrderBook",
+        "url": "https://www.okx.com/api/v5/market/books-full?instId=BTC-USDT&sz=5000",
+        "input": [
+          "BTC/USDT",
+          null,
+          {
+            "method": "publicGetMarketBooksFull"
+          }
+        ]
+      }
+    ],
+    "fetchDeposits": [
+      {
+        "description": "fetch USDT deposits",
+        "method": "fetchDeposits",
+        "url": "https://www.okx.com/api/v5/asset/deposit-history?ccy=USDT",
+        "input": [
+          "USDT"
+        ]
+      }
+    ],
+    "fetchLeverage": [
+      {
+        "description": "fetch leverage",
+        "method": "fetchLeverage",
+        "url": "https://www.okx.com/api/v5/account/leverage-info?instId=LTC-USDT&mgnMode=cross",
+        "input": [
+          "LTC/USDT"
+        ]
+      }
+    ],
+    "transfer": [
+      {
+        "description": "transfer from spot to funding",
+        "method": "transfer",
+        "url": "https://www.okx.com/api/v5/asset/transfer",
+        "input": [
+          "USDT",
+          1,
+          "spot",
+          "funding"
+        ],
+        "output": "{\"ccy\":\"USDT\",\"amt\":\"1\",\"type\":\"0\",\"from\":\"18\",\"to\":\"6\"}"
+      },
+      {
+        "description": "transfer from funding to spot",
+        "method": "transfer",
+        "url": "https://www.okx.com/api/v5/asset/transfer",
+        "input": [
+          "USDT",
+          1,
+          "funding",
+          "spot"
+        ],
+        "output": "{\"ccy\":\"USDT\",\"amt\":\"1\",\"type\":\"0\",\"from\":\"6\",\"to\":\"18\"}"
+      }
+    ],
+    "fetchTrades": [
+      {
+        "description": "fetch spot trades",
+        "method": "fetchTrades",
+        "url": "https://www.okx.com/api/v5/market/trades?instId=BTC-USDT",
+        "input": [
+          "BTC/USDT"
+        ]
+      }
+    ],
+    "fetchTradingFee": [
+      {
+        "description": "Spot trading fee",
+        "method": "fetchTradingFee",
+        "url": "https://www.okx.com/api/v5/account/trade-fee?instType=SPOT&instId=BTC-USDT",
+        "input": [
+          "BTC/USDT"
+        ]
+      }
+    ],
+    "fetchDepositAddress": [
+      {
+        "description": "fetch USDT address",
+        "method": "fetchDepositAddress",
+        "url": "https://www.okx.com/api/v5/asset/deposit-address?ccy=USDT",
+        "input": [
+          "USDT"
+        ]
+      }
+    ],
+    "fetchWithdrawals": [
+      {
+        "description": "fetch USDT withdrawals",
+        "method": "fetchWithdrawals",
+        "url": "https://www.okx.com/api/v5/asset/withdrawal-history?ccy=USDT",
+        "input": [
+          "USDT"
+        ]
+      }
+    ],
+    "setMarginMode": [
+      {
+        "description": "set margin mode cross",
+        "method": "setMarginMode",
+        "url": "https://www.okx.com/api/v5/account/set-leverage",
+        "input": [
+          "cross",
+          "LTC/USDT:USDT",
+          {
+            "leverage": 10
+          }
+        ],
+        "output": "{\"lever\":10,\"mgnMode\":\"cross\",\"instId\":\"LTC-USDT-SWAP\"}"
+      }
+    ],
+    "fetchBorrowInterest": [
+      {
+        "description": "fetch borrow interest",
+        "method": "fetchBorrowInterest",
+        "url": "https://www.okx.com/api/v5/account/interest-accrued?mgnMode=cross&ccy=USDT",
+        "input": [
+          "USDT"
+        ]
+      }
+    ],
+    "fetchOpenInterestHistory": [
+      {
+        "description": "fetch borrow interest history",
+        "method": "fetchOpenInterestHistory",
+        "url": "https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-volume?ccy=BTC&period=1D",
+        "input": [
+          "BTC/USDT:USDT"
+        ]
+      }
+    ],
+    "fetchAccounts": [
+      {
+        "description": "fetch accounts",
+        "method": "fetchAccounts",
+        "url": "https://www.okx.com/api/v5/account/config",
+        "input": []
+      }
+    ]
+  }
 }

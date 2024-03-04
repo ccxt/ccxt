@@ -3,7 +3,7 @@
 import independentreserveRest from '../independentreserve.js';
 import { NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import type { Int, OrderBook, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -37,7 +37,7 @@ export default class independentreserve extends independentreserveRest {
         });
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name independentreserve#watchTrades
@@ -124,7 +124,7 @@ export default class independentreserve extends independentreserveRest {
         }, market);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name independentreserve#watchOrderBook
@@ -185,29 +185,29 @@ export default class independentreserve extends independentreserveRest {
         const orderBook = this.safeValue (message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
-        const receivedSnapshot = this.safeValue (subscription, 'receivedSnapshot', false);
+        const receivedSnapshot = this.safeBool (subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger (message, 'Time');
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({});
+            this.orderbooks[symbol] = orderbook;
         }
         if (event === 'OrderBookSnapshot') {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume');
-            storedOrderBook.reset (snapshot);
+            orderbook.reset (snapshot);
             subscription['receivedSnapshot'] = true;
         } else {
             const asks = this.safeValue (orderBook, 'Offers', []);
             const bids = this.safeValue (orderBook, 'Bids', []);
-            this.handleDeltas (storedOrderBook['asks'], asks);
-            this.handleDeltas (storedOrderBook['bids'], bids);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = this.iso8601 (timestamp);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        const checksum = this.safeValue (this.options, 'checksum', true);
+        const checksum = this.safeBool (this.options, 'checksum', true);
         if (checksum && receivedSnapshot) {
-            const storedAsks = storedOrderBook['asks'];
-            const storedBids = storedOrderBook['bids'];
+            const storedAsks = orderbook['asks'];
+            const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
             let payload = '';
@@ -229,7 +229,7 @@ export default class independentreserve extends independentreserveRest {
             }
         }
         if (receivedSnapshot) {
-            client.resolve (storedOrderBook, messageHash);
+            client.resolve (orderbook, messageHash);
         }
     }
 
@@ -285,7 +285,8 @@ export default class independentreserve extends independentreserveRest {
         };
         const handler = this.safeValue (handlers, event);
         if (handler !== undefined) {
-            return handler.call (this, client, message);
+            handler.call (this, client, message);
+            return;
         }
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okcoin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -20,6 +20,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -51,12 +52,24 @@ class okcoin(Exchange, ImplicitAPI):
                 'future': True,
                 'option': None,
                 'cancelOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,  # see below
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
                 'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -74,6 +87,10 @@ class okcoin(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
+                'setMargin': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -843,7 +860,7 @@ class okcoin(Exchange, ImplicitAPI):
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        spot = self.safe_value(market, 'spot', False)
+        spot = self.safe_bool(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCcy24h') if spot else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
@@ -1227,7 +1244,24 @@ class okcoin(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        params['tgtCcy'] = 'quote_ccy'
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
@@ -1251,6 +1285,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
         :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1260,14 +1295,20 @@ class okcoin(Exchange, ImplicitAPI):
         requestOrdType = self.safe_string(request, 'ordType')
         if (requestOrdType == 'trigger') or (requestOrdType == 'conditional') or (type == 'oco') or (type == 'move_order_stop') or (type == 'iceberg') or (type == 'twap'):
             method = 'privatePostTradeOrderAlgo'
-        if (method != 'privatePostTradeOrder') and (method != 'privatePostTradeOrderAlgo') and (method != 'privatePostTradeBatchOrders'):
-            raise ExchangeError(self.id + ' createOrder() self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo')
         if method == 'privatePostTradeBatchOrders':
             # keep the request body the same
             # submit a single order in an array to the batch order endpoint
             # because it has a lower ratelimit
             request = [request]
-        response = await getattr(self, method)(request)
+        response = None
+        if method == 'privatePostTradeOrder':
+            response = await self.privatePostTradeOrder(request)
+        elif method == 'privatePostTradeOrderAlgo':
+            response = await self.privatePostTradeOrderAlgo(request)
+        elif method == 'privatePostTradeBatchOrders':
+            response = await self.privatePostTradeBatchOrders(request)
+        else:
+            raise ExchangeError(self.id + ' createOrder() self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo')
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0)
         order = self.parse_order(first, market)
@@ -1275,7 +1316,7 @@ class okcoin(Exchange, ImplicitAPI):
         order['side'] = side
         return order
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1287,7 +1328,7 @@ class okcoin(Exchange, ImplicitAPI):
             'ordType': type,
             # 'ordType': type,  # privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
             # 'ordType': type,  # privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
-            'sz': self.amount_to_precision(symbol, amount),
+            # 'sz': self.amount_to_precision(symbol, amount),
             # 'px': self.price_to_precision(symbol, price),  # limit orders only
             # 'reduceOnly': False,
             #
@@ -1323,7 +1364,7 @@ class okcoin(Exchange, ImplicitAPI):
             margin = True
         else:
             marginMode = defaultMarginMode
-            margin = self.safe_value(params, 'margin', False)
+            margin = self.safe_bool(params, 'margin', False)
         if margin:
             defaultCurrency = market['quote'] if (side == 'buy') else market['base']
             currency = self.safe_string(params, 'ccy', defaultCurrency)
@@ -1345,27 +1386,35 @@ class okcoin(Exchange, ImplicitAPI):
             request['tgtCcy'] = tgtCcy
         if isMarketOrder or marketIOC:
             request['ordType'] = 'market'
-            if (side == 'buy'):
+            if side == 'buy':
                 # spot market buy: "sz" can refer either to base currency units or to quote currency units
                 # see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if tgtCcy == 'quote_ccy':
                     # quote_ccy: sz refers to units of quote currency
-                    notional = self.safe_number_2(params, 'cost', 'sz')
-                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                    if createMarketBuyOrderRequiresPrice:
-                        if price is not None:
-                            if notional is None:
-                                amountString = self.number_to_string(amount)
-                                priceString = self.number_to_string(price)
-                                quoteAmount = Precise.string_mul(amountString, priceString)
-                                notional = self.parse_number(quoteAmount)
-                        elif notional is None:
-                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter(the exchange-specific behaviour)")
-                    else:
-                        notional = amount if (notional is None) else notional
-                    request['sz'] = self.cost_to_precision(symbol, notional)
+                    quoteAmount = None
+                    createMarketBuyOrderRequiresPrice = True
+                    createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                    cost = self.safe_number_2(params, 'cost', 'sz')
                     params = self.omit(params, ['cost', 'sz'])
+                    if cost is not None:
+                        quoteAmount = self.cost_to_precision(symbol, cost)
+                    elif createMarketBuyOrderRequiresPrice:
+                        if price is None:
+                            raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                        else:
+                            amountString = self.number_to_string(amount)
+                            priceString = self.number_to_string(price)
+                            costRequest = Precise.string_mul(amountString, priceString)
+                            quoteAmount = self.cost_to_precision(symbol, costRequest)
+                    else:
+                        quoteAmount = self.cost_to_precision(symbol, amount)
+                    request['sz'] = quoteAmount
+                else:
+                    request['sz'] = self.amount_to_precision(symbol, amount)
+            else:
+                request['sz'] = self.amount_to_precision(symbol, amount)
         else:
+            request['sz'] = self.amount_to_precision(symbol, amount)
             if (not trigger) and (not conditional):
                 request['px'] = self.price_to_precision(symbol, price)
         if postOnly:
@@ -1802,7 +1851,7 @@ class okcoin(Exchange, ImplicitAPI):
             # 'ordId': id,
         }
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         if stop:
             if clientOrderId is not None:
                 request['algoClOrdId'] = clientOrderId
@@ -1813,7 +1862,7 @@ class okcoin(Exchange, ImplicitAPI):
                 request['clOrdId'] = clientOrderId
             else:
                 request['ordId'] = id
-        query = self.omit(params, ['clientOrderId', 'stop'])
+        query = self.omit(params, ['clientOrderId', 'stop', 'trigger'])
         response = None
         if stop:
             response = await self.privateGetTradeOrderAlgo(self.extend(request, query))
@@ -1872,7 +1921,7 @@ class okcoin(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
@@ -2094,7 +2143,7 @@ class okcoin(Exchange, ImplicitAPI):
         parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
         transfer currency internally between wallets on the same account
@@ -2233,7 +2282,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
         make a withdrawal
@@ -2631,7 +2680,13 @@ class okcoin(Exchange, ImplicitAPI):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         request, params = self.handle_until_option('end', request, params)
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetAccountBillsArchive':
+            response = await self.privateGetAccountBillsArchive(self.extend(request, params))
+        elif method == 'privateGetAssetBills':
+            response = await self.privateGetAssetBills(self.extend(request, params))
+        else:
+            response = await self.privateGetAccountBills(self.extend(request, params))
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
         #

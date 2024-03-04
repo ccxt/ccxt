@@ -7,11 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\InvalidOrder;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class poloniex extends \ccxt\async\poloniex {
 
@@ -182,7 +183,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @return {array} data from the websocket stream
              */
             $url = $this->urls['api']['ws']['private'];
-            $messageHash = $this->nonce();
+            $messageHash = (string) $this->nonce();
             $subscribe = array(
                 'id' => $messageHash,
                 'event' => $name,
@@ -192,7 +193,7 @@ class poloniex extends \ccxt\async\poloniex {
         }) ();
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order
@@ -201,18 +202,19 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the $quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
              * @param {string} [$params->timeInForce] GTC (default), IOC, FOK
              * @param {string} [$params->clientOrderId] Maximum 64-character length.*
+             * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
              *
              * EXCHANGE SPECIFIC PARAMETERS
-             * @param {string} [$params->amount] $quote units for the order
+             * @param {string} [$params->amount] quote units for the order
              * @param {boolean} [$params->allowBorrow] allow order to be placed by borrowing funds (Default => false)
              * @param {string} [$params->stpMode] self-trade prevention, defaults to expire_taker, none => enable self-trade; expire_taker => taker order will be canceled when self-trade happens
              * @param {string} [$params->slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
-            */
+             */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $market = $this->market($symbol);
@@ -228,23 +230,26 @@ class poloniex extends \ccxt\async\poloniex {
                 'type' => strtoupper($type),
             );
             if (($uppercaseType === 'MARKET') && ($uppercaseSide === 'BUY')) {
-                $quoteAmount = $this->safe_string($params, 'amount');
-                if (($quoteAmount === null) && ($this->options['createMarketBuyOrderRequiresPrice'])) {
-                    $cost = $this->safe_number($params, 'cost');
-                    $params = $this->omit($params, 'cost');
-                    if ($price === null && $cost === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
+                $quoteAmount = null;
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($cost !== null) {
+                    $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                } elseif ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $quote = Precise::string_mul($amountString, $priceString);
-                        $amount = ($cost !== null) ? $cost : $this->parse_number($quote);
-                        $quoteAmount = $this->cost_to_precision($symbol, $amount);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                     }
                 } else {
                     $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
-                $request['amount'] = $this->amount_to_precision($market['symbol'], $quoteAmount);
+                $request['amount'] = $quoteAmount;
             } else {
                 $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
                 if ($price !== null) {
@@ -333,7 +338,7 @@ class poloniex extends \ccxt\async\poloniex {
         $client->resolve ($orders, $messageHash);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -359,7 +364,7 @@ class poloniex extends \ccxt\async\poloniex {
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -375,7 +380,7 @@ class poloniex extends \ccxt\async\poloniex {
         }) ();
     }
 
-    public function watch_tickers($symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -395,7 +400,7 @@ class poloniex extends \ccxt\async\poloniex {
         }) ();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -417,7 +422,7 @@ class poloniex extends \ccxt\async\poloniex {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -436,7 +441,7 @@ class poloniex extends \ccxt\async\poloniex {
         }) ();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -462,7 +467,7 @@ class poloniex extends \ccxt\async\poloniex {
         }) ();
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user using orders stream
@@ -489,7 +494,7 @@ class poloniex extends \ccxt\async\poloniex {
         }) ();
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -557,7 +562,8 @@ class poloniex extends \ccxt\async\poloniex {
         $marketId = $this->safe_string($data, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($symbol);
-        $timeframe = $this->find_timeframe($channel);
+        $timeframes = $this->safe_value($this->options, 'timeframes', array());
+        $timeframe = $this->find_timeframe($channel, $timeframes);
         $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ws_ohlcv($data, $market);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
@@ -971,7 +977,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $ticker = $this->parse_ticker($item);
                 $symbol = $ticker['symbol'];
                 $this->tickers[$symbol] = $ticker;
-                $newTickers[] = $ticker;
+                $newTickers[$symbol] = $ticker;
             }
         }
         $messageHashes = $this->find_message_hashes($client, 'ticker::');
@@ -1063,7 +1069,8 @@ class poloniex extends \ccxt\async\poloniex {
                         $bid = $this->safe_value($bids, $j);
                         $price = $this->safe_number($bid, 0);
                         $amount = $this->safe_number($bid, 1);
-                        $orderbook['bids'].store ($price, $amount);
+                        $bidsSide = $orderbook['bids'];
+                        $bidsSide->store ($price, $amount);
                     }
                 }
                 if ($asks !== null) {
@@ -1071,7 +1078,8 @@ class poloniex extends \ccxt\async\poloniex {
                         $ask = $this->safe_value($asks, $j);
                         $price = $this->safe_number($ask, 0);
                         $amount = $this->safe_number($ask, 1);
-                        $orderbook['asks'].store ($price, $amount);
+                        $asksSide = $orderbook['asks'];
+                        $asksSide->store ($price, $amount);
                     }
                 }
                 $orderbook['symbol'] = $symbol;
@@ -1208,13 +1216,13 @@ class poloniex extends \ccxt\async\poloniex {
             if ($orderId === '0') {
                 $this->handle_error_message($client, $item);
             } else {
-                return $this->handle_order_request($client, $message);
+                $this->handle_order_request($client, $message);
             }
         } else {
             $data = $this->safe_value($message, 'data', array());
             $dataLength = count($data);
             if ($dataLength > 0) {
-                return $method($client, $message);
+                $method($client, $message);
             }
         }
     }

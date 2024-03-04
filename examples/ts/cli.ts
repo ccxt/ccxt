@@ -35,7 +35,9 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
     , isOption = process.argv.includes ('--option')
-    , shouldCreateReport = process.argv.includes ('--report')
+    , shouldCreateRequestReport = process.argv.includes ('--report')
+    , shouldCreateResponseReport = process.argv.includes ('--response')
+    , shouldCreateBoth = process.argv.includes ('--static')
 
 //-----------------------------------------------------------------------------
 
@@ -129,7 +131,7 @@ try {
 
 //-----------------------------------------------------------------------------
 
-function createTemplate(exchange, methodName, args, result) {
+function createRequestTemplate(exchange, methodName, args, result) {
     const final = {
         'description': 'Fill this with a description of the method call',
         'method': methodName,
@@ -137,9 +139,25 @@ function createTemplate(exchange, methodName, args, result) {
         'input': args,
         'output': exchange.last_request_body ?? undefined
     }
-    log('Report: (paste inside static/data/' + exchange.id + '.json ->' + methodName + ')')
+    log('Report: (paste inside static/request/' + exchange.id + '.json ->' + methodName + ')')
     log.green('-------------------------------------------')
     log (JSON.stringify (final, null, 2))
+    log.green('-------------------------------------------')
+}
+
+//-----------------------------------------------------------------------------
+
+function createResponseTemplate(exchange, methodName, args, result) {
+    const final = {
+        'description': 'Fill this with a description of the method call',
+        'method': methodName,
+        'input': args,
+        'httpResponse': exchange.last_json_response ?? exchange.last_http_response,
+        'parsedResponse': result
+    }
+    log('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')')
+    log.green('-------------------------------------------')
+    log (JSON.stringify (final, function(k, v) { return v === undefined ? null : v; }, 2))
     log.green('-------------------------------------------')
 }
 
@@ -326,8 +344,11 @@ async function run () {
                         if (!isWsMethod) {
                             log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
                         }
-                        if (shouldCreateReport) {
-                            createTemplate(exchange, methodName, args, result)
+                        if (shouldCreateRequestReport || shouldCreateBoth) {
+                            createRequestTemplate(exchange, methodName, args, result)
+                        }
+                        if (shouldCreateResponseReport || shouldCreateBoth) {
+                            createResponseTemplate(exchange, methodName, args, result)
                         }
                         start = end
                     } catch (e) {

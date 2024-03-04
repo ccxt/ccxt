@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -21,6 +21,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
@@ -61,6 +62,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
+                'createTrailingPercentOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': False,
@@ -213,6 +215,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
                         'contract/private/get-open-orders': 1.2,
+                        'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
                     },
                     'post': {
@@ -278,8 +281,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': self.parse_number('0.0025'),
-                    'maker': self.parse_number('0.0025'),
+                    'taker': self.parse_number('0.0040'),
+                    'maker': self.parse_number('0.0035'),
                     'tiers': {
                         'taker': [
                             [self.parse_number('0'), self.parse_number('0.0020')],
@@ -322,7 +325,11 @@ class bitmart(Exchange, ImplicitAPI):
                     '30012': AuthenticationError,  # 403, Header X-BM-KEY is forbidden to request it
                     '30013': RateLimitExceeded,  # 429, Request too many requests
                     '30014': ExchangeNotAvailable,  # 503, Service unavailable
-                    # funding account errors
+                    '30016': OnMaintenance,  # 200, Service maintenance, the function is temporarily unavailable
+                    '30017': RateLimitExceeded,  # 418, Your account request is temporarily rejected due to violation of current limiting rules
+                    '30018': BadRequest,  # 503, Request Body requires JSON format
+                    '30019': PermissionDenied,  # 200, You do not have the permissions to perform self operation
+                    # funding account & sub account errors
                     '60000': BadRequest,  # 400, Invalid request(maybe the body is empty, or the int parameter passes string data)
                     '60001': BadRequest,  # 400, Asset account type does not exist
                     '60002': BadRequest,  # 400, currency does not exist
@@ -339,13 +346,31 @@ class bitmart(Exchange, ImplicitAPI):
                     '60020': PermissionDenied,  # 403, Your account is not allowed to recharge
                     '60021': PermissionDenied,  # 403, Your account is not allowed to withdraw
                     '60022': PermissionDenied,  # 403, No withdrawals for 24 hours
+                    '60026': PermissionDenied,  # 403, Sub-account does not have permission to operate
+                    '60027': PermissionDenied,  # 403, Only supports sub-account calls
+                    '60028': AccountSuspended,  # 403, Account is disabled for security reasons, please contact customer service
+                    '60029': AccountSuspended,  # 403, The account is frozen by the master account, please contact the master account to unfreeze the account
                     '60030': BadRequest,  # 405, Method Not Allowed
                     '60031': BadRequest,  # 415, Unsupported Media Type
                     '60050': ExchangeError,  # 500, User account not found
                     '60051': ExchangeError,  # 500, Internal Server Error
                     '61001': InsufficientFunds,  # {"message":"Balance not enough","code":61001,"trace":"b85ea1f8-b9af-4001-ac5f-9e061fe93d78","data":{}}
-                    '61003': BadRequest,  # {"message":"sub-account not found","code":61003,"trace":"b35ec2fd-0bc9-4ef2-a3c0-6f78d4f335a4","data":{}}
-                    # spot errors
+                    '61003': BadRequest,  # 400, {"message":"sub-account not found","code":61003,"trace":"b35ec2fd-0bc9-4ef2-a3c0-6f78d4f335a4","data":{}}
+                    '61004': BadRequest,  # 400, Duplicate requests(such an existing requestNo)
+                    '61005': BadRequest,  # 403, Asset transfer between accounts is not available
+                    '61006': NotSupported,  # 403, The sub-account api only supports organization accounts
+                    '61007': ExchangeError,  # 403, Please complete your institution verification to enable withdrawal function.
+                    '61008': ExchangeError,  # 403, Suspend transfer out
+                    # spot public errors
+                    '70000': ExchangeError,  # 200, no data
+                    '70001': BadRequest,  # 200, request param can not be null
+                    '70002': BadSymbol,  # 200, symbol is invalid
+                    '71001': BadRequest,  # 200, after is invalid
+                    '71002': BadRequest,  # 200, before is invalid
+                    '71003': BadRequest,  # 200, request after or before is invalid
+                    '71004': BadRequest,  # 200, request kline count limit
+                    '71005': BadRequest,  # 200, request step error
+                    # spot & margin errors
                     '50000': BadRequest,  # 400, Bad Request
                     '50001': BadSymbol,  # 400, Symbol not found
                     '50002': BadRequest,  # 400, From Or To format error
@@ -365,26 +390,75 @@ class bitmart(Exchange, ImplicitAPI):
                     '50016': BadRequest,  # 400, Maximum limit is %d
                     '50017': BadRequest,  # 400, RequestParam offset is required
                     '50018': BadRequest,  # 400, Minimum offset is 1
-                    '50019': BadRequest,  # 400, Maximum price is %s
-                    '51004': InsufficientFunds,  # {"message":"Exceed the maximum number of borrows available.","code":51004,"trace":"4030b753-9beb-44e6-8352-1633c5edcd47","data":{}}
-                    # '50019': ExchangeError,  # 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
+                    '50019': ExchangeError,  # 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled]                    '50020': InsufficientFunds,  # 400, Balance not enough
                     '50020': InsufficientFunds,  # 400, Balance not enough
                     '50021': BadRequest,  # 400, Invalid %s
                     '50022': ExchangeNotAvailable,  # 400, Service unavailable
                     '50023': BadSymbol,  # 400, This Symbol can't place order by api
-                    '50029': InvalidOrder,  # {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
-                    '50030': InvalidOrder,  # {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
-                    '50032': OrderNotFound,  # {"message":"Order does not exist","code":50032,"trace":"8d6b482d-4bf2-4e6c-aab2-9dcd22bf2481","data":{}}
+                    '50024': BadRequest,  # 400, Order book size over 200
+                    '50025': BadRequest,  # 400, Maximum price is %s
+                    '50026': BadRequest,  # 400, The buy order price cannot be higher than the open price
+                    '50027': BadRequest,  # 400, The sell order price cannot be lower than the open price
+                    '50028': BadRequest,  # 400, Missing parameters
+                    '50029': InvalidOrder,  # 400, {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
+                    '50030': OrderNotFound,  # 400, {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
+                    '50031': OrderNotFound,  # 400, Order is already completed
+                    '50032': OrderNotFound,  # 400, {"message":"Order does not exist","code":50032,"trace":"8d6b482d-4bf2-4e6c-aab2-9dcd22bf2481","data":{}}
+                    '50033': InvalidOrder,  # 400, The order quantity should be greater than 0 and less than or equal to 10
                     # below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
-                    '50035': InvalidOrder,  # {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
-                    '50034': InvalidOrder,  # {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
-                    '51011': InvalidOrder,  # {"message":"param not match : size * price >=5","code":51011,"trace":"525e1d27bfd34d60b2d90ba13a7c0aa9.74.16696421352220797","data":{}}
+                    '50034': InvalidOrder,  # 400, {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
+                    '50035': InvalidOrder,  # 400, {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
+                    '50036': ExchangeError,  # 400, Cancel failed, order is not revocable status
+                    '50037': BadRequest,  # 400, The maximum length of clientOrderId cannot exceed 32
+                    '50038': BadRequest,  # 400, ClientOrderId only allows a combination of numbers and letters
+                    '50039': BadRequest,  # 400, Order_id and clientOrderId cannot be empty at the same time
+                    '50040': BadSymbol,  # 400, Symbol Not Available
+                    '50041': ExchangeError,  # 400, Out of query time range
+                    '50042': BadRequest,  # 400, clientOrderId is duplicate
+                    '51000': BadSymbol,  # 400, Currency not found
+                    '51001': ExchangeError,  # 400, Margin Account not Opened
+                    '51002': ExchangeError,  # 400, Margin Account Not Available
+                    '51003': ExchangeError,  # 400, Account Limit
+                    '51004': InsufficientFunds,  # 400, {"message":"Exceed the maximum number of borrows available.","code":51004,"trace":"4030b753-9beb-44e6-8352-1633c5edcd47","data":{}}
+                    '51005': InvalidOrder,  # 400, Less than the minimum borrowable amount
+                    '51006': InvalidOrder,  # 400, Exceeds the amount to be repaid
+                    '51007': BadRequest,  # 400, order_mode not found
+                    '51008': ExchangeError,  # 400, Operation is limited, please try again later
+                    '51009': InvalidOrder,  # 400, Parameter mismatch: limit order/market order quantity should be greater than the minimum number of should buy/sell
+                    '51010': InvalidOrder,  # 400, Parameter mismatch: limit order price should be greater than the minimum buy price
+                    '51011': InvalidOrder,  # 400, {"message":"param not match : size * price >=5","code":51011,"trace":"525e1d27bfd34d60b2d90ba13a7c0aa9.74.16696421352220797","data":{}}
+                    '51012': InvalidOrder,  # 400, Parameter mismatch: limit order price should be greater than the minimum buy price
+                    '51013': InvalidOrder,  # 400, Parameter mismatch: Limit order quantity * price should be greater than the minimum transaction amount
+                    '51014': InvalidOrder,  # 400, Participation mismatch: the number of market order buy orders should be greater than the minimum buyable amount
+                    '51015': InvalidOrder,  # 400, Parameter mismatch: the price of market order buy order placed is too small
+                    '52000': BadRequest,  # 400, Unsupported OrderMode Type
+                    '52001': BadRequest,  # 400, Unsupported Trade Type
+                    '52002': BadRequest,  # 400, Unsupported Side Type
+                    '52003': BadRequest,  # 400, Unsupported Query State Type
+                    '52004': BadRequest,  # 400, End time must be greater than or equal to Start time
                     '53000': AccountSuspended,  # 403, Your account is frozen due to security policies. Please contact customer service
-                    '53001': AccountSuspended,  # {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
+                    '53001': AccountSuspended,  # 403, {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
+                    '53002': PermissionDenied,  # 403, Your account has not yet completed the kyc advanced certification, please complete first
+                    '53003': PermissionDenied,  # 403 No permission, please contact the main account
+                    '53005': PermissionDenied,  # 403 Don't have permission to access the interface
+                    '53006': PermissionDenied,  # 403 Please complete your personal verification(Starter)
+                    '53007': PermissionDenied,  # 403 Please complete your personal verification(Advanced)
+                    '53008': PermissionDenied,  # 403 Services is not available in your countries and areas
+                    '53009': PermissionDenied,  # 403 Your account has not yet completed the qr code certification, please complete first
+                    '53010': PermissionDenied,  # 403 This account is restricted from borrowing
                     '57001': BadRequest,  # 405, Method Not Allowed
                     '58001': BadRequest,  # 415, Unsupported Media Type
                     '59001': ExchangeError,  # 500, User account not found
                     '59002': ExchangeError,  # 500, Internal Server Error
+                    '59003': ExchangeError,  # 500, Spot wallet call fail
+                    '59004': ExchangeError,  # 500, Margin wallet service call exception
+                    '59005': PermissionDenied,  # 500, Margin wallet service restricted
+                    '59006': ExchangeError,  # 500, Transfer fail
+                    '59007': ExchangeError,  # 500, Get symbol risk data fail
+                    '59008': ExchangeError,  # 500, Trading order failure
+                    '59009': ExchangeError,  # 500, Loan success,but trading order failure
+                    '59010': InsufficientFunds,  # 500, Insufficient loan amount.
+                    '59011': ExchangeError,  # 500, The Get Wallet Balance service call fail, please try again later
                     # contract errors
                     '40001': ExchangeError,  # 400, Cloud account not found
                     '40002': ExchangeError,  # 400, out_trade_no not found
@@ -420,14 +494,22 @@ class bitmart(Exchange, ImplicitAPI):
                     '40032': InvalidOrder,  # 400, The plan order's life cycle is too long.
                     '40033': InvalidOrder,  # 400, The plan order's life cycle is too short.
                     '40034': BadSymbol,  # 400, This contract is not found
-                    '53002': PermissionDenied,  # 403, Your account has not yet completed the kyc advanced certification, please complete first
-                    '53003': PermissionDenied,  # 403 No permission, please contact the main account
-                    '53005': PermissionDenied,  # 403 Don't have permission to access the interface
-                    '53006': PermissionDenied,  # 403 Please complete your personal verification(Starter)
-                    '53007': PermissionDenied,  # 403 Please complete your personal verification(Advanced)
-                    '53008': PermissionDenied,  # 403 Services is not available in your countries and areas
-                    '53009': PermissionDenied,  # 403 Your account has not yet completed the qr code certification, please complete first
-                    '53010': PermissionDenied,  # 403 This account is restricted from borrowing
+                    '40035': OrderNotFound,  # 400, The order is not exist
+                    '40036': InvalidOrder,  # 400, The order status is invalid
+                    '40037': OrderNotFound,  # 400, The order id is not exist
+                    '40038': BadRequest,  # 400, The k-line step is invalid
+                    '40039': BadRequest,  # 400, The timestamp is invalid
+                    '40040': InvalidOrder,  # 400, The order leverage is invalid
+                    '40041': InvalidOrder,  # 400, The order side is invalid
+                    '40042': InvalidOrder,  # 400, The order type is invalid
+                    '40043': InvalidOrder,  # 400, The order precision is invalid
+                    '40044': InvalidOrder,  # 400, The order range is invalid
+                    '40045': InvalidOrder,  # 400, The order open type is invalid
+                    '40046': PermissionDenied,  # 403, The account is not opened futures
+                    '40047': PermissionDenied,  # 403, Services is not available in you countries and areas
+                    '40048': BadRequest,  # 403, ClientOrderId only allows a combination of numbers and letters
+                    '40049': BadRequest,  # 403, The maximum length of clientOrderId cannot exceed 32
+                    '40050': InvalidOrder,  # 403, Client OrderId duplicated with existing orders
                 },
                 'broad': {},
             },
@@ -1039,7 +1121,7 @@ class bitmart(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
-        # spot
+        # spot(REST)
         #
         #      {
         #          "symbol": "SOLAR_USDT",
@@ -1059,6 +1141,17 @@ class bitmart(Exchange, ImplicitAPI):
         #          "timestamp": 1667403439367
         #      }
         #
+        # spot(WS)
+        #      {
+        #          "symbol":"BTC_USDT",
+        #          "last_price":"146.24",
+        #          "open_24h":"147.17",
+        #          "high_24h":"147.48",
+        #          "low_24h":"143.88",
+        #          "base_volume_24h":"117387.58",  # NOT base, but quote currencynot !!
+        #          "s_t": 1610936002
+        #      }
+        #
         # swap
         #
         #      {
@@ -1074,7 +1167,10 @@ class bitmart(Exchange, ImplicitAPI):
         #          "legal_coin_price":"0.1302699"
         #      }
         #
-        timestamp = self.safe_integer(ticker, 'timestamp', self.milliseconds())
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        if timestamp is None:
+            # ticker from WS has a different field(in seconds)
+            timestamp = self.safe_integer_product(ticker, 's_t', 1000)
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -1089,7 +1185,15 @@ class bitmart(Exchange, ImplicitAPI):
                 percentage = '0'
         baseVolume = self.safe_string(ticker, 'base_volume_24h')
         quoteVolume = self.safe_string(ticker, 'quote_volume_24h')
-        quoteVolume = self.safe_string(ticker, 'volume_24h', quoteVolume)
+        if quoteVolume is None:
+            if baseVolume is None:
+                # self is swap
+                quoteVolume = self.safe_string(ticker, 'volume_24h', quoteVolume)
+            else:
+                # self is a ticker from websockets
+                # contrary to name and documentation, base_volume_24h is actually the quote volume
+                quoteVolume = baseVolume
+                baseVolume = None
         average = self.safe_string_2(ticker, 'avg_price', 'index_price')
         high = self.safe_string_2(ticker, 'high_24h', 'high_price')
         low = self.safe_string_2(ticker, 'low_24h', 'low_price')
@@ -1308,48 +1412,58 @@ class bitmart(Exchange, ImplicitAPI):
         #
         # public fetchTrades spot( amount = count * price )
         #
-        #     {
-        #          "amount": "818.94",
-        #          "order_time": "1637601839035",    # ETH/USDT
-        #          "price": "4221.99",
-        #          "count": "0.19397",
-        #          "type": "buy"
-        #      }
+        #    {
+        #        "amount": "818.94",
+        #        "order_time": "1637601839035",    # ETH/USDT
+        #        "price": "4221.99",
+        #        "count": "0.19397",
+        #        "type": "buy"
+        #    }
         #
         # spot: fetchMyTrades
         #
-        #     {
-        #         "tradeId":"182342999769370687",
-        #         "orderId":"183270218784142990",
-        #         "clientOrderId":"183270218784142990",
-        #         "symbol":"ADA_USDT",
-        #         "side":"buy",
-        #         "orderMode":"spot",
-        #         "type":"market",
-        #         "price":"0.245948",
-        #         "size":"20.71",
-        #         "notional":"5.09358308",
-        #         "fee":"0.00509358",
-        #         "feeCoinName":"USDT",
-        #         "tradeRole":"taker",
-        #         "createTime":1695658457836,
-        #     }
+        #    {
+        #        "tradeId":"182342999769370687",
+        #        "orderId":"183270218784142990",
+        #        "clientOrderId":"183270218784142990",
+        #        "symbol":"ADA_USDT",
+        #        "side":"buy",
+        #        "orderMode":"spot",
+        #        "type":"market",
+        #        "price":"0.245948",
+        #        "size":"20.71",
+        #        "notional":"5.09358308",
+        #        "fee":"0.00509358",
+        #        "feeCoinName":"USDT",
+        #        "tradeRole":"taker",
+        #        "createTime":1695658457836,
+        #    }
         #
         # swap: fetchMyTrades
         #
-        #     {
-        #         "order_id": "230930336848609",
-        #         "trade_id": "6212604014",
-        #         "symbol": "BTCUSDT",
-        #         "side": 3,
-        #         "price": "26910.4",
-        #         "vol": "1",
-        #         "exec_type": "Taker",
-        #         "profit": False,
-        #         "create_time": 1695961596692,
-        #         "realised_profit": "-0.0003",
-        #         "paid_fees": "0.01614624"
-        #     }
+        #    {
+        #        "order_id": "230930336848609",
+        #        "trade_id": "6212604014",
+        #        "symbol": "BTCUSDT",
+        #        "side": 3,
+        #        "price": "26910.4",
+        #        "vol": "1",
+        #        "exec_type": "Taker",
+        #        "profit": False,
+        #        "create_time": 1695961596692,
+        #        "realised_profit": "-0.0003",
+        #        "paid_fees": "0.01614624"
+        #    }
+        #
+        # ws swap
+        #
+        #    {
+        #        'fee': '-0.000044502',
+        #        'feeCcy': 'USDT',
+        #        'fillPrice': '74.17',
+        #        'fillQty': '1',
+        #        'lastTradeID': 6802340762
+        #    }
         #
         timestamp = self.safe_integer_n(trade, ['order_time', 'createTime', 'create_time'])
         isPublicTrade = ('order_time' in trade)
@@ -1362,7 +1476,7 @@ class bitmart(Exchange, ImplicitAPI):
             cost = self.safe_string(trade, 'amount')
             side = self.safe_string(trade, 'type')
         else:
-            amount = self.safe_string_2(trade, 'size', 'vol')
+            amount = self.safe_string_n(trade, ['size', 'vol', 'fillQty'])
             cost = self.safe_string(trade, 'notional')
             type = self.safe_string(trade, 'type')
             side = self.parse_order_side(self.safe_string(trade, 'side'))
@@ -1381,14 +1495,14 @@ class bitmart(Exchange, ImplicitAPI):
             }
         return self.safe_trade({
             'info': trade,
-            'id': self.safe_string_2(trade, 'tradeId', 'trade_id'),
+            'id': self.safe_string_n(trade, ['tradeId', 'trade_id', 'lastTradeID']),
             'order': self.safe_string_2(trade, 'orderId', 'order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'price': self.safe_string(trade, 'price'),
+            'price': self.safe_string_2(trade, 'price', 'fillPrice'),
             'amount': amount,
             'cost': cost,
             'takerOrMaker': self.safe_string_lower_2(trade, 'tradeRole', 'exec_type'),
@@ -1439,38 +1553,45 @@ class bitmart(Exchange, ImplicitAPI):
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         # spot
-        #
-        #     [
-        #         "1699512060",  # timestamp
-        #         "36746.49",  # open
-        #         "36758.71",  # high
-        #         "36736.13",  # low
-        #         "36755.99",  # close
-        #         "2.83965",  # base volume
-        #         "104353.57"  # quote volume
-        #     ]
+        #    [
+        #        "1699512060",  # timestamp
+        #        "36746.49",  # open
+        #        "36758.71",  # high
+        #        "36736.13",  # low
+        #        "36755.99",  # close
+        #        "2.83965",  # base volume
+        #        "104353.57"  # quote volume
+        #    ]
         #
         # swap
-        #
-        #     {
-        #         "low_price": "20090.3",
-        #         "high_price": "20095.5",
-        #         "open_price": "20092.6",
-        #         "close_price": "20091.4",
-        #         "volume": "8748",
-        #         "timestamp": 1665002281
-        #     }
+        #    {
+        #        "low_price": "20090.3",
+        #        "high_price": "20095.5",
+        #        "open_price": "20092.6",
+        #        "close_price": "20091.4",
+        #        "volume": "8748",
+        #        "timestamp": 1665002281
+        #    }
         #
         # ws
+        #    [
+        #        1631056350,  # timestamp
+        #        "46532.83",  # open
+        #        "46555.71",  # high
+        #        "46511.41",  # low
+        #        "46555.71",  # close
+        #        "0.25",  # volume
+        #    ]
         #
-        #     [
-        #         1631056350,  # timestamp
-        #         "46532.83",  # open
-        #         "46555.71",  # high
-        #         "46511.41",  # low
-        #         "46555.71",  # close
-        #         "0.25",  # volume
-        #     ]
+        # ws swap
+        #    {
+        #        "symbol":"BTCUSDT",
+        #        "o":"146.24",
+        #        "h":"146.24",
+        #        "l":"146.24",
+        #        "c":"146.24",
+        #        "v":"146"
+        #    }
         #
         if isinstance(ohlcv, list):
             return [
@@ -1483,12 +1604,12 @@ class bitmart(Exchange, ImplicitAPI):
             ]
         else:
             return [
-                self.safe_timestamp(ohlcv, 'timestamp'),
-                self.safe_number(ohlcv, 'open_price'),
-                self.safe_number(ohlcv, 'high_price'),
-                self.safe_number(ohlcv, 'low_price'),
-                self.safe_number(ohlcv, 'close_price'),
-                self.safe_number(ohlcv, 'volume'),
+                self.safe_timestamp_2(ohlcv, 'timestamp', 'ts'),
+                self.safe_number_2(ohlcv, 'open_price', 'o'),
+                self.safe_number_2(ohlcv, 'high_price', 'h'),
+                self.safe_number_2(ohlcv, 'low_price', 'l'),
+                self.safe_number_2(ohlcv, 'close_price', 'c'),
+                self.safe_number_2(ohlcv, 'volume', 'v'),
             ]
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -1765,7 +1886,7 @@ class bitmart(Exchange, ImplicitAPI):
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode = self.safe_string(params, 'marginMode')
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, ['margin', 'marginMode'])
         if marginMode is not None or isMargin:
             marketType = 'margin'
@@ -1977,7 +2098,7 @@ class bitmart(Exchange, ImplicitAPI):
         #        "updateTime" : 1681701559408
         #    }
         #
-        # swap: fetchOrder, fetchOpenOrders
+        # swap: fetchOrder, fetchOpenOrders, fetchClosedOrders
         #
         #     {
         #         "order_id": "230935812485489",
@@ -1993,7 +2114,10 @@ class bitmart(Exchange, ImplicitAPI):
         #         "deal_avg_price": "0",
         #         "deal_size": "0",
         #         "create_time": 1695702258629,
-        #         "update_time": 1695702258642
+        #         "update_time": 1695702258642,
+        #         "activation_price_type": 0,
+        #         "activation_price": "",
+        #         "callback_rate": ""
         #     }
         #
         id = None
@@ -2019,6 +2143,7 @@ class bitmart(Exchange, ImplicitAPI):
         priceString = self.safe_string(order, 'price')
         if priceString == 'market price':
             priceString = None
+        trailingActivationPrice = self.safe_number(order, 'activation_price')
         return self.safe_order({
             'id': id,
             'clientOrderId': self.safe_string(order, 'client_order_id'),
@@ -2032,8 +2157,8 @@ class bitmart(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.omit_zero(priceString),
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': trailingActivationPrice,
+            'triggerPrice': trailingActivationPrice,
             'amount': self.omit_zero(self.safe_string(order, 'size')),
             'cost': self.safe_string_2(order, 'filled_notional', 'filledNotional'),
             'average': self.safe_string_n(order, ['price_avg', 'priceAvg', 'deal_avg_price']),
@@ -2078,7 +2203,7 @@ class bitmart(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
@@ -2094,14 +2219,15 @@ class bitmart(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
         :see: https://developer-pro.bitmart.com/en/spot/#place-margin-order
         :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+        :see: https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: 'market', 'limit' or 'trailing' for swap markets only
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -2111,12 +2237,20 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: client order id of the order
         :param boolean [params.reduceOnly]: *swap only* reduce only
         :param boolean [params.postOnly]: make sure the order is posted to the order book and not matched immediately
+        :param str [params.triggerPrice]: *swap only* the price to trigger a stop order
+        :param int [params.price_type]: *swap only* 1: last price, 2: fair price, default is 1
+        :param int [params.price_way]: *swap only* 1: price way long, 2: price way short
+        :param int [params.activation_price_type]: *swap trailing order only* 1: last price, 2: fair price, default is 1
+        :param str [params.trailingPercent]: *swap only* the percent to trail away from the current market price, min 0.1 max 5
+        :param str [params.trailingTriggerPrice]: *swap only* the price to trigger a trailing order, default uses the price argument
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
         result = self.handle_margin_mode_and_params('createOrder', params)
         marginMode = self.safe_string(result, 0)
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
+        isTriggerOrder = triggerPrice is not None
         response = None
         if market['spot']:
             spotRequest = self.create_spot_order_request(symbol, type, side, amount, price, params)
@@ -2126,7 +2260,10 @@ class bitmart(Exchange, ImplicitAPI):
                 response = self.privatePostSpotV2SubmitOrder(spotRequest)
         else:
             swapRequest = self.create_swap_order_request(symbol, type, side, amount, price, params)
-            response = self.privatePostContractPrivateSubmitOrder(swapRequest)
+            if isTriggerOrder:
+                response = self.privatePostContractPrivateSubmitPlanOrder(swapRequest)
+            else:
+                response = self.privatePostContractPrivateSubmitOrder(swapRequest)
         #
         # spot and margin
         #
@@ -2150,12 +2287,14 @@ class bitmart(Exchange, ImplicitAPI):
         order['price'] = price
         return order
 
-    def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
+         * @ignore
         create a trade order
         :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+        :see: https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: 'market', 'limit' or 'trailing'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -2163,7 +2302,13 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [params.leverage]: leverage level
         :param boolean [params.reduceOnly]: *swap only* reduce only
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'
-         *  @param {string} [params.clientOrderId] client order id of the order
+        :param str [params.clientOrderId]: client order id of the order
+        :param str [params.triggerPrice]: *swap only* the price to trigger a stop order
+        :param int [params.price_type]: *swap only* 1: last price, 2: fair price, default is 1
+        :param int [params.price_way]: *swap only* 1: price way long, 2: price way short
+        :param int [params.activation_price_type]: *swap trailing order only* 1: last price, 2: fair price, default is 1
+        :param str [params.trailingPercent]: *swap only* the percent to trail away from the current market price, min 0.1 max 5
+        :param str [params.trailingTriggerPrice]: *swap only* the price to trigger a trailing order, default uses the price argument
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         market = self.market(symbol)
@@ -2179,7 +2324,6 @@ class bitmart(Exchange, ImplicitAPI):
         reduceOnly = self.safe_value(params, 'reduceOnly')
         isExchangeSpecificPo = (mode == 4)
         postOnly, params = self.handle_post_only(isMarketOrder, isExchangeSpecificPo, params)
-        params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly'])
         ioc = ((timeInForce == 'IOC') or (mode == 3))
         isLimitOrder = (type == 'limit') or postOnly or ioc
         if timeInForce == 'GTC':
@@ -2190,11 +2334,34 @@ class bitmart(Exchange, ImplicitAPI):
             request['mode'] = 3
         if postOnly:
             request['mode'] = 4
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
+        isTriggerOrder = triggerPrice is not None
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activation_price', self.number_to_string(price))
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callback_rate')
+        isTrailingPercentOrder = trailingPercent is not None
         if isLimitOrder:
             request['price'] = self.price_to_precision(symbol, price)
+        elif type == 'trailing' or isTrailingPercentOrder:
+            request['callback_rate'] = trailingPercent
+            request['activation_price'] = self.price_to_precision(symbol, trailingTriggerPrice)
+            request['activation_price_type'] = self.safe_integer(params, 'activation_price_type', 1)
+        if isTriggerOrder:
+            request['executive_price'] = self.price_to_precision(symbol, price)
+            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+            request['price_type'] = self.safe_integer(params, 'price_type', 1)
+            if side == 'buy':
+                if reduceOnly:
+                    request['price_way'] = 2
+                else:
+                    request['price_way'] = 1
+            elif side == 'sell':
+                if reduceOnly:
+                    request['price_way'] = 1
+                else:
+                    request['price_way'] = 2
         if side == 'buy':
             if reduceOnly:
-                request['side'] = 2  # sell close long
+                request['side'] = 2  # buy close short
             else:
                 request['side'] = 1  # buy open long
         elif side == 'sell':
@@ -2210,12 +2377,13 @@ class bitmart(Exchange, ImplicitAPI):
             params = self.omit(params, 'clientOrderId')
             request['client_order_id'] = clientOrderId
         leverage = self.safe_integer(params, 'leverage', 1)
-        params = self.omit(params, 'leverage')
+        params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice'])
         request['leverage'] = self.number_to_string(leverage)
         return self.extend(request, params)
 
-    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
+         * @ignore
         create a spot order request
         :see: https://developer-pro.bitmart.com/en/spot/#place-spot-order
         :see: https://developer-pro.bitmart.com/en/spot/#place-margin-order
@@ -2276,10 +2444,11 @@ class bitmart(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
+        cancels an open order
         :see: https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
         :see: https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
         :see: https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-        cancels an open order
+        :see: https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2304,8 +2473,8 @@ class bitmart(Exchange, ImplicitAPI):
         if market['spot']:
             response = self.privatePostSpotV3CancelOrder(self.extend(request, params))
         else:
-            stop = self.safe_value(params, 'stop')
-            params = self.omit(params, ['stop'])
+            stop = self.safe_value_2(params, 'stop', 'trigger')
+            params = self.omit(params, ['stop', 'trigger'])
             if not stop:
                 response = self.privatePostContractPrivateCancelOrder(self.extend(request, params))
             else:
@@ -2452,6 +2621,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         :see: https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
         :see: https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
+        :see: https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -2461,6 +2631,9 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [params.until]: *spot* the latest time in ms to fetch orders for
         :param str [params.type]: *swap* order type, 'limit' or 'market'
         :param str [params.order_state]: *swap* the order state, 'all' or 'partially_filled', default is 'all'
+        :param str [params.orderType]: *swap only* 'limit', 'market', or 'trailing'
+        :param boolean [params.trailing]: *swap only* set to True if you want to fetch trailing orders
+        :param boolean [params.trigger]: *swap only* set to True if you want to fetch trigger orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -2487,7 +2660,19 @@ class bitmart(Exchange, ImplicitAPI):
                 request['endTime'] = until
             response = self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
         elif type == 'swap':
-            response = self.privateGetContractPrivateGetOpenOrders(self.extend(request, params))
+            isStop = self.safe_value_2(params, 'stop', 'trigger')
+            params = self.omit(params, ['stop', 'trigger'])
+            if isStop:
+                response = self.privateGetContractPrivateCurrentPlanOrder(self.extend(request, params))
+            else:
+                trailing = self.safe_bool(params, 'trailing', False)
+                orderType = self.safe_string(params, 'orderType')
+                params = self.omit(params, ['orderType', 'trailing'])
+                if trailing:
+                    orderType = 'trailing'
+                if orderType is not None:
+                    request['type'] = orderType
+                response = self.privateGetContractPrivateGetOpenOrders(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted')
         #
@@ -2554,7 +2739,7 @@ class bitmart(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest entry
         :param str [params.marginMode]: *spot only* 'cross' or 'isolated', for margin trading
@@ -2612,6 +2797,8 @@ class bitmart(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: *spot* fetch the order by client order id instead of order id
+        :param str [params.orderType]: *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
+        :param boolean [params.trailing]: *swap only* set to True if you want to fetch a trailing order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -2633,6 +2820,13 @@ class bitmart(Exchange, ImplicitAPI):
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+            trailing = self.safe_bool(params, 'trailing', False)
+            orderType = self.safe_string(params, 'orderType')
+            params = self.omit(params, ['orderType', 'trailing'])
+            if trailing:
+                orderType = 'trailing'
+            if orderType is not None:
+                request['type'] = orderType
             request['symbol'] = market['id']
             request['order_id'] = id
             response = self.privateGetContractPrivateOrder(self.extend(request, params))
@@ -2746,7 +2940,7 @@ class bitmart(Exchange, ImplicitAPI):
         # TODO: parse
         return networkId
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3067,7 +3261,7 @@ class bitmart(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
@@ -3117,14 +3311,13 @@ class bitmart(Exchange, ImplicitAPI):
         #         "repay_id": "2afcc16d99bd4707818c5a355dc89bed",
         #     }
         #
-        timestamp = self.milliseconds()
         return {
             'id': self.safe_string_2(info, 'borrow_id', 'repay_id'),
             'currency': self.safe_currency_code(None, currency),
             'amount': None,
             'symbol': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'info': info,
         }
 
@@ -3270,7 +3463,7 @@ class bitmart(Exchange, ImplicitAPI):
             result.append(self.parse_isolated_borrow_rate(symbol))
         return result
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
         :see: https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
@@ -3585,7 +3778,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed

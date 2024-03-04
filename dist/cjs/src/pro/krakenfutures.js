@@ -96,10 +96,10 @@ class krakenfutures extends krakenfutures$1 {
          * @ignore
          * @method
          * @description Connects to a websocket channel
-         * @param {String} name name of the channel
+         * @param {string} name name of the channel
          * @param {string[]} symbols CCXT market symbols
-         * @param {Object} [params] extra parameters specific to the krakenfutures api
-         * @returns {Object} data from the websocket stream
+         * @param {object} [params] extra parameters specific to the krakenfutures api
+         * @returns {object} data from the websocket stream
          */
         await this.loadMarkets();
         const url = this.urls['api']['ws'];
@@ -130,10 +130,10 @@ class krakenfutures extends krakenfutures$1 {
          * @ignore
          * @method
          * @description Connects to a websocket channel
-         * @param {String} name name of the channel
+         * @param {string} name name of the channel
          * @param {string[]} symbols CCXT market symbols
-         * @param {Object} [params] extra parameters specific to the krakenfutures api
-         * @returns {Object} data from the websocket stream
+         * @param {object} [params] extra parameters specific to the krakenfutures api
+         * @returns {object} data from the websocket stream
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -178,7 +178,13 @@ class krakenfutures extends krakenfutures$1 {
         const name = this.safeString2(params, 'method', 'watchTickerMethod', method);
         params = this.omit(params, ['watchTickerMethod', 'method']);
         symbols = this.marketSymbols(symbols, undefined, false);
-        return await this.subscribePublic(name, symbols, params);
+        const ticker = await this.subscribePublic(name, symbols, params);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     async watchTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -375,7 +381,7 @@ class krakenfutures extends krakenfutures$1 {
          * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
@@ -1058,13 +1064,15 @@ class krakenfutures extends krakenfutures$1 {
             const bid = bids[i];
             const price = this.safeNumber(bid, 'price');
             const qty = this.safeNumber(bid, 'qty');
-            orderbook['bids'].store(price, qty);
+            const bidsSide = orderbook['bids'];
+            bidsSide.store(price, qty);
         }
         for (let i = 0; i < asks.length; i++) {
             const ask = asks[i];
             const price = this.safeNumber(ask, 'price');
             const qty = this.safeNumber(ask, 'qty');
-            orderbook['asks'].store(price, qty);
+            const asksSide = orderbook['asks'];
+            asksSide.store(price, qty);
         }
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
@@ -1093,10 +1101,12 @@ class krakenfutures extends krakenfutures$1 {
         const qty = this.safeNumber(message, 'qty');
         const timestamp = this.safeInteger(message, 'timestamp');
         if (side === 'sell') {
-            orderbook['asks'].store(price, qty);
+            const asks = orderbook['asks'];
+            asks.store(price, qty);
         }
         else {
-            orderbook['bids'].store(price, qty);
+            const bids = orderbook['bids'];
+            bids.store(price, qty);
         }
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
@@ -1432,7 +1442,7 @@ class krakenfutures extends krakenfutures$1 {
             this.handleAuthenticate(client, message);
         }
         else if (event === 'alert') {
-            return this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, message);
         }
         else if (event === 'pong') {
             client.lastPong = this.milliseconds();
@@ -1459,7 +1469,7 @@ class krakenfutures extends krakenfutures$1 {
             };
             const method = this.safeValue(methods, feed);
             if (method !== undefined) {
-                return method.call(this, client, message);
+                method.call(this, client, message);
             }
         }
     }

@@ -6,8 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Int, Str, Trade
+from ccxt.base.types import Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
@@ -58,7 +59,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -74,7 +75,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -128,7 +129,6 @@ class bitfinex(ccxt.async_support.bitfinex):
             trade = self.parse_trade(message, market)
             stored.append(trade)
         client.resolve(stored, messageHash)
-        return message
 
     def parse_trade(self, trade, market=None) -> Trade:
         #
@@ -201,7 +201,6 @@ class bitfinex(ccxt.async_support.bitfinex):
         #         220.05,        # 10 LOW float Daily low
         #     ]
         #
-        timestamp = self.milliseconds()
         marketId = self.safe_string(subscription, 'pair')
         symbol = self.safe_symbol(marketId)
         channel = 'ticker'
@@ -213,8 +212,8 @@ class bitfinex(ccxt.async_support.bitfinex):
             open = Precise.string_sub(last, change)
         result = {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_float(message, 9),
             'low': self.safe_float(message, 10),
             'bid': self.safe_float(message, 1),
@@ -236,7 +235,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -308,35 +307,39 @@ class bitfinex(ccxt.async_support.bitfinex):
                     delta = deltas[i]
                     id = self.safe_string(delta, 0)
                     price = self.safe_float(delta, 1)
-                    size = -delta[2] if (delta[2] < 0) else delta[2]
-                    side = 'asks' if (delta[2] < 0) else 'bids'
+                    delta2Value = delta[2]
+                    size = -delta2Value if (delta2Value < 0) else delta2Value
+                    side = 'asks' if (delta2Value < 0) else 'bids'
                     bookside = orderbook[side]
                     bookside.store(price, size, id)
             else:
                 deltas = message[1]
                 for i in range(0, len(deltas)):
                     delta = deltas[i]
-                    size = -delta[2] if (delta[2] < 0) else delta[2]
-                    side = 'asks' if (delta[2] < 0) else 'bids'
-                    bookside = orderbook[side]
-                    bookside.store(delta[0], size, delta[1])
+                    delta2 = delta[2]
+                    size = -delta2 if (delta2 < 0) else delta2
+                    side = 'asks' if (delta2 < 0) else 'bids'
+                    countedBookSide = orderbook[side]
+                    countedBookSide.store(delta[0], size, delta[1])
             client.resolve(orderbook, messageHash)
         else:
             orderbook = self.orderbooks[symbol]
             if isRaw:
                 id = self.safe_string(message, 1)
                 price = self.safe_string(message, 2)
-                size = -message[3] if (message[3] < 0) else message[3]
-                side = 'asks' if (message[3] < 0) else 'bids'
+                message3 = message[3]
+                size = -message3 if (message3 < 0) else message3
+                side = 'asks' if (message3 < 0) else 'bids'
                 bookside = orderbook[side]
                 # price = 0 means that you have to remove the order from your book
                 amount = size if Precise.string_gt(price, '0') else '0'
                 bookside.store(self.parse_number(price), self.parse_number(amount), id)
             else:
-                size = -message[3] if (message[3] < 0) else message[3]
-                side = 'asks' if (message[3] < 0) else 'bids'
-                bookside = orderbook[side]
-                bookside.store(message[1], size, message[2])
+                message3Value = message[3]
+                size = -message3Value if (message3Value < 0) else message3Value
+                side = 'asks' if (message3Value < 0) else 'bids'
+                countedBookSide = orderbook[side]
+                countedBookSide.store(message[1], size, message[2])
             client.resolve(orderbook, messageHash)
 
     def handle_heartbeat(self, client: Client, message):
@@ -424,12 +427,12 @@ class bitfinex(ccxt.async_support.bitfinex):
         await self.authenticate()
         return await self.watch(url, id, None, 1)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -579,7 +582,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             #     ]
             #
             if message[1] == 'hb':
-                return message  # skip heartbeats within subscription channels for now
+                return  # skip heartbeats within subscription channels for now
             subscription = self.safe_value(client.subscriptions, channelId, {})
             channel = self.safe_string(subscription, 'channel')
             name = self.safe_string(message, 1)
@@ -593,10 +596,8 @@ class bitfinex(ccxt.async_support.bitfinex):
                 'oc': self.handle_orders,
             }
             method = self.safe_value_2(methods, channel, name)
-            if method is None:
-                return message
-            else:
-                return method(client, message, subscription)
+            if method is not None:
+                method(client, message, subscription)
         else:
             # todo add bitfinex handleErrorMessage
             #
@@ -616,7 +617,5 @@ class bitfinex(ccxt.async_support.bitfinex):
                     'auth': self.handle_authentication_message,
                 }
                 method = self.safe_value(methods, event)
-                if method is None:
-                    return message
-                else:
-                    return method(client, message)
+                if method is not None:
+                    method(client, message)

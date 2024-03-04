@@ -2,17 +2,17 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okcoin.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, NetworkError, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, AccountNotEnabled, BadSymbol, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, NetworkError, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, AccountNotEnabled, BadSymbol, RateLimitExceeded, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class okcoin
- * @extends Exchange
+ * @augments Exchange
  */
 export default class okcoin extends Exchange {
     describe () {
@@ -33,12 +33,24 @@ export default class okcoin extends Exchange {
                 'future': true,
                 'option': undefined,
                 'cancelOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true, // see below
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -56,6 +68,10 @@ export default class okcoin extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'setMargin': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -848,7 +864,7 @@ export default class okcoin extends Exchange {
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');
-        const spot = this.safeValue (market, 'spot', false);
+        const spot = this.safeBool (market, 'spot', false);
         const quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString (ticker, 'vol24h');
         const high = this.safeString (ticker, 'high24h');
@@ -1265,7 +1281,28 @@ export default class okcoin extends Exchange {
         return this.safeBalance (result);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+        /**
+         * @method
+         * @name okcoin#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        params['tgtCcy'] = 'quote_ccy';
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#createOrder
@@ -1291,6 +1328,7 @@ export default class okcoin extends Exchange {
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
          * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1301,16 +1339,22 @@ export default class okcoin extends Exchange {
         if ((requestOrdType === 'trigger') || (requestOrdType === 'conditional') || (type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
             method = 'privatePostTradeOrderAlgo';
         }
-        if ((method !== 'privatePostTradeOrder') && (method !== 'privatePostTradeOrderAlgo') && (method !== 'privatePostTradeBatchOrders')) {
-            throw new ExchangeError (this.id + ' createOrder() this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo');
-        }
         if (method === 'privatePostTradeBatchOrders') {
             // keep the request body the same
             // submit a single order in an array to the batch order endpoint
             // because it has a lower ratelimit
             request = [ request ];
         }
-        const response = await this[method] (request);
+        let response = undefined;
+        if (method === 'privatePostTradeOrder') {
+            response = await this.privatePostTradeOrder (request);
+        } else if (method === 'privatePostTradeOrderAlgo') {
+            response = await this.privatePostTradeOrderAlgo (request);
+        } else if (method === 'privatePostTradeBatchOrders') {
+            response = await this.privatePostTradeBatchOrders (request);
+        } else {
+            throw new ExchangeError (this.id + ' createOrder() this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo');
+        }
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0);
         const order = this.parseOrder (first, market);
@@ -1319,7 +1363,7 @@ export default class okcoin extends Exchange {
         return order;
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
@@ -1331,7 +1375,7 @@ export default class okcoin extends Exchange {
             'ordType': type,
             // 'ordType': type, // privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
             // 'ordType': type, // privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
-            'sz': this.amountToPrecision (symbol, amount),
+            // 'sz': this.amountToPrecision (symbol, amount),
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
             // 'reduceOnly': false,
             //
@@ -1367,7 +1411,7 @@ export default class okcoin extends Exchange {
             margin = true;
         } else {
             marginMode = defaultMarginMode;
-            margin = this.safeValue (params, 'margin', false);
+            margin = this.safeBool (params, 'margin', false);
         }
         if (margin) {
             const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
@@ -1392,32 +1436,39 @@ export default class okcoin extends Exchange {
         }
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
-            if ((side === 'buy')) {
+            if (side === 'buy') {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
-                    let notional = this.safeNumber2 (params, 'cost', 'sz');
-                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                    if (createMarketBuyOrderRequiresPrice) {
-                        if (price !== undefined) {
-                            if (notional === undefined) {
-                                const amountString = this.numberToString (amount);
-                                const priceString = this.numberToString (price);
-                                const quoteAmount = Precise.stringMul (amountString, priceString);
-                                notional = this.parseNumber (quoteAmount);
-                            }
-                        } else if (notional === undefined) {
-                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
+                    let quoteAmount = undefined;
+                    let createMarketBuyOrderRequiresPrice = true;
+                    [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    const cost = this.safeNumber2 (params, 'cost', 'sz');
+                    params = this.omit (params, [ 'cost', 'sz' ]);
+                    if (cost !== undefined) {
+                        quoteAmount = this.costToPrecision (symbol, cost);
+                    } else if (createMarketBuyOrderRequiresPrice) {
+                        if (price === undefined) {
+                            throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
+                        } else {
+                            const amountString = this.numberToString (amount);
+                            const priceString = this.numberToString (price);
+                            const costRequest = Precise.stringMul (amountString, priceString);
+                            quoteAmount = this.costToPrecision (symbol, costRequest);
                         }
                     } else {
-                        notional = (notional === undefined) ? amount : notional;
+                        quoteAmount = this.costToPrecision (symbol, amount);
                     }
-                    request['sz'] = this.costToPrecision (symbol, notional);
-                    params = this.omit (params, [ 'cost', 'sz' ]);
+                    request['sz'] = quoteAmount;
+                } else {
+                    request['sz'] = this.amountToPrecision (symbol, amount);
                 }
+            } else {
+                request['sz'] = this.amountToPrecision (symbol, amount);
             }
         } else {
+            request['sz'] = this.amountToPrecision (symbol, amount);
             if ((!trigger) && (!conditional)) {
                 request['px'] = this.priceToPrecision (symbol, price);
             }
@@ -1908,7 +1959,7 @@ export default class okcoin extends Exchange {
             // 'ordId': id,
         };
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
         if (stop) {
             if (clientOrderId !== undefined) {
                 request['algoClOrdId'] = clientOrderId;
@@ -1922,7 +1973,7 @@ export default class okcoin extends Exchange {
                 request['ordId'] = id;
             }
         }
-        const query = this.omit (params, [ 'clientOrderId', 'stop' ]);
+        const query = this.omit (params, [ 'clientOrderId', 'stop', 'trigger' ]);
         let response = undefined;
         if (stop) {
             response = await this.privateGetTradeOrderAlgo (this.extend (request, query));
@@ -1992,7 +2043,7 @@ export default class okcoin extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
@@ -2228,7 +2279,7 @@ export default class okcoin extends Exchange {
         return this.indexBy (parsed, 'network');
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name okcoin#transfer
@@ -2374,7 +2425,7 @@ export default class okcoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#withdraw
@@ -2808,7 +2859,14 @@ export default class okcoin extends Exchange {
             request['ccy'] = currency['id'];
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountBillsArchive') {
+            response = await this.privateGetAccountBillsArchive (this.extend (request, params));
+        } else if (method === 'privateGetAssetBills') {
+            response = await this.privateGetAssetBills (this.extend (request, params));
+        } else {
+            response = await this.privateGetAccountBills (this.extend (request, params));
+        }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //

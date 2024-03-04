@@ -13,7 +13,7 @@ import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitflyer
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitflyer extends Exchange {
     describe() {
@@ -31,6 +31,7 @@ export default class bitflyer extends Exchange {
                 'swap': undefined,
                 'future': undefined,
                 'option': false,
+                'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -654,7 +655,7 @@ export default class bitflyer extends Exchange {
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -699,7 +700,7 @@ export default class bitflyer extends Exchange {
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

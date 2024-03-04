@@ -38,6 +38,32 @@
                 "output": "{\"id\":\"1698774364019\",\"method\":\"private/create-order\",\"params\":{\"instrument_name\":\"BTCUSD-PERP\",\"side\":\"SELL\",\"quantity\":\"0.1\",\"broker_id\":\"CCXT\",\"type\":\"MARKET\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"ee43b073165ccc2af6d783d0515658b4c45b241229c1369673c8bdef62764162\",\"nonce\":\"1698774364019\"}"
             }
         ],
+        "createOrders": [
+            {
+                "description": "create spot orders",
+                "method": "createOrders",
+                "url": "https://api.crypto.com/exchange/v1/private/create-order-list",
+                "input": [
+                  [
+                    {
+                      "symbol": "LTC/USDT",
+                      "amount": 0.1,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 60
+                    },
+                    {
+                      "symbol": "LTC/USDT",
+                      "amount": 0.11,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 61
+                    }
+                  ]
+                ],
+                "output": "{\"id\":\"1702484106341\",\"method\":\"private/create-order-list\",\"params\":{\"contingency_type\":\"LIST\",\"order_list\":[{\"instrument_name\":\"LTC_USDT\",\"side\":\"BUY\",\"price\":\"60\",\"broker_id\":\"CCXT\",\"type\":\"LIMIT\",\"quantity\":\"0.1\"},{\"instrument_name\":\"LTC_USDT\",\"side\":\"BUY\",\"price\":\"61\",\"broker_id\":\"CCXT\",\"type\":\"LIMIT\",\"quantity\":\"0.11\"}]},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"2af32b11570d391ff83bfc0619fa1ed4589e70cb39dd4b9c11da5d228d203ef0\",\"nonce\":\"1702484106341\"}"
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "Spot orders",
@@ -83,6 +109,17 @@
                 ],
                 "output": "{\"id\":\"1699458295371\",\"method\":\"private/cancel-all-orders\",\"params\":{\"instrument_name\":\"LTC_USDT\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"0196ac28e1f10f0792150cdb51e3537f94cca1185abb5fa8a21a0ebf02296859\",\"nonce\":\"1699458295371\"}"
             }
+        ],
+        "closePosition": [
+            {
+                "description": "closes open positions for a market",
+                "method": "closePosition",
+                "url": "https://api.crypto.com/exchange/v1/private/close-position",
+                "input": [
+                  "ADA/USD:USD"
+                ],
+                "output": "{\"id\":\"1701948075543\",\"method\":\"private/close-position\",\"params\":{\"instrument_name\":\"ADAUSD-PERP\",\"type\":\"MARKET\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"45b23b02046e0f5382fa54c3684090e5ca0b4d74ec27df7045c9cb5a9332dc98\",\"nonce\":\"1701948075543\"}"
+              }
         ],
         "fetchBalance": [
             {
@@ -155,6 +192,20 @@
                 "url": "https://api.crypto.com/exchange/v1/private/get-positions",
                 "input": [],
                 "output": "{\"id\":\"1700840923278\",\"method\":\"private/get-positions\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"c8406ac9040f04fbbc337b956a50c3bf030f24b4249717e03eac6f905ea3c4a5\",\"nonce\":\"1700840923278\"}"
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Fetch deposit and withdraw fees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://api.crypto.com/exchange/v1/private/get-currency-networks",
+                "input": [
+                  [
+                    "USDT",
+                    "BTC"
+                  ]
+                ],
+                "output": "{\"id\":\"1708079230296\",\"method\":\"private/get-currency-networks\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"2b1eac4ba696b41ce2726139c63a145368f2c66ca97e090cf3361ab60b7637da\",\"nonce\":\"1708079230296\"}"
             }
         ]
     }

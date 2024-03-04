@@ -2,7 +2,7 @@
 
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import { Int, Trade } from '../base/types.js';
+import type { Int, Trade, OrderBook, IndexType } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -35,7 +35,7 @@ export default class luno extends lunoRest {
         });
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name luno#watchTrades
@@ -136,7 +136,7 @@ export default class luno extends lunoRest {
         }, market);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name luno#watchOrderBook
@@ -200,28 +200,28 @@ export default class luno extends lunoRest {
         const symbol = subscription['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeString (message, 'timestamp');
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.indexedOrderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.indexedOrderBook ({});
+            this.orderbooks[symbol] = orderbook;
         }
         const asks = this.safeValue (message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            storedOrderBook.reset (snapshot);
+            orderbook.reset (snapshot);
         } else {
-            this.handleDelta (storedOrderBook, message);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = this.iso8601 (timestamp);
+            this.handleDelta (orderbook, message);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
         const nonce = this.safeInteger (message, 'sequence');
-        storedOrderBook['nonce'] = nonce;
-        client.resolve (storedOrderBook, messageHash);
+        orderbook['nonce'] = nonce;
+        client.resolve (orderbook, messageHash);
     }
 
-    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
-        const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, thirdKey);
-        const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, thirdKey);
+    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2) {
+        const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy (bids, 0, true),
@@ -232,7 +232,7 @@ export default class luno extends lunoRest {
         };
     }
 
-    parseBidsAsks (bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
+    parseBidsAsks (bidasks, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -241,7 +241,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    customParseBidAsk (bidask, priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
+    customParseBidAsk (bidask, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const result = [ price, amount ];
@@ -311,10 +311,9 @@ export default class luno extends lunoRest {
         const deleteUpdate = this.safeValue (message, 'delete_update');
         if (deleteUpdate !== undefined) {
             const orderId = this.safeString (deleteUpdate, 'order_id');
-            asksOrderSide.storeArray (0, 0, orderId);
-            bidsOrderSide.storeArray (0, 0, orderId);
+            asksOrderSide.storeArray ([ 0, 0, orderId ]);
+            bidsOrderSide.storeArray ([ 0, 0, orderId ]);
         }
-        return message;
     }
 
     handleMessage (client: Client, message) {
@@ -327,6 +326,5 @@ export default class luno extends lunoRest {
             const handler = handlers[j];
             handler.call (this, client, message, subscriptions[0]);
         }
-        return message;
     }
 }

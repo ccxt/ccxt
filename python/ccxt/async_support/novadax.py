@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.novadax import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -23,6 +23,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class novadax(Exchange, ImplicitAPI):
@@ -32,9 +33,9 @@ class novadax(Exchange, ImplicitAPI):
             'id': 'novadax',
             'name': 'NovaDAX',
             'countries': ['BR'],  # Brazil
-            # 60 requests per second = 1000ms / 60 = 16.6667ms between requests(public endpoints, limited by IP address)
-            # 20 requests per second => cost = 60 / 20 = 3(private endpoints, limited by API Key)
-            'rateLimit': 16.6667,
+            # 6000 weight per min => 100 weight per second => min weight = 1
+            # 100 requests per second =>( 1000ms / 100 ) = 10 ms between requests on average
+            'rateLimit': 10,
             'version': 'v1',
             # new metainfo interface
             'has': {
@@ -48,6 +49,9 @@ class novadax(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'closeAllPositions': False,
                 'closePosition': False,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
@@ -129,33 +133,37 @@ class novadax(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'common/symbol': 1.2,
-                        'common/symbols': 1.2,
-                        'common/timestamp': 1.2,
-                        'market/tickers': 1.2,
-                        'market/ticker': 1.2,
-                        'market/depth': 1.2,
-                        'market/trades': 1.2,
-                        'market/kline/history': 1.2,
+                        'common/symbol': 1,
+                        'common/symbols': 1,
+                        'common/timestamp': 1,
+                        'market/tickers': 5,
+                        'market/ticker': 1,
+                        'market/depth': 1,
+                        'market/trades': 5,
+                        'market/kline/history': 5,
                     },
                 },
                 'private': {
                     'get': {
-                        'orders/get': 3,
-                        'orders/list': 3,
-                        'orders/fill': 3,
-                        'orders/fills': 3,
-                        'account/getBalance': 3,
-                        'account/subs': 3,
-                        'account/subs/balance': 3,
-                        'account/subs/transfer/record': 3,
+                        'orders/get': 1,
+                        'orders/list': 10,
+                        'orders/fill': 3,  # not found in doc
+                        'orders/fills': 10,
+                        'account/getBalance': 1,
+                        'account/subs': 1,
+                        'account/subs/balance': 1,
+                        'account/subs/transfer/record': 10,
                         'wallet/query/deposit-withdraw': 3,
                     },
                     'post': {
-                        'orders/create': 3,
-                        'orders/cancel': 3,
-                        'account/withdraw/coin': 3,
-                        'account/subs/transfer': 3,
+                        'orders/create': 5,
+                        'orders/batch-create': 50,
+                        'orders/cancel': 1,
+                        'orders/batch-cancel': 10,
+                        'orders/cancel-by-symbol': 10,
+                        'account/subs/transfer': 5,
+                        'wallet/withdraw/coin': 3,
+                        'account/withdraw/coin': 3,  # not found in doc
                     },
                 },
             },
@@ -707,16 +715,17 @@ class novadax(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://doc.novadax.com/en-US/#order-introduction
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
+        :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.cost]: for spot market buy orders, the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -726,11 +735,11 @@ class novadax(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
             'side': uppercaseSide,  # or SELL
-            # 'amount': self.amount_to_precision(symbol, amount),
+            # "amount": self.amount_to_precision(symbol, amount),
             # "price": "1234.5678",  # required for LIMIT and STOP orders
-            # 'operator': ''  # for stop orders, can be found in order introduction
-            # 'stopPrice': self.price_to_precision(symbol, stopPrice),
-            # 'accountId': '...',  # subaccount id, optional
+            # "operator": ""  # for stop orders, can be found in order introduction
+            # "stopPrice": self.price_to_precision(symbol, stopPrice),
+            # "accountId": "...",  # subaccount id, optional
         }
         stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice is None:
@@ -752,17 +761,24 @@ class novadax(Exchange, ImplicitAPI):
             if uppercaseSide == 'SELL':
                 request['amount'] = self.amount_to_precision(symbol, amount)
             elif uppercaseSide == 'BUY':
-                value = self.safe_number(params, 'value')
-                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                if createMarketBuyOrderRequiresPrice:
-                    if price is not None:
-                        if value is None:
-                            value = amount * price
-                    elif value is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'value' extra parameter(the exchange-specific behaviour)")
+                quoteAmount = None
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_number_2(params, 'cost', 'value')
+                params = self.omit(params, 'cost')
+                if cost is not None:
+                    quoteAmount = self.cost_to_precision(symbol, cost)
+                elif createMarketBuyOrderRequiresPrice:
+                    if price is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                    else:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        costRequest = Precise.string_mul(amountString, priceString)
+                        quoteAmount = self.cost_to_precision(symbol, costRequest)
                 else:
-                    value = amount if (value is None) else value
-                request['value'] = self.cost_to_precision(symbol, value)
+                    quoteAmount = self.cost_to_precision(symbol, amount)
+                request['value'] = quoteAmount
         request['type'] = uppercaseType
         response = await self.privatePostOrdersCreate(self.extend(request, params))
         #
@@ -860,7 +876,7 @@ class novadax(Exchange, ImplicitAPI):
         :see: https://doc.novadax.com/en-US/#get-order-history
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -930,7 +946,7 @@ class novadax(Exchange, ImplicitAPI):
         :see: https://doc.novadax.com/en-US/#get-order-history
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1067,7 +1083,7 @@ class novadax(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://doc.novadax.com/en-US/#get-sub-account-transfer
@@ -1101,7 +1117,7 @@ class novadax(Exchange, ImplicitAPI):
         #
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
@@ -1138,7 +1154,7 @@ class novadax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, 'failed')
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://doc.novadax.com/en-US/#send-cryptocurrencies

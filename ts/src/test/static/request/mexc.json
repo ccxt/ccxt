@@ -66,12 +66,41 @@
                   "ATLAS/USDT",
                   "market",
                   "buy",
-                  null,
+                  0,
                   null,
                   {
                     "cost": 8
                   }
                 ]
+            },
+            {
+                "description": "Swap limit sell",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/order/submit",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  0.6
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"price\":0.6,\"side\":3}"
+            },
+            {
+                "description": "Swap limit sell - stop order",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/planorder/place",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  0.6,
+                  {
+                    "triggerPrice": 0.7
+                  }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"triggerPrice\":\"0.7\",\"triggerType\":1,\"executeCycle\":1,\"trend\":1,\"orderType\":1,\"price\":0.6,\"side\":3}"
             }
         ],
         "createOrders": [
@@ -124,6 +153,26 @@
                 "method": "fetchOrders",
                 "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT",
                 "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Spot order",
+                "method": "fetchOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=LTCUSDT&orderId=129402018493145088&timestamp=1699458295321&recvWindow=5000&signature=5abde0d1bc718a8528ef3fb60023353897cefabdbd0ccb10f583eabe675f2b7c",
+                "input": [
+                    "129402018493145088",
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap order",
+                "method": "fetchOrder",
+                "url": "https://contract.mexc.com/api/v1/private/order/get/129402018493145088?symbol=LTC_USDT",
+                "input": [
+                    "129402018493145088",
                     "LTC/USDT:USDT"
                 ]
             }
@@ -217,6 +266,17 @@
                         "type": "swap"
                     }
                 ]
+            },
+            {
+                "description": "Fetch margin Balance",
+                "method": "fetchBalance",
+                "url": "https://contract.mexc.com/api/v3/margin/isolated/account?symbols=LTCUSDT&timestamp=1702286807873&recvWindow=5000&signature=2b21c126e2146b3f9edbde3fde5a8a60a8c192af9087b4d5eb8997bdc7bbbe5f",
+                "input": [
+                    {
+                        "type": "margin",
+                        "symbol": "LTC/USDT"
+                    }
+                ]
             }
         ],
         "fetchPositions": [
@@ -276,6 +336,129 @@
                 "url": "https://api.mexc.com/api/v3/capital/deposit/address?coin=USDT&timestamp=1699460640223&recvWindow=5000&signature=04c87095842f1fc7c122a8d44739b14eb01733fe99ce6f25ed84899f8c5802f4",
                 "input": [
                     "USDT"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades - spot",
+                "method": "fetchTrades",
+                "url": "https://api.mexc.com/api/v3/aggTrades?symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch trades - spot",
+                "method": "fetchTrades",
+                "url": "https://api.mexc.com/api/v3/historicalTrades?symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "method": "spotPublicGetHistoricalTrades"
+                    }
+                ]
+            },
+            {
+                "description": "fetch trades - spot",
+                "method": "fetchTrades",
+                "url": "https://api.mexc.com/api/v3/trades?symbol=LTCUSDT",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "method": "spotPublicGetTrades"
+                    }
+                ]
+            },
+            {
+                "description": "fetch trades - swap",
+                "method": "fetchTrades",
+                "url": "https://api.mexc.com/api/v1/contract/deals/LTC_USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV - spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v3/klines?symbol=LTCUSDT&interval=1m",
+                "input": [
+                    "LTC/USDT",
+                    "1m"
+                ]
+            },
+            {
+                "description": "fetch OHLCV - swap default",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v1/contract/kline/LTC_USDT?interval=Min1",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "1m"
+                ]
+            },
+            {
+                "description": "fetch OHLCV - swap index",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v1/contract/kline/index_price/LTC_USDT?interval=Min1",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "price": "index"
+                    }
+                ]
+            },
+            {
+                "description": "fetch OHLCV - swap mark",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v1/contract/kline/fair_price/LTC_USDT?interval=Min1",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "price": "mark"
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=LTCUSDT&orderId=129402018493145088&timestamp=1702285204132&recvWindow=5000&signature=a4438291b6a39e4277e6895107b3ebd890df560075413ba725f059b95a37d00e",
+                "input": [
+                    "129402018493145088",
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Cancel swap orders",
+                "method": "cancelOrder",
+                "url": "https://api.mexc.com/api/v1/private/order/cancel",
+                "input": [
+                    "129402018493145088",
+                    "LTC/USDT:USDT"
+                ],
+                "output": "[\"129402018493145088\"]"
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Swap fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://contract.mexc.com/api/v1/private/position/leverage?symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT:USDT"
                 ]
             }
         ]

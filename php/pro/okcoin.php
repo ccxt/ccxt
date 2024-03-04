@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ArgumentsRequired;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class okcoin extends \ccxt\async\okcoin {
 
@@ -70,7 +71,7 @@ class okcoin extends \ccxt\async\okcoin {
         }) ();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -90,13 +91,13 @@ class okcoin extends \ccxt\async\okcoin {
         }) ();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -178,7 +179,7 @@ class okcoin extends \ccxt\async\okcoin {
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -261,7 +262,7 @@ class okcoin extends \ccxt\async\okcoin {
         return $message;
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -330,7 +331,7 @@ class okcoin extends \ccxt\async\okcoin {
         }
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -472,35 +473,33 @@ class okcoin extends \ccxt\async\okcoin {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $url = $this->urls['api']['ws'];
-            $messageHash = 'login';
-            $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ('authenticated');
-                $timestamp = (string) $this->seconds();
-                $method = 'GET';
-                $path = '/users/self/verify';
-                $auth = $timestamp . $method . $path;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-                $request = array(
-                    'op' => $messageHash,
-                    'args' => array(
-                        $this->apiKey,
-                        $this->password,
-                        $timestamp,
-                        $signature,
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-            }
-            return Async\await($future);
-        }) ();
+        $this->check_required_credentials();
+        $url = $this->urls['api']['ws'];
+        $messageHash = 'login';
+        $client = $this->client($url);
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $future = $client->future ('authenticated');
+            $timestamp = (string) $this->seconds();
+            $method = 'GET';
+            $path = '/users/self/verify';
+            $auth = $timestamp . $method . $path;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $request = array(
+                'op' => $messageHash,
+                'args' => array(
+                    $this->apiKey,
+                    $this->password,
+                    $timestamp,
+                    $signature,
+                ),
+            );
+            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
+        }
+        return $future;
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -737,7 +736,8 @@ class okcoin extends \ccxt\async\okcoin {
         // }
         //
         if ($message === 'pong') {
-            return $this->handle_pong($client, $message);
+            $this->handle_pong($client, $message);
+            return;
         }
         $table = $this->safe_string($message, 'table');
         if ($table === null) {
@@ -750,10 +750,8 @@ class okcoin extends \ccxt\async\okcoin {
                     'subscribe' => array($this, 'handle_subscription_status'),
                 );
                 $method = $this->safe_value($methods, $event);
-                if ($method === null) {
-                    return $message;
-                } else {
-                    return $method($client, $message);
+                if ($method !== null) {
+                    $method($client, $message);
                 }
             }
         } else {
@@ -774,10 +772,8 @@ class okcoin extends \ccxt\async\okcoin {
             if (mb_strpos($name, 'candle') !== false) {
                 $method = array($this, 'handle_ohlcv');
             }
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         }
     }

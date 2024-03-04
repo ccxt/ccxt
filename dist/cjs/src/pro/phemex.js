@@ -630,13 +630,13 @@ class phemex extends phemex$1 {
         }
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
-    handleDelta(bookside, delta, market = undefined) {
+    customHandleDelta(bookside, delta, market = undefined) {
         const bidAsk = this.customParseBidAsk(delta, 0, 1, market);
         bookside.storeArray(bidAsk);
     }
-    handleDeltas(bookside, deltas, market = undefined) {
+    customHandleDeltas(bookside, deltas, market = undefined) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta(bookside, deltas[i], market);
+            this.customHandleDelta(bookside, deltas[i], market);
         }
     }
     handleOrderBook(client, message) {
@@ -706,8 +706,8 @@ class phemex extends phemex$1 {
                 const changes = this.safeValue2(message, 'book', 'orderbook_p', {});
                 const asks = this.safeValue(changes, 'asks', []);
                 const bids = this.safeValue(changes, 'bids', []);
-                this.handleDeltas(orderbook['asks'], asks, market);
-                this.handleDeltas(orderbook['bids'], bids, market);
+                this.customHandleDeltas(orderbook['asks'], asks, market);
+                this.customHandleDeltas(orderbook['bids'], bids, market);
                 orderbook['nonce'] = nonce;
                 orderbook['timestamp'] = timestamp;
                 orderbook['datetime'] = this.iso8601(timestamp);
@@ -886,7 +886,7 @@ class phemex extends phemex$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1403,21 +1403,26 @@ class phemex extends phemex$1 {
             const method = client.subscriptions[id];
             delete client.subscriptions[id];
             if (method !== true) {
-                return method.call(this, client, message);
+                method.call(this, client, message);
+                return;
             }
         }
         const methodName = this.safeString(message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (methodName.indexOf('perp_market24h_pack_p') >= 0)) {
-            return this.handleTicker(client, message);
+            this.handleTicker(client, message);
+            return;
         }
         else if (('trades' in message) || ('trades_p' in message)) {
-            return this.handleTrades(client, message);
+            this.handleTrades(client, message);
+            return;
         }
         else if (('kline' in message) || ('kline_p' in message)) {
-            return this.handleOHLCV(client, message);
+            this.handleOHLCV(client, message);
+            return;
         }
         else if (('book' in message) || ('orderbook_p' in message)) {
-            return this.handleOrderBook(client, message);
+            this.handleOrderBook(client, message);
+            return;
         }
         if (('orders' in message) || ('orders_p' in message)) {
             const orders = this.safeValue2(message, 'orders', 'orders_p', {});
@@ -1504,7 +1509,7 @@ class phemex extends phemex$1 {
             future = this.watch(url, messageHash, message);
             client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }
 

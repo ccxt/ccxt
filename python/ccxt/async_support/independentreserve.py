@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.independentreserve import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from typing import List
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -43,6 +43,9 @@ class independentreserve(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -485,7 +488,7 @@ class independentreserve(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -504,7 +507,7 @@ class independentreserve(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'Data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit=50, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = 50, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -625,7 +628,7 @@ class independentreserve(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -638,19 +641,20 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        capitalizedOrderType = self.capitalize(type)
-        method = 'privatePostPlace' + capitalizedOrderType + 'Order'
-        orderType = capitalizedOrderType
+        orderType = self.capitalize(type)
         orderType += 'Offer' if (side == 'sell') else 'Bid'
         request = self.ordered({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         })
+        response = None
+        request['volume'] = amount
         if type == 'limit':
             request['price'] = price
-        request['volume'] = amount
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePostPlaceLimitOrder(self.extend(request, params))
+        else:
+            response = await self.privatePostPlaceMarketOrder(self.extend(request, params))
         return self.safe_order({
             'info': response,
             'id': response['OrderGuid'],
@@ -669,6 +673,49 @@ class independentreserve(Exchange, ImplicitAPI):
             'orderGuid': id,
         }
         return await self.privatePostCancelOrder(self.extend(request, params))
+
+    async def fetch_deposit_address(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :see: https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'primaryCurrencyCode': currency['id'],
+        }
+        response = await self.privatePostGetDigitalCurrencyDepositAddress(self.extend(request, params))
+        #
+        #    {
+        #        Tag: '3307446684',
+        #        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        #        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        #        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
+        #    }
+        #
+        return self.parse_deposit_address(response)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        #
+        #    {
+        #        Tag: '3307446684',
+        #        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        #        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        #        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
+        #    }
+        #
+        address = self.safe_string(depositAddress, 'DepositAddress')
+        self.check_address(address)
+        return {
+            'info': depositAddress,
+            'currency': self.safe_string(currency, 'code'),
+            'address': address,
+            'tag': self.safe_string(depositAddress, 'Tag'),
+            'network': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path

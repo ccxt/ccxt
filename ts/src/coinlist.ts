@@ -3,11 +3,11 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 /**
  * @class coinlist
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinlist extends Exchange {
     describe () {
@@ -27,7 +27,6 @@ export default class coinlist extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -106,7 +105,8 @@ export default class coinlist extends Exchange {
                 'fetchWithdrawals': false,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -147,6 +147,9 @@ export default class coinlist extends Exchange {
                         'v1/symbols/{symbol}/auctions/{auction_code}': 1, // not unified
                         'v1/time': 1,
                         'v1/assets': 1,
+                        'v1/leaderboard': 1,
+                        'v1/affiliate/{competition_code}': 1,
+                        'v1/competition/{competition_id}': 1,
                     },
                 },
                 'private': {
@@ -154,6 +157,7 @@ export default class coinlist extends Exchange {
                         'v1/fees': 1,
                         'v1/accounts': 1,
                         'v1/accounts/{trader_id}': 1, // not unified
+                        'v1/accounts/{trader_id}/alias': 1,
                         'v1/accounts/{trader_id}/ledger': 1,
                         'v1/accounts/{trader_id}/wallets': 1, // not unified
                         'v1/accounts/{trader_id}/wallet-ledger': 1,
@@ -167,6 +171,8 @@ export default class coinlist extends Exchange {
                         'v1/transfers': 1,
                         'v1/user': 1, // not unified
                         'v1/credits': 1, // not unified
+                        'v1/positions': 1,
+                        'v1/accounts/{trader_id}/competitions': 1,
                     },
                     'post': {
                         'v1/keys': 1, // not unified
@@ -178,6 +184,8 @@ export default class coinlist extends Exchange {
                         'v1/transfers/internal-transfer': 1,
                         'v1/transfers/withdrawal-request': 1,
                         'v1/orders/bulk': 1, // not unified
+                        'v1/accounts/{trader_id}/competitions': 1,
+                        'v1/accounts/{trader_id}/create-competition': 1,
                     },
                     'patch': {
                         'v1/orders/{order_id}': 1,
@@ -355,7 +363,7 @@ export default class coinlist extends Exchange {
             const currency = currencies[i];
             const id = this.safeString (currency, 'asset');
             const code = this.safeCurrencyCode (id);
-            const isTransferable = this.safeValue (currency, 'is_transferable', false);
+            const isTransferable = this.safeBool (currency, 'is_transferable', false);
             const withdrawEnabled = isTransferable;
             const depositEnabled = isTransferable;
             const active = isTransferable;
@@ -760,7 +768,7 @@ export default class coinlist extends Exchange {
             request['start_time'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['count'] = limit;
+            request['count'] = Math.min (limit, 500);
         }
         const until = this.safeInteger2 (params, 'till', 'until');
         if (until !== undefined) {
@@ -1036,13 +1044,15 @@ export default class coinlist extends Exchange {
             }
             takerFees = this.sortBy (takerFees, 1, true);
             makerFees = this.sortBy (makerFees, 1, true);
-            const firstTier = this.safeValue (takerFees, 0, []);
-            const exchangeFees = this.safeValue (this, 'fees', {});
-            const exchangeFeesTrading = this.safeValue (exchangeFees, 'trading', {});
-            const exchangeFeesTradingTiers = this.safeValue (exchangeFeesTrading, 'tiers', {});
-            const exchangeFeesTradingTiersTaker = this.safeValue (exchangeFeesTradingTiers, 'taker', []);
-            const exchangeFeesTradingTiersMaker = this.safeValue (exchangeFeesTradingTiers, 'maker', []);
-            if ((keysLength === exchangeFeesTradingTiersTaker.length) && (firstTier.length > 0)) {
+            const firstTier = this.safeDict (takerFees, 0, []);
+            const exchangeFees = this.safeDict (this, 'fees', {});
+            const exchangeFeesTrading = this.safeDict (exchangeFees, 'trading', {});
+            const exchangeFeesTradingTiers = this.safeDict (exchangeFeesTrading, 'tiers', {});
+            const exchangeFeesTradingTiersTaker = this.safeList (exchangeFeesTradingTiers, 'taker', []);
+            const exchangeFeesTradingTiersMaker = this.safeList (exchangeFeesTradingTiers, 'maker', []);
+            const exchangeFeesTradingTiersTakerLength = exchangeFeesTradingTiersTaker.length;
+            const firstTierLength = firstTier.length;
+            if ((keysLength === exchangeFeesTradingTiersTakerLength) && (firstTierLength > 0)) {
                 for (let i = 0; i < keysLength; i++) {
                     takerFees[i][0] = exchangeFeesTradingTiersTaker[i][0];
                     makerFees[i][0] = exchangeFeesTradingTiersMaker[i][0];
@@ -1123,11 +1133,10 @@ export default class coinlist extends Exchange {
         //         "net_liquidation_value_usd": "string"
         //     }
         //
-        const timestamp = this.milliseconds ();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const totalBalances = this.safeValue (response, 'asset_balances', {});
         const usedBalances = this.safeValue (response, 'asset_holds', {});
@@ -1234,7 +1243,7 @@ export default class coinlist extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
+         * @param {int} [limit] the maximum number of order structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {string|string[]} [params.status] the status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending' (default [ 'accepted', 'done', 'canceled', 'rejected', 'pending' ])
@@ -1469,7 +1478,7 @@ export default class coinlist extends Exchange {
         return response;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#createOrder
@@ -1544,7 +1553,7 @@ export default class coinlist extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#editOrder
@@ -1726,7 +1735,7 @@ export default class coinlist extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name coinlist#transfer
@@ -1979,7 +1988,7 @@ export default class coinlist extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#withdraw

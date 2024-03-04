@@ -1,9 +1,10 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseRest from '../coinbase.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -87,7 +88,7 @@ export default class coinbase extends coinbaseRest {
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coinbasepro#watchTicker
@@ -101,7 +102,7 @@ export default class coinbase extends coinbaseRest {
         return await this.subscribe (name, symbol, params);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinbasepro#watchTickers
@@ -112,11 +113,14 @@ export default class coinbase extends coinbaseRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTickers requires a symbols argument');
+            symbols = this.symbols;
         }
         const name = 'ticker_batch';
         const tickers = await this.subscribe (name, symbols, params);
-        return tickers;
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.tickers;
     }
 
     handleTickers (client, message) {
@@ -243,7 +247,7 @@ export default class coinbase extends coinbaseRest {
         });
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinbasepro#watchTrades
@@ -265,7 +269,7 @@ export default class coinbase extends coinbaseRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbasepro#watchOrders
@@ -273,7 +277,7 @@ export default class coinbase extends coinbaseRest {
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -286,7 +290,7 @@ export default class coinbase extends coinbaseRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coinbasepro#watchOrderBook
@@ -469,7 +473,8 @@ export default class coinbase extends coinbaseRest {
             const side = this.safeString (this.options['sides'], sideId);
             const price = this.safeNumber (trade, 'price_level');
             const amount = this.safeNumber (trade, 'new_quantity');
-            orderbook[side].store (price, amount);
+            const orderbookSide = orderbook[side];
+            orderbookSide.store (price, amount);
         }
     }
 
@@ -564,6 +569,6 @@ export default class coinbase extends coinbaseRest {
             throw new ExchangeError (errorMessage);
         }
         const method = this.safeValue (methods, channel);
-        return method.call (this, client, message);
+        method.call (this, client, message);
     }
 }

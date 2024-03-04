@@ -1,6 +1,6 @@
 import sys
 import types
-from typing import Union, List, Optional, Any
+from typing import Union, List, Optional, Any as PythonAny
 from decimal import Decimal
 
 
@@ -20,6 +20,7 @@ else:
 OrderSide = Literal['buy', 'sell']
 OrderType = Literal['limit', 'market']
 PositionSide = Literal['long', 'short']
+Any = PythonAny
 
 
 class Entry:
@@ -157,6 +158,16 @@ class Order(TypedDict):
     fee: Fee
 
 
+class Liquidation(TypedDict):
+    info: Dict[str, Any]
+    symbol: Str
+    timestamp: Int
+    datetime: Str
+    price: Num
+    baseValue: Num
+    quoteValue: Num
+
+
 class FundingHistory(TypedDict):
     info: Dict[str, Any]
     symbol: Str
@@ -203,6 +214,18 @@ class Transaction(TypedDict):
     internal: Bool
 
 
+class TransferEntry(TypedDict):
+    info: Dict[str, any]
+    id: Str
+    timestamp: Int
+    datetime: Str
+    currency: Str
+    amount: Num
+    fromAccount: Str
+    toAccount: Str
+    status: Str
+
+
 class Ticker(TypedDict):
     info: Dict[str, Any]
     symbol: Str
@@ -233,6 +256,20 @@ class MarginMode(TypedDict):
     info: Dict[str, Any]
     symbol: Str
     marginMode: Str
+
+
+MarginModes = Dict[str, MarginMode]
+
+
+class Leverage(TypedDict):
+    info: Dict[str, Any]
+    symbol: Str
+    marginMode: Str
+    longLeverage: Num
+    shortLeverage: Num
+
+
+Leverages = Dict[str, Leverage]
 
 
 class Greeks(TypedDict):

@@ -121,6 +121,7 @@ interface Exchange {
     privateGetV5PositionList (params?: {}): Promise<implicitReturnType>;
     privateGetV5ExecutionList (params?: {}): Promise<implicitReturnType>;
     privateGetV5PositionClosedPnl (params?: {}): Promise<implicitReturnType>;
+    privateGetV5PositionMoveHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5PreUpgradeOrderHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5PreUpgradeExecutionList (params?: {}): Promise<implicitReturnType>;
     privateGetV5PreUpgradePositionClosedPnl (params?: {}): Promise<implicitReturnType>;
@@ -129,12 +130,12 @@ interface Exchange {
     privateGetV5PreUpgradeAssetSettlementRecord (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountWalletBalance (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountBorrowHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetV5AccountSetCollateralSwitch (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountCollateralInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetCoinGreeks (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountFeeRate (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountTransactionLog (params?: {}): Promise<implicitReturnType>;
+    privateGetV5AccountSmpGroup (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountMmpState (params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetExchangeOrderRecord (params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetDeliveryRecord (params?: {}): Promise<implicitReturnType>;
@@ -263,8 +264,10 @@ interface Exchange {
     privatePostV5PositionTradingStop (params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionSetAutoAddMargin (params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionAddMargin (params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionMovePositions (params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionConfirmPendingMmr (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountUpgradeToUta (params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountQuickRepayment (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetMarginMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetHedgingMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpModify (params?: {}): Promise<implicitReturnType>;
@@ -293,6 +296,8 @@ interface Exchange {
     privatePostV5LendingPurchase (params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingRedeem (params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingRedeemCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountSetCollateralSwitch (params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountSetCollateralSwitchBatch (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

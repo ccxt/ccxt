@@ -5,8 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
-from ccxt.base.types import Int
+from ccxt.base.types import Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from typing import List
 from ccxt.base.errors import ExchangeError
 
 
@@ -48,7 +49,7 @@ class huobijp(ccxt.async_support.huobijp):
         self.options['requestId'] = requestId
         return str(requestId)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -108,7 +109,7 @@ class huobijp(ccxt.async_support.huobijp):
         client.resolve(ticker, ch)
         return message
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -180,7 +181,7 @@ class huobijp(ccxt.async_support.huobijp):
         client.resolve(tradesCache, ch)
         return message
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -250,7 +251,7 @@ class huobijp(ccxt.async_support.huobijp):
         stored.append(parsed)
         client.resolve(stored, ch)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -349,6 +350,7 @@ class huobijp(ccxt.async_support.huobijp):
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
+        return None
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -506,10 +508,8 @@ class huobijp(ccxt.async_support.huobijp):
                 # ...
             }
             method = self.safe_value(methods, methodName)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)
 
     async def pong(self, client, message):
         #

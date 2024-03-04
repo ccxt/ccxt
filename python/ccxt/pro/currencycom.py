@@ -6,8 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int
+from ccxt.base.types import Balances, Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from typing import List
 from ccxt.base.precise import Precise
 
 
@@ -95,7 +96,7 @@ class currencycom(ccxt.async_support.currencycom):
         #                     "accountId": 5470310874305732,
         #                     "collateralCurrency": True,
         #                     "asset": "USD",
-        #                     "free": 47.82576735,
+        #                     "free": 47.82576736,
         #                     "locked": 1.187925,
         #                     "default": True
         #                 },
@@ -321,7 +322,7 @@ class currencycom(ccxt.async_support.currencycom):
         })
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -330,7 +331,7 @@ class currencycom(ccxt.async_support.currencycom):
         await self.load_markets()
         return await self.watch_private('/api/v1/account', params)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -357,7 +358,7 @@ class currencycom(ccxt.async_support.currencycom):
         })
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -373,7 +374,7 @@ class currencycom(ccxt.async_support.currencycom):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -386,7 +387,7 @@ class currencycom(ccxt.async_support.currencycom):
         orderbook = await self.watch_public('depthMarketData.subscribe', symbol, params)
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -444,6 +445,7 @@ class currencycom(ccxt.async_support.currencycom):
         if orderbook is None:
             orderbook = self.order_book()
         orderbook.reset({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
@@ -516,9 +518,10 @@ class currencycom(ccxt.async_support.currencycom):
                         }
                         method = self.safe_value(methods, subscriptionDestination)
                         if method is None:
-                            return message
+                            return
                         else:
-                            return method(client, message, subscription)
+                            method(client, message, subscription)
+                            return
         destination = self.safe_string(message, 'destination')
         if destination is not None:
             methods = {
@@ -528,7 +531,5 @@ class currencycom(ccxt.async_support.currencycom):
                 'ping': self.handle_pong,
             }
             method = self.safe_value(methods, destination)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)

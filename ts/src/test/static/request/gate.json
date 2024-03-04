@@ -29,6 +29,76 @@
                     50
                 ],
                 "output": "{\"contract\":\"LTC_USDT\",\"size\":1,\"price\":\"50\"}"
+            },
+            {
+                "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "buy",
+                  5,
+                  null,
+                  {
+                    "createMarketBuyOrderRequiresPrice": false
+                  }
+                ],
+                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"5\",\"time_in_force\":\"ioc\"}"
+            },
+            {
+                "description": "Spot market buy order using the cost param",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "buy",
+                  0,
+                  null,
+                  {
+                    "cost": 5
+                  }
+                ],
+                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"5\",\"time_in_force\":\"ioc\"}"
+            },
+            {
+                "description": "Spot market sell order",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null
+                ],
+                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"sell\",\"amount\":\"0.0001\",\"time_in_force\":\"ioc\"}"
+            },
+            {
+                "description": "Spot limit sell order",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "sell",
+                  0.0001,
+                  55000
+                ],
+                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"sell\",\"amount\":\"0.0001\",\"price\":\"55000\"}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Spot market buy order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.gateio.ws/api/v4/spot/orders",
+                "input": [
+                  "BTC/USDT",
+                  5
+                ],
+                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"5\",\"time_in_force\":\"ioc\"}"
             }
         ],
         "editOrder": [
@@ -88,6 +158,16 @@
                     [
                         "LTC/USDT:USDT"
                     ]
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Fetch a linear swap position",
+                "method": "fetchPosition",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/positions/BTC_USDT",
+                "input": [
+                  "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -433,66 +513,6 @@
                 "output": "{\"currency\":\"usdt\",\"amount\":\"1\",\"from\":\"futures\",\"to\":\"spot\",\"settle\":\"usdt\"}"
             }
         ],
-        "borrowMargin": [
-            {
-                "description": "borrow cross margin",
-                "method": "borrowMargin",
-                "url": "https://api.gateio.ws/api/v4/margin/cross/loans",
-                "input": [
-                    "USDT",
-                    "1",
-                    null,
-                    {
-                        "marginMode": "cross"
-                    }
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
-            },
-            {
-                "description": "borrow isolated margin",
-                "method": "borrowMargin",
-                "url": "https://api.gateio.ws/api/v4/margin/uni/loans",
-                "input": [
-                    "USDT",
-                    "1",
-                    "LTC/USDT",
-                    {
-                        "marginMode": "isolated"
-                    }
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"LTC_USDT\",\"type\":\"borrow\"}"
-            }
-        ],
-        "repayMargin": [
-            {
-                "description": "repay cross margin",
-                "method": "repayMargin",
-                "url": "https://api.gateio.ws/api/v4/margin/cross/repayments",
-                "input": [
-                    "USDT",
-                    "1",
-                    null,
-                    {
-                        "marginMode": "cross"
-                    }
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
-            },
-            {
-                "description": "repay isolated margin",
-                "method": "repayMargin",
-                "url": "https://api.gateio.ws/api/v4/margin/uni/loans",
-                "input": [
-                    "USDT",
-                    "1",
-                    "LTC/USDT",
-                    {
-                        "marginMode": "isolated"
-                    }
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"LTC_USDT\",\"type\":\"repay\"}"
-            }
-        ],
         "fetchFundingHistory": [
             {
                 "description": "Fetch FundingHistory - swap",
@@ -583,7 +603,7 @@
             {
                 "description": "Fetch Tickers - spot",
                 "method": "fetchTickers",
-                "url": "https://api.gateio.ws/api/v4/spot/tickers",
+                "url": "https://api.gateio.ws/api/v4/spot/tickers?timezone=utc0",
                 "input": [
                     null,
                     {
@@ -594,7 +614,7 @@
             {
                 "description": "Fetch Tickers - swap",
                 "method": "fetchTickers",
-                "url": "https://api.gateio.ws/api/v4/futures/usdt/tickers",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/tickers?timezone=utc0",
                 "input": [
                     null,
                     {
@@ -605,7 +625,7 @@
             {
                 "description": "Fetch Tickers - future",
                 "method": "fetchTickers",
-                "url": "https://api.gateio.ws/api/v4/delivery/btc/tickers",
+                "url": "https://api.gateio.ws/api/v4/delivery/btc/tickers?timezone=utc0",
                 "input": [
                     null,
                     {
@@ -616,7 +636,7 @@
             {
                 "description": "Fetch Tickers - option",
                 "method": "fetchTickers",
-                "url": "https://api.gateio.ws/api/v4/options/tickers?underlying=BTC_USDT",
+                "url": "https://api.gateio.ws/api/v4/options/tickers?underlying=BTC_USDT&timezone=utc0",
                 "input": [
                     [
                         "BTC/USDT:USDT-240126-20000-C"
@@ -903,6 +923,77 @@
                 "input": [
                     "BTC/USDT:USDT-240329",
                     1
+                ]
+            }
+        ],
+        "borrowCrossMargin": [
+            {
+                "description": "Borrow 1 USDT in the cross market wallet",
+                "method": "borrowCrossMargin",
+                "url": "https://api.gateio.ws/api/v4/margin/cross/loans",
+                "input": [
+                    "USDT",
+                    1
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
+            }
+        ],
+        "repayCrossMargin": [
+            {
+                "description": "Repay 1 USDT in the cross market wallet",
+                "method": "repayCrossMargin",
+                "url": "https://api.gateio.ws/api/v4/margin/cross/repayments",
+                "input": [
+                    "USDT",
+                    1
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
+            }
+        ],
+        "borrowIsolatedMargin": [
+            {           
+                "description": "Borrow 1 USDT in the XRP/USDT Isolated market",
+                "method": "borrowIsolatedMargin",
+                "url": "https://api.gateio.ws/api/v4/margin/uni/loans",
+                "input": [
+                    "XRP/USDT",
+                    "USDT",
+                    1
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"XRP_USDT\",\"type\":\"borrow\"}"
+            }
+        ],
+        "repayIsolatedMargin": [
+            {
+                "description": "Repay 1 USDT in the XRP/USDT Isolated market",
+                "method": "repayIsolatedMargin",
+                "url": "https://api.gateio.ws/api/v4/margin/uni/loans",
+                "input": [
+                    "XRP/USDT",
+                    "USDT",
+                    1
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"XRP_USDT\",\"type\":\"repay\"}"
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "Closes open position in XRP/USDT:USDT market",
+                "method": "closePosition",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
+                "input": [
+                  "XRP/USDT:USDT"
+                ],
+                "output": "{\"contract\":\"XRP_USDT\",\"size\":0,\"price\":0,\"tif\":\"ioc\",\"close\":true}"
+              }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetchMarketLeverageTiers",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/risk_limit_tiers?contract=BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ]

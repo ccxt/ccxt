@@ -10,7 +10,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class gemini
- * @extends Exchange
+ * @augments Exchange
  */
 class gemini extends gemini$1 {
     describe() {
@@ -301,6 +301,7 @@ class gemini extends gemini$1 {
         /**
          * @method
          * @name gemini#fetchCurrenciesFromWeb
+         * @ignore
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the endpoint
          * @returns {object} an associative dictionary of currencies
@@ -342,7 +343,10 @@ class gemini extends gemini$1 {
             const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 5)));
             const networks = {};
             const networkId = this.safeString(currency, 9);
-            const networkCode = this.networkIdToCode(networkId);
+            let networkCode = undefined;
+            if (networkId !== undefined) {
+                networkCode = this.networkIdToCode(networkId);
+            }
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': currency,
@@ -396,6 +400,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#fetchMarkets
          * @description retrieves data on all markets for gemini
+         * @see https://docs.gemini.com/rest-api/#symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -511,7 +516,7 @@ class gemini extends gemini$1 {
             'post_only': true,
             'limit_only': true,
         };
-        return this.safeValue(statuses, status, true);
+        return this.safeBool(statuses, status, true);
     }
     async fetchUSDTMarkets(params = {}) {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
@@ -550,7 +555,7 @@ class gemini extends gemini$1 {
             result[marketId] = this.parseMarket(market);
         }
         const options = this.safeValue(this.options, 'fetchMarketsFromAPI', {});
-        const fetchDetailsForAllSymbols = this.safeValue(options, 'fetchDetailsForAllSymbols', false);
+        const fetchDetailsForAllSymbols = this.safeBool(options, 'fetchDetailsForAllSymbols', false);
         const fetchDetailsForMarketIds = this.safeValue(options, 'fetchDetailsForMarketIds', []);
         let promises = [];
         let marketIds = [];
@@ -656,6 +661,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.gemini.com/rest-api/#current-order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -734,6 +740,8 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.gemini.com/rest-api/#ticker
+         * @see https://docs.gemini.com/rest-api/#ticker-v2
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
@@ -847,6 +855,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.gemini.com/rest-api/#price-feed
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -950,7 +959,7 @@ class gemini extends gemini$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit_trades'] = limit;
+            request['limit_trades'] = Math.min(limit, 500);
         }
         if (since !== undefined) {
             request['timestamp'] = since;
@@ -989,6 +998,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://docs.gemini.com/rest-api/#get-notional-volume
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1047,6 +1057,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.gemini.com/rest-api/#get-available-balances
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1228,6 +1239,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.gemini.com/rest-api/#order-status
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1267,6 +1279,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.gemini.com/rest-api/#get-active-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1367,7 +1380,7 @@ class gemini extends gemini$1 {
                     request['options'] = ['maker-or-cancel'];
                 }
             }
-            const postOnly = this.safeValue(params, 'postOnly', false);
+            const postOnly = this.safeBool(params, 'postOnly', false);
             params = this.omit(params, 'postOnly');
             if (postOnly) {
                 request['options'] = ['maker-or-cancel'];
@@ -1409,6 +1422,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#cancelOrder
          * @description cancels an open order
+         * @see https://docs.gemini.com/rest-api/#cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1450,6 +1464,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.gemini.com/rest-api/#get-past-trades
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1478,6 +1493,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#withdraw
          * @description make a withdrawal
+         * @see https://docs.gemini.com/rest-api/#withdraw-crypto-funds
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1536,6 +1552,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://docs.gemini.com/rest-api/#transfers
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -1747,6 +1764,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#createDepositAddress
          * @description create a currency deposit address
+         * @see https://docs.gemini.com/rest-api/#new-deposit-address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1771,6 +1789,7 @@ class gemini extends gemini$1 {
          * @method
          * @name gemini#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.gemini.com/rest-api/#candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch

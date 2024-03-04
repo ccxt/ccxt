@@ -15,7 +15,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import AuthenticationError
@@ -54,6 +53,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                 'fetchDepositAddress': False,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
+                'fetchFundingRate': False,
                 'fetchLedger': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -158,6 +158,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                         'conversions/{conversion_id}',
+                        'conversions/fees',
                     ],
                     'post': [
                         'conversions',
@@ -1084,7 +1085,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch open orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1133,7 +1134,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch open orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1143,7 +1144,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
         create a trade order
@@ -1273,44 +1274,7 @@ class coinbasepro(Exchange, ImplicitAPI):
     def fetch_payment_methods(self, params={}):
         return self.privateGetPaymentMethods(params)
 
-    def deposit(self, code: str, amount, address, params={}):
-        """
-        Creates a new deposit address, by coinbasepro
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositpaymentmethod
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositcoinbaseaccount
-        :param str code: Unified CCXT currency code(e.g. `"USDT"`)
-        :param float amount: The amount of currency to send in the deposit(e.g. `20`)
-        :param str address: Not used by coinbasepro
-        :param dict [params]: Parameters specific to the exchange API endpoint(e.g. `{"network": "TRX"}`)
-        :returns: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
-        """
-        self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currency': currency['id'],
-            'amount': amount,
-        }
-        method = 'privatePostDeposits'
-        if 'payment_method_id' in params:
-            # deposit from a payment_method, like a bank account
-            method += 'PaymentMethod'
-        elif 'coinbase_account_id' in params:
-            # deposit into Coinbase Pro account from a Coinbase account
-            method += 'CoinbaseAccount'
-        else:
-            # deposit methodotherwise we did not receive a supported deposit location
-            # relevant docs link for the Googlers
-            # https://docs.pro.coinbase.com/#deposits
-            raise NotSupported(self.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params')
-        response = getattr(self, method)(self.extend(request, params))
-        if not response:
-            raise ExchangeError(self.id + ' deposit() error: ' + self.json(response))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
-
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod

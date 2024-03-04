@@ -12,10 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_ticker(exchange, skipped_properties, method, entry, symbol):
     format = {
@@ -80,11 +78,9 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
             assert quote_volume is not None, 'baseVolume & vwap is defined, but quoteVolume is not' + log_text
         if quote_volume is not None:
             assert base_volume is not None, 'quoteVolume & vwap is defined, but baseVolume is not' + log_text
-    if not ('ask' in skipped_properties) and not ('bid' in skipped_properties):
+    if not ('spread' in skipped_properties) and not ('ask' in skipped_properties) and not ('bid' in skipped_properties):
         ask_string = exchange.safe_string(entry, 'ask')
         bid_string = exchange.safe_string(entry, 'bid')
         if (ask_string is not None) and (bid_string is not None):
             test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'ask', exchange.safe_string(entry, 'bid'))
-    # if singular fetchTicker was called, then symbol needs to be asserted
-    if method == 'fetchTicker':
-        test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
+    test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)

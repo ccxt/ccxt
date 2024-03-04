@@ -5,7 +5,7 @@ import whitebitRest from '../whitebit.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -60,7 +60,7 @@ export default class whitebit extends whitebitRest {
         });
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name whitebit#watchOHLCV
@@ -119,20 +119,24 @@ export default class whitebit extends whitebitRest {
             const symbol = market['symbol'];
             const messageHash = 'candles' + ':' + symbol;
             const parsed = this.parseOHLCV (data, market);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
-            let stored = this.ohlcvs[symbol];
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol] = stored;
+            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
+            if (!(symbol in this.ohlcvs)) {
+                this.ohlcvs[symbol] = {};
             }
-            stored.append (parsed);
-            client.resolve (stored, messageHash);
+            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
+            if (!('unknown' in this.ohlcvs[symbol])) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                const stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol]['unknown'] = stored;
+            }
+            const ohlcv = this.ohlcvs[symbol]['unknown'];
+            ohlcv.append (parsed);
+            client.resolve (ohlcv, messageHash);
         }
         return message;
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name whitebit#watchOrderBook
@@ -170,6 +174,7 @@ export default class whitebit extends whitebitRest {
         //     "params":[
         //        true,
         //        {
+        //           "timestamp": 1708679568.940867,
         //           "asks":[
         //              [ "21252.45","0.01957"],
         //              ["21252.55","0.126205"],
@@ -206,13 +211,14 @@ export default class whitebit extends whitebitRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeValue (params, 1);
-        let orderbook = undefined;
-        if (symbol in this.orderbooks) {
-            orderbook = this.orderbooks[symbol];
-        } else {
-            orderbook = this.orderBook ();
-            this.orderbooks[symbol] = orderbook;
+        const timestamp = this.safeTimestamp (data, 'timestamp');
+        if (!(symbol in this.orderbooks)) {
+            const ob = this.orderBook ();
+            this.orderbooks[symbol] = ob;
         }
+        const orderbook = this.orderbooks[symbol];
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
         if (isSnapshot) {
             const snapshot = this.parseOrderBook (data, symbol);
             orderbook.reset (snapshot);
@@ -238,7 +244,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name whitebit#watchTicker
@@ -306,7 +312,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name whitebit#watchTrades
@@ -374,7 +380,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name whitebit#watchMyTrades
@@ -476,7 +482,7 @@ export default class whitebit extends whitebitRest {
         }, market);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name whitebit#watchOrders
@@ -652,7 +658,7 @@ export default class whitebit extends whitebitRest {
         return this.safeString (statuses, status, status);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name whitebit#watchBalance
@@ -754,7 +760,7 @@ export default class whitebit extends whitebitRest {
             let hasSymbolSubscription = true;
             const market = this.market (symbol);
             const marketId = market['id'];
-            const isSubscribed = this.safeValue (subscription, marketId, false);
+            const isSubscribed = this.safeBool (subscription, marketId, false);
             if (!isSubscribed) {
                 subscription[marketId] = true;
                 hasSymbolSubscription = false;
@@ -881,12 +887,10 @@ export default class whitebit extends whitebitRest {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
-        const result = this.safeValue (message, 'result', {});
-        if (result !== undefined) {
-            if (result === 'pong') {
-                this.handlePong (client, message);
-                return;
-            }
+        const result = this.safeString (message, 'result');
+        if (result === 'pong') {
+            this.handlePong (client, message);
+            return;
         }
         const id = this.safeInteger (message, 'id');
         if (id !== undefined) {

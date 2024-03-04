@@ -5,7 +5,7 @@ import currencycomRest from '../currencycom.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -96,7 +96,7 @@ export default class currencycom extends currencycomRest {
         //                     "accountId": 5470310874305732,
         //                     "collateralCurrency": true,
         //                     "asset": "USD",
-        //                     "free": 47.82576735,
+        //                     "free": 47.82576736,
         //                     "locked": 1.187925,
         //                     "default": true
         //                 },
@@ -338,7 +338,7 @@ export default class currencycom extends currencycomRest {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name currencycom#watchBalance
@@ -350,7 +350,7 @@ export default class currencycom extends currencycomRest {
         return await this.watchPrivate ('/api/v1/account', params);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name currencycom#watchTicker
@@ -380,7 +380,7 @@ export default class currencycom extends currencycomRest {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name currencycom#watchTrades
@@ -400,7 +400,7 @@ export default class currencycom extends currencycomRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name currencycom#watchOrderBook
@@ -416,7 +416,7 @@ export default class currencycom extends currencycomRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name currencycom#watchOHLCV
@@ -481,6 +481,7 @@ export default class currencycom extends currencycomRest {
             orderbook = this.orderBook ();
         }
         orderbook.reset ({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
@@ -554,9 +555,10 @@ export default class currencycom extends currencycomRest {
                         };
                         const method = this.safeValue (methods, subscriptionDestination);
                         if (method === undefined) {
-                            return message;
+                            return;
                         } else {
-                            return method.call (this, client, message, subscription);
+                            method.call (this, client, message, subscription);
+                            return;
                         }
                     }
                 }
@@ -571,10 +573,8 @@ export default class currencycom extends currencycomRest {
                 'ping': this.handlePong,
             };
             const method = this.safeValue (methods, destination);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         }
     }

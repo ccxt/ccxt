@@ -5,8 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
-from ccxt.base.types import Int, Str
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str
 from ccxt.async_support.base.ws.client import Client
+from typing import List
 
 
 class bitrue(ccxt.async_support.bitrue):
@@ -56,7 +57,7 @@ class bitrue(ccxt.async_support.bitrue):
             },
         })
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
@@ -162,7 +163,7 @@ class bitrue(ccxt.async_support.bitrue):
                 self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on user orders
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
@@ -282,7 +283,7 @@ class bitrue(ccxt.async_support.bitrue):
             },
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -340,7 +341,11 @@ class bitrue(ccxt.async_support.bitrue):
         symbol = market['symbol']
         timestamp = self.safe_integer(message, 'ts')
         tick = self.safe_value(message, 'tick', {})
-        orderbook = self.parse_order_book(tick, symbol, timestamp, 'buys', 'asks')
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book()
+        snapshot = self.parse_order_book(tick, symbol, timestamp, 'buys', 'asks')
+        orderbook.reset(snapshot)
         self.orderbooks[symbol] = orderbook
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
@@ -403,7 +408,7 @@ class bitrue(ccxt.async_support.bitrue):
             except Exception as error:
                 self.options['listenKey'] = None
                 self.options['listenKeyUrl'] = None
-                return
+                return None
             #
             #     {
             #         "msg": "succ",

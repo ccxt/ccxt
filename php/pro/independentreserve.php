@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\NotSupported;
 use ccxt\InvalidNonce;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class independentreserve extends \ccxt\async\independentreserve {
 
@@ -40,7 +41,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         ));
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -127,7 +128,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -188,29 +189,29 @@ class independentreserve extends \ccxt\async\independentreserve {
         $orderBook = $this->safe_value($message, 'Data', array());
         $messageHash = 'orderbook:' . $symbol . ':' . $depth;
         $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
-        $receivedSnapshot = $this->safe_value($subscription, 'receivedSnapshot', false);
+        $receivedSnapshot = $this->safe_bool($subscription, 'receivedSnapshot', false);
         $timestamp = $this->safe_integer($message, 'Time');
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $storedOrderBook;
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->order_book(array());
+            $this->orderbooks[$symbol] = $orderbook;
         }
         if ($event === 'OrderBookSnapshot') {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'Bids', 'Offers', 'Price', 'Volume');
-            $storedOrderBook->reset ($snapshot);
+            $orderbook->reset ($snapshot);
             $subscription['receivedSnapshot'] = true;
         } else {
             $asks = $this->safe_value($orderBook, 'Offers', array());
             $bids = $this->safe_value($orderBook, 'Bids', array());
-            $this->handle_deltas($storedOrderBook['asks'], $asks);
-            $this->handle_deltas($storedOrderBook['bids'], $bids);
-            $storedOrderBook['timestamp'] = $timestamp;
-            $storedOrderBook['datetime'] = $this->iso8601($timestamp);
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601($timestamp);
         }
-        $checksum = $this->safe_value($this->options, 'checksum', true);
+        $checksum = $this->safe_bool($this->options, 'checksum', true);
         if ($checksum && $receivedSnapshot) {
-            $storedAsks = $storedOrderBook['asks'];
-            $storedBids = $storedOrderBook['bids'];
+            $storedAsks = $orderbook['asks'];
+            $storedBids = $orderbook['bids'];
             $asksLength = count($storedAsks);
             $bidsLength = count($storedBids);
             $payload = '';
@@ -232,7 +233,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             }
         }
         if ($receivedSnapshot) {
-            $client->resolve ($storedOrderBook, $messageHash);
+            $client->resolve ($orderbook, $messageHash);
         }
     }
 
@@ -288,7 +289,8 @@ class independentreserve extends \ccxt\async\independentreserve {
         );
         $handler = $this->safe_value($handlers, $event);
         if ($handler !== null) {
-            return $handler($client, $message);
+            $handler($client, $message);
+            return;
         }
         throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
     }

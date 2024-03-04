@@ -1,8 +1,8 @@
 import Exchange from './abstract/blockchaincom.js';
-import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class blockchaincom
- * @extends Exchange
+ * @augments Exchange
  */
 export default class blockchaincom extends Exchange {
     describe(): any;
@@ -15,7 +15,7 @@ export default class blockchaincom extends Exchange {
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseOrderState(state: any): string;
     parseOrder(order: any, market?: Market): Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<{
         id: string;
         info: any;
@@ -36,9 +36,7 @@ export default class blockchaincom extends Exchange {
     }>;
     parseTransactionState(state: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    fetchWithdrawalWhitelist(params?: {}): Promise<any[]>;
-    fetchWithdrawalWhitelistByCurrency(code: string, params?: {}): Promise<any[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;

@@ -132,7 +132,6 @@ class bitfinex extends bitfinex$1 {
             stored.append(trade);
         }
         client.resolve(stored, messageHash);
-        return message;
     }
     parseTrade(trade, market = undefined) {
         //
@@ -209,7 +208,6 @@ class bitfinex extends bitfinex$1 {
         //         220.05,        // 10 LOW float Daily low
         //     ]
         //
-        const timestamp = this.milliseconds();
         const marketId = this.safeString(subscription, 'pair');
         const symbol = this.safeSymbol(marketId);
         const channel = 'ticker';
@@ -222,8 +220,8 @@ class bitfinex extends bitfinex$1 {
         }
         const result = {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeFloat(message, 9),
             'low': this.safeFloat(message, 10),
             'bid': this.safeFloat(message, 1),
@@ -323,8 +321,9 @@ class bitfinex extends bitfinex$1 {
                     const delta = deltas[i];
                     const id = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
+                    const delta2Value = delta[2];
+                    const size = (delta2Value < 0) ? -delta2Value : delta2Value;
+                    const side = (delta2Value < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
                     bookside.store(price, size, id);
                 }
@@ -333,10 +332,11 @@ class bitfinex extends bitfinex$1 {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
-                    const bookside = orderbook[side];
-                    bookside.store(delta[0], size, delta[1]);
+                    const delta2 = delta[2];
+                    const size = (delta2 < 0) ? -delta2 : delta2;
+                    const side = (delta2 < 0) ? 'asks' : 'bids';
+                    const countedBookSide = orderbook[side];
+                    countedBookSide.store(delta[0], size, delta[1]);
                 }
             }
             client.resolve(orderbook, messageHash);
@@ -346,18 +346,20 @@ class bitfinex extends bitfinex$1 {
             if (isRaw) {
                 const id = this.safeString(message, 1);
                 const price = this.safeString(message, 2);
-                const size = (message[3] < 0) ? -message[3] : message[3];
-                const side = (message[3] < 0) ? 'asks' : 'bids';
+                const message3 = message[3];
+                const size = (message3 < 0) ? -message3 : message3;
+                const side = (message3 < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise["default"].stringGt(price, '0') ? size : '0';
                 bookside.store(this.parseNumber(price), this.parseNumber(amount), id);
             }
             else {
-                const size = (message[3] < 0) ? -message[3] : message[3];
-                const side = (message[3] < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
-                bookside.store(message[1], size, message[2]);
+                const message3Value = message[3];
+                const size = (message3Value < 0) ? -message3Value : message3Value;
+                const side = (message3Value < 0) ? 'asks' : 'bids';
+                const countedBookSide = orderbook[side];
+                countedBookSide.store(message[1], size, message[2]);
             }
             client.resolve(orderbook, messageHash);
         }
@@ -458,7 +460,7 @@ class bitfinex extends bitfinex$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -618,7 +620,7 @@ class bitfinex extends bitfinex$1 {
             //     ]
             //
             if (message[1] === 'hb') {
-                return message; // skip heartbeats within subscription channels for now
+                return; // skip heartbeats within subscription channels for now
             }
             const subscription = this.safeValue(client.subscriptions, channelId, {});
             const channel = this.safeString(subscription, 'channel');
@@ -633,11 +635,8 @@ class bitfinex extends bitfinex$1 {
                 'oc': this.handleOrders,
             };
             const method = this.safeValue2(methods, channel, name);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message, subscription);
+            if (method !== undefined) {
+                method.call(this, client, message, subscription);
             }
         }
         else {
@@ -659,11 +658,8 @@ class bitfinex extends bitfinex$1 {
                     'auth': this.handleAuthenticationMessage,
                 };
                 const method = this.safeValue(methods, event);
-                if (method === undefined) {
-                    return message;
-                }
-                else {
-                    return method.call(this, client, message);
+                if (method !== undefined) {
+                    method.call(this, client, message);
                 }
             }
         }

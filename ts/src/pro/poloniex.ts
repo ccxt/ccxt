@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexRest from '../poloniex.js';
-import { BadRequest, AuthenticationError, ExchangeError, ArgumentsRequired } from '../base/errors.js';
+import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, OHLCV, OrderSide, OrderType, Str, Strings } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -176,7 +176,7 @@ export default class poloniex extends poloniexRest {
          * @returns {object} data from the websocket stream
          */
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce ();
+        const messageHash = this.nonce ().toString ();
         const subscribe = {
             'id': messageHash,
             'event': name,
@@ -185,7 +185,7 @@ export default class poloniex extends poloniexRest {
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name poloniex#createOrderWs
@@ -199,6 +199,7 @@ export default class poloniex extends poloniexRest {
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @param {string} [params.timeInForce] GTC (default), IOC, FOK
          * @param {string} [params.clientOrderId] Maximum 64-character length.*
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.amount] quote units for the order
@@ -206,7 +207,7 @@ export default class poloniex extends poloniexRest {
          * @param {string} [params.stpMode] self-trade prevention, defaults to expire_taker, none: enable self-trade; expire_taker: taker order will be canceled when self-trade happens
          * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-        */
+         */
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
@@ -222,23 +223,26 @@ export default class poloniex extends poloniexRest {
             'type': type.toUpperCase (),
         };
         if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
-            let quoteAmount = this.safeString (params, 'amount');
-            if ((quoteAmount === undefined) && (this.options['createMarketBuyOrderRequiresPrice'])) {
-                const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
-                if (price === undefined && cost === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
+            let quoteAmount = undefined;
+            let createMarketBuyOrderRequiresPrice = true;
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber (params, 'cost');
+            params = this.omit (params, 'cost');
+            if (cost !== undefined) {
+                quoteAmount = this.costToPrecision (symbol, cost);
+            } else if (createMarketBuyOrderRequiresPrice) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                 } else {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
-                    const quote = Precise.stringMul (amountString, priceString);
-                    amount = (cost !== undefined) ? cost : this.parseNumber (quote);
-                    quoteAmount = this.costToPrecision (symbol, amount);
+                    const costRequest = Precise.stringMul (amountString, priceString);
+                    quoteAmount = this.costToPrecision (symbol, costRequest);
                 }
             } else {
                 quoteAmount = this.costToPrecision (symbol, amount);
             }
-            request['amount'] = this.amountToPrecision (market['symbol'], quoteAmount);
+            request['amount'] = quoteAmount;
         } else {
             request['quantity'] = this.amountToPrecision (market['symbol'], amount);
             if (price !== undefined) {
@@ -326,7 +330,7 @@ export default class poloniex extends poloniexRest {
         client.resolve (orders, messageHash);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name poloniex#watchOHLCV
@@ -352,7 +356,7 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name poloniex#watchTicker
@@ -368,7 +372,7 @@ export default class poloniex extends poloniexRest {
         return this.safeValue (tickers, symbol);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name poloniex#watchTicker
@@ -388,7 +392,7 @@ export default class poloniex extends poloniexRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name poloniex#watchTrades
@@ -410,7 +414,7 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name poloniex#watchOrderBook
@@ -429,7 +433,7 @@ export default class poloniex extends poloniexRest {
         return orderbook.limit ();
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniex#watchOrders
@@ -455,7 +459,7 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name poloniex#watchMyTrades
@@ -482,7 +486,7 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name poloniex#watchBalance
@@ -550,7 +554,8 @@ export default class poloniex extends poloniexRest {
         const marketId = this.safeString (data, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (symbol);
-        const timeframe = this.findTimeframe (channel);
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframe = this.findTimeframe (channel, timeframes);
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -956,7 +961,7 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString (item, 'symbol');
@@ -964,7 +969,7 @@ export default class poloniex extends poloniexRest {
                 const ticker = this.parseTicker (item);
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
-                newTickers.push (ticker);
+                newTickers[symbol] = ticker;
             }
         }
         const messageHashes = this.findMessageHashes (client, 'ticker::');
@@ -1056,7 +1061,8 @@ export default class poloniex extends poloniexRest {
                         const bid = this.safeValue (bids, j);
                         const price = this.safeNumber (bid, 0);
                         const amount = this.safeNumber (bid, 1);
-                        orderbook['bids'].store (price, amount);
+                        const bidsSide = orderbook['bids'];
+                        bidsSide.store (price, amount);
                     }
                 }
                 if (asks !== undefined) {
@@ -1064,7 +1070,8 @@ export default class poloniex extends poloniexRest {
                         const ask = this.safeValue (asks, j);
                         const price = this.safeNumber (ask, 0);
                         const amount = this.safeNumber (ask, 1);
-                        orderbook['asks'].store (price, amount);
+                        const asksSide = orderbook['asks'];
+                        asksSide.store (price, amount);
                     }
                 }
                 orderbook['symbol'] = symbol;
@@ -1201,13 +1208,13 @@ export default class poloniex extends poloniexRest {
             if (orderId === '0') {
                 this.handleErrorMessage (client, item);
             } else {
-                return this.handleOrderRequest (client, message);
+                this.handleOrderRequest (client, message);
             }
         } else {
             const data = this.safeValue (message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
-                return method.call (this, client, message);
+                method.call (this, client, message);
             }
         }
     }

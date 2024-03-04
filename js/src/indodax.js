@@ -12,7 +12,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class indodax
- * @extends Exchange
+ * @augments Exchange
  */
 export default class indodax extends Exchange {
     describe() {
@@ -49,6 +49,9 @@ export default class indodax extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDeposit': false,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -97,7 +100,7 @@ export default class indodax extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api': {
-                    'public': 'https://indodax.com/api',
+                    'public': 'https://indodax.com',
                     'private': 'https://indodax.com/tapi',
                 },
                 'www': 'https://www.indodax.com',
@@ -107,14 +110,15 @@ export default class indodax extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'server_time': 5,
-                        'pairs': 5,
-                        'price_increments': 5,
-                        'summaries': 5,
-                        'ticker_all': 5,
-                        '{pair}/ticker': 5,
-                        '{pair}/trades': 5,
-                        '{pair}/depth': 5,
+                        'api/server_time': 5,
+                        'api/pairs': 5,
+                        'api/price_increments': 5,
+                        'api/summaries': 5,
+                        'api/ticker/{pair}': 5,
+                        'api/ticker_all': 5,
+                        'api/trades/{pair}': 5,
+                        'api/depth/{pair}': 5,
+                        'tradingview/history_v2': 5,
                     },
                 },
                 'private': {
@@ -160,7 +164,35 @@ export default class indodax extends Exchange {
             'options': {
                 'recvWindow': 5 * 1000,
                 'timeDifference': 0,
-                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'adjustForTimeDifference': false,
+                'networks': {
+                    'XLM': 'Stellar Token',
+                    'BSC': 'bep20',
+                    'TRC20': 'trc20',
+                    'MATIC': 'polygon',
+                    // 'BEP2': 'bep2',
+                    // 'ARB': 'arb',
+                    // 'ERC20': 'erc20',
+                    // 'KIP7': 'kip7',
+                    // 'MAINNET': 'mainnet',  // TODO: does mainnet just mean the default?
+                    // 'OEP4': 'oep4',
+                    // 'OP': 'op',
+                    // 'SPL': 'spl',
+                    // 'TRC10': 'trc10',
+                    // 'ZRC2': 'zrc2'
+                    // 'ETH': 'eth'
+                    // 'BASE': 'base'
+                },
+                'timeframes': {
+                    '1m': '1',
+                    '15m': '15',
+                    '30m': '30',
+                    '1h': '60',
+                    '4h': '240',
+                    '1d': '1D',
+                    '3d': '3D',
+                    '1w': '1W',
+                },
             },
             'commonCurrencies': {
                 'STR': 'XLM',
@@ -180,10 +212,11 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#server-time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetServerTime(params);
+        const response = await this.publicGetApiServerTime(params);
         //
         //     {
         //         "timezone": "UTC",
@@ -197,10 +230,11 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchMarkets
          * @description retrieves data on all markets for indodax
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetPairs(params);
+        const response = await this.publicGetApiPairs(params);
         //
         //     [
         //         {
@@ -317,6 +351,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -359,6 +394,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -367,9 +403,9 @@ export default class indodax extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'pair': market['id'],
+            'pair': market['base'] + market['quote'],
         };
-        const orderbook = await this.publicGetPairDepth(this.extend(request, params));
+        const orderbook = await this.publicGetApiDepthPair(this.extend(request, params));
         return this.parseOrderBook(orderbook, market['symbol'], undefined, 'buy', 'sell');
     }
     parseTicker(ticker, market = undefined) {
@@ -418,6 +454,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -425,9 +462,9 @@ export default class indodax extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'pair': market['id'],
+            'pair': market['base'] + market['quote'],
         };
-        const response = await this.publicGetPairTicker(this.extend(request, params));
+        const response = await this.publicGetApiTickerPair(this.extend(request, params));
         //
         //     {
         //         "ticker": {
@@ -472,7 +509,7 @@ export default class indodax extends Exchange {
         //     }
         // }
         //
-        const response = await this.publicGetTickerAll(params);
+        const response = await this.publicGetApiTickerAll(params);
         const tickers = this.safeValue(response, 'tickers');
         return this.parseTickers(tickers, symbols);
     }
@@ -499,6 +536,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -508,10 +546,80 @@ export default class indodax extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'pair': market['id'],
+            'pair': market['base'] + market['quote'],
         };
-        const response = await this.publicGetPairTrades(this.extend(request, params));
+        const response = await this.publicGetApiTradesPair(this.extend(request, params));
         return this.parseTrades(response, market, since, limit);
+    }
+    parseOHLCV(ohlcv, market = undefined) {
+        //
+        //     {
+        //         "Time": 1708416900,
+        //         "Open": 51707.52,
+        //         "High": 51707.52,
+        //         "Low": 51707.52,
+        //         "Close": 51707.52,
+        //         "Volume": "0"
+        //     }
+        //
+        return [
+            this.safeTimestamp(ohlcv, 'Time'),
+            this.safeNumber(ohlcv, 'Open'),
+            this.safeNumber(ohlcv, 'High'),
+            this.safeNumber(ohlcv, 'Low'),
+            this.safeNumber(ohlcv, 'Close'),
+            this.safeNumber(ohlcv, 'Volume'),
+        ];
+    }
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name indodax#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const timeframes = this.options['timeframes'];
+        const selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
+        const now = this.seconds();
+        const until = this.safeInteger2(params, 'until', 'till', now);
+        params = this.omit(params, ['until', 'till']);
+        const request = {
+            'to': until,
+            'tf': selectedTimeframe,
+            'symbol': market['base'] + market['quote'],
+        };
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        if (since !== undefined) {
+            request['from'] = Math.floor(since / 1000);
+        }
+        else {
+            const duration = this.parseTimeframe(timeframe);
+            request['from'] = now - limit * duration - 1;
+        }
+        const response = await this.publicGetTradingviewHistoryV2(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "Time": 1708416900,
+        //             "Open": 51707.52,
+        //             "High": 51707.52,
+        //             "Low": 51707.52,
+        //             "Close": 51707.52,
+        //             "Volume": "0"
+        //         }
+        //     ]
+        //
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -604,6 +712,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-order-endpoints
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -628,6 +737,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#open-orders-endpoints
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -668,6 +778,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#order-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -692,6 +803,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#createOrder
          * @description create a trade order
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -731,6 +843,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#cancelOrder
          * @description cancels an open order
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#cancel-order-endpoints
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -757,6 +870,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTransactionFee
          * @description fetch the fee for a transaction
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -790,6 +904,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -891,6 +1006,7 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#withdraw
          * @description make a withdrawal
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1019,10 +1135,100 @@ export default class indodax extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
+    async fetchDepositAddresses(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name indodax#fetchDepositAddresses
+         * @description fetch deposit addresses for multiple currencies and chain types
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
+         * @param {string[]} [codes] list of unified currency codes, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.privatePostGetInfo(params);
+        //
+        //    {
+        //        success: '1',
+        //        return: {
+        //            server_time: '1708031570',
+        //            balance: {
+        //                idr: '29952',
+        //                ...
+        //            },
+        //            balance_hold: {
+        //                idr: '0',
+        //                ...
+        //            },
+        //            address: {
+        //                btc: '1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk',
+        //                ...
+        //            },
+        //            memo_is_required: {
+        //                btc: { mainnet: false },
+        //                ...
+        //            },
+        //            network: {
+        //                btc: 'mainnet',
+        //                ...
+        //            },
+        //            user_id: '276011',
+        //            name: '',
+        //            email: 'testbitcoincoid@mailforspam.com',
+        //            profile_picture: null,
+        //            verification_status: 'unverified',
+        //            gauth_enable: true,
+        //            withdraw_status: '0'
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'return');
+        const addresses = this.safeDict(data, 'address', {});
+        const networks = this.safeDict(data, 'network', {});
+        const addressKeys = Object.keys(addresses);
+        const result = {
+            'info': data,
+        };
+        for (let i = 0; i < addressKeys.length; i++) {
+            const marketId = addressKeys[i];
+            const code = this.safeCurrencyCode(marketId);
+            const address = this.safeString(addresses, marketId);
+            if ((address !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
+                this.checkAddress(address);
+                let network = undefined;
+                if (marketId in networks) {
+                    const networkId = this.safeString(networks, marketId);
+                    if (networkId.indexOf(',') >= 0) {
+                        network = [];
+                        const networkIds = networkId.split(',');
+                        for (let j = 0; j < networkIds.length; j++) {
+                            network.push(this.networkIdToCode(networkIds[j]).toUpperCase());
+                        }
+                    }
+                    else {
+                        network = this.networkIdToCode(networkId).toUpperCase();
+                    }
+                }
+                result[code] = {
+                    'info': {},
+                    'currency': code,
+                    'address': address,
+                    'network': network,
+                    'tag': undefined,
+                };
+            }
+        }
+        return result;
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if (api === 'public') {
-            url += '/' + this.implodeParams(path, params);
+            const query = this.omit(params, this.extractParams(path));
+            const requestPath = '/' + this.implodeParams(path, params);
+            url = url + requestPath;
+            if (Object.keys(query).length) {
+                url += '?' + this.urlencodeWithArrayRepeat(query);
+            }
         }
         else {
             this.checkRequiredCredentials();

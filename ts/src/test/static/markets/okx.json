@@ -1012,5 +1012,77 @@
         "taker": 0.0005,
         "maker": 0.0002,
         "created": 1611916828000
+    },
+    "SUSHI/USDT:USDT": {
+        "id": "SUSHI-USDT-SWAP",
+        "symbol": "SUSHI/USDT:USDT",
+        "base": "SUSHI",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "SUSHI",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1628508565000,
+        "info": {
+            "alias": "",
+            "baseCcy": "",
+            "category": "1",
+            "ctMult": "1",
+            "ctType": "linear",
+            "ctVal": "1",
+            "ctValCcy": "SUSHI",
+            "expTime": "",
+            "instFamily": "SUSHI-USDT",
+            "instId": "SUSHI-USDT-SWAP",
+            "instType": "SWAP",
+            "lever": "50",
+            "listTime": "1628508565000",
+            "lotSz": "1",
+            "maxIcebergSz": "100000000.0000000000000000",
+            "maxLmtAmt": "1000000",
+            "maxLmtSz": "100000000",
+            "maxMktAmt": "",
+            "maxMktSz": "150000",
+            "maxStopSz": "150000",
+            "maxTriggerSz": "100000000.0000000000000000",
+            "maxTwapSz": "100000000.0000000000000000",
+            "minSz": "1",
+            "optType": "",
+            "quoteCcy": "",
+            "settleCcy": "USDT",
+            "state": "live",
+            "stk": "",
+            "tickSz": "0.0001",
+            "uly": "SUSHI-USDT"
+        }
     }
 }

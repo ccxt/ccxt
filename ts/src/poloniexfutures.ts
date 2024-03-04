@@ -5,13 +5,13 @@ import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, FundingHistory, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, FundingHistory, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class poloniexfutures
- * @extends Exchange
+ * @augments Exchange
  */
 export default class poloniexfutures extends Exchange {
     describe () {
@@ -35,7 +35,11 @@ export default class poloniexfutures extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingRate': true,
+                'fetchFundingRateHistory': false,
                 'fetchL3OrderBook': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -810,7 +814,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#createOrder
@@ -870,7 +874,7 @@ export default class poloniexfutures extends Exchange {
                 request['timeInForce'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        const postOnly = this.safeBool (params, 'postOnly', false);
         const hidden = this.safeValue (params, 'hidden');
         if (postOnly && (hidden !== undefined)) {
             throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
@@ -1203,9 +1207,14 @@ export default class poloniexfutures extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const stop = this.safeValue (params, 'stop');
-        const method = stop ? 'privateDeleteStopOrders' : 'privateDeleteOrders';
-        const response = await this[method] (this.extend (request, params));
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        let response = undefined;
+        if (stop) {
+            response = await this.privateDeleteStopOrders (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteOrders (this.extend (request, params));
+        }
         //
         //   {
         //       "code": "200000",
@@ -1268,9 +1277,9 @@ export default class poloniexfutures extends Exchange {
          * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
         const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'stop', 'until', 'till' ]);
+        params = this.omit (params, [ 'triger', 'stop', 'until', 'till' ]);
         if (status === 'closed') {
             status = 'done';
         }
@@ -1291,8 +1300,12 @@ export default class poloniexfutures extends Exchange {
         if (until !== undefined) {
             request['endAt'] = until;
         }
-        const method = stop ? 'privateGetStopOrders' : 'privateGetOrders';
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (stop) {
+            response = await this.privateGetStopOrders (this.extend (request, params));
+        } else {
+            response = await this.privateGetOrders (this.extend (request, params));
+        }
         //
         //    {
         //        "code": "200000",
@@ -1382,7 +1395,7 @@ export default class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.till] end time in ms
          * @param {string} [params.side] buy or sell
@@ -1392,7 +1405,7 @@ export default class poloniexfutures extends Exchange {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
-    async fetchOrder (id = undefined, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: string = undefined, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOrder
@@ -1405,19 +1418,19 @@ export default class poloniexfutures extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let method = 'privateGetOrdersOrderId';
+        let response = undefined;
         if (id === undefined) {
             const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
             if (clientOrderId === undefined) {
                 throw new InvalidOrder (this.id + ' fetchOrder() requires parameter id or params.clientOid');
             }
             request['clientOid'] = clientOrderId;
-            method = 'privateGetOrdersByClientOid';
             params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+            response = await this.privateGetClientOrderIdClientOid (this.extend (request, params));
         } else {
             request['order-id'] = id;
+            response = await this.privateGetOrdersOrderId (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -1556,8 +1569,8 @@ export default class poloniexfutures extends Exchange {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        const isActive = this.safeValue (order, 'isActive', false);
-        const cancelExist = this.safeValue (order, 'cancelExist', false);
+        const isActive = this.safeBool (order, 'isActive', false);
+        const cancelExist = this.safeBool (order, 'cancelExist', false);
         const status = isActive ? 'open' : 'closed';
         let id = this.safeString (order, 'id');
         if ('cancelledOrderIds' in order) {
@@ -1707,13 +1720,13 @@ export default class poloniexfutures extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async setMarginMode (marginMode, symbol, params = {}) {
+    async setMarginMode (marginMode: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
          * @see https://futures-docs.poloniex.com/#change-margin-mode
-         * @param {int} marginMode 0 (isolated) or 1 (cross)
+         * @param {string} marginMode "0" (isolated) or "1" (cross)
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from the exchange
@@ -1721,14 +1734,20 @@ export default class poloniexfutures extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        if ((marginMode !== 0) && (marginMode !== 1)) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be 0 (isolated) or 1 (cross)');
+        if ((marginMode !== '0') && (marginMode !== '1') && (marginMode !== 'isolated') && (marginMode !== 'cross')) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be 0/isolated or 1/cross');
         }
         await this.loadMarkets ();
+        if (marginMode === 'isolated') {
+            marginMode = '0';
+        }
+        if (marginMode === 'cross') {
+            marginMode = '1';
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': this.parseToInt (marginMode),
         };
         return await this.privatePostMarginTypeChange (request);
     }
@@ -1742,7 +1761,7 @@ export default class poloniexfutures extends Exchange {
         const version = this.safeString (params, 'version', defaultVersion);
         const tail = '/api/' + version + '/' + this.implodeParams (path, params);
         url += tail;
-        const query = this.omit (params, path);
+        const query = this.omit (params, this.extractParams (path));
         const queryLength = Object.keys (query).length;
         if (api === 'public') {
             if (queryLength) {

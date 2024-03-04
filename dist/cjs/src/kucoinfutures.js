@@ -7,6 +7,10 @@ var kucoinfutures$1 = require('./abstract/kucoinfutures.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class kucoinfutures
+ * @augments Exchange
+ */
 class kucoinfutures extends kucoinfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -29,12 +33,18 @@ class kucoinfutures extends kucoinfutures$1 {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closePosition': true,
+                'closePositions': false,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
+                'createStopLossOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTakeProfitOrder': true,
+                'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
@@ -49,7 +59,7 @@ class kucoinfutures extends kucoinfutures$1 {
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -149,6 +159,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'positions': 4.44,
                         'funding-history': 4.44,
                         'sub/api-key': 1,
+                        'trade-statistics': 1,
                     },
                     'post': {
                         'withdrawals': 1,
@@ -170,6 +181,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'orders': 4.44,
                         'stopOrders': 1,
                         'sub/api-key': 1,
+                        'orders/client-order/{clientOid}': 1,
                     },
                 },
                 'webExchange': {
@@ -704,9 +716,6 @@ class kucoinfutures extends kucoinfutures$1 {
         orderbook['nonce'] = this.safeInteger(data, 'sequence');
         return orderbook;
     }
-    async fetchL3OrderBook(symbol, limit = undefined, params = {}) {
-        throw new errors.BadRequest(this.id + ' fetchL3OrderBook() is not supported yet');
-    }
     async fetchTicker(symbol, params = {}) {
         /**
          * @method
@@ -1112,6 +1121,78 @@ class kucoinfutures extends kucoinfutures$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        const testOrder = this.safeBool(params, 'test', false);
+        params = this.omit(params, 'test');
+        const orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (testOrder) {
+            response = await this.futuresPrivatePostOrdersTest(orderRequest);
+        }
+        else {
+            response = await this.futuresPrivatePostOrders(orderRequest);
+        }
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "orderId": "619717484f1d010001510cde",
+        //        },
+        //    }
+        //
+        const data = this.safeValue(response, 'data', {});
+        return this.parseOrder(data, market);
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#createOrders
+         * @description create a list of trade orders
+         * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-orders
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params]  extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString(rawOrder, 'symbol');
+            const market = this.market(symbol);
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderRequest = this.createContractOrderRequest(market['id'], type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const response = await this.futuresPrivatePostOrdersMulti(ordersRequests);
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "orderId": "135241412609331200",
+        //                 "clientOid": "3d8fcc13-0b13-447f-ad30-4b3441e05213",
+        //                 "symbol": "LTCUSDTM",
+        //                 "code": "200000",
+        //                 "msg": "success"
+        //             },
+        //             {
+        //                 "orderId": "135241412747743234",
+        //                 "clientOid": "b878c7ee-ae3e-4d63-a20b-038acbb7306f",
+        //                 "symbol": "LTCUSDTM",
+        //                 "code": "200000",
+        //                 "msg": "success"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue(response, 'data', []);
+        return this.parseOrders(data);
+    }
+    createContractOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market(symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId', this.uuid());
         params = this.omit(params, ['clientOid', 'clientOrderId']);
@@ -1183,48 +1264,7 @@ class kucoinfutures extends kucoinfutures$1 {
             }
         }
         params = this.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']); // Time in force only valid for limit orders, exchange error when gtc for market orders
-        let response = undefined;
-        const testOrder = this.safeValue(params, 'test', false);
-        params = this.omit(params, 'test');
-        if (testOrder) {
-            response = await this.futuresPrivatePostOrdersTest(this.extend(request, params));
-        }
-        else {
-            response = await this.futuresPrivatePostOrders(this.extend(request, params));
-        }
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "orderId": "619717484f1d010001510cde",
-        //        },
-        //    }
-        //
-        const data = this.safeValue(response, 'data', {});
-        return this.safeOrder({
-            'id': this.safeString(data, 'orderId'),
-            'clientOrderId': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'symbol': undefined,
-            'type': undefined,
-            'side': undefined,
-            'price': undefined,
-            'amount': undefined,
-            'cost': undefined,
-            'average': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': undefined,
-            'fee': undefined,
-            'trades': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'info': response,
-        }, market);
+        return this.extend(request, params);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1235,13 +1275,27 @@ class kucoinfutures extends kucoinfutures$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] cancel order by client order id
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        const request = {
-            'orderId': id,
-        };
-        const response = await this.futuresPrivateDeleteOrdersOrderId(this.extend(request, params));
+        const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
+        params = this.omit(params, ['clientOrderId']);
+        const request = {};
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            if (symbol === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument when cancelling by clientOrderId');
+            }
+            const market = this.market(symbol);
+            request['symbol'] = market['id'];
+            request['clientOid'] = clientOrderId;
+            response = await this.futuresPrivateDeleteOrdersClientOrderClientOid(this.extend(request, params));
+        }
+        else {
+            request['orderId'] = id;
+            response = await this.futuresPrivateDeleteOrdersOrderId(this.extend(request, params));
+        }
         //
         //   {
         //       "code": "200000",
@@ -1263,7 +1317,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.stop] When true, all the trigger orders will be cancelled
+         * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
          * @returns Response from the exchange
          */
         await this.loadMarkets();
@@ -1271,8 +1325,8 @@ class kucoinfutures extends kucoinfutures$1 {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId(symbol);
         }
-        const stop = this.safeValue(params, 'stop');
-        params = this.omit(params, 'stop');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
         if (stop) {
             response = await this.futuresPrivateDeleteStopOrders(this.extend(request, params));
@@ -1441,7 +1495,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @param {int} [since] timestamp in ms of the earliest order to retrieve
          * @param {int} [limit] The maximum number of orders to retrieve
          * @param {object} [params] exchange specific parameters
-         * @param {bool} [params.stop] set to true to retrieve untriggered stop orders
+         * @param {bool} [params.trigger] set to true to retrieve untriggered stop orders
          * @param {int} [params.until] End time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit or market
@@ -1454,9 +1508,9 @@ class kucoinfutures extends kucoinfutures$1 {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchOrdersByStatus', symbol, since, limit, params);
         }
-        const stop = this.safeValue(params, 'stop');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
         const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['stop', 'until', 'till']);
+        params = this.omit(params, ['stop', 'until', 'till', 'trigger']);
         if (status === 'closed') {
             status = 'done';
         }
@@ -1551,7 +1605,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @see https://docs.kucoin.com/futures/#get-order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.till] end time in ms
          * @param {string} [params.side] buy or sell
@@ -1683,10 +1737,26 @@ class kucoinfutures extends kucoinfutures$1 {
         //         "reduceOnly": false
         //     }
         //
+        // createOrder
+        //
+        //     {
+        //         "orderId": "619717484f1d010001510cde"
+        //     }
+        //
+        // createOrders
+        //
+        //     {
+        //         "orderId": "80465574458560512",
+        //         "clientOid": "5c52e11203aa677f33e491",
+        //         "symbol": "ETHUSDTM",
+        //         "code": "200000",
+        //         "msg": "success"
+        //     }
+        //
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        const orderId = this.safeString(order, 'id');
+        const orderId = this.safeString2(order, 'id', 'orderId');
         const type = this.safeString(order, 'type');
         const timestamp = this.safeInteger(order, 'createdAt');
         const datetime = this.iso8601(timestamp);
@@ -1713,18 +1783,25 @@ class kucoinfutures extends kucoinfutures$1 {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        const isActive = this.safeValue(order, 'isActive', false);
-        const cancelExist = this.safeValue(order, 'cancelExist', false);
-        let status = isActive ? 'open' : 'closed';
+        const isActive = this.safeValue(order, 'isActive');
+        const cancelExist = this.safeBool(order, 'cancelExist', false);
+        let status = undefined;
+        if (isActive !== undefined) {
+            status = isActive ? 'open' : 'closed';
+        }
         status = cancelExist ? 'canceled' : status;
-        const fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        };
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            };
+        }
         const clientOrderId = this.safeString(order, 'clientOid');
         const timeInForce = this.safeString(order, 'timeInForce');
         const stopPrice = this.safeNumber(order, 'stopPrice');
         const postOnly = this.safeValue(order, 'postOnly');
+        const reduceOnly = this.safeValue(order, 'reduceOnly');
         const lastUpdateTimestamp = this.safeInteger(order, 'updatedAt');
         return this.safeOrder({
             'id': orderId,
@@ -1733,6 +1810,7 @@ class kucoinfutures extends kucoinfutures$1 {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': side,
             'amount': amount,
             'price': price,
@@ -1757,7 +1835,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @method
          * @name kucoinfutures#fetchFundingRate
          * @description fetch the current funding rate
-         * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-funding-rate
+         * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1781,7 +1859,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const fundingTimestamp = this.safeNumber(data, 'timePoint');
+        const fundingTimestamp = this.safeInteger(data, 'timePoint');
         // the website displayes the previous funding rate as "funding rate"
         return {
             'info': data,
@@ -1792,15 +1870,15 @@ class kucoinfutures extends kucoinfutures$1 {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber(data, 'predictedValue'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': undefined,
+            'fundingRate': this.safeNumber(data, 'value'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': this.safeNumber(data, 'predictedValue'),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber(data, 'value'),
-            'previousFundingTimestamp': fundingTimestamp,
-            'previousFundingDatetime': this.iso8601(fundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
     parseBalance(response) {
@@ -2355,65 +2433,100 @@ class kucoinfutures extends kucoinfutures$1 {
         /**
          * @method
          * @name kucoinfutures#fetchFundingRateHistory
+         * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-public-funding-history#request-url
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] not used by kucuoinfutures
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] end time in ms
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
-        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
+            'from': 0,
+            'to': this.milliseconds(),
         };
-        if (limit !== undefined) {
-            request['maxCount'] = limit;
+        const until = this.safeInteger2(params, 'until', 'till');
+        params = this.omit(params, ['until', 'till']);
+        if (since !== undefined) {
+            request['from'] = since;
+            if (until === undefined) {
+                request['to'] = since + 1000 * 8 * 60 * 60 * 100;
+            }
         }
-        const response = await this.webExchangeGetContractSymbolFundingRates(this.extend(request, params));
+        if (until !== undefined) {
+            request['to'] = until;
+            if (since === undefined) {
+                request['to'] = until - 1000 * 8 * 60 * 60 * 100;
+            }
+        }
+        const response = await this.futuresPublicGetContractFundingRates(this.extend(request, params));
         //
-        //    {
-        //        "success": true,
-        //        "code": "200",
-        //        "msg": "success",
-        //        "retry": false,
-        //        "data": {
-        //            "dataList": [
-        //                {
-        //                    "symbol": "XBTUSDTM",
-        //                    "granularity": 28800000,
-        //                    "timePoint": 1675108800000,
-        //                    "value": 0.0001
-        //                },
-        //                ...
-        //            ],
-        //            "hasMore": true
-        //        }
-        //    }
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "symbol": "IDUSDTM",
+        //                 "fundingRate": 2.26E-4,
+        //                 "timepoint": 1702296000000
+        //             }
+        //         ]
+        //     }
         //
         const data = this.safeValue(response, 'data');
-        const dataList = this.safeValue(data, 'dataList');
-        return this.parseFundingRateHistories(dataList, market, since, limit);
+        return this.parseFundingRateHistories(data, market, since, limit);
     }
     parseFundingRateHistory(info, market = undefined) {
-        const timestamp = this.safeInteger(info, 'timePoint');
+        const timestamp = this.safeInteger(info, 'timepoint');
         const marketId = this.safeString(info, 'symbol');
         return {
             'info': info,
             'symbol': this.safeSymbol(marketId, market),
-            'fundingRate': this.safeNumber(info, 'value'),
+            'fundingRate': this.safeNumber(info, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
+    }
+    async closePosition(symbol, side = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#closePosition
+         * @description closes open positions for a market
+         * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} side not used by kucoinfutures closePositions
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.clientOrderId] client order id of the order
+         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let clientOrderId = this.safeString(params, 'clientOrderId');
+        const testOrder = this.safeBool(params, 'test', false);
+        params = this.omit(params, ['test', 'clientOrderId']);
+        if (clientOrderId === undefined) {
+            clientOrderId = this.numberToString(this.nonce());
+        }
+        const request = {
+            'symbol': market['id'],
+            'closeOrder': true,
+            'clientOid': clientOrderId,
+            'type': 'market',
+        };
+        let response = undefined;
+        if (testOrder) {
+            response = await this.futuresPrivatePostOrdersTest(this.extend(request, params));
+        }
+        else {
+            response = await this.futuresPrivatePostOrders(this.extend(request, params));
+        }
+        return this.parseOrder(response, market);
     }
 }
 

@@ -71,13 +71,11 @@ class cryptocom extends cryptocom$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
+         * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const messageHash = 'book' + '.' + market['id'];
-        const orderbook = await this.watchPublic(messageHash, params);
-        return orderbook.limit();
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         /**
@@ -88,61 +86,144 @@ class cryptocom extends cryptocom$1 {
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
+         * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const topics = [];
+        const messageHashes = [];
+        if (!limit) {
+            limit = 50;
+        }
+        const topicParams = this.safeValue(params, 'params');
+        if (topicParams === undefined) {
+            params['params'] = {};
+        }
+        let bookSubscriptionType = undefined;
+        [bookSubscriptionType, params] = this.handleOptionAndParams2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        if (bookSubscriptionType !== undefined) {
+            params['params']['bookSubscriptionType'] = bookSubscriptionType;
+        }
+        let bookUpdateFrequency = undefined;
+        [bookUpdateFrequency, params] = this.handleOptionAndParams2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency');
+        if (bookUpdateFrequency !== undefined) {
+            params['params']['bookSubscriptionType'] = bookSubscriptionType;
+        }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const currentMessageHash = 'book' + '.' + market['id'];
-            topics.push(currentMessageHash);
+            const currentTopic = 'book' + '.' + market['id'] + '.' + limit.toString();
+            const messageHash = 'orderbook:' + market['symbol'];
+            messageHashes.push(messageHash);
+            topics.push(currentTopic);
         }
-        const messageHash = 'multipleOrderbooks::' + symbols.join(',');
-        const orderbook = await this.watchPublicMultiple(messageHash, topics, params);
+        const orderbook = await this.watchPublicMultiple(messageHashes, topics, params);
         return orderbook.limit();
     }
-    handleOrderBookSnapshot(client, message) {
-        // full snapshot
+    handleDelta(bookside, delta) {
+        const price = this.safeFloat(delta, 0);
+        const amount = this.safeFloat(delta, 1);
+        const count = this.safeInteger(delta, 2);
+        bookside.store(price, amount, count);
+    }
+    handleDeltas(bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta(bookside, deltas[i]);
+        }
+    }
+    handleOrderBook(client, message) {
         //
-        // {
-        //     "instrument_name":"LTC_USDT",
-        //     "subscription":"book.LTC_USDT.150",
-        //     "channel":"book",
-        //     "depth":150,
-        //     "data": [
-        //          {
-        //              "bids": [
-        //                  [122.21, 0.74041, 4]
-        //              ],
-        //              "asks": [
-        //                  [122.29, 0.00002, 1]
-        //              ]
-        //              "t": 1648123943803,
-        //              "s":754560122
-        //          }
-        //      ]
-        // }
+        // snapshot
+        //    {
+        //        "instrument_name":"LTC_USDT",
+        //        "subscription":"book.LTC_USDT.150",
+        //        "channel":"book",
+        //        "depth":150,
+        //        "data": [
+        //             {
+        //                 "bids": [
+        //                     [122.21, 0.74041, 4]
+        //                 ],
+        //                 "asks": [
+        //                     [122.29, 0.00002, 1]
+        //                 ]
+        //                 "t": 1648123943803,
+        //                 "s":754560122
+        //             }
+        //         ]
+        //    }
+        //  update
+        //    {
+        //        "instrument_name":"BTC_USDT",
+        //        "subscription":"book.BTC_USDT.50",
+        //        "channel":"book.update",
+        //        "depth":50,
+        //        "data":[
+        //           {
+        //              "update":{
+        //                 "asks":[
+        //                    [
+        //                       "43755.46",
+        //                       "0.10000",
+        //                       "1"
+        //                    ],
+        //                    ...
+        //                 ],
+        //                 "bids":[
+        //                    [
+        //                       "43737.46",
+        //                       "0.14096",
+        //                       "1"
+        //                    ],
+        //                    ...
+        //                 ]
+        //              },
+        //              "t":1704484068898,
+        //              "tt":1704484068892,
+        //              "u":78795598253024,
+        //              "pu":78795598162080,
+        //              "cs":-781431132
+        //           }
+        //        ]
+        //    }
         //
-        const messageHash = this.safeString(message, 'subscription');
         const marketId = this.safeString(message, 'instrument_name');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         let data = this.safeValue(message, 'data');
         data = this.safeValue(data, 0);
         const timestamp = this.safeInteger(data, 't');
-        const snapshot = this.parseOrderBook(data, symbol, timestamp);
-        snapshot['nonce'] = this.safeInteger(data, 's');
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
             const limit = this.safeInteger(message, 'depth');
-            orderbook = this.orderBook({}, limit);
+            orderbook = this.countedOrderBook({}, limit);
         }
-        orderbook.reset(snapshot);
+        const channel = this.safeString(message, 'channel');
+        const nonce = this.safeInteger2(data, 'u', 's');
+        let books = data;
+        if (channel === 'book') { // snapshot
+            orderbook.reset({});
+            orderbook['symbol'] = symbol;
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601(timestamp);
+            orderbook['nonce'] = nonce;
+        }
+        else {
+            books = this.safeValue(data, 'update', {});
+            const previousNonce = this.safeInteger(data, 'pu');
+            const currentNonce = orderbook['nonce'];
+            if (currentNonce !== previousNonce) {
+                throw new errors.InvalidNonce(this.id + ' watchOrderBook() ' + symbol + ' ' + previousNonce + ' != ' + nonce);
+            }
+        }
+        this.handleDeltas(orderbook['asks'], this.safeValue(books, 'asks', []));
+        this.handleDeltas(orderbook['bids'], this.safeValue(books, 'bids', []));
+        orderbook['nonce'] = nonce;
         this.orderbooks[symbol] = orderbook;
+        const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
-        this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -156,15 +237,7 @@ class cryptocom extends cryptocom$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trade' + '.' + market['id'];
-        const trades = await this.watchPublic(messageHash, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
-        }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         /**
@@ -176,7 +249,7 @@ class cryptocom extends cryptocom$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -184,11 +257,10 @@ class cryptocom extends cryptocom$1 {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const currentMessageHash = 'trade' + '.' + market['id'];
-            topics.push(currentMessageHash);
+            const currentTopic = 'trade' + '.' + market['id'];
+            topics.push(currentTopic);
         }
-        const messageHash = 'multipleTrades::' + symbols.join(',');
-        const trades = await this.watchPublicMultiple(messageHash, topics, params);
+        const trades = await this.watchPublicMultiple(topics, topics, params);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -242,7 +314,6 @@ class cryptocom extends cryptocom$1 {
         const channelReplaced = channel.replace('.' + marketId, '');
         client.resolve(stored, symbolSpecificMessageHash);
         client.resolve(stored, channelReplaced);
-        this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, stored);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -482,7 +553,7 @@ class cryptocom extends cryptocom$1 {
         const client = this.client(url);
         this.setPositionsCache(client, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -761,7 +832,7 @@ class cryptocom extends cryptocom$1 {
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash);
     }
-    async watchPublicMultiple(messageHash, topics, params = {}) {
+    async watchPublicMultiple(messageHashes, topics, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce();
         const request = {
@@ -771,8 +842,8 @@ class cryptocom extends cryptocom$1 {
             },
             'nonce': id,
         };
-        const message = this.extend(request, params);
-        return await this.watch(url, messageHash, message, messageHash);
+        const message = this.deepExtend(request, params);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
     async watchPrivateRequest(nonce, params = {}) {
         await this.authenticate();
@@ -838,7 +909,8 @@ class cryptocom extends cryptocom$1 {
             'candlestick': this.handleOHLCV,
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
-            'book': this.handleOrderBookSnapshot,
+            'book': this.handleOrderBook,
+            'book.update': this.handleOrderBook,
             'user.order': this.handleOrders,
             'user.trade': this.handleTrades,
             'user.balance': this.handleBalance,

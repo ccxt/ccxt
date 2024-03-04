@@ -5,7 +5,7 @@ import idexRest from '../idex.js';
 import { InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -69,7 +69,7 @@ export default class idex extends idexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name idex#watchTicker
@@ -143,7 +143,7 @@ export default class idex extends idexRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name idex#watchTrades
@@ -180,9 +180,9 @@ export default class idex extends idexRest {
         const length = keys.length;
         if (length === 0) {
             const limit = this.safeInteger (this.options, 'tradesLimit');
-            this.trades = new ArrayCacheBySymbolById (limit);
+            this.trades = new ArrayCacheBySymbolById (limit) as any;
         }
-        const trades = this.trades;
+        const trades = this.trades as any;
         trades.append (trade);
         client.resolve (trades, messageHash);
     }
@@ -240,7 +240,7 @@ export default class idex extends idexRest {
         });
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name idex#watchOHLCV
@@ -337,7 +337,7 @@ export default class idex extends idexRest {
                         const symbol = this.safeSymbol (marketId);
                         if (!(symbol in this.orderbooks)) {
                             const orderbook = this.countedOrderBook ({});
-                            (orderbook as any).cache = [];
+                            // orderbook.cache = []; // cache is never used?
                             this.orderbooks[symbol] = orderbook;
                         }
                         this.spawn (this.fetchOrderBookSnapshot, client, symbol);
@@ -411,7 +411,7 @@ export default class idex extends idexRest {
         }
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name idex#watchOrderBook
@@ -518,14 +518,14 @@ export default class idex extends idexRest {
         return this.options['token'];
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name idex#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

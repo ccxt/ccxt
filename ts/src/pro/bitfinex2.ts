@@ -6,7 +6,7 @@ import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -57,7 +57,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             'symbol': marketId,
         };
         const result = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, { 'checksum': false });
-        const checksum = this.safeValue (this.options, 'checksum', true);
+        const checksum = this.safeBool (this.options, 'checksum', true);
         if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
             client.subscriptions[messageHash]['checksum'] = true;
             await client.send ({
@@ -75,7 +75,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return await this.watch (url, messageHash, undefined, 1);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitfinex2#watchOHLCV
@@ -191,7 +191,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitfinex2#watchTrades
@@ -209,7 +209,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitfinex2#watchMyTrades
@@ -233,7 +233,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitfinex2#watchTicker
@@ -331,7 +331,9 @@ export default class bitfinex2 extends bitfinex2Rest {
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
-            const trades = this.safeValue (message, 1, []);
+            let trades = this.safeList (message, 1, []);
+            // needs to be reversed to make chronological order
+            trades = trades.reverse ();
             for (let i = 0; i < trades.length; i++) {
                 const parsed = this.parseWsTrade (trades[i], market);
                 stored.append (parsed);
@@ -349,7 +351,6 @@ export default class bitfinex2 extends bitfinex2Rest {
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);
-        return message;
     }
 
     parseWsTrade (trade, market = undefined) {
@@ -526,7 +527,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         }, market);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitfinex2#watchOrderBook
@@ -604,8 +605,9 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
+                    const delta2 = delta[2];
+                    const size = (delta2 < 0) ? -delta2 : delta2;
+                    const side = (delta2 < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
                     const idString = this.safeString (delta, 0);
                     const price = this.safeFloat (delta, 1);
@@ -631,8 +633,9 @@ export default class bitfinex2 extends bitfinex2Rest {
             const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
                 const price = this.safeString (deltas, 1);
-                const size = (deltas[2] < 0) ? -deltas[2] : deltas[2];
-                const side = (deltas[2] < 0) ? 'asks' : 'bids';
+                const deltas2 = deltas[2];
+                const size = (deltas2 < 0) ? -deltas2 : deltas2;
+                const side = (deltas2 < 0) ? 'asks' : 'bids';
                 const bookside = orderbookItem[side];
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise.stringGt (price, '0') ? size : '0';
@@ -680,7 +683,8 @@ export default class bitfinex2 extends bitfinex2Rest {
             }
             if (ask !== undefined) {
                 stringArray.push (this.numberToString (asks[i][idToCheck]));
-                stringArray.push (this.numberToString (-asks[i][1]));
+                const aski1 = asks[i][1];
+                stringArray.push (this.numberToString (-aski1));
             }
         }
         const payload = stringArray.join (':');
@@ -692,7 +696,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         }
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitfinex2#watchBalance
@@ -892,14 +896,14 @@ export default class bitfinex2 extends bitfinex2Rest {
         }
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitfinex2#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
@@ -1120,7 +1124,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         //
         if (Array.isArray (message)) {
             if (message[1] === 'hb') {
-                return message; // skip heartbeats within subscription channels for now
+                return; // skip heartbeats within subscription channels for now
             }
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
@@ -1147,10 +1151,8 @@ export default class bitfinex2 extends bitfinex2Rest {
             } else {
                 method = this.safeValue2 (publicMethods, name, channel);
             }
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message, subscription);
+            if (method !== undefined) {
+                method.call (this, client, message, subscription);
             }
         } else {
             const event = this.safeString (message, 'event');
@@ -1161,10 +1163,8 @@ export default class bitfinex2 extends bitfinex2Rest {
                     'auth': this.handleAuthenticationMessage,
                 };
                 const method = this.safeValue (methods, event);
-                if (method === undefined) {
-                    return message;
-                } else {
-                    return method.call (this, client, message);
+                if (method !== undefined) {
+                    method.call (this, client, message);
                 }
             }
         }

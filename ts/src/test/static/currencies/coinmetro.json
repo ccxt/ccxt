@@ -1,0 +1,295 @@
+{
+    "BTC": {
+        "info": {
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "color": "#FFA500",
+            "type": "coin",
+            "canDeposit": true,
+            "canWithdraw": true,
+            "canTrade": true,
+            "notabeneDecimals": "8",
+            "canMarket": true,
+            "maxSwap": "10000",
+            "digits": "6",
+            "multiplier": "1000000",
+            "bookDigits": "8",
+            "bookMultiplier": "100000000",
+            "sentimentData": {
+                "sentiment": "43.95555555555555",
+                "interest": "0.9571265738324092"
+            },
+            "minQty": "0.0001"
+        },
+        "id": "BTC",
+        "code": "BTC",
+        "precision": 6,
+        "name": "BTC",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "withdraw": {}
+        }
+    },
+    "ETH": {
+        "info": {
+            "symbol": "ETH",
+            "name": "Ethereum",
+            "color": "#CCCCCC",
+            "type": "coin",
+            "canDeposit": true,
+            "canWithdraw": true,
+            "canTrade": true,
+            "notabeneDecimals": "18",
+            "canMarket": true,
+            "maxSwap": "10000",
+            "digits": "4",
+            "multiplier": "10000",
+            "bookDigits": "6",
+            "bookMultiplier": "1000000",
+            "sentimentData": {
+                "sentiment": "50.96",
+                "interest": "0.694275377332791"
+            },
+            "minQty": "0.002"
+        },
+        "id": "ETH",
+        "code": "ETH",
+        "precision": 4,
+        "name": "ETH",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": 0.002
+            },
+            "withdraw": {}
+        }
+    },
+    "USDT": {
+        "info": {
+            "symbol": "USDT",
+            "name": "Tether USDt",
+            "type": "erc20",
+            "canDeposit": true,
+            "canWithdraw": true,
+            "canTrade": true,
+            "canMarket": true,
+            "maxSwap": "500",
+            "digits": "2",
+            "multiplier": "100",
+            "bookDigits": "3",
+            "bookMultiplier": "1000",
+            "sentimentData": {
+                "sentiment": "47.96555555555556",
+                "interest": "1.153579676674365"
+            },
+            "minQty": "5"
+        },
+        "id": "USDT",
+        "code": "USDT",
+        "precision": 2,
+        "name": "USDT",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": 5
+            },
+            "withdraw": {}
+        }
+    },
+    "USDC": {
+        "info": {
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "color": "#2775CA",
+            "type": "token",
+            "canDeposit": true,
+            "canWithdraw": true,
+            "canTrade": true,
+            "notabeneDecimals": "6",
+            "canMarket": true,
+            "maxSwap": "10000",
+            "digits": "2",
+            "multiplier": "100",
+            "bookDigits": "3",
+            "bookMultiplier": "1000",
+            "minQty": "6"
+        },
+        "id": "USDC",
+        "code": "USDC",
+        "precision": 2,
+        "name": "USDC",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": 6
+            },
+            "withdraw": {}
+        }
+    },
+    "EUR": {
+        "info": {
+            "symbol": "EUR",
+            "name": "Euro",
+            "color": "#1246FF",
+            "type": "fiat",
+            "canDeposit": true,
+            "canWithdraw": true,
+            "canTrade": true,
+            "canMarket": true,
+            "maxSwap": "10000",
+            "digits": "2",
+            "multiplier": "100",
+            "bookDigits": "3",
+            "bookMultiplier": "1000",
+            "minQty": "5"
+        },
+        "id": "EUR",
+        "code": "EUR",
+        "precision": 2,
+        "name": "EUR",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": 5
+            },
+            "withdraw": {}
+        }
+    },
+    "LTC": {
+        "info": {
+            "symbol": "LTC",
+            "name": "Litecoin",
+            "color": "#345D9D",
+            "type": "coin",
+            "canDeposit": true,
+            "canWithdraw": true,
+            "canTrade": true,
+            "notabeneDecimals": "8",
+            "canMarket": true,
+            "maxSwap": "5000",
+            "digits": "4",
+            "multiplier": "10000",
+            "bookDigits": "6",
+            "bookMultiplier": "1000000",
+            "sentimentData": {
+                "sentiment": "47.42444444444445",
+                "interest": "1.1880197207179373"
+            },
+            "minQty": "0.08"
+        },
+        "id": "LTC",
+        "code": "LTC",
+        "precision": 4,
+        "name": "LTC",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": 0.08
+            },
+            "withdraw": {}
+        }
+    },
+    "DOGE": {
+        "info": {
+            "symbol": "DOGE",
+            "name": "DOGEcoin",
+            "color": "#FFDA82",
+            "type": "coin",
+            "canDeposit": true,
+            "canWithdraw": true,
+            "canTrade": true,
+            "canMarket": true,
+            "maxSwap": "500",
+            "digits": "1",
+            "multiplier": "10",
+            "bookDigits": "4",
+            "bookMultiplier": "10000",
+            "sentimentData": {
+                "sentiment": "45.43666666666666",
+                "interest": "0.859653679167736"
+            },
+            "minQty": "70"
+        },
+        "id": "DOGE",
+        "code": "DOGE",
+        "precision": 1,
+        "name": "DOGE",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": 70
+            },
+            "withdraw": {}
+        }
+    },
+    "ADA": {
+        "info": {
+            "symbol": "ADA",
+            "name": "Cardano",
+            "color": "#2F69F4",
+            "contrastColor": "",
+            "type": "coin",
+            "canDeposit": true,
+            "canWithdraw": true,
+            "canTrade": true,
+            "notabeneDecimals": "6",
+            "canMarket": true,
+            "maxSwap": "5000",
+            "digits": "2",
+            "multiplier": "100",
+            "bookDigits": "3",
+            "bookMultiplier": "1000",
+            "sentimentData": {
+                "sentiment": "48.04444444444444",
+                "interest": "0.9572167259467377"
+            },
+            "minQty": "10"
+        },
+        "id": "ADA",
+        "code": "ADA",
+        "precision": 2,
+        "name": "ADA",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": 10
+            },
+            "withdraw": {}
+        }
+    }
+}

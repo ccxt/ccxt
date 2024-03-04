@@ -211,7 +211,7 @@ export default class ascendex extends ascendexRest {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const channel = 'depth-realtime' + ':' + market['id'];
+        const channel = 'depth' + ':' + market['id'];
         params = this.extend(params, {
             'ch': channel,
         });
@@ -221,7 +221,7 @@ export default class ascendex extends ascendexRest {
     async watchOrderBookSnapshot(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const action = 'depth-snapshot-realtime';
+        const action = 'depth-snapshot';
         const channel = action + ':' + market['id'];
         params = this.extend(params, {
             'action': action,
@@ -232,6 +232,15 @@ export default class ascendex extends ascendexRest {
         });
         const orderbook = await this.watchPublic(channel, params);
         return orderbook.limit();
+    }
+    async fetchOrderBookSnapshot(symbol, limit = undefined, params = {}) {
+        const restOrderBook = await this.fetchRestOrderBookSafe(symbol, limit, params);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook();
+        }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset(restOrderBook);
+        return orderbook;
     }
     handleOrderBookSnapshot(client, message) {
         //
@@ -478,7 +487,7 @@ export default class ascendex extends ascendexRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -869,8 +878,8 @@ export default class ascendex extends ascendexRest {
             'ping': this.handlePing,
             'auth': this.handleAuthenticate,
             'sub': this.handleSubscriptionStatus,
-            'depth-realtime': this.handleOrderBook,
-            'depth-snapshot-realtime': this.handleOrderBookSnapshot,
+            'depth': this.handleOrderBook,
+            'depth-snapshot': this.handleOrderBookSnapshot,
             'trades': this.handleTrades,
             'bar': this.handleOHLCV,
             'balance': this.handleBalance,
@@ -889,7 +898,6 @@ export default class ascendex extends ascendexRest {
                 this.handleBalance(client, message);
             }
         }
-        return message;
     }
     handleSubscriptionStatus(client, message) {
         //
@@ -898,7 +906,7 @@ export default class ascendex extends ascendexRest {
         //     { m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0 }
         //
         const channel = this.safeString(message, 'ch', '');
-        if (channel.indexOf('depth-realtime') > -1) {
+        if (channel.indexOf('depth') > -1 && !(channel.indexOf('depth-snapshot') > -1)) {
             this.handleOrderBookSubscription(client, message);
         }
         return message;
@@ -907,12 +915,18 @@ export default class ascendex extends ascendexRest {
         const channel = this.safeString(message, 'ch');
         const parts = channel.split(':');
         const marketId = parts[1];
-        const symbol = this.safeSymbol(marketId);
+        const market = this.safeMarket(marketId);
+        const symbol = market['symbol'];
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook({});
-        this.spawn(this.watchOrderBookSnapshot, symbol);
+        if (this.options['defaultType'] === 'swap' || market['contract']) {
+            this.spawn(this.fetchOrderBookSnapshot, symbol);
+        }
+        else {
+            this.spawn(this.watchOrderBookSnapshot, symbol);
+        }
     }
     async pong(client, message) {
         //
@@ -929,7 +943,7 @@ export default class ascendex extends ascendexRest {
     handlePing(client, message) {
         this.spawn(this.pong, client, message);
     }
-    authenticate(url, params = {}) {
+    async authenticate(url, params = {}) {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);

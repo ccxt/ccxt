@@ -41,7 +41,51 @@
                     0.05
                 ],
                 "output": "{\"market_id\":\"LTC-USDT\",\"type\":\"market\",\"side\":\"sell\",\"time_in_force\":\"ioc\",\"quantity\":\"0.05\"}"
+            },
+            {
+                "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://api.probit.com/api/exchange/v1/new_order",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "buy",
+                  10,
+                  null,
+                  {
+                    "createMarketBuyOrderRequiresPrice": false
+                  }
+                ],
+                "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"10\"}"
+            },
+            {
+                "description": "Spot market buy order using the cost param",
+                "method": "createOrder",
+                "url": "https://api.probit.com/api/exchange/v1/new_order",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "buy",
+                  0,
+                  null,
+                  {
+                    "cost": 10
+                  }
+                ],
+                "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"10\"}"
             }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Spot market buy order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.probit.com/api/exchange/v1/new_order",
+                "input": [
+                  "BTC/USDT",
+                  10
+                ],
+                "output": "{\"market_id\":\"BTC-USDT\",\"type\":\"market\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"cost\":\"10\"}"
+              }
         ]
     }
 }

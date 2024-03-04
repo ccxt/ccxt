@@ -13,7 +13,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitbns
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitbns extends Exchange {
     describe() {
@@ -32,6 +32,7 @@ export default class bitbns extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': undefined,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,

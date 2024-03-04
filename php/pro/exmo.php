@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\NotSupported;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class exmo extends \ccxt\async\exmo {
 
@@ -48,7 +49,7 @@ class exmo extends \ccxt\async\exmo {
         return $requestId;
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -205,7 +206,7 @@ class exmo extends \ccxt\async\exmo {
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -262,7 +263,7 @@ class exmo extends \ccxt\async\exmo {
         $client->resolve ($parsedTicker, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -328,7 +329,7 @@ class exmo extends \ccxt\async\exmo {
         $client->resolve ($this->trades[$symbol], $messageHash);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
@@ -457,7 +458,7 @@ class exmo extends \ccxt\async\exmo {
         $client->resolve ($myTrades, $messageHash);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -526,24 +527,24 @@ class exmo extends \ccxt\async\exmo {
         $orderBook = $this->safe_value($message, 'data', array());
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer($message, 'ts');
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $storedOrderBook;
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->order_book(array());
+            $this->orderbooks[$symbol] = $orderbook;
         }
         $event = $this->safe_string($message, 'event');
         if ($event === 'snapshot') {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'bid', 'ask');
-            $storedOrderBook->reset ($snapshot);
+            $orderbook->reset ($snapshot);
         } else {
             $asks = $this->safe_value($orderBook, 'ask', array());
             $bids = $this->safe_value($orderBook, 'bid', array());
-            $this->handle_deltas($storedOrderBook['asks'], $asks);
-            $this->handle_deltas($storedOrderBook['bids'], $bids);
-            $storedOrderBook['timestamp'] = $timestamp;
-            $storedOrderBook['datetime'] = $this->iso8601($timestamp);
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601($timestamp);
         }
-        $client->resolve ($storedOrderBook, $messageHash);
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -581,7 +582,8 @@ class exmo extends \ccxt\async\exmo {
         );
         $eventHandler = $this->safe_value($events, $event);
         if ($eventHandler !== null) {
-            return $eventHandler($client, $message);
+            $eventHandler($client, $message);
+            return;
         }
         if (($event === 'update') || ($event === 'snapshot')) {
             $topic = $this->safe_string($message, 'topic');
@@ -603,7 +605,8 @@ class exmo extends \ccxt\async\exmo {
                 );
                 $handler = $this->safe_value($handlers, $channel);
                 if ($handler !== null) {
-                    return $handler($client, $message);
+                    $handler($client, $message);
+                    return;
                 }
             }
         }

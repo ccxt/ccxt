@@ -6,13 +6,13 @@ import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class zaif
- * @extends Exchange
+ * @augments Exchange
  */
 export default class zaif extends Exchange {
     describe () {
@@ -309,15 +309,14 @@ export default class zaif extends Exchange {
         // }
         //
         const symbol = this.safeSymbol (undefined, market);
-        const timestamp = this.milliseconds ();
         const vwap = this.safeString (ticker, 'vwap');
         const baseVolume = this.safeString (ticker, 'volume');
         const quoteVolume = Precise.stringMul (baseVolume, vwap);
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
             'bid': this.safeString (ticker, 'bid'),
@@ -446,7 +445,7 @@ export default class zaif extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name zaif#createOrder
@@ -574,7 +573,7 @@ export default class zaif extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -598,7 +597,7 @@ export default class zaif extends Exchange {
         return this.parseOrders (response['return'], market, since, limit);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name zaif#withdraw
@@ -745,7 +744,7 @@ export default class zaif extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
-        const success = this.safeValue (response, 'success', true);
+        const success = this.safeBool (response, 'success', true);
         if (!success) {
             throw new ExchangeError (feedback);
         }

@@ -59,6 +59,9 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': None,
                 'createDepositAddress': False,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': False,
+                'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': None,
                 'createStopLimitOrder': True,
@@ -126,7 +129,8 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': False,
-                'repayMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -702,7 +706,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 if permissions[j] == 'TRD_GRP_003':
                     active = False
                     break
-            isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed', False)
+            isMarginTradingAllowed = self.safe_bool(market, 'isMarginTradingAllowed', False)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1011,15 +1015,19 @@ class tokocrypto(Exchange, ImplicitAPI):
             responseInner = self.publicGetOpenV1MarketTrades(self.extend(request, params))
             data = self.safe_value(responseInner, 'data', {})
             return self.parse_trades(data, market, since, limit)
+        if limit is not None:
+            request['limit'] = limit  # default = 500, maximum = 1000
         defaultMethod = 'binanceGetTrades'
         method = self.safe_string(self.options, 'fetchTradesMethod', defaultMethod)
+        response = None
         if (method == 'binanceGetAggTrades') and (since is not None):
             request['startTime'] = since
             # https://github.com/ccxt/ccxt/issues/6400
             # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
             request['endTime'] = self.sum(since, 3600000)
-        if limit is not None:
-            request['limit'] = limit  # default = 500, maximum = 1000
+            response = await self.binanceGetAggTrades(self.extend(request, params))
+        else:
+            response = await self.binanceGetTrades(self.extend(request, params))
         #
         # Caveats:
         # - default limit(500) applies only if no other parameters set, trades up
@@ -1029,7 +1037,6 @@ class tokocrypto(Exchange, ImplicitAPI):
         # - 'tradeId' accepted and returned by self method is "aggregate" trade id
         #   which is different from actual trade id
         # - setting both fromId and time window results in error
-        response = await getattr(self, method)(self.extend(request, params))
         #
         # aggregate trades
         #
@@ -1328,9 +1335,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp":1659666786943
         #     }
         #
-        return self.parse_balance(response, type, marginMode)
+        return self.parse_balance_custom(response, type, marginMode)
 
-    def parse_balance(self, response, type=None, marginMode=None):
+    def parse_balance_custom(self, response, type=None, marginMode=None):
         timestamp = self.safe_integer(response, 'updateTime')
         result = {
             'info': response,
@@ -1530,7 +1537,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://www.tokocrypto.com/apidocs/#new-order--signed
@@ -1542,12 +1549,13 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order would be triggered
+        :param float [params.cost]: for spot market buy orders, the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         # only supported for spot/margin api
         if postOnly:
             type = 'LIMIT_MAKER'
@@ -1608,18 +1616,25 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     LIMIT_MAKER          quantity, price
         #
         if uppercaseType == 'MARKET':
-            quoteOrderQtyInner = self.safe_value_2(params, 'quoteOrderQty', 'cost')
-            if self.options['createMarketBuyOrderRequiresPrice'] and (side == 'buy') and (price is None) and (quoteOrderQtyInner is None):
-                raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
-            precision = market['precision']['price']
-            if quoteOrderQtyInner is not None:
-                request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyInner, TRUNCATE, precision, self.precisionMode)
-                params = self.omit(params, ['quoteOrderQty', 'cost'])
-            elif price is not None:
-                amountString = self.number_to_string(amount)
-                priceString = self.number_to_string(price)
-                quoteOrderQty = Precise.string_mul(amountString, priceString)
-                request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
+            if side == 'buy':
+                precision = market['precision']['price']
+                quoteAmount = None
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_number_2(params, 'cost', 'quoteOrderQty')
+                params = self.omit(params, ['cost', 'quoteOrderQty'])
+                if cost is not None:
+                    quoteAmount = cost
+                elif createMarketBuyOrderRequiresPrice:
+                    if price is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                    else:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        quoteAmount = Precise.string_mul(amountString, priceString)
+                else:
+                    quoteAmount = amount
+                request['quoteOrderQty'] = self.decimal_to_precision(quoteAmount, TRUNCATE, precision, self.precisionMode)
             else:
                 quantityIsRequired = True
         elif uppercaseType == 'LIMIT':
@@ -1812,7 +1827,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2202,7 +2217,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#withdraw-signed
         make a withdrawal
@@ -2313,7 +2328,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         if not success:
             messageInner = self.safe_string(response, 'msg')
             parsedMessage = None

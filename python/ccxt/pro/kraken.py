@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, OrderSide, OrderType, Str
+from ccxt.base.types import Int, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -121,7 +121,7 @@ class kraken(ccxt.async_support.kraken):
             },
         })
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
         """
         :see: https://docs.kraken.com/websockets/#message-addOrder
         create a trade order
@@ -175,7 +175,7 @@ class kraken(ccxt.async_support.kraken):
         messageHash = self.safe_value(message, 'reqid')
         client.resolve(order, messageHash)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
         """
         edit a trade order
         :see: https://docs.kraken.com/websockets/#message-editOrder
@@ -227,7 +227,7 @@ class kraken(ccxt.async_support.kraken):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         :see: https://docs.kraken.com/websockets/#message-cancelOrder
         cancels an open order
@@ -328,11 +328,10 @@ class kraken(ccxt.async_support.kraken):
         if baseVolume is not None and vwap is not None:
             quoteVolume = Precise.string_mul(baseVolume, vwap)
         last = self.safe_string(ticker['c'], 0)
-        timestamp = self.milliseconds()
         result = self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_string(ticker['h'], 0),
             'low': self.safe_string(ticker['l'], 0),
             'bid': self.safe_string(ticker['b'], 0),
@@ -362,7 +361,7 @@ class kraken(ccxt.async_support.kraken):
         #     [
         #         0,  # channelID
         #         [ #     price        volume         time             side type misc
-        #             ["5541.20000", "0.15850568", "1534614057.321597", "s", "l", ""],
+        #             ["5541.20000", "0.15850568", "1534614057.321596", "s", "l", ""],
         #             ["6060.00000", "0.02455000", "1534614057.324998", "b", "l", ""],
         #         ],
         #         "trade",
@@ -461,7 +460,7 @@ class kraken(ccxt.async_support.kraken):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -470,7 +469,7 @@ class kraken(ccxt.async_support.kraken):
         """
         return await self.watch_public('ticker', symbol, params)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -487,7 +486,7 @@ class kraken(ccxt.async_support.kraken):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -507,7 +506,7 @@ class kraken(ccxt.async_support.kraken):
         orderbook = await self.watch_public(name, symbol, self.extend(request, params))
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -533,7 +532,7 @@ class kraken(ccxt.async_support.kraken):
             ],
             'subscription': {
                 'name': name,
-                'interval': self.safe_string(self.timeframes, timeframe, timeframe),
+                'interval': self.safe_value(self.timeframes, timeframe, timeframe),
             },
         }
         request = self.deep_extend(subscribe, params)
@@ -642,7 +641,7 @@ class kraken(ccxt.async_support.kraken):
                 side = sides[key]
                 bookside = orderbook[side]
                 deltas = self.safe_value(message[1], key, [])
-                timestamp = self.handle_deltas(bookside, deltas, timestamp)
+                timestamp = self.custom_handle_deltas(bookside, deltas, timestamp)
             orderbook['symbol'] = symbol
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
@@ -668,14 +667,14 @@ class kraken(ccxt.async_support.kraken):
             storedBids = orderbook['bids']
             example = None
             if a is not None:
-                timestamp = self.handle_deltas(storedAsks, a, timestamp)
+                timestamp = self.custom_handle_deltas(storedAsks, a, timestamp)
                 example = self.safe_value(a, 0)
             if b is not None:
-                timestamp = self.handle_deltas(storedBids, b, timestamp)
+                timestamp = self.custom_handle_deltas(storedBids, b, timestamp)
                 example = self.safe_value(b, 0)
             # don't remove self line or I will poop on your face
             orderbook.limit()
-            checksum = self.safe_value(self.options, 'checksum', True)
+            checksum = self.safe_bool(self.options, 'checksum', True)
             if checksum:
                 priceString = self.safe_string(example, 0)
                 amountString = self.safe_string(example, 1)
@@ -716,7 +715,7 @@ class kraken(ccxt.async_support.kraken):
         else:
             return joined
 
-    def handle_deltas(self, bookside, deltas, timestamp=None):
+    def custom_handle_deltas(self, bookside, deltas, timestamp=None):
         for j in range(0, len(deltas)):
             delta = deltas[j]
             price = self.parse_number(delta[0])
@@ -785,7 +784,7 @@ class kraken(ccxt.async_support.kraken):
             limit = result.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
@@ -934,14 +933,14 @@ class kraken(ccxt.async_support.kraken):
             'fee': fee,
         }
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.kraken.com/websockets/#message-openOrders
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params]: maximum number of orderic to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.watch_private('openOrders', symbol, since, limit, params)
@@ -1223,7 +1222,7 @@ class kraken(ccxt.async_support.kraken):
         #         "subscription": {name: "ticker"}
         #     }
         #
-        errorMessage = self.safe_value(message, 'errorMessage')
+        errorMessage = self.safe_string(message, 'errorMessage')
         if errorMessage is not None:
             requestId = self.safe_value(message, 'reqid')
             if requestId is not None:
@@ -1231,7 +1230,7 @@ class kraken(ccxt.async_support.kraken):
                 broadKey = self.find_broadly_matched_key(broad, errorMessage)
                 exception = None
                 if broadKey is None:
-                    exception = ExchangeError(errorMessage)
+                    exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
                 else:
                     exception = broad[broadKey](errorMessage)
                 client.reject(exception, requestId)
@@ -1257,10 +1256,8 @@ class kraken(ccxt.async_support.kraken):
                 'ownTrades': self.handle_my_trades,
             }
             method = self.safe_value_2(methods, name, channelName)
-            if method is None:
-                return message
-            else:
-                return method(client, message, subscription)
+            if method is not None:
+                method(client, message, subscription)
         else:
             if self.handle_error_message(client, message):
                 event = self.safe_string(message, 'event')
@@ -1274,7 +1271,5 @@ class kraken(ccxt.async_support.kraken):
                     'cancelAllStatus': self.handle_cancel_all_orders,
                 }
                 method = self.safe_value(methods, event)
-                if method is None:
-                    return message
-                else:
-                    return method(client, message)
+                if method is not None:
+                    method(client, message)

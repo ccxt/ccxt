@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class currencycom extends \ccxt\async\currencycom {
 
@@ -96,7 +97,7 @@ class currencycom extends \ccxt\async\currencycom {
         //                     "accountId" => 5470310874305732,
         //                     "collateralCurrency" => true,
         //                     "asset" => "USD",
-        //                     "free" => 47.82576735,
+        //                     "free" => 47.82576736,
         //                     "locked" => 1.187925,
         //                     "default" => true
         //                 ),
@@ -342,7 +343,7 @@ class currencycom extends \ccxt\async\currencycom {
         }) ();
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -354,7 +355,7 @@ class currencycom extends \ccxt\async\currencycom {
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -384,7 +385,7 @@ class currencycom extends \ccxt\async\currencycom {
         }) ();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -404,7 +405,7 @@ class currencycom extends \ccxt\async\currencycom {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -420,7 +421,7 @@ class currencycom extends \ccxt\async\currencycom {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -485,6 +486,7 @@ class currencycom extends \ccxt\async\currencycom {
             $orderbook = $this->order_book();
         }
         $orderbook->reset (array(
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
@@ -558,9 +560,10 @@ class currencycom extends \ccxt\async\currencycom {
                         );
                         $method = $this->safe_value($methods, $subscriptionDestination);
                         if ($method === null) {
-                            return $message;
+                            return;
                         } else {
-                            return $method($client, $message, $subscription);
+                            $method($client, $message, $subscription);
+                            return;
                         }
                     }
                 }
@@ -575,10 +578,8 @@ class currencycom extends \ccxt\async\currencycom {
                 'ping' => array($this, 'handle_pong'),
             );
             $method = $this->safe_value($methods, $destination);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         }
     }

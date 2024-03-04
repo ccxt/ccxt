@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -53,20 +53,26 @@ class okx(Exchange, ImplicitAPI):
                 'future': True,
                 'option': True,
                 'addMargin': True,
-                'borrowMargin': True,
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': True,
                 'createDepositAddress': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
+                'createOrderWithTakeProfitAndStopLoss': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
+                'createStopLossOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTakeProfitOrder': True,
+                'createTrailingPercentOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -179,8 +185,7 @@ class okx(Exchange, ImplicitAPI):
                 'referral': {
                     # old reflink 0% discount https://www.okx.com/join/1888677
                     # new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    # okx + ccxt campaign reflink with 20% discount https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023
-                    'url': 'https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023',
+                    'url': 'https://www.okx.com/join/CCXT2023',
                     'discount': 0.2,
                 },
                 'test': {
@@ -190,6 +195,7 @@ class okx(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
+                        'market/books-full': 2,
                         'market/tickers': 1,
                         'market/ticker': 1,
                         'market/index-tickers': 1,
@@ -272,6 +278,7 @@ class okx(Exchange, ImplicitAPI):
                         # rfq
                         'rfq/counterparties': 4,
                         'rfq/maker-instrument-settings': 4,
+                        'rfq/mmp-config': 4,
                         'rfq/rfqs': 10,
                         'rfq/quotes': 10,
                         'rfq/trades': 4,
@@ -280,6 +287,7 @@ class okx(Exchange, ImplicitAPI):
                         'sprd/order': 1 / 3,
                         'sprd/orders-pending': 1 / 3,
                         'sprd/orders-history': 1 / 2,
+                        'sprd/orders-history-archive': 1 / 2,
                         'sprd/trades': 1 / 3,
                         # trade
                         'trade/order': 1 / 3,
@@ -296,6 +304,7 @@ class okx(Exchange, ImplicitAPI):
                         'trade/easy-convert-history': 20,
                         'trade/one-click-repay-currency-list': 20,
                         'trade/one-click-repay-history': 20,
+                        'trade/account-rate-limit': 1,
                         # asset
                         'asset/currencies': 5 / 3,
                         'asset/balances': 5 / 3,
@@ -356,9 +365,11 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/grid/sub-orders': 1,
                         'tradingBot/grid/positions': 1,
                         'tradingBot/grid/ai-param': 1,
-                        'tradingBot/public/rsi-back-testing': 1,
+                        'tradingBot/signal/signals': 1,
                         'tradingBot/signal/orders-algo-details': 1,
+                        'tradingBot/signal/orders-algo-history': 1,
                         'tradingBot/signal/positions': 1,
+                        'tradingBot/signal/positions-history': 1,
                         'tradingBot/signal/sub-orders': 1,
                         'tradingBot/signal/event-history': 1,
                         'tradingBot/recurring/orders-algo-pending': 1,
@@ -411,6 +422,7 @@ class okx(Exchange, ImplicitAPI):
                         'rfq/execute-quote': 15,
                         'rfq/maker-instrument-settings': 4,
                         'rfq/mmp-reset': 4,
+                        'rfq/mmp-config': 100,
                         'rfq/create-quote': 0.4,
                         'rfq/cancel-quote': 0.4,
                         'rfq/cancel-batch-quotes': 10,
@@ -455,6 +467,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/quick-margin-borrow-repay': 4,
                         'account/borrow-repay': 5 / 3,
                         'account/simulated_margin': 10,
+                        'account/position-builder': 10,
                         'account/set-riskOffset-type': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
@@ -477,6 +490,15 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/signal/create-signal': 1,
+                        'tradingBot/signal/order-algo': 1,
+                        'tradingBot/signal/stop-order-algo': 1,
+                        'tradingBot/signal/margin-balance': 1,
+                        'tradingBot/signal/amendTPSL': 1,
+                        'tradingBot/signal/set-instruments': 1,
+                        'tradingBot/signal/close-position': 1,
+                        'tradingBot/signal/sub-order': 1,
+                        'tradingBot/signal/cancel-sub-order': 1,
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
@@ -574,6 +596,7 @@ class okx(Exchange, ImplicitAPI):
                     '50027': PermissionDenied,  # The account is restricted from trading
                     '50028': ExchangeError,  # Unable to take the order, please reach out to support center for details
                     '50044': BadRequest,  # Must select one broker type
+                    '50062': ExchangeError,  # This feature is currently unavailable.
                     # API Class
                     '50100': ExchangeError,  # API frozen, please contact customer service
                     '50101': AuthenticationError,  # Broker id of APIKey does not match current environment
@@ -628,6 +651,15 @@ class okx(Exchange, ImplicitAPI):
                     '51072': InvalidOrder,  # As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
                     '51073': InvalidOrder,  # As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
                     '51074': InvalidOrder,  # Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
+                    '51090': InvalidOrder,  # You can't modify the amount of an SL order placed with a TP limit order.
+                    '51091': InvalidOrder,  # All TP orders in one order must be of the same type.
+                    '51092': InvalidOrder,  # TP order prices(tpOrdPx) in one order must be different.
+                    '51093': InvalidOrder,  # TP limit order prices(tpOrdPx) in one order can't be –1(market price).
+                    '51094': InvalidOrder,  # You can't place TP limit orders in spot, margin, or options trading.
+                    '51095': InvalidOrder,  # To place TP limit orders at self endpoint, you must place an SL order at the same time.
+                    '51096': InvalidOrder,  # cxlOnClosePos needs to be True to place a TP limit order
+                    '51098': InvalidOrder,  # You can't add a new TP order to an SL order placed with a TP limit order.
+                    '51099': InvalidOrder,  # You can't place TP limit orders lead trader.
                     '51100': InvalidOrder,  # Trading amount does not meet the min tradable amount
                     '51101': InvalidOrder,  # Entered amount exceeds the max pending order amount(Cont) per transaction
                     '51102': InvalidOrder,  # Entered amount exceeds the max pending count
@@ -891,8 +923,8 @@ class okx(Exchange, ImplicitAPI):
                     'ALGO': 'Algorand',
                     'BHP': 'BHP',
                     'APT': 'Aptos',
-                    'ARBONE': 'Arbitrum one',
-                    'AVAXC': 'Avalanche C-Chain',
+                    'ARBONE': 'Arbitrum One',
+                    'AVAXC': 'Avalanche C',
                     'AVAXX': 'Avalanche X-Chain',
                     'ARK': 'ARK',
                     'AR': 'Arweave',
@@ -1103,7 +1135,7 @@ class okx(Exchange, ImplicitAPI):
         reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
         return reconstructedDate
 
-    def create_expired_option_market(self, symbol):
+    def create_expired_option_market(self, symbol: str):
         # support expired option contracts
         quote = 'USD'
         optionParts = symbol.split('-')
@@ -1164,19 +1196,6 @@ class okx(Exchange, ImplicitAPI):
             'info': None,
         }
 
-    def market(self, symbol):
-        if self.markets is None:
-            raise ExchangeError(self.id + ' markets not loaded')
-        if isinstance(symbol, str):
-            if symbol in self.markets:
-                return self.markets[symbol]
-            elif symbol in self.markets_by_id:
-                markets = self.markets_by_id[symbol]
-                return markets[0]
-            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):
-                return self.create_expired_option_market(symbol)
-        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
-
     def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
         isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
         if isOption and not (marketId in self.markets_by_id):
@@ -1224,9 +1243,16 @@ class okx(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             event = data[i]
             state = self.safe_string(event, 'state')
+            update['eta'] = self.safe_integer(event, 'end')
+            update['url'] = self.safe_string(event, 'href')
             if state == 'ongoing':
-                update['eta'] = self.safe_integer(event, 'end')
                 update['status'] = 'maintenance'
+            elif state == 'scheduled':
+                update['status'] = 'ok'
+            elif state == 'completed':
+                update['status'] = 'ok'
+            elif state == 'canceled':
+                update['status'] = 'ok'
         return update
 
     async def fetch_time(self, params={}):
@@ -1502,8 +1528,8 @@ class okx(Exchange, ImplicitAPI):
         #         "msg": ""
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        return self.parse_markets(data)
+        dataResponse = self.safe_value(response, 'data', [])
+        return self.parse_markets(dataResponse)
 
     def safe_network(self, networkId):
         networksById = {
@@ -1524,7 +1550,7 @@ class okx(Exchange, ImplicitAPI):
         # while fetchCurrencies is a public API method by design
         # therefore we check the keys here
         # and fallback to generating the currencies from the markets
-        isSandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         if not self.check_required_credentials(False) or isSandboxMode:
             return None
         #
@@ -1603,7 +1629,7 @@ class okx(Exchange, ImplicitAPI):
                 if (networkId is not None) and (networkId.find('-') >= 0):
                     parts = networkId.split('-')
                     chainPart = self.safe_string(parts, 1, networkId)
-                    networkCode = self.safe_network(chainPart)
+                    networkCode = self.network_id_to_code(chainPart, currency['code'])
                     precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
                     if maxPrecision is None:
                         maxPrecision = precision
@@ -1653,6 +1679,7 @@ class okx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -1660,10 +1687,18 @@ class okx(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
-        limit = 20 if (limit is None) else limit
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks')
+        if method == 'publicGetMarketBooksFull' and limit is None:
+            limit = 5000
+        limit = 100 if (limit is None) else limit
         if limit is not None:
             request['sz'] = limit  # max 400
-        response = await self.publicGetMarketBooks(self.extend(request, params))
+        response = None
+        if (method == 'publicGetMarketBooksFull') or (limit > 400):
+            response = await self.publicGetMarketBooksFull(self.extend(request, params))
+        else:
+            response = await self.publicGetMarketBooks(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -1717,7 +1752,7 @@ class okx(Exchange, ImplicitAPI):
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        spot = self.safe_value(market, 'spot', False)
+        spot = self.safe_bool(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCcy24h') if spot else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
@@ -2077,16 +2112,14 @@ class okx(Exchange, ImplicitAPI):
         defaultType = 'Candles'
         if since is not None:
             now = self.milliseconds()
-            difference = now - since
             durationInMilliseconds = duration * 1000
-            # if the since timestamp is more than limit candles back in the past
-            # additional one bar for max offset to round the current day to UTC
-            calc = (1440 - limit - 1) * durationInMilliseconds
-            if difference > calc:
+            # switch to history candles if since is past the cutoff for current candles
+            historyBorder = now - ((1440 - 1) * durationInMilliseconds)
+            if since < historyBorder:
                 defaultType = 'HistoryCandles'
             startTime = max(since - 1, 0)
             request['before'] = startTime
-            request['after'] = self.sum(startTime, durationInMilliseconds * limit)
+            request['after'] = self.sum(since, durationInMilliseconds * limit)
         until = self.safe_integer(params, 'until')
         if until is not None:
             request['after'] = until
@@ -2425,7 +2458,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return self.parse_balance_by_type(marketType, response)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
         create a market buy order by providing the symbol and cost
@@ -2442,7 +2475,7 @@ class okx(Exchange, ImplicitAPI):
         params['tgtCcy'] = 'quote_ccy'
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
         create a market buy order by providing the symbol and cost
@@ -2459,7 +2492,7 @@ class okx(Exchange, ImplicitAPI):
         params['tgtCcy'] = 'quote_ccy'
         return await self.create_order(symbol, 'market', 'sell', cost, None, params)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -2502,6 +2535,8 @@ class okx(Exchange, ImplicitAPI):
         stopLossDefined = (stopLoss is not None)
         takeProfit = self.safe_value(params, 'takeProfit')
         takeProfitDefined = (takeProfit is not None)
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
+        isTrailingPercentOrder = trailingPercent is not None
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
         marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so be extended into the request
         margin = False
@@ -2509,7 +2544,7 @@ class okx(Exchange, ImplicitAPI):
             margin = True
         else:
             marginMode = defaultMarginMode
-            margin = self.safe_value(params, 'margin', False)
+            margin = self.safe_bool(params, 'margin', False)
         if spot:
             if margin:
                 defaultCurrency = market['quote'] if (side == 'buy') else market['base']
@@ -2527,7 +2562,7 @@ class okx(Exchange, ImplicitAPI):
         isMarketOrder = type == 'market'
         postOnly = False
         postOnly, params = self.handle_post_only(isMarketOrder, type == 'post_only', params)
-        params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit'])
+        params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')
         trigger = (triggerPrice is not None) or (type == 'trigger')
@@ -2571,7 +2606,11 @@ class okx(Exchange, ImplicitAPI):
             request['ordType'] = 'ioc'
         elif fok:
             request['ordType'] = 'fok'
-        if stopLossDefined or takeProfitDefined:
+        if isTrailingPercentOrder:
+            convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
+            request['callbackRatio'] = convertedTrailingPercent
+            request['ordType'] = 'move_order_stop'
+        elif stopLossDefined or takeProfitDefined:
             if stopLossDefined:
                 stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
                 if stopLossTriggerPrice is None:
@@ -2606,7 +2645,7 @@ class okx(Exchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order')
                 request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 takeProfitLimitPrice = self.safe_value_n(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx'])
-                takeProfitOrderType = self.safe_string(takeProfit, 'type')
+                takeProfitOrderType = self.safe_string_2(takeProfit, 'type', 'tpOrdKind')
                 if takeProfitOrderType is not None:
                     takeProfitLimitOrderType = (takeProfitOrderType == 'limit')
                     takeProfitMarketOrderType = (takeProfitOrderType == 'market')
@@ -2616,10 +2655,12 @@ class okx(Exchange, ImplicitAPI):
                         if takeProfitLimitPrice is None:
                             raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order')
                         else:
+                            request['tpOrdKind'] = takeProfitOrderType
                             request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)
                     elif takeProfitOrderType == 'market':
                         request['tpOrdPx'] = '-1'
                 elif takeProfitLimitPrice is not None:
+                    request['tpOrdKind'] = 'limit'
                     request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)  # limit tp order
                 else:
                     request['tpOrdPx'] = '-1'  # market tp order
@@ -2637,6 +2678,7 @@ class okx(Exchange, ImplicitAPI):
             twoWayCondition = ((takeProfitPrice is not None) and (stopLossPrice is not None))
             # if TP and SL are sent together
             # 'conditional' only stop-loss order will be applied
+            # tpOrdKind is 'condition' which is the default
             if twoWayCondition:
                 request['ordType'] = 'oco'
             if takeProfitPrice is not None:
@@ -2657,7 +2699,7 @@ class okx(Exchange, ImplicitAPI):
             params = self.omit(params, ['clOrdId', 'clientOrderId'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
@@ -2680,6 +2722,8 @@ class okx(Exchange, ImplicitAPI):
         :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
         :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
         :param str [params.positionSide]: if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
+        :param str [params.trailingPercent]: the percent to trail away from the current market price
+        :param str [params.tpOrdKind]: 'condition' or 'limit', the default is 'condition'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2687,7 +2731,7 @@ class okx(Exchange, ImplicitAPI):
         request = self.create_order_request(symbol, type, side, amount, price, params)
         method = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')
         requestOrdType = self.safe_string(request, 'ordType')
-        if (requestOrdType == 'trigger') or (requestOrdType == 'conditional') or (type == 'oco') or (type == 'move_order_stop') or (type == 'iceberg') or (type == 'twap'):
+        if (requestOrdType == 'trigger') or (requestOrdType == 'conditional') or (requestOrdType == 'move_order_stop') or (type == 'move_order_stop') or (type == 'oco') or (type == 'iceberg') or (type == 'twap'):
             method = 'privatePostTradeOrderAlgo'
         if (method != 'privatePostTradeOrder') and (method != 'privatePostTradeOrderAlgo') and (method != 'privatePostTradeBatchOrders'):
             raise ExchangeError(self.id + ' createOrder() self.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo')
@@ -2714,7 +2758,7 @@ class okx(Exchange, ImplicitAPI):
         """
         create a list of trade orders
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
-        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2761,11 +2805,20 @@ class okx(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
+        isAlgoOrder = None
+        if (type == 'trigger') or (type == 'conditional') or (type == 'move_order_stop') or (type == 'oco') or (type == 'iceberg') or (type == 'twap'):
+            isAlgoOrder = True
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is not None:
-            request['clOrdId'] = clientOrderId
+            if isAlgoOrder:
+                request['algoClOrdId'] = clientOrderId
+            else:
+                request['clOrdId'] = clientOrderId
         else:
-            request['ordId'] = id
+            if isAlgoOrder:
+                request['algoId'] = id
+            else:
+                request['ordId'] = id
         stopLossTriggerPrice = self.safe_value_2(params, 'stopLossPrice', 'newSlTriggerPx')
         stopLossPrice = self.safe_value(params, 'newSlOrdPx')
         stopLossTriggerPriceType = self.safe_string(params, 'newSlTriggerPxType', 'last')
@@ -2776,39 +2829,58 @@ class okx(Exchange, ImplicitAPI):
         takeProfit = self.safe_value(params, 'takeProfit')
         stopLossDefined = (stopLoss is not None)
         takeProfitDefined = (takeProfit is not None)
-        if stopLossTriggerPrice is not None:
-            request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-            request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
-            request['newSlTriggerPxType'] = stopLossTriggerPriceType
-        if takeProfitTriggerPrice is not None:
-            request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-            request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
-            request['newTpTriggerPxType'] = takeProfitTriggerPriceType
-        if stopLossDefined:
-            stopLossTriggerPrice = self.safe_value(stopLoss, 'triggerPrice')
-            stopLossPrice = self.safe_value(stopLoss, 'price')
-            stopLossType = self.safe_string(stopLoss, 'type')
-            request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-            request['newSlOrdPx'] = '-1' if (stopLossType == 'market') else self.price_to_precision(symbol, stopLossPrice)
-            request['newSlTriggerPxType'] = stopLossTriggerPriceType
-        if takeProfitDefined:
-            takeProfitTriggerPrice = self.safe_value(takeProfit, 'triggerPrice')
-            takeProfitPrice = self.safe_value(takeProfit, 'price')
-            takeProfitType = self.safe_string(takeProfit, 'type')
-            request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-            request['newTpOrdPx'] = '-1' if (takeProfitType == 'market') else self.price_to_precision(symbol, takeProfitPrice)
-            request['newTpTriggerPxType'] = takeProfitTriggerPriceType
+        if isAlgoOrder:
+            if (stopLossTriggerPrice is None) and (takeProfitTriggerPrice is None):
+                raise BadRequest(self.id + ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order')
+            if stopLossTriggerPrice is not None:
+                if stopLossPrice is None:
+                    raise BadRequest(self.id + ' editOrder() requires a newSlOrdPx parameter for editing an algo order')
+                request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType
+            if takeProfitTriggerPrice is not None:
+                if takeProfitPrice is None:
+                    raise BadRequest(self.id + ' editOrder() requires a newTpOrdPx parameter for editing an algo order')
+                request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType
+        else:
+            if stopLossTriggerPrice is not None:
+                request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['newSlOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType
+            if takeProfitTriggerPrice is not None:
+                request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['newTpOrdPx'] = '-1' if (type == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType
+            if stopLossDefined:
+                stopLossTriggerPrice = self.safe_value(stopLoss, 'triggerPrice')
+                stopLossPrice = self.safe_value(stopLoss, 'price')
+                stopLossType = self.safe_string(stopLoss, 'type')
+                request['newSlTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['newSlOrdPx'] = '-1' if (stopLossType == 'market') else self.price_to_precision(symbol, stopLossPrice)
+                request['newSlTriggerPxType'] = stopLossTriggerPriceType
+            if takeProfitDefined:
+                takeProfitTriggerPrice = self.safe_value(takeProfit, 'triggerPrice')
+                takeProfitPrice = self.safe_value(takeProfit, 'price')
+                takeProfitType = self.safe_string(takeProfit, 'type')
+                request['newTpOrdKind'] = takeProfitType if (takeProfitType == 'limit') else 'condition'
+                request['newTpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                request['newTpOrdPx'] = '-1' if (takeProfitType == 'market') else self.price_to_precision(symbol, takeProfitPrice)
+                request['newTpTriggerPxType'] = takeProfitTriggerPriceType
         if amount is not None:
             request['newSz'] = self.amount_to_precision(symbol, amount)
-        if price is not None:
-            request['newPx'] = self.price_to_precision(symbol, price)
+        if not isAlgoOrder:
+            if price is not None:
+                request['newPx'] = self.price_to_precision(symbol, price)
         params = self.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
-        :see: https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-order
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-amend-algo-order
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2831,12 +2903,20 @@ class okx(Exchange, ImplicitAPI):
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param float [params.takeProfit.price]: used for take profit limit orders, not used for take profit market price orders
         :param str [params.takeProfit.type]: 'market' or 'limit' used to specify the take profit price type
+        :param str [params.newTpOrdKind]: 'condition' or 'limit', the default is 'condition'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
-        response = await self.privatePostTradeAmendOrder(self.extend(request, params))
+        isAlgoOrder = None
+        if (type == 'trigger') or (type == 'conditional') or (type == 'move_order_stop') or (type == 'oco') or (type == 'iceberg') or (type == 'twap'):
+            isAlgoOrder = True
+        response = None
+        if isAlgoOrder:
+            response = await self.privatePostTradeAmendAlgos(self.extend(request, params))
+        else:
+            response = await self.privatePostTradeAmendOrder(self.extend(request, params))
         #
         #     {
         #        "code": "0",
@@ -2863,15 +2943,19 @@ class okx(Exchange, ImplicitAPI):
         """
         cancels an open order
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-order
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True if trigger orders
+        :param boolean [params.trailing]: set to True if you want to cancel a trailing order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        stop = self.safe_value(params, 'stop')
-        if stop:
+        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trailing = self.safe_bool(params, 'trailing', False)
+        if stop or trailing:
             orderInner = await self.cancel_orders([id], symbol, params)
             return self.safe_value(orderInner, 0)
         await self.load_markets()
@@ -2899,7 +2983,7 @@ class okx(Exchange, ImplicitAPI):
         :param string[]|str ids: order ids
         :returns str[]: list of order ids
         """
-        if isinstance(ids, str):
+        if (ids is not None) and isinstance(ids, str):
             return ids.split(',')
         else:
             return ids
@@ -2913,6 +2997,7 @@ class okx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/trigger order
+        :param boolean [params.trailing]: set to True if you want to cancel trailing orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At self moment, `params` is not being used too.
@@ -2927,7 +3012,8 @@ class okx(Exchange, ImplicitAPI):
         clientOrderIds = self.parse_ids(self.safe_value_2(params, 'clOrdId', 'clientOrderId'))
         algoIds = self.parse_ids(self.safe_value(params, 'algoId'))
         stop = self.safe_value_2(params, 'stop', 'trigger')
-        if stop:
+        trailing = self.safe_bool(params, 'trailing', False)
+        if stop or trailing:
             method = 'privatePostTradeCancelAlgos'
         if clientOrderIds is None:
             ids = self.parse_ids(ids)
@@ -2938,7 +3024,7 @@ class okx(Exchange, ImplicitAPI):
                         'instId': market['id'],
                     })
             for i in range(0, len(ids)):
-                if stop:
+                if trailing or stop:
                     request.append({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -2954,7 +3040,11 @@ class okx(Exchange, ImplicitAPI):
                     'instId': market['id'],
                     'clOrdId': clientOrderIds[i],
                 })
-        response = await getattr(self, method)(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        response = None
+        if method == 'privatePostTradeCancelAlgos':
+            response = await self.privatePostTradeCancelAlgos(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        else:
+            response = await self.privatePostTradeCancelBatchOrders(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
         #
         #     {
         #         "code": "0",
@@ -3206,8 +3296,9 @@ class okx(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: unified market symbol
         :param dict [params]: extra and exchange specific parameters
+        :param boolean [params.trigger]: True if fetching trigger orders
         :returns: `an order structure <https://docs.ccxt.com/#/?id=order-structure>`
-       """
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
@@ -3222,7 +3313,7 @@ class okx(Exchange, ImplicitAPI):
         options = self.safe_value(self.options, 'fetchOrder', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrder')
         method = self.safe_string(params, 'method', defaultMethod)
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         if stop:
             method = 'privateGetTradeOrderAlgo'
             if clientOrderId is not None:
@@ -3234,8 +3325,12 @@ class okx(Exchange, ImplicitAPI):
                 request['clOrdId'] = clientOrderId
             else:
                 request['ordId'] = id
-        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop'])
-        response = await getattr(self, method)(self.extend(request, query))
+        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop', 'trigger'])
+        response = None
+        if method == 'privateGetTradeOrderAlgo':
+            response = await self.privateGetTradeOrderAlgo(self.extend(request, query))
+        else:
+            response = await self.privateGetTradeOrder(self.extend(request, query))
         #
         # Spot and Swap
         #
@@ -3338,7 +3433,6 @@ class okx(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        Fetch orders that are still open
         fetch all unfilled currently open orders
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-list
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-list
@@ -3346,11 +3440,11 @@ class okx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.till]: Timestamp in ms of the latest time to retrieve orders for
         :param bool [params.stop]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str [params.algoId]: Algo ID "'433845797218942976'"
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -3379,14 +3473,20 @@ class okx(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersPending')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value(params, 'stop')
-        if stop or (ordType in algoOrderTypes):
+        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trailing = self.safe_bool(params, 'trailing', False)
+        if trailing or stop or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoPending'
-            if stop:
-                if ordType is None:
-                    raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"')
-        query = self.omit(params, ['method', 'stop'])
-        response = await getattr(self, method)(self.extend(request, query))
+        if trailing:
+            request['ordType'] = 'move_order_stop'
+        elif stop and (ordType is None):
+            request['ordType'] = 'trigger'
+        query = self.omit(params, ['method', 'stop', 'trigger', 'trailing'])
+        response = None
+        if method == 'privateGetTradeOrdersAlgoPending':
+            response = await self.privateGetTradeOrdersAlgoPending(self.extend(request, query))
+        else:
+            response = await self.privateGetTradeOrdersPending(self.extend(request, query))
         #
         #     {
         #         "code": "0",
@@ -3498,6 +3598,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str [params.algoId]: Algo ID "'433845797218942976'"
         :param int [params.until]: timestamp in ms to fetch orders for
+        :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -3528,8 +3629,12 @@ class okx(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value(params, 'stop')
-        if stop or (ordType in algoOrderTypes):
+        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trailing = self.safe_bool(params, 'trailing', False)
+        if trailing:
+            method = 'privateGetTradeOrdersAlgoHistory'
+            request['ordType'] = 'move_order_stop'
+        elif stop or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoHistory'
             algoId = self.safe_string(params, 'algoId')
             if algoId is not None:
@@ -3538,7 +3643,6 @@ class okx(Exchange, ImplicitAPI):
             if stop:
                 if ordType is None:
                     raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"')
-                request['ordType'] = ordType
         else:
             if since is not None:
                 request['begin'] = since
@@ -3546,8 +3650,12 @@ class okx(Exchange, ImplicitAPI):
             if until is not None:
                 request['end'] = until
                 query = self.omit(query, ['until', 'till'])
-        send = self.omit(query, ['method', 'stop', 'ordType'])
-        response = await getattr(self, method)(self.extend(request, send))
+        send = self.omit(query, ['method', 'stop', 'trigger', 'trailing'])
+        response = None
+        if method == 'privateGetTradeOrdersAlgoHistory':
+            response = await self.privateGetTradeOrdersAlgoHistory(self.extend(request, send))
+        else:
+            response = await self.privateGetTradeOrdersHistory(self.extend(request, send))
         #
         #     {
         #         "code": "0",
@@ -3655,15 +3763,18 @@ class okx(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str [params.algoId]: Algo ID "'433845797218942976'"
         :param int [params.until]: timestamp in ms to fetch orders for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.method]: method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
+        :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -3692,18 +3803,21 @@ class okx(Exchange, ImplicitAPI):
         request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        options = self.safe_value(self.options, 'fetchClosedOrders', {})
-        algoOrderTypes = self.safe_value(self.options, 'algoOrderTypes', {})
+        options = self.safe_dict(self.options, 'fetchClosedOrders', {})
+        algoOrderTypes = self.safe_dict(self.options, 'algoOrderTypes', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value(params, 'stop')
-        if stop or (ordType in algoOrderTypes):
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trailing = self.safe_bool(params, 'trailing', False)
+        if trailing or stop or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoHistory'
-            if stop:
-                if ordType is None:
-                    raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"')
             request['state'] = 'effective'
+        if trailing:
+            request['ordType'] = 'move_order_stop'
+        elif stop:
+            if ordType is None:
+                request['ordType'] = 'trigger'
         else:
             if since is not None:
                 request['begin'] = since
@@ -3712,8 +3826,14 @@ class okx(Exchange, ImplicitAPI):
                 request['end'] = until
                 query = self.omit(query, ['until', 'till'])
             request['state'] = 'filled'
-        send = self.omit(query, ['method', 'stop'])
-        response = await getattr(self, method)(self.extend(request, send))
+        send = self.omit(query, ['method', 'stop', 'trigger', 'trailing'])
+        response = None
+        if method == 'privateGetTradeOrdersAlgoHistory':
+            response = await self.privateGetTradeOrdersAlgoHistory(self.extend(request, send))
+        elif method == 'privateGetTradeOrdersHistoryArchive':
+            response = await self.privateGetTradeOrdersHistoryArchive(self.extend(request, send))
+        else:
+            response = await self.privateGetTradeOrdersHistory(self.extend(request, send))
         #
         #     {
         #         "code": "0",
@@ -3842,10 +3962,12 @@ class okx(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
+        if since is not None:
+            request['begin'] = since
         request, params = self.handle_until_option('end', request, params)
         type, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request['instType'] = self.convert_to_instrument_type(type)
-        if limit is not None:
+        if (limit is not None) and (since is None):  # limit = n, okx will return the n most recent results, instead of the n results after limit, so limit should only be sent when since is None
             request['limit'] = limit  # default 100, max 100
         response = await self.privateGetTradeFillsHistory(self.extend(request, query))
         #
@@ -3950,7 +4072,13 @@ class okx(Exchange, ImplicitAPI):
             currency = self.currency(code)
             request['ccy'] = currency['id']
         request, params = self.handle_until_option('end', request, params)
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if method == 'privateGetAccountBillsArchive':
+            response = await self.privateGetAccountBillsArchive(self.extend(request, query))
+        elif method == 'privateGetAssetBills':
+            response = await self.privateGetAssetBills(self.extend(request, query))
+        else:
+            response = await self.privateGetAccountBills(self.extend(request, query))
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
         #
@@ -4178,14 +4306,15 @@ class okx(Exchange, ImplicitAPI):
         #     },
         #
         if chain == 'USDT-Polygon':
-            networkData = self.safe_value(networksById, 'USDT-Polygon-Bridge')
+            networkData = self.safe_value_2(networksById, 'USDT-Polygon-Bridge', 'USDT-Polygon')
         network = self.safe_string(networkData, 'network')
+        networkCode = self.network_id_to_code(network, code)
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': networkCode,
             'info': depositAddress,
         }
 
@@ -4262,7 +4391,7 @@ class okx(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
         return result
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal
@@ -4667,7 +4796,7 @@ class okx(Exchange, ImplicitAPI):
             },
         }
 
-    async def fetch_leverage(self, symbol: str, params={}):
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
@@ -4703,7 +4832,33 @@ class okx(Exchange, ImplicitAPI):
         #        "msg": ""
         #     }
         #
-        return response
+        data = self.safe_list(response, 'data', [])
+        return self.parse_leverage(data, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = None
+        marginMode = None
+        longLeverage = None
+        shortLeverage = None
+        for i in range(0, len(leverage)):
+            entry = leverage[i]
+            marginMode = self.safe_string_lower(entry, 'mgnMode')
+            marketId = self.safe_string(entry, 'instId')
+            positionSide = self.safe_string_lower(entry, 'posSide')
+            if positionSide == 'long':
+                longLeverage = self.safe_integer(entry, 'lever')
+            elif positionSide == 'short':
+                shortLeverage = self.safe_integer(entry, 'lever')
+            else:
+                longLeverage = self.safe_integer(entry, 'lever')
+                shortLeverage = self.safe_integer(entry, 'lever')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        }
 
     async def fetch_position(self, symbol: str, params={}):
         """
@@ -4780,6 +4935,7 @@ class okx(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+        :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history history
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4803,7 +4959,11 @@ class okx(Exchange, ImplicitAPI):
                 request['instId'] = ','.join(marketIds)
         fetchPositionsOptions = self.safe_value(self.options, 'fetchPositions', {})
         method = self.safe_string(fetchPositionsOptions, 'method', 'privateGetAccountPositions')
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetAccountPositionsHistory':
+            response = await self.privateGetAccountPositionsHistory(self.extend(request, params))
+        else:
+            response = await self.privateGetAccountPositions(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -4908,13 +5068,38 @@ class okx(Exchange, ImplicitAPI):
         #        "vegaBS": "",
         #        "vegaPA": ""
         #    }
+        # history
+        #    {
+        #        "cTime":"1708351230102",
+        #        "ccy":"USDT",
+        #        "closeAvgPx":"1.2567",
+        #        "closeTotalPos":"40",
+        #        "direction":"short",
+        #        "fee":"-0.0351036",
+        #        "fundingFee":"0",
+        #        "instId":"SUSHI-USDT-SWAP",
+        #        "instType":"SWAP",
+        #        "lever":"10.0",
+        #        "liqPenalty":"0",
+        #        "mgnMode":"isolated",
+        #        "openAvgPx":"1.2462",
+        #        "openMaxPos":"40",
+        #        "pnl":"-0.42",
+        #        "pnlRatio":"-0.0912982667308618",
+        #        "posId":"666159086676836352",
+        #        "realizedPnl":"-0.4551036",
+        #        "triggerPx":"",
+        #        "type":"2",
+        #        "uTime":"1708354805699",
+        #        "uly":"SUSHI-USDT"
+        #    }
         #
         marketId = self.safe_string(position, 'instId')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         pos = self.safe_string(position, 'pos')  # 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way(hedge) mode: -1 if short, 1 if long, 0 if position is not open
         contractsAbs = Precise.string_abs(pos)
-        side = self.safe_string(position, 'posSide')
+        side = self.safe_string_2(position, 'posSide', 'direction')
         hedged = side != 'net'
         contracts = self.parse_number(contractsAbs)
         if market['margin']:
@@ -4944,7 +5129,7 @@ class okx(Exchange, ImplicitAPI):
         notional = self.parse_number(notionalString)
         marginMode = self.safe_string(position, 'mgnMode')
         initialMarginString = None
-        entryPriceString = self.safe_string(position, 'avgPx')
+        entryPriceString = self.safe_string_2(position, 'avgPx', 'openAvgPx')
         unrealizedPnlString = self.safe_string(position, 'upl')
         leverageString = self.safe_string(position, 'lever')
         initialMarginPercentage = None
@@ -4967,27 +5152,28 @@ class okx(Exchange, ImplicitAPI):
         liquidationPrice = self.safe_number(position, 'liqPx')
         percentageString = self.safe_string(position, 'uplRatio')
         percentage = self.parse_number(Precise.string_mul(percentageString, '100'))
-        timestamp = self.safe_integer(position, 'uTime')
+        timestamp = self.safe_integer(position, 'cTime')
         marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
         return self.safe_position({
             'info': position,
-            'id': None,
+            'id': self.safe_string(position, 'posId'),
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': self.parse_number(entryPriceString),
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
+            'realizedPnl': self.safe_number(position, 'realizedPnl'),
             'percentage': percentage,
             'contracts': contracts,
             'contractSize': contractSize,
             'markPrice': self.parse_number(markPriceString),
-            'lastPrice': None,
+            'lastPrice': self.safe_number(position, 'closeAvgPx'),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer(position, 'uTime'),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': self.parse_number(collateralString),
@@ -4999,7 +5185,7 @@ class okx(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
@@ -5504,7 +5690,7 @@ class okx(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-set-leverage
@@ -5557,7 +5743,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-position-mode
@@ -5588,7 +5774,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-leverage
@@ -6059,7 +6245,7 @@ class okx(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def borrow_cross_margin(self, code: str, amount, params={}):
+    async def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin(need to be VIP 5 and above)
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
@@ -6612,6 +6798,7 @@ class okx(Exchange, ImplicitAPI):
             entryMarketId = self.safe_string(entry, 'instId')
             if entryMarketId == marketId:
                 return self.parse_greeks(entry, market)
+        return None
 
     def parse_greeks(self, greeks, market: Market = None):
         #
@@ -6661,6 +6848,66 @@ class okx(Exchange, ImplicitAPI):
             'underlyingPrice': None,
             'info': greeks,
         }
+
+    async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes open positions for a market
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
+        :param str symbol: Unified CCXT market symbol
+        :param str [side]: 'buy' or 'sell', leave in net mode
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.clientOrderId]: a unique identifier for the order
+        :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross
+        :param str [params.code]: *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param boolean [params.autoCxl]: whether any pending orders for closing out needs to be automatically canceled when close position via a market order. False or True, the default is False
+        :param str [params.tag]: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        code = self.safe_string(params, 'code')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('closePosition', params, 'cross')
+        request = {
+            'instId': market['id'],
+            'mgnMode': marginMode,
+        }
+        if side is not None:
+            if (side == 'buy'):
+                request['posSide'] = 'long'
+            elif side == 'sell':
+                request['posSide'] = 'short'
+            else:
+                request['posSide'] = side
+        if clientOrderId is not None:
+            request['clOrdId'] = clientOrderId
+        if code is not None:
+            currency = self.currency(code)
+            request['ccy'] = currency['id']
+        response = await self.privatePostTradeClosePosition(self.extend(request, params))
+        #
+        #    {
+        #        "code": "1",
+        #        "data": [
+        #            {
+        #                "clOrdId":"e847386590ce4dBCe903bbc394dc88bf",
+        #                "ordId":"",
+        #                "sCode":"51000",
+        #                "sMsg":"Parameter posSide error ",
+        #                "tag":"e847386590ce4dBC"
+        #            }
+        #        ],
+        #        "inTime": "1701877077101064",
+        #        "msg": "All operations failed",
+        #        "outTime": "1701877077102579"
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        order = self.safe_value(data, 0)
+        return self.parse_order(order, market)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

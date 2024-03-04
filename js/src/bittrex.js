@@ -12,7 +12,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bittrex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bittrex extends Exchange {
     describe() {

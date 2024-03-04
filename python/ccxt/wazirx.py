@@ -38,7 +38,6 @@ class wazirx(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
-                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'closeAllPositions': False,
@@ -99,7 +98,8 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchTransfers': False,
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
-                'repayMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -774,7 +774,7 @@ class wazirx(Exchange, ImplicitAPI):
         response = self.privateDeleteOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://docs.wazirx.com/#new-order-trade
         create a trade order

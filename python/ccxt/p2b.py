@@ -25,6 +25,7 @@ class p2b(Exchange, ImplicitAPI):
             'countries': ['LT'],
             'rateLimit': 100,
             'version': 'v2',
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -529,7 +530,6 @@ class p2b(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: 1-100, default=50
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
         :param int params['lastId']: order id
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -642,7 +642,6 @@ class p2b(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: 1-500, default=50
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
         :param int [params.offset]: default=0, with self value the last candles are returned
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -761,7 +760,7 @@ class p2b(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order

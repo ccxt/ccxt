@@ -6,13 +6,13 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class bitrue
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitrue extends Exchange {
     describe () {
@@ -54,6 +54,7 @@ export default class bitrue extends Exchange {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingRate': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
@@ -1539,16 +1540,8 @@ export default class bitrue extends Exchange {
             const first = this.safeString (symbols, 0);
             const market = this.market (first);
             if (market['swap']) {
-                request['contractName'] = market['id'];
-                if (market['linear']) {
-                    response = await this.fapiV1PublicGetTicker (this.extend (request, params));
-                } else if (market['inverse']) {
-                    response = await this.dapiV1PublicGetTicker (this.extend (request, params));
-                }
-                response['symbol'] = market['id'];
-                data = [ response ];
+                throw new NotSupported (this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
             } else if (market['spot']) {
-                request['symbol'] = market['id'];
                 response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
                 data = response;
             } else {
@@ -1557,7 +1550,7 @@ export default class bitrue extends Exchange {
         } else {
             [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
             if (type !== 'spot') {
-                throw new NotSupported (this.id + ' fetchTickers only support spot when symbols is not set');
+                throw new NotSupported (this.id + ' fetchTickers only support spot when symbols are not proved');
             }
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
             data = response;
@@ -1884,7 +1877,7 @@ export default class bitrue extends Exchange {
         }, market);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name bitrue#createMarketBuyOrderWithCost
@@ -1905,7 +1898,7 @@ export default class bitrue extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#createOrder
@@ -1974,9 +1967,9 @@ export default class bitrue extends Exchange {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
                     const quoteAmount = Precise.stringMul (amountString, priceString);
-                    amount = (cost !== undefined) ? cost : quoteAmount;
-                    request['amount'] = this.costToPrecision (symbol, amount);
-                    request['volume'] = this.costToPrecision (symbol, amount);
+                    const requestAmount = (cost !== undefined) ? cost : quoteAmount;
+                    request['amount'] = this.costToPrecision (symbol, requestAmount);
+                    request['volume'] = this.costToPrecision (symbol, requestAmount);
                 }
             } else {
                 request['amount'] = this.parseToNumeric (amount);
@@ -2590,20 +2583,29 @@ export default class bitrue extends Exchange {
         }
         const response = await this.spotV1PrivateGetWithdrawHistory (this.extend (request, params));
         //
-        //     {
-        //         "code": 200,
-        //         "msg": "succ",
-        //         "data": {
-        //             "msg": null,
-        //             "amount": 1000,
-        //             "fee": 1,
-        //             "ctime": null,
-        //             "coin": "usdt_erc20",
-        //             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-        //         }
-        //     }
+        //    {
+        //        "code": 200,
+        //        "msg": "succ",
+        //        "data": [
+        //            {
+        //                "id": 183745,
+        //                "symbol": "usdt_erc20",
+        //                "amount": "8.4000000000000000",
+        //                "fee": "1.6000000000000000",
+        //                "payAmount": "0.0000000000000000",
+        //                "createdAt": 1595336441000,
+        //                "updatedAt": 1595336576000,
+        //                "addressFrom": "",
+        //                "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+        //                "txid": "",
+        //                "confirmations": 0,
+        //                "status": 6,
+        //                "tagType": null
+        //            }
+        //        ]
+        //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency);
     }
 
@@ -2750,7 +2752,7 @@ export default class bitrue extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#withdraw
@@ -2767,28 +2769,20 @@ export default class bitrue extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let chainName = this.safeString2 (params, 'network', 'chainName');
-        if (chainName === undefined) {
-            const networks = this.safeValue (currency, 'networks', {});
-            const optionsNetworks = this.safeValue (this.options, 'networks', {});
-            let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString (optionsNetworks, network, network);
-            const networkEntry = this.safeValue (networks, network, {});
-            chainName = this.safeString (networkEntry, 'id'); // handle ERC20>ETH alias
-            if (chainName === undefined) {
-                throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter or a chainName parameter');
-            }
-            params = this.omit (params, 'network');
-        }
         const request = {
-            'coin': currency['id'].toUpperCase (),
+            'coin': currency['id'],
             'amount': amount,
             'addressTo': address,
-            'chainName': chainName, // 'ERC20', 'TRC20', 'SOL'
+            // 'chainName': chainName, // 'ERC20', 'TRC20', 'SOL'
             // 'addressMark': '', // mark of address
             // 'addrType': '', // type of address
             // 'tag': tag,
         };
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chainName'] = this.networkCodeToId (networkCode);
+        }
         if (tag !== undefined) {
             request['tag'] = tag;
         }
@@ -2961,11 +2955,11 @@ export default class bitrue extends Exchange {
         //         }]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         return this.parseTransfers (data, currency, since, limit);
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bitrue#transfer
@@ -3001,7 +2995,7 @@ export default class bitrue extends Exchange {
         return this.parseTransfer (data, currency);
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#setLeverage
@@ -3048,7 +3042,7 @@ export default class bitrue extends Exchange {
         };
     }
 
-    async setMargin (symbol: string, amount, params = {}) {
+    async setMargin (symbol: string, amount: number, params = {}) {
         /**
          * @method
          * @name bitrue#setMargin
@@ -3180,7 +3174,7 @@ export default class bitrue extends Exchange {
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeValue (response, 'success', true);
+        const success = this.safeBool (response, 'success', true);
         if (!success) {
             const messageInner = this.safeString (response, 'msg');
             let parsedMessage = undefined;

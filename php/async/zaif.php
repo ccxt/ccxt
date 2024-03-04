@@ -308,15 +308,14 @@ class zaif extends Exchange {
         // }
         //
         $symbol = $this->safe_symbol(null, $market);
-        $timestamp = $this->milliseconds();
         $vwap = $this->safe_string($ticker, 'vwap');
         $baseVolume = $this->safe_string($ticker, 'volume');
         $quoteVolume = Precise::string_mul($baseVolume, $vwap);
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
             'bid' => $this->safe_string($ticker, 'bid'),
@@ -445,7 +444,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
@@ -572,7 +571,7 @@ class zaif extends Exchange {
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -597,7 +596,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
@@ -744,7 +743,7 @@ class zaif extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         if (!$success) {
             throw new ExchangeError($feedback);
         }

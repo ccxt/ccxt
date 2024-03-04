@@ -1,8 +1,8 @@
 import Exchange from './abstract/coinsph.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class coinsph
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinsph extends Exchange {
     describe(): any;
@@ -28,7 +28,7 @@ export default class coinsph extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -54,8 +54,7 @@ export default class coinsph extends Exchange {
         maker: number;
         taker: number;
     };
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    deposit(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;

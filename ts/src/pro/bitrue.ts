@@ -2,7 +2,7 @@
 
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ export default class bitrue extends bitrueRest {
         });
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitrue#watchBalance
@@ -169,7 +169,7 @@ export default class bitrue extends bitrueRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitrue#watchOrders
@@ -297,7 +297,7 @@ export default class bitrue extends bitrueRest {
         }, market);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -356,7 +356,12 @@ export default class bitrue extends bitrueRest {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
         const tick = this.safeValue (message, 'tick', {});
-        const orderbook = this.parseOrderBook (tick, symbol, timestamp, 'buys', 'asks');
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ();
+        }
+        const snapshot = this.parseOrderBook (tick, symbol, timestamp, 'buys', 'asks');
+        orderbook.reset (snapshot);
         this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
@@ -427,7 +432,7 @@ export default class bitrue extends bitrueRest {
             } catch (error) {
                 this.options['listenKey'] = undefined;
                 this.options['listenKeyUrl'] = undefined;
-                return;
+                return undefined;
             }
             //
             //     {

@@ -1,17 +1,17 @@
 import hollaexRest from '../hollaex.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class hollaex extends hollaexRest {
     describe(): any;
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    handleMyTrades(client: Client, message: any, subscription?: any): number;
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    handleOrder(client: Client, message: any, subscription?: any): number;
-    watchBalance(params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleMyTrades(client: Client, message: any, subscription?: any): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrder(client: Client, message: any, subscription?: any): void;
+    watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     watchPublic(messageHash: any, params?: {}): Promise<any>;
     watchPrivate(messageHash: any, params?: {}): Promise<any>;

@@ -5,7 +5,7 @@ import krakenRest from '../kraken.js';
 import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { Int, OrderSide, OrderType, Str } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ export default class kraken extends krakenRest {
         });
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name kraken#createOrderWs
@@ -164,7 +164,7 @@ export default class kraken extends krakenRest {
         client.resolve (order, messageHash);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name kraken#editOrderWs
@@ -222,7 +222,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name kraken#cancelOrderWs
@@ -333,11 +333,10 @@ export default class kraken extends krakenRest {
             quoteVolume = Precise.stringMul (baseVolume, vwap);
         }
         const last = this.safeString (ticker['c'], 0);
-        const timestamp = this.milliseconds ();
         const result = this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString (ticker['h'], 0),
             'low': this.safeString (ticker['l'], 0),
             'bid': this.safeString (ticker['b'], 0),
@@ -368,7 +367,7 @@ export default class kraken extends krakenRest {
         //     [
         //         0, // channelID
         //         [ //     price        volume         time             side type misc
-        //             [ "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ],
+        //             [ "5541.20000", "0.15850568", "1534614057.321596", "s", "l", "" ],
         //             [ "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ],
         //         ],
         //         "trade",
@@ -475,7 +474,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name kraken#watchTicker
@@ -487,7 +486,7 @@ export default class kraken extends krakenRest {
         return await this.watchPublic ('ticker', symbol, params);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name kraken#watchTrades
@@ -508,7 +507,7 @@ export default class kraken extends krakenRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name kraken#watchOrderBook
@@ -533,7 +532,7 @@ export default class kraken extends krakenRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name kraken#watchOHLCV
@@ -561,7 +560,7 @@ export default class kraken extends krakenRest {
             ],
             'subscription': {
                 'name': name,
-                'interval': this.safeString (this.timeframes, timeframe, timeframe),
+                'interval': this.safeValue (this.timeframes, timeframe, timeframe),
             },
         };
         const request = this.deepExtend (subscribe, params);
@@ -678,7 +677,7 @@ export default class kraken extends krakenRest {
                 const side = sides[key];
                 const bookside = orderbook[side];
                 const deltas = this.safeValue (message[1], key, []);
-                timestamp = this.handleDeltas (bookside, deltas, timestamp);
+                timestamp = this.customHandleDeltas (bookside, deltas, timestamp);
             }
             orderbook['symbol'] = symbol;
             orderbook['timestamp'] = timestamp;
@@ -707,16 +706,16 @@ export default class kraken extends krakenRest {
             const storedBids = orderbook['bids'];
             let example = undefined;
             if (a !== undefined) {
-                timestamp = this.handleDeltas (storedAsks, a, timestamp);
+                timestamp = this.customHandleDeltas (storedAsks, a, timestamp);
                 example = this.safeValue (a, 0);
             }
             if (b !== undefined) {
-                timestamp = this.handleDeltas (storedBids, b, timestamp);
+                timestamp = this.customHandleDeltas (storedBids, b, timestamp);
                 example = this.safeValue (b, 0);
             }
             // don't remove this line or I will poop on your face
             orderbook.limit ();
-            const checksum = this.safeValue (this.options, 'checksum', true);
+            const checksum = this.safeBool (this.options, 'checksum', true);
             if (checksum) {
                 const priceString = this.safeString (example, 0);
                 const amountString = this.safeString (example, 1);
@@ -767,7 +766,7 @@ export default class kraken extends krakenRest {
         }
     }
 
-    handleDeltas (bookside, deltas, timestamp = undefined) {
+    customHandleDeltas (bookside, deltas, timestamp = undefined) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
             const price = this.parseNumber (delta[0]);
@@ -844,7 +843,7 @@ export default class kraken extends krakenRest {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name kraken#watchMyTrades
@@ -1008,7 +1007,7 @@ export default class kraken extends krakenRest {
         };
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kraken#watchOrders
@@ -1017,7 +1016,7 @@ export default class kraken extends krakenRest {
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params] maximum number of orderic to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.watchPrivate ('openOrders', symbol, since, limit, params);
@@ -1321,7 +1320,7 @@ export default class kraken extends krakenRest {
         //         "subscription": { name: "ticker" }
         //     }
         //
-        const errorMessage = this.safeValue (message, 'errorMessage');
+        const errorMessage = this.safeString (message, 'errorMessage');
         if (errorMessage !== undefined) {
             const requestId = this.safeValue (message, 'reqid');
             if (requestId !== undefined) {
@@ -1329,7 +1328,7 @@ export default class kraken extends krakenRest {
                 const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new ExchangeError (errorMessage);
+                    exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
                 } else {
                     exception = new broad[broadKey] (errorMessage);
                 }
@@ -1359,10 +1358,8 @@ export default class kraken extends krakenRest {
                 'ownTrades': this.handleMyTrades,
             };
             const method = this.safeValue2 (methods, name, channelName);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message, subscription);
+            if (method !== undefined) {
+                method.call (this, client, message, subscription);
             }
         } else {
             if (this.handleErrorMessage (client, message)) {
@@ -1377,10 +1374,8 @@ export default class kraken extends krakenRest {
                     'cancelAllStatus': this.handleCancelAllOrders,
                 };
                 const method = this.safeValue (methods, event);
-                if (method === undefined) {
-                    return message;
-                } else {
-                    return method.call (this, client, message);
+                if (method !== undefined) {
+                    method.call (this, client, message);
                 }
             }
         }

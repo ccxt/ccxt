@@ -88,7 +88,7 @@
             {
                 "description": "Edit swap order",
                 "method": "editOrder",
-                "url": "https://testnet-api.phemex.com/g-orders/replace?symbol=LTCUSDT&orderID=f19a1108-8dc0-4afb-b281-0cd2c8ca65d9&priceRp=50&baseQtyEV=0.14&posSide=Merged",
+                "url": "https://testnet-api.phemex.com/g-orders/replace?symbol=LTCUSDT&orderID=f19a1108-8dc0-4afb-b281-0cd2c8ca65d9&priceRp=50&orderQtyRq=0.14&posSide=Merged",
                 "input": [
                   "f19a1108-8dc0-4afb-b281-0cd2c8ca65d9",
                   "LTC/USDT:USDT",
@@ -175,6 +175,12 @@
                     1699457638000,
                     5
                 ]
+            },
+            {
+                "description": "my trades without symbol should return usdt settled trades",
+                "method": "fetchMyTrades",
+                "url": "https://testnet-api.phemex.com/exchange/order/v2/tradingList?currency=USDT&offset=0&limit=200",
+                "input": []
             }
         ],
         "fetchOpenOrders": [
@@ -227,6 +233,12 @@
                 "input": [
                     "BTC/USD:BTC"
                 ]
+            },
+            {
+                "description": "Closed orders without symbol should return usdt settled orders",
+                "method": "fetchClosedOrders",
+                "url": "https://testnet-api.phemex.com/exchange/order/v2/orderList?currency=USDT",
+                "input": []
             }
         ],
         "cancelAllOrders": [
@@ -309,6 +321,17 @@
                         "BTC/USD:BTC"
                     ]
                 ]
+            },
+            {
+                "description": "Fetch linear positions using privateGetAccountsPositions",
+                "method": "fetchPositions",
+                "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=USD&method=privateGetAccountsPositions",
+                "input": [
+                  null,
+                  {
+                    "method": "privateGetAccountsPositions"
+                  }
+                ]
             }
         ],
         "fetchDeposits": [
@@ -384,6 +407,20 @@
                 ]
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "inverse tickers without symbols",
+                "method": "fetchTickers",
+                "url": "https://api.phemex.com/v1/md/ticker/24hr/all",
+                "input": [
+                  null,
+                  {
+                    "type": "swap",
+                    "subType": "inverse"
+                  }
+                ]
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "fetch spot trades",
@@ -445,6 +482,57 @@
                     10
                 ]
             }
+        ],
+        "withdraw": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "withdraw",
+                "url": "https://api.phemex.com/phemex-withdraw/wallets/api/createWithdraw",
+                "input": [
+                  "SOL",
+                  0.03,
+                  "6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK"
+                ],
+                "output": "{\"currency\":\"SOL\",\"address\":\"6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK\",\"amount\":0.03,\"chainName\":\"SOL\"}"
+              }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set leverage to maximum on isolated margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=100",
+                "input": [
+                  100,
+                  "BTC/USDT:USDT"
+                ]
+              },
+              {
+                "description": "Set leverage to minimum on isolated margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=1",
+                "input": [
+                  1,
+                  "BTC/USDT:USDT"
+                ]
+              },
+              {
+                "description": "Set leverage to minimum on cross margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=-1",
+                "input": [
+                  -1,
+                  "BTC/USDT:USDT"
+                ]
+              },
+              {
+                "description": "Set leverage to maximum on cross margin",
+                "method": "setLeverage",
+                "url": "https://api.phemex.com/g-positions/leverage?symbol=BTCUSDT&leverageRr=-100",
+                "input": [
+                  -100,
+                  "BTC/USDT:USDT"
+                ]
+              }
         ]
     }
 }

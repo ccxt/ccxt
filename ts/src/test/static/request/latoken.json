@@ -125,7 +125,7 @@
                 "input": [
                     "USDT",
                     1,
-                    null,
+                    "",
                     "abc@gmail.com"
                 ],
                 "output": "{\"currency\":\"0c3a106d-bde3-4c13-a26e-3fd2394529e5\",\"recipient\":\"abc@gmail.com\",\"value\":\"1\"}"
@@ -137,7 +137,7 @@
                 "input": [
                     "USDT",
                     1,
-                    null,
+                    "",
                     "e6fc4ace-7750-44e4-b7e9-6af038ac7107"
                 ],
                 "output": "{\"currency\":\"0c3a106d-bde3-4c13-a26e-3fd2394529e5\",\"recipient\":\"e6fc4ace-7750-44e4-b7e9-6af038ac7107\",\"value\":\"1\"}"
@@ -149,7 +149,7 @@
                 "input": [
                     "USDT",
                     1,
-                    null,
+                    "",
                     "1234567890"
                 ],
                 "output": "{\"currency\":\"0c3a106d-bde3-4c13-a26e-3fd2394529e5\",\"recipient\":\"1234567890\",\"value\":\"1\"}"

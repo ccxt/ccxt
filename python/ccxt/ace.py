@@ -568,7 +568,7 @@ class ace(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
@@ -673,7 +673,7 @@ class ace(Exchange, ImplicitAPI):
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1001,6 +1001,7 @@ class ace(Exchange, ImplicitAPI):
         feedback = self.id + ' ' + body
         status = self.safe_number(response, 'status', 200)
         if status > 200:
-            self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], status, feedback)
+            statusStr = str(status)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], statusStr, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], statusStr, feedback)
         return None

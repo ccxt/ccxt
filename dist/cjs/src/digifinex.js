@@ -10,7 +10,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class digifinex
- * @extends Exchange
+ * @augments Exchange
  */
 class digifinex extends digifinex$1 {
     describe() {
@@ -30,6 +30,9 @@ class digifinex extends digifinex$1 {
                 'addMargin': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
@@ -409,7 +412,10 @@ class digifinex extends digifinex$1 {
             const minFoundPrecision = Precise["default"].stringMin(feeString, Precise["default"].stringMin(minDepositString, minWithdrawString));
             const precision = this.parseNumber(minFoundPrecision);
             const networkId = this.safeString(currency, 'chain');
-            const networkCode = this.networkIdToCode(networkId);
+            let networkCode = undefined;
+            if (networkId !== undefined) {
+                networkCode = this.networkIdToCode(networkId);
+            }
             const network = {
                 'info': currency,
                 'id': networkId,
@@ -527,9 +533,15 @@ class digifinex extends digifinex$1 {
     async fetchMarketsV2(params = {}) {
         const defaultType = this.safeString(this.options, 'defaultType');
         const [marginMode, query] = this.handleMarginModeAndParams('fetchMarketsV2', params);
-        const method = (marginMode !== undefined) ? 'publicSpotGetMarginSymbols' : 'publicSpotGetTradesSymbols';
-        let promises = [this[method](query), this.publicSwapGetPublicInstruments(params)];
-        promises = await Promise.all(promises);
+        const promisesRaw = [];
+        if (marginMode !== undefined) {
+            promisesRaw.push(this.publicSpotGetMarginSymbols(query));
+        }
+        else {
+            promisesRaw.push(this.publicSpotGetTradesSymbols(query));
+        }
+        promisesRaw.push(this.publicSwapGetPublicInstruments(params));
+        const promises = await Promise.all(promisesRaw);
         const spotMarkets = promises[0];
         const swapMarkets = promises[1];
         //
@@ -807,17 +819,21 @@ class digifinex extends digifinex$1 {
         await this.loadMarkets();
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotGetSpotAssets',
-            'margin': 'privateSpotGetMarginAssets',
-            'swap': 'privateSwapGetAccountBalance',
-        });
         const [marginMode, query] = this.handleMarginModeAndParams('fetchBalance', params);
-        if (marginMode !== undefined) {
-            method = 'privateSpotGetMarginAssets';
+        let response = undefined;
+        if (marginMode !== undefined || marketType === 'margin') {
             marketType = 'margin';
+            response = await this.privateSpotGetMarginAssets(query);
         }
-        const response = await this[method](query);
+        else if (marketType === 'spot') {
+            response = await this.privateSpotGetSpotAssets(query);
+        }
+        else if (marketType === 'swap') {
+            response = await this.privateSwapGetAccountBalance(query);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchBalance() not support this market type');
+        }
         //
         // spot and margin
         //
@@ -874,19 +890,18 @@ class digifinex extends digifinex$1 {
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrderBook', market, params);
         const request = {};
-        let method = undefined;
-        if (marketType === 'swap') {
-            method = 'publicSwapGetPublicDepth';
-            request['instrument_id'] = market['id'];
-        }
-        else {
-            method = 'publicSpotGetOrderBook';
-            request['symbol'] = market['id'];
-        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (marketType === 'swap') {
+            request['instrument_id'] = market['id'];
+            response = await this.publicSwapGetPublicDepth(this.extend(request, query));
+        }
+        else {
+            request['symbol'] = market['id'];
+            response = await this.publicSpotGetOrderBook(this.extend(request, query));
+        }
         //
         // spot
         //
@@ -957,12 +972,14 @@ class digifinex extends digifinex$1 {
         }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
-        let method = 'publicSpotGetTicker';
         const request = {};
+        let response = undefined;
         if (type === 'swap') {
-            method = 'publicSwapGetPublicTickers';
+            response = await this.publicSwapGetPublicTickers(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.publicSpotGetTicker(this.extend(request, params));
+        }
         //
         // spot
         //
@@ -1037,16 +1054,16 @@ class digifinex extends digifinex$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        let method = 'publicSpotGetTicker';
         const request = {};
+        let response = undefined;
         if (market['swap']) {
-            method = 'publicSwapGetPublicTicker';
             request['instrument_id'] = market['id'];
+            response = await this.publicSwapGetPublicTicker(this.extend(request, params));
         }
         else {
             request['symbol'] = market['id'];
+            response = await this.publicSpotGetTicker(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         // spot
         //
@@ -1145,9 +1162,11 @@ class digifinex extends digifinex$1 {
         //         "timestamp": 1663221614998
         //     }
         //
+        const indexPrice = this.safeNumber(ticker, 'index_price');
+        const marketType = (indexPrice !== undefined) ? 'contract' : 'spot';
         const marketId = this.safeStringUpper2(ticker, 'symbol', 'instrument_id');
-        const symbol = this.safeSymbol(marketId, market);
-        market = this.safeMarket(marketId);
+        const symbol = this.safeSymbol(marketId, market, undefined, marketType);
+        market = this.safeMarket(marketId, market, undefined, marketType);
         let timestamp = this.safeTimestamp(ticker, 'date');
         if (market['swap']) {
             timestamp = this.safeInteger(ticker, 'timestamp');
@@ -1375,19 +1394,19 @@ class digifinex extends digifinex$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        let method = 'publicSpotGetTrades';
         const request = {};
-        if (market['swap']) {
-            method = 'publicSwapGetPublicTrades';
-            request['instrument_id'] = market['id'];
-        }
-        else {
-            request['symbol'] = market['id'];
-        }
         if (limit !== undefined) {
             request['limit'] = market['swap'] ? Math.min(limit, 100) : limit;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (market['swap']) {
+            request['instrument_id'] = market['id'];
+            response = await this.publicSwapGetPublicTrades(this.extend(request, params));
+        }
+        else {
+            request['symbol'] = market['id'];
+            response = await this.publicSpotGetTrades(this.extend(request, params));
+        }
         //
         // spot
         //
@@ -1480,15 +1499,15 @@ class digifinex extends digifinex$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        let method = 'publicSpotGetKline';
         const request = {};
+        let response = undefined;
         if (market['swap']) {
-            method = 'publicSwapGetPublicCandles';
             request['instrument_id'] = market['id'];
             request['granularity'] = timeframe;
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
+            response = await this.publicSwapGetPublicCandles(this.extend(request, params));
         }
         else {
             request['symbol'] = market['id'];
@@ -1506,8 +1525,8 @@ class digifinex extends digifinex$1 {
                 const duration = this.parseTimeframe(timeframe);
                 request['start_time'] = this.sum(endTime, -limit * duration);
             }
+            response = await this.publicSpotGetKline(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         // spot
         //
@@ -1562,6 +1581,7 @@ class digifinex extends digifinex$1 {
          * @param {bool} [params.postOnly] true or false
          * @param {bool} [params.reduceOnly] true or false
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1611,7 +1631,7 @@ class digifinex extends digifinex$1 {
          * @description create a list of trade orders (all orders should be of the same symbol)
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-multiple-order
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchorder
-         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1733,7 +1753,7 @@ class digifinex extends digifinex$1 {
         let postOnly = this.isPostOnly(isMarketOrder, false, params);
         let postOnlyParsed = undefined;
         if (swap) {
-            const reduceOnly = this.safeValue(params, 'reduceOnly', false);
+            const reduceOnly = this.safeBool(params, 'reduceOnly', false);
             const timeInForce = this.safeString(params, 'timeInForce');
             let orderType = undefined;
             if (side === 'buy') {
@@ -1779,16 +1799,27 @@ class digifinex extends digifinex$1 {
             request['type'] = side + suffix;
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             let quantity = undefined;
-            const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
-            if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
-                if (price === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
+            if (isMarketOrder && (side === 'buy')) {
+                const cost = this.safeNumber(params, 'cost');
+                params = this.omit(params, 'cost');
+                if (cost !== undefined) {
+                    quantity = this.costToPrecision(symbol, cost);
+                }
+                else if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                    }
+                    else {
+                        const amountString = this.numberToString(amount);
+                        const priceString = this.numberToString(price);
+                        const costRequest = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
+                        quantity = this.costToPrecision(symbol, costRequest);
+                    }
                 }
                 else {
-                    const amountString = this.numberToString(amount);
-                    const priceString = this.numberToString(price);
-                    const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
-                    quantity = this.priceToPrecision(symbol, cost);
+                    quantity = this.costToPrecision(symbol, amount);
                 }
             }
             else {
@@ -1807,6 +1838,25 @@ class digifinex extends digifinex$1 {
         params = this.omit(params, ['postOnly']);
         return this.extend(request, params);
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name digifinex#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
@@ -1824,19 +1874,9 @@ class digifinex extends digifinex$1 {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
+        id = id.toString();
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('cancelOrder', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotPostSpotOrderCancel',
-            'margin': 'privateSpotPostMarginOrderCancel',
-            'swap': 'privateSwapPostTradeCancelOrder',
-        });
-        const [marginMode, query] = this.handleMarginModeAndParams('cancelOrder', params);
-        if (marginMode !== undefined) {
-            method = 'privateSpotPostMarginOrderCancel';
-            marketType = 'margin';
-        }
-        id = id.toString();
         const request = {
             'order_id': id,
         };
@@ -1849,7 +1889,21 @@ class digifinex extends digifinex$1 {
         else {
             request['market'] = marketType;
         }
-        const response = await this[method](this.extend(request, query));
+        const [marginMode, query] = this.handleMarginModeAndParams('cancelOrder', params);
+        let response = undefined;
+        if (marginMode !== undefined || marketType === 'margin') {
+            marketType = 'margin';
+            response = await this.privateSpotPostMarginOrderCancel(this.extend(request, query));
+        }
+        else if (marketType === 'spot') {
+            response = await this.privateSpotPostSpotOrderCancel(this.extend(request, query));
+        }
+        else if (marketType === 'swap') {
+            response = await this.privateSwapPostTradeCancelOrder(this.extend(request, query));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' cancelOrder() not support this market type');
+        }
         //
         // spot and margin
         //
@@ -2096,16 +2150,7 @@ class digifinex extends digifinex$1 {
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotGetSpotOrderCurrent',
-            'margin': 'privateSpotGetMarginOrderCurrent',
-            'swap': 'privateSwapGetTradeOpenOrders',
-        });
         const [marginMode, query] = this.handleMarginModeAndParams('fetchOpenOrders', params);
-        if (marginMode !== undefined) {
-            method = 'privateSpotGetMarginOrderCurrent';
-            marketType = 'margin';
-        }
         const request = {};
         const swap = (marketType === 'swap');
         if (swap) {
@@ -2123,7 +2168,20 @@ class digifinex extends digifinex$1 {
             const marketIdRequest = swap ? 'instrument_id' : 'symbol';
             request[marketIdRequest] = market['id'];
         }
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (marginMode !== undefined || marketType === 'margin') {
+            marketType = 'margin';
+            response = await this.privateSpotGetMarginOrderCurrent(this.extend(request, query));
+        }
+        else if (marketType === 'spot') {
+            response = await this.privateSpotGetSpotOrderCurrent(this.extend(request, query));
+        }
+        else if (marketType === 'swap') {
+            response = await this.privateSwapGetTradeOpenOrders(this.extend(request, query));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchOpenOrders() not support this market type');
+        }
         //
         // spot and margin
         //
@@ -2187,7 +2245,7 @@ class digifinex extends digifinex$1 {
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#historyorder
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2198,16 +2256,7 @@ class digifinex extends digifinex$1 {
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotGetSpotOrderHistory',
-            'margin': 'privateSpotGetMarginOrderHistory',
-            'swap': 'privateSwapGetTradeHistoryOrders',
-        });
         const [marginMode, query] = this.handleMarginModeAndParams('fetchOrders', params);
-        if (marginMode !== undefined) {
-            method = 'privateSpotGetMarginOrderHistory';
-            marketType = 'margin';
-        }
         const request = {};
         if (marketType === 'swap') {
             if (since !== undefined) {
@@ -2227,7 +2276,20 @@ class digifinex extends digifinex$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (marginMode !== undefined || marketType === 'margin') {
+            marketType = 'margin';
+            response = await this.privateSpotGetMarginOrderHistory(this.extend(request, query));
+        }
+        else if (marketType === 'spot') {
+            response = await this.privateSpotGetSpotOrderHistory(this.extend(request, query));
+        }
+        else if (marketType === 'swap') {
+            response = await this.privateSwapGetTradeHistoryOrders(this.extend(request, query));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchOrders() not support this market type');
+        }
         //
         // spot and margin
         //
@@ -2301,16 +2363,7 @@ class digifinex extends digifinex$1 {
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotGetSpotOrder',
-            'margin': 'privateSpotGetMarginOrder',
-            'swap': 'privateSwapGetTradeOrderInfo',
-        });
         const [marginMode, query] = this.handleMarginModeAndParams('fetchOrder', params);
-        if (marginMode !== undefined) {
-            method = 'privateSpotGetMarginOrder';
-            marketType = 'margin';
-        }
         const request = {
             'order_id': id,
         };
@@ -2322,7 +2375,20 @@ class digifinex extends digifinex$1 {
         else {
             request['market'] = marketType;
         }
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if ((marginMode !== undefined) || (marketType === 'margin')) {
+            marketType = 'margin';
+            response = await this.privateSpotGetMarginOrder(this.extend(request, query));
+        }
+        else if (marketType === 'spot') {
+            response = await this.privateSpotGetSpotOrder(this.extend(request, query));
+        }
+        else if (marketType === 'swap') {
+            response = await this.privateSwapGetTradeOrderInfo(this.extend(request, query));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchOrder() not support this market type');
+        }
         //
         // spot and margin
         //
@@ -2399,16 +2465,7 @@ class digifinex extends digifinex$1 {
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotGetSpotMytrades',
-            'margin': 'privateSpotGetMarginMytrades',
-            'swap': 'privateSwapGetTradeHistoryTrades',
-        });
         const [marginMode, query] = this.handleMarginModeAndParams('fetchMyTrades', params);
-        if (marginMode !== undefined) {
-            method = 'privateSpotGetMarginMytrades';
-            marketType = 'margin';
-        }
         if (marketType === 'swap') {
             if (since !== undefined) {
                 request['start_timestamp'] = since;
@@ -2427,7 +2484,20 @@ class digifinex extends digifinex$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (marginMode !== undefined || marketType === 'margin') {
+            marketType = 'margin';
+            response = await this.privateSpotGetMarginMytrades(this.extend(request, query));
+        }
+        else if (marketType === 'spot') {
+            response = await this.privateSpotGetSpotMytrades(this.extend(request, query));
+        }
+        else if (marketType === 'swap') {
+            response = await this.privateSwapGetTradeHistoryTrades(this.extend(request, query));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMyTrades() not support this market type');
+        }
         //
         // spot and margin
         //
@@ -2545,16 +2615,7 @@ class digifinex extends digifinex$1 {
         const request = {};
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotGetSpotFinancelog',
-            'margin': 'privateSpotGetMarginFinancelog',
-            'swap': 'privateSwapGetAccountFinanceRecord',
-        });
         const [marginMode, query] = this.handleMarginModeAndParams('fetchLedger', params);
-        if (marginMode !== undefined) {
-            method = 'privateSpotGetMarginFinancelog';
-            marketType = 'margin';
-        }
         if (marketType === 'swap') {
             if (since !== undefined) {
                 request['start_timestamp'] = since;
@@ -2575,7 +2636,20 @@ class digifinex extends digifinex$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (marginMode !== undefined || marketType === 'margin') {
+            marketType = 'margin';
+            response = await this.privateSpotGetMarginFinancelog(this.extend(request, query));
+        }
+        else if (marketType === 'spot') {
+            response = await this.privateSpotGetSpotFinancelog(this.extend(request, query));
+        }
+        else if (marketType === 'swap') {
+            response = await this.privateSwapGetAccountFinanceRecord(this.extend(request, query));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchLedger() not support this market type');
+        }
         //
         // spot and margin
         //
@@ -2692,8 +2766,13 @@ class digifinex extends digifinex$1 {
         if (limit !== undefined) {
             request['size'] = Math.min(500, limit);
         }
-        const method = (type === 'deposit') ? 'privateSpotGetDepositHistory' : 'privateSpotGetWithdrawHistory';
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (type === 'deposit') {
+            response = await this.privateSpotGetDepositHistory(this.extend(request, params));
+        }
+        else {
+            response = await this.privateSpotGetWithdrawHistory(this.extend(request, params));
+        }
         //
         //     {
         //         "code": 200,
@@ -3327,12 +3406,16 @@ class digifinex extends digifinex$1 {
             const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
             request[marketIdRequest] = market['id'];
         }
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotGetMarginPositions',
-            'margin': 'privateSpotGetMarginPositions',
-            'swap': 'privateSwapGetAccountPositions',
-        });
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (marketType === 'spot' || marketType === 'margin') {
+            response = await this.privateSpotGetMarginPositions(this.extend(request, query));
+        }
+        else if (marketType === 'swap') {
+            response = await this.privateSwapGetAccountPositions(this.extend(request, query));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchPositions() not support this market type');
+        }
         //
         // swap
         //
@@ -3414,14 +3497,18 @@ class digifinex extends digifinex$1 {
         if (marginMode !== undefined) {
             marketType = 'margin';
         }
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotGetMarginPositions',
-            'margin': 'privateSpotGetMarginPositions',
-            'swap': 'privateSwapGetAccountPositions',
-        });
         const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
         request[marketIdRequest] = market['id'];
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (marketType === 'spot' || marketType === 'margin') {
+            response = await this.privateSpotGetMarginPositions(this.extend(request, query));
+        }
+        else if (marketType === 'swap') {
+            response = await this.privateSwapGetAccountPositions(this.extend(request, query));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchPosition() not support this market type');
+        }
         //
         // swap
         //
@@ -3836,10 +3923,10 @@ class digifinex extends digifinex$1 {
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {array} the marginMode in lowercase
+         * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         let marginMode = undefined;
         [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
         if (marginMode !== undefined) {

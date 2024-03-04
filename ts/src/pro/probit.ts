@@ -1,11 +1,9 @@
-'use strict';
-
 //  ---------------------------------------------------------------------------
 
 import probitRest from '../probit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Str } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -54,7 +52,7 @@ export default class probit extends probitRest {
         });
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name probit#watchBalance
@@ -105,7 +103,7 @@ export default class probit extends probitRest {
         //         }
         //     }
         //
-        const reset = this.safeValue (message, 'reset', false);
+        const reset = this.safeBool (message, 'reset', false);
         const data = this.safeValue (message, 'data', {});
         const currencyIds = Object.keys (data);
         if (reset) {
@@ -123,7 +121,7 @@ export default class probit extends probitRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name probit#watchTicker
@@ -168,7 +166,7 @@ export default class probit extends probitRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name probit#watchTrades
@@ -215,7 +213,7 @@ export default class probit extends probitRest {
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
         const trades = this.safeValue (message, 'recent_trades', []);
-        const reset = this.safeValue (message, 'reset', false);
+        const reset = this.safeBool (message, 'reset', false);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined || reset) {
@@ -232,7 +230,7 @@ export default class probit extends probitRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name probit#watchMyTrades
@@ -290,7 +288,7 @@ export default class probit extends probitRest {
         if (length === 0) {
             return;
         }
-        const reset = this.safeValue (message, 'reset', false);
+        const reset = this.safeBool (message, 'reset', false);
         const messageHash = 'myTrades';
         let stored = this.myTrades;
         if ((stored === undefined) || reset) {
@@ -314,7 +312,7 @@ export default class probit extends probitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name probit#watchOrders
@@ -380,7 +378,7 @@ export default class probit extends probitRest {
             return;
         }
         const messageHash = 'orders';
-        const reset = this.safeValue (message, 'reset', false);
+        const reset = this.safeBool (message, 'reset', false);
         let stored = this.orders;
         if (stored === undefined || reset) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -403,7 +401,7 @@ export default class probit extends probitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name probit#watchOrderBook
@@ -470,19 +468,19 @@ export default class probit extends probitRest {
         const symbol = this.safeSymbol (marketId);
         const dataBySide = this.groupBy (orderBook, 'side');
         const messageHash = 'orderbook:' + symbol;
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({});
+            this.orderbooks[symbol] = orderbook;
         }
-        const reset = this.safeValue (message, 'reset', false);
+        const reset = this.safeBool (message, 'reset', false);
         if (reset) {
             const snapshot = this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
-            storedOrderBook.reset (snapshot);
+            orderbook.reset (snapshot);
         } else {
-            this.handleDelta (storedOrderBook, dataBySide);
+            this.handleDelta (orderbook, dataBySide);
         }
-        client.resolve (storedOrderBook, messageHash);
+        client.resolve (orderbook, messageHash);
     }
 
     handleBidAsks (bookSide, bidAsks) {
@@ -560,11 +558,13 @@ export default class probit extends probitRest {
         //
         const errorCode = this.safeString (message, 'errorCode');
         if (errorCode !== undefined) {
-            return this.handleErrorMessage (client, message);
+            this.handleErrorMessage (client, message);
+            return;
         }
         const type = this.safeString (message, 'type');
         if (type === 'authorization') {
-            return this.handleAuthenticate (client, message);
+            this.handleAuthenticate (client, message);
+            return;
         }
         const handlers = {
             'marketdata': this.handleMarketData,
@@ -576,7 +576,8 @@ export default class probit extends probitRest {
         const channel = this.safeString (message, 'channel');
         const handler = this.safeValue (handlers, channel);
         if (handler !== undefined) {
-            return handler.call (this, client, message);
+            handler.call (this, client, message);
+            return;
         }
         const error = new NotSupported (this.id + ' handleMessage: unknown message: ' + this.json (message));
         client.reject (error);
@@ -605,6 +606,6 @@ export default class probit extends probitRest {
             future = this.watch (url, messageHash, this.extend (request, params));
             client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }

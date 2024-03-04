@@ -1,8 +1,8 @@
 import Exchange from './abstract/idex.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class idex
- * @extends Exchange
+ * @augments Exchange
  */
 export default class idex extends Exchange {
     describe(): any;
@@ -29,20 +29,41 @@ export default class idex extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
     associateWallet(walletAddress: any, params?: {}): Promise<any>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchStatus(params?: {}): Promise<{
+        status: string;
+        updated: any;
+        eta: any;
+        url: any;
+        info: any;
+    }>;
     fetchTime(params?: {}): Promise<number>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchTransactionsHelper(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactionsHelper(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
+    fetchDepositAddress(code?: string, params?: {}): Promise<{
+        info: any;
+        currency: any;
+        address: string;
+        tag: any;
+        network: string;
+    }>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
+        info: any;
+        currency: any;
+        address: string;
+        tag: any;
+        network: string;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

@@ -13,9 +13,6 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function public_common_get_v2_public_time($params = array()) {
         return $this->request('v2/public/time', array('public', 'common'), 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_common_get_v2_common_trade_rate($params = array()) {
-        return $this->request('v2/common/trade-rate', array('public', 'common'), 'GET', $params, null, null, array("cost" => 2));
-    }
     public function public_spot_get_spot_v1_notice_queryallnotices($params = array()) {
         return $this->request('spot/v1/notice/queryAllNotices', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1076,7 +1073,7 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('v2/margin/crossed/financial-records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_margin_get_v2_margin_crossed_account_assets($params = array()) {
-        return $this->request('v2/margin/crossed/account-assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('v2/margin/crossed/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_margin_get_v2_margin_crossed_account_risk_rate($params = array()) {
         return $this->request('v2/margin/crossed/account/risk-rate', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
@@ -1118,7 +1115,7 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('v2/margin/isolated/financial-records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_margin_get_v2_margin_isolated_account_assets($params = array()) {
-        return $this->request('v2/margin/isolated/account-assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('v2/margin/isolated/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_margin_get_v2_margin_isolated_account_risk_rate($params = array()) {
         return $this->request('v2/margin/isolated/account/risk-rate', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
@@ -1492,14 +1489,14 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_earn_post_v2_earn_loan_revise_pledge($params = array()) {
         return $this->request('v2/earn/loan/revise-pledge', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_common_get_v2_common_trade_rate($params = array()) {
+        return $this->request('v2/common/trade-rate', array('private', 'common'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function publicCommonGetV2PublicAnnoucements($params = array()) {
         return $this->request('v2/public/annoucements', array('public', 'common'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicCommonGetV2PublicTime($params = array()) {
         return $this->request('v2/public/time', array('public', 'common'), 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function publicCommonGetV2CommonTradeRate($params = array()) {
-        return $this->request('v2/common/trade-rate', array('public', 'common'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function publicSpotGetSpotV1NoticeQueryAllNotices($params = array()) {
         return $this->request('spot/v1/notice/queryAllNotices', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -2561,7 +2558,7 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('v2/margin/crossed/financial-records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMarginGetV2MarginCrossedAccountAssets($params = array()) {
-        return $this->request('v2/margin/crossed/account-assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('v2/margin/crossed/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMarginGetV2MarginCrossedAccountRiskRate($params = array()) {
         return $this->request('v2/margin/crossed/account/risk-rate', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
@@ -2603,7 +2600,7 @@ abstract class bitget extends \ccxt\async\Exchange {
         return $this->request('v2/margin/isolated/financial-records', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMarginGetV2MarginIsolatedAccountAssets($params = array()) {
-        return $this->request('v2/margin/isolated/account-assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('v2/margin/isolated/account/assets', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateMarginGetV2MarginIsolatedAccountRiskRate($params = array()) {
         return $this->request('v2/margin/isolated/account/risk-rate', array('private', 'margin'), 'GET', $params, null, null, array("cost" => 2));
@@ -2976,5 +2973,8 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateEarnPostV2EarnLoanRevisePledge($params = array()) {
         return $this->request('v2/earn/loan/revise-pledge', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateCommonGetV2CommonTradeRate($params = array()) {
+        return $this->request('v2/common/trade-rate', array('private', 'common'), 'GET', $params, null, null, array("cost" => 2));
     }
 }

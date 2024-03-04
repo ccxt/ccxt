@@ -5,13 +5,13 @@ import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class independentreserve
- * @extends Exchange
+ * @augments Exchange
  */
 export default class independentreserve extends Exchange {
     describe () {
@@ -43,6 +43,9 @@ export default class independentreserve extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -522,7 +525,7 @@ export default class independentreserve extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -544,7 +547,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit = 50, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 50, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchMyTrades
@@ -682,7 +685,7 @@ export default class independentreserve extends Exchange {
         return result;
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#createOrder
@@ -697,20 +700,21 @@ export default class independentreserve extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const capitalizedOrderType = this.capitalize (type);
-        const method = 'privatePostPlace' + capitalizedOrderType + 'Order';
-        let orderType = capitalizedOrderType;
+        let orderType = this.capitalize (type);
         orderType += (side === 'sell') ? 'Offer' : 'Bid';
         const request = this.ordered ({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         });
+        let response = undefined;
+        request['volume'] = amount;
         if (type === 'limit') {
             request['price'] = price;
+            response = await this.privatePostPlaceLimitOrder (this.extend (request, params));
+        } else {
+            response = await this.privatePostPlaceMarketOrder (this.extend (request, params));
         }
-        request['volume'] = amount;
-        const response = await this[method] (this.extend (request, params));
         return this.safeOrder ({
             'info': response,
             'id': response['OrderGuid'],
@@ -732,6 +736,53 @@ export default class independentreserve extends Exchange {
             'orderGuid': id,
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'primaryCurrencyCode': currency['id'],
+        };
+        const response = await this.privatePostGetDigitalCurrencyDepositAddress (this.extend (request, params));
+        //
+        //    {
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
+        //    }
+        //
+        return this.parseDepositAddress (response);
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+        //
+        //    {
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
+        //    }
+        //
+        const address = this.safeString (depositAddress, 'DepositAddress');
+        this.checkAddress (address);
+        return {
+            'info': depositAddress,
+            'currency': this.safeString (currency, 'code'),
+            'address': address,
+            'tag': this.safeString (depositAddress, 'Tag'),
+            'network': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -7,13 +7,14 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/novadax.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired, AccountNotEnabled } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class novadax
- * @extends Exchange
+ * @augments Exchange
  */
 export default class novadax extends Exchange {
     describe() {
@@ -21,9 +22,9 @@ export default class novadax extends Exchange {
             'id': 'novadax',
             'name': 'NovaDAX',
             'countries': ['BR'],
-            // 60 requests per second = 1000ms / 60 = 16.6667ms between requests (public endpoints, limited by IP address)
-            // 20 requests per second => cost = 60 / 20 = 3 (private endpoints, limited by API Key)
-            'rateLimit': 16.6667,
+            // 6000 weight per min => 100 weight per second => min weight = 1
+            // 100 requests per second => ( 1000ms / 100 ) = 10 ms between requests on average
+            'rateLimit': 10,
             'version': 'v1',
             // new metainfo interface
             'has': {
@@ -37,6 +38,9 @@ export default class novadax extends Exchange {
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -118,33 +122,37 @@ export default class novadax extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'common/symbol': 1.2,
-                        'common/symbols': 1.2,
-                        'common/timestamp': 1.2,
-                        'market/tickers': 1.2,
-                        'market/ticker': 1.2,
-                        'market/depth': 1.2,
-                        'market/trades': 1.2,
-                        'market/kline/history': 1.2,
+                        'common/symbol': 1,
+                        'common/symbols': 1,
+                        'common/timestamp': 1,
+                        'market/tickers': 5,
+                        'market/ticker': 1,
+                        'market/depth': 1,
+                        'market/trades': 5,
+                        'market/kline/history': 5,
                     },
                 },
                 'private': {
                     'get': {
-                        'orders/get': 3,
-                        'orders/list': 3,
+                        'orders/get': 1,
+                        'orders/list': 10,
                         'orders/fill': 3,
-                        'orders/fills': 3,
-                        'account/getBalance': 3,
-                        'account/subs': 3,
-                        'account/subs/balance': 3,
-                        'account/subs/transfer/record': 3,
+                        'orders/fills': 10,
+                        'account/getBalance': 1,
+                        'account/subs': 1,
+                        'account/subs/balance': 1,
+                        'account/subs/transfer/record': 10,
                         'wallet/query/deposit-withdraw': 3,
                     },
                     'post': {
-                        'orders/create': 3,
-                        'orders/cancel': 3,
-                        'account/withdraw/coin': 3,
-                        'account/subs/transfer': 3,
+                        'orders/create': 5,
+                        'orders/batch-create': 50,
+                        'orders/cancel': 1,
+                        'orders/batch-cancel': 10,
+                        'orders/cancel-by-symbol': 10,
+                        'account/subs/transfer': 5,
+                        'wallet/withdraw/coin': 3,
+                        'account/withdraw/coin': 3, // not found in doc
                     },
                 },
             },
@@ -728,9 +736,10 @@ export default class novadax extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -740,11 +749,11 @@ export default class novadax extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': uppercaseSide, // or SELL
-            // 'amount': this.amountToPrecision (symbol, amount),
+            // "amount": this.amountToPrecision (symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
-            // 'operator': '' // for stop orders, can be found in order introduction
-            // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
-            // 'accountId': '...', // subaccount id, optional
+            // "operator": "" // for stop orders, can be found in order introduction
+            // "stopPrice": this.priceToPrecision (symbol, stopPrice),
+            // "accountId": "...", // subaccount id, optional
         };
         const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
         if (stopPrice === undefined) {
@@ -773,22 +782,29 @@ export default class novadax extends Exchange {
                 request['amount'] = this.amountToPrecision(symbol, amount);
             }
             else if (uppercaseSide === 'BUY') {
-                let value = this.safeNumber(params, 'value');
-                const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (createMarketBuyOrderRequiresPrice) {
-                    if (price !== undefined) {
-                        if (value === undefined) {
-                            value = amount * price;
-                        }
+                let quoteAmount = undefined;
+                let createMarketBuyOrderRequiresPrice = true;
+                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber2(params, 'cost', 'value');
+                params = this.omit(params, 'cost');
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision(symbol, cost);
+                }
+                else if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     }
-                    else if (value === undefined) {
-                        throw new InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'value' extra parameter (the exchange-specific behaviour)");
+                    else {
+                        const amountString = this.numberToString(amount);
+                        const priceString = this.numberToString(price);
+                        const costRequest = Precise.stringMul(amountString, priceString);
+                        quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
                 }
                 else {
-                    value = (value === undefined) ? amount : value;
+                    quoteAmount = this.costToPrecision(symbol, amount);
                 }
-                request['value'] = this.costToPrecision(symbol, value);
+                request['value'] = quoteAmount;
             }
         }
         request['type'] = uppercaseType;
@@ -894,7 +910,7 @@ export default class novadax extends Exchange {
          * @see https://doc.novadax.com/en-US/#get-order-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -971,7 +987,7 @@ export default class novadax extends Exchange {
          * @see https://doc.novadax.com/en-US/#get-order-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1149,7 +1165,7 @@ export default class novadax extends Exchange {
         //
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
