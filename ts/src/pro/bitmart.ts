@@ -845,7 +845,8 @@ export default class bitmart extends bitmartRest {
         const isSwap = ('group' in message);
         if (isSwap) {
             // in swap, chronologically decreasing: 1709536849322, 1709536848954,
-            for (let i = length - 1; i >= 0; i--) {
+            const maxLen = Math.max (length - 1, 0);
+            for (let i = maxLen; i >= 0; i--) {
                 symbol = this.handleTradeLoop (data[i]);
             }
         } else {
