@@ -347,7 +347,7 @@ export default class woo extends Exchange {
         //         "timestamp": "1709274106602"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         let status = this.safeString (data, 'status');
         if (status === undefined) {
             status = 'error';
@@ -2258,7 +2258,7 @@ export default class woo extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeValue (response, 'rows', []);
+        const data = this.safeList (response, 'rows', []);
         return this.parseTransfers (data, undefined, since, limit, params);
     }
 
