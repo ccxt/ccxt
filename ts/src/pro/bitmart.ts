@@ -868,6 +868,7 @@ export default class bitmart extends bitmartRest {
         stored.append (trade);
         return symbol;
     }
+
     parseWsTrade (trade, market: Market = undefined) {
         // spot
         //    {
