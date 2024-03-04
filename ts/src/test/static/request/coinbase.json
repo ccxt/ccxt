@@ -197,6 +197,29 @@
                 ]
             }
         ],
+        "fetchTrades": [
+            {
+                "description": "trades without arguments",
+                "method": "fetchTrades",
+                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/ticker",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "trades with since, limit and until",
+                "method": "fetchTrades",
+                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/ticker?start=1678012344&limit=15&end=1678012744",
+                "input": [
+                  "BTC/USDT",
+                  1678012344389,
+                  15,
+                  {
+                    "until": 1678012744389
+                  }
+                ]
+            }
+        ],
         "editOrder": [
             {
                 "description": "edit order",
