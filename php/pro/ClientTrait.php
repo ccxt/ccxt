@@ -129,20 +129,14 @@ trait ClientTrait {
                                 try {
                                     Async\await($client->send($message));
                                 } catch (Exception $error) {
-                                    $future->reject($error);
-                                    foreach ($subscribe_hashes as $subscribe_hash) {
-                                        unset($client->subscriptions[$subscribe_hash]);
-                                    }
+                                    $client->on_error($error);
                                 }
                             });
                         } else {
                             try {
                                 Async\await($client->send($message));
                             } catch (Exception $error) {
-                                $future->reject($error);
-                                foreach ($subscribe_hashes as $subscribe_hash) {
-                                    unset($client->subscriptions[$subscribe_hash]);
-                                }
+                                $client->on_error($error);
                             }
                         }
                     }
@@ -188,16 +182,14 @@ trait ClientTrait {
                                 try {
                                     Async\await($client->send($message));
                                 } catch (Exception $error) {
-                                    $client->reject($error, $message_hash);
-                                    unset($client->subscriptions[$subscribe_hash]);
+                                    $client->on_error($error);
                                 }
                             });
                         } else {
                             try {
                                 Async\await($client->send($message));
                             } catch (Exception $error) {
-                                $client->reject($error, $message_hash);
-                                unset($client->subscriptions[$subscribe_hash]);
+                                $client->on_error($error);
                             }
                         }
                     }

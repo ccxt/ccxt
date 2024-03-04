@@ -136,7 +136,7 @@ class bybit(ccxt.async_support.bybit):
         self.options['requestId'] = requestId
         return requestId
 
-    def get_url_by_market_type(self, symbol: Str = None, isPrivate=False, method=None, params={}):
+    def get_url_by_market_type(self, symbol: Str = None, isPrivate=False, method: str = None, params={}):
         accessibility = 'private' if isPrivate else 'public'
         isUsdcSettled = None
         isSpot = None
@@ -185,7 +185,7 @@ class bybit(ccxt.async_support.bybit):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'ticker:' + symbol
-        url = self.get_url_by_market_type(symbol, False, params)
+        url = self.get_url_by_market_type(symbol, False, 'watchTicker', params)
         params = self.clean_params(params)
         options = self.safe_value(self.options, 'watchTicker', {})
         topic = self.safe_string(options, 'name', 'tickers')
@@ -207,7 +207,7 @@ class bybit(ccxt.async_support.bybit):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         messageHashes = []
-        url = self.get_url_by_market_type(symbols[0], False, params)
+        url = self.get_url_by_market_type(symbols[0], False, 'watchTickers', params)
         params = self.clean_params(params)
         options = self.safe_value(self.options, 'watchTickers', {})
         topic = self.safe_string(options, 'name', 'tickers')
@@ -219,7 +219,9 @@ class bybit(ccxt.async_support.bybit):
             messageHashes.append('ticker:' + symbols[i])
         ticker = await self.watch_topics(url, messageHashes, topics, params)
         if self.newUpdates:
-            return ticker
+            result = {}
+            result[ticker['symbol']] = ticker
+            return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
@@ -322,15 +324,29 @@ class bybit(ccxt.async_support.bybit):
         #             "price24hPcnt": "-0.0388"
         #         }
         #     }
+        # swap delta
+        #     {
+        #         "topic":"tickers.AAVEUSDT",
+        #         "type":"delta",
+        #         "data":{
+        #            "symbol":"AAVEUSDT",
+        #            "bid1Price":"112.89",
+        #            "bid1Size":"2.12",
+        #            "ask1Price":"112.90",
+        #            "ask1Size":"5.02"
+        #         },
+        #         "cs":78039939929,
+        #         "ts":1709210212704
+        #     }
         #
         topic = self.safe_string(message, 'topic', '')
         updateType = self.safe_string(message, 'type', '')
-        data = self.safe_value(message, 'data', {})
-        isSpot = self.safe_string(data, 'fundingRate') is None
+        data = self.safe_dict(message, 'data', {})
+        isSpot = self.safe_string(data, 'usdIndexPrice') is not None
         type = 'spot' if isSpot else 'contract'
         symbol = None
         parsed = None
-        if (updateType == 'snapshot') or isSpot:
+        if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)
             symbol = parsed['symbol']
         elif updateType == 'delta':
@@ -340,8 +356,8 @@ class bybit(ccxt.async_support.bybit):
             market = self.safe_market(marketId, None, None, type)
             symbol = market['symbol']
             # update the info in place
-            ticker = self.safe_value(self.tickers, symbol, {})
-            rawTicker = self.safe_value(ticker, 'info', {})
+            ticker = self.safe_dict(self.tickers, symbol, {})
+            rawTicker = self.safe_dict(ticker, 'info', {})
             merged = self.extend(rawTicker, data)
             parsed = self.parse_ticker(merged)
         timestamp = self.safe_integer(message, 'ts')
@@ -366,7 +382,7 @@ class bybit(ccxt.async_support.bybit):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        url = self.get_url_by_market_type(symbol, False, params)
+        url = self.get_url_by_market_type(symbol, False, 'watchOHLCV', params)
         params = self.clean_params(params)
         ohlcv = None
         timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -475,7 +491,7 @@ class bybit(ccxt.async_support.bybit):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         symbols = self.market_symbols(symbols)
-        url = self.get_url_by_market_type(symbols[0], False, params)
+        url = self.get_url_by_market_type(symbols[0], False, 'watchOrderBook', params)
         params = self.clean_params(params)
         market = self.market(symbols[0])
         if limit is None:
@@ -593,7 +609,7 @@ class bybit(ccxt.async_support.bybit):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
         params = self.clean_params(params)
-        url = self.get_url_by_market_type(symbols[0], False, params)
+        url = self.get_url_by_market_type(symbols[0], False, 'watchTrades', params)
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -851,7 +867,7 @@ class bybit(ccxt.async_support.bybit):
         """
         :see: https://bybit-exchange.github.io/docs/v5/websocket/private/position
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
@@ -869,7 +885,7 @@ class bybit(ccxt.async_support.bybit):
         self.set_positions_cache(client, symbols)
         cache = self.positions
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
@@ -881,7 +897,7 @@ class bybit(ccxt.async_support.bybit):
 
     def set_positions_cache(self, client: Client, symbols: Strings = None):
         if self.positions is not None:
-            return self.positions
+            return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         if fetchPositionsSnapshot:
             messageHash = 'fetchPositionsSnapshot'
@@ -1000,7 +1016,7 @@ class bybit(ccxt.async_support.bybit):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message, subscription=None):
+    def handle_order(self, client: Client, message):
         #
         #     spot
         #     {
@@ -1257,8 +1273,8 @@ class bybit(ccxt.async_support.bybit):
         subType = None
         subType, params = self.handle_sub_type_and_params('watchBalance', None, params)
         unified = await self.isUnifiedEnabled()
-        isUnifiedMargin = self.safe_value(unified, 0, False)
-        isUnifiedAccount = self.safe_value(unified, 1, False)
+        isUnifiedMargin = self.safe_bool(unified, 0, False)
+        isUnifiedAccount = self.safe_bool(unified, 1, False)
         url = self.get_url_by_market_type(None, True, method, params)
         await self.authenticate(url)
         topicByMarket = {
@@ -1530,7 +1546,7 @@ class bybit(ccxt.async_support.bybit):
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             expiresInt = self.milliseconds() + 10000
-            expires = str(expiresInt)
+            expires = self.number_to_string(expiresInt)
             path = 'GET/realtime'
             auth = path + expires
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'hex')
@@ -1542,7 +1558,7 @@ class bybit(ccxt.async_support.bybit):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_error_message(self, client: Client, message):
         #

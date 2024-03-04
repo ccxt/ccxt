@@ -376,6 +376,7 @@ class huobijp extends \ccxt\async\huobijp {
                 unset($client->subscriptions[$messageHash]);
                 $client->reject ($e, $messageHash);
             }
+            return null;
         }) ();
     }
 
@@ -549,10 +550,8 @@ class huobijp extends \ccxt\async\huobijp {
                 // ...
             );
             $method = $this->safe_value($methods, $methodName);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         }
     }

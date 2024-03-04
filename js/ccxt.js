@@ -38,7 +38,7 @@ import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.7';
+const version = '4.2.59';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import ace from './src/ace.js';
@@ -59,7 +59,6 @@ import bitcoincom from './src/bitcoincom.js';
 import bitfinex from './src/bitfinex.js';
 import bitfinex2 from './src/bitfinex2.js';
 import bitflyer from './src/bitflyer.js';
-import bitforex from './src/bitforex.js';
 import bitget from './src/bitget.js';
 import bithumb from './src/bithumb.js';
 import bitmart from './src/bitmart.js';
@@ -73,6 +72,7 @@ import bitteam from './src/bitteam.js';
 import bitvavo from './src/bitvavo.js';
 import bl3p from './src/bl3p.js';
 import blockchaincom from './src/blockchaincom.js';
+import blofin from './src/blofin.js';
 import btcalpha from './src/btcalpha.js';
 import btcbox from './src/btcbox.js';
 import btcmarkets from './src/btcmarkets.js';
@@ -85,6 +85,7 @@ import coincheck from './src/coincheck.js';
 import coinex from './src/coinex.js';
 import coinlist from './src/coinlist.js';
 import coinmate from './src/coinmate.js';
+import coinmetro from './src/coinmetro.js';
 import coinone from './src/coinone.js';
 import coinsph from './src/coinsph.js';
 import coinspot from './src/coinspot.js';
@@ -123,6 +124,7 @@ import novadax from './src/novadax.js';
 import oceanex from './src/oceanex.js';
 import okcoin from './src/okcoin.js';
 import okx from './src/okx.js';
+import onetrading from './src/onetrading.js';
 import p2b from './src/p2b.js';
 import paymium from './src/paymium.js';
 import phemex from './src/phemex.js';
@@ -164,7 +166,9 @@ import bybitPro from './src/pro/bybit.js';
 import cexPro from './src/pro/cex.js';
 import coinbasePro from './src/pro/coinbase.js';
 import coinbaseproPro from './src/pro/coinbasepro.js';
+import coincheckPro from './src/pro/coincheck.js';
 import coinexPro from './src/pro/coinex.js';
+import coinonePro from './src/pro/coinone.js';
 import cryptocomPro from './src/pro/cryptocom.js';
 import currencycomPro from './src/pro/currencycom.js';
 import deribitPro from './src/pro/deribit.js';
@@ -183,11 +187,14 @@ import krakenPro from './src/pro/kraken.js';
 import krakenfuturesPro from './src/pro/krakenfutures.js';
 import kucoinPro from './src/pro/kucoin.js';
 import kucoinfuturesPro from './src/pro/kucoinfutures.js';
+import lbankPro from './src/pro/lbank.js';
 import lunoPro from './src/pro/luno.js';
 import mexcPro from './src/pro/mexc.js';
 import ndaxPro from './src/pro/ndax.js';
 import okcoinPro from './src/pro/okcoin.js';
 import okxPro from './src/pro/okx.js';
+import onetradingPro from './src/pro/onetrading.js';
+import p2bPro from './src/pro/p2b.js';
 import phemexPro from './src/pro/phemex.js';
 import poloniexPro from './src/pro/poloniex.js';
 import poloniexfuturesPro from './src/pro/poloniexfutures.js';
@@ -215,7 +222,6 @@ const exchanges = {
     'bitfinex': bitfinex,
     'bitfinex2': bitfinex2,
     'bitflyer': bitflyer,
-    'bitforex': bitforex,
     'bitget': bitget,
     'bithumb': bithumb,
     'bitmart': bitmart,
@@ -229,6 +235,7 @@ const exchanges = {
     'bitvavo': bitvavo,
     'bl3p': bl3p,
     'blockchaincom': blockchaincom,
+    'blofin': blofin,
     'btcalpha': btcalpha,
     'btcbox': btcbox,
     'btcmarkets': btcmarkets,
@@ -241,6 +248,7 @@ const exchanges = {
     'coinex': coinex,
     'coinlist': coinlist,
     'coinmate': coinmate,
+    'coinmetro': coinmetro,
     'coinone': coinone,
     'coinsph': coinsph,
     'coinspot': coinspot,
@@ -279,6 +287,7 @@ const exchanges = {
     'oceanex': oceanex,
     'okcoin': okcoin,
     'okx': okx,
+    'onetrading': onetrading,
     'p2b': p2b,
     'paymium': paymium,
     'phemex': phemex,
@@ -321,7 +330,9 @@ const pro = {
     'cex': cexPro,
     'coinbase': coinbasePro,
     'coinbasepro': coinbaseproPro,
+    'coincheck': coincheckPro,
     'coinex': coinexPro,
+    'coinone': coinonePro,
     'cryptocom': cryptocomPro,
     'currencycom': currencycomPro,
     'deribit': deribitPro,
@@ -340,11 +351,14 @@ const pro = {
     'krakenfutures': krakenfuturesPro,
     'kucoin': kucoinPro,
     'kucoinfutures': kucoinfuturesPro,
+    'lbank': lbankPro,
     'luno': lunoPro,
     'mexc': mexcPro,
     'ndax': ndaxPro,
     'okcoin': okcoinPro,
     'okx': okxPro,
+    'onetrading': onetradingPro,
+    'p2b': p2bPro,
     'phemex': phemexPro,
     'poloniex': poloniexPro,
     'poloniexfutures': poloniexfuturesPro,
@@ -366,6 +380,6 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const ccxt = Object.assign({ version, Exchange, Precise, 'exchanges': Object.keys(exchanges), 'pro': pro }, exchanges, functions, errors);
-export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange, ace, alpaca, ascendex, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbay, bitbns, bitcoincom, bitfinex, bitfinex2, bitflyer, bitforex, bitget, bithumb, bitmart, bitmex, bitopro, bitpanda, bitrue, bitso, bitstamp, bitteam, bitvavo, bl3p, blockchaincom, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbasepro, coincheck, coinex, coinlist, coinmate, coinone, coinsph, coinspot, cryptocom, currencycom, delta, deribit, digifinex, exmo, fmfwio, gate, gateio, gemini, hitbtc, hitbtc3, hollaex, htx, huobi, huobijp, idex, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, kuna, latoken, lbank, luno, lykke, mercado, mexc, ndax, novadax, oceanex, okcoin, okx, p2b, paymium, phemex, poloniex, poloniexfutures, probit, timex, tokocrypto, upbit, wavesexchange, wazirx, whitebit, woo, yobit, zaif, zonda, };
+export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange, ace, alpaca, ascendex, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbay, bitbns, bitcoincom, bitfinex, bitfinex2, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitpanda, bitrue, bitso, bitstamp, bitteam, bitvavo, bl3p, blockchaincom, blofin, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbasepro, coincheck, coinex, coinlist, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, currencycom, delta, deribit, digifinex, exmo, fmfwio, gate, gateio, gemini, hitbtc, hitbtc3, hollaex, htx, huobi, huobijp, idex, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, kuna, latoken, lbank, luno, lykke, mercado, mexc, ndax, novadax, oceanex, okcoin, okx, onetrading, p2b, paymium, phemex, poloniex, poloniexfutures, probit, timex, tokocrypto, upbit, wavesexchange, wazirx, whitebit, woo, yobit, zaif, zonda, };
 export default ccxt;
 //-----------------------------------------------------------------------------

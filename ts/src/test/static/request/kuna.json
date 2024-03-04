@@ -79,6 +79,16 @@
                 ],
                 "output": "{\"pair\":\"LTC_USDT\",\"orderSide\":\"Bid\",\"quantity\":\"0.1\",\"type\":\"Limit\",\"price\":\"50\"}"
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://api.kuna.io/v4/trade/public/book/BTC_USDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
         ]
     }
 }

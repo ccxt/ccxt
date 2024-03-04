@@ -3,7 +3,7 @@
 import blockchaincomRest from '../blockchaincom.js';
 import { NotSupported, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { IndexType, Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -36,7 +36,6 @@ export default class blockchaincom extends blockchaincomRest {
                     },
                     'noOriginHeader': false,
                 },
-                'sequenceNumbers': {},
             },
             'streaming': {
             },
@@ -105,7 +104,7 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString (message, 'event');
         if (event === 'subscribed') {
-            return message;
+            return;
         }
         const result = { 'info': message };
         const balances = this.safeValue (message, 'balances', []);
@@ -177,10 +176,9 @@ export default class blockchaincom extends blockchaincomRest {
         //     }
         //
         const event = this.safeString (message, 'event');
-        if (event === 'subscribed') {
-            return message;
-        } else if (event === 'rejected') {
-            throw new ExchangeError (this.id + ' ' + this.json (message));
+        if (event === 'rejected') {
+            const jsonMessage = this.json (message);
+            throw new ExchangeError (this.id + ' ' + jsonMessage);
         } else if (event === 'updated') {
             const marketId = this.safeString (message, 'symbol');
             const symbol = this.safeSymbol (marketId, undefined, '-');
@@ -198,7 +196,7 @@ export default class blockchaincom extends blockchaincomRest {
             }
             stored.append (ohlcv);
             client.resolve (stored, messageHash);
-        } else {
+        } else if (event !== 'subscribed') {
             throw new NotSupported (this.id + ' ' + this.json (message));
         }
     }
@@ -262,7 +260,7 @@ export default class blockchaincom extends blockchaincomRest {
         const symbol = market['symbol'];
         let ticker = undefined;
         if (event === 'subscribed') {
-            return message;
+            return;
         } else if (event === 'snapshot') {
             ticker = this.parseTicker (message, market);
         } else if (event === 'updated') {
@@ -362,7 +360,7 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString (message, 'event');
         if (event !== 'updated') {
-            return message;
+            return;
         }
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
@@ -527,7 +525,7 @@ export default class blockchaincom extends blockchaincomRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         if (event === 'subscribed') {
-            return message;
+            return;
         } else if (event === 'rejected') {
             throw new ExchangeError (this.id + ' ' + this.json (message));
         } else if (event === 'snapshot') {
@@ -692,66 +690,37 @@ export default class blockchaincom extends blockchaincomRest {
         //     }
         //
         const event = this.safeString (message, 'event');
+        if (event === 'subscribed') {
+            return;
+        }
         const type = this.safeString (message, 'channel');
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const datetime = this.safeString (message, 'timestamp');
         const timestamp = this.parse8601 (datetime);
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.countedOrderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.countedOrderBook ();
         }
-        if (event === 'subscribed') {
-            return message;
-        } else if (event === 'snapshot') {
-            const snapshot = this.parseCountedOrderBook (message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
-            storedOrderBook.reset (snapshot);
+        const orderbook = this.orderbooks[symbol];
+        if (event === 'snapshot') {
+            const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
+            orderbook.reset (snapshot);
         } else if (event === 'updated') {
             const asks = this.safeValue (message, 'asks', []);
             const bids = this.safeValue (message, 'bids', []);
-            this.handleDeltas (storedOrderBook['asks'], asks);
-            this.handleDeltas (storedOrderBook['bids'], bids);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = datetime;
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = datetime;
         } else {
             throw new NotSupported (this.id + ' watchOrderBook() does not support ' + event + ' yet');
         }
-        client.resolve (storedOrderBook, messageHash);
-    }
-
-    parseCountedBidAsk (bidAsk, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
-        const price = this.safeNumber (bidAsk, priceKey);
-        const amount = this.safeNumber (bidAsk, amountKey);
-        const count = this.safeNumber (bidAsk, countKey);
-        return [ price, amount, count ];
-    }
-
-    parseCountedBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
-        bidasks = this.toArray (bidasks);
-        const result = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            result.push (this.parseCountedBidAsk (bidasks[i], priceKey, amountKey, countKey));
-        }
-        return result;
-    }
-
-    parseCountedOrderBook (orderbook, symbol: string, timestamp: Int = undefined, bidsKey: IndexType = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
-        const bids = this.parseCountedBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countKey);
-        const asks = this.parseCountedBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countKey);
-        return {
-            'symbol': symbol,
-            'bids': this.sortBy (bids, 0, true),
-            'asks': this.sortBy (asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': undefined,
-        };
+        client.resolve (orderbook, messageHash);
     }
 
     handleDelta (bookside, delta) {
-        const bookArray = this.parseCountedBidAsk (delta, 'px', 'qty', 'num');
+        const bookArray = this.parseBidAsk (delta, 'px', 'qty', 'num');
         bookside.storeArray (bookArray);
     }
 
@@ -761,23 +730,7 @@ export default class blockchaincom extends blockchaincomRest {
         }
     }
 
-    checkSequenceNumber (client: Client, message) {
-        const seqnum = this.safeInteger (message, 'seqnum', 0);
-        const channel = this.safeString (message, 'channel', '');
-        const sequenceNumbersByChannel = this.safeValue (this.options, 'sequenceNumbers', {});
-        const lastSeqnum = this.safeInteger (sequenceNumbersByChannel, channel);
-        if (lastSeqnum === undefined) {
-            this.options['sequenceNumbers'][channel] = seqnum;
-        } else {
-            if (seqnum !== lastSeqnum + 1) {
-                throw new ExchangeError (this.id + ' ' + channel + ' seqnum ' + seqnum + ' is not the expected ' + (lastSeqnum + 1));
-            }
-            this.options['sequenceNumbers'][channel] = seqnum;
-        }
-    }
-
     handleMessage (client: Client, message) {
-        this.checkSequenceNumber (client, message);
         const channel = this.safeString (message, 'channel');
         const handlers = {
             'ticker': this.handleTicker,
@@ -791,7 +744,8 @@ export default class blockchaincom extends blockchaincomRest {
         };
         const handler = this.safeValue (handlers, channel);
         if (handler !== undefined) {
-            return handler.call (this, client, message);
+            handler.call (this, client, message);
+            return;
         }
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }
@@ -815,7 +769,7 @@ export default class blockchaincom extends blockchaincomRest {
         }
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';

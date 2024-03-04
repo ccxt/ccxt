@@ -28,6 +28,7 @@ class bit2c extends bit2c$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -207,6 +208,7 @@ class bit2c extends bit2c$1 {
          * @method
          * @name bit2c#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://bit2c.co.il/home/api#balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -261,6 +263,7 @@ class bit2c extends bit2c$1 {
          * @method
          * @name bit2c#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://bit2c.co.il/home/api#orderb
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -307,6 +310,7 @@ class bit2c extends bit2c$1 {
          * @method
          * @name bit2c#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://bit2c.co.il/home/api#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -324,6 +328,8 @@ class bit2c extends bit2c$1 {
          * @method
          * @name bit2c#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://bit2c.co.il/home/api#transactions
+         * @see https://bit2c.co.il/home/api#trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -366,6 +372,7 @@ class bit2c extends bit2c$1 {
          * @method
          * @name bit2c#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://bit2c.co.il/home/api#balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -414,6 +421,7 @@ class bit2c extends bit2c$1 {
          * @method
          * @name bit2c#createOrder
          * @description create a trade order
+         * @see https://bit2c.co.il/home/api#addo
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -447,6 +455,7 @@ class bit2c extends bit2c$1 {
          * @method
          * @name bit2c#cancelOrder
          * @description cancels an open order
+         * @see https://bit2c.co.il/home/api#cancelo
          * @param {string} id order id
          * @param {string} symbol Not used by bit2c cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -462,6 +471,7 @@ class bit2c extends bit2c$1 {
          * @method
          * @name bit2c#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://bit2c.co.il/home/api#geto
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -487,6 +497,7 @@ class bit2c extends bit2c$1 {
          * @method
          * @name bit2c#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://bit2c.co.il/home/api#getoid
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -639,6 +650,7 @@ class bit2c extends bit2c$1 {
          * @method
          * @name bit2c#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://bit2c.co.il/home/api#orderh
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -819,6 +831,7 @@ class bit2c extends bit2c$1 {
          * @method
          * @name bit2c#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://bit2c.co.il/home/api#addc
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}

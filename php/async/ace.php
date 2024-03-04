@@ -595,7 +595,7 @@ class ace extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1069,8 +1069,9 @@ class ace extends Exchange {
         $feedback = $this->id . ' ' . $body;
         $status = $this->safe_number($response, 'status', 200);
         if ($status > 200) {
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $status, $feedback);
+            $statusStr = (string) $status;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $statusStr, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $statusStr, $feedback);
         }
         return null;
     }

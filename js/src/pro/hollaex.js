@@ -221,7 +221,7 @@ export default class hollaex extends hollaexRest {
         // when the user does not have any trades yet
         const dataLength = rawTrades.length;
         if (dataLength === 0) {
-            return 0;
+            return;
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -335,7 +335,7 @@ export default class hollaex extends hollaexRest {
         // usually the first message is an empty array
         const dataLength = data.length;
         if (dataLength === 0) {
-            return 0;
+            return;
         }
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
