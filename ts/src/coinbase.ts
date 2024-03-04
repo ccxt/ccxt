@@ -3107,19 +3107,20 @@ export default class coinbase extends Exchange {
         const until = this.safeValueN (params, [ 'until', 'till', 'end' ]);
         params = this.omit (params, [ 'until', 'till' ]);
         const duration = this.parseTimeframe (timeframe);
-        const candles300 = 300 * duration;
+        limit = (limit === undefined) ? 300 : Math.min (limit, 300);
+        const requestedDuration = limit * duration;
         let sinceString = undefined;
         if (since !== undefined) {
             sinceString = this.numberToString (this.parseToInt (since / 1000));
         } else {
             const now = this.seconds ().toString ();
-            sinceString = Precise.stringSub (now, candles300.toString ());
+            sinceString = Precise.stringSub (now, requestedDuration.toString ());
         }
         request['start'] = sinceString;
         let endString = this.numberToString (until);
         if (until === undefined) {
             // 300 candles max
-            endString = Precise.stringAdd (sinceString, candles300.toString ());
+            endString = Precise.stringAdd (sinceString, requestedDuration.toString ());
         }
         request['end'] = endString;
         const response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
@@ -3191,6 +3192,8 @@ export default class coinbase extends Exchange {
         [ until, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'until');
         if (until !== undefined) {
             request['end'] = this.numberToString (this.parseToInt (until / 1000));
+        } else if (since !== undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a `until` parameter when you use `since` argument');
         }
         const response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
         //
