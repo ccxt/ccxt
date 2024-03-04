@@ -6358,6 +6358,7 @@ export default class bitget extends Exchange {
         // closeAllPositions
         //
         //     {
+        //         "symbol": "XRPUSDT_UMCBL",
         //         "orderId": "1120923953904893955",
         //         "clientOid": "1120923953904893956"
         //     }
