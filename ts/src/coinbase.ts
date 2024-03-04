@@ -3794,11 +3794,8 @@ export default class coinbase extends Exchange {
                         body = this.json (query);
                         payload = body;
                     }
-                } else {
-                    if (Object.keys (query).length) {
-                        payload += '?' + this.urlencode (query);
-                    }
                 }
+                // 'GET' doesn't need payload in the signature. inside url is enough
                 const auth = timestampString + method + savedPath + payload;
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 headers = {
