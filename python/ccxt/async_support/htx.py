@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -64,8 +64,12 @@ class htx(Exchange, ImplicitAPI):
                 'createOrders': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
+                'createStopLossOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'createTakeProfitOrder': True,
+                'createTrailingPercentOrder': True,
+                'createTriggerOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -93,6 +97,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': True,
                 'fetchL3OrderBook': None,
+                'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': False,
@@ -139,7 +144,7 @@ class htx(Exchange, ImplicitAPI):
                 'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
-                'setPositionMode': False,
+                'setPositionMode': True,
                 'signIn': None,
                 'transfer': True,
                 'withdraw': True,
@@ -623,10 +628,13 @@ class htx(Exchange, ImplicitAPI):
                     'private': {
                         'get': {
                             # Future Account Interface
+                            'api/v1/contract_sub_auth_list': 1,
                             'api/v1/contract_api_trading_status': 1,
                             # Swap Account Interface
+                            'swap-api/v1/swap_sub_auth_list': 1,
                             'swap-api/v1/swap_api_trading_status': 1,
                             # Swap Account Interface
+                            'linear-swap-api/v1/swap_sub_auth_list': 1,
                             'linear-swap-api/v1/swap_api_trading_status': 1,
                             'linear-swap-api/v1/swap_cross_position_side': 1,
                             'linear-swap-api/v1/swap_position_side': 1,
@@ -1242,9 +1250,10 @@ class htx(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         await self.load_markets()
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchMyTrades', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchStatus', None, params)
+        enabledForContracts = self.handle_option('fetchStatus', 'enableForContracts', False)  # temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
         response = None
-        if marketType != 'spot':
+        if marketType != 'spot' and enabledForContracts:
             subType = self.safe_string(params, 'subType', self.options['defaultSubType'])
             if marketType == 'swap':
                 if subType == 'linear':
@@ -1258,7 +1267,7 @@ class htx(Exchange, ImplicitAPI):
                     response = await self.statusPublicFutureInverseGetApiV2SummaryJson()
             elif marketType == 'contract':
                 response = await self.contractPublicGetHeartbeat()
-        else:
+        elif marketType == 'spot':
             response = await self.statusPublicSpotGetApiV2SummaryJson()
         #
         # statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
@@ -1426,7 +1435,10 @@ class htx(Exchange, ImplicitAPI):
         url = None
         if marketType == 'contract':
             statusRaw = self.safe_string(response, 'status')
-            status = 'ok' if (statusRaw == 'ok') else 'maintenance'  # 'ok', 'error'
+            if statusRaw is None:
+                status = None
+            else:
+                status = 'ok' if (statusRaw == 'ok') else 'maintenance'  # 'ok', 'error'
             updated = self.safe_string(response, 'ts')
         else:
             statusData = self.safe_value(response, 'status', {})
@@ -2203,6 +2215,121 @@ class htx(Exchange, ImplicitAPI):
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
+    async def fetch_last_prices(self, symbols: Strings = None, params={}):
+        """
+        fetches the last price for multiple markets
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003 linear swap & linear future
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003 inverse future
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003 inverse swap
+        :param str[]|None symbols: unified symbols of the markets to fetch the last prices
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of lastprices structures
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        market = self.get_market_from_symbols(symbols)
+        type = None
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchLastPrices', market, params)
+        type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
+        response = None
+        if ((type == 'swap') or (type == 'future')) and (subType == 'linear'):
+            response = await self.contractPublicGetLinearSwapExMarketTrade(params)
+            #
+            #     {
+            #         "ch": "market.*.trade.detail",
+            #         "status": "ok",
+            #         "tick": {
+            #           "data": [
+            #             {
+            #               "amount": "4",
+            #               "quantity": "40",
+            #               "trade_turnover": "22.176",
+            #               "ts": 1703697705028,
+            #               "id": 1000003558478170000,
+            #               "price": "0.5544",
+            #               "direction": "buy",
+            #               "contract_code": "MANA-USDT",
+            #               "business_type": "swap",
+            #               "trade_partition": "USDT"
+            #             },
+            #           ],
+            #           "id": 1703697740147,
+            #           "ts": 1703697740147
+            #         },
+            #         "ts": 1703697740147
+            #     }
+            #
+        elif (type == 'swap') and (subType == 'inverse'):
+            response = await self.contractPublicGetSwapExMarketTrade(params)
+            #
+            #     {
+            #         "ch": "market.*.trade.detail",
+            #         "status": "ok",
+            #         "tick": {
+            #           "data": [
+            #             {
+            #               "amount": "6",
+            #               "quantity": "94.5000945000945000945000945000945000945",
+            #               "ts": 1703698704594,
+            #               "id": 1000001187811060000,
+            #               "price": "0.63492",
+            #               "direction": "buy",
+            #               "contract_code": "XRP-USD"
+            #             },
+            #           ],
+            #           "id": 1703698706589,
+            #           "ts": 1703698706589
+            #         },
+            #         "ts": 1703698706589
+            #     }
+            #
+        elif (type == 'future') and (subType == 'inverse'):
+            response = await self.contractPublicGetMarketTrade(params)
+            #
+            #     {
+            #         "ch": "market.*.trade.detail",
+            #         "status": "ok",
+            #         "tick": {
+            #           "data": [
+            #             {
+            #               "amount": "20",
+            #               "quantity": "44.4444444444444444444444444444444444444",
+            #               "ts": 1686134498885,
+            #               "id": 2323000000174820000,
+            #               "price": "4.5",
+            #               "direction": "sell",
+            #               "symbol": "DORA_CW"
+            #             },
+            #           ],
+            #           "id": 1703698855142,
+            #           "ts": 1703698855142
+            #         },
+            #         "ts": 1703698855142
+            #     }
+            #
+        else:
+            raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
+        tick = self.safe_value(response, 'tick', {})
+        data = self.safe_value(tick, 'data', [])
+        return self.parse_last_prices(data, symbols)
+
+    def parse_last_price(self, entry, market: Market = None):
+        # example responses are documented in fetchLastPrices
+        marketId = self.safe_string_2(entry, 'symbol', 'contract_code')
+        market = self.safe_market(marketId, market)
+        price = self.safe_number(entry, 'price')
+        direction = self.safe_string(entry, 'direction')  # "buy" or "sell"
+        # group timestamp should not be assigned to the individual trades' times
+        return {
+            'symbol': market['symbol'],
+            'timestamp': None,
+            'datetime': None,
+            'price': price,
+            'side': direction,
+            'info': entry,
+        }
+
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -2592,7 +2719,7 @@ class htx(Exchange, ImplicitAPI):
             trades = self.safe_value(trades, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit=1000, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params={}) -> List[Trade]:
         """
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
         :see: https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
@@ -3618,8 +3745,9 @@ class htx(Exchange, ImplicitAPI):
         response = None
         stop = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-        params = self.omit(params, ['stop', 'stopLossTakeProfit'])
-        if stop or stopLossTakeProfit:
+        trailing = self.safe_bool(params, 'trailing', False)
+        params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
+        if stop or stopLossTakeProfit or trailing:
             if limit is not None:
                 request['page_size'] = limit
             request['contract_code'] = market['id']
@@ -3640,6 +3768,8 @@ class htx(Exchange, ImplicitAPI):
                     response = await self.contractPrivatePostLinearSwapApiV1SwapTriggerHisorders(self.extend(request, params))
                 elif stopLossTakeProfit:
                     response = await self.contractPrivatePostLinearSwapApiV1SwapTpslHisorders(self.extend(request, params))
+                elif trailing:
+                    response = await self.contractPrivatePostLinearSwapApiV1SwapTrackHisorders(self.extend(request, params))
                 else:
                     response = await self.contractPrivatePostLinearSwapApiV3SwapHisorders(self.extend(request, params))
             elif marginMode == 'cross':
@@ -3647,6 +3777,8 @@ class htx(Exchange, ImplicitAPI):
                     response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders(self.extend(request, params))
                 elif stopLossTakeProfit:
                     response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders(self.extend(request, params))
+                elif trailing:
+                    response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders(self.extend(request, params))
                 else:
                     response = await self.contractPrivatePostLinearSwapApiV3SwapCrossHisorders(self.extend(request, params))
         elif market['inverse']:
@@ -3655,6 +3787,8 @@ class htx(Exchange, ImplicitAPI):
                     response = await self.contractPrivatePostSwapApiV1SwapTriggerHisorders(self.extend(request, params))
                 elif stopLossTakeProfit:
                     response = await self.contractPrivatePostSwapApiV1SwapTpslHisorders(self.extend(request, params))
+                elif trailing:
+                    response = await self.contractPrivatePostSwapApiV1SwapTrackHisorders(self.extend(request, params))
                 else:
                     response = await self.contractPrivatePostSwapApiV3SwapHisorders(self.extend(request, params))
             elif market['future']:
@@ -3663,6 +3797,8 @@ class htx(Exchange, ImplicitAPI):
                     response = await self.contractPrivatePostApiV1ContractTriggerHisorders(self.extend(request, params))
                 elif stopLossTakeProfit:
                     response = await self.contractPrivatePostApiV1ContractTpslHisorders(self.extend(request, params))
+                elif trailing:
+                    response = await self.contractPrivatePostApiV1ContractTrackHisorders(self.extend(request, params))
                 else:
                     response = await self.contractPrivatePostApiV3ContractHisorders(self.extend(request, params))
         #
@@ -3834,6 +3970,7 @@ class htx(Exchange, ImplicitAPI):
         :param bool [params.stop]: *contract only* if the orders are stop trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.trailing]: *contract only* set to True if you want to fetch trailing stop orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -3894,6 +4031,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.stop]: *contract only* if the orders are stop trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
+        :param boolean [params.trailing]: *contract only* set to True if you want to fetch trailing stop orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -3931,7 +4069,8 @@ class htx(Exchange, ImplicitAPI):
             request['contract_code'] = market['id']
             stop = self.safe_value(params, 'stop')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            params = self.omit(params, ['stop', 'stopLossTakeProfit'])
+            trailing = self.safe_bool(params, 'trailing', False)
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
@@ -3941,6 +4080,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapTpslOpenorders(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapTrackOpenorders(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapOpenorders(self.extend(request, params))
                 elif marginMode == 'cross':
@@ -3948,6 +4089,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossOpenorders(self.extend(request, params))
             elif market['inverse']:
@@ -3956,6 +4099,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostSwapApiV1SwapTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostSwapApiV1SwapTpslOpenorders(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostSwapApiV1SwapTrackOpenorders(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostSwapApiV1SwapOpenorders(self.extend(request, params))
                 elif market['future']:
@@ -3964,6 +4109,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostApiV1ContractTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostApiV1ContractTpslOpenorders(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostApiV1ContractTrackOpenorders(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostApiV1ContractOpenorders(self.extend(request, params))
         #
@@ -4109,6 +4256,45 @@ class htx(Exchange, ImplicitAPI):
         #             "total_size": 1
         #         },
         #         "ts": 1683179527011
+        #     }
+        #
+        # trailing
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": {
+        #             "orders": [
+        #                 {
+        #                     "contract_type": "swap",
+        #                     "business_type": "swap",
+        #                     "pair": "BTC-USDT",
+        #                     "symbol": "BTC",
+        #                     "contract_code": "BTC-USDT",
+        #                     "volume": 1.000000000000000000,
+        #                     "order_type": 1,
+        #                     "direction": "sell",
+        #                     "offset": "close",
+        #                     "lever_rate": 1,
+        #                     "order_id": 1192021437253877761,
+        #                     "order_id_str": "1192021437253877761",
+        #                     "order_source": "api",
+        #                     "created_at": 1704241657328,
+        #                     "order_price_type": "formula_price",
+        #                     "status": 2,
+        #                     "callback_rate": 0.050000000000000000,
+        #                     "active_price": 50000.000000000000000000,
+        #                     "is_active": 0,
+        #                     "margin_mode": "cross",
+        #                     "margin_account": "USDT",
+        #                     "trade_partition": "USDT",
+        #                     "reduce_only": 1
+        #                 },
+        #             ],
+        #             "total_page": 1,
+        #             "current_page": 1,
+        #             "total_size": 2
+        #         },
+        #         "ts": 1704242440106
         #     }
         #
         orders = self.safe_value(response, 'data')
@@ -4369,6 +4555,33 @@ class htx(Exchange, ImplicitAPI):
         #         "trade_partition": "USDT"
         #     }
         #
+        # trailing: fetchOpenOrders
+        #
+        #     {
+        #         "contract_type": "swap",
+        #         "business_type": "swap",
+        #         "pair": "BTC-USDT",
+        #         "symbol": "BTC",
+        #         "contract_code": "BTC-USDT",
+        #         "volume": 1.000000000000000000,
+        #         "order_type": 1,
+        #         "direction": "sell",
+        #         "offset": "close",
+        #         "lever_rate": 1,
+        #         "order_id": 1192021437253877761,
+        #         "order_id_str": "1192021437253877761",
+        #         "order_source": "api",
+        #         "created_at": 1704241657328,
+        #         "order_price_type": "formula_price",
+        #         "status": 2,
+        #         "callback_rate": 0.050000000000000000,
+        #         "active_price": 50000.000000000000000000,
+        #         "is_active": 0,
+        #         "margin_mode": "cross",
+        #         "margin_account": "USDT",
+        #         "trade_partition": "USDT",
+        #         "reduce_only": 1
+        #     }
         #
         # trigger: fetchOrders
         #
@@ -4483,7 +4696,7 @@ class htx(Exchange, ImplicitAPI):
         marketId = self.safe_string_2(order, 'contract_code', 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date'])
-        clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-order-id')
+        clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-or' + 'der-id')  # transpiler regex trick for php issue
         cost = None
         amount = None
         if (type is not None) and (type.find('market') >= 0):
@@ -4544,7 +4757,7 @@ class htx(Exchange, ImplicitAPI):
             'trades': trades,
         }, market)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
@@ -4560,7 +4773,28 @@ class htx(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
+        """
+        create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency, or number of contracts
+        :param float [price]: the price for the order to be filled at, in units of the quote currency, ignored in market orders
+        :param float trailingPercent: the percent to trail away from the current market price
+        :param float trailingTriggerPrice: the price to activate a trailing order, default uses the price argument
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if trailingPercent is None:
+            raise ArgumentsRequired(self.id + ' createTrailingPercentOrder() requires a trailingPercent argument')
+        if trailingTriggerPrice is None:
+            raise ArgumentsRequired(self.id + ' createTrailingPercentOrder() requires a trailingTriggerPrice argument')
+        params['trailingPercent'] = trailingPercent
+        params['trailingTriggerPrice'] = trailingTriggerPrice
+        return await self.create_order(symbol, type, side, amount, price, params)
+
+    async def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -4664,7 +4898,7 @@ class htx(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce'])
         return self.extend(request, params)
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -4675,6 +4909,8 @@ class htx(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
+        :param float [params.trailingPercent]: *contract only* the percent to trail away from the current market price
+        :param float [params.trailingTriggerPrice]: *contract only* the price to trigger a trailing order, default uses the price argument
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
@@ -4695,6 +4931,9 @@ class htx(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'trigger_price')
         stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'sl_trigger_price')
         takeProfitTriggerPrice = self.safe_number_2(params, 'takeProfitPrice', 'tp_trigger_price')
+        trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callback_rate')
+        trailingTriggerPrice = self.safe_number(params, 'trailingTriggerPrice', price)
+        isTrailingPercentOrder = trailingPercent is not None
         isStop = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
@@ -4715,6 +4954,11 @@ class htx(Exchange, ImplicitAPI):
                 request['tp_trigger_price'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 if price is not None:
                     request['tp_order_price'] = self.price_to_precision(symbol, price)
+        elif isTrailingPercentOrder:
+            trailingPercentString = Precise.string_div(trailingPercent, '100')
+            request['callback_rate'] = self.parse_to_numeric(trailingPercentString)
+            request['active_price'] = trailingTriggerPrice
+            request['order_price_type'] = self.safe_string(params, 'order_price_type', 'formula_price')
         else:
             clientOrderId = self.safe_integer_2(params, 'client_order_id', 'clientOrderId')
             if clientOrderId is not None:
@@ -4723,22 +4967,19 @@ class htx(Exchange, ImplicitAPI):
             if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
                 request['price'] = self.price_to_precision(symbol, price)
         if not isStopLossTriggerOrder and not isTakeProfitTriggerOrder:
-            leverRate = self.safe_integer_2(params, 'leverRate', 'lever_rate', 1)
             reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only', False)
-            openOrClose = 'close' if (reduceOnly) else 'open'
-            offset = self.safe_string(params, 'offset', openOrClose)
-            request['offset'] = offset
             if reduceOnly:
                 request['reduce_only'] = 1
-            request['lever_rate'] = leverRate
-            request['order_price_type'] = type
+            request['lever_rate'] = self.safe_integer_n(params, ['leverRate', 'lever_rate', 'leverage'], 1)
+            if not isTrailingPercentOrder:
+                request['order_price_type'] = type
         broker = self.safe_value(self.options, 'broker', {})
         brokerId = self.safe_string(broker, 'id')
         request['channel_code'] = brokerId
-        params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce'])
+        params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
@@ -4766,6 +5007,8 @@ class htx(Exchange, ImplicitAPI):
         :param int [params.leverRate]: *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.trailingPercent]: *contract only* the percent to trail away from the current market price
+        :param float [params.trailingTriggerPrice]: *contract only* the price to trigger a trailing order, default uses the price argument
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -4773,24 +5016,30 @@ class htx(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'trigger_price')
         stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'sl_trigger_price')
         takeProfitTriggerPrice = self.safe_number_2(params, 'takeProfitPrice', 'tp_trigger_price')
+        trailingPercent = self.safe_number(params, 'trailingPercent')
+        isTrailingPercentOrder = trailingPercent is not None
         isStop = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         response = None
         if market['spot']:
+            if isTrailingPercentOrder:
+                raise NotSupported(self.id + ' createOrder() does not support trailing orders for spot markets')
             spotRequest = await self.create_spot_order_request(symbol, type, side, amount, price, params)
             response = await self.spotPrivatePostV1OrderOrdersPlace(spotRequest)
         else:
             contractRequest = self.create_contract_order_request(symbol, type, side, amount, price, params)
             if market['linear']:
                 marginMode = None
-                marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+                marginMode, contractRequest = self.handle_margin_mode_and_params('createOrder', contractRequest)
                 marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
                     if isStop:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapTpslOrder(contractRequest)
+                    elif isTrailingPercentOrder:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapTrackOrder(contractRequest)
                     else:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapOrder(contractRequest)
                 elif marginMode == 'cross':
@@ -4798,6 +5047,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(contractRequest)
+                    elif isTrailingPercentOrder:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder(contractRequest)
                     else:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossOrder(contractRequest)
             elif market['inverse']:
@@ -4806,6 +5057,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostSwapApiV1SwapTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = await self.contractPrivatePostSwapApiV1SwapTpslOrder(contractRequest)
+                    elif isTrailingPercentOrder:
+                        response = await self.contractPrivatePostSwapApiV1SwapTrackOrder(contractRequest)
                     else:
                         response = await self.contractPrivatePostSwapApiV1SwapOrder(contractRequest)
                 elif market['future']:
@@ -4813,6 +5066,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostApiV1ContractTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = await self.contractPrivatePostApiV1ContractTpslOrder(contractRequest)
+                    elif isTrailingPercentOrder:
+                        response = await self.contractPrivatePostApiV1ContractTrackOrder(contractRequest)
                     else:
                         response = await self.contractPrivatePostApiV1ContractOrder(contractRequest)
         #
@@ -4998,8 +5253,9 @@ class htx(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: *contract only* if the order is a stop trigger order or not
-        :param bool [params.stopLossTakeProfit]: *contract only* if the order is a stop-loss or take-profit order
+        :param boolean [params.stop]: *contract only* if the order is a stop trigger order or not
+        :param boolean [params.stopLossTakeProfit]: *contract only* if the order is a stop-loss or take-profit order
+        :param boolean [params.trailing]: *contract only* set to True if you want to cancel a trailing order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -5045,7 +5301,8 @@ class htx(Exchange, ImplicitAPI):
                 request['contract_code'] = market['id']
             stop = self.safe_value(params, 'stop')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            params = self.omit(params, ['stop', 'stopLossTakeProfit'])
+            trailing = self.safe_bool(params, 'trailing', False)
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
@@ -5055,6 +5312,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapTpslCancel(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapTrackCancel(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCancel(self.extend(request, params))
                 elif marginMode == 'cross':
@@ -5062,6 +5321,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossCancel(self.extend(request, params))
             elif market['inverse']:
@@ -5070,6 +5331,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostSwapApiV1SwapTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostSwapApiV1SwapTpslCancel(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostSwapApiV1SwapTrackCancel(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostSwapApiV1SwapCancel(self.extend(request, params))
                 elif market['future']:
@@ -5077,6 +5340,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostApiV1ContractTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostApiV1ContractTpslCancel(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostApiV1ContractTrackCancel(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostApiV1ContractCancel(self.extend(request, params))
             else:
@@ -5257,8 +5522,9 @@ class htx(Exchange, ImplicitAPI):
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: *contract only* if the orders are stop trigger orders or not
-        :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
+        :param boolean [params.stop]: *contract only* if the orders are stop trigger orders or not
+        :param boolean [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
+        :param boolean [params.trailing]: *contract only* set to True if you want to cancel all trailing orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -5294,7 +5560,8 @@ class htx(Exchange, ImplicitAPI):
             request['contract_code'] = market['id']
             stop = self.safe_value(params, 'stop')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            params = self.omit(params, ['stop', 'stopLossTakeProfit'])
+            trailing = self.safe_bool(params, 'trailing', False)
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
@@ -5304,6 +5571,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostLinearSwapApiV1SwapTriggerCancelall(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapTpslCancelall(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapTrackCancelall(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCancelall(self.extend(request, params))
                 elif marginMode == 'cross':
@@ -5311,6 +5580,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossCancelall(self.extend(request, params))
             elif market['inverse']:
@@ -5319,6 +5590,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostSwapApiV1SwapTriggerCancelall(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostSwapApiV1SwapTpslCancelall(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostSwapApiV1SwapTrackCancelall(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostSwapApiV1SwapCancelall(self.extend(request, params))
                 elif market['future']:
@@ -5326,6 +5599,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostApiV1ContractTriggerCancelall(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = await self.contractPrivatePostApiV1ContractTpslCancelall(self.extend(request, params))
+                    elif trailing:
+                        response = await self.contractPrivatePostApiV1ContractTrackCancelall(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostApiV1ContractCancelall(self.extend(request, params))
             else:
@@ -5676,7 +5951,7 @@ class htx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -5702,7 +5977,7 @@ class htx(Exchange, ImplicitAPI):
             request['chain'] = self.network_code_to_id(networkCode, code)
         amount = float(self.currency_to_precision(code, amount, networkCode))
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
-        if self.safe_value(withdrawOptions, 'includeFee', False):
+        if self.safe_bool(withdrawOptions, 'includeFee', False):
             fee = self.safe_number(params, 'fee')
             if fee is None:
                 currencies = await self.fetch_currencies()
@@ -5752,7 +6027,7 @@ class htx(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
@@ -6218,7 +6493,7 @@ class htx(Exchange, ImplicitAPI):
         marginMode = 'cross' if (marketId is None) else 'isolated'
         market = self.safe_market(marketId)
         symbol = self.safe_string(market, 'symbol')
-        timestamp = self.safe_number(info, 'accrued-at')
+        timestamp = self.safe_integer(info, 'accrued-at')
         return {
             'account': symbol if (marginMode == 'isolated') else 'cross',  # deprecated
             'symbol': symbol,
@@ -6445,7 +6720,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -7530,7 +7805,7 @@ class htx(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
@@ -7563,7 +7838,7 @@ class htx(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    async def borrow_cross_margin(self, code: str, amount, params={}):
+    async def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
@@ -8085,3 +8360,61 @@ class htx(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        """
+        set hedged to True or False
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
+        :param bool hedged: set to True to for hedged mode, must be set separately for each market in isolated margin mode, only valid for linear markets
+        :param str [symbol]: unified market symbol, required for isolated margin mode
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: "cross"(default) or "isolated"
+        :returns dict: response from the exchange
+        """
+        await self.load_markets()
+        posMode = 'dual_side' if hedged else 'single_side'
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('setPositionMode', params, 'cross')
+        request = {
+            'position_mode': posMode,
+        }
+        response = None
+        if (market is not None) and (market['inverse']):
+            raise BadRequest(self.id + ' setPositionMode can only be used for linear markets')
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' setPositionMode requires a symbol argument for isolated margin mode')
+            request['margin_account'] = market['id']
+            response = await self.contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode(self.extend(request, params))
+            #
+            #    {
+            #        "status": "ok",
+            #        "data": [
+            #            {
+            #                "margin_account": "BTC-USDT",
+            #                "position_mode": "single_side"
+            #            }
+            #        ],
+            #        "ts": 1566899973811
+            #    }
+            #
+        else:
+            request['margin_account'] = 'USDT'
+            response = await self.contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode(self.extend(request, params))
+            #
+            #    {
+            #        "status": "ok",
+            #        "data": [
+            #            {
+            #                "margin_account": "USDT",
+            #                "position_mode": "single_side"
+            #            }
+            #        ],
+            #        "ts": 1566899973811
+            #    }
+            #
+        return response

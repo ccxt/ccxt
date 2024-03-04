@@ -319,7 +319,7 @@ class idex(ccxt.async_support.idex):
                         symbol = self.safe_symbol(marketId)
                         if not (symbol in self.orderbooks):
                             orderbook = self.counted_order_book({})
-                            orderbook.cache = []
+                            # orderbook.cache = []  # cache is never used?
                             self.orderbooks[symbol] = orderbook
                         self.spawn(self.fetch_order_book_snapshot, client, symbol)
                 break

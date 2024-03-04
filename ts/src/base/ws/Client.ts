@@ -1,4 +1,4 @@
-import { RequestTimeout, NetworkError, NotSupported, BaseError } from '../../base/errors.js';
+import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import { Future } from './Future.js';
 
@@ -204,8 +204,14 @@ export default class Client {
             if ((this.lastPong + this.keepAlive * this.maxPingPongMisses) < now) {
                 this.onError (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
             } else {
+                let message: any;
                 if (this.ping) {
-                    this.send (this.ping (this))
+                    message = this.ping (this);
+                }
+                if (message) {
+                    this.send (message).catch ((error) => {
+                        this.onError (error);
+                    });
                 } else if (isNode) {
                     // can't do this inside browser
                     // https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
@@ -272,6 +278,9 @@ export default class Client {
             // todo: exception types for server-side disconnects
             this.reset (new NetworkError ('connection closed by remote server, closing code ' + String (event.code)))
         }
+        if (this.error instanceof ExchangeClosedByUser) {
+            this.reset (this.error);
+        }
         if (this.disconnected !== undefined) {
             this.disconnected.resolve (true);
         }
@@ -294,6 +303,7 @@ export default class Client {
         const future = Future ()
         if (isNode) {
             /* eslint-disable no-inner-declarations */
+            /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete (error) {
                 if (error) {
                     future.reject (error)

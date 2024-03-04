@@ -65,60 +65,70 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
     }
 
     public function negotiate($privateChannel, $params = array ()) {
-        $connectId = $privateChannel ? 'private' : 'public';
-        $urls = $this->safe_value($this->options, 'urls', array());
-        $spawaned = $this->safe_value($urls, $connectId);
-        if ($spawaned !== null) {
-            return $spawaned;
-        }
-        // we store an awaitable to the url
-        // so that multiple calls don't asynchronously
-        // fetch different $urls and overwrite each other
-        $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params);
-        $this->options['urls'] = $urls;
-        return $urls[$connectId];
+        return Async\async(function () use ($privateChannel, $params) {
+            $connectId = $privateChannel ? 'private' : 'public';
+            $urls = $this->safe_value($this->options, 'urls', array());
+            $spawaned = $this->safe_value($urls, $connectId);
+            if ($spawaned !== null) {
+                return Async\await($spawaned);
+            }
+            // we store an awaitable to the url
+            // so that multiple calls don't asynchronously
+            // fetch different $urls and overwrite each other
+            $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params); // we have to wait here otherwsie in c# will not work
+            $this->options['urls'] = $urls;
+            $future = $urls[$connectId];
+            return Async\await($future);
+        }) ();
     }
 
     public function negotiate_helper($privateChannel, $params = array ()) {
         return Async\async(function () use ($privateChannel, $params) {
             $response = null;
             $connectId = $privateChannel ? 'private' : 'public';
-            if ($privateChannel) {
-                $response = Async\await($this->futuresPrivatePostBulletPrivate ($params));
-                //
-                //     {
-                //         "code" => "200000",
-                //         "data" => {
-                //             "instanceServers" => array(
-                //                 {
-                //                     "pingInterval" =>  50000,
-                //                     "endpoint" => "wss://push-private.kucoin.com/endpoint",
-                //                     "protocol" => "websocket",
-                //                     "encrypt" => true,
-                //                     "pingTimeout" => 10000
-                //                 }
-                //             ),
-                //             "token" => "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-                //         }
-                //     }
-                //
-            } else {
-                $response = Async\await($this->futuresPublicPostBulletPublic ($params));
+            try {
+                if ($privateChannel) {
+                    $response = Async\await($this->futuresPrivatePostBulletPrivate ($params));
+                    //
+                    //     {
+                    //         "code" => "200000",
+                    //         "data" => {
+                    //             "instanceServers" => array(
+                    //                 {
+                    //                     "pingInterval" =>  50000,
+                    //                     "endpoint" => "wss://push-private.kucoin.com/endpoint",
+                    //                     "protocol" => "websocket",
+                    //                     "encrypt" => true,
+                    //                     "pingTimeout" => 10000
+                    //                 }
+                    //             ),
+                    //             "token" => "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                    //         }
+                    //     }
+                    //
+                } else {
+                    $response = Async\await($this->futuresPublicPostBulletPublic ($params));
+                }
+                $data = $this->safe_value($response, 'data', array());
+                $instanceServers = $this->safe_value($data, 'instanceServers', array());
+                $firstInstanceServer = $this->safe_value($instanceServers, 0);
+                $pingInterval = $this->safe_integer($firstInstanceServer, 'pingInterval');
+                $endpoint = $this->safe_string($firstInstanceServer, 'endpoint');
+                $token = $this->safe_string($data, 'token');
+                $result = $endpoint . '?' . $this->urlencode(array(
+                    'token' => $token,
+                    'privateChannel' => $privateChannel,
+                    'connectId' => $connectId,
+                ));
+                $client = $this->client($result);
+                $client->keepAlive = $pingInterval;
+                return $result;
+            } catch (Exception $e) {
+                $future = $this->safe_value($this->options['urls'], $connectId);
+                $future->reject ($e);
+                unset($this->options['urls'][$connectId]);
             }
-            $data = $this->safe_value($response, 'data', array());
-            $instanceServers = $this->safe_value($data, 'instanceServers', array());
-            $firstInstanceServer = $this->safe_value($instanceServers, 0);
-            $pingInterval = $this->safe_integer($firstInstanceServer, 'pingInterval');
-            $endpoint = $this->safe_string($firstInstanceServer, 'endpoint');
-            $token = $this->safe_string($data, 'token');
-            $result = $endpoint . '?' . $this->urlencode(array(
-                'token' => $token,
-                'privateChannel' => $privateChannel,
-                'connectId' => $connectId,
-            ));
-            $client = $this->client($result);
-            $client->keepAlive = $pingInterval;
-            return $result;
+            return null;
         }) ();
     }
 
@@ -245,7 +255,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             $client = $this->client($url);
             $this->set_position_cache($client, $symbol);
             $fetchPositionSnapshot = $this->handle_option('watchPosition', 'fetchPositionSnapshot', true);
-            $awaitPositionSnapshot = $this->safe_value('watchPosition', 'awaitPositionSnapshot', true);
+            $awaitPositionSnapshot = $this->safe_bool('watchPosition', 'awaitPositionSnapshot', true);
             $currentPosition = $this->get_current_position($symbol);
             if ($fetchPositionSnapshot && $awaitPositionSnapshot && $currentPosition === null) {
                 $snapshot = Async\await($client->future ('fetchPositionSnapshot:' . $symbol));
@@ -604,6 +614,9 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         $messageHash = 'orderbook:' . $symbol;
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
+        if ($storedOrderBook === null) {
+            return; // this shouldn't be needed, but for some reason sometimes this runs before handleOrderBookSubscription in c#
+        }
         $deltaEnd = $this->safe_integer($data, 'sequence');
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
@@ -622,7 +635,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             $limit = $this->safe_integer($subscription, 'limit');
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
             if ($cacheLength === $snapshotDelay) {
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
             }
             $storedOrderBook->cache[] = $data;
             return;
@@ -963,10 +976,8 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             'position.adjustRiskLimit' => array($this, 'handle_position'),
         );
         $method = $this->safe_value($methods, $subject);
-        if ($method === null) {
-            return $message;
-        } else {
-            return $method($client, $message);
+        if ($method !== null) {
+            $method($client, $message);
         }
     }
 
@@ -1019,7 +1030,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         );
         $method = $this->safe_value($methods, $type);
         if ($method !== null) {
-            return $method($client, $message);
+            $method($client, $message);
         }
     }
 }

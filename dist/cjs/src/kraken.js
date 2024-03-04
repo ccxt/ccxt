@@ -12,6 +12,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 /**
  * @class kraken
  * @augments Exchange
+ * @description Set rateLimit to 1000 if fully verified
  */
 class kraken extends kraken$1 {
     describe() {
@@ -20,7 +21,7 @@ class kraken extends kraken$1 {
             'name': 'Kraken',
             'countries': ['US'],
             'version': '0',
-            'rateLimit': 1000,
+            'rateLimit': 3000,
             'certified': false,
             'pro': true,
             'has': {
@@ -39,6 +40,7 @@ class kraken extends kraken$1 {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTrailingAmountOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -102,7 +104,7 @@ class kraken extends kraken$1 {
                     'zendesk': 'https://kraken.zendesk.com/api/v2/help_center/en-us/articles', // use the public zendesk api to receive article bodies and bypass new anti-spam protections
                 },
                 'www': 'https://www.kraken.com',
-                'doc': 'https://www.kraken.com/features/api',
+                'doc': 'https://docs.kraken.com/rest/',
                 'fees': 'https://www.kraken.com/en-us/features/fee-schedule',
             },
             'fees': {
@@ -165,48 +167,48 @@ class kraken extends kraken$1 {
                     'post': {
                         'AddOrder': 0,
                         'AddOrderBatch': 0,
-                        'AddExport': 3,
-                        'Balance': 3,
-                        'CancelAll': 3,
-                        'CancelAllOrdersAfter': 3,
+                        'AddExport': 1,
+                        'Balance': 1,
+                        'CancelAll': 1,
+                        'CancelAllOrdersAfter': 1,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
-                        'ClosedOrders': 6,
-                        'DepositAddresses': 3,
-                        'DepositMethods': 3,
-                        'DepositStatus': 3,
+                        'ClosedOrders': 1,
+                        'DepositAddresses': 1,
+                        'DepositMethods': 1,
+                        'DepositStatus': 1,
                         'EditOrder': 0,
-                        'ExportStatus': 3,
-                        'GetWebSocketsToken': 3,
-                        'Ledgers': 6,
-                        'OpenOrders': 3,
-                        'OpenPositions': 3,
-                        'QueryLedgers': 3,
-                        'QueryOrders': 3,
-                        'QueryTrades': 3,
-                        'RetrieveExport': 3,
-                        'RemoveExport': 3,
-                        'BalanceEx': 3,
-                        'TradeBalance': 3,
-                        'TradesHistory': 6,
-                        'TradeVolume': 3,
-                        'Withdraw': 3,
-                        'WithdrawCancel': 3,
-                        'WithdrawInfo': 3,
-                        'WithdrawMethods': 3,
-                        'WithdrawAddresses': 3,
-                        'WithdrawStatus': 3,
-                        'WalletTransfer': 3,
+                        'ExportStatus': 1,
+                        'GetWebSocketsToken': 1,
+                        'Ledgers': 2,
+                        'OpenOrders': 1,
+                        'OpenPositions': 1,
+                        'QueryLedgers': 1,
+                        'QueryOrders': 1,
+                        'QueryTrades': 1,
+                        'RetrieveExport': 1,
+                        'RemoveExport': 1,
+                        'BalanceEx': 1,
+                        'TradeBalance': 1,
+                        'TradesHistory': 2,
+                        'TradeVolume': 1,
+                        'Withdraw': 1,
+                        'WithdrawCancel': 1,
+                        'WithdrawInfo': 1,
+                        'WithdrawMethods': 1,
+                        'WithdrawAddresses': 1,
+                        'WithdrawStatus': 1,
+                        'WalletTransfer': 1,
                         // sub accounts
-                        'CreateSubaccount': 3,
-                        'AccountTransfer': 3,
+                        'CreateSubaccount': 1,
+                        'AccountTransfer': 1,
                         // earn
-                        'Earn/Allocate': 3,
-                        'Earn/Deallocate': 3,
-                        'Earn/AllocateStatus': 3,
-                        'Earn/DeallocateStatus': 3,
-                        'Earn/Strategies': 3,
-                        'Earn/Allocations': 3,
+                        'Earn/Allocate': 1,
+                        'Earn/Deallocate': 1,
+                        'Earn/AllocateStatus': 1,
+                        'Earn/DeallocateStatus': 1,
+                        'Earn/Strategies': 1,
+                        'Earn/Allocations': 1,
                     },
                 },
             },
@@ -751,7 +753,7 @@ class kraken extends kraken$1 {
             'tierBased': true,
         };
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         const timestamp = this.safeInteger(bidask, 2);
@@ -973,7 +975,9 @@ class kraken extends kraken$1 {
             request['interval'] = timeframe;
         }
         if (since !== undefined) {
-            request['since'] = this.parseToInt((since - 1) / 1000);
+            // contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
+            // the adding of '000000' is copied from the fetchTrades function
+            request['since'] = this.numberToString(since) + '000000'; // expected to be in nanoseconds
         }
         const response = await this.publicGetOHLC(this.extend(request, params));
         //
@@ -1263,12 +1267,8 @@ class kraken extends kraken$1 {
             request['since'] = since * 1e6;
             request['since'] = since.toString() + '000000'; // expected to be in nanoseconds
         }
-        // https://github.com/ccxt/ccxt/issues/5698
-        if (limit !== undefined && limit !== 1000) {
-            const fetchTradesWarning = this.safeValue(this.options, 'fetchTradesWarning', true);
-            if (fetchTradesWarning) {
-                throw new errors.ExchangeError(this.id + ' fetchTrades() cannot serve ' + limit.toString() + " trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
-            }
+        if (limit !== undefined) {
+            request['count'] = limit;
         }
         const response = await this.publicGetTrades(this.extend(request, params));
         //
@@ -1441,6 +1441,16 @@ class kraken extends kraken$1 {
         };
         return this.safeString(statuses, status, status);
     }
+    parseOrderType(status) {
+        const statuses = {
+            'take-profit': 'market',
+            'stop-loss-limit': 'limit',
+            'stop-loss': 'market',
+            'take-profit-limit': 'limit',
+            'trailing-stop-limit': 'limit',
+        };
+        return this.safeString(statuses, status, status);
+    }
     parseOrder(order, market = undefined) {
         //
         // createOrder for regular orders
@@ -1499,6 +1509,41 @@ class kraken extends kraken$1 {
         //        "txid": "OTI672-HJFAO-XOIPPK"
         //    }
         //
+        //  {
+        //      "error": [],
+        //      "result": {
+        //          "open": {
+        //              "OXVPSU-Q726F-L3SDEP": {
+        //                  "refid": null,
+        //                  "userref": 0,
+        //                  "status": "open",
+        //                  "opentm": 1706893367.4656649,
+        //                  "starttm": 0,
+        //                  "expiretm": 0,
+        //                  "descr": {
+        //                      "pair": "XRPEUR",
+        //                      "type": "sell",
+        //                      "ordertype": "trailing-stop",
+        //                      "price": "+50.0000%",
+        //                      "price2": "0",
+        //                      "leverage": "none",
+        //                      "order": "sell 10.00000000 XRPEUR @ trailing stop +50.0000%",
+        //                      "close": ""
+        //                  },
+        //                  "vol": "10.00000000",
+        //                  "vol_exec": "0.00000000",
+        //                  "cost": "0.00000000",
+        //                  "fee": "0.00000000",
+        //                  "price": "0.00000000",
+        //                  "stopprice": "0.23424000",
+        //                  "limitprice": "0.46847000",
+        //                  "misc": "",
+        //                  "oflags": "fciq",
+        //                  "trigger": "index"
+        //              }
+        //      }
+        //  }
+        //
         const description = this.safeValue(order, 'descr', {});
         const orderDescription = this.safeString(description, 'order', description);
         let side = undefined;
@@ -1540,6 +1585,10 @@ class kraken extends kraken$1 {
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, 'price', price);
+        // when type = trailling stop returns price = '+50.0000%'
+        if ((price !== undefined) && price.endsWith('%')) {
+            price = undefined; // this is not the price we want
+        }
         if ((price === undefined) || Precise["default"].stringEquals(price, '0')) {
             price = this.safeString(description, 'price2');
         }
@@ -1583,7 +1632,17 @@ class kraken extends kraken$1 {
                 trades.push(rawTrade);
             }
         }
-        stopPrice = this.safeNumber(order, 'stopprice', stopPrice);
+        stopPrice = this.omitZero(this.safeString(order, 'stopprice', stopPrice));
+        let stopLossPrice = undefined;
+        let takeProfitPrice = undefined;
+        if (type.startsWith('take-profit')) {
+            takeProfitPrice = this.safeString(description, 'price');
+            price = this.omitZero(this.safeString(description, 'price2'));
+        }
+        else if (type.startsWith('stop-loss')) {
+            stopLossPrice = this.safeString(description, 'price');
+            price = this.omitZero(this.safeString(description, 'price2'));
+        }
         return this.safeOrder({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1593,13 +1652,15 @@ class kraken extends kraken$1 {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': type,
+            'type': this.parseOrderType(type),
             'timeInForce': undefined,
             'postOnly': isPostOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'cost': undefined,
             'amount': amount,
             'filled': filled,
@@ -1623,27 +1684,39 @@ class kraken extends kraken$1 {
         const trailingAmount = this.safeString(params, 'trailingAmount');
         const trailingLimitAmount = this.safeString(params, 'trailingLimitAmount');
         const isTrailingAmountOrder = trailingAmount !== undefined;
-        if ((type === 'limit') && !isTrailingAmountOrder) {
+        const isLimitOrder = type.endsWith('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        if (isLimitOrder && !isTrailingAmountOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        let reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
         if (isStopLossOrTakeProfitTrigger) {
             if (isStopLossTriggerOrder) {
                 request['price'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                request['ordertype'] = 'stop-loss-limit';
+                if (isLimitOrder) {
+                    request['ordertype'] = 'stop-loss-limit';
+                }
+                else {
+                    request['ordertype'] = 'stop-loss';
+                }
             }
             else if (isTakeProfitTriggerOrder) {
                 request['price'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
-                request['ordertype'] = 'take-profit-limit';
+                if (isLimitOrder) {
+                    request['ordertype'] = 'take-profit-limit';
+                }
+                else {
+                    request['ordertype'] = 'take-profit';
+                }
             }
-            request['price2'] = this.priceToPrecision(symbol, price);
-            reduceOnly = true;
+            if (isLimitOrder) {
+                request['price2'] = this.priceToPrecision(symbol, price);
+            }
         }
         else if (isTrailingAmountOrder) {
             const trailingActivationPriceType = this.safeString(params, 'trigger', 'last');
             const trailingAmountString = '+' + trailingAmount;
             request['trigger'] = trailingActivationPriceType;
-            if ((type === 'limit') || (trailingLimitAmount !== undefined)) {
+            if (isLimitOrder || (trailingLimitAmount !== undefined)) {
                 const offset = this.safeString(params, 'offset', '-');
                 const trailingLimitAmountString = offset + this.numberToString(trailingLimitAmount);
                 request['price'] = trailingAmountString;

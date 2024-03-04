@@ -596,7 +596,7 @@ export default class ace extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name ace#createOrder
@@ -1070,8 +1070,9 @@ export default class ace extends Exchange {
         const feedback = this.id + ' ' + body;
         const status = this.safeNumber (response, 'status', 200);
         if (status > 200) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], status, feedback);
+            const statusStr = status.toString ();
+            this.throwExactlyMatchedException (this.exceptions['exact'], statusStr, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], statusStr, feedback);
         }
         return undefined;
     }

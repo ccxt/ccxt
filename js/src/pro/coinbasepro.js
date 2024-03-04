@@ -92,7 +92,7 @@ export default class coinbasepro extends coinbaseproRest {
             const symbol = symbols[i];
             market = this.market(symbol);
             productIds.push(market['id']);
-            messageHashes.push(messageHashStart + ':' + market['id']);
+            messageHashes.push(messageHashStart + ':' + market['symbol']);
         }
         let url = this.urls['api']['ws'];
         if ('signature' in params) {
@@ -124,8 +124,7 @@ export default class coinbasepro extends coinbaseproRest {
     async watchTickers(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name okx#watchTickers
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+         * @name coinbasepro#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -138,10 +137,12 @@ export default class coinbasepro extends coinbaseproRest {
             throw new BadSymbol(this.id + ' watchTickers requires a non-empty symbols array');
         }
         const channel = 'ticker';
-        const messageHash = 'tickers::';
-        const newTickers = await this.subscribeMultiple(channel, symbols, messageHash, params);
+        const messageHash = 'ticker';
+        const ticker = await this.subscribeMultiple(channel, symbols, messageHash, params);
         if (this.newUpdates) {
-            return newTickers;
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
@@ -753,19 +754,10 @@ export default class coinbasepro extends coinbaseproRest {
             const ticker = this.parseTicker(message);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const type = this.safeString(message, 'type');
-            const messageHash = type + ':' + marketId;
+            const messageHash = 'ticker:' + symbol;
+            const idMessageHash = 'ticker:' + marketId;
             client.resolve(ticker, messageHash);
-            const messageHashes = this.findMessageHashes(client, 'tickers::');
-            for (let i = 0; i < messageHashes.length; i++) {
-                const currentMessageHash = messageHashes[i];
-                const parts = currentMessageHash.split('::');
-                const symbolsString = parts[1];
-                const symbols = symbolsString.split(',');
-                if (this.inArray(symbol, symbols)) {
-                    client.resolve(ticker, currentMessageHash);
-                }
-            }
+            client.resolve(ticker, idMessageHash);
         }
         return message;
     }
@@ -971,7 +963,7 @@ export default class coinbasepro extends coinbaseproRest {
             }
         }
         else {
-            return method.call(this, client, message);
+            method.call(this, client, message);
         }
     }
 }

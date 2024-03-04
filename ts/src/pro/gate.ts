@@ -17,7 +17,7 @@ export default class gate extends gateRest {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchTicker': true,
-                'watchTickers': true, // for now
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchMyTrades': true,
@@ -213,7 +213,7 @@ export default class gate extends gateRest {
                 // max limit is 100
                 const subscription = client.subscriptions[messageHash];
                 const limit = this.safeInteger (subscription, 'limit');
-                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {}); // needed for c#, number of args needs to match
             }
             storedOrderBook.cache.push (delta);
             return;
@@ -278,6 +278,7 @@ export default class gate extends gateRest {
         /**
          * @method
          * @name gate#watchTicker
+         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -286,45 +287,22 @@ export default class gate extends gateRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const marketId = market['id'];
-        const url = this.getUrlByMarket (market);
-        const messageType = this.getTypeByMarket (market);
-        const [ topic, query ] = this.handleOptionAndParams (params, 'watchTicker', 'name', 'tickers');
-        const channel = messageType + '.' + topic;
-        const messageHash = 'ticker:' + symbol;
-        const payload = [ marketId ];
-        return await this.subscribePublic (url, messageHash, payload, channel, query);
+        params['callerMethodName'] = 'watchTicker';
+        const result = await this.watchTickers ([ symbol ], params);
+        return this.safeValue (result, symbol);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name gate#watchTickers
+         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTickers requires symbols');
-        }
-        const market = this.market (symbols[0]);
-        const messageType = this.getTypeByMarket (market);
-        const marketIds = this.marketIds (symbols);
-        const [ topic, query ] = this.handleOptionAndParams (params, 'watchTicker', 'method', 'tickers');
-        const channel = messageType + '.' + topic;
-        const messageHash = 'tickers';
-        const url = this.getUrlByMarket (market);
-        const ticker = await this.subscribePublic (url, messageHash, marketIds, channel, query);
-        let result = {};
-        if (this.newUpdates) {
-            result[ticker['symbol']] = ticker;
-        } else {
-            result = this.tickers;
-        }
-        return this.filterByArray (result, 'symbol', symbols, true);
+        return await this.subscribeWatchTickersAndBidsAsks (symbols, 'watchTickers', this.extend ({ 'method': 'tickers' }, params));
     }
 
     handleTicker (client: Client, message) {
@@ -345,6 +323,26 @@ export default class gate extends gateRest {
         //          "low_24h": "42721.03"
         //        }
         //    }
+        //
+        this.handleTickerAndBidAsk ('ticker', client, message);
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name gate#watchBidsAsks
+         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
+         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        return await this.subscribeWatchTickersAndBidsAsks (symbols, 'watchBidsAsks', this.extend ({ 'method': 'book_ticker' }, params));
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
         //    {
         //        "time": 1671363004,
         //        "time_ms": 1671363004235,
@@ -361,24 +359,64 @@ export default class gate extends gateRest {
         //        }
         //    }
         //
+        this.handleTickerAndBidAsk ('bidask', client, message);
+    }
+
+    async subscribeWatchTickersAndBidsAsks (symbols: Strings = undefined, callerMethodName: Str = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const market = this.market (symbols[0]);
+        const messageType = this.getTypeByMarket (market);
+        const marketIds = this.marketIds (symbols);
+        let channelName = undefined;
+        [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'method');
+        const url = this.getUrlByMarket (market);
+        const channel = messageType + '.' + channelName;
+        const isWatchTickers = callerMethodName.indexOf ('watchTicker') >= 0;
+        const prefix = isWatchTickers ? 'ticker' : 'bidask';
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push (prefix + ':' + symbol);
+        }
+        const tickerOrBidAsk = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
+        if (this.newUpdates) {
+            const items = {};
+            items[tickerOrBidAsk['symbol']] = tickerOrBidAsk;
+            return items;
+        }
+        const result = isWatchTickers ? this.tickers : this.bidsasks;
+        return this.filterByArray (result, 'symbol', symbols, true);
+    }
+
+    handleTickerAndBidAsk (objectName: string, client: Client, message) {
         const channel = this.safeString (message, 'channel');
         const parts = channel.split ('.');
         const rawMarketType = this.safeString (parts, 0);
         const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
-        let result = this.safeValue (message, 'result');
-        if (!Array.isArray (result)) {
-            result = [ result ];
+        const result = this.safeValue (message, 'result');
+        let results = [];
+        if (Array.isArray (result)) {
+            results = this.safeList (message, 'result', []);
+        } else {
+            const rawTicker = this.safeDict (message, 'result', {});
+            results = [ rawTicker ];
         }
-        for (let i = 0; i < result.length; i++) {
-            const ticker = result[i];
-            const marketId = this.safeString (ticker, 's');
+        const isTicker = (objectName === 'ticker'); // whether ticker or bid-ask
+        for (let i = 0; i < results.length; i++) {
+            const rawTicker = results[i];
+            const marketId = this.safeString (rawTicker, 's');
             const market = this.safeMarket (marketId, undefined, '_', marketType);
-            const parsed = this.parseTicker (ticker, market);
-            const symbol = parsed['symbol'];
-            this.tickers[symbol] = parsed;
-            const messageHash = 'ticker:' + symbol;
-            client.resolve (parsed, messageHash);
-            client.resolve (parsed, 'tickers');
+            const parsedItem = this.parseTicker (rawTicker, market);
+            const symbol = parsedItem['symbol'];
+            if (isTicker) {
+                this.tickers[symbol] = parsedItem;
+            } else {
+                this.bidsasks[symbol] = parsedItem;
+            }
+            const messageHash = objectName + ':' + symbol;
+            client.resolve (parsedItem, messageHash);
         }
     }
 
@@ -804,7 +842,7 @@ export default class gate extends gateRest {
         const client = this.client (url);
         this.setPositionsCache (client, type, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.safeValue (this.positions, type);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             return await client.future (type + ':fetchPositionsSnapshot');
@@ -1195,7 +1233,7 @@ export default class gate extends gateRest {
             'orders': this.handleOrder,
             'positions': this.handlePositions,
             'tickers': this.handleTicker,
-            'book_ticker': this.handleTicker,
+            'book_ticker': this.handleBidAsk,
             'trades': this.handleTrades,
             'order_book_update': this.handleOrderBook,
             'balances': this.handleBalance,

@@ -1,3 +1,5 @@
+// eslint-disable-next-line no-shadow
+import WebSocket from 'ws';
 import Client from './Client.js';
 
 import {
@@ -5,16 +7,21 @@ import {
     isNode,
     milliseconds,
 } from '../../base/functions.js';
-import WebSocket from 'ws';
 import { Future } from './Future.js';
 
+// eslint-disable-next-line no-restricted-globals
 const WebSocketPlatform = isNode ? WebSocket : self.WebSocket;
 
 export default class WsClient extends Client {
-    connectionStarted:number;
+
+    connectionStarted: number;
+
     protocols: any;
+
     options: any;
+
     startedConnecting: boolean;
+
     createConnection () {
         if (this.verbose) {
             this.log (new Date (), 'connecting to', this.url)
@@ -68,4 +75,4 @@ export default class WsClient extends Client {
         return this.disconnected;
     }
 
-};
+}

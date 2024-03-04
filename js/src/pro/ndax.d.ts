@@ -11,8 +11,8 @@ export default class ndax extends ndaxRest {
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any): any;
+    handleOrderBook(client: Client, message: any): void;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
-    handleMessage(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): void;
 }
