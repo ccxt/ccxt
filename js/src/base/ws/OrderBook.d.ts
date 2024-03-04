@@ -1,4 +1,8 @@
-declare class OrderBook {
+interface CustomOrderBookProp {
+    cache: any[];
+}
+declare class OrderBook implements CustomOrderBookProp {
+    cache: any[];
     constructor(snapshot?: {}, depth?: any);
     limit(): this;
     update(snapshot: any): this;

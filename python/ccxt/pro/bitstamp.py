@@ -111,7 +111,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             # usually it takes at least 4-5 deltas to resolve
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 6)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol)
+                self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
             storedOrderBook.cache.append(delta)
             return
         elif nonce >= deltaNonce:
@@ -482,9 +482,9 @@ class bitstamp(ccxt.async_support.bitstamp):
         #
         event = self.safe_string(message, 'event')
         if event == 'bts:subscription_succeeded':
-            return self.handle_subscription_status(client, message)
+            self.handle_subscription_status(client, message)
         else:
-            return self.handle_subject(client, message)
+            self.handle_subject(client, message)
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
@@ -506,7 +506,6 @@ class bitstamp(ccxt.async_support.bitstamp):
                 self.options['expiresIn'] = self.sum(time, validity)
                 self.options['userId'] = userId
                 self.options['wsSessionToken'] = sessionToken
-                return response
 
     async def subscribe_private(self, subscription, messageHash, params={}):
         url = self.urls['api']['ws']

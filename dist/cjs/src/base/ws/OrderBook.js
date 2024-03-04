@@ -7,14 +7,14 @@ var generic = require('../functions/generic.js');
 var OrderBookSide = require('./OrderBookSide.js');
 
 /* eslint-disable max-classes-per-file */
-// ----------------------------------------------------------------------------
-// overwrites absolute volumes at price levels
 class OrderBook {
     constructor(snapshot = {}, depth = undefined) {
+        this.cache = []; // make prop visible so we use typed OrderBooks
         Object.defineProperty(this, 'cache', {
             __proto__: null,
             value: [],
             writable: true,
+            enumerable: false,
         });
         depth = depth || Number.MAX_SAFE_INTEGER;
         const defaults = {

@@ -16,7 +16,7 @@ class kraken extends Exchange {
             'name' => 'Kraken',
             'countries' => array( 'US' ),
             'version' => '0',
-            'rateLimit' => 1000,
+            'rateLimit' => 3000,  // bucket fills max 15, but drains 1 every 3s
             'certified' => false,
             'pro' => true,
             'has' => array(
@@ -35,6 +35,7 @@ class kraken extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'createTrailingAmountOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
@@ -98,7 +99,7 @@ class kraken extends Exchange {
                     'zendesk' => 'https://kraken.zendesk.com/api/v2/help_center/en-us/articles', // use the public zendesk api to receive article bodies and bypass new anti-spam protections
                 ),
                 'www' => 'https://www.kraken.com',
-                'doc' => 'https://www.kraken.com/features/api',
+                'doc' => 'https://docs.kraken.com/rest/',
                 'fees' => 'https://www.kraken.com/en-us/features/fee-schedule',
             ),
             'fees' => array(
@@ -161,48 +162,48 @@ class kraken extends Exchange {
                     'post' => array(
                         'AddOrder' => 0,
                         'AddOrderBatch' => 0,
-                        'AddExport' => 3,
-                        'Balance' => 3,
-                        'CancelAll' => 3,
-                        'CancelAllOrdersAfter' => 3,
+                        'AddExport' => 1,
+                        'Balance' => 1,
+                        'CancelAll' => 1,
+                        'CancelAllOrdersAfter' => 1,
                         'CancelOrder' => 0,
                         'CancelOrderBatch' => 0,
-                        'ClosedOrders' => 6,
-                        'DepositAddresses' => 3,
-                        'DepositMethods' => 3,
-                        'DepositStatus' => 3,
+                        'ClosedOrders' => 1,
+                        'DepositAddresses' => 1,
+                        'DepositMethods' => 1,
+                        'DepositStatus' => 1,
                         'EditOrder' => 0,
-                        'ExportStatus' => 3,
-                        'GetWebSocketsToken' => 3,
-                        'Ledgers' => 6,
-                        'OpenOrders' => 3,
-                        'OpenPositions' => 3,
-                        'QueryLedgers' => 3,
-                        'QueryOrders' => 3,
-                        'QueryTrades' => 3,
-                        'RetrieveExport' => 3,
-                        'RemoveExport' => 3,
-                        'BalanceEx' => 3,
-                        'TradeBalance' => 3,
-                        'TradesHistory' => 6,
-                        'TradeVolume' => 3,
-                        'Withdraw' => 3,
-                        'WithdrawCancel' => 3,
-                        'WithdrawInfo' => 3,
-                        'WithdrawMethods' => 3,
-                        'WithdrawAddresses' => 3,
-                        'WithdrawStatus' => 3,
-                        'WalletTransfer' => 3,
+                        'ExportStatus' => 1,
+                        'GetWebSocketsToken' => 1,
+                        'Ledgers' => 2,
+                        'OpenOrders' => 1,
+                        'OpenPositions' => 1,
+                        'QueryLedgers' => 1,
+                        'QueryOrders' => 1,
+                        'QueryTrades' => 1,
+                        'RetrieveExport' => 1,
+                        'RemoveExport' => 1,
+                        'BalanceEx' => 1,
+                        'TradeBalance' => 1,
+                        'TradesHistory' => 2,
+                        'TradeVolume' => 1,
+                        'Withdraw' => 1,
+                        'WithdrawCancel' => 1,
+                        'WithdrawInfo' => 1,
+                        'WithdrawMethods' => 1,
+                        'WithdrawAddresses' => 1,
+                        'WithdrawStatus' => 1,
+                        'WalletTransfer' => 1,
                         // sub accounts
-                        'CreateSubaccount' => 3,
-                        'AccountTransfer' => 3,
+                        'CreateSubaccount' => 1,
+                        'AccountTransfer' => 1,
                         // earn
-                        'Earn/Allocate' => 3,
-                        'Earn/Deallocate' => 3,
-                        'Earn/AllocateStatus' => 3,
-                        'Earn/DeallocateStatus' => 3,
-                        'Earn/Strategies' => 3,
-                        'Earn/Allocations' => 3,
+                        'Earn/Allocate' => 1,
+                        'Earn/Deallocate' => 1,
+                        'Earn/AllocateStatus' => 1,
+                        'Earn/DeallocateStatus' => 1,
+                        'Earn/Strategies' => 1,
+                        'Earn/Allocations' => 1,
                     ),
                 ),
             ),
@@ -748,7 +749,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
+    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $timestamp = $this->safe_integer($bidask, 2);
@@ -967,7 +968,9 @@ class kraken extends Exchange {
             $request['interval'] = $timeframe;
         }
         if ($since !== null) {
-            $request['since'] = $this->parse_to_int(($since - 1) / 1000);
+            // contrary to kraken's api documentation, the $since parameter must be passed in nanoseconds
+            // the adding of '000000' is copied from the fetchTrades function
+            $request['since'] = $this->number_to_string($since) . '000000'; // expected to be in nanoseconds
         }
         $response = $this->publicGetOHLC (array_merge($request, $params));
         //
@@ -1256,12 +1259,8 @@ class kraken extends Exchange {
             $request['since'] = $since * 1e6;
             $request['since'] = (string) $since . '000000'; // expected to be in nanoseconds
         }
-        // https://github.com/ccxt/ccxt/issues/5698
-        if ($limit !== null && $limit !== 1000) {
-            $fetchTradesWarning = $this->safe_value($this->options, 'fetchTradesWarning', true);
-            if ($fetchTradesWarning) {
-                throw new ExchangeError($this->id . ' fetchTrades() cannot serve ' . (string) $limit . " $trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
-            }
+        if ($limit !== null) {
+            $request['count'] = $limit;
         }
         $response = $this->publicGetTrades (array_merge($request, $params));
         //
@@ -1335,7 +1334,7 @@ class kraken extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
          * create a trade order
@@ -1435,6 +1434,17 @@ class kraken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function parse_order_type($status) {
+        $statuses = array(
+            'take-profit' => 'market',
+            'stop-loss-limit' => 'limit',
+            'stop-loss' => 'market',
+            'take-profit-limit' => 'limit',
+            'trailing-stop-limit' => 'limit',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order($order, ?array $market = null): array {
         //
         // createOrder for regular orders
@@ -1493,6 +1503,41 @@ class kraken extends Exchange {
         //        "txid" => "OTI672-HJFAO-XOIPPK"
         //    }
         //
+        //  {
+        //      "error" => array(),
+        //      "result" => {
+        //          "open" => {
+        //              "OXVPSU-Q726F-L3SDEP" => {
+        //                  "refid" => null,
+        //                  "userref" => 0,
+        //                  "status" => "open",
+        //                  "opentm" => 1706893367.4656649,
+        //                  "starttm" => 0,
+        //                  "expiretm" => 0,
+        //                  "descr" => array(
+        //                      "pair" => "XRPEUR",
+        //                      "type" => "sell",
+        //                      "ordertype" => "trailing-stop",
+        //                      "price" => "+50.0000%",
+        //                      "price2" => "0",
+        //                      "leverage" => "none",
+        //                      "order" => "sell 10.00000000 XRPEUR @ trailing stop +50.0000%",
+        //                      "close" => ""
+        //                  ),
+        //                  "vol" => "10.00000000",
+        //                  "vol_exec" => "0.00000000",
+        //                  "cost" => "0.00000000",
+        //                  "fee" => "0.00000000",
+        //                  "price" => "0.00000000",
+        //                  "stopprice" => "0.23424000",
+        //                  "limitprice" => "0.46847000",
+        //                  "misc" => "",
+        //                  "oflags" => "fciq",
+        //                  "trigger" => "index"
+        //              }
+        //      }
+        //  }
+        //
         $description = $this->safe_value($order, 'descr', array());
         $orderDescription = $this->safe_string($description, 'order', $description);
         $side = null;
@@ -1532,6 +1577,10 @@ class kraken extends Exchange {
         // kraken truncates the $cost in the api response so we will ignore it and calculate it from $average & $filled
         // $cost = $this->safe_string($order, 'cost');
         $price = $this->safe_string($description, 'price', $price);
+        // when $type = trailling stop returns $price = '+50.0000%'
+        if (($price !== null) && str_ends_with($price, '%')) {
+            $price = null; // this is not the $price we want
+        }
         if (($price === null) || Precise::string_equals($price, '0')) {
             $price = $this->safe_string($description, 'price2');
         }
@@ -1573,7 +1622,16 @@ class kraken extends Exchange {
                 $trades[] = $rawTrade;
             }
         }
-        $stopPrice = $this->safe_number($order, 'stopprice', $stopPrice);
+        $stopPrice = $this->omit_zero($this->safe_string($order, 'stopprice', $stopPrice));
+        $stopLossPrice = null;
+        $takeProfitPrice = null;
+        if (str_starts_with($type, 'take-profit')) {
+            $takeProfitPrice = $this->safe_string($description, 'price');
+            $price = $this->omit_zero($this->safe_string($description, 'price2'));
+        } elseif (str_starts_with($type, 'stop-loss')) {
+            $stopLossPrice = $this->safe_string($description, 'price');
+            $price = $this->omit_zero($this->safe_string($description, 'price2'));
+        }
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1583,13 +1641,15 @@ class kraken extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $type,
+            'type' => $this->parse_order_type($type),
             'timeInForce' => null,
             'postOnly' => $isPostOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
+            'takeProfitPrice' => $takeProfitPrice,
+            'stopLossPrice' => $stopLossPrice,
             'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
@@ -1614,25 +1674,35 @@ class kraken extends Exchange {
         $trailingAmount = $this->safe_string($params, 'trailingAmount');
         $trailingLimitAmount = $this->safe_string($params, 'trailingLimitAmount');
         $isTrailingAmountOrder = $trailingAmount !== null;
-        if (($type === 'limit') && !$isTrailingAmountOrder) {
+        $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        if ($isLimitOrder && !$isTrailingAmountOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
         if ($isStopLossOrTakeProfitTrigger) {
             if ($isStopLossTriggerOrder) {
                 $request['price'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                $request['ordertype'] = 'stop-loss-limit';
+                if ($isLimitOrder) {
+                    $request['ordertype'] = 'stop-loss-limit';
+                } else {
+                    $request['ordertype'] = 'stop-loss';
+                }
             } elseif ($isTakeProfitTriggerOrder) {
                 $request['price'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-                $request['ordertype'] = 'take-profit-limit';
+                if ($isLimitOrder) {
+                    $request['ordertype'] = 'take-profit-limit';
+                } else {
+                    $request['ordertype'] = 'take-profit';
+                }
             }
-            $request['price2'] = $this->price_to_precision($symbol, $price);
-            $reduceOnly = true;
+            if ($isLimitOrder) {
+                $request['price2'] = $this->price_to_precision($symbol, $price);
+            }
         } elseif ($isTrailingAmountOrder) {
             $trailingActivationPriceType = $this->safe_string($params, 'trigger', 'last');
             $trailingAmountString = '+' . $trailingAmount;
             $request['trigger'] = $trailingActivationPriceType;
-            if (($type === 'limit') || ($trailingLimitAmount !== null)) {
+            if ($isLimitOrder || ($trailingLimitAmount !== null)) {
                 $offset = $this->safe_string($params, 'offset', '-');
                 $trailingLimitAmountString = $offset . $this->number_to_string($trailingLimitAmount);
                 $request['price'] = $trailingAmountString;
@@ -1673,7 +1743,7 @@ class kraken extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
@@ -2549,7 +2619,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
@@ -2671,7 +2741,7 @@ class kraken extends Exchange {
         return $this->transfer($code, $amount, 'spot', 'swap', $params);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
          * transfers currencies between sub-accounts (only spot->swap direction is supported)

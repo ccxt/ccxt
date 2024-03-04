@@ -2,12 +2,17 @@
 //  ---------------------------------------------------------------------------
 
 import binance from './binance.js';
+import binanceusRest from '../binanceus.js';
 
 // ---------------------------------------------------------------------------
 
 export default class binanceus extends binance {
     describe () {
-        return this.deepExtend (super.describe (), {
+        // eslint-disable-next-line new-cap
+        const restInstance = new binanceusRest ();
+        const restDescribe = restInstance.describe ();
+        const extended = this.deepExtend (restDescribe, super.describe ());
+        return this.deepExtend (extended, {
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': [ 'US' ], // US

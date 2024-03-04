@@ -3,6 +3,7 @@ from ccxt.base.types import Entry
 
 class ImplicitAPI:
     exchange_get_markets = exchangeGetMarkets = Entry('markets', 'exchange', 'GET', {'cost': 1})
+    exchangeprivate_get_candles = exchangePrivateGetCandles = Entry('candles', 'exchangePrivate', 'GET', {'cost': 1})
     public_get_orderbook = publicGetOrderbook = Entry('orderbook', 'public', 'GET', {'cost': 1})
     public_get_orderbook_top = publicGetOrderbookTop = Entry('orderbook_top', 'public', 'GET', {'cost': 1})
     public_get_ticker = publicGetTicker = Entry('ticker', 'public', 'GET', {'cost': 1})

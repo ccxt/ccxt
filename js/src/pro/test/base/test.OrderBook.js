@@ -11,6 +11,9 @@ function equals(a, b) {
         return false;
     }
     for (const prop in a) {
+        if (prop === 'cache') {
+            continue;
+        }
         if (Array.isArray(a[prop])) {
             if (!equals(a[prop], b[prop])) {
                 return false;
@@ -219,8 +222,6 @@ const negativeStoredIncremetalOrderBookTarget = {
     'nonce': 69,
     'symbol': undefined,
 };
-let bids = undefined;
-let asks = undefined;
 // --------------------------------------------------------------------------------------------------------------------
 const orderBook = new OrderBook(orderBookInput);
 const limited = new OrderBook(orderBookInput, 5);
@@ -230,7 +231,7 @@ limited.limit();
 assert(equals(limited, limitedOrderBookTarget));
 orderBook.limit();
 assert(equals(orderBook, orderBookTarget));
-bids = orderBook['bids'];
+const bids = orderBook['bids'];
 bids.store(1000, 0);
 orderBook.limit();
 assert(equals(orderBook, orderBookTarget));
@@ -240,7 +241,7 @@ assert(equals(orderBook, storeBid));
 bids.store(3, 0);
 orderBook.limit();
 assert(equals(orderBook, orderBookTarget));
-asks = limited['asks'];
+const asks = limited['asks'];
 asks.store(15.5, 0);
 limited.limit();
 assert(equals(limited, limitedDeletedOrderBookTarget));
@@ -253,21 +254,21 @@ limitedIndexedOrderBook.limit();
 assert(equals(limitedIndexedOrderBook, limitedIndexedOrderBookTarget));
 indexedOrderBook.limit();
 assert(equals(indexedOrderBook, indexedOrderBookTarget));
-bids = indexedOrderBook['bids'];
-bids.store(1000, 0, '12345');
+const indexedBids = indexedOrderBook['bids'];
+indexedBids.store(1000, 0, '12345');
 assert(equals(indexedOrderBook, indexedOrderBookTarget));
-bids.store(10, 0, '1234');
-bids.store(10, 2, '1231');
-bids.store(10, 1, '1232');
-bids.store(4, 2, '12399');
-bids.store(9, 2, '1231');
-bids.store(9, 3, '1231');
-bids.store(9, 1, '1232');
+indexedBids.store(10, 0, '1234');
+indexedBids.store(10, 2, '1231');
+indexedBids.store(10, 1, '1232');
+indexedBids.store(4, 2, '12399');
+indexedBids.store(9, 2, '1231');
+indexedBids.store(9, 3, '1231');
+indexedBids.store(9, 1, '1232');
 indexedOrderBook.limit();
 assert(equals(indexedOrderBook, overwrite1234));
 indexedOrderBook = new IndexedOrderBook(indexedOrderBookInput);
-asks = indexedOrderBook['asks'];
-asks.store(13.5, 13, '1244');
+const indexedAsks = indexedOrderBook['asks'];
+indexedAsks.store(13.5, 13, '1244');
 indexedOrderBook.limit();
 assert(equals(indexedOrderBook, overwrite1244));
 // --------------------------------------------------------------------------------------------------------------------
@@ -279,11 +280,11 @@ limitedCountedOrderBook.limit();
 assert(equals(limitedCountedOrderBook, limitedCountedOrderBookTarget));
 countedOrderBook.limit();
 assert(equals(countedOrderBook, countedOrderBookTarget));
-bids = countedOrderBook['bids'];
-bids.store(5, 0, 6);
+const countedBids = countedOrderBook['bids'];
+countedBids.store(5, 0, 6);
 countedOrderBook.limit();
 assert(equals(countedOrderBook, countedOrderBookTarget));
-bids.store(1, 1, 6);
+countedBids.store(1, 1, 6);
 countedOrderBook.limit();
 assert(equals(countedOrderBook, storedCountedOrderbookTarget));
 // --------------------------------------------------------------------------------------------------------------------

@@ -1048,8 +1048,9 @@ class ace extends ace$1 {
         const feedback = this.id + ' ' + body;
         const status = this.safeNumber(response, 'status', 200);
         if (status > 200) {
-            this.throwExactlyMatchedException(this.exceptions['exact'], status, feedback);
-            this.throwBroadlyMatchedException(this.exceptions['broad'], status, feedback);
+            const statusStr = status.toString();
+            this.throwExactlyMatchedException(this.exceptions['exact'], statusStr, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], statusStr, feedback);
         }
         return undefined;
     }

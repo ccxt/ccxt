@@ -10,6 +10,7 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderTyp
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NetworkError
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
 
 
@@ -21,7 +22,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 'ws': True,
                 'watchBalance': True,
                 'watchTicker': True,
-                'watchTickers': False,  # for now
+                'watchTickers': False,
                 'watchMyTrades': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
@@ -75,6 +76,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
+        :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
@@ -86,56 +89,133 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
+        :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
+        messageHashes = []
+        if not limit:
+            limit = 50
+        topicParams = self.safe_value(params, 'params')
+        if topicParams is None:
+            params['params'] = {}
+        bookSubscriptionType = None
+        bookSubscriptionType, params = self.handle_option_and_params_2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
+        if bookSubscriptionType is not None:
+            params['params']['bookSubscriptionType'] = bookSubscriptionType
+        bookUpdateFrequency = None
+        bookUpdateFrequency, params = self.handle_option_and_params_2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency')
+        if bookUpdateFrequency is not None:
+            params['params']['bookSubscriptionType'] = bookSubscriptionType
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            currentTopic = 'book' + '.' + market['id']
+            currentTopic = 'book' + '.' + market['id'] + '.' + str(limit)
+            messageHash = 'orderbook:' + market['symbol']
+            messageHashes.append(messageHash)
             topics.append(currentTopic)
-        orderbook = await self.watch_public_multiple(topics, topics, params)
+        orderbook = await self.watch_public_multiple(messageHashes, topics, params)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client: Client, message):
-        # full snapshot
+    def handle_delta(self, bookside, delta):
+        price = self.safe_float(delta, 0)
+        amount = self.safe_float(delta, 1)
+        count = self.safe_integer(delta, 2)
+        bookside.store(price, amount, count)
+
+    def handle_deltas(self, bookside, deltas):
+        for i in range(0, len(deltas)):
+            self.handle_delta(bookside, deltas[i])
+
+    def handle_order_book(self, client: Client, message):
         #
-        # {
-        #     "instrument_name":"LTC_USDT",
-        #     "subscription":"book.LTC_USDT.150",
-        #     "channel":"book",
-        #     "depth":150,
-        #     "data": [
-        #          {
-        #              "bids": [
-        #                  [122.21, 0.74041, 4]
-        #              ],
-        #              "asks": [
-        #                  [122.29, 0.00002, 1]
-        #              ]
-        #              "t": 1648123943803,
-        #              "s":754560122
-        #          }
-        #      ]
-        # }
+        # snapshot
+        #    {
+        #        "instrument_name":"LTC_USDT",
+        #        "subscription":"book.LTC_USDT.150",
+        #        "channel":"book",
+        #        "depth":150,
+        #        "data": [
+        #             {
+        #                 "bids": [
+        #                     [122.21, 0.74041, 4]
+        #                 ],
+        #                 "asks": [
+        #                     [122.29, 0.00002, 1]
+        #                 ]
+        #                 "t": 1648123943803,
+        #                 "s":754560122
+        #             }
+        #         ]
+        #    }
+        #  update
+        #    {
+        #        "instrument_name":"BTC_USDT",
+        #        "subscription":"book.BTC_USDT.50",
+        #        "channel":"book.update",
+        #        "depth":50,
+        #        "data":[
+        #           {
+        #              "update":{
+        #                 "asks":[
+        #                    [
+        #                       "43755.46",
+        #                       "0.10000",
+        #                       "1"
+        #                    ],
+        #                    ...
+        #                 ],
+        #                 "bids":[
+        #                    [
+        #                       "43737.46",
+        #                       "0.14096",
+        #                       "1"
+        #                    ],
+        #                    ...
+        #                 ]
+        #              },
+        #              "t":1704484068898,
+        #              "tt":1704484068892,
+        #              "u":78795598253024,
+        #              "pu":78795598162080,
+        #              "cs":-781431132
+        #           }
+        #        ]
+        #    }
         #
-        messageHash = self.safe_string(message, 'subscription')
         marketId = self.safe_string(message, 'instrument_name')
         market = self.safe_market(marketId)
         symbol = market['symbol']
         data = self.safe_value(message, 'data')
         data = self.safe_value(data, 0)
         timestamp = self.safe_integer(data, 't')
-        snapshot = self.parse_order_book(data, symbol, timestamp)
-        snapshot['nonce'] = self.safe_integer(data, 's')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             limit = self.safe_integer(message, 'depth')
-            orderbook = self.order_book({}, limit)
-        orderbook.reset(snapshot)
+            orderbook = self.counted_order_book({}, limit)
+        channel = self.safe_string(message, 'channel')
+        nonce = self.safe_integer_2(data, 'u', 's')
+        books = data
+        if channel == 'book':  # snapshot
+            orderbook.reset({})
+            orderbook['symbol'] = symbol
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+            orderbook['nonce'] = nonce
+        else:
+            books = self.safe_value(data, 'update', {})
+            previousNonce = self.safe_integer(data, 'pu')
+            currentNonce = orderbook['nonce']
+            if currentNonce != previousNonce:
+                raise InvalidNonce(self.id + ' watchOrderBook() ' + symbol + ' ' + previousNonce + ' != ' + nonce)
+        self.handle_deltas(orderbook['asks'], self.safe_value(books, 'asks', []))
+        self.handle_deltas(orderbook['bids'], self.safe_value(books, 'bids', []))
+        orderbook['nonce'] = nonce
         self.orderbooks[symbol] = orderbook
+        messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -435,7 +515,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
@@ -703,7 +783,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             },
             'nonce': id,
         }
-        message = self.extend(request, params)
+        message = self.deep_extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
     async def watch_private_request(self, nonce, params={}):
@@ -763,7 +843,8 @@ class cryptocom(ccxt.async_support.cryptocom):
             'candlestick': self.handle_ohlcv,
             'ticker': self.handle_ticker,
             'trade': self.handle_trades,
-            'book': self.handle_order_book_snapshot,
+            'book': self.handle_order_book,
+            'book.update': self.handle_order_book,
             'user.order': self.handle_orders,
             'user.trade': self.handle_trades,
             'user.balance': self.handle_balance,

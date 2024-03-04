@@ -7,6 +7,7 @@ declare function assertTimestampAndDatetime(exchange: any, skippedProperties: an
 declare function assertCurrencyCode(exchange: any, skippedProperties: any, method: any, entry: any, actualCode: any, expectedCode?: any): void;
 declare function assertValidCurrencyIdAndCode(exchange: any, skippedProperties: any, method: any, entry: any, currencyId: any, currencyCode: any): void;
 declare function assertSymbol(exchange: any, skippedProperties: any, method: any, entry: any, key: any, expectedSymbol?: any): void;
+declare function assertSymbolInMarkets(exchange: any, skippedProperties: any, method: any, symbol: any): void;
 declare function assertGreater(exchange: any, skippedProperties: any, method: any, entry: any, key: any, compareTo: any): void;
 declare function assertGreaterOrEqual(exchange: any, skippedProperties: any, method: any, entry: any, key: any, compareTo: any): void;
 declare function assertLess(exchange: any, skippedProperties: any, method: any, entry: any, key: any, compareTo: any): void;
@@ -27,6 +28,7 @@ declare const _default: {
     assertTimestampAndDatetime: typeof assertTimestampAndDatetime;
     assertStructure: typeof assertStructure;
     assertSymbol: typeof assertSymbol;
+    assertSymbolInMarkets: typeof assertSymbolInMarkets;
     assertCurrencyCode: typeof assertCurrencyCode;
     assertInArray: typeof assertInArray;
     assertFeeStructure: typeof assertFeeStructure;
