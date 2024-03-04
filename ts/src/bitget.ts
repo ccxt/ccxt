@@ -124,7 +124,7 @@ export default class bitget extends Exchange {
                 'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': true,
+                'setMarginMode': false,
                 'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
@@ -4025,7 +4025,7 @@ export default class bitget extends Exchange {
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
-         * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+         * @param {string} [params.marginMode] 'isolated' or 'cross'
          * @param {string} [params.loanType] *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
          * @param {string} [params.holdSide] *contract stopLossPrice, takeProfitPrice only* Two-way position: ('long' or 'short'), one-way position: ('buy' or 'sell')
          * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
@@ -6201,75 +6201,72 @@ export default class bitget extends Exchange {
             }
             request['marginCoin'] = marginCoin;
             response = await this.privateMixGetV2MixPositionAllPosition (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700807810221,
+            //         "data": [
+            //             {
+            //                 "marginCoin": "USDT",
+            //                 "symbol": "BTCUSDT",
+            //                 "holdSide": "long",
+            //                 "openDelegateSize": "0",
+            //                 "marginSize": "3.73555",
+            //                 "available": "0.002",
+            //                 "locked": "0",
+            //                 "total": "0.002",
+            //                 "leverage": "20",
+            //                 "achievedProfits": "0",
+            //                 "openPriceAvg": "37355.5",
+            //                 "marginMode": "crossed",
+            //                 "posMode": "hedge_mode",
+            //                 "unrealizedPL": "0.03",
+            //                 "liquidationPrice": "31725.023602417",
+            //                 "keepMarginRate": "0.004",
+            //                 "markPrice": "37370.5",
+            //                 "marginRatio": "0.029550120396",
+            //                 "cTime": "1700807507275"
+            //             }
+            //         ]
+            //     }
+            //
         } else {
             isHistory = true;
             if (market !== undefined) {
                 request['symbol'] = market['id'];
             }
             response = await this.privateMixGetV2MixPositionHistoryPosition (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700808051002,
+            //         "data": {
+            //             "list": [
+            //                 {
+            //                     "symbol": "BTCUSDT",
+            //                     "marginCoin": "USDT",
+            //                     "holdSide": "long",
+            //                     "openAvgPrice": "37272.1",
+            //                     "closeAvgPrice": "37271.4",
+            //                     "marginMode": "crossed",
+            //                     "openTotalPos": "0.001",
+            //                     "closeTotalPos": "0.001",
+            //                     "pnl": "-0.0007",
+            //                     "netProfit": "-0.0454261",
+            //                     "totalFunding": "0",
+            //                     "openFee": "-0.02236326",
+            //                     "closeFee": "-0.02236284",
+            //                     "utime": "1700720700400",
+            //                     "ctime": "1700720651684"
+            //                 },
+            //             ],
+            //             "endId": "1099351653866962944"
+            //         }
+            //     }
+            //
         }
-        //
-        // privateMixGetV2MixPositionAllPosition
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700807810221,
-        //         "data": [
-        //             {
-        //                 "marginCoin": "USDT",
-        //                 "symbol": "BTCUSDT",
-        //                 "holdSide": "long",
-        //                 "openDelegateSize": "0",
-        //                 "marginSize": "3.73555",
-        //                 "available": "0.002",
-        //                 "locked": "0",
-        //                 "total": "0.002",
-        //                 "leverage": "20",
-        //                 "achievedProfits": "0",
-        //                 "openPriceAvg": "37355.5",
-        //                 "marginMode": "crossed",
-        //                 "posMode": "hedge_mode",
-        //                 "unrealizedPL": "0.03",
-        //                 "liquidationPrice": "31725.023602417",
-        //                 "keepMarginRate": "0.004",
-        //                 "markPrice": "37370.5",
-        //                 "marginRatio": "0.029550120396",
-        //                 "cTime": "1700807507275"
-        //             }
-        //         ]
-        //     }
-        //
-        // privateMixGetV2MixPositionHistoryPosition
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700808051002,
-        //         "data": {
-        //             "list": [
-        //                 {
-        //                     "symbol": "BTCUSDT",
-        //                     "marginCoin": "USDT",
-        //                     "holdSide": "long",
-        //                     "openAvgPrice": "37272.1",
-        //                     "closeAvgPrice": "37271.4",
-        //                     "marginMode": "crossed",
-        //                     "openTotalPos": "0.001",
-        //                     "closeTotalPos": "0.001",
-        //                     "pnl": "-0.0007",
-        //                     "netProfit": "-0.0454261",
-        //                     "totalFunding": "0",
-        //                     "openFee": "-0.02236326",
-        //                     "closeFee": "-0.02236284",
-        //                     "utime": "1700720700400",
-        //                     "ctime": "1700720651684"
-        //                 },
-        //             ],
-        //             "endId": "1099351653866962944"
-        //         }
-        //     }
-        //
         let position = [];
         if (!isHistory) {
             position = this.safeValue (response, 'data', []);
@@ -6928,62 +6925,6 @@ export default class bitget extends Exchange {
         //             "shortLeverage": "25",
         //             "crossMarginLeverage": "25",
         //             "marginMode": "crossed"
-        //         }
-        //     }
-        //
-        return response;
-    }
-
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitget#setMarginMode
-         * @description set margin mode to 'cross' or 'isolated'
-         * @see https://www.bitget.com/api-doc/contract/account/Change-Margin-Mode
-         * @param {string} marginMode 'cross' or 'isolated'
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} response from the exchange
-         */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
-        }
-        marginMode = marginMode.toLowerCase ();
-        if (marginMode === 'cross') {
-            marginMode = 'crossed';
-        }
-        if ((marginMode !== 'isolated') && (marginMode !== 'crossed')) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be either isolated or crossed (cross)');
-        }
-        await this.loadMarkets ();
-        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        let market = undefined;
-        if (sandboxMode) {
-            const sandboxSymbol = this.convertSymbolForSandbox (symbol);
-            market = this.market (sandboxSymbol);
-        } else {
-            market = this.market (symbol);
-        }
-        let productType = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        const request = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
-            'marginMode': marginMode,
-            'productType': productType,
-        };
-        const response = await this.privateMixPostV2MixAccountSetMarginMode (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700865205552,
-        //         "data": {
-        //             "symbol": "BTCUSDT",
-        //             "marginCoin": "USDT",
-        //             "longLeverage": "20",
-        //             "shortLeverage": "3",
-        //             "marginMode": "isolated"
         //         }
         //     }
         //

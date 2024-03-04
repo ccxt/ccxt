@@ -783,18 +783,6 @@
                 "output": "{\"posMode\":\"hedge_mode\",\"productType\":\"USDT-FUTURES\"}"
             }
         ],
-        "setMarginMode": [
-            {
-                "description": "Set margin mode to isolated",
-                "method": "setMarginMode",
-                "url": "https://api.bitget.com/api/v2/mix/account/set-margin-mode",
-                "input": [
-                  "isolated",
-                  "LTC/USDT:USDT"
-                ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"marginCoin\":\"USDT\",\"marginMode\":\"isolated\",\"productType\":\"USDT-FUTURES\"}"
-            }
-        ],
         "cancelOrder": [
             {
                 "description": "Spot cancel order",
