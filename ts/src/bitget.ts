@@ -3304,7 +3304,7 @@ export default class bitget extends Exchange {
             request['endTime'] = until;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000); // max 1000
         }
         if (since !== undefined) {
             request['startTime'] = since;
