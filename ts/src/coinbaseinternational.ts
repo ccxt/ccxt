@@ -1494,7 +1494,7 @@ export default class coinbaseinternational extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.client_order_id] client order id
+         * @param {string} params.clientOrderId client order id
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1517,10 +1517,11 @@ export default class coinbaseinternational extends Exchange {
         if (stopPrice !== undefined) {
             request['stop_price'] = stopPrice;
         }
-        const clientOrderId = this.safeString (params, 'client_order_id');
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId === undefined) {
-            throw new BadRequest (this.id + ' editOrder() requires a client_order_id parameter');
+            throw new BadRequest (this.id + ' editOrder() requires a clientOrderId parameter');
         }
+        request['client_order_id'] = clientOrderId;
         const order = await this.v1PrivatePutOrdersId (this.extend (request, params));
         return this.parseOrder (order, market);
     }
