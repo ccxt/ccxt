@@ -43,7 +43,7 @@
           "method": "fetchPositions",
           "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/positions",
           "input": [
-            "BTC/USDC:USDC"
+            ["BTC/USDC:USDC"]
           ]
         }
        ],
