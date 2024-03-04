@@ -841,22 +841,22 @@ export default class hyperliquid extends Exchange {
             const isMarket = (type === 'MARKET');
             const side = this.safeStringUpper (rawOrder, 'side');
             const isBuy = (side === 'BUY');
-            const amount = this.safeValue (rawOrder, 'amount');
+            const amount = this.safeString (rawOrder, 'amount');
             const price = this.safeString (rawOrder, 'price');
-            let orderParams = this.safeValue (rawOrder, 'params', {});
+            let orderParams = this.safeDict (rawOrder, 'params', {});
             orderParams = this.extend (params, orderParams);
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
             const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
             let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
-            const postOnly = this.safeValue (orderParams, 'postOnly', false);
+            const postOnly = this.safeBool (orderParams, 'postOnly', false);
             if (postOnly) {
                 defaultTimeInForce = 'alo';
             }
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
             timeInForce = this.capitalize (timeInForce);
             let triggerPrice = this.safeValue2 (orderParams, 'triggerPrice', 'stopPrice');
-            const stopLossPrice = this.safeValue (orderParams, 'stopLossPrice', triggerPrice);
-            const takeProfitPrice = this.safeValue (orderParams, 'takeProfitPrice');
+            const stopLossPrice = this.safeString (orderParams, 'stopLossPrice', triggerPrice);
+            const takeProfitPrice = this.safeString (orderParams, 'takeProfitPrice');
             const isTrigger = (stopLossPrice || takeProfitPrice);
             let px = undefined;
             if (isMarket) {
