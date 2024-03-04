@@ -488,7 +488,7 @@ class blofin extends blofin$1 {
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
-        const spot = this.safeValue(market, 'spot', false);
+        const spot = this.safeBool(market, 'spot', false);
         const quoteVolume = spot ? this.safeString(ticker, 'volCurrency24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');

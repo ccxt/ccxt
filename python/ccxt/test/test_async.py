@@ -1100,7 +1100,7 @@ class testMainClass(baseMainTestClass):
                 description = exchange.safe_value(result, 'description')
                 if (test_name is not None) and (test_name != description):
                     continue
-                is_disabled = exchange.safe_value(result, 'disabled', False)
+                is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
                     continue
                 type = exchange.safe_string(exchange_data, 'outputType')
@@ -1126,13 +1126,13 @@ class testMainClass(baseMainTestClass):
                 old_exchange_options = exchange.options  # snapshot options;
                 test_exchange_options = exchange.safe_value(result, 'options', {})
                 exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
-                is_disabled = exchange.safe_value(result, 'disabled', False)
+                is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
                     continue
-                is_disabled_c_sharp = exchange.safe_value(result, 'disabledCS', False)
+                is_disabled_c_sharp = exchange.safe_bool(result, 'disabledCS', False)
                 if is_disabled_c_sharp and (self.lang == 'C#'):
                     continue
-                is_disabled_php = exchange.safe_value(result, 'disabledPHP', False)
+                is_disabled_php = exchange.safe_bool(result, 'disabledPHP', False)
                 if is_disabled_php and (self.lang == 'PHP'):
                     continue
                 if (test_name is not None) and (test_name != description):

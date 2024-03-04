@@ -3891,6 +3891,8 @@ export default class Exchange {
             params = this.omit(params, [optionName, defaultOptionName]);
         }
         else {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            [methodName, params] = this.handleParamString(params, 'callerMethodName', methodName);
             // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue(this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {

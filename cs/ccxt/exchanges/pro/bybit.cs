@@ -1027,7 +1027,7 @@ public partial class bybit : ccxt.bybit
         this.setPositionsCache(client as WebSocketClient, symbols);
         object cache = this.positions;
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeValue("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(cache, null))))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");

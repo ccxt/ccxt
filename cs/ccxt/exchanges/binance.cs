@@ -4961,7 +4961,7 @@ public partial class binance : Exchange
         object quantityIsRequired = false;
         if (isTrue(isEqual(uppercaseType, "MARKET")))
         {
-            object quoteOrderQty = this.safeValue(this.options, "quoteOrderQty", true);
+            object quoteOrderQty = this.safeBool(this.options, "quoteOrderQty", true);
             if (isTrue(quoteOrderQty))
             {
                 object quoteOrderQtyNew = this.safeValue2(parameters, "quoteOrderQty", "cost");
@@ -10942,7 +10942,7 @@ public partial class binance : Exchange
             // binanceusdm
             if (isTrue(e is MarginModeAlreadySet))
             {
-                object throwMarginModeAlreadySet = this.safeValue(this.options, "throwMarginModeAlreadySet", false);
+                object throwMarginModeAlreadySet = this.safeBool(this.options, "throwMarginModeAlreadySet", false);
                 if (isTrue(throwMarginModeAlreadySet))
                 {
                     throw e;

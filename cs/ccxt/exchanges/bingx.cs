@@ -448,7 +448,7 @@ public partial class bingx : Exchange
         {
             return null;
         }
-        object isSandbox = this.safeValue(this.options, "sandboxMode", false);
+        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(isSandbox))
         {
             return null;
@@ -711,7 +711,7 @@ public partial class bingx : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         object requests = new List<object> {this.fetchSwapMarkets(parameters)};
-        object isSandbox = this.safeValue(this.options, "sandboxMode", false);
+        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (!isTrue(isSandbox))
         {
             ((IList<object>)requests).Add(this.fetchSpotMarkets(parameters)); // sandbox is swap only
@@ -4342,7 +4342,7 @@ public partial class bingx : Exchange
         object type = getValue(section, 0);
         object version = getValue(section, 1);
         object access = getValue(section, 2);
-        object isSandbox = this.safeValue(this.options, "sandboxMode", false);
+        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(isTrue(isSandbox) && isTrue((!isEqual(type, "swap")))))
         {
             throw new NotSupported ((string)add(add(add(this.id, " does not have a testnet/sandbox URL for "), type), " endpoints")) ;

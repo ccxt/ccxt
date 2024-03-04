@@ -563,7 +563,7 @@ class coinex extends \ccxt\async\coinex {
             }
             $url = $this->urls['api']['ws'][$type];
             $messageHash = 'ohlcv';
-            $watchOHLCVWarning = $this->safe_value($this->options, 'watchOHLCVWarning', true);
+            $watchOHLCVWarning = $this->safe_bool($this->options, 'watchOHLCVWarning', true);
             $client = $this->safe_value($this->clients, $url, array());
             $clientSub = $this->safe_value($client, 'subscriptions', array());
             $existingSubscription = $this->safe_value($clientSub, $messageHash);

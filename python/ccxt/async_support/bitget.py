@@ -4269,7 +4269,7 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent'])
         response = None
         if market['spot']:
-            editMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'editMarketBuyOrderRequiresPrice', True)
+            editMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'editMarketBuyOrderRequiresPrice', True)
             if editMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
                 if price is None:
                     raise InvalidOrder(self.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the editMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')

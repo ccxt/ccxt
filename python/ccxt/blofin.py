@@ -491,7 +491,7 @@ class blofin(Exchange, ImplicitAPI):
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        spot = self.safe_value(market, 'spot', False)
+        spot = self.safe_bool(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCurrency24h') if spot else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')

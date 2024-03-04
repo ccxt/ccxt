@@ -4769,7 +4769,7 @@ public partial class bitget : Exchange
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
-            object editMarketBuyOrderRequiresPrice = this.safeValue(this.options, "editMarketBuyOrderRequiresPrice", true);
+            object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
             if (isTrue(isTrue(isTrue(editMarketBuyOrderRequiresPrice) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
             {
                 if (isTrue(isEqual(price, null)))

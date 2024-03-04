@@ -1143,7 +1143,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function check_message_hash_does_not_exist($messageHash) {
-        $supressMultipleWsRequestsError = $this->safe_value($this->options, 'supressMultipleWsRequestsError', false);
+        $supressMultipleWsRequestsError = $this->safe_bool($this->options, 'supressMultipleWsRequestsError', false);
         if (!$supressMultipleWsRequestsError) {
             $client = $this->safe_value($this->clients, $this->urls['api']['ws']);
             if ($client !== null) {

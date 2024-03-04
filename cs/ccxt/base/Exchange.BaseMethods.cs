@@ -3250,6 +3250,10 @@ public partial class Exchange
             parameters = this.omit(parameters, new List<object>() {optionName, defaultOptionName});
         } else
         {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", methodName);
+            methodName = ((IList<object>)methodNameparametersVariable)[0];
+            parameters = ((IList<object>)methodNameparametersVariable)[1];
             // check if exchange has properties for this method
             object exchangeWideMethodOptions = this.safeValue(this.options, methodName);
             if (isTrue(!isEqual(exchangeWideMethodOptions, null)))

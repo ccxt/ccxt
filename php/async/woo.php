@@ -494,7 +494,7 @@ class woo extends Exchange {
             //      )
             // }
             //
-            $resultResponse = $this->safe_value($response, 'rows', array());
+            $resultResponse = $this->safe_list($response, 'rows', array());
             return $this->parse_trades($resultResponse, $market, $since, $limit);
         }) ();
     }
@@ -2358,7 +2358,7 @@ class woo extends Exchange {
         } else {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'algo/order' || $path === 'order')) {
-                $isSandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+                $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
                 if (!$isSandboxMode) {
                     $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);

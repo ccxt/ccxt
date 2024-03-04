@@ -485,7 +485,7 @@ public partial class woo : Exchange
         //      ]
         // }
         //
-        object resultResponse = this.safeValue(response, "rows", new Dictionary<string, object>() {});
+        object resultResponse = this.safeList(response, "rows", new List<object>() {});
         return this.parseTrades(resultResponse, market, since, limit);
     }
 
@@ -2488,7 +2488,7 @@ public partial class woo : Exchange
             this.checkRequiredCredentials();
             if (isTrue(isTrue(isEqual(method, "POST")) && isTrue((isTrue(isEqual(path, "algo/order")) || isTrue(isEqual(path, "order"))))))
             {
-                object isSandboxMode = this.safeValue(this.options, "sandboxMode", false);
+                object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if (!isTrue(isSandboxMode))
                 {
                     object applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";

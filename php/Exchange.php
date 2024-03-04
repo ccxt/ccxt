@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.58';
+$version = '4.2.59';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.58';
+    const VERSION = '4.2.59';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4734,6 +4734,8 @@ class Exchange {
         if ($value !== null) {
             $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
         } else {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            list($methodName, $params) = $this->handleParamString ($params, 'callerMethodName', $methodName);
             // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {

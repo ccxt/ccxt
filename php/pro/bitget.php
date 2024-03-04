@@ -547,7 +547,7 @@ class bitget extends \ccxt\async\bitget {
             $this->handle_deltas($storedOrderBook['bids'], $bids);
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
-            $checksum = $this->safe_value($this->options, 'checksum', true);
+            $checksum = $this->safe_bool($this->options, 'checksum', true);
             $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a $checksum
             if (!$isSnapshot && $checksum) {
                 $storedAsks = $storedOrderBook['asks'];

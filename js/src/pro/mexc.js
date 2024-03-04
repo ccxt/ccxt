@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import mexcRest from '../mexc.js';
-import { ExchangeError, AuthenticationError } from '../base/errors.js';
+import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -503,10 +503,12 @@ export default class mexc extends mexcRest {
         }
     }
     handleDelta(orderbook, delta) {
-        const nonce = this.safeInteger(orderbook, 'nonce');
+        const existingNonce = this.safeInteger(orderbook, 'nonce');
         const deltaNonce = this.safeInteger2(delta, 'r', 'version');
-        if (deltaNonce !== nonce && deltaNonce !== nonce + 1) {
-            throw new ExchangeError(this.id + ' handleOrderBook received an out-of-order nonce');
+        if (deltaNonce < existingNonce) {
+            // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         orderbook['nonce'] = deltaNonce;
         const asks = this.safeValue(delta, 'asks', []);

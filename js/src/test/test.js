@@ -1263,7 +1263,7 @@ export default class testMainClass extends baseMainTestClass {
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }
-                const isDisabled = exchange.safeValue(result, 'disabled', false);
+                const isDisabled = exchange.safeBool(result, 'disabled', false);
                 if (isDisabled) {
                     continue;
                 }
@@ -1292,15 +1292,15 @@ export default class testMainClass extends baseMainTestClass {
                 const oldExchangeOptions = exchange.options; // snapshot options;
                 const testExchangeOptions = exchange.safeValue(result, 'options', {});
                 exchange.options = exchange.deepExtend(oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
-                const isDisabled = exchange.safeValue(result, 'disabled', false);
+                const isDisabled = exchange.safeBool(result, 'disabled', false);
                 if (isDisabled) {
                     continue;
                 }
-                const isDisabledCSharp = exchange.safeValue(result, 'disabledCS', false);
+                const isDisabledCSharp = exchange.safeBool(result, 'disabledCS', false);
                 if (isDisabledCSharp && (this.lang === 'C#')) {
                     continue;
                 }
-                const isDisabledPHP = exchange.safeValue(result, 'disabledPHP', false);
+                const isDisabledPHP = exchange.safeBool(result, 'disabledPHP', false);
                 if (isDisabledPHP && (this.lang === 'PHP')) {
                     continue;
                 }

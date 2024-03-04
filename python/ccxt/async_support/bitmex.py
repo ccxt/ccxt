@@ -1436,7 +1436,7 @@ class bitmex(Exchange, ImplicitAPI):
             params = self.omit(params, ['until'])
             request['endTime'] = self.iso8601(until)
         duration = self.parse_timeframe(timeframe) * 1000
-        fetchOHLCVOpenTimestamp = self.safe_value(self.options, 'fetchOHLCVOpenTimestamp', True)
+        fetchOHLCVOpenTimestamp = self.safe_bool(self.options, 'fetchOHLCVOpenTimestamp', True)
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
             timestamp = since
