@@ -149,6 +149,7 @@ interface kucoin {
     futuresPublicGetPremiumQuery(params?: {}): Promise<implicitReturnType>;
     futuresPublicGetTradeStatistics(params?: {}): Promise<implicitReturnType>;
     futuresPublicGetFundingRateSymbolCurrent(params?: {}): Promise<implicitReturnType>;
+    futuresPublicGetContractFundingRates(params?: {}): Promise<implicitReturnType>;
     futuresPublicGetTimestamp(params?: {}): Promise<implicitReturnType>;
     futuresPublicGetStatus(params?: {}): Promise<implicitReturnType>;
     futuresPublicGetLevel2MessageQuery(params?: {}): Promise<implicitReturnType>;
@@ -171,6 +172,7 @@ interface kucoin {
     futuresPrivateGetOpenOrderStatistics(params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetPosition(params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetPositions(params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetMarginMaxWithdrawMargin(params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetContractsRiskLimitSymbol(params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetFundingHistory(params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetDepositAddress(params?: {}): Promise<implicitReturnType>;
@@ -183,7 +185,9 @@ interface kucoin {
     futuresPrivatePostTransferIn(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostOrders(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostOrdersTest(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostOrdersMulti(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionMarginAutoDepositStatus(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostMarginWithdrawMargin(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionMarginDepositMargin(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionRiskLimitLevelChange(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostBulletPrivate(params?: {}): Promise<implicitReturnType>;

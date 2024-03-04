@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -164,6 +164,9 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/symbols/{symbol}/auctions/{auction_code}': 1,  # not unified
                         'v1/time': 1,
                         'v1/assets': 1,
+                        'v1/leaderboard': 1,
+                        'v1/affiliate/{competition_code}': 1,
+                        'v1/competition/{competition_id}': 1,
                     },
                 },
                 'private': {
@@ -171,6 +174,7 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/fees': 1,
                         'v1/accounts': 1,
                         'v1/accounts/{trader_id}': 1,  # not unified
+                        'v1/accounts/{trader_id}/alias': 1,
                         'v1/accounts/{trader_id}/ledger': 1,
                         'v1/accounts/{trader_id}/wallets': 1,  # not unified
                         'v1/accounts/{trader_id}/wallet-ledger': 1,
@@ -184,6 +188,8 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/transfers': 1,
                         'v1/user': 1,  # not unified
                         'v1/credits': 1,  # not unified
+                        'v1/positions': 1,
+                        'v1/accounts/{trader_id}/competitions': 1,
                     },
                     'post': {
                         'v1/keys': 1,  # not unified
@@ -195,6 +201,8 @@ class coinlist(Exchange, ImplicitAPI):
                         'v1/transfers/internal-transfer': 1,
                         'v1/transfers/withdrawal-request': 1,
                         'v1/orders/bulk': 1,  # not unified
+                        'v1/accounts/{trader_id}/competitions': 1,
+                        'v1/accounts/{trader_id}/create-competition': 1,
                     },
                     'patch': {
                         'v1/orders/{order_id}': 1,
@@ -364,7 +372,7 @@ class coinlist(Exchange, ImplicitAPI):
             currency = currencies[i]
             id = self.safe_string(currency, 'asset')
             code = self.safe_currency_code(id)
-            isTransferable = self.safe_value(currency, 'is_transferable', False)
+            isTransferable = self.safe_bool(currency, 'is_transferable', False)
             withdrawEnabled = isTransferable
             depositEnabled = isTransferable
             active = isTransferable
@@ -743,7 +751,7 @@ class coinlist(Exchange, ImplicitAPI):
         if since is not None:
             request['start_time'] = self.iso8601(since)
         if limit is not None:
-            request['count'] = limit
+            request['count'] = min(limit, 500)
         until = self.safe_integer_2(params, 'till', 'until')
         if until is not None:
             params = self.omit(params, ['till', 'until'])
@@ -1006,13 +1014,15 @@ class coinlist(Exchange, ImplicitAPI):
                 takerFees.append([None, self.parse_number(taker)])
             takerFees = self.sort_by(takerFees, 1, True)
             makerFees = self.sort_by(makerFees, 1, True)
-            firstTier = self.safe_value(takerFees, 0, [])
-            exchangeFees = self.safe_value(self, 'fees', {})
-            exchangeFeesTrading = self.safe_value(exchangeFees, 'trading', {})
-            exchangeFeesTradingTiers = self.safe_value(exchangeFeesTrading, 'tiers', {})
-            exchangeFeesTradingTiersTaker = self.safe_value(exchangeFeesTradingTiers, 'taker', [])
-            exchangeFeesTradingTiersMaker = self.safe_value(exchangeFeesTradingTiers, 'maker', [])
-            if (keysLength == len(exchangeFeesTradingTiersTaker)) and (len(firstTier) > 0):
+            firstTier = self.safe_dict(takerFees, 0, [])
+            exchangeFees = self.safe_dict(self, 'fees', {})
+            exchangeFeesTrading = self.safe_dict(exchangeFees, 'trading', {})
+            exchangeFeesTradingTiers = self.safe_dict(exchangeFeesTrading, 'tiers', {})
+            exchangeFeesTradingTiersTaker = self.safe_list(exchangeFeesTradingTiers, 'taker', [])
+            exchangeFeesTradingTiersMaker = self.safe_list(exchangeFeesTradingTiers, 'maker', [])
+            exchangeFeesTradingTiersTakerLength = len(exchangeFeesTradingTiersTaker)
+            firstTierLength = len(firstTier)
+            if (keysLength == exchangeFeesTradingTiersTakerLength) and (firstTierLength > 0):
                 for i in range(0, keysLength):
                     takerFees[i][0] = exchangeFeesTradingTiersTaker[i][0]
                     makerFees[i][0] = exchangeFeesTradingTiersMaker[i][0]
@@ -1082,11 +1092,10 @@ class coinlist(Exchange, ImplicitAPI):
         #         "net_liquidation_value_usd": "string"
         #     }
         #
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         totalBalances = self.safe_value(response, 'asset_balances', {})
         usedBalances = self.safe_value(response, 'asset_holds', {})
@@ -1386,7 +1395,7 @@ class coinlist(Exchange, ImplicitAPI):
         response = await self.privateDeleteV1OrdersBulk(params)
         return response
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#create-new-order
@@ -1452,7 +1461,7 @@ class coinlist(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'order', {})
         return self.parse_order(order, market)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         create a trade order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
@@ -1624,7 +1633,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-between-entities
@@ -1856,7 +1865,7 @@ class coinlist(Exchange, ImplicitAPI):
         # coinlist returns both internal transfers and blockchain transactions
         return self.parse_transactions(response, currency, since, limit)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         request a withdrawal from CoinList wallet.(Disabled by default. Contact CoinList to apply for an exception.)
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#request-withdrawal-from-wallet

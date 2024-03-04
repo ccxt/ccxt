@@ -49,6 +49,7 @@ class ImplicitAPI:
     private_get_api_data_g_futures_trades = privateGetApiDataGFuturesTrades = Entry('api-data/g-futures/trades', 'private', 'GET', {'cost': 5})
     private_get_api_data_futures_trading_fees = privateGetApiDataFuturesTradingFees = Entry('api-data/futures/trading-fees', 'private', 'GET', {'cost': 5})
     private_get_api_data_g_futures_trading_fees = privateGetApiDataGFuturesTradingFees = Entry('api-data/g-futures/trading-fees', 'private', 'GET', {'cost': 5})
+    private_get_api_data_futures_v2_tradeaccountdetail = privateGetApiDataFuturesV2TradeAccountDetail = Entry('api-data/futures/v2/tradeAccountDetail', 'private', 'GET', {'cost': 5})
     private_get_g_orders_activelist = privateGetGOrdersActiveList = Entry('g-orders/activeList', 'private', 'GET', {'cost': 1})
     private_get_orders_activelist = privateGetOrdersActiveList = Entry('orders/activeList', 'private', 'GET', {'cost': 1})
     private_get_exchange_order_list = privateGetExchangeOrderList = Entry('exchange/order/list', 'private', 'GET', {'cost': 5})

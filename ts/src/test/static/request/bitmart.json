@@ -274,6 +274,19 @@
                     "orderType": "trailing"
                   }
                 ]
+            },
+            {
+                "description": "open trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-cloud.bitmart.com/contract/private/current-plan-order?symbol=LTCUSDT",
+                "input": [
+                  "LTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
+                ]
             }
         ],
         "fetchOrder": [

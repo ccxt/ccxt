@@ -45,7 +45,11 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
+                'fetchDepositAddress': False,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': False,
                 'fetchL3OrderBook': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -776,7 +780,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         Create an order on the exchange
         :see: https://futures-docs.poloniex.com/#place-an-order
@@ -829,7 +833,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 request['price'] = self.price_to_precision(symbol, price)
             if timeInForce is not None:
                 request['timeInForce'] = timeInForce
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         hidden = self.safe_value(params, 'hidden')
         if postOnly and (hidden is not None):
             raise BadRequest(self.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter')
@@ -1139,9 +1143,13 @@ class poloniexfutures(Exchange, ImplicitAPI):
         request = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
-        stop = self.safe_value(params, 'stop')
-        method = 'privateDeleteStopOrders' if stop else 'privateDeleteOrders'
-        response = await getattr(self, method)(self.extend(request, params))
+        stop = self.safe_value_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger'])
+        response = None
+        if stop:
+            response = await self.privateDeleteStopOrders(self.extend(request, params))
+        else:
+            response = await self.privateDeleteOrders(self.extend(request, params))
         #
         #   {
         #       "code": "200000",
@@ -1200,9 +1208,9 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :returns: An `array of order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
         until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['stop', 'until', 'till'])
+        params = self.omit(params, ['triger', 'stop', 'until', 'till'])
         if status == 'closed':
             status = 'done'
         request = {}
@@ -1218,8 +1226,11 @@ class poloniexfutures(Exchange, ImplicitAPI):
             request['startAt'] = since
         if until is not None:
             request['endAt'] = until
-        method = 'privateGetStopOrders' if stop else 'privateGetOrders'
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if stop:
+            response = await self.privateGetStopOrders(self.extend(request, params))
+        else:
+            response = await self.privateGetOrders(self.extend(request, params))
         #
         #    {
         #        "code": "200000",
@@ -1310,7 +1321,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    async def fetch_order(self, id=None, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str = None, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://futures-docs.poloniex.com/#get-details-of-a-single-order
@@ -1321,17 +1332,17 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        method = 'privateGetOrdersOrderId'
+        response = None
         if id is None:
             clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
             if clientOrderId is None:
                 raise InvalidOrder(self.id + ' fetchOrder() requires parameter id or params.clientOid')
             request['clientOid'] = clientOrderId
-            method = 'privateGetOrdersByClientOid'
             params = self.omit(params, ['clientOid', 'clientOrderId'])
+            response = await self.privateGetClientOrderIdClientOid(self.extend(request, params))
         else:
             request['order-id'] = id
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetOrdersOrderId(self.extend(request, params))
         #
         #    {
         #        "code": "200000",
@@ -1467,8 +1478,8 @@ class poloniexfutures(Exchange, ImplicitAPI):
         # precision reported by their api is 8 d.p.
         # average = Precise.string_div(rawCost, Precise.string_mul(filled, market['contractSize']))
         # bool
-        isActive = self.safe_value(order, 'isActive', False)
-        cancelExist = self.safe_value(order, 'cancelExist', False)
+        isActive = self.safe_bool(order, 'isActive', False)
+        cancelExist = self.safe_bool(order, 'cancelExist', False)
         status = 'open' if isActive else 'closed'
         id = self.safe_string(order, 'id')
         if 'cancelledOrderIds' in order:
@@ -1608,24 +1619,28 @@ class poloniexfutures(Exchange, ImplicitAPI):
         trades = self.safe_value(data, 'items', {})
         return self.parse_trades(trades, market, since, limit)
 
-    async def set_margin_mode(self, marginMode, symbol, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://futures-docs.poloniex.com/#change-margin-mode
-        :param int marginMode: 0(isolated) or 1(cross)
+        :param str marginMode: "0"(isolated) or "1"(cross)
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        if (marginMode != 0) and (marginMode != 1):
-            raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be 0(isolated) or 1(cross)')
+        if (marginMode != '0') and (marginMode != '1') and (marginMode != 'isolated') and (marginMode != 'cross'):
+            raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be 0/isolated or 1/cross')
         await self.load_markets()
+        if marginMode == 'isolated':
+            marginMode = '0'
+        if marginMode == 'cross':
+            marginMode = '1'
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'marginType': marginMode,
+            'marginType': self.parse_to_int(marginMode),
         }
         return await self.privatePostMarginTypeChange(request)
 
@@ -1638,7 +1653,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         version = self.safe_string(params, 'version', defaultVersion)
         tail = '/api/' + version + '/' + self.implode_params(path, params)
         url += tail
-        query = self.omit(params, path)
+        query = self.omit(params, self.extract_params(path))
         queryLength = query
         if api == 'public':
             if queryLength:

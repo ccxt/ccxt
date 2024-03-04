@@ -451,6 +451,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futurespublic_get_funding_rate_symbol_current($params = array()) {
         return $this->request('funding-rate/{symbol}/current', 'futuresPublic', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function futurespublic_get_contract_funding_rates($params = array()) {
+        return $this->request('contract/funding-rates', 'futuresPublic', 'GET', $params, null, null, array("cost" => 7.5));
+    }
     public function futurespublic_get_timestamp($params = array()) {
         return $this->request('timestamp', 'futuresPublic', 'GET', $params, null, null, array("cost" => 3));
     }
@@ -505,6 +508,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futuresprivate_get_positions($params = array()) {
         return $this->request('positions', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function futuresprivate_get_margin_maxwithdrawmargin($params = array()) {
+        return $this->request('margin/maxWithdrawMargin', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function futuresprivate_get_contracts_risk_limit_symbol($params = array()) {
         return $this->request('contracts/risk-limit/{symbol}', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 7.5));
     }
@@ -523,8 +529,14 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futuresprivate_post_orders_test($params = array()) {
         return $this->request('orders/test', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function futuresprivate_post_orders_multi($params = array()) {
+        return $this->request('orders/multi', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 4.5));
+    }
     public function futuresprivate_post_position_margin_auto_deposit_status($params = array()) {
         return $this->request('position/margin/auto-deposit-status', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function futuresprivate_post_margin_withdrawmargin($params = array()) {
+        return $this->request('margin/withdrawMargin', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 15));
     }
     public function futuresprivate_post_position_margin_deposit_margin($params = array()) {
         return $this->request('position/margin/deposit-margin', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 6));
@@ -994,6 +1006,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futuresPublicGetFundingRateSymbolCurrent($params = array()) {
         return $this->request('funding-rate/{symbol}/current', 'futuresPublic', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function futuresPublicGetContractFundingRates($params = array()) {
+        return $this->request('contract/funding-rates', 'futuresPublic', 'GET', $params, null, null, array("cost" => 7.5));
+    }
     public function futuresPublicGetTimestamp($params = array()) {
         return $this->request('timestamp', 'futuresPublic', 'GET', $params, null, null, array("cost" => 3));
     }
@@ -1048,6 +1063,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futuresPrivateGetPositions($params = array()) {
         return $this->request('positions', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function futuresPrivateGetMarginMaxWithdrawMargin($params = array()) {
+        return $this->request('margin/maxWithdrawMargin', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function futuresPrivateGetContractsRiskLimitSymbol($params = array()) {
         return $this->request('contracts/risk-limit/{symbol}', 'futuresPrivate', 'GET', $params, null, null, array("cost" => 7.5));
     }
@@ -1066,8 +1084,14 @@ abstract class kucoin extends \ccxt\Exchange {
     public function futuresPrivatePostOrdersTest($params = array()) {
         return $this->request('orders/test', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function futuresPrivatePostOrdersMulti($params = array()) {
+        return $this->request('orders/multi', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 4.5));
+    }
     public function futuresPrivatePostPositionMarginAutoDepositStatus($params = array()) {
         return $this->request('position/margin/auto-deposit-status', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function futuresPrivatePostMarginWithdrawMargin($params = array()) {
+        return $this->request('margin/withdrawMargin', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 15));
     }
     public function futuresPrivatePostPositionMarginDepositMargin($params = array()) {
         return $this->request('position/margin/deposit-margin', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 6));

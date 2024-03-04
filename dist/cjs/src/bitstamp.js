@@ -340,6 +340,22 @@ class bitstamp extends bitstamp$1 {
                         'earn/subscribe/': 1,
                         'earn/subscriptions/setting/': 1,
                         'earn/unsubscribe': 1,
+                        'wecan_withdrawal/': 1,
+                        'wecan_address/': 1,
+                        'trac_withdrawal/': 1,
+                        'trac_address/': 1,
+                        'eurcv_withdrawal/': 1,
+                        'eurcv_address/': 1,
+                        'pyusd_withdrawal/': 1,
+                        'pyusd_address/': 1,
+                        'lmwr_withdrawal/': 1,
+                        'lmwr_address/': 1,
+                        'pepe_withdrawal/': 1,
+                        'pepe_address/': 1,
+                        'blur_withdrawal/': 1,
+                        'blur_address/': 1,
+                        'vext_withdrawal/': 1,
+                        'vext_address/': 1,
                     },
                 },
             },
@@ -443,6 +459,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchMarkets
          * @description retrieves data on all markets for bitstamp
+         * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -586,6 +603,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -634,6 +652,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.bitstamp.net/api/#tag/Order-book/operation/GetOrderBook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -719,6 +738,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.bitstamp.net/api/#tag/Tickers/operation/GetMarketTicker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -751,7 +771,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://www.bitstamp.net/api/#all-tickers
+         * @see https://www.bitstamp.net/api/#tag/Tickers/operation/GetCurrencyPairTickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -806,7 +826,7 @@ class bitstamp extends bitstamp$1 {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.indexOf('_') < 0) {
-                const value = this.safeNumber(transaction, id);
+                const value = this.safeInteger(transaction, id);
                 if ((value !== undefined) && (value !== 0)) {
                     return id;
                 }
@@ -981,6 +1001,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.bitstamp.net/api/#tag/Transactions-public/operation/GetTransactions
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1115,6 +1136,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.bitstamp.net/api/#tag/Account-balances/operation/GetAccountBalances
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1145,6 +1167,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1185,6 +1208,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1260,7 +1284,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @see https://www.bitstamp.net/api/#balance
+         * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllWithdrawalFees
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1332,6 +1356,12 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#createOrder
          * @description create a trade order
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1342,27 +1372,42 @@ class bitstamp extends bitstamp$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        let method = 'privatePost' + this.capitalize(side);
         const request = {
             'pair': market['id'],
             'amount': this.amountToPrecision(symbol, amount),
         };
-        if (type === 'market') {
-            method += 'Market';
-        }
-        else if (type === 'instant') {
-            method += 'Instant';
-        }
-        else {
-            request['price'] = this.priceToPrecision(symbol, price);
-        }
-        method += 'Pair';
         const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit(params, ['client_order_id', 'clientOrderId']);
+            params = this.omit(params, ['clientOrderId']);
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        const capitalizedSide = this.capitalize(side);
+        if (type === 'market') {
+            if (capitalizedSide === 'Buy') {
+                response = await this.privatePostBuyMarketPair(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostSellMarketPair(this.extend(request, params));
+            }
+        }
+        else if (type === 'instant') {
+            if (capitalizedSide === 'Buy') {
+                response = await this.privatePostBuyInstantPair(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostSellInstantPair(this.extend(request, params));
+            }
+        }
+        else {
+            request['price'] = this.priceToPrecision(symbol, price);
+            if (capitalizedSide === 'Buy') {
+                response = await this.privatePostBuyPair(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostSellPair(this.extend(request, params));
+            }
+        }
         const order = this.parseOrder(response, market);
         order['type'] = type;
         return order;
@@ -1372,6 +1417,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#cancelOrder
          * @description cancels an open order
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1388,6 +1434,8 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#cancelAllOrders
          * @description cancel all open orders
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1395,13 +1443,16 @@ class bitstamp extends bitstamp$1 {
         await this.loadMarkets();
         let market = undefined;
         const request = {};
-        let method = 'privatePostCancelAllOrders';
+        let response = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['pair'] = market['id'];
-            method = 'privatePostCancelAllOrdersPair';
+            response = await this.privatePostCancelAllOrdersPair(this.extend(request, params));
         }
-        return await this[method](this.extend(request, params));
+        else {
+            response = await this.privatePostCancelAllOrders(this.extend(request, params));
+        }
+        return response;
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1431,6 +1482,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOrderStatus
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1475,6 +1527,8 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactionsForMarket
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1502,6 +1556,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -1552,6 +1607,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/GetWithdrawalRequests
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1920,6 +1976,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
@@ -1943,6 +2000,8 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetAllOpenOrders
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOpenOrdersForMarket
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1990,6 +2049,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.bitstamp.net/api/#tag/Deposits/operation/GetCryptoDepositAddress
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2016,6 +2076,8 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#withdraw
          * @description make a withdrawal
+         * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal
+         * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestCryptoWithdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to

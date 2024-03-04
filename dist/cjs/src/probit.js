@@ -284,7 +284,7 @@ class probit extends probit$1 {
         const quoteId = this.safeString(market, 'quote_currency_id');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const closed = this.safeValue(market, 'closed', false);
+        const closed = this.safeBool(market, 'closed', false);
         const takerFeeRate = this.safeString(market, 'taker_fee_rate');
         const taker = Precise["default"].stringDiv(takerFeeRate, '100');
         const makerFeeRate = this.safeString(market, 'maker_fee_rate');
@@ -422,8 +422,8 @@ class probit extends probit$1 {
             const networkList = {};
             for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
-                const networkId = this.safeString(network, 'id');
-                const networkCode = this.networkIdToCode(networkId);
+                const idInner = this.safeString(network, 'id');
+                const networkCode = this.networkIdToCode(idInner);
                 const currentDepositSuspended = this.safeValue(network, 'deposit_suspended');
                 const currentWithdrawalSuspended = this.safeValue(network, 'withdrawal_suspended');
                 const currentDeposit = !currentDepositSuspended;
@@ -444,7 +444,7 @@ class probit extends probit$1 {
                     }
                 }
                 networkList[networkCode] = {
-                    'id': networkId,
+                    'id': idInner,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,
@@ -776,7 +776,6 @@ class probit extends probit$1 {
         const market = this.market(symbol);
         const request = {
             'market_id': market['id'],
-            'limit': 100,
             'start_time': '1970-01-01T00:00:00.000Z',
             'end_time': this.iso8601(this.milliseconds()),
         };
@@ -784,7 +783,10 @@ class probit extends probit$1 {
             request['start_time'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 10000);
+            request['limit'] = Math.min(limit, 1000);
+        }
+        else {
+            request['limit'] = 1000; // required to set any value
         }
         const response = await this.publicGetTrade(this.extend(request, params));
         //
@@ -1551,7 +1553,7 @@ class probit extends probit$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -1587,12 +1589,12 @@ class probit extends probit$1 {
         const currencyId = this.safeString(transaction, 'currency_id');
         const code = this.safeCurrencyCode(currencyId);
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
-        const feeCost = this.safeNumber(transaction, 'fee');
+        const feeCostString = this.safeString(transaction, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined && feeCost !== 0) {
+        if (feeCostString !== undefined && feeCostString !== '0') {
             fee = {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber(feeCostString),
             };
         }
         return {

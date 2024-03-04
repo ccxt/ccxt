@@ -179,27 +179,27 @@ class independentreserve(ccxt.async_support.independentreserve):
         orderBook = self.safe_value(message, 'Data', {})
         messageHash = 'orderbook:' + symbol + ':' + depth
         subscription = self.safe_value(client.subscriptions, messageHash, {})
-        receivedSnapshot = self.safe_value(subscription, 'receivedSnapshot', False)
+        receivedSnapshot = self.safe_bool(subscription, 'receivedSnapshot', False)
         timestamp = self.safe_integer(message, 'Time')
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.order_book({})
-            self.orderbooks[symbol] = storedOrderBook
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book({})
+            self.orderbooks[symbol] = orderbook
         if event == 'OrderBookSnapshot':
             snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume')
-            storedOrderBook.reset(snapshot)
+            orderbook.reset(snapshot)
             subscription['receivedSnapshot'] = True
         else:
             asks = self.safe_value(orderBook, 'Offers', [])
             bids = self.safe_value(orderBook, 'Bids', [])
-            self.handle_deltas(storedOrderBook['asks'], asks)
-            self.handle_deltas(storedOrderBook['bids'], bids)
-            storedOrderBook['timestamp'] = timestamp
-            storedOrderBook['datetime'] = self.iso8601(timestamp)
-        checksum = self.safe_value(self.options, 'checksum', True)
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+        checksum = self.safe_bool(self.options, 'checksum', True)
         if checksum and receivedSnapshot:
-            storedAsks = storedOrderBook['asks']
-            storedBids = storedOrderBook['bids']
+            storedAsks = orderbook['asks']
+            storedBids = orderbook['bids']
             asksLength = len(storedAsks)
             bidsLength = len(storedBids)
             payload = ''
@@ -215,7 +215,7 @@ class independentreserve(ccxt.async_support.independentreserve):
                 error = InvalidNonce(self.id + ' invalid checksum')
                 client.reject(error, messageHash)
         if receivedSnapshot:
-            client.resolve(storedOrderBook, messageHash)
+            client.resolve(orderbook, messageHash)
 
     def value_to_checksum(self, value):
         result = format(value, '.8f')
@@ -263,5 +263,6 @@ class independentreserve(ccxt.async_support.independentreserve):
         }
         handler = self.safe_value(handlers, event)
         if handler is not None:
-            return handler(client, message)
+            handler(client, message)
+            return
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))

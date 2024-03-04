@@ -40,6 +40,7 @@ class phemex extends Exchange {
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -197,6 +198,7 @@ class phemex extends Exchange {
                         'api-data/g-futures/trades' => 5, // ?symbol=<symbol>
                         'api-data/futures/trading-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees' => 5, // ?symbol=<symbol>
+                        'api-data/futures/v2/tradeAccountDetail' => 5, // ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'g-orders/activeList' => 1, // ?symbol=<symbol>
                         'orders/activeList' => 1, // ?symbol=<symbol>
                         'exchange/order/list' => 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
@@ -447,6 +449,7 @@ class phemex extends Exchange {
                     '35104' => '\\ccxt\\InsufficientFunds', // array("code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null)
                     '39995' => '\\ccxt\\RateLimitExceeded', // array("code" => "39995","msg" => "Too many requests.")
                     '39996' => '\\ccxt\\PermissionDenied', // array("code" => "39996","msg" => "Access denied.")
+                    '39997' => '\\ccxt\\BadSymbol', // array("code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null)
                 ),
                 'broad' => array(
                     '401 Insufficient privilege' => '\\ccxt\\PermissionDenied', // array("code" => "401","msg" => "401 Insufficient privilege.")
@@ -458,7 +461,7 @@ class phemex extends Exchange {
                 ),
             ),
             'options' => array(
-                'brokerId' => 'ccxt2022',
+                'brokerId' => 'CCXT123456', // updated from CCXT to CCXT123456
                 'x-phemex-request-expiry' => 60, // in seconds
                 'createOrderByQuoteRequiresPrice' => true,
                 'networks' => array(
@@ -1139,7 +1142,7 @@ class phemex extends Exchange {
     }
 
     public function to_en($n, $scale) {
-        $stringN = (string) $n;
+        $stringN = $this->number_to_string($n);
         $precise = new Precise ($stringN);
         $precise->decimals = $precise->decimals - $scale;
         $precise->reduce ();
@@ -1497,7 +1500,7 @@ class phemex extends Exchange {
             $response = null;
             if ($type === 'spot') {
                 $response = Async\await($this->v1GetMdSpotTicker24hrAll ($query));
-            } elseif ($subType === 'inverse' || $market['settle'] === 'USD') {
+            } elseif ($subType === 'inverse' || $this->safe_string($market, 'settle') === 'USD') {
                 $response = Async\await($this->v1GetMdTicker24hrAll ($query));
             } else {
                 $response = Async\await($this->v2GetMdV2Ticker24hrAll ($query));
@@ -1920,16 +1923,19 @@ class phemex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://phemex-docs.github.io/#query-wallets
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+             * @see https://phemex-docs.github.io/#query-trading-account-and-positions
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] spot or swap
+             * @param {string} [$params->code] *swap only* $currency $code of the balance to query (USD, USDT, etc), default is USDT
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             $code = $this->safe_string($params, 'code');
-            $params = $this->omit($params, array( 'type', 'code' ));
+            $params = $this->omit($params, array( 'code' ));
             $response = null;
             $request = array();
             if (($type !== 'spot') && ($type !== 'swap')) {
@@ -1937,7 +1943,7 @@ class phemex extends Exchange {
             }
             if ($type === 'swap') {
                 $settle = null;
-                list($settle, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'settle');
+                list($settle, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'settle', 'USDT');
                 if ($code !== null || $settle !== null) {
                     $coin = null;
                     if ($code !== null) {
@@ -2423,15 +2429,15 @@ class phemex extends Exchange {
     }
 
     public function parse_order($order, ?array $market = null): array {
-        $isSwap = $this->safe_value($market, 'swap', false);
-        $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order));
+        $isSwap = $this->safe_bool($market, 'swap', false);
+        $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order)) || (is_array($order) && array_key_exists('closedPnlRv', $order)) || (is_array($order) && array_key_exists('totalPnlRv', $order));
         if ($isSwap || $hasPnl) {
             return $this->parse_swap_order($order, $market);
         }
         return $this->parse_spot_order($order, $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2487,7 +2493,7 @@ class phemex extends Exchange {
             $takeProfit = $this->safe_value($params, 'takeProfit');
             $takeProfitDefined = ($takeProfit !== null);
             if ($clientOrderId === null) {
-                $brokerId = $this->safe_string($this->options, 'brokerId');
+                $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT123456');
                 if ($brokerId !== null) {
                     $request['clOrdID'] = $brokerId . $this->uuid16();
                 }
@@ -2526,10 +2532,10 @@ class phemex extends Exchange {
                         }
                     }
                     $cost = ($cost === null) ? $amount : $cost;
-                    $costString = (string) $cost;
+                    $costString = $this->number_to_string($cost);
                     $request['quoteQtyEv'] = $this->to_ev($costString, $market);
                 } else {
-                    $amountString = (string) $amount;
+                    $amountString = $this->number_to_string($amount);
                     $request['baseQtyEv'] = $this->to_ev($amountString, $market);
                 }
             } elseif ($market['swap']) {
@@ -2545,7 +2551,7 @@ class phemex extends Exchange {
                 if ($market['settle'] === 'USDT') {
                     $request['orderQtyRq'] = $amount;
                 } else {
-                    $request['orderQty'] = intval($amount);
+                    $request['orderQty'] = $this->parse_to_int($amount);
                 }
                 if ($stopPrice !== null) {
                     $triggerType = $this->safe_string($params, 'triggerType', 'ByMarkPrice');
@@ -2718,7 +2724,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type = null, $side = null, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, ?string $type = null, ?string $side = null, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -2760,7 +2766,7 @@ class phemex extends Exchange {
                 $request['baseQtyEV'] = $finalQty;
             } elseif ($amount !== null) {
                 if ($isUSDTSettled) {
-                    $request['baseQtyEV'] = $this->amount_to_precision($market['symbol'], $amount);
+                    $request['orderQtyRq'] = $this->amount_to_precision($market['symbol'], $amount);
                 } else {
                     $request['baseQtyEV'] = $this->to_ev($amount, $market);
                 }
@@ -2960,12 +2966,14 @@ class phemex extends Exchange {
              * fetch all unfilled currently open orders
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotListAllOpenOrder
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
+            Async\await($this->load_markets());
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
             }
@@ -3004,20 +3012,26 @@ class phemex extends Exchange {
             /**
              * fetches information on multiple closed orders made by the user
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#queryorder
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedgedd-Perpetual-API.md#query-closed-orders-by-$symbol
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataOrdersByIds
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->settle] the settlement currency to fetch orders for
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
             $request = array(
-                'symbol' => $market['id'],
             );
+            if ($market !== null) {
+                $request['symbol'] = $market['id'];
+            }
             if ($since !== null) {
                 $request['start'] = $since;
             }
@@ -3025,8 +3039,8 @@ class phemex extends Exchange {
                 $request['limit'] = $limit;
             }
             $response = null;
-            if ($market['settle'] === 'USDT') {
-                $request['currency'] = $market['settle'];
+            if (($symbol === null) || ($this->safe_string($market, 'settle') === 'USDT')) {
+                $request['currency'] = $this->safe_string($params, 'settle', 'USDT');
                 $response = Async\await($this->privateGetExchangeOrderV2OrderList (array_merge($request, $params)));
             } elseif ($market['swap']) {
                 $response = Async\await($this->privateGetExchangeOrderList (array_merge($request, $params)));
@@ -3085,23 +3099,25 @@ class phemex extends Exchange {
              * fetch all trades made by the user
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-user-trade
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-trade
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataTradesHist
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
             $request = array();
             if ($limit !== null) {
                 $limit = min (200, $limit);
                 $request['limit'] = $limit;
             }
-            if ($market['settle'] === 'USDT') {
+            $isUSDTSettled = ($symbol === null) || ($this->safe_string($market, 'settle') === 'USDT');
+            if ($isUSDTSettled) {
                 $request['currency'] = 'USDT';
                 $request['offset'] = 0;
                 if ($limit === null) {
@@ -3113,17 +3129,11 @@ class phemex extends Exchange {
             if ($since !== null) {
                 $request['start'] = $since;
             }
-            if ($market['swap'] && ($limit !== null)) {
-                $request['limit'] = $limit;
-            }
-            $isUSDTSettled = $market['settle'] === 'USDT';
             $response = null;
-            if ($market['swap']) {
-                if ($isUSDTSettled) {
-                    $response = Async\await($this->privateGetExchangeOrderV2TradingList (array_merge($request, $params)));
-                } else {
-                    $response = Async\await($this->privateGetExchangeOrderTrade (array_merge($request, $params)));
-                }
+            if ($isUSDTSettled) {
+                $response = Async\await($this->privateGetExchangeOrderV2TradingList (array_merge($request, $params)));
+            } elseif ($market['swap']) {
+                $response = Async\await($this->privateGetExchangeOrderTrade (array_merge($request, $params)));
             } else {
                 $response = Async\await($this->privateGetExchangeSpotOrderTrades (array_merge($request, $params)));
             }
@@ -3518,8 +3528,10 @@ class phemex extends Exchange {
              * fetch all open $positions
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-$positions
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-$positions
-             * @param {string[]|null} $symbols list of unified $market $symbols
+             * @see https://phemex-docs.github.io/#query-account-$positions-with-unrealized-pnl
+             * @param {string[]} [$symbols] list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [param.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
@@ -3551,7 +3563,13 @@ class phemex extends Exchange {
             );
             $response = null;
             if ($isUSDTSettled) {
-                $response = Async\await($this->privateGetGAccountsAccountPositions (array_merge($request, $params)));
+                $method = null;
+                list($method, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
+                if ($method === 'privateGetGAccountsAccountPositions') {
+                    $response = Async\await($this->privateGetGAccountsAccountPositions (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->privateGetAccountsPositions (array_merge($request, $params)));
+                }
             } else {
                 $response = Async\await($this->privateGetAccountsAccountPositions (array_merge($request, $params)));
             }
@@ -3728,7 +3746,7 @@ class phemex extends Exchange {
         $contracts = $this->safe_string($position, 'size');
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
-        $leverage = $this->safe_number_2($position, 'leverage', 'leverageRr');
+        $leverage = $this->parse_number(Precise::string_abs(($this->safe_string_2($position, 'leverage', 'leverageRr'))));
         $entryPriceString = $this->safe_string_2($position, 'avgEntryPrice', 'avgEntryPriceRp');
         $rawSide = $this->safe_string($position, 'side');
         $side = null;
@@ -3972,7 +3990,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function set_margin(string $symbol, $amount, $params = array ()) {
+    public function set_margin(string $symbol, float $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
@@ -4031,7 +4049,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -4067,7 +4085,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false for a $market
@@ -4256,6 +4274,13 @@ class phemex extends Exchange {
             );
             $payload = '';
             if ($method === 'POST') {
+                $isOrderPlacement = ($path === 'g-orders') || ($path === 'spot/orders') || ($path === 'orders');
+                if ($isOrderPlacement) {
+                    if ($this->safe_string($params, 'clOrdID') === null) {
+                        $id = $this->safe_string($this->options, 'brokerId', 'CCXT123456');
+                        $params['clOrdID'] = $id . $this->uuid16();
+                    }
+                }
                 $payload = $this->json($params);
                 $body = $payload;
                 $headers['Content-Type'] = 'application/json';
@@ -4267,7 +4292,7 @@ class phemex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -4275,9 +4300,9 @@ class phemex extends Exchange {
              * @param {float} $leverage the rate of $leverage, 100 > $leverage > -100 excluding numbers between -1 to 1
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->hedged] set to true if hedged position mode is enabled (by default $long and $short $leverage are set to the same value)
-             * @param {float} [$params->longLeverageRr] *hedged mode only* set the $leverage for $long positions
-             * @param {float} [$params->shortLeverageRr] *hedged mode only* set the $leverage for $short positions
+             * @param {bool} [$params->hedged] set to true if hedged position mode is enabled (by default long and short $leverage are set to the same value)
+             * @param {float} [$params->longLeverageRr] *hedged mode only* set the $leverage for long positions
+             * @param {float} [$params->shortLeverageRr] *hedged mode only* set the $leverage for short positions
              * @return {array} $response from the exchange
              */
             // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
@@ -4289,7 +4314,7 @@ class phemex extends Exchange {
                 throw new BadRequest($this->id . ' setLeverage() $leverage should be between -100 and 100');
             }
             Async\await($this->load_markets());
-            $isHedged = $this->safe_value($params, 'hedged', false);
+            $isHedged = $this->safe_bool($params, 'hedged', false);
             $longLeverageRr = $this->safe_integer($params, 'longLeverageRr');
             $shortLeverageRr = $this->safe_integer($params, 'shortLeverageRr');
             $market = $this->market($symbol);
@@ -4301,10 +4326,10 @@ class phemex extends Exchange {
                 if (!$isHedged && $longLeverageRr === null && $shortLeverageRr === null) {
                     $request['leverageRr'] = $leverage;
                 } else {
-                    $long = ($longLeverageRr !== null) ? $longLeverageRr : $leverage;
-                    $short = ($shortLeverageRr !== null) ? $shortLeverageRr : $leverage;
-                    $request['longLeverageRr'] = $long;
-                    $request['shortLeverageRr'] = $short;
+                    $longVar = ($longLeverageRr !== null) ? $longLeverageRr : $leverage;
+                    $shortVar = ($shortLeverageRr !== null) ? $shortLeverageRr : $leverage;
+                    $request['longLeverageRr'] = $longVar;
+                    $request['shortLeverageRr'] = $shortVar;
                 }
                 $response = Async\await($this->privatePutGPositionsLeverage (array_merge($request, $params)));
             } else {
@@ -4315,7 +4340,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -4382,7 +4407,7 @@ class phemex extends Exchange {
                 $transfer = $this->parse_transfer($response);
             }
             $transferOptions = $this->safe_value($this->options, 'transfer', array());
-            $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 if ($transfer['fromAccount'] === null) {
                     $transfer['fromAccount'] = $fromAccount;
@@ -4602,7 +4627,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -4621,7 +4646,10 @@ class phemex extends Exchange {
             $currency = $this->currency($code);
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = null;
+            if ($networkCode !== null) {
+                $networkId = $this->network_code_to_id($networkCode);
+            }
             $stableCoins = $this->safe_value($this->options, 'stableCoins');
             if ($networkId === null) {
                 if (!($this->in_array($code, $stableCoins))) {
