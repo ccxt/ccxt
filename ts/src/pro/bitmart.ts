@@ -840,27 +840,34 @@ export default class bitmart extends bitmartRest {
         if (data === undefined) {
             return;
         }
+        let symbol = undefined;
+        const length = data.length;
         const isSwap = ('group' in message);
         if (isSwap) {
-            data.reverse (); // fix chronological order
-        }
-        let stored = undefined;
-        let symbol = undefined;
-        for (let i = 0; i < data.length; i++) {
-            const trade = this.parseWsTrade (data[i]);
-            symbol = trade['symbol'];
-            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = this.safeValue (this.trades, symbol);
-            if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
-                this.trades[symbol] = stored;
+            // in swap, chronologically decreasing: 1709536849322, 1709536848954,
+            for (let i = length - 1; i >= 0; i--) {
+                symbol = this.handleTradeLoop (data[i]);
             }
-            stored.append (trade);
+        } else {
+            // in spot, chronologically increasing: 1709536771200, 1709536771226,
+            for (let i = 0; i < length; i++) {
+                symbol = this.handleTradeLoop (data[i]);
+            }
         }
-        const messageHash = 'trade:' + symbol;
-        client.resolve (stored, messageHash);
+        client.resolve (this.trades[symbol], 'trade:' + symbol);
     }
 
+    handleTradeLoop (entry) {
+        const trade = this.parseWsTrade (entry);
+        const symbol = trade['symbol'];
+        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+        if (this.safeValue (this.trades, symbol) === undefined) {
+            this.trades[symbol] = new ArrayCache (tradesLimit);
+        }
+        const stored = this.trades[symbol];
+        stored.append (trade);
+        return symbol;
+    }
     parseWsTrade (trade, market: Market = undefined) {
         // spot
         //    {
