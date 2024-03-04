@@ -3786,7 +3786,8 @@ export default class coinbase extends Exchange {
                 }
             } else {
                 this.checkRequiredCredentials ();
-                const nonce = this.nonce ().toString ();
+                const timestamp = this.seconds ();
+                const timestampString = timestamp.toString ();
                 let payload = '';
                 if (method !== 'GET') {
                     if (Object.keys (query).length) {
@@ -3798,12 +3799,12 @@ export default class coinbase extends Exchange {
                         payload += '?' + this.urlencode (query);
                     }
                 }
-                const auth = nonce + method + savedPath + payload;
+                const auth = timestampString + method + savedPath + payload;
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,
                     'CB-ACCESS-SIGN': signature,
-                    'CB-ACCESS-TIMESTAMP': nonce,
+                    'CB-ACCESS-TIMESTAMP': timestamp,
                     'Content-Type': 'application/json',
                 };
             }
