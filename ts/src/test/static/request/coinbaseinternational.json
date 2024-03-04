@@ -1,7 +1,7 @@
 {
     "exchange": "coinbase",
     "skipKeys": ["client_order_id"],
-    "outputType": "json",
+    "outputType": "both",
     "methods": {
        "fetchAccounts": [
         {
@@ -13,9 +13,9 @@
        ],
        "fetchFundingRateHistory": [
         {
-          "description": "fetchFundingRateHistory",
+          "description": "fetch funding rate history",
           "method": "fetchFundingRateHistory",
-          "url": "https://api-n5e1.coinbase.com/api/v1/instruments/BTC-PERP/funding",
+          "url": "https://api.international.coinbase.com/api/v1/instruments/BTC-PERP/funding?result_offset=0",
           "input": [
             "BTC/USDC:USDC"
           ]
