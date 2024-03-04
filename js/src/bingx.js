@@ -1402,7 +1402,9 @@ export default class bingx extends Exchange {
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
             const firstSymbol = this.safeString(symbols, 0);
-            market = this.market(firstSymbol);
+            if (firstSymbol !== undefined) {
+                market = this.market(firstSymbol);
+            }
         }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
@@ -3497,7 +3499,18 @@ export default class bingx extends Exchange {
         //        }
         //    }
         //
-        return response;
+        const data = this.safeDict(response, 'data', {});
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': undefined,
+            'longLeverage': this.safeInteger(leverage, 'longLeverage'),
+            'shortLeverage': this.safeInteger(leverage, 'shortLeverage'),
+        };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         /**

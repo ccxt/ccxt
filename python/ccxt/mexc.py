@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -85,6 +85,8 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchL2OrderBook': True,
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
+                'fetchLeverage': True,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': True,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': None,
@@ -5036,6 +5038,74 @@ class mexc(Exchange, ImplicitAPI):
                 },
             }
         return self.assign_default_deposit_withdraw_fees(result)
+
+    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+        """
+        fetch the set leverage for a market
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.contractPrivateGetPositionLeverage(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "level": 1,
+        #                 "maxVol": 463300,
+        #                 "mmr": 0.004,
+        #                 "imr": 0.005,
+        #                 "positionType": 1,
+        #                 "openType": 1,
+        #                 "leverage": 20,
+        #                 "limitBySys": False,
+        #                 "currentMmr": 0.004
+        #             },
+        #             {
+        #                 "level": 1,
+        #                 "maxVol": 463300,
+        #                 "mmr": 0.004,
+        #                 "imr": 0.005,
+        #                 "positionType": 2,
+        #                 "openType": 1,
+        #                 "leverage": 20,
+        #                 "limitBySys": False,
+        #                 "currentMmr": 0.004
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_leverage(data, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marginMode = None
+        longLeverage = None
+        shortLeverage = None
+        for i in range(0, len(leverage)):
+            entry = leverage[i]
+            openType = self.safe_integer(entry, 'openType')
+            positionType = self.safe_integer(entry, 'positionType')
+            if positionType == 1:
+                longLeverage = self.safe_integer(entry, 'leverage')
+            elif positionType == 2:
+                shortLeverage = self.safe_integer(entry, 'leverage')
+            marginMode = 'isolated' if (openType == 1) else 'cross'
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        }
 
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """

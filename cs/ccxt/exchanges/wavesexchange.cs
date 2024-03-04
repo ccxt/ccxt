@@ -1338,7 +1338,7 @@ public partial class wavesexchange : Exchange
             { "amountAsset", amountAsset },
             { "priceAsset", priceAsset },
         };
-        object sandboxMode = this.safeValue(this.options, "sandboxMode", false);
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object chainId = ((bool) isTrue((sandboxMode))) ? 84 : 87;
         object body = new Dictionary<string, object>() {
             { "senderPublicKey", this.apiKey },

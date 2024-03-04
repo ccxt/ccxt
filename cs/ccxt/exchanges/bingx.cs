@@ -1477,7 +1477,10 @@ public partial class bingx : Exchange
         {
             symbols = this.marketSymbols(symbols);
             object firstSymbol = this.safeString(symbols, 0);
-            market = this.market(firstSymbol);
+            if (isTrue(!isEqual(firstSymbol, null)))
+            {
+                market = this.market(firstSymbol);
+            }
         }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
@@ -3723,7 +3726,20 @@ public partial class bingx : Exchange
         //        }
         //    }
         //
-        return response;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", null },
+            { "longLeverage", this.safeInteger(leverage, "longLeverage") },
+            { "shortLeverage", this.safeInteger(leverage, "shortLeverage") },
+        };
     }
 
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)

@@ -101,6 +101,7 @@ class woo extends Exchange {
                 'reduceMargin' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             ),
@@ -175,10 +176,16 @@ class woo extends Exchange {
                             'client/trade/{tid}' => 1,
                             'order/{oid}/trades' => 1,
                             'client/trades' => 1,
+                            'client/hist_trades' => 1,
+                            'staking/yield_history' => 1,
+                            'client/holding' => 1,
                             'asset/deposit' => 10,
                             'asset/history' => 60,
                             'sub_account/all' => 60,
                             'sub_account/assets' => 60,
+                            'sub_account/asset_detail' => 60,
+                            'sub_account/ip_restriction' => 10,
+                            'asset/main_sub_transfer_history' => 30,
                             'token_interest' => 60,
                             'token_interest/{token}' => 60,
                             'interest/history' => 60,
@@ -191,9 +198,12 @@ class woo extends Exchange {
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
+                            'asset/ltv' => 30,
                             'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/internal_withdraw' => 30,
                             'interest/repay' => 60,
                             'client/account_mode' => 120,
+                            'client/position_mode' => 5,
                             'client/leverage' => 120,
                         ),
                         'delete' => array(
@@ -2645,9 +2655,48 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($hedged, $symbol, $params) {
+            /**
+             * set $hedged to true or false for a market
+             * @see https://docs.woo.org/#update-position-mode
+             * @param {bool} $hedged set to true to use HEDGE_MODE, false for ONE_WAY
+             * @param {string} $symbol not used by woo setPositionMode
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} $response from the exchange
+             */
+            $hedgeMode = null;
+            if ($hedged) {
+                $hedgeMode = 'HEDGE_MODE';
+            } else {
+                $hedgeMode = 'ONE_WAY';
+            }
+            $request = array(
+                'position_mode' => $hedgeMode,
+            );
+            $response = Async\await($this->v1PrivatePostClientPositionMode (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "data" => array(),
+            //         "timestamp" => "1709195608551"
+            //     }
+            //
+            return $response;
+        }) ();
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the set leverage for a $market
+             * @see https://docs.woo.org/#get-account-information-new
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             */
             Async\await($this->load_markets());
+            $market = $this->market($symbol);
             $response = Async\await($this->v3PrivateGetAccountinfo ($params));
             //
             //     {
@@ -2677,13 +2726,20 @@ class woo extends Exchange {
             //         "timestamp" => 1673323685109
             //     }
             //
-            $result = $this->safe_value($response, 'data');
-            $leverage = $this->safe_number($result, 'leverage');
-            return array(
-                'info' => $response,
-                'leverage' => $leverage,
-            );
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_leverage($data, $market);
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $market['symbol'],
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {

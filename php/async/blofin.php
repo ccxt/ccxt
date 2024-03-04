@@ -1909,7 +1909,7 @@ class blofin extends Exchange {
         ));
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -1934,8 +1934,32 @@ class blofin extends Exchange {
                 'marginMode' => $marginMode,
             );
             $response = Async\await($this->privateGetAccountLeverageInfo (array_merge($request, $params)));
-            return $response;
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "success",
+            //         "data" => {
+            //             "leverage" => "3",
+            //             "marginMode" => "cross",
+            //             "instId" => "BTC-USDT"
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_leverage($data, $market);
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'instId');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'marginMode'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {

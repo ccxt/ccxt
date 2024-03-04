@@ -2841,7 +2841,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -2855,6 +2855,7 @@ class delta extends Exchange {
             $request = array(
                 'product_id' => $market['numericId'],
             );
+            $response = Async\await($this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -2868,8 +2869,21 @@ class delta extends Exchange {
             //         "success" => true
             //     }
             //
-            return Async\await($this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params)));
+            $result = $this->safe_dict($response, 'result', array());
+            return $this->parse_leverage($result, $market);
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'index_symbol');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'margin_mode'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {

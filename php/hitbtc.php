@@ -62,7 +62,8 @@ class hitbtc extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => null,
                 'fetchLiquidations' => false,
-                'fetchMarginMode' => true,
+                'fetchMarginMode' => 'emulated',
+                'fetchMarginModes' => true,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -2441,79 +2442,76 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_margin_mode(?string $symbol = null, $params = array ()): MarginMode {
+    public function fetch_margin_modes(?array $symbols = null, $params = array ()): MarginModes {
         /**
          * fetches margin mode of the user
          * @see https://api.hitbtc.com/#get-margin-position-parameters
          * @see https://api.hitbtc.com/#get-futures-position-parameters
-         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {string} symbol unified symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} Struct of MarginMode
          */
         $this->load_markets();
         $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
+        if ($symbols !== null) {
+            $symbols = $this->market_symbols($symbols);
+            $market = $this->market($symbols[0]);
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchMarginMode', $market, $params);
         $response = null;
         if ($marketType === 'margin') {
             $response = $this->privateGetMarginConfig ($params);
+            //
+            //     {
+            //         "config" => [array(
+            //             "symbol" => "BTCUSD",
+            //             "margin_call_leverage_mul" => "1.50",
+            //             "liquidation_leverage_mul" => "2.00",
+            //             "max_initial_leverage" => "10.00",
+            //             "margin_mode" => "Isolated",
+            //             "force_close_fee" => "0.05",
+            //             "enabled" => true,
+            //             "active" => true,
+            //             "limit_base" => "50000.00",
+            //             "limit_power" => "2.2",
+            //             "unlimited_threshold" => "10.0"
+            //         )]
+            //     }
+            //
         } elseif ($marketType === 'swap') {
             $response = $this->privateGetFuturesConfig ($params);
+            //
+            //     {
+            //         "config" => [array(
+            //             "symbol" => "BTCUSD_PERP",
+            //             "margin_call_leverage_mul" => "1.20",
+            //             "liquidation_leverage_mul" => "2.00",
+            //             "max_initial_leverage" => "100.00",
+            //             "margin_mode" => "Isolated",
+            //             "force_close_fee" => "0.001",
+            //             "enabled" => true,
+            //             "active" => false,
+            //             "limit_base" => "5000000.000000000000",
+            //             "limit_power" => "1.25",
+            //             "unlimited_threshold" => "2.00"
+            //         )]
+            //     }
+            //
         } else {
-            throw new BadSymbol($this->id . ' fetchMarginMode() supports swap contracts and margin only');
+            throw new BadSymbol($this->id . ' fetchMarginModes () supports swap contracts and margin only');
         }
-        //
-        // margin
-        //     {
-        //         "config" => [array(
-        //             "symbol" => "BTCUSD",
-        //             "margin_call_leverage_mul" => "1.50",
-        //             "liquidation_leverage_mul" => "2.00",
-        //             "max_initial_leverage" => "10.00",
-        //             "margin_mode" => "Isolated",
-        //             "force_close_fee" => "0.05",
-        //             "enabled" => true,
-        //             "active" => true,
-        //             "limit_base" => "50000.00",
-        //             "limit_power" => "2.2",
-        //             "unlimited_threshold" => "10.0"
-        //         )]
-        //     }
-        //
-        // swap
-        //     {
-        //         "config" => [array(
-        //             "symbol" => "BTCUSD_PERP",
-        //             "margin_call_leverage_mul" => "1.20",
-        //             "liquidation_leverage_mul" => "2.00",
-        //             "max_initial_leverage" => "100.00",
-        //             "margin_mode" => "Isolated",
-        //             "force_close_fee" => "0.001",
-        //             "enabled" => true,
-        //             "active" => false,
-        //             "limit_base" => "5000000.000000000000",
-        //             "limit_power" => "1.25",
-        //             "unlimited_threshold" => "2.00"
-        //         )]
-        //     }
-        //
-        $config = $this->safe_value($response, 'config', array());
-        $marginModes = array();
-        for ($i = 0; $i < count($config); $i++) {
-            $data = $this->safe_value($config, $i);
-            $marketId = $this->safe_string($data, 'symbol');
-            $marketInner = $this->safe_market($marketId);
-            $marginModes[] = array(
-                'info' => $data,
-                'symbol' => $this->safe_string($marketInner, 'symbol'),
-                'marginMode' => $this->safe_string_lower($data, 'margin_mode'),
-            );
-        }
-        $filteredMargin = $this->filter_by_symbol($marginModes, $symbol);
-        return $this->safe_value($filteredMargin, 0);
+        $config = $this->safe_list($response, 'config', array());
+        return $this->parse_margin_modes($config, $symbols, 'symbol');
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+        $marketId = $this->safe_string($marginMode, 'symbol');
+        return array(
+            'info' => $marginMode,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($marginMode, 'margin_mode'),
+        );
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
@@ -3252,7 +3250,7 @@ class hitbtc extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
         /**
          * fetch the set leverage for a $market
          * @see https://api.hitbtc.com/#get-futures-margin-account
@@ -3315,7 +3313,19 @@ class hitbtc extends Exchange {
         //         )
         //     }
         //
-        return $this->safe_number($response, 'leverage');
+        return $this->parse_leverage($response, $market);
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'type'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
