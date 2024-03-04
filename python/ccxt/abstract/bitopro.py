@@ -10,6 +10,7 @@ class ImplicitAPI:
     public_get_provisioning_trading_pairs = publicGetProvisioningTradingPairs = Entry('provisioning/trading-pairs', 'public', 'GET', {'cost': 1})
     public_get_provisioning_limitations_and_fees = publicGetProvisioningLimitationsAndFees = Entry('provisioning/limitations-and-fees', 'public', 'GET', {'cost': 1})
     public_get_trading_history_pair = publicGetTradingHistoryPair = Entry('trading-history/{pair}', 'public', 'GET', {'cost': 1})
+    public_get_price_otc_currency = publicGetPriceOtcCurrency = Entry('price/otc/{currency}', 'public', 'GET', {'cost': 1})
     private_get_accounts_balance = privateGetAccountsBalance = Entry('accounts/balance', 'private', 'GET', {'cost': 1})
     private_get_orders_history = privateGetOrdersHistory = Entry('orders/history', 'private', 'GET', {'cost': 1})
     private_get_orders_all_pair = privateGetOrdersAllPair = Entry('orders/all/{pair}', 'private', 'GET', {'cost': 1})

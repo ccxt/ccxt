@@ -12,22 +12,24 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
+import asyncio
 from ccxt.test.base import test_ticker  # noqa E402
 
-
 async def test_fetch_tickers(exchange, skipped_properties, symbol):
+    without_symbol = test_fetch_tickers_helper(exchange, skipped_properties, None)
+    with_symbol = test_fetch_tickers_helper(exchange, skipped_properties, [symbol])
+    await asyncio.gather(*[with_symbol, without_symbol])
+
+
+async def test_fetch_tickers_helper(exchange, skipped_properties, arg_symbols, arg_params={}):
     method = 'fetchTickers'
-    # log ('fetching all tickers at once...')
-    tickers = None
+    response = await exchange.fetch_tickers(arg_symbols, arg_params)
+    assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return an object. ' + exchange.json(response)
+    values = list(response.values())
     checked_symbol = None
-    try:
-        tickers = await exchange.fetch_tickers()
-    except Exception as e:
-        tickers = await exchange.fetch_tickers([symbol])
-        checked_symbol = symbol
-    assert isinstance(tickers, dict), exchange.id + ' ' + method + ' ' + checked_symbol + ' must return an object. ' + exchange.json(tickers)
-    values = list(tickers.values())
+    if arg_symbols is not None and len(arg_symbols) == 1:
+        checked_symbol = arg_symbols[0]
     for i in range(0, len(values)):
+        # todo: symbol check here
         ticker = values[i]
         test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)

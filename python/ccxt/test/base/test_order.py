@@ -12,10 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
 from ccxt.test.base.test_trade import test_trade  # noqa E402
-
 
 def test_order(exchange, skipped_properties, method, entry, symbol, now):
     format = {
@@ -43,9 +41,9 @@ def test_order(exchange, skipped_properties, method, entry, symbol, now):
     }
     empty_allowed_for = ['clientOrderId', 'stopPrice', 'trades', 'timestamp', 'datetime', 'lastTradeTimestamp', 'average', 'type', 'timeInForce', 'postOnly', 'side', 'price', 'amount', 'cost', 'filled', 'remaining', 'status', 'fee']  # there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry, now)
+    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, now)
     #
-    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK', 'PO'])
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'status', ['open', 'closed', 'canceled'])
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'side', ['buy', 'sell'])
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'postOnly', [True, False])

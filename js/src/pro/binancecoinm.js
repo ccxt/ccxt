@@ -6,10 +6,15 @@
 
 //  ---------------------------------------------------------------------------
 import binance from './binance.js';
+import binancecoinmRest from '../binancecoinm.js';
 // ---------------------------------------------------------------------------
 export default class binancecoinm extends binance {
     describe() {
-        return this.deepExtend(super.describe(), {
+        // eslint-disable-next-line new-cap
+        const restInstance = new binancecoinmRest();
+        const restDescribe = restInstance.describe();
+        const extended = this.deepExtend(super.describe(), restDescribe);
+        return this.deepExtend(extended, {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',
             'urls': {

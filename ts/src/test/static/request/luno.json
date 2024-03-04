@@ -1,0 +1,64 @@
+{
+    "exchange": "luno",
+    "skipKeys": [],
+    "outputType": "both",
+    "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.luno.com/api/exchange/1/candles?duration=300&pair=XBTUSDT&since=1704127103000",
+                "input": [
+                  "BTC/USDT",
+                  "5m",
+                  1704127103000,
+                  100
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.luno.com/api/1/orderbook?pair=XBTUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.luno.com/api/1/orderbook_top?pair=XBTUSDT",
+                "input": [
+                    "BTC/USDT",
+                    99
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create market Order",
+                "method": "createOrder",
+                "url": "https://api.luno.com/api/1/marketorder?pair=XBTUSDT&type=BUY&counter_volume=1",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    1
+                ]
+            },
+            {
+                "description": "create limit Order",
+                "method": "createOrder",
+                "url": "https://api.luno.com/api/1/postorder?pair=XBTUSDT&volume=1&price=30000&type=BID",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    30000
+                ]
+            }
+        ]
+    }
+}
