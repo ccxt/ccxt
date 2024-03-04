@@ -1,0 +1,630 @@
+{
+    "BTC/USDT": {
+        "id": "BTC/USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000000001,
+                "max": 1000000000
+            },
+            "price": {
+                "min": 0.01
+            },
+            "cost": {
+                "min": 5,
+                "max": 400000
+            }
+        },
+        "info": {
+            "symbol": "BTC/USDT",
+            "displayName": "BTC/USDT",
+            "domain": "USDS",
+            "tradingStartTime": 1546329600000,
+            "collapseDecimals": "1,0.1,0.01",
+            "minQty": "0.000000001",
+            "maxQty": "1000000000",
+            "minNotional": "5",
+            "maxNotional": "400000",
+            "statusCode": "Normal",
+            "statusMessage": "",
+            "tickSize": "0.01",
+            "useTick": false,
+            "lotSize": "0.00001",
+            "useLot": false,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "qtyScale": 5,
+            "priceScale": 2,
+            "notionalScale": 4
+        }
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTC-PERP",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001,
+                "max": 100000000000
+            },
+            "price": {
+                "min": 0.1,
+                "max": 1000000
+            },
+            "cost": {}
+        },
+        "info": {
+            "symbol": "BTC-PERP",
+            "status": "Normal",
+            "displayName": "BTCUSDT",
+            "settlementAsset": "USDT",
+            "underlying": "BTC/USDT",
+            "tradingStartTime": 1688432400000,
+            "priceFilter": {
+                "minPrice": "0.1",
+                "maxPrice": "1000000",
+                "tickSize": "0.1"
+            },
+            "lotSizeFilter": {
+                "minQty": "0.0001",
+                "maxQty": "100000000000",
+                "lotSize": "0.0001"
+            },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "marketOrderPriceMarkup": "0.005",
+            "marginRequirements": [
+                {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"100000","initialMarginRate":"0.005","maintenanceMarginRate":"0.004"},
+                {"positionNotionalLowerBound":"100000","positionNotionalUpperBound":"300000","initialMarginRate":"0.006666","maintenanceMarginRate":"0.005"},
+                {"positionNotionalLowerBound":"300000","positionNotionalUpperBound":"600000","initialMarginRate":"0.01","maintenanceMarginRate":"0.007"},
+                {"positionNotionalLowerBound":"600000","positionNotionalUpperBound":"1200000","initialMarginRate":"0.013333","maintenanceMarginRate":"0.009"},
+                {"positionNotionalLowerBound":"1200000","positionNotionalUpperBound":"1500000","initialMarginRate":"0.02","maintenanceMarginRate":"0.014"},
+                {"positionNotionalLowerBound":"1500000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
+                {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"5000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.09"},
+                {"positionNotionalLowerBound":"5000000","positionNotionalUpperBound":"10000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.18"},
+                {"positionNotionalLowerBound":"10000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.3"}
+            ]
+        }
+    },
+    "LTC/USDT": {
+        "id": "LTC/USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000000001,
+                "max": 1000000000
+            },
+            "price": {
+                "min": 0.01
+            },
+            "cost": {
+                "min": 5,
+                "max": 400000
+            }
+        },
+        "info": {
+            "symbol": "LTC/USDT",
+            "displayName": "LTC/USDT",
+            "domain": "USDS",
+            "tradingStartTime": 1546329600000,
+            "collapseDecimals": "1,0.1,0.01",
+            "minQty": "0.000000001",
+            "maxQty": "1000000000",
+            "minNotional": "5",
+            "maxNotional": "400000",
+            "statusCode": "Normal",
+            "statusMessage": "",
+            "tickSize": "0.01",
+            "useTick": false,
+            "lotSize": "0.001",
+            "useLot": false,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "qtyScale": 3,
+            "priceScale": 2,
+            "notionalScale": 4
+        }
+    },
+    "ADA/USDT": {
+        "id": "ADA/USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000000001,
+                "max": 1000000000
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {
+                "min": 5,
+                "max": 400000
+            }
+        },
+        "info": {
+            "symbol": "ADA/USDT",
+            "displayName": "ADA/USDT",
+            "domain": "USDS",
+            "tradingStartTime": 1559685600000,
+            "collapseDecimals": "0.01,0.0001,0.00001",
+            "minQty": "0.000000001",
+            "maxQty": "1000000000",
+            "minNotional": "5",
+            "maxNotional": "400000",
+            "statusCode": "Normal",
+            "statusMessage": "",
+            "tickSize": "0.00001",
+            "useTick": false,
+            "lotSize": "1",
+            "useLot": false,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "qtyScale": 0,
+            "priceScale": 5,
+            "notionalScale": 4
+        }
+    },
+    "XRP/USDT": {
+        "id": "XRP/USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000000001,
+                "max": 1000000000
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {
+                "min": 5,
+                "max": 400000
+            }
+        },
+        "info": {
+            "symbol": "XRP/USDT",
+            "displayName": "XRP/USDT",
+            "domain": "USDS",
+            "tradingStartTime": 1546329600000,
+            "collapseDecimals": "0.01,0.0001,0.00001",
+            "minQty": "0.000000001",
+            "maxQty": "1000000000",
+            "minNotional": "5",
+            "maxNotional": "400000",
+            "statusCode": "Normal",
+            "statusMessage": "",
+            "tickSize": "0.00001",
+            "useTick": false,
+            "lotSize": "1",
+            "useLot": false,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "qtyScale": 0,
+            "priceScale": 5,
+            "notionalScale": 4
+        }
+    },
+    "LTC/USDT:USDT": {
+        "id": "LTC-PERP",
+        "symbol": "LTC/USDT:USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.1,
+                "max": 100000000000000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {}
+        },
+        "info": {
+            "symbol": "LTC-PERP", 
+            "status": "Normal",
+            "displayName": "LTCUSDT",
+            "settlementAsset": "USDT",
+            "underlying": "LTC/USDT",
+            "tradingStartTime": 1688437800000,
+            "priceFilter": {
+                "minPrice": "0.01",
+                "maxPrice": "1000000",
+                "tickSize": "0.01"
+            },
+            "lotSizeFilter": {
+                "minQty": "0.1",
+                "maxQty": "100000000000000",
+                "lotSize": "0.1"
+            },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "marketOrderPriceMarkup": "0.1",
+            "marginRequirements": [
+                {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"5000","initialMarginRate":"0.02","maintenanceMarginRate":"0.018"},
+                {"positionNotionalLowerBound":"5000","positionNotionalUpperBound":"30000","initialMarginRate":"0.033333","maintenanceMarginRate":"0.03"},
+                {"positionNotionalLowerBound":"30000","positionNotionalUpperBound":"80000","initialMarginRate":"0.05","maintenanceMarginRate":"0.049"},
+                {"positionNotionalLowerBound":"80000","positionNotionalUpperBound":"100000","initialMarginRate":"0.1","maintenanceMarginRate":"0.09"},
+                {"positionNotionalLowerBound":"100000","positionNotionalUpperBound":"200000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+                {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"1000000000","initialMarginRate":"1","maintenanceMarginRate":"0.6"}
+            ]
+        }
+    },
+    "ADA/USDT:USDT": {
+        "id": "ADA-PERP",
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 1000000000000000
+            },
+            "price": {
+                "min": 0.0001,
+                "max": 400000
+            },
+            "cost": {}
+        },
+        "info": {
+            "symbol": "ADA-PERP",
+            "status": "Normal",
+            "displayName": "ADAUSDT",
+            "settlementAsset": "USDT",
+            "underlying": "ADA/USDT",
+            "tradingStartTime": 1688437800000,
+            "priceFilter": {
+                "minPrice": "0.0001",
+                "maxPrice": "400000",
+                "tickSize": "0.0001"
+            },
+            "lotSizeFilter": {
+                "minQty": "1",
+                "maxQty": "1000000000000000",
+                "lotSize": "1"
+            },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "marketOrderPriceMarkup": "0.1",
+            "marginRequirements": [
+                {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"5000","initialMarginRate":"0.02","maintenanceMarginRate":"0.018"},
+                {"positionNotionalLowerBound":"5000","positionNotionalUpperBound":"30000","initialMarginRate":"0.033333","maintenanceMarginRate":"0.03"},
+                {"positionNotionalLowerBound":"30000","positionNotionalUpperBound":"80000","initialMarginRate":"0.05","maintenanceMarginRate":"0.049"},
+                {"positionNotionalLowerBound":"80000","positionNotionalUpperBound":"100000","initialMarginRate":"0.1","maintenanceMarginRate":"0.09"},
+                {"positionNotionalLowerBound":"100000","positionNotionalUpperBound":"200000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+                {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"1000000000","initialMarginRate":"1","maintenanceMarginRate":"0.6"}
+            ]
+        }
+    },
+    "XRP/USDT:USDT": {
+        "id": "XRP-PERP",
+        "symbol": "XRP/USDT:USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 1000000000000000
+            },
+            "price": {
+                "min": 0.0001,
+                "max": 400000
+            },
+            "cost": {}
+        },
+        "info": {
+            "symbol": "XRP-PERP",
+            "status": "Normal",
+            "displayName": "XRPUSDT",
+            "settlementAsset": "USDT",
+            "underlying": "XRP/USDT",
+            "tradingStartTime": 1688437800000,
+            "priceFilter": {
+                "minPrice": "0.0001",
+                "maxPrice": "400000",
+                "tickSize": "0.0001"
+            },
+            "lotSizeFilter": {
+                "minQty": "1",
+                "maxQty": "1000000000000000",
+                "lotSize": "1"
+            },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "marketOrderPriceMarkup": "0.1",
+            "marginRequirements": [
+                {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"5000","initialMarginRate":"0.02","maintenanceMarginRate":"0.018"},
+                {"positionNotionalLowerBound":"5000","positionNotionalUpperBound":"30000","initialMarginRate":"0.033333","maintenanceMarginRate":"0.03"},
+                {"positionNotionalLowerBound":"30000","positionNotionalUpperBound":"80000","initialMarginRate":"0.05","maintenanceMarginRate":"0.049"},
+                {"positionNotionalLowerBound":"80000","positionNotionalUpperBound":"100000","initialMarginRate":"0.1","maintenanceMarginRate":"0.09"},
+                {"positionNotionalLowerBound":"100000","positionNotionalUpperBound":"200000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+                {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"1000000000","initialMarginRate":"1","maintenanceMarginRate":"0.6"}
+            ]
+        }
+    },
+    "TRX/USDT": {
+        "id": "TRX/USDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000000001,
+                "max": 1000000000
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {
+                "min": 5,
+                "max": 400000
+            }
+        },
+        "info": {
+            "symbol": "TRX/USDT",
+            "displayName": "TRX/USDT",
+            "domain": "USDS",
+            "tradingStartTime": 1546329600000,
+            "collapseDecimals": "0.01,0.0001,0.00001",
+            "minQty": "0.000000001",
+            "maxQty": "1000000000",
+            "minNotional": "5",
+            "maxNotional": "400000",
+            "statusCode": "Normal",
+            "statusMessage": "",
+            "tickSize": "0.00001",
+            "useTick": false,
+            "lotSize": "1",
+            "useLot": false,
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "qtyScale": 0,
+            "priceScale": 5,
+            "notionalScale": 4
+        }
+    },
+    "TRX/USDT:USDT": {
+        "id": "TRX-PERP",
+        "symbol": "TRX/USDT:USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 1000000000000000
+            },
+            "price": {
+                "min": 0.00001,
+                "max": 400000
+            },
+            "cost": {}
+        },
+        "info": {
+            "symbol": "TRX-PERP",
+            "status": "Normal",
+            "displayName": "TRXUSDT",
+            "settlementAsset": "USDT",
+            "underlying": "TRX/USDT",
+            "tradingStartTime": 1688437800000,
+            "priceFilter": {
+                "minPrice": "0.00001",
+                "maxPrice": "400000",
+                "tickSize": "0.00001"
+            },
+            "lotSizeFilter": {
+                "minQty": "1",
+                "maxQty": "1000000000000000",
+                "lotSize": "1"
+            },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "marketOrderPriceMarkup": "0.1",
+            "marginRequirements": [
+                {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"5000","initialMarginRate":"0.02","maintenanceMarginRate":"0.018"},
+                {"positionNotionalLowerBound":"5000","positionNotionalUpperBound":"30000","initialMarginRate":"0.033333","maintenanceMarginRate":"0.03"},
+                {"positionNotionalLowerBound":"30000","positionNotionalUpperBound":"80000","initialMarginRate":"0.05","maintenanceMarginRate":"0.049"},
+                {"positionNotionalLowerBound":"80000","positionNotionalUpperBound":"100000","initialMarginRate":"0.1","maintenanceMarginRate":"0.09"},
+                {"positionNotionalLowerBound":"100000","positionNotionalUpperBound":"200000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+                {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"1000000000","initialMarginRate":"1","maintenanceMarginRate":"0.6"}
+            ]
+        }
+    }
+}

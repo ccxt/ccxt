@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,13 +7,13 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_shared_methods.php';
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_ohlcv($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
     $format = [1638230400000, $exchange->parse_number('0.123'), $exchange->parse_number('0.125'), $exchange->parse_number('0.121'), $exchange->parse_number('0.122'), $exchange->parse_number('123.456')];
     $empty_not_allowed_for = [0, 1, 2, 3, 4, 5];
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_not_allowed_for);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now, 0);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now, 0);
     $log_text = log_template($exchange, $method, $entry);
     //
     $length = count($entry);

@@ -1,0 +1,1234 @@
+{
+    "BTC/USD": {
+        "id": "BTC-USD",
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0005
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "base_currency": "BTC",
+            "base_currency_scale": "8",
+            "counter_currency": "USD",
+            "counter_currency_scale": "2",
+            "min_price_increment": "1",
+            "min_price_increment_scale": "2",
+            "min_order_size": "50000",
+            "min_order_size_scale": "8",
+            "max_order_size": "0",
+            "max_order_size_scale": "8",
+            "lot_size": "1",
+            "lot_size_scale": "8",
+            "status": "open",
+            "id": "1",
+            "auction_price": "29500.1",
+            "auction_size": "0.0",
+            "auction_time": "0",
+            "imbalance": "0.2"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.0018
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    2500000,
+                    0.0018
+                ],
+                [
+                    5000000,
+                    0.0016
+                ],
+                [
+                    25000000,
+                    0.0014
+                ],
+                [
+                    100000000,
+                    0.0011
+                ],
+                [
+                    500000000,
+                    0.0008
+                ],
+                [
+                    1000000000,
+                    0.0006
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    10000,
+                    0.0012
+                ],
+                [
+                    50000,
+                    0.001
+                ],
+                [
+                    100000,
+                    0.0008
+                ],
+                [
+                    500000,
+                    0.0007000000000000001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0005
+                ],
+                [
+                    5000000,
+                    0.0004
+                ],
+                [
+                    25000000,
+                    0.0003
+                ],
+                [
+                    100000000,
+                    0.0002
+                ],
+                [
+                    500000000,
+                    0.0001
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        },
+        "numericId": 1
+    },
+    "BTC/EUR": {
+        "id": "BTC-EUR",
+        "symbol": "BTC/EUR",
+        "base": "BTC",
+        "quote": "EUR",
+        "baseId": "BTC",
+        "quoteId": "EUR",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0005
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "base_currency": "BTC",
+            "base_currency_scale": "8",
+            "counter_currency": "EUR",
+            "counter_currency_scale": "2",
+            "min_price_increment": "1",
+            "min_price_increment_scale": "2",
+            "min_order_size": "50000",
+            "min_order_size_scale": "8",
+            "max_order_size": "0",
+            "max_order_size_scale": "8",
+            "lot_size": "1",
+            "lot_size_scale": "8",
+            "status": "open",
+            "id": "4",
+            "auction_price": "27800.0",
+            "auction_size": "0.0",
+            "auction_time": "0",
+            "imbalance": "0.004"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.0018
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    2500000,
+                    0.0018
+                ],
+                [
+                    5000000,
+                    0.0016
+                ],
+                [
+                    25000000,
+                    0.0014
+                ],
+                [
+                    100000000,
+                    0.0011
+                ],
+                [
+                    500000000,
+                    0.0008
+                ],
+                [
+                    1000000000,
+                    0.0006
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    10000,
+                    0.0012
+                ],
+                [
+                    50000,
+                    0.001
+                ],
+                [
+                    100000,
+                    0.0008
+                ],
+                [
+                    500000,
+                    0.0007000000000000001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0005
+                ],
+                [
+                    5000000,
+                    0.0004
+                ],
+                [
+                    25000000,
+                    0.0003
+                ],
+                [
+                    100000000,
+                    0.0002
+                ],
+                [
+                    500000000,
+                    0.0001
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        },
+        "numericId": 4
+    },
+    "LTC/USD": {
+        "id": "LTC-USD",
+        "symbol": "LTC/USD",
+        "base": "LTC",
+        "quote": "USD",
+        "baseId": "LTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.088
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "base_currency": "LTC",
+            "base_currency_scale": "8",
+            "counter_currency": "USD",
+            "counter_currency_scale": "2",
+            "min_price_increment": "1",
+            "min_price_increment_scale": "2",
+            "min_order_size": "8800000",
+            "min_order_size_scale": "8",
+            "max_order_size": "0",
+            "max_order_size_scale": "8",
+            "lot_size": "1",
+            "lot_size_scale": "8",
+            "status": "open",
+            "id": "20",
+            "auction_price": "89.03",
+            "auction_size": "0.0",
+            "auction_time": "0",
+            "imbalance": "7.48866902"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.0018
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    2500000,
+                    0.0018
+                ],
+                [
+                    5000000,
+                    0.0016
+                ],
+                [
+                    25000000,
+                    0.0014
+                ],
+                [
+                    100000000,
+                    0.0011
+                ],
+                [
+                    500000000,
+                    0.0008
+                ],
+                [
+                    1000000000,
+                    0.0006
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    10000,
+                    0.0012
+                ],
+                [
+                    50000,
+                    0.001
+                ],
+                [
+                    100000,
+                    0.0008
+                ],
+                [
+                    500000,
+                    0.0007000000000000001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0005
+                ],
+                [
+                    5000000,
+                    0.0004
+                ],
+                [
+                    25000000,
+                    0.0003
+                ],
+                [
+                    100000000,
+                    0.0002
+                ],
+                [
+                    500000000,
+                    0.0001
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        },
+        "numericId": 20
+    },
+    "ETH/USD": {
+        "id": "ETH-USD",
+        "symbol": "ETH/USD",
+        "base": "ETH",
+        "quote": "USD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0022
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "base_currency": "ETH",
+            "base_currency_scale": "8",
+            "counter_currency": "USD",
+            "counter_currency_scale": "2",
+            "min_price_increment": "1",
+            "min_price_increment_scale": "2",
+            "min_order_size": "220000",
+            "min_order_size_scale": "8",
+            "max_order_size": "0",
+            "max_order_size_scale": "8",
+            "lot_size": "1",
+            "lot_size_scale": "8",
+            "status": "open",
+            "id": "2",
+            "auction_price": "1800.01",
+            "auction_size": "0.0",
+            "auction_time": "0",
+            "imbalance": "2.0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.0018
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    2500000,
+                    0.0018
+                ],
+                [
+                    5000000,
+                    0.0016
+                ],
+                [
+                    25000000,
+                    0.0014
+                ],
+                [
+                    100000000,
+                    0.0011
+                ],
+                [
+                    500000000,
+                    0.0008
+                ],
+                [
+                    1000000000,
+                    0.0006
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    10000,
+                    0.0012
+                ],
+                [
+                    50000,
+                    0.001
+                ],
+                [
+                    100000,
+                    0.0008
+                ],
+                [
+                    500000,
+                    0.0007000000000000001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0005
+                ],
+                [
+                    5000000,
+                    0.0004
+                ],
+                [
+                    25000000,
+                    0.0003
+                ],
+                [
+                    100000000,
+                    0.0002
+                ],
+                [
+                    500000000,
+                    0.0001
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        },
+        "numericId": 2
+    },
+    "BTC/USDT": {
+        "id": "BTC-USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0005
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "base_currency": "BTC",
+            "base_currency_scale": "8",
+            "counter_currency": "USDT",
+            "counter_currency_scale": "6",
+            "min_price_increment": "1",
+            "min_price_increment_scale": "2",
+            "min_order_size": "50000",
+            "min_order_size_scale": "8",
+            "max_order_size": "0",
+            "max_order_size_scale": "8",
+            "lot_size": "1",
+            "lot_size_scale": "8",
+            "status": "open",
+            "id": "26",
+            "auction_price": "32000.0",
+            "auction_size": "0.0",
+            "auction_time": "0",
+            "imbalance": "-0.2727348"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.0018
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    2500000,
+                    0.0018
+                ],
+                [
+                    5000000,
+                    0.0016
+                ],
+                [
+                    25000000,
+                    0.0014
+                ],
+                [
+                    100000000,
+                    0.0011
+                ],
+                [
+                    500000000,
+                    0.0008
+                ],
+                [
+                    1000000000,
+                    0.0006
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    10000,
+                    0.0012
+                ],
+                [
+                    50000,
+                    0.001
+                ],
+                [
+                    100000,
+                    0.0008
+                ],
+                [
+                    500000,
+                    0.0007000000000000001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0005
+                ],
+                [
+                    5000000,
+                    0.0004
+                ],
+                [
+                    25000000,
+                    0.0003
+                ],
+                [
+                    100000000,
+                    0.0002
+                ],
+                [
+                    500000000,
+                    0.0001
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        },
+        "numericId": 26
+    },
+    "LTC/USDT": {
+        "id": "LTC-USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": false,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.088
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "base_currency": "LTC",
+            "base_currency_scale": "8",
+            "counter_currency": "USDT",
+            "counter_currency_scale": "6",
+            "min_price_increment": "1",
+            "min_price_increment_scale": "2",
+            "min_order_size": "8800000",
+            "min_order_size_scale": "8",
+            "max_order_size": "0",
+            "max_order_size_scale": "8",
+            "lot_size": "1",
+            "lot_size_scale": "8",
+            "status": "close",
+            "id": "29",
+            "auction_price": "0.0",
+            "auction_size": "0.0",
+            "auction_time": "",
+            "imbalance": "0.0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.0018
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    2500000,
+                    0.0018
+                ],
+                [
+                    5000000,
+                    0.0016
+                ],
+                [
+                    25000000,
+                    0.0014
+                ],
+                [
+                    100000000,
+                    0.0011
+                ],
+                [
+                    500000000,
+                    0.0008
+                ],
+                [
+                    1000000000,
+                    0.0006
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    10000,
+                    0.0012
+                ],
+                [
+                    50000,
+                    0.001
+                ],
+                [
+                    100000,
+                    0.0008
+                ],
+                [
+                    500000,
+                    0.0007000000000000001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0005
+                ],
+                [
+                    5000000,
+                    0.0004
+                ],
+                [
+                    25000000,
+                    0.0003
+                ],
+                [
+                    100000000,
+                    0.0002
+                ],
+                [
+                    500000000,
+                    0.0001
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        },
+        "numericId": 29
+    },
+    "ADA/USDT": {
+        "id": "ADA-USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.90909
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "base_currency": "ADA",
+            "base_currency_scale": "6",
+            "counter_currency": "USDT",
+            "counter_currency_scale": "6",
+            "min_price_increment": "1",
+            "min_price_increment_scale": "4",
+            "min_order_size": "909090",
+            "min_order_size_scale": "6",
+            "max_order_size": "0",
+            "max_order_size_scale": "8",
+            "lot_size": "1",
+            "lot_size_scale": "8",
+            "status": "open",
+            "id": "150",
+            "auction_price": "0.269",
+            "auction_size": "0.0",
+            "auction_time": "0",
+            "imbalance": "15.0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.0018
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    2500000,
+                    0.0018
+                ],
+                [
+                    5000000,
+                    0.0016
+                ],
+                [
+                    25000000,
+                    0.0014
+                ],
+                [
+                    100000000,
+                    0.0011
+                ],
+                [
+                    500000000,
+                    0.0008
+                ],
+                [
+                    1000000000,
+                    0.0006
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    10000,
+                    0.0012
+                ],
+                [
+                    50000,
+                    0.001
+                ],
+                [
+                    100000,
+                    0.0008
+                ],
+                [
+                    500000,
+                    0.0007000000000000001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0005
+                ],
+                [
+                    5000000,
+                    0.0004
+                ],
+                [
+                    25000000,
+                    0.0003
+                ],
+                [
+                    100000000,
+                    0.0002
+                ],
+                [
+                    500000000,
+                    0.0001
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        },
+        "numericId": 150
+    },
+    "SOL/USDT": {
+        "id": "SOL-USDT",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.010163634
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "base_currency": "SOL",
+            "base_currency_scale": "9",
+            "counter_currency": "USDT",
+            "counter_currency_scale": "6",
+            "min_price_increment": "1",
+            "min_price_increment_scale": "3",
+            "min_order_size": "10163634",
+            "min_order_size_scale": "9",
+            "max_order_size": "0",
+            "max_order_size_scale": "8",
+            "lot_size": "1",
+            "lot_size_scale": "8",
+            "status": "open",
+            "id": "147",
+            "auction_price": "18.405",
+            "auction_size": "0.0",
+            "auction_time": "0",
+            "imbalance": "3.3379746"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0022
+                ],
+                [
+                    50000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.0018
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    2500000,
+                    0.0018
+                ],
+                [
+                    5000000,
+                    0.0016
+                ],
+                [
+                    25000000,
+                    0.0014
+                ],
+                [
+                    100000000,
+                    0.0011
+                ],
+                [
+                    500000000,
+                    0.0008
+                ],
+                [
+                    1000000000,
+                    0.0006
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    10000,
+                    0.0012
+                ],
+                [
+                    50000,
+                    0.001
+                ],
+                [
+                    100000,
+                    0.0008
+                ],
+                [
+                    500000,
+                    0.0007000000000000001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0005
+                ],
+                [
+                    5000000,
+                    0.0004
+                ],
+                [
+                    25000000,
+                    0.0003
+                ],
+                [
+                    100000000,
+                    0.0002
+                ],
+                [
+                    500000000,
+                    0.0001
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        },
+        "numericId": 147
+    }
+}

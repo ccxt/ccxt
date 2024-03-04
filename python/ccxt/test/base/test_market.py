@@ -12,10 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_market(exchange, skipped_properties, method, market):
     format = {
@@ -126,12 +124,12 @@ def test_market(exchange, skipped_properties, method, market):
         assert not market['spot'], '\"spot\" must be false when \"contract\" is true' + log_text
     else:
         # linear & inverse needs to be undefined
-        assert (market['linear'] is None) and (market['inverse'] is None), 'market linear and inverse must be undefined when \"contract\" is true' + log_text
+        assert (market['linear'] is None) and (market['inverse'] is None), 'market linear and inverse must be undefined when \"contract\" is false' + log_text
         # contract size should be undefined
         if not ('contractSize' in skipped_properties):
             assert contract_size is None, '\"contractSize\" must be undefined when \"contract\" is false' + log_text
         # settle should be undefined
-        assert (market['settle'] is None) and (market['settleId'] is None), '\"settle\" must be undefined when \"contract\" is true' + log_text
+        assert (market['settle'] is None) and (market['settleId'] is None), '\"settle\" must be undefined when \"contract\" is false' + log_text
         # spot should be true
         assert market['spot'], '\"spot\" must be true when \"contract\" is false' + log_text
     # option fields
@@ -189,3 +187,4 @@ def test_market(exchange, skipped_properties, method, market):
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, market, None, 'created')

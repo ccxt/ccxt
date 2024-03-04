@@ -1,0 +1,152 @@
+{
+    "BTC/USD": {
+        "id": "btcusd",
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "btc",
+        "quoteId": "usd",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": "<td>btcusd</td>\n<td>0.00001 BTC (1e-5)</td>\n<td>0.00000001 BTC (1e-8)</td>\n<td>0.01 USD</td>\n</tr>",
+        "taker": 0.004,
+        "maker": 0.002
+    },
+    "BTC/EUR": {
+        "id": "btceur",
+        "symbol": "BTC/EUR",
+        "base": "BTC",
+        "quote": "EUR",
+        "baseId": "btc",
+        "quoteId": "eur",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": "<td>btceur</td>\n<td>0.00001 BTC (1e-5)</td>\n<td>0.00000001 BTC (1e-8)</td>\n<td>0.01 EUR</td>\n</tr>",
+        "taker": 0.004,
+        "maker": 0.002
+    },
+    "LTC/USD": {
+        "id": "ltcusd",
+        "symbol": "LTC/USD",
+        "base": "LTC",
+        "quote": "USD",
+        "baseId": "ltc",
+        "quoteId": "usd",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": "<td>ltcusd</td>\n<td>0.01 LTC (1e-2)</td>\n<td>0.00001 LTC (1e-5)</td>\n<td>0.01 USD</td>\n</tr>",
+        "taker": 0.004,
+        "maker": 0.002
+    },
+    "ETH/USD": {
+        "id": "ethusd",
+        "symbol": "ETH/USD",
+        "base": "ETH",
+        "quote": "USD",
+        "baseId": "eth",
+        "quoteId": "usd",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": "<td>ethusd</td>\n<td>0.001 ETH (1e-3)</td>\n<td>0.000001 ETH (1e-6)</td>\n<td>0.01 USD</td>\n</tr>",
+        "taker": 0.004,
+        "maker": 0.002
+    },
+    "BTC/USDT": {
+        "id": "btcusdt",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "btc",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": "<td>btcusdt</td>\n<td>0.00001 BTC (1e-5)</td>\n<td>0.00000001 BTC (1e-8)</td>\n<td>0.01 USDT (1e-2)</td>\n</tr>",
+        "taker": 0.004,
+        "maker": 0.002
+    }
+}

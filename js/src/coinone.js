@@ -13,7 +13,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class coinone
- * @extends Exchange
+ * @augments Exchange
  */
 export default class coinone extends Exchange {
     describe() {
@@ -34,6 +34,8 @@ export default class coinone extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -41,18 +43,20 @@ export default class coinone extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddresses': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -75,12 +79,15 @@ export default class coinone extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'ws': false,
+                'ws': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
                 'api': {
                     'rest': 'https://api.coinone.co.kr',
+                    'v2Public': 'https://api.coinone.co.kr/public/v2',
+                    'v2Private': 'https://api.coinone.co.kr/v2',
+                    'v2_1Private': 'https://api.coinone.co.kr/v2.1',
                 },
                 'www': 'https://coinone.co.kr',
                 'doc': 'https://doc.coinone.co.kr',
@@ -92,31 +99,85 @@ export default class coinone extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'orderbook/',
-                        'trades/',
-                        'ticker/',
+                        'orderbook',
+                        'ticker',
+                        'ticker_utc',
+                        'trades',
+                    ],
+                },
+                'v2Public': {
+                    'get': [
+                        'range_units',
+                        'markets/{quote_currency}',
+                        'markets/{quote_currency}/{target_currency}',
+                        'orderbook/{quote_currency}/{target_currency}',
+                        'trades/{quote_currency}/{target_currency}',
+                        'ticker_new/{quote_currency}',
+                        'ticker_new/{quote_currency}/{target_currency}',
+                        'ticker_utc_new/{quote_currency}',
+                        'ticker_utc_new/{quote_currency}/{target_currency}',
+                        'currencies',
+                        'currencies/{currency}',
+                        'chart/{quote_currency}/{target_currency}',
                     ],
                 },
                 'private': {
                     'post': [
-                        'account/deposit_address/',
-                        'account/btc_deposit_address/',
-                        'account/balance/',
-                        'account/daily_balance/',
-                        'account/user_info/',
-                        'account/virtual_account/',
-                        'order/cancel_all/',
-                        'order/cancel/',
-                        'order/limit_buy/',
-                        'order/limit_sell/',
-                        'order/complete_orders/',
-                        'order/limit_orders/',
-                        'order/query_order/',
-                        'transaction/auth_number/',
-                        'transaction/history/',
-                        'transaction/krw/history/',
-                        'transaction/btc/',
-                        'transaction/coin/',
+                        'account/deposit_address',
+                        'account/btc_deposit_address',
+                        'account/balance',
+                        'account/daily_balance',
+                        'account/user_info',
+                        'account/virtual_account',
+                        'order/cancel_all',
+                        'order/cancel',
+                        'order/limit_buy',
+                        'order/limit_sell',
+                        'order/complete_orders',
+                        'order/limit_orders',
+                        'order/order_info',
+                        'transaction/auth_number',
+                        'transaction/history',
+                        'transaction/krw/history',
+                        'transaction/btc',
+                        'transaction/coin',
+                    ],
+                },
+                'v2Private': {
+                    'post': [
+                        'account/balance',
+                        'account/deposit_address',
+                        'account/user_info',
+                        'account/virtual_account',
+                        'order/cancel',
+                        'order/limit_buy',
+                        'order/limit_sell',
+                        'order/limit_orders',
+                        'order/complete_orders',
+                        'order/query_order',
+                        'transaction/auth_number',
+                        'transaction/btc',
+                        'transaction/history',
+                        'transaction/krw/history',
+                    ],
+                },
+                'v2_1Private': {
+                    'post': [
+                        'account/balance/all',
+                        'account/balance',
+                        'account/trade_fee',
+                        'account/trade_fee/{quote_currency}/{target_currency}',
+                        'order/limit',
+                        'order/cancel',
+                        'order/cancel/all',
+                        'order/open_orders',
+                        'order/open_orders/all',
+                        'order/complete_orders',
+                        'order/complete_orders/all',
+                        'order/info',
+                        'transaction/krw/history',
+                        'transaction/coin/history',
+                        'transaction/coin/withdrawal/limit',
                     ],
                 },
             },
@@ -140,53 +201,129 @@ export default class coinone extends Exchange {
             },
         });
     }
+    async fetchCurrencies(params = {}) {
+        /**
+         * @method
+         * @name coinone#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://docs.coinone.co.kr/reference/currencies
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.v2PublicGetCurrencies(params);
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701054555578,
+        //         "currencies": [
+        //           {
+        //             "name": "Polygon",
+        //             "symbol": "MATIC",
+        //             "deposit_status": "normal",
+        //             "withdraw_status": "normal",
+        //             "deposit_confirm_count": 150,
+        //             "max_precision": 8,
+        //             "deposit_fee": "0.0",
+        //             "withdrawal_min_amount": "1.0",
+        //             "withdrawal_fee": "3.0"
+        //           }
+        //         ]
+        //     }
+        //
+        const result = {};
+        const currencies = this.safeValue(response, 'currencies', []);
+        for (let i = 0; i < currencies.length; i++) {
+            const entry = currencies[i];
+            const id = this.safeString(entry, 'symbol');
+            const name = this.safeString(entry, 'name');
+            const code = this.safeCurrencyCode(id);
+            const withdrawStatus = this.safeString(entry, 'withdraw_status', '');
+            const depositStatus = this.safeString(entry, 'deposit_status', '');
+            const isWithdrawEnabled = withdrawStatus === 'normal';
+            const isDepositEnabled = depositStatus === 'normal';
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': entry,
+                'name': name,
+                'active': isWithdrawEnabled && isDepositEnabled,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
+                'fee': this.safeNumber(entry, 'withdrawal_fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'max_precision'))),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber(entry, 'withdrawal_min_amount'),
+                        'max': undefined,
+                    },
+                },
+                'networks': {},
+            };
+        }
+        return result;
+    }
     async fetchMarkets(params = {}) {
         /**
          * @method
          * @name coinone#fetchMarkets
          * @description retrieves data on all markets for coinone
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const request = {
-            'currency': 'all',
+            'quote_currency': 'KRW',
         };
-        const response = await this.publicGetTicker(request);
+        const response = await this.v2PublicGetTickerNewQuoteCurrency(request);
         //
-        //    {
-        //        "result": "success",
-        //        "errorCode": "0",
-        //        "timestamp": "1643676668",
-        //        "xec": {
-        //          "currency": "xec",
-        //          "first": "0.0914",
-        //          "low": "0.0894",
-        //          "high": "0.096",
-        //          "last": "0.0937",
-        //          "volume": "1673283662.9797",
-        //          "yesterday_first": "0.0929",
-        //          "yesterday_low": "0.0913",
-        //          "yesterday_high": "0.0978",
-        //          "yesterday_last": "0.0913",
-        //          "yesterday_volume": "1167285865.4571"
-        //        },
-        //        ...
-        //    }
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701067923060,
+        //         "tickers": [
+        //             {
+        //                 "quote_currency": "krw",
+        //                 "target_currency": "stg",
+        //                 "timestamp": 1701067920001,
+        //                 "high": "667.5",
+        //                 "low": "667.5",
+        //                 "first": "667.5",
+        //                 "last": "667.5",
+        //                 "quote_volume": "0.0",
+        //                 "target_volume": "0.0",
+        //                 "best_asks": [
+        //                     {
+        //                         "price": "777.0",
+        //                         "qty": "73.9098"
+        //                     }
+        //                 ],
+        //                 "best_bids": [
+        //                     {
+        //                         "price": "690.8",
+        //                         "qty": "40.7768"
+        //                     }
+        //                 ],
+        //                 "id": "1701067920001001"
+        //             }
+        //         ]
+        //     }
         //
+        const tickers = this.safeValue(response, 'tickers', []);
         const result = [];
-        const quoteId = 'krw';
-        const quote = this.safeCurrencyCode(quoteId);
-        const baseIds = Object.keys(response);
-        for (let i = 0; i < baseIds.length; i++) {
-            const baseId = baseIds[i];
-            const ticker = this.safeValue(response, baseId, {});
-            const currency = this.safeValue(ticker, 'currency');
-            if (currency === undefined) {
-                continue;
-            }
+        for (let i = 0; i < tickers.length; i++) {
+            const entry = this.safeValue(tickers, i);
+            const id = this.safeString(entry, 'id');
+            const baseId = this.safeStringUpper(entry, 'target_currency');
+            const quoteId = this.safeStringUpper(entry, 'quote_currency');
             const base = this.safeCurrencyCode(baseId);
+            const quote = this.safeCurrencyCode(quoteId);
             result.push({
-                'id': baseId,
+                'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
@@ -232,7 +369,8 @@ export default class coinone extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': ticker,
+                'created': undefined,
+                'info': entry,
             });
         }
         return result;
@@ -261,11 +399,12 @@ export default class coinone extends Exchange {
          * @method
          * @name coinone#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @see https://docs.coinone.co.kr/v1.0/reference/v21
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
-        const response = await this.privatePostAccountBalance(params);
+        const response = await this.v2PrivatePostAccountBalance(params);
         return this.parseBalance(response);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -273,109 +412,221 @@ export default class coinone extends Exchange {
          * @method
          * @name coinone#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.coinone.co.kr/v1.0/reference/orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'currency': market['id'],
-            'format': 'json',
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
         };
-        const response = await this.publicGetOrderbook(this.extend(request, params));
-        const timestamp = this.safeTimestamp(response, 'timestamp');
-        return this.parseOrderBook(response, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty');
+        if (limit !== undefined) {
+            request['size'] = limit; // only support 5, 10, 15, 16
+        }
+        const response = await this.v2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.extend(request, params));
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "timestamp": 1701071108673,
+        //         "id": "1701071108673001",
+        //         "quote_currency": "KRW",
+        //         "target_currency": "BTC",
+        //         "order_book_unit": "0.0",
+        //         "bids": [
+        //             {
+        //                 "price": "50048000",
+        //                 "qty": "0.01080229"
+        //             }
+        //         ],
+        //         "asks": [
+        //             {
+        //                 "price": "50058000",
+        //                 "qty": "0.00272592"
+        //             }
+        //         ]
+        //     }
+        //
+        const timestamp = this.safeInteger(response, 'timestamp');
+        return this.parseOrderBook(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'qty');
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+         * @see https://docs.coinone.co.kr/v1.0/reference/ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const request = {
-            'currency': 'all',
-            'format': 'json',
+            'quote_currency': 'KRW',
         };
-        const response = await this.publicGetTicker(this.extend(request, params));
-        const result = {};
-        const ids = Object.keys(response);
-        const timestamp = this.safeTimestamp(response, 'timestamp');
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = this.safeMarket(id);
-            const symbol = market['symbol'];
-            const ticker = response[id];
-            result[symbol] = this.parseTicker(ticker, market);
-            result[symbol]['timestamp'] = timestamp;
+        let market = undefined;
+        let response = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeString(symbols, 0);
+            market = this.market(first);
+            request['quote_currency'] = market['quote'];
+            request['target_currency'] = market['base'];
+            response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, params));
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        else {
+            response = await this.v2PublicGetTickerNewQuoteCurrency(this.extend(request, params));
+        }
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701073358487,
+        //         "tickers": [
+        //             {
+        //                 "quote_currency": "krw",
+        //                 "target_currency": "btc",
+        //                 "timestamp": 1701073357818,
+        //                 "high": "50543000.0",
+        //                 "low": "49945000.0",
+        //                 "first": "50487000.0",
+        //                 "last": "50062000.0",
+        //                 "quote_volume": "11349804285.3859",
+        //                 "target_volume": "226.07268994",
+        //                 "best_asks": [
+        //                     {
+        //                         "price": "50081000.0",
+        //                         "qty": "0.18471358"
+        //                     }
+        //                 ],
+        //                 "best_bids": [
+        //                     {
+        //                         "price": "50062000.0",
+        //                         "qty": "0.04213455"
+        //                     }
+        //                 ],
+        //                 "id": "1701073357818001"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue(response, 'tickers', []);
+        return this.parseTickers(data, symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
          * @method
          * @name coinone#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.coinone.co.kr/v1.0/reference/ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'currency': market['id'],
-            'format': 'json',
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
         };
-        const response = await this.publicGetTicker(this.extend(request, params));
-        return this.parseTicker(response, market);
+        const response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, params));
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701073358487,
+        //         "tickers": [
+        //             {
+        //                 "quote_currency": "krw",
+        //                 "target_currency": "btc",
+        //                 "timestamp": 1701073357818,
+        //                 "high": "50543000.0",
+        //                 "low": "49945000.0",
+        //                 "first": "50487000.0",
+        //                 "last": "50062000.0",
+        //                 "quote_volume": "11349804285.3859",
+        //                 "target_volume": "226.07268994",
+        //                 "best_asks": [
+        //                     {
+        //                         "price": "50081000.0",
+        //                         "qty": "0.18471358"
+        //                     }
+        //                 ],
+        //                 "best_bids": [
+        //                     {
+        //                         "price": "50062000.0",
+        //                         "qty": "0.04213455"
+        //                     }
+        //                 ],
+        //                 "id": "1701073357818001"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue(response, 'tickers', []);
+        const ticker = this.safeValue(data, 0, {});
+        return this.parseTicker(ticker, market);
     }
     parseTicker(ticker, market = undefined) {
         //
         //     {
-        //         "currency":"xec",
-        //         "first":"0.1069",
-        //         "low":"0.09",
-        //         "high":"0.1069",
-        //         "last":"0.0911",
-        //         "volume":"4591217267.4974",
-        //         "yesterday_first":"0.1128",
-        //         "yesterday_low":"0.1035",
-        //         "yesterday_high":"0.1167",
-        //         "yesterday_last":"0.1069",
-        //         "yesterday_volume":"4014832231.5102"
+        //         "quote_currency": "krw",
+        //         "target_currency": "btc",
+        //         "timestamp": 1701073357818,
+        //         "high": "50543000.0",
+        //         "low": "49945000.0",
+        //         "first": "50487000.0",
+        //         "last": "50062000.0",
+        //         "quote_volume": "11349804285.3859",
+        //         "target_volume": "226.07268994",
+        //         "best_asks": [
+        //             {
+        //                 "price": "50081000.0",
+        //                 "qty": "0.18471358"
+        //             }
+        //         ],
+        //         "best_bids": [
+        //             {
+        //                 "price": "50062000.0",
+        //                 "qty": "0.04213455"
+        //             }
+        //         ],
+        //         "id": "1701073357818001"
         //     }
         //
-        const timestamp = this.safeTimestamp(ticker, 'timestamp');
-        const open = this.safeString(ticker, 'first');
+        const timestamp = this.safeInteger(ticker, 'timestamp');
         const last = this.safeString(ticker, 'last');
-        const previousClose = this.safeString(ticker, 'yesterday_last');
-        const symbol = this.safeSymbol(undefined, market);
+        const asks = this.safeValue(ticker, 'best_asks');
+        const bids = this.safeValue(ticker, 'best_bids');
+        const baseId = this.safeString(ticker, 'target_currency');
+        const quoteId = this.safeString(ticker, 'quote_currency');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
         return this.safeTicker({
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': this.safeString(bids, 'price'),
+            'bidVolume': this.safeString(bids, 'qty'),
+            'ask': this.safeString(asks, 'price'),
+            'askVolume': this.safeString(asks, 'qty'),
             'vwap': undefined,
-            'open': open,
+            'open': this.safeString(ticker, 'first'),
             'close': last,
             'last': last,
-            'previousClose': previousClose,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'volume'),
-            'quoteVolume': undefined,
+            'baseVolume': this.safeString(ticker, 'target_volume'),
+            'quoteVolume': this.safeString(ticker, 'quote_volume'),
             'info': ticker,
         }, market);
     }
@@ -384,10 +635,11 @@ export default class coinone extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "timestamp": "1416893212",
-        //         "price": "420000.0",
-        //         "qty": "0.1",
-        //         "is_ask": "1"
+        //         "id": "1701075265708001",
+        //         "timestamp": 1701075265708,
+        //         "price": "50020000",
+        //         "qty": "0.00155177",
+        //         "is_seller_maker": false
         //     }
         //
         // fetchMyTrades (private)
@@ -402,25 +654,12 @@ export default class coinone extends Exchange {
         //         "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
         //     }
         //
-        const timestamp = this.safeTimestamp(trade, 'timestamp');
+        const timestamp = this.safeInteger(trade, 'timestamp');
         market = this.safeMarket(undefined, market);
-        const is_ask = this.safeString(trade, 'is_ask');
-        let side = this.safeString(trade, 'type');
-        if (is_ask !== undefined) {
-            if (is_ask === '1') {
-                side = 'sell';
-            }
-            else if (is_ask === '0') {
-                side = 'buy';
-            }
-        }
-        else {
-            if (side === 'ask') {
-                side = 'sell';
-            }
-            else if (side === 'bid') {
-                side = 'buy';
-            }
+        const isSellerMaker = this.safeValue(trade, 'is_seller_maker');
+        let side = undefined;
+        if (isSellerMaker !== undefined) {
+            side = isSellerMaker ? 'sell' : 'buy';
         }
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'qty');
@@ -459,37 +698,43 @@ export default class coinone extends Exchange {
          * @method
          * @name coinone#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'currency': market['id'],
-            'format': 'json',
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
         };
-        const response = await this.publicGetTrades(this.extend(request, params));
+        if (limit !== undefined) {
+            request['size'] = Math.min(limit, 200);
+        }
+        const response = await this.v2PublicGetTradesQuoteCurrencyTargetCurrency(this.extend(request, params));
         //
         //     {
         //         "result": "success",
-        //         "errorCode": "0",
-        //         "timestamp": "1416895635",
-        //         "currency": "btc",
-        //         "completeOrders": [
+        //         "error_code": "0",
+        //         "server_time": 1701075315771,
+        //         "quote_currency": "KRW",
+        //         "target_currency": "BTC",
+        //         "transactions": [
         //             {
-        //                 "timestamp": "1416893212",
-        //                 "price": "420000.0",
-        //                 "qty": "0.1",
-        //                 "is_ask": "1"
+        //                 "id": "1701075265708001",
+        //                 "timestamp": 1701075265708,
+        //                 "price": "50020000",
+        //                 "qty": "0.00155177",
+        //                 "is_seller_maker": false
         //             }
         //         ]
         //     }
         //
-        const completeOrders = this.safeValue(response, 'completeOrders', []);
-        return this.parseTrades(completeOrders, market, since, limit);
+        const data = this.safeValue(response, 'transactions', []);
+        return this.parseTrades(data, market, since, limit);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -503,8 +748,8 @@ export default class coinone extends Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (type !== 'limit') {
             throw new ExchangeError(this.id + ' createOrder() allows limit orders only');
@@ -533,8 +778,8 @@ export default class coinone extends Exchange {
          * @name coinone#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
@@ -545,7 +790,7 @@ export default class coinone extends Exchange {
             'order_id': id,
             'currency': market['id'],
         };
-        const response = await this.privatePostOrderQueryOrder(this.extend(request, params));
+        const response = await this.v2PrivatePostOrderQueryOrder(this.extend(request, params));
         //
         //     {
         //         "result": "success",
@@ -626,10 +871,19 @@ export default class coinone extends Exchange {
         const id = this.safeString(order, 'orderId');
         const baseId = this.safeString(order, 'baseCurrency');
         const quoteId = this.safeString(order, 'targetCurrency');
-        const base = this.safeCurrencyCode(baseId, market['base']);
-        const quote = this.safeCurrencyCode(quoteId, market['quote']);
-        const symbol = base + '/' + quote;
-        market = this.safeMarket(symbol, market, '/');
+        let base = undefined;
+        let quote = undefined;
+        if (baseId !== undefined) {
+            base = this.safeCurrencyCode(baseId);
+        }
+        if (quoteId !== undefined) {
+            quote = this.safeCurrencyCode(quoteId);
+        }
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            market = this.safeMarket(symbol, market, '/');
+        }
         const timestamp = this.safeTimestamp2(order, 'timestamp', 'updatedAt');
         let side = this.safeString2(order, 'type', 'side');
         if (side === 'ask') {
@@ -694,8 +948,8 @@ export default class coinone extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
@@ -736,8 +990,8 @@ export default class coinone extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
@@ -747,7 +1001,7 @@ export default class coinone extends Exchange {
         const request = {
             'currency': market['id'],
         };
-        const response = await this.privatePostOrderCompleteOrders(this.extend(request, params));
+        const response = await this.v2PrivatePostOrderCompleteOrders(this.extend(request, params));
         //
         // despite the name of the endpoint it returns trades which may have a duplicate orderId
         // https://github.com/ccxt/ccxt/pull/7067
@@ -778,8 +1032,8 @@ export default class coinone extends Exchange {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             // eslint-disable-next-line quotes
@@ -800,7 +1054,7 @@ export default class coinone extends Exchange {
             'is_ask': isAsk,
             'currency': this.marketId(symbol),
         };
-        const response = await this.privatePostOrderCancel(this.extend(request, params));
+        const response = await this.v2PrivatePostOrderCancel(this.extend(request, params));
         //
         //     {
         //         "result": "success",
@@ -815,22 +1069,22 @@ export default class coinone extends Exchange {
          * @name coinone#fetchDepositAddresses
          * @description fetch deposit addresses for multiple currencies and chain types
          * @param {string[]|undefined} codes list of unified currency codes, default is undefined
-         * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} a list of [address structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
-        const response = await this.privatePostAccountDepositAddress(params);
+        const response = await this.v2PrivatePostAccountDepositAddress(params);
         //
         //     {
-        //         result: 'success',
-        //         errorCode: '0',
-        //         walletAddress: {
-        //             matic: null,
-        //             btc: "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
-        //             xrp: null,
-        //             xrp_tag: '-1',
-        //             kava: null,
-        //             kava_memo: null,
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "walletAddress": {
+        //             "matic": null,
+        //             "btc": "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        //             "xrp": null,
+        //             "xrp_tag": "-1",
+        //             "kava": null,
+        //             "kava_memo": null,
         //         }
         //     }
         //
@@ -872,6 +1126,16 @@ export default class coinone extends Exchange {
         const request = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         let url = this.urls['api']['rest'] + '/';
+        if (api === 'v2Public') {
+            url = this.urls['api']['v2Public'] + '/';
+            api = 'public';
+        }
+        else if (api === 'v2Private') {
+            url = this.urls['api']['v2Private'] + '/';
+        }
+        else if (api === 'v2_1Private') {
+            url = this.urls['api']['v2_1Private'] + '/';
+        }
         if (api === 'public') {
             url += request;
             if (Object.keys(query).length) {
@@ -880,7 +1144,7 @@ export default class coinone extends Exchange {
         }
         else {
             this.checkRequiredCredentials();
-            url += this.version + '/' + request;
+            url += request;
             const nonce = this.nonce().toString();
             const json = this.json(this.extend({
                 'access_token': this.apiKey,
@@ -889,7 +1153,7 @@ export default class coinone extends Exchange {
             const payload = this.stringToBase64(json);
             body = payload;
             const secret = this.secret.toUpperCase();
-            const signature = this.hmac(payload, this.encode(secret), sha512);
+            const signature = this.hmac(this.encode(payload), this.encode(secret), sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
