@@ -3181,8 +3181,18 @@ export default class coinbase extends Exchange {
         const request = {
             'product_id': market['id'],
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
+        } else {
+            request['limit'] = 100;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'until', 'till');
+        if (until !== undefined) {
+            request['end'] = until;
         }
         const response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
         //
