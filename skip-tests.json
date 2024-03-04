@@ -297,7 +297,6 @@
         }
     },
     "bitmart": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "expiry":"expiry is expected to be > 0",
@@ -336,7 +335,8 @@
                 "spread": "same"
             },
             "watchTrades":{
-                "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312"
+                "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
+                "timestamp": "messed order coming from exchange"
             }
         }
     },
