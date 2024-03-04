@@ -74,6 +74,7 @@ class bybit extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -6235,6 +6236,32 @@ class bybit extends Exchange {
             'stopLossPrice' => $this->safe_number_2($position, 'stop_loss', 'stopLoss'),
             'takeProfitPrice' => $this->safe_number_2($position, 'take_profit', 'takeProfit'),
         ));
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+        /**
+         * fetch the set leverage for a $market
+         * @see https://bybit-exchange.github.io/docs/v5/position
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $position = $this->fetch_position($symbol, $params);
+        return $this->parse_leverage($position, $market);
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'marginMode'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {

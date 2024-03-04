@@ -2422,11 +2422,11 @@ class krakenfutures extends Exchange {
         return $this->privatePutLeveragepreferences (array_merge($request, $params));
     }
 
-    public function fetch_leverage(?string $symbol = null, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
         /**
-         * fetch the set leverage for a market
-         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
-         * @param {string} $symbol unified market $symbol
+         * fetch the set leverage for a $market
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-$market
+         * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
          */
@@ -2434,17 +2434,33 @@ class krakenfutures extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a $symbol argument');
         }
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => strtoupper($this->market_id($symbol)),
         );
+        $response = $this->privateGetLeveragepreferences (array_merge($request, $params));
         //
-        //   {
-        //       "result" => "success",
-        //       "serverTime" => "2023-08-01T09:54:08.900Z",
-        //       "leveragePreferences" => array( array( $symbol => "PF_LTCUSD", maxLeverage => "5.00" ) )
-        //   }
+        //     {
+        //         "result" => "success",
+        //         "serverTime" => "2023-08-01T09:54:08.900Z",
+        //         "leveragePreferences" => array( array( $symbol => "PF_LTCUSD", maxLeverage => "5.00" ) )
+        //     }
         //
-        return $this->privateGetLeveragepreferences (array_merge($request, $params));
+        $leveragePreferences = $this->safe_list($response, 'leveragePreferences', array());
+        $data = $this->safe_dict($leveragePreferences, 0, array());
+        return $this->parse_leverage($data, $market);
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $leverageValue = $this->safe_integer($leverage, 'maxLeverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

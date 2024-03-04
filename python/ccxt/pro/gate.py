@@ -368,8 +368,9 @@ class gate(ccxt.async_support.gate):
         parts = channel.split('.')
         rawMarketType = self.safe_string(parts, 0)
         marketType = 'contract' if (rawMarketType == 'futures') else 'spot'
+        result = self.safe_value(message, 'result')
         results = []
-        if marketType == 'contract':
+        if isinstance(result, list):
             results = self.safe_list(message, 'result', [])
         else:
             rawTicker = self.safe_dict(message, 'result', {})

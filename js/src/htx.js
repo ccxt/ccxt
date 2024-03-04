@@ -1234,9 +1234,10 @@ export default class htx extends Exchange {
     async fetchStatus(params = {}) {
         await this.loadMarkets();
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', undefined, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchStatus', undefined, params);
+        const enabledForContracts = this.handleOption('fetchStatus', 'enableForContracts', false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
         let response = undefined;
-        if (marketType !== 'spot') {
+        if (marketType !== 'spot' && enabledForContracts) {
             const subType = this.safeString(params, 'subType', this.options['defaultSubType']);
             if (marketType === 'swap') {
                 if (subType === 'linear') {
@@ -1258,7 +1259,7 @@ export default class htx extends Exchange {
                 response = await this.contractPublicGetHeartbeat();
             }
         }
-        else {
+        else if (marketType === 'spot') {
             response = await this.statusPublicSpotGetApiV2SummaryJson();
         }
         //
@@ -1427,7 +1428,12 @@ export default class htx extends Exchange {
         let url = undefined;
         if (marketType === 'contract') {
             const statusRaw = this.safeString(response, 'status');
-            status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            if (statusRaw === undefined) {
+                status = undefined;
+            }
+            else {
+                status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            }
             updated = this.safeString(response, 'ts');
         }
         else {

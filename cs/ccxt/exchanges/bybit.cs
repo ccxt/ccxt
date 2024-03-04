@@ -70,6 +70,7 @@ public partial class bybit : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchLedger", true },
+                { "fetchLeverage", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -6751,6 +6752,37 @@ public partial class bybit : Exchange
             { "stopLossPrice", this.safeNumber2(position, "stop_loss", "stopLoss") },
             { "takeProfitPrice", this.safeNumber2(position, "take_profit", "takeProfit") },
         });
+    }
+
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://bybit-exchange.github.io/docs/v5/position
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object position = await this.fetchPosition(symbol, parameters);
+        return this.parseLeverage(position, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        object leverageValue = this.safeInteger(leverage, "leverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", this.safeStringLower(leverage, "marginMode") },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
     }
 
     public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)

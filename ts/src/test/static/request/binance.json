@@ -2698,6 +2698,82 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchTradingLimits": [
+            {
+                "disabled": true,
+                "reason": "fetchMarkets performs multiple requests and that's not supported by static-tests",
+                "description": "Fetch Trading Limits with a symbol array argument",
+                "method": "fetchTradingLimits",
+                "url": "https://testnet.binancefuture.com/dapi/v1/exchangeInfo",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "disabled": true,
+                "description": "Fetch Trading Limits with no input arguments",
+                "method": "fetchTradingLimits",
+                "url": "https://testnet.binancefuture.com/dapi/v1/exchangeInfo",
+                "input": []
+            }
+        ],
+        "fetchCanceledAndClosedOrders":[
+            {
+                "description": "fetch canceled and closed orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://testnet.binance.vision/api/v3/allOrders?timestamp=1708947070267&symbol=XRPUSDT&recvWindow=10000&signature=e3492363f286490a957b9500d81d89ea16bd7d21460150051055c5642b2c2ae1",
+                "input": [
+                    "XRP/USDT"
+                ]
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709136468103&recvWindow=10000&signature=b24aa2014e8f5e24af708947eac62196161221c58f303a67e6755f725a7ab650",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "Linear swap fetch all set leverages",
+                "method": "fetchLeverages",
+                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709365967532&recvWindow=10000&signature=0ba690bc39cc0f098fc8adfab9a10e991a239b02b59e92c7cc88281c74b7ec1e",
+                "input": []
+            }
+        ],
+        "fetchMarginModes": [
+            {
+                "description": "Fetch Margin Modes with linear subType and symbol list",
+                "method": "fetchMarginModes",
+                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709152197362&recvWindow=10000&signature=e03e51e9eaf6ccadbe8171e52d588d13e389861804104ee7948d768609713aaf",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ],
+                  {
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch Margin Modes with inverse subType",
+                "method": "fetchMarginModes",
+                "url": "https://testnet.binancefuture.com/dapi/v1/account?timestamp=1709152094640&recvWindow=10000&signature=3e5f0e80eddbfc30770b5bc9e9981900696de5e3236b0f9c27fe59255769c489",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            }
         ]
     }
 }

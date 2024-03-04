@@ -2811,6 +2811,7 @@ class delta extends delta$1 {
         const request = {
             'product_id': market['numericId'],
         };
+        const response = await this.privateGetProductsProductIdOrdersLeverage(this.extend(request, params));
         //
         //     {
         //         "result": {
@@ -2824,7 +2825,19 @@ class delta extends delta$1 {
         //         "success": true
         //     }
         //
-        return await this.privateGetProductsProductIdOrdersLeverage(this.extend(request, params));
+        const result = this.safeDict(response, 'result', {});
+        return this.parseLeverage(result, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'index_symbol');
+        const leverageValue = this.safeInteger(leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': this.safeStringLower(leverage, 'margin_mode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         /**
