@@ -3786,8 +3786,7 @@ export default class coinbase extends Exchange {
                 }
             } else {
                 this.checkRequiredCredentials ();
-                const timestamp = this.seconds ();
-                const timestampString = timestamp.toString ();
+                const timestampString = this.seconds ().toString ();
                 let payload = '';
                 if (method !== 'GET') {
                     if (Object.keys (query).length) {
@@ -3801,7 +3800,7 @@ export default class coinbase extends Exchange {
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,
                     'CB-ACCESS-SIGN': signature,
-                    'CB-ACCESS-TIMESTAMP': timestamp,
+                    'CB-ACCESS-TIMESTAMP': timestampString,
                     'Content-Type': 'application/json',
                 };
             }
