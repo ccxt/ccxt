@@ -3300,22 +3300,19 @@ export default class bitget extends Exchange {
         };
         const until = this.safeInteger2 (params, 'until', 'till');
         params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         if (since !== undefined) {
             request['startTime'] = since;
-        }
-        if (since !== undefined) {
-            if (limit === undefined) {
-                limit = 100; // exchange default
+            if (until === undefined) {
+                limit = (limit !== undefined) ? limit : 100; // exchange default 100
+                const duration = this.parseTimeframe (timeframe) * 1000;
+                request['endTime'] = this.sum (since, duration * (limit + 1)) - 1;  // limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
             }
-            const duration = this.parseTimeframe (timeframe) * 1000;
-            request['endTime'] = this.sum (since, duration * (limit + 1)) - 1;  // limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
-        } else if (until !== undefined) {
-            request['endTime'] = until;
-        } else {
-            request['endTime'] = this.milliseconds ();
         }
         let response = undefined;
         const thirtyOneDaysAgo = this.milliseconds () - 2678400000;
