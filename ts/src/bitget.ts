@@ -3294,6 +3294,7 @@ export default class bitget extends Exchange {
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
+        const duration = this.parseTimeframe (timeframe) * 1000;
         const request = {
             'symbol': market['id'],
             'granularity': selectedTimeframe,
@@ -3305,22 +3306,21 @@ export default class bitget extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000); // max 1000
+        } else {
+            request['limit'] = 100; // default 100
         }
-        const defaultLimitValue = (limit !== undefined) ? limit : 100; // exchange default 100
-        const duration = this.parseTimeframe (timeframe) * 1000;
         if (since !== undefined) {
             request['startTime'] = since;
-            if (until === undefined) {
-                limit = defaultLimitValue;
-                request['endTime'] = this.sum (since, duration * (limit + 1)) - 1;  // limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
-            }
+            // in this case, we need to send "entTime" too
+            const calculatedEnd = this.sum (since, duration * (limit + 1)) - 1;  // limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
+            request['endTime'] = (until === undefined) ? calculatedEnd : Math.min (until, calculatedEnd);
         }
         let response = undefined;
         const now = this.milliseconds ();
         const msInDay = 1000 * 60 * 60 * 24;
         // retrievable periods listed here:
-        // spot: https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
-        // contract: https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
+        // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
+        // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
         const retrievableDaysMapForSpot = {
             '1m': 30,
             '3m': 30,
@@ -3338,9 +3338,9 @@ export default class bitget extends Exchange {
             '1w': 1000,
             '1M': 1000,
         };
-        const maxRetrievableDays = this.safeInteger (retrievableDaysMapForSpot, timeframe, 30); // let's safe default to minimum
+        const maxRetrievableDays = this.safeInteger (retrievableDaysMapForSpot, timeframe, 30); // default to safe minimum
         const endpointTsBoundary = now - maxRetrievableDays * msInDay;
-        const needsHistoryEndpoint = (since !== undefined && since < endpointTsBoundary) || (until !== undefined && until - defaultLimitValue * duration < endpointTsBoundary);
+        const needsHistoryEndpoint = (since !== undefined && since < endpointTsBoundary) || (until !== undefined && until - limit * duration < endpointTsBoundary);
         if (market['spot']) {
             if (needsHistoryEndpoint) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
@@ -3348,6 +3348,17 @@ export default class bitget extends Exchange {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             }
         } else {
+            // for contracts, there can be maximum 90 days between start-end times
+            const maxDistanceDays = 90;
+            let showError = false;
+            if (limit * duration > maxDistanceDays * msInDay) {
+                showError = true;
+            } else if (since !== undefined && until !== undefined && until - since > maxDistanceDays * msInDay) {
+                showError = true;
+            }
+            if (showError) {
+                throw new BadRequest (this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDays.toString () + ' days');
+            }
             const priceType = this.safeString (params, 'price');
             params = this.omit (params, [ 'price' ]);
             let productType = undefined;
