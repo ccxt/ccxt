@@ -3306,18 +3306,21 @@ export default class bitget extends Exchange {
             request['endTime'] = until;
         }
         // for contracts, there can be maximum 90 days between start-end times
+        const defaultLimit = 100;
         const maxDistanceDays = 90;
         const msInDay = 1000 * 60 * 60 * 24;
         if (limit !== undefined) {
             limit = Math.min (limit, maxLimit);
-        } else {
+            request['limit'] = limit;
+        }
+        else {
             limit = 100; // default 100
             // for contracts, lower default to hardcap 90 days
             if (market['contract'] && duration >= msInDay) {
                 limit = this.parseToInt (maxDistanceDays * msInDay / duration);
             }
         }
-        request['limit'] = limit;
+        
         if (since !== undefined) {
             request['startTime'] = since;
             // in this case, we need to send "entTime" too
