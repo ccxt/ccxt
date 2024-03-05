@@ -73,6 +73,7 @@ public partial class blofin : Exchange
                 { "fetchLedger", true },
                 { "fetchLedgerEntry", null },
                 { "fetchLeverage", true },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
@@ -177,6 +178,7 @@ public partial class blofin : Exchange
                         { "account/balance", 1 },
                         { "account/positions", 1 },
                         { "account/leverage-info", 1 },
+                        { "account/batch-leverage-info", 1 },
                         { "trade/orders-tpsl-pending", 1 },
                         { "trade/orders-history", 1 },
                         { "trade/orders-tpsl-history", 1 },
@@ -2082,13 +2084,79 @@ public partial class blofin : Exchange
         });
     }
 
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name blofin#fetchLeverages
+        * @description fetch the set leverage for all contract markets
+        * @see https://docs.blofin.com/index.html#get-multiple-leverage
+        * @param {string[]} symbols a list of unified market symbols, required on blofin
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.marginMode] 'cross' or 'isolated'
+        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchLeverages() requires a symbols argument")) ;
+        }
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverages", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(isEqual(marginMode, null)))
+        {
+            marginMode = this.safeString(parameters, "marginMode", "cross"); // cross as default marginMode
+        }
+        if (isTrue(isTrue((!isEqual(marginMode, "cross"))) && isTrue((!isEqual(marginMode, "isolated")))))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
+        }
+        symbols = this.marketSymbols(symbols);
+        object instIds = "";
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object entry = getValue(symbols, i);
+            object entryMarket = this.market(entry);
+            if (isTrue(isGreaterThan(i, 0)))
+            {
+                instIds = add(add(instIds, ","), getValue(entryMarket, "id"));
+            } else
+            {
+                instIds = add(instIds, getValue(entryMarket, "id"));
+            }
+        }
+        object request = new Dictionary<string, object>() {
+            { "instId", instIds },
+            { "marginMode", marginMode },
+        };
+        object response = await this.privateGetAccountBatchLeverageInfo(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "leverage": "3",
+        //                 "marginMode": "cross",
+        //                 "instId": "BTC-USDT"
+        //             },
+        //         ]
+        //     }
+        //
+        object leverages = this.safeList(response, "data", new List<object>() {});
+        return this.parseLeverages(leverages, symbols, "instId");
+    }
+
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method
         * @name blofin#fetchLeverage
         * @description fetch the set leverage for a market
-        * @see https://blofin.com/docs#set-leverage
+        * @see https://docs.blofin.com/index.html#get-leverage
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated'

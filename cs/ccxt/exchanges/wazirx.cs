@@ -105,7 +105,7 @@ public partial class wazirx : Exchange
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "exchangeInfo", 1 },
-                        { "depth", 1 },
+                        { "depth", 0.5 },
                         { "ping", 1 },
                         { "systemStatus", 1 },
                         { "tickers/24hr", 1 },
@@ -124,6 +124,11 @@ public partial class wazirx : Exchange
                         { "openOrders", 1 },
                         { "order", 0.5 },
                         { "myTrades", 0.5 },
+                        { "coins", 12 },
+                        { "crypto/withdraws", 12 },
+                        { "crypto/deposits/address", 60 },
+                        { "sub_account/fund_transfer/history", 1 },
+                        { "sub_account/accounts", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "order", 0.1 },

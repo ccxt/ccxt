@@ -80,6 +80,7 @@ class blofin extends blofin$1 {
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
+                'fetchLeverages': true,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
@@ -184,6 +185,7 @@ class blofin extends blofin$1 {
                         'account/balance': 1,
                         'account/positions': 1,
                         'account/leverage-info': 1,
+                        'account/batch-leverage-info': 1,
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
@@ -1881,12 +1883,68 @@ class blofin extends blofin$1 {
             'takeProfitPrice': undefined,
         });
     }
+    async fetchLeverages(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name blofin#fetchLeverages
+         * @description fetch the set leverage for all contract markets
+         * @see https://docs.blofin.com/index.html#get-multiple-leverage
+         * @param {string[]} symbols a list of unified market symbols, required on blofin
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated'
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        if (symbols === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchLeverages() requires a symbols argument');
+        }
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchLeverages', params);
+        if (marginMode === undefined) {
+            marginMode = this.safeString(params, 'marginMode', 'cross'); // cross as default marginMode
+        }
+        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
+            throw new errors.BadRequest(this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
+        }
+        symbols = this.marketSymbols(symbols);
+        let instIds = '';
+        for (let i = 0; i < symbols.length; i++) {
+            const entry = symbols[i];
+            const entryMarket = this.market(entry);
+            if (i > 0) {
+                instIds = instIds + ',' + entryMarket['id'];
+            }
+            else {
+                instIds = instIds + entryMarket['id'];
+            }
+        }
+        const request = {
+            'instId': instIds,
+            'marginMode': marginMode,
+        };
+        const response = await this.privateGetAccountBatchLeverageInfo(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "leverage": "3",
+        //                 "marginMode": "cross",
+        //                 "instId": "BTC-USDT"
+        //             },
+        //         ]
+        //     }
+        //
+        const leverages = this.safeList(response, 'data', []);
+        return this.parseLeverages(leverages, symbols, 'instId');
+    }
     async fetchLeverage(symbol, params = {}) {
         /**
          * @method
          * @name blofin#fetchLeverage
          * @description fetch the set leverage for a market
-         * @see https://blofin.com/docs#set-leverage
+         * @see https://docs.blofin.com/index.html#get-leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'

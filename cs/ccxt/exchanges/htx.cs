@@ -2527,7 +2527,11 @@ public partial class htx : Exchange
         amountString = this.safeString(trade, "trade_volume", amountString);
         object costString = this.safeString(trade, "trade_turnover");
         object fee = null;
-        object feeCost = this.safeString2(trade, "filled-fees", "trade_fee");
+        object feeCost = this.safeString(trade, "filled-fees");
+        if (isTrue(isEqual(feeCost, null)))
+        {
+            feeCost = Precise.stringNeg(this.safeString(trade, "trade_fee"));
+        }
         object feeCurrencyId = this.safeString2(trade, "fee-currency", "fee_asset");
         object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         object filledPoints = this.safeString(trade, "filled-points");

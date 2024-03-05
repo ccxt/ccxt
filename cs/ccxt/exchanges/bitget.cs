@@ -3024,8 +3024,16 @@ public partial class bitget : Exchange
             object currencyCode = this.safeCurrencyCode(this.safeString(feeStructure, "feeCoin"));
             fee = new Dictionary<string, object>() {
                 { "currency", currencyCode },
-                { "cost", Precise.stringAbs(this.safeString(feeStructure, "totalFee")) },
             };
+            object feeCostString = this.safeString(feeStructure, "totalFee");
+            object deduction = ((bool) isTrue(isEqual(this.safeString(feeStructure, "deduction"), "yes"))) ? true : false;
+            if (isTrue(deduction))
+            {
+                ((IDictionary<string,object>)fee)["cost"] = feeCostString;
+            } else
+            {
+                ((IDictionary<string,object>)fee)["cost"] = Precise.stringNeg(feeCostString);
+            }
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -4214,7 +4222,7 @@ public partial class bitget : Exchange
         * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
+        * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint

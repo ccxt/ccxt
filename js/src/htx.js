@@ -2594,7 +2594,10 @@ export default class htx extends Exchange {
         amountString = this.safeString(trade, 'trade_volume', amountString);
         const costString = this.safeString(trade, 'trade_turnover');
         let fee = undefined;
-        let feeCost = this.safeString2(trade, 'filled-fees', 'trade_fee');
+        let feeCost = this.safeString(trade, 'filled-fees');
+        if (feeCost === undefined) {
+            feeCost = Precise.stringNeg(this.safeString(trade, 'trade_fee'));
+        }
         const feeCurrencyId = this.safeString2(trade, 'fee-currency', 'fee_asset');
         let feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         const filledPoints = this.safeString(trade, 'filled-points');

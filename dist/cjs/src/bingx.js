@@ -59,6 +59,7 @@ class bingx extends bingx$1 {
                 'fetchFundingRates': true,
                 'fetchLeverage': true,
                 'fetchLiquidations': false,
+                'fetchMarginMode': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': true,
@@ -4165,6 +4166,43 @@ class bingx extends bingx$1 {
         }
         const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
+    }
+    async fetchMarginMode(symbol, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchMarginMode
+         * @description fetches the margin mode of the trading pair
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode
+         * @param {string} symbol unified symbol of the market to fetch the margin mode for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} Struct of MarginMode
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.swapV2PrivateGetTradeMarginType(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "marginType": "CROSSED"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseMarginMode(data, market);
+    }
+    parseMarginMode(marginMode, market = undefined) {
+        let marginType = this.safeStringLower(marginMode, 'marginType');
+        marginType = (marginType === 'crossed') ? 'cross' : marginType;
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginType,
+        };
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = section[0];

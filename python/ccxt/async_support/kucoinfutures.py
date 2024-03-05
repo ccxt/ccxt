@@ -46,6 +46,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
                 'closePosition': True,
                 'closePositions': False,
                 'createDepositAddress': True,

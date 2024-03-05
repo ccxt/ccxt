@@ -2722,7 +2722,7 @@ public partial class hitbtc : Exchange
             object parsedNetwork = this.safeString(networks, network);
             if (isTrue(!isEqual(parsedNetwork, null)))
             {
-                ((IDictionary<string,object>)request)["currency"] = parsedNetwork;
+                ((IDictionary<string,object>)request)["network_code"] = parsedNetwork;
             }
             parameters = this.omit(parameters, "network");
         }

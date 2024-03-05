@@ -8,7 +8,7 @@ from ccxt.abstract.bingx import ImplicitAPI
 import asyncio
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currency, Int, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -73,6 +73,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchFundingRates': True,
                 'fetchLeverage': True,
                 'fetchLiquidations': False,
+                'fetchMarginMode': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyLiquidations': True,
@@ -3898,6 +3899,41 @@ class bingx(Exchange, ImplicitAPI):
             #
         data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
+
+    async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the margin mode of the trading pair
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode
+        :param str symbol: unified symbol of the market to fetch the margin mode for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: Struct of MarginMode
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = await self.swapV2PrivateGetTradeMarginType(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": {
+        #             "marginType": "CROSSED"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_margin_mode(data, market)
+
+    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+        marginType = self.safe_string_lower(marginMode, 'marginType')
+        marginType = 'cross' if (marginType == 'crossed') else marginType
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginType,
+        }
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
