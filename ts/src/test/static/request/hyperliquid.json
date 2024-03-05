@@ -140,6 +140,21 @@
                 "output": "{\"nonce\":1709205271182,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":5,\"o\":6466108935}]},\"signature\":{\"r\":\"0xba035847994c83ffeaadf906639c0f82548cbcae8195c527f74e3cb50148cd6b\",\"s\":\"0x64098742b1d2fdac9a11973c991de69b8adbcee4e461acb7dd06f41decf4995d\",\"v\":27}}"
             }
         ],
+        "cancelOrders": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "cancelOrders",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  [
+                    "6927265353",
+                    "6927351467"
+                  ],
+                  "SOL/USDC:USDC"
+                ],
+                "output": "{\"nonce\":1709652626969,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":0,\"o\":6927265353},{\"a\":0,\"o\":6927351467}]},\"signature\":{\"r\":\"0x546bc0dcf536756b5cce7206528aadf03a44d1b2a9b0a48c2e85fd21b1692b6f\",\"s\":\"0x5088740b9decdc966025ba75f127eb6cbb097eaab1835238dab8d95cfe101040\",\"v\":27}}"
+            }
+        ],
         "fetchMarkets": [
             {
                 "description": "fetchMarkets",
@@ -305,6 +320,18 @@
                     }
                 ],
                 "output": "{\"type\":\"clearinghouseState\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set leverage",
+                "method": "setLeverage",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  5,
+                  "BTC/USDC:USDC"
+                ],
+                "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":3,\"isCross\":true,\"leverage\":5},\"nonce\":1709652347195,\"signature\":{\"r\":\"0x5a9023d51d2c2d0d6eb243a423473a270b8ad80bb7284bc6d9d7a9007201026\",\"s\":\"0x3bd6c3257be38a5aac22bf5ecefe63ba0c5e4c39c9ac78d5d059e1dfe69dedd\",\"v\":27}}"
             }
         ]
     }
