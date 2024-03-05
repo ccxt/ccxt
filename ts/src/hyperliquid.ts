@@ -589,14 +589,13 @@ export default class hyperliquid extends Exchange {
          * @param {string} [params.user] wallet address that made trades
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        let user = undefined;
-        [ user, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'user');
-        let user2 = user;
-        [ user2, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'address', user2);
+        let userAux = undefined;
+        [ userAux, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'user');
+        let user = userAux;
+        [ user, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'address', userAux);
         if (user === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() require user or address parameter.');
         }
-        params = this.omit (params, [ 'user', 'address' ]);
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
         const request = {
