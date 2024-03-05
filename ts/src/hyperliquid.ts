@@ -854,7 +854,7 @@ export default class hyperliquid extends Exchange {
             }
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
             timeInForce = this.capitalize (timeInForce);
-            let triggerPrice = this.safeValue2 (orderParams, 'triggerPrice', 'stopPrice');
+            let triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
             const stopLossPrice = this.safeString (orderParams, 'stopLossPrice', triggerPrice);
             const takeProfitPrice = this.safeString (orderParams, 'takeProfitPrice');
             const isTrigger = (stopLossPrice || takeProfitPrice);
