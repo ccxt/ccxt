@@ -105,7 +105,7 @@ export default class bitvavo extends bitvavoRest {
         //                 "volume": "3587.05020246",
         //                 "volumeQuote": "708030.17",
         //                 "bid": "199.56",
-        //                 "bidSize": "4.14730803",
+        //                 "bidSize": "4.14730802",
         //                 "ask": "199.57",
         //                 "askSize": "6.13642074",
         //                 "timestamp": 1590770885217
@@ -1087,7 +1087,7 @@ export default class bitvavo extends bitvavoRest {
         return messageHash;
     }
     checkMessageHashDoesNotExist(messageHash) {
-        const supressMultipleWsRequestsError = this.safeValue(this.options, 'supressMultipleWsRequestsError', false);
+        const supressMultipleWsRequestsError = this.safeBool(this.options, 'supressMultipleWsRequestsError', false);
         if (!supressMultipleWsRequestsError) {
             const client = this.safeValue(this.clients, this.urls['api']['ws']);
             if (client !== undefined) {

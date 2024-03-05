@@ -412,6 +412,7 @@ class bitfinex2 extends Exchange {
                 'EDO' => 'PNT',
                 'EUS' => 'EURS',
                 'EUT' => 'EURT',
+                'HTX' => 'HT',
                 'IDX' => 'ID',
                 'IOT' => 'IOTA',
                 'IQX' => 'IQ',

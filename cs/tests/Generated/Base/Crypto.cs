@@ -20,22 +20,16 @@ public partial class BaseTest
         Assert(isEqual(hmac(encode("a message"), encode("a secret"), md5, "hex"), "0bfa503bdbc7358185fcd49b4869e23d"));
         // ---------------------------------------------------------------------------------------------------------------------
         object privateKey = "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a";
-        /*
-         Assert(equals(ecdsa("1a", privateKey, secp256k1, sha256), new Dictionary<string, object>() {
+        Assert(equals(ecdsa("1a", privateKey, secp256k1, sha256), new Dictionary<string, object>() {
             { "r", "23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f" },
             { "s", "317963fcac18e4ec9f7921b97d7ea0c82a873dd6299cbfb6af016e08ef5ed667" },
             { "v", 0 },
         }));
-        TODO: add ecdsa
-        */
-        /*
-         Assert(equals(ecdsa(privateKey, privateKey, secp256k1, null), new Dictionary<string, object>() {
+        Assert(equals(ecdsa(privateKey, privateKey, secp256k1, null), new Dictionary<string, object>() {
             { "r", "b84a36a6fbabd5277ede578448b93d48e70b38efb5b15b1d4e2a298accf938b1" },
             { "s", "66ebfb8221cda925526e699a59cd221bb4cc84bdc563024b1802c4d9e1d8bbe9" },
             { "v", 1 },
         }));
-        TODO: add ecdsa
-        */
         // ---------------------------------------------------------------------------------------------------------------------
         //
         // Assert (exchange.hashMessage (privateKey) === '0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f');

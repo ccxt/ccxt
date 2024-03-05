@@ -809,7 +809,7 @@ export default class kuna extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'pair': market['id'],
+            'pairs': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -817,18 +817,21 @@ export default class kuna extends Exchange {
         const response = await this.v4PublicGetTradePublicBookPairs(this.extend(request, params));
         //
         //    {
-        //        "data": {
-        //            "id": "3e5591ba-2778-4d85-8851-54284045ea44",       // Unique identifier of a trade
-        //            "pair": "BTC_USDT",                                 // Market pair that is being traded
-        //            "quoteQuantity": "11528.8118",                      // Qty of the quote asset, USDT in this example
-        //            "matchPrice": "18649",                              // Exchange price at the moment of execution
-        //            "matchQuantity": "0.6182",                          // Qty of the base asset, BTC in this example
-        //            "createdAt": "2022-09-23T14:30:41.486Z",            // Date-time of trade execution, UTC
-        //            "side": "Ask"                                       // Trade type: `Ask` or `Bid`. Bid for buying base asset, Ask for selling base asset (e.g. for BTC_USDT trading pair, BTC is the base asset).
-        //        }
+        //        'data': [
+        //            {
+        //                'createdAt': '2024-03-02T00:10:49.385Z',
+        //                'id': '3b42878a-3688-4bc1-891e-5cc2fc902142',
+        //                'matchPrice': '62181.31',
+        //                'matchQuantity': '0.00568',
+        //                'pair': 'BTC_USDT',
+        //                'quoteQuantity': '353.1898408',
+        //                'side': 'Bid'
+        //            },
+        //            ...
+        //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     parseTrade(trade, market = undefined) {

@@ -17,5 +17,7 @@ function test_fetch_trades($exchange, $skipped_properties, $symbol) {
     for ($i = 0; $i < count($trades); $i++) {
         test_trade($exchange, $skipped_properties, $method, $trades[$i], $symbol, $now);
     }
-    assert_timestamp_order($exchange, $method, $symbol, $trades);
+    if (!(is_array($skipped_properties) && array_key_exists('timestamp', $skipped_properties))) {
+        assert_timestamp_order($exchange, $method, $symbol, $trades);
+    }
 }

@@ -74,6 +74,8 @@ export default class mexc extends Exchange {
                 'fetchL2OrderBook': true,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
+                'fetchLeverage': true,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': true,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': undefined,
@@ -892,6 +894,7 @@ export default class mexc extends Exchange {
                     '700006': BadRequest,
                     '700007': AuthenticationError,
                     '700008': BadRequest,
+                    '700013': AuthenticationError,
                     '730001': BadRequest,
                     '730002': BadRequest,
                     '730000': ExchangeError,
@@ -5376,6 +5379,79 @@ export default class mexc extends Exchange {
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }
+    async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractPrivateGetPositionLeverage(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             },
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 2,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            const openType = this.safeInteger(entry, 'openType');
+            const positionType = this.safeInteger(entry, 'positionType');
+            if (positionType === 1) {
+                longLeverage = this.safeInteger(entry, 'leverage');
+            }
+            else if (positionType === 2) {
+                shortLeverage = this.safeInteger(entry, 'leverage');
+            }
+            marginMode = (openType === 1) ? 'isolated' : 'cross';
+        }
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
+    }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
         /**
          * @ignore
@@ -5424,7 +5500,7 @@ export default class mexc extends Exchange {
                     'source': this.safeString(this.options, 'broker', 'CCXT'),
                 };
             }
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 headers['Content-Type'] = 'application/json';
             }
         }

@@ -20,6 +20,7 @@ class gemini extends \ccxt\async\gemini {
                 'watchBalance' => false,
                 'watchTicker' => false,
                 'watchTickers' => false,
+                'watchBidsAsks' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchMyTrades' => false,
@@ -211,7 +212,7 @@ class gemini extends \ccxt\async\gemini {
         //                 "time_ms" => 1655323185000,
         //                 "result" => "failure",
         //                 "highest_bid_price" => "21661.90",
-        //                 "lowest_ask_price" => "21663.79",
+        //                 "lowest_ask_price" => "21663.78",
         //                 "collar_price" => "21662.845"
         //             ),
         //         )
@@ -430,6 +431,80 @@ class gemini extends \ccxt\async\gemini {
         }) ();
     }
 
+    public function watch_bids_asks(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * watches best bid & ask for $symbols
+             * @see https://docs.gemini.com/websocket-api/#multi-market-data
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            return Async\await($this->helper_for_watch_multiple_construct('bidsasks', $symbols, $params));
+        }) ();
+    }
+
+    public function handle_bids_asks_for_multidata(Client $client, $rawBidAskChanges, ?int $timestamp, ?int $nonce) {
+        //
+        // {
+        //     eventId => '1683002916916153',
+        //     events => array(
+        //       array(
+        //         $price => '50945.37',
+        //         reason => 'top-of-book',
+        //         remaining => '0.0',
+        //         side => 'bid',
+        //         $symbol => 'BTCUSDT',
+        //         type => 'change'
+        //       ),
+        //       {
+        //         $price => '50947.75',
+        //         reason => 'top-of-book',
+        //         remaining => '0.11725',
+        //         side => 'bid',
+        //         $symbol => 'BTCUSDT',
+        //         type => 'change'
+        //       }
+        //     ),
+        //     socket_sequence => 322,
+        //     $timestamp => 1708674495,
+        //     timestampms => 1708674495174,
+        //     type => 'update'
+        // }
+        //
+        $marketId = $rawBidAskChanges[0]['symbol'];
+        $market = $this->safe_market(strtolower($marketId));
+        $symbol = $market['symbol'];
+        if (!(is_array($this->bidsasks) && array_key_exists($symbol, $this->bidsasks))) {
+            $this->bidsasks[$symbol] = $this->parse_ticker(array());
+            $this->bidsasks[$symbol]['symbol'] = $symbol;
+        }
+        $currentBidAsk = $this->bidsasks[$symbol];
+        $messageHash = 'bidsasks:' . $symbol;
+        // last update always overwrites the previous state and is the latest state
+        for ($i = 0; $i < count($rawBidAskChanges); $i++) {
+            $entry = $rawBidAskChanges[$i];
+            $rawSide = $this->safe_string($entry, 'side');
+            $price = $this->safe_number($entry, 'price');
+            $size = $this->safe_number($entry, 'remaining');
+            if ($size === 0) {
+                continue;
+            }
+            if ($rawSide === 'bid') {
+                $currentBidAsk['bid'] = $price;
+                $currentBidAsk['bidVolume'] = $size;
+            } else {
+                $currentBidAsk['ask'] = $price;
+                $currentBidAsk['askVolume'] = $size;
+            }
+        }
+        $currentBidAsk['timestamp'] = $timestamp;
+        $currentBidAsk['datetime'] = $this->iso8601($timestamp);
+        $currentBidAsk['info'] = $rawBidAskChanges;
+        $this->bidsasks[$symbol] = $currentBidAsk;
+        $client->resolve ($currentBidAsk, $messageHash);
+    }
+
     public function helper_for_watch_multiple_construct(string $itemHashName, array $symbols, $params = array ()) {
         return Async\async(function () use ($itemHashName, $symbols, $params) {
             Async\await($this->load_markets());
@@ -451,6 +526,8 @@ class gemini extends \ccxt\async\gemini {
             $url = $this->urls['api']['ws'] . '/v1/multimarketdata?$symbols=' . $queryStr . '&heartbeat=true&';
             if ($itemHashName === 'orderbook') {
                 $url .= 'trades=false&bids=true&offers=true';
+            } elseif ($itemHashName === 'bidsasks') {
+                $url .= 'trades=false&bids=true&offers=true&top_of_book=true';
             } elseif ($itemHashName === 'trades') {
                 $url .= 'trades=true&bids=false&offers=false';
             }
@@ -478,10 +555,11 @@ class gemini extends \ccxt\async\gemini {
         $market = $this->safe_market(strtolower($marketId));
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        $orderbook = $this->safe_dict($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book();
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $ob = $this->order_book();
+            $this->orderbooks[$symbol] = $ob;
         }
+        $orderbook = $this->orderbooks[$symbol];
         $bids = $orderbook['bids'];
         $asks = $orderbook['asks'];
         for ($i = 0; $i < count($rawOrderBookChanges); $i++) {
@@ -801,16 +879,26 @@ class gemini extends \ccxt\async\gemini {
             $eventId = $this->safe_integer($message, 'eventId');
             $events = $this->safe_list($message, 'events');
             $orderBookItems = array();
+            $bidaskItems = array();
             $collectedEventsOfTrades = array();
+            $eventsLength = count($events);
             for ($i = 0; $i < count($events); $i++) {
                 $event = $events[$i];
                 $eventType = $this->safe_string($event, 'type');
                 $isOrderBook = ($eventType === 'change') && (is_array($event) && array_key_exists('side', $event)) && $this->in_array($event['side'], array( 'ask', 'bid' ));
-                if ($isOrderBook) {
+                $eventReason = $this->safe_string($event, 'reason');
+                $isBidAsk = ($eventReason === 'top-of-book') || ($isOrderBook && ($eventReason === 'initial') && $eventsLength === 2);
+                if ($isBidAsk) {
+                    $bidaskItems[] = $event;
+                } elseif ($isOrderBook) {
                     $orderBookItems[] = $event;
                 } elseif ($eventType === 'trade') {
                     $collectedEventsOfTrades[] = $events[$i];
                 }
+            }
+            $lengthBa = count($bidaskItems);
+            if ($lengthBa > 0) {
+                $this->handle_bids_asks_for_multidata($client, $bidaskItems, $ts, $eventId);
             }
             $lengthOb = count($orderBookItems);
             if ($lengthOb > 0) {

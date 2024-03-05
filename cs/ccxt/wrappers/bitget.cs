@@ -941,7 +941,7 @@ public partial class bitget
     /// <item>
     /// <term>params.planType</term>
     /// <description>
-    /// string : *contract stop only* 'normal_plan': average trigger order, 'track_plan': trailing stop order, default is 'normal_plan'
+    /// string : *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
     /// </description>
     /// </item>
     /// <item>
@@ -1443,10 +1443,10 @@ public partial class bitget
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Int64> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);
-        return (Int64)res;
+        return new Leverage(res);
     }
     /// <summary>
     /// set the level of leverage for a market

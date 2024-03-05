@@ -368,8 +368,9 @@ class gate(ccxt.async_support.gate):
         parts = channel.split('.')
         rawMarketType = self.safe_string(parts, 0)
         marketType = 'contract' if (rawMarketType == 'futures') else 'spot'
+        result = self.safe_value(message, 'result')
         results = []
-        if marketType == 'contract':
+        if isinstance(result, list):
             results = self.safe_list(message, 'result', [])
         else:
             rawTicker = self.safe_dict(message, 'result', {})
@@ -768,7 +769,7 @@ class gate(ccxt.async_support.gate):
         client = self.client(url)
         self.set_positions_cache(client, type, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.safe_value(self.positions, type)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
             return await client.future(type + ':fetchPositionsSnapshot')

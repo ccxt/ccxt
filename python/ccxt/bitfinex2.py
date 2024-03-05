@@ -425,6 +425,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'EDO': 'PNT',
                 'EUS': 'EURS',
                 'EUT': 'EURT',
+                'HTX': 'HT',
                 'IDX': 'ID',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',

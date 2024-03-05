@@ -310,23 +310,40 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
             var deltaArray = (IList<object>)deltaArra2;
             var price = deltaArray[0];
             var size = Convert.ToDecimal(deltaArray[1]);
-            var count = Convert.ToInt32(deltaArray[2]);
+            // var count = Convert.ToInt32(deltaArray[2]);
+            int count = -1;
+            var countObject = deltaArray[2];
+            if (!(countObject is IList<object> || countObject is IDictionary<string, object>))
+            {
+                countObject = Convert.ToInt32(countObject);
+                count = Convert.ToInt32(countObject);
+            }
+            // object storedCount = countObject;
+            // int intCount = -1;
+            // int.TryParse(storedCount.ToString(), out intCount);
+            // if (intCount != -1)
+            // {
+            //     storedCount = intCount;
+            // }
+            // int.TryParse(deltaArray[2].ToString(), out count);
             var decimalPrice = Convert.ToDecimal(price);
             var index_price = (this.side) ? -decimalPrice : decimalPrice;
             var index = bisectLeft(this._index, index_price);
-            if (size != 0 && count != 0)
+            if (size != 0 && countObject != null && count != 0)
             {
+
                 if ((index < this._index.Count) && this._index[index] == index_price)
                 {
+
                     var entry = this[index] as IList<object>;
                     entry[1] = size;
-                    entry[2] = count;
+                    entry[2] = countObject;
                 }
                 else
                 {
                     // this._index.InsertRange(index, new List<decimal>() { index_price });
                     this._index.Insert(index, index_price);
-                    this.Insert(index, new SlimConcurrentList<object>() { price, size, count });
+                    this.Insert(index, new SlimConcurrentList<object>() { price, size, countObject });
                 }
             }
             else if (index < this._index.Count && this._index[index] == index_price)

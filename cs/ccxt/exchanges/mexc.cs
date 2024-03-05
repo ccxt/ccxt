@@ -64,6 +64,8 @@ public partial class mexc : Exchange
                 { "fetchL2OrderBook", true },
                 { "fetchLedger", null },
                 { "fetchLedgerEntry", null },
+                { "fetchLeverage", true },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", true },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", null },
@@ -759,6 +761,7 @@ public partial class mexc : Exchange
                     { "700006", typeof(BadRequest) },
                     { "700007", typeof(AuthenticationError) },
                     { "700008", typeof(BadRequest) },
+                    { "700013", typeof(AuthenticationError) },
                     { "730001", typeof(BadRequest) },
                     { "730002", typeof(BadRequest) },
                     { "730000", typeof(ExchangeError) },
@@ -5411,6 +5414,86 @@ public partial class mexc : Exchange
         return this.assignDefaultDepositWithdrawFees(result);
     }
 
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.contractPrivateGetPositionLeverage(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             },
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 2,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marginMode = null;
+        object longLeverage = null;
+        object shortLeverage = null;
+        for (object i = 0; isLessThan(i, getArrayLength(leverage)); postFixIncrement(ref i))
+        {
+            object entry = getValue(leverage, i);
+            object openType = this.safeInteger(entry, "openType");
+            object positionType = this.safeInteger(entry, "positionType");
+            if (isTrue(isEqual(positionType, 1)))
+            {
+                longLeverage = this.safeInteger(entry, "leverage");
+            } else if (isTrue(isEqual(positionType, 2)))
+            {
+                shortLeverage = this.safeInteger(entry, "leverage");
+            }
+            marginMode = ((bool) isTrue((isEqual(openType, 1)))) ? "isolated" : "cross";
+        }
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", marginMode },
+            { "longLeverage", longLeverage },
+            { "shortLeverage", shortLeverage },
+        };
+    }
+
     public override object handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
     {
         /**
@@ -5476,7 +5559,7 @@ public partial class mexc : Exchange
                     { "source", this.safeString(this.options, "broker", "CCXT") },
                 };
             }
-            if (isTrue(isEqual(method, "POST")))
+            if (isTrue(isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))) || isTrue((isEqual(method, "DELETE")))))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }

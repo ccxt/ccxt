@@ -47,7 +47,7 @@ public partial class Exchange
 
     public object limits { get; set; } = new dict();
 
-    public object precisionMode { get; set; } = SIGNIFICANT_DIGITS;
+    public object precisionMode { get; set; } = DECIMAL_PLACES;
 
     public object currencies_by_id { get; set; } = new dict();
 
@@ -57,7 +57,7 @@ public partial class Exchange
 
     public object status { get; set; } = new dict();
 
-    public int paddingMode { get; set; } = 0;
+    public int paddingMode { get; set; } = NO_PADDING;
 
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
@@ -446,6 +446,7 @@ public partial class Exchange
         this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
         this.status = SafeValue(extendedProperties, "status") as dict;
         this.precisionMode = SafeInteger(extendedProperties, "precisionMode", this.precisionMode);
+        this.paddingMode = ((int)SafeInteger(extendedProperties, "paddingMode", this.paddingMode));
         this.commonCurrencies = SafeValue(extendedProperties, "commonCurrencies") as dict;
         var subVal = SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true);
         this.substituteCommonCurrencyCodes = subVal != null ? (bool)subVal : true;

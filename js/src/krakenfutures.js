@@ -2459,7 +2459,7 @@ export default class krakenfutures extends Exchange {
         //
         return await this.privatePutLeveragepreferences(this.extend(request, params));
     }
-    async fetchLeverage(symbol = undefined, params = {}) {
+    async fetchLeverage(symbol, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchLeverage
@@ -2473,17 +2473,32 @@ export default class krakenfutures extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchLeverage() requires a symbol argument');
         }
         await this.loadMarkets();
+        const market = this.market(symbol);
         const request = {
             'symbol': this.marketId(symbol).toUpperCase(),
         };
+        const response = await this.privateGetLeveragepreferences(this.extend(request, params));
         //
-        //   {
-        //       "result": "success",
-        //       "serverTime": "2023-08-01T09:54:08.900Z",
-        //       "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
-        //   }
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2023-08-01T09:54:08.900Z",
+        //         "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
+        //     }
         //
-        return await this.privateGetLeveragepreferences(this.extend(request, params));
+        const leveragePreferences = this.safeList(response, 'leveragePreferences', []);
+        const data = this.safeDict(leveragePreferences, 0, {});
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        const leverageValue = this.safeInteger(leverage, 'maxLeverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

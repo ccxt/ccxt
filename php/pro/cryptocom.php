@@ -20,7 +20,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'ws' => true,
                 'watchBalance' => true,
                 'watchTicker' => true,
-                'watchTickers' => false, // for now
+                'watchTickers' => false,
                 'watchMyTrades' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
@@ -576,7 +576,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $client = $this->client($url);
             $this->set_positions_cache($client, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_value('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);

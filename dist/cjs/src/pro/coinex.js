@@ -387,14 +387,17 @@ class coinex extends coinex$1 {
         const keys = Object.keys(this.ohlcvs);
         const keysLength = keys.length;
         if (keysLength === 0) {
+            this.ohlcvs['unknown'] = {};
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs = new Cache.ArrayCacheByTimestamp(limit);
+            const stored = new Cache.ArrayCacheByTimestamp(limit);
+            this.ohlcvs['unknown']['unknown'] = stored;
         }
+        const ohlcv = this.ohlcvs['unknown']['unknown'];
         for (let i = 0; i < ohlcvs.length; i++) {
             const candle = ohlcvs[i];
-            this.ohlcvs.append(candle);
+            ohlcv.append(candle);
         }
-        client.resolve(this.ohlcvs, messageHash);
+        client.resolve(ohlcv, messageHash);
     }
     async watchTicker(symbol, params = {}) {
         /**
@@ -543,7 +546,7 @@ class coinex extends coinex$1 {
         }
         const url = this.urls['api']['ws'][type];
         const messageHash = 'ohlcv';
-        const watchOHLCVWarning = this.safeValue(this.options, 'watchOHLCVWarning', true);
+        const watchOHLCVWarning = this.safeBool(this.options, 'watchOHLCVWarning', true);
         const client = this.safeValue(this.clients, url, {});
         const clientSub = this.safeValue(client, 'subscriptions', {});
         const existingSubscription = this.safeValue(clientSub, messageHash);

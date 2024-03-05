@@ -227,6 +227,7 @@ class whitebit extends whitebit$1 {
                     'account': 'spot',
                 },
                 'accountsByType': {
+                    'funding': 'main',
                     'main': 'main',
                     'spot': 'spot',
                     'margin': 'collateral',
@@ -1320,9 +1321,9 @@ class whitebit extends whitebit$1 {
         else {
             const options = this.safeValue(this.options, 'fetchBalance', {});
             const defaultAccount = this.safeString(options, 'account');
-            const account = this.safeString(params, 'account', defaultAccount);
-            params = this.omit(params, 'account');
-            if (account === 'main') {
+            const account = this.safeString2(params, 'account', 'type', defaultAccount);
+            params = this.omit(params, ['account', 'type']);
+            if (account === 'main' || account === 'funding') {
                 response = await this.v4PrivatePostMainAccountBalance(params);
             }
             else {

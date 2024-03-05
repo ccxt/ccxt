@@ -2337,7 +2337,7 @@ class phemex(Exchange, ImplicitAPI):
 
     def parse_order(self, order, market: Market = None) -> Order:
         isSwap = self.safe_bool(market, 'swap', False)
-        hasPnl = ('closedPnl' in order)
+        hasPnl = ('closedPnl' in order) or ('closedPnlRv' in order) or ('totalPnlRv' in order)
         if isSwap or hasPnl:
             return self.parse_swap_order(order, market)
         return self.parse_spot_order(order, market)

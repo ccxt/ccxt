@@ -413,6 +413,7 @@ public partial class okx : Exchange
                         { "account/quick-margin-borrow-repay", 4 },
                         { "account/borrow-repay", divide(5, 3) },
                         { "account/simulated_margin", 10 },
+                        { "account/position-builder", 10 },
                         { "account/set-riskOffset-type", 2 },
                         { "account/activate-option", 4 },
                         { "account/set-auto-loan", 4 },
@@ -533,6 +534,7 @@ public partial class okx : Exchange
                     { "50027", typeof(PermissionDenied) },
                     { "50028", typeof(ExchangeError) },
                     { "50044", typeof(BadRequest) },
+                    { "50062", typeof(ExchangeError) },
                     { "50100", typeof(ExchangeError) },
                     { "50101", typeof(AuthenticationError) },
                     { "50102", typeof(InvalidNonce) },
@@ -585,6 +587,15 @@ public partial class okx : Exchange
                     { "51072", typeof(InvalidOrder) },
                     { "51073", typeof(InvalidOrder) },
                     { "51074", typeof(InvalidOrder) },
+                    { "51090", typeof(InvalidOrder) },
+                    { "51091", typeof(InvalidOrder) },
+                    { "51092", typeof(InvalidOrder) },
+                    { "51093", typeof(InvalidOrder) },
+                    { "51094", typeof(InvalidOrder) },
+                    { "51095", typeof(InvalidOrder) },
+                    { "51096", typeof(InvalidOrder) },
+                    { "51098", typeof(InvalidOrder) },
+                    { "51099", typeof(InvalidOrder) },
                     { "51100", typeof(InvalidOrder) },
                     { "51101", typeof(InvalidOrder) },
                     { "51102", typeof(InvalidOrder) },
@@ -1517,7 +1528,7 @@ public partial class okx : Exchange
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         parameters ??= new Dictionary<string, object>();
-        object isSandboxMode = this.safeValue(this.options, "sandboxMode", false);
+        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(!isTrue(this.checkRequiredCredentials(false)) || isTrue(isSandboxMode)))
         {
             return null;
@@ -2831,7 +2842,7 @@ public partial class okx : Exchange
                 }
                 ((IDictionary<string,object>)request)["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 object takeProfitLimitPrice = this.safeValueN(takeProfit, new List<object>() {"price", "takeProfitPrice", "tpOrdPx"});
-                object takeProfitOrderType = this.safeString(takeProfit, "type");
+                object takeProfitOrderType = this.safeString2(takeProfit, "type", "tpOrdKind");
                 if (isTrue(!isEqual(takeProfitOrderType, null)))
                 {
                     object takeProfitLimitOrderType = (isEqual(takeProfitOrderType, "limit"));
@@ -2846,6 +2857,7 @@ public partial class okx : Exchange
                             throw new InvalidOrder ((string)add(this.id, " createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order")) ;
                         } else
                         {
+                            ((IDictionary<string,object>)request)["tpOrdKind"] = takeProfitOrderType;
                             ((IDictionary<string,object>)request)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice);
                         }
                     } else if (isTrue(isEqual(takeProfitOrderType, "market")))
@@ -2854,6 +2866,7 @@ public partial class okx : Exchange
                     }
                 } else if (isTrue(!isEqual(takeProfitLimitPrice, null)))
                 {
+                    ((IDictionary<string,object>)request)["tpOrdKind"] = "limit";
                     ((IDictionary<string,object>)request)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
                 } else
                 {
@@ -2880,6 +2893,7 @@ public partial class okx : Exchange
             object twoWayCondition = (isTrue((!isEqual(takeProfitPrice, null))) && isTrue((!isEqual(stopLossPrice, null))));
             // if TP and SL are sent together
             // as ordType 'conditional' only stop-loss order will be applied
+            // tpOrdKind is 'condition' which is the default
             if (isTrue(twoWayCondition))
             {
                 ((IDictionary<string,object>)request)["ordType"] = "oco";
@@ -2940,6 +2954,7 @@ public partial class okx : Exchange
         * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
         * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+        * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -3131,6 +3146,7 @@ public partial class okx : Exchange
                 takeProfitTriggerPrice = this.safeValue(takeProfit, "triggerPrice");
                 takeProfitPrice = this.safeValue(takeProfit, "price");
                 object takeProfitType = this.safeString(takeProfit, "type");
+                ((IDictionary<string,object>)request)["newTpOrdKind"] = ((bool) isTrue((isEqual(takeProfitType, "limit")))) ? takeProfitType : "condition";
                 ((IDictionary<string,object>)request)["newTpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 ((IDictionary<string,object>)request)["newTpOrdPx"] = ((bool) isTrue((isEqual(takeProfitType, "market")))) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
                 ((IDictionary<string,object>)request)["newTpTriggerPxType"] = takeProfitTriggerPriceType;
@@ -3181,6 +3197,7 @@ public partial class okx : Exchange
         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
         * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
         * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+        * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -5389,7 +5406,41 @@ public partial class okx : Exchange
         //        "msg": ""
         //     }
         //
-        return response;
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = null;
+        object marginMode = null;
+        object longLeverage = null;
+        object shortLeverage = null;
+        for (object i = 0; isLessThan(i, getArrayLength(leverage)); postFixIncrement(ref i))
+        {
+            object entry = getValue(leverage, i);
+            marginMode = this.safeStringLower(entry, "mgnMode");
+            marketId = this.safeString(entry, "instId");
+            object positionSide = this.safeStringLower(entry, "posSide");
+            if (isTrue(isEqual(positionSide, "long")))
+            {
+                longLeverage = this.safeInteger(entry, "lever");
+            } else if (isTrue(isEqual(positionSide, "short")))
+            {
+                shortLeverage = this.safeInteger(entry, "lever");
+            } else
+            {
+                longLeverage = this.safeInteger(entry, "lever");
+                shortLeverage = this.safeInteger(entry, "lever");
+            }
+        }
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", marginMode },
+            { "longLeverage", longLeverage },
+            { "shortLeverage", shortLeverage },
+        };
     }
 
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
@@ -5479,6 +5530,7 @@ public partial class okx : Exchange
         * @method
         * @name okx#fetchPositions
         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+        * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history history
         * @description fetch all open positions
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5626,13 +5678,38 @@ public partial class okx : Exchange
         //        "vegaBS": "",
         //        "vegaPA": ""
         //    }
+        // history
+        //    {
+        //        "cTime":"1708351230102",
+        //        "ccy":"USDT",
+        //        "closeAvgPx":"1.2567",
+        //        "closeTotalPos":"40",
+        //        "direction":"short",
+        //        "fee":"-0.0351036",
+        //        "fundingFee":"0",
+        //        "instId":"SUSHI-USDT-SWAP",
+        //        "instType":"SWAP",
+        //        "lever":"10.0",
+        //        "liqPenalty":"0",
+        //        "mgnMode":"isolated",
+        //        "openAvgPx":"1.2462",
+        //        "openMaxPos":"40",
+        //        "pnl":"-0.42",
+        //        "pnlRatio":"-0.0912982667308618",
+        //        "posId":"666159086676836352",
+        //        "realizedPnl":"-0.4551036",
+        //        "triggerPx":"",
+        //        "type":"2",
+        //        "uTime":"1708354805699",
+        //        "uly":"SUSHI-USDT"
+        //    }
         //
         object marketId = this.safeString(position, "instId");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         object pos = this.safeString(position, "pos"); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         object contractsAbs = Precise.stringAbs(pos);
-        object side = this.safeString(position, "posSide");
+        object side = this.safeString2(position, "posSide", "direction");
         object hedged = !isEqual(side, "net");
         object contracts = this.parseNumber(contractsAbs);
         if (isTrue(getValue(market, "margin")))
@@ -5681,7 +5758,7 @@ public partial class okx : Exchange
         object notional = this.parseNumber(notionalString);
         object marginMode = this.safeString(position, "mgnMode");
         object initialMarginString = null;
-        object entryPriceString = this.safeString(position, "avgPx");
+        object entryPriceString = this.safeString2(position, "avgPx", "openAvgPx");
         object unrealizedPnlString = this.safeString(position, "upl");
         object leverageString = this.safeString(position, "lever");
         object initialMarginPercentage = null;
@@ -5710,27 +5787,28 @@ public partial class okx : Exchange
         object liquidationPrice = this.safeNumber(position, "liqPx");
         object percentageString = this.safeString(position, "uplRatio");
         object percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
-        object timestamp = this.safeInteger(position, "uTime");
+        object timestamp = this.safeInteger(position, "cTime");
         object marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
-            { "id", null },
+            { "id", this.safeString(position, "posId") },
             { "symbol", symbol },
             { "notional", notional },
             { "marginMode", marginMode },
             { "liquidationPrice", liquidationPrice },
             { "entryPrice", this.parseNumber(entryPriceString) },
             { "unrealizedPnl", this.parseNumber(unrealizedPnlString) },
+            { "realizedPnl", this.safeNumber(position, "realizedPnl") },
             { "percentage", percentage },
             { "contracts", contracts },
             { "contractSize", contractSize },
             { "markPrice", this.parseNumber(markPriceString) },
-            { "lastPrice", null },
+            { "lastPrice", this.safeNumber(position, "closeAvgPx") },
             { "side", side },
             { "hedged", hedged },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastUpdateTimestamp", null },
+            { "lastUpdateTimestamp", this.safeInteger(position, "uTime") },
             { "maintenanceMargin", maintenanceMargin },
             { "maintenanceMarginPercentage", maintenanceMarginPercentage },
             { "collateral", this.parseNumber(collateralString) },

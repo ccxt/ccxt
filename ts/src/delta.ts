@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, 
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2833,7 +2833,7 @@ export default class delta extends Exchange {
         }, market);
     }
 
-    async fetchLeverage (symbol: string, params = {}) {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name delta#fetchLeverage
@@ -2848,6 +2848,7 @@ export default class delta extends Exchange {
         const request = {
             'product_id': market['numericId'],
         };
+        const response = await this.privateGetProductsProductIdOrdersLeverage (this.extend (request, params));
         //
         //     {
         //         "result": {
@@ -2861,7 +2862,20 @@ export default class delta extends Exchange {
         //         "success": true
         //     }
         //
-        return await this.privateGetProductsProductIdOrdersLeverage (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        return this.parseLeverage (result, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'index_symbol');
+        const leverageValue = this.safeInteger (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverage, 'margin_mode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {

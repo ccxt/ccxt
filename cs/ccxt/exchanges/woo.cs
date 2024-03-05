@@ -90,6 +90,7 @@ public partial class woo : Exchange
                 { "reduceMargin", false },
                 { "setLeverage", true },
                 { "setMargin", false },
+                { "setPositionMode", true },
                 { "transfer", true },
                 { "withdraw", true },
             } },
@@ -160,10 +161,16 @@ public partial class woo : Exchange
                             { "client/trade/{tid}", 1 },
                             { "order/{oid}/trades", 1 },
                             { "client/trades", 1 },
+                            { "client/hist_trades", 1 },
+                            { "staking/yield_history", 1 },
+                            { "client/holding", 1 },
                             { "asset/deposit", 10 },
                             { "asset/history", 60 },
                             { "sub_account/all", 60 },
                             { "sub_account/assets", 60 },
+                            { "sub_account/asset_detail", 60 },
+                            { "sub_account/ip_restriction", 10 },
+                            { "asset/main_sub_transfer_history", 30 },
                             { "token_interest", 60 },
                             { "token_interest/{token}", 60 },
                             { "interest/history", 60 },
@@ -176,9 +183,12 @@ public partial class woo : Exchange
                         { "post", new Dictionary<string, object>() {
                             { "order", 5 },
                             { "asset/main_sub_transfer", 30 },
+                            { "asset/ltv", 30 },
                             { "asset/withdraw", 30 },
+                            { "asset/internal_withdraw", 30 },
                             { "interest/repay", 60 },
                             { "client/account_mode", 120 },
+                            { "client/position_mode", 5 },
                             { "client/leverage", 120 },
                         } },
                         { "delete", new Dictionary<string, object>() {
@@ -279,7 +289,6 @@ public partial class woo : Exchange
                     { "-1007", typeof(BadRequest) },
                     { "-1008", typeof(InvalidOrder) },
                     { "-1009", typeof(BadRequest) },
-                    { "-1011", typeof(ExchangeError) },
                     { "-1012", typeof(BadRequest) },
                     { "-1101", typeof(InvalidOrder) },
                     { "-1102", typeof(InvalidOrder) },
@@ -288,6 +297,8 @@ public partial class woo : Exchange
                     { "-1105", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "Can not place", typeof(ExchangeError) },
+                    { "maintenance", typeof(OnMaintenance) },
                     { "symbol must not be blank", typeof(BadRequest) },
                     { "The token is not supported", typeof(BadRequest) },
                     { "Your order and symbol are not valid or already canceled", typeof(BadRequest) },
@@ -474,7 +485,7 @@ public partial class woo : Exchange
         //      ]
         // }
         //
-        object resultResponse = this.safeValue(response, "rows", new Dictionary<string, object>() {});
+        object resultResponse = this.safeList(response, "rows", new List<object>() {});
         return this.parseTrades(resultResponse, market, since, limit);
     }
 
@@ -2477,7 +2488,7 @@ public partial class woo : Exchange
             this.checkRequiredCredentials();
             if (isTrue(isTrue(isEqual(method, "POST")) && isTrue((isTrue(isEqual(path, "algo/order")) || isTrue(isEqual(path, "order"))))))
             {
-                object isSandboxMode = this.safeValue(this.options, "sandboxMode", false);
+                object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if (!isTrue(isSandboxMode))
                 {
                     object applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
@@ -2548,6 +2559,7 @@ public partial class woo : Exchange
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         object success = this.safeValue(response, "success");
         object errorCode = this.safeString(response, "code");
@@ -2805,10 +2817,55 @@ public partial class woo : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#setPositionMode
+        * @description set hedged to true or false for a market
+        * @see https://docs.woo.org/#update-position-mode
+        * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
+        * @param {string} symbol not used by woo setPositionMode
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} response from the exchange
+        */
+        parameters ??= new Dictionary<string, object>();
+        object hedgeMode = null;
+        if (isTrue(hedged))
+        {
+            hedgeMode = "HEDGE_MODE";
+        } else
+        {
+            hedgeMode = "ONE_WAY";
+        }
+        object request = new Dictionary<string, object>() {
+            { "position_mode", hedgeMode },
+        };
+        object response = await this.v1PrivatePostClientPositionMode(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {},
+        //         "timestamp": "1709195608551"
+        //     }
+        //
+        return response;
+    }
+
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
+        /**
+        * @method
+        * @name woo#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://docs.woo.org/#get-account-information-new
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object market = this.market(symbol);
         object response = await this.v3PrivateGetAccountinfo(parameters);
         //
         //     {
@@ -2838,11 +2895,19 @@ public partial class woo : Exchange
         //         "timestamp": 1673323685109
         //     }
         //
-        object result = this.safeValue(response, "data");
-        object leverage = this.safeNumber(result, "leverage");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object leverageValue = this.safeInteger(leverage, "leverage");
         return new Dictionary<string, object>() {
-            { "info", response },
-            { "leverage", leverage },
+            { "info", leverage },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", null },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
         };
     }
 

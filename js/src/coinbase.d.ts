@@ -99,6 +99,8 @@ export default class coinbase extends Exchange {
         tag: string;
         network: string;
     };
+    deposit(code: string, amount: number, id: string, params?: {}): Promise<Transaction>;
+    fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
