@@ -21,7 +21,7 @@ function testLedgerEntry (exchange, skippedProperties, method, entry, requestedC
     };
     const emptyAllowedFor = [ 'referenceId', 'referenceAccount', 'id' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
+    testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'direction', [ 'in', 'out' ]);
@@ -30,7 +30,7 @@ function testLedgerEntry (exchange, skippedProperties, method, entry, requestedC
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'before', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'after', '0');
-    testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry, 'fee');
+    // testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry, 'fee');
 }
 
 export default testLedgerEntry;

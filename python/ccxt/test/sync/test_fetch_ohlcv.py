@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_ohlcv  # noqa E402
-
 
 def test_fetch_ohlcv(exchange, skipped_properties, symbol):
     method = 'fetchOHLCV'

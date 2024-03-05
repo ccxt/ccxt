@@ -33,6 +33,7 @@ interface Exchange {
     privateGetAuthOrderPairCurrencyQuote (params?: {}): Promise<implicitReturnType>;
     privateGetAuthOrderPairCurrencyQuoteActive (params?: {}): Promise<implicitReturnType>;
     privateGetAuthStopOrder (params?: {}): Promise<implicitReturnType>;
+    privateGetAuthStopOrderActive (params?: {}): Promise<implicitReturnType>;
     privateGetAuthStopOrderGetOrderId (params?: {}): Promise<implicitReturnType>;
     privateGetAuthStopOrderPairCurrencyQuote (params?: {}): Promise<implicitReturnType>;
     privateGetAuthStopOrderPairCurrencyQuoteActive (params?: {}): Promise<implicitReturnType>;

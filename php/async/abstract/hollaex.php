@@ -40,6 +40,15 @@ abstract class hollaex extends \ccxt\async\Exchange {
     public function public_get_charts($params = array()) {
         return $this->request('charts', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_minicharts($params = array()) {
+        return $this->request('minicharts', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_oracle_prices($params = array()) {
+        return $this->request('oracle/prices', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_quick_trade($params = array()) {
+        return $this->request('quick-trade', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_udf_config($params = array()) {
         return $this->request('udf/config', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -117,6 +126,15 @@ abstract class hollaex extends \ccxt\async\Exchange {
     }
     public function publicGetCharts($params = array()) {
         return $this->request('charts', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMinicharts($params = array()) {
+        return $this->request('minicharts', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetOraclePrices($params = array()) {
+        return $this->request('oracle/prices', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetQuickTrade($params = array()) {
+        return $this->request('quick-trade', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetUdfConfig($params = array()) {
         return $this->request('udf/config', 'public', 'GET', $params, null, null, array("cost" => 1));
