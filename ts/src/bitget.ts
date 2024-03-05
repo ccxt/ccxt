@@ -3346,9 +3346,12 @@ export default class bitget extends Exchange {
         const endpointTsBoundary = now - maxRetrievableDaysForNonHistory * msInDay;
         // checks if we need history endpoint
         let needsHistoryEndpoint = false;
+        const displaceByLimit = (limit === undefined) ? 0 : limit * duration;
         if (since !== undefined && since < endpointTsBoundary) {
+            // if since it earlier than the allowed diapason
             needsHistoryEndpoint = true;
-        } else if (until !== undefined && ((limit === undefined && until < endpointTsBoundary) || (limit !== undefined && until - limit * duration < endpointTsBoundary))) {
+        } else if (until !== undefined && until - displaceByLimit < endpointTsBoundary) {
+            // if until is earlier than the allowed diapason
             needsHistoryEndpoint = true;
         }
         if (market['spot']) {
