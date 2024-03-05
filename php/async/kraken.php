@@ -31,7 +31,7 @@ class kraken extends Exchange {
             'name' => 'Kraken',
             'countries' => array( 'US' ),
             'version' => '0',
-            'rateLimit' => 1000,
+            'rateLimit' => 3000,  // bucket fills max 15, but drains 1 every 3s
             'certified' => false,
             'pro' => true,
             'has' => array(
@@ -114,7 +114,7 @@ class kraken extends Exchange {
                     'zendesk' => 'https://kraken.zendesk.com/api/v2/help_center/en-us/articles', // use the public zendesk api to receive article bodies and bypass new anti-spam protections
                 ),
                 'www' => 'https://www.kraken.com',
-                'doc' => 'https://www.kraken.com/features/api',
+                'doc' => 'https://docs.kraken.com/rest/',
                 'fees' => 'https://www.kraken.com/en-us/features/fee-schedule',
             ),
             'fees' => array(
@@ -177,48 +177,48 @@ class kraken extends Exchange {
                     'post' => array(
                         'AddOrder' => 0,
                         'AddOrderBatch' => 0,
-                        'AddExport' => 3,
-                        'Balance' => 3,
-                        'CancelAll' => 3,
-                        'CancelAllOrdersAfter' => 3,
+                        'AddExport' => 1,
+                        'Balance' => 1,
+                        'CancelAll' => 1,
+                        'CancelAllOrdersAfter' => 1,
                         'CancelOrder' => 0,
                         'CancelOrderBatch' => 0,
-                        'ClosedOrders' => 6,
-                        'DepositAddresses' => 3,
-                        'DepositMethods' => 3,
-                        'DepositStatus' => 3,
+                        'ClosedOrders' => 1,
+                        'DepositAddresses' => 1,
+                        'DepositMethods' => 1,
+                        'DepositStatus' => 1,
                         'EditOrder' => 0,
-                        'ExportStatus' => 3,
-                        'GetWebSocketsToken' => 3,
-                        'Ledgers' => 6,
-                        'OpenOrders' => 3,
-                        'OpenPositions' => 3,
-                        'QueryLedgers' => 3,
-                        'QueryOrders' => 3,
-                        'QueryTrades' => 3,
-                        'RetrieveExport' => 3,
-                        'RemoveExport' => 3,
-                        'BalanceEx' => 3,
-                        'TradeBalance' => 3,
-                        'TradesHistory' => 6,
-                        'TradeVolume' => 3,
-                        'Withdraw' => 3,
-                        'WithdrawCancel' => 3,
-                        'WithdrawInfo' => 3,
-                        'WithdrawMethods' => 3,
-                        'WithdrawAddresses' => 3,
-                        'WithdrawStatus' => 3,
-                        'WalletTransfer' => 3,
+                        'ExportStatus' => 1,
+                        'GetWebSocketsToken' => 1,
+                        'Ledgers' => 2,
+                        'OpenOrders' => 1,
+                        'OpenPositions' => 1,
+                        'QueryLedgers' => 1,
+                        'QueryOrders' => 1,
+                        'QueryTrades' => 1,
+                        'RetrieveExport' => 1,
+                        'RemoveExport' => 1,
+                        'BalanceEx' => 1,
+                        'TradeBalance' => 1,
+                        'TradesHistory' => 2,
+                        'TradeVolume' => 1,
+                        'Withdraw' => 1,
+                        'WithdrawCancel' => 1,
+                        'WithdrawInfo' => 1,
+                        'WithdrawMethods' => 1,
+                        'WithdrawAddresses' => 1,
+                        'WithdrawStatus' => 1,
+                        'WalletTransfer' => 1,
                         // sub accounts
-                        'CreateSubaccount' => 3,
-                        'AccountTransfer' => 3,
+                        'CreateSubaccount' => 1,
+                        'AccountTransfer' => 1,
                         // earn
-                        'Earn/Allocate' => 3,
-                        'Earn/Deallocate' => 3,
-                        'Earn/AllocateStatus' => 3,
-                        'Earn/DeallocateStatus' => 3,
-                        'Earn/Strategies' => 3,
-                        'Earn/Allocations' => 3,
+                        'Earn/Allocate' => 1,
+                        'Earn/Deallocate' => 1,
+                        'Earn/AllocateStatus' => 1,
+                        'Earn/DeallocateStatus' => 1,
+                        'Earn/Strategies' => 1,
+                        'Earn/Allocations' => 1,
                     ),
                 ),
             ),
@@ -996,7 +996,9 @@ class kraken extends Exchange {
                 $request['interval'] = $timeframe;
             }
             if ($since !== null) {
-                $request['since'] = $this->parse_to_int(($since - 1) / 1000);
+                // contrary to kraken's api documentation, the $since parameter must be passed in nanoseconds
+                // the adding of '000000' is copied from the fetchTrades function
+                $request['since'] = $this->number_to_string($since) . '000000'; // expected to be in nanoseconds
             }
             $response = Async\await($this->publicGetOHLC (array_merge($request, $params)));
             //
@@ -1371,7 +1373,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
@@ -1542,6 +1544,41 @@ class kraken extends Exchange {
         //        "txid" => "OTI672-HJFAO-XOIPPK"
         //    }
         //
+        //  {
+        //      "error" => array(),
+        //      "result" => {
+        //          "open" => {
+        //              "OXVPSU-Q726F-L3SDEP" => {
+        //                  "refid" => null,
+        //                  "userref" => 0,
+        //                  "status" => "open",
+        //                  "opentm" => 1706893367.4656649,
+        //                  "starttm" => 0,
+        //                  "expiretm" => 0,
+        //                  "descr" => array(
+        //                      "pair" => "XRPEUR",
+        //                      "type" => "sell",
+        //                      "ordertype" => "trailing-stop",
+        //                      "price" => "+50.0000%",
+        //                      "price2" => "0",
+        //                      "leverage" => "none",
+        //                      "order" => "sell 10.00000000 XRPEUR @ trailing stop +50.0000%",
+        //                      "close" => ""
+        //                  ),
+        //                  "vol" => "10.00000000",
+        //                  "vol_exec" => "0.00000000",
+        //                  "cost" => "0.00000000",
+        //                  "fee" => "0.00000000",
+        //                  "price" => "0.00000000",
+        //                  "stopprice" => "0.23424000",
+        //                  "limitprice" => "0.46847000",
+        //                  "misc" => "",
+        //                  "oflags" => "fciq",
+        //                  "trigger" => "index"
+        //              }
+        //      }
+        //  }
+        //
         $description = $this->safe_value($order, 'descr', array());
         $orderDescription = $this->safe_string($description, 'order', $description);
         $side = null;
@@ -1581,6 +1618,10 @@ class kraken extends Exchange {
         // kraken truncates the $cost in the api response so we will ignore it and calculate it from $average & $filled
         // $cost = $this->safe_string($order, 'cost');
         $price = $this->safe_string($description, 'price', $price);
+        // when $type = trailling stop returns $price = '+50.0000%'
+        if (($price !== null) && str_ends_with($price, '%')) {
+            $price = null; // this is not the $price we want
+        }
         if (($price === null) || Precise::string_equals($price, '0')) {
             $price = $this->safe_string($description, 'price2');
         }
@@ -1743,7 +1784,7 @@ class kraken extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -2651,7 +2692,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2779,7 +2820,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer

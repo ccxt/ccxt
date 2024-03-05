@@ -29,9 +29,12 @@ const findByExtensionSync = (dir, ext) => {
 // Get all files to read js docs
 const inputFiles = findByExtensionSync('js/src', 'js')
 const proInputFiles = findByExtensionSync('js/src/pro', 'js');
-const partials = './wiki/partials/'
-const partial = fs.readdirSync (partials).map (file => partials + file)
-const outputFile = './wiki/spec.md'
+const basePartials = './wiki/basePartials/'
+const basePartial = fs.readdirSync (basePartials).map (file => basePartials + file)
+const exchangePartials = './wiki/exchangePartials/'
+const exchangePartial = fs.readdirSync (exchangePartials).map (file => exchangePartials + file)
+const outputFolder = './wiki/'
+const outputFile = './wiki/baseSpec.md'
 const helper = './wiki/helpers.cjs'
 
 console.log ('📰 loading js docs...')
@@ -54,6 +57,7 @@ proTemplateData.forEach((proData) => {
 console.log ('📰 rendering docs for each exchange...')
 const template = fs.readFileSync ('./wiki/spec.hbs', 'utf8')
 
+const outputByExchange = await Promise.all (templateData.map (data => jsdoc2md.render ({ template, data, partial: exchangePartial, helper })))
 // Group docs by method
 const groupedByMethod = templateData.reduce((acc, arr) => {
   arr.filter(obj => obj.kind === 'function' && !obj.ignore).forEach(obj => {
@@ -79,21 +83,40 @@ const groupedByMethod = templateData.reduce((acc, arr) => {
 
 const templateDataGroupedByMethod = Object.values(groupedByMethod).sort((a, b) =>a[0].name < b[0].name ? -1 : 1)
 
-const outputs = await Promise.all (templateDataGroupedByMethod.map (data => jsdoc2md.render ({ template, data, partial, helper})))
+
+const baseOutput = await Promise.all (templateDataGroupedByMethod.map (data => jsdoc2md.render ({ template, data, partial: basePartial, helper})))
 
 console.log ('📰 creating index of exchange functions')
-const functions = Object.keys(groupedByMethod).sort ()
-const alphabet = Array.from ( Array (26)).map((e, i) => String.fromCharCode(i + 97));
+const exchangeLinks = []
+outputByExchange.forEach ((output, i) => {
+  const name = templateData[i][0].id
+  const fileName = 'exchanges/' + name + '.md'
+  fs.writeFileSync (outputFolder + fileName, output)
+  exchangeLinks.push (`\t- [${name}](${fileName})`)
+})
 
-const index = {}
-let i = -1
-for (const char of alphabet) {
-    do {
-        index[char] = functions[++i]
-    } while (char > functions[i])
-}
 
-fs.writeFileSync (outputFile, outputs.join ('\n---\n'))
+fs.writeFileSync (outputFile, baseOutput.join ('\n---\n'))
+
+const sidebar = 
+`
+- [Install](Install.md)
+- [Examples](Examples.md)
+- [Manual](Manual.md)
+- [CCXT Pro](ccxt.pro.manual.md)
+- [Contributing](CONTRIBUTING.md)
+- [Supported Exchanges](Exchange-Markets.md)
+- [Exchanges By Country](Exchange-Markets-By-Country.md)
+- [API Spec By Method](baseSpec.md)
+- [FAQ](FAQ.md)
+- [Changelog](CHANGELOG.md)
+- [Awesome](Awesome.md)
+- API Spec by Exchange
+${exchangeLinks.join('\n')}
+`
+fs.writeFileSync('./wiki/_sidebar.md', sidebar);
+
 console.log ('📰 finished rendering docs! 🙌 😶‍🌫')
 
 })()
+

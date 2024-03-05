@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -39,7 +39,7 @@ class kraken(Exchange, ImplicitAPI):
             'name': 'Kraken',
             'countries': ['US'],
             'version': '0',
-            'rateLimit': 1000,
+            'rateLimit': 3000,  # bucket fills max 15, but drains 1 every 3s
             'certified': False,
             'pro': True,
             'has': {
@@ -122,7 +122,7 @@ class kraken(Exchange, ImplicitAPI):
                     'zendesk': 'https://kraken.zendesk.com/api/v2/help_center/en-us/articles',  # use the public zendesk api to receive article bodies and bypass new anti-spam protections
                 },
                 'www': 'https://www.kraken.com',
-                'doc': 'https://www.kraken.com/features/api',
+                'doc': 'https://docs.kraken.com/rest/',
                 'fees': 'https://www.kraken.com/en-us/features/fee-schedule',
             },
             'fees': {
@@ -185,48 +185,48 @@ class kraken(Exchange, ImplicitAPI):
                     'post': {
                         'AddOrder': 0,
                         'AddOrderBatch': 0,
-                        'AddExport': 3,
-                        'Balance': 3,
-                        'CancelAll': 3,
-                        'CancelAllOrdersAfter': 3,
+                        'AddExport': 1,
+                        'Balance': 1,
+                        'CancelAll': 1,
+                        'CancelAllOrdersAfter': 1,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
-                        'ClosedOrders': 6,
-                        'DepositAddresses': 3,
-                        'DepositMethods': 3,
-                        'DepositStatus': 3,
+                        'ClosedOrders': 1,
+                        'DepositAddresses': 1,
+                        'DepositMethods': 1,
+                        'DepositStatus': 1,
                         'EditOrder': 0,
-                        'ExportStatus': 3,
-                        'GetWebSocketsToken': 3,
-                        'Ledgers': 6,
-                        'OpenOrders': 3,
-                        'OpenPositions': 3,
-                        'QueryLedgers': 3,
-                        'QueryOrders': 3,
-                        'QueryTrades': 3,
-                        'RetrieveExport': 3,
-                        'RemoveExport': 3,
-                        'BalanceEx': 3,
-                        'TradeBalance': 3,
-                        'TradesHistory': 6,
-                        'TradeVolume': 3,
-                        'Withdraw': 3,
-                        'WithdrawCancel': 3,
-                        'WithdrawInfo': 3,
-                        'WithdrawMethods': 3,
-                        'WithdrawAddresses': 3,
-                        'WithdrawStatus': 3,
-                        'WalletTransfer': 3,
+                        'ExportStatus': 1,
+                        'GetWebSocketsToken': 1,
+                        'Ledgers': 2,
+                        'OpenOrders': 1,
+                        'OpenPositions': 1,
+                        'QueryLedgers': 1,
+                        'QueryOrders': 1,
+                        'QueryTrades': 1,
+                        'RetrieveExport': 1,
+                        'RemoveExport': 1,
+                        'BalanceEx': 1,
+                        'TradeBalance': 1,
+                        'TradesHistory': 2,
+                        'TradeVolume': 1,
+                        'Withdraw': 1,
+                        'WithdrawCancel': 1,
+                        'WithdrawInfo': 1,
+                        'WithdrawMethods': 1,
+                        'WithdrawAddresses': 1,
+                        'WithdrawStatus': 1,
+                        'WalletTransfer': 1,
                         # sub accounts
-                        'CreateSubaccount': 3,
-                        'AccountTransfer': 3,
+                        'CreateSubaccount': 1,
+                        'AccountTransfer': 1,
                         # earn
-                        'Earn/Allocate': 3,
-                        'Earn/Deallocate': 3,
-                        'Earn/AllocateStatus': 3,
-                        'Earn/DeallocateStatus': 3,
-                        'Earn/Strategies': 3,
-                        'Earn/Allocations': 3,
+                        'Earn/Allocate': 1,
+                        'Earn/Deallocate': 1,
+                        'Earn/AllocateStatus': 1,
+                        'Earn/DeallocateStatus': 1,
+                        'Earn/Strategies': 1,
+                        'Earn/Allocations': 1,
                     },
                 },
             },
@@ -958,7 +958,9 @@ class kraken(Exchange, ImplicitAPI):
         else:
             request['interval'] = timeframe
         if since is not None:
-            request['since'] = self.parse_to_int((since - 1) / 1000)
+            # contrary to kraken's api documentation, the since parameter must be passed in nanoseconds
+            # the adding of '000000' is copied from the fetchTrades function
+            request['since'] = self.number_to_string(since) + '000000'  # expected to be in nanoseconds
         response = self.publicGetOHLC(self.extend(request, params))
         #
         #     {
@@ -1296,7 +1298,7 @@ class kraken(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
         create a trade order
@@ -1456,6 +1458,41 @@ class kraken(Exchange, ImplicitAPI):
         #        "txid": "OTI672-HJFAO-XOIPPK"
         #    }
         #
+        #  {
+        #      "error": [],
+        #      "result": {
+        #          "open": {
+        #              "OXVPSU-Q726F-L3SDEP": {
+        #                  "refid": null,
+        #                  "userref": 0,
+        #                  "status": "open",
+        #                  "opentm": 1706893367.4656649,
+        #                  "starttm": 0,
+        #                  "expiretm": 0,
+        #                  "descr": {
+        #                      "pair": "XRPEUR",
+        #                      "type": "sell",
+        #                      "ordertype": "trailing-stop",
+        #                      "price": "+50.0000%",
+        #                      "price2": "0",
+        #                      "leverage": "none",
+        #                      "order": "sell 10.00000000 XRPEUR @ trailing stop +50.0000%",
+        #                      "close": ""
+        #                  },
+        #                  "vol": "10.00000000",
+        #                  "vol_exec": "0.00000000",
+        #                  "cost": "0.00000000",
+        #                  "fee": "0.00000000",
+        #                  "price": "0.00000000",
+        #                  "stopprice": "0.23424000",
+        #                  "limitprice": "0.46847000",
+        #                  "misc": "",
+        #                  "oflags": "fciq",
+        #                  "trigger": "index"
+        #              }
+        #      }
+        #  }
+        #
         description = self.safe_value(order, 'descr', {})
         orderDescription = self.safe_string(description, 'order', description)
         side = None
@@ -1492,6 +1529,9 @@ class kraken(Exchange, ImplicitAPI):
         # kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         # cost = self.safe_string(order, 'cost')
         price = self.safe_string(description, 'price', price)
+        # when type = trailling stop returns price = '+50.0000%'
+        if (price is not None) and price.endswith('%'):
+            price = None  # self is not the price we want
         if (price is None) or Precise.string_equals(price, '0'):
             price = self.safe_string(description, 'price2')
         if (price is None) or Precise.string_equals(price, '0'):
@@ -1629,7 +1669,7 @@ class kraken(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset'])
         return [request, params]
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
@@ -2440,7 +2480,7 @@ class kraken(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
@@ -2557,7 +2597,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         return self.transfer(code, amount, 'spot', 'swap', params)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         :see: https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
         transfers currencies between sub-accounts(only spot->swap direction is supported)

@@ -88,7 +88,7 @@
             {
                 "description": "Edit swap order",
                 "method": "editOrder",
-                "url": "https://testnet-api.phemex.com/g-orders/replace?symbol=LTCUSDT&orderID=f19a1108-8dc0-4afb-b281-0cd2c8ca65d9&priceRp=50&baseQtyEV=0.14&posSide=Merged",
+                "url": "https://testnet-api.phemex.com/g-orders/replace?symbol=LTCUSDT&orderID=f19a1108-8dc0-4afb-b281-0cd2c8ca65d9&priceRp=50&orderQtyRq=0.14&posSide=Merged",
                 "input": [
                   "f19a1108-8dc0-4afb-b281-0cd2c8ca65d9",
                   "LTC/USDT:USDT",
@@ -320,6 +320,17 @@
                     [
                         "BTC/USD:BTC"
                     ]
+                ]
+            },
+            {
+                "description": "Fetch linear positions using privateGetAccountsPositions",
+                "method": "fetchPositions",
+                "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=USD&method=privateGetAccountsPositions",
+                "input": [
+                  null,
+                  {
+                    "method": "privateGetAccountsPositions"
+                  }
                 ]
             }
         ],

@@ -335,6 +335,117 @@
           "stopLossPrice": null
         }
       }
+    ],
+    "fetchFundingRate": [
+      {
+        "description": "funding rate",
+        "method": "fetchFundingRate",
+        "input": [
+          "BTC/USDT:USDT"
+        ],
+        "httpResponse": {
+          "code": "200000",
+          "data": {
+            "symbol": ".XBTUSDTMFPI8H",
+            "granularity": 28800000,
+            "timePoint": 1705896000000,
+            "value": 0.000136,
+            "predictedValue": 0.00008
+          }
+        },
+        "parsedResponse": {
+          "info": {
+            "symbol": ".XBTUSDTMFPI8H",
+            "granularity": 28800000,
+            "timePoint": 1705896000000,
+            "value": 0.000136,
+            "predictedValue": 0.00008
+          },
+          "symbol": "BTC/USDT:USDT",
+          "markPrice": null,
+          "indexPrice": null,
+          "interestRate": null,
+          "estimatedSettlePrice": null,
+          "timestamp": null,
+          "datetime": null,
+          "fundingRate": 0.000136,
+          "fundingTimestamp": 1705896000000,
+          "fundingDatetime": "2024-01-22T04:00:00.000Z",
+          "nextFundingRate": 0.00008,
+          "nextFundingTimestamp": null,
+          "nextFundingDatetime": null,
+          "previousFundingRate": null,
+          "previousFundingTimestamp": null,
+          "previousFundingDatetime": null
+        }
+      }
+    ],
+    "fetchOHLCV": [
+      {
+        "description": "swap ohlcv with since and limit",
+        "method": "fetchOHLCV",
+        "input": [
+          "BTC/USDT:USDT",
+          "1h",
+          1706628191000,
+          3
+        ],
+        "httpResponse": {
+          "code": "200000",
+          "data": [
+            [
+              1706630400000,
+              43375.2,
+              43514.2,
+              43219,
+              43492,
+              354348
+            ],
+            [
+              1706634000000,
+              43495.6,
+              43598.9,
+              43301.8,
+              43392.3,
+              282425
+            ],
+            [
+              1706637600000,
+              43392.4,
+              43492.9,
+              43278.9,
+              43359.9,
+              296246
+            ]
+          ]
+        },
+        "parsedResponse": [
+          [
+            1706630400000,
+            43375.2,
+            43514.2,
+            43219,
+            43492,
+            354348
+          ],
+          [
+            1706634000000,
+            43495.6,
+            43598.9,
+            43301.8,
+            43392.3,
+            282425
+          ],
+          [
+            1706637600000,
+            43392.4,
+            43492.9,
+            43278.9,
+            43359.9,
+            296246
+          ]
+        ]
+      }
     ]
   }
 }

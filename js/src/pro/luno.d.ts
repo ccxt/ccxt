@@ -18,6 +18,6 @@ export default class luno extends lunoRest {
     };
     parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, thirdKey?: IndexType): any[];
     customParseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, thirdKey?: IndexType): number[];
-    handleDelta(orderbook: any, message: any): any;
-    handleMessage(client: Client, message: any): any;
+    handleDelta(orderbook: any, message: any): void;
+    handleMessage(client: Client, message: any): void;
 }

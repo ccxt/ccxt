@@ -122,7 +122,7 @@ class bitteam extends Exchange {
                 '1d' => '1D',
             ),
             'urls' => array(
-                'logo' => 'https://private-user-images.githubusercontent.com/43336371/291263231-aa2e0d61-edba-44a8-b9bf-68797dc417bd.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDMwOTE4NTYsIm5iZiI6MTcwMzA5MTU1NiwicGF0aCI6Ii80MzMzNjM3MS8yOTEyNjMyMzEtYWEyZTBkNjEtZWRiYS00NGE4LWI5YmYtNjg3OTdkYzQxN2JkLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFJV05KWUFYNENTVkVINTNBJTJGMjAyMzEyMjAlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjMxMjIwVDE2NTkxNlomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTVkOGE5YmY3ZDMzMWY4YzVjODYzYWJjNjE1MGFkNTRkNzVlMDJmNWE1ZTgwNGQ2NzVkMzkyZTFhOTc4OTNjMWQmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.B-ySU5Uo6vz53-iDe08tTQmJH6QOzUA9Jcbj-kZc2wg',
+                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/cf71fe3d-b8b4-40f2-a906-907661b28793',
                 'api' => array(
                     'history' => 'https://history.bit.team',
                     'public' => 'https://bit.team',
@@ -351,7 +351,7 @@ class bitteam extends Exchange {
         $created = $this->parse8601($timeStart);
         $minCost = null;
         $currenciesValuedInUsd = $this->safe_value($this->options, 'currenciesValuedInUsd', array());
-        $quoteInUsd = $this->safe_value($currenciesValuedInUsd, $quote, false);
+        $quoteInUsd = $this->safe_bool($currenciesValuedInUsd, $quote, false);
         if ($quoteInUsd) {
             $settings = $this->safe_value($market, 'settings', array());
             $minCost = $this->safe_number($settings, 'limit_usd');
@@ -537,7 +537,7 @@ class bitteam extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $numericId = $this->safe_integer($currency, 'id');
             $code = $this->safe_currency_code($id);
-            $active = $this->safe_value($currency, 'active', false);
+            $active = $this->safe_bool($currency, 'active', false);
             $precision = $this->safe_integer($currency, 'precision');
             $txLimits = $this->safe_value($currency, 'txLimits', array());
             $minWithdraw = $this->safe_string($txLimits, 'minWithdraw');
@@ -960,7 +960,7 @@ class bitteam extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate

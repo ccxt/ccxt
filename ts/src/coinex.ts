@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -962,7 +962,7 @@ export default class coinex extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
-    async fetchOrderBook (symbol: string, limit = 20, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = 20, params = {}) {
         /**
          * @method
          * @name coinex#fetchOrderBook
@@ -1591,8 +1591,9 @@ export default class coinex extends Exchange {
          */
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const isMargin = this.safeValue (params, 'margin', false);
-        marketType = isMargin ? 'margin' : marketType;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        marketType = (marginMode !== undefined) ? 'margin' : marketType;
         params = this.omit (params, 'margin');
         if (marketType === 'margin') {
             return await this.fetchMarginBalance (params);
@@ -1952,7 +1953,7 @@ export default class coinex extends Exchange {
         }, market);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name coinex#createMarketBuyOrderWithCost
@@ -1972,7 +1973,7 @@ export default class coinex extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    createOrderRequest (symbol, type, side, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol, type, side, amount: number, price: number = undefined, params = {}) {
         const market = this.market (symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
@@ -2105,8 +2106,9 @@ export default class coinex extends Exchange {
             }
         }
         const accountId = this.safeInteger (params, 'account_id');
-        const defaultType = this.safeString (this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new BadRequest (this.id + ' createOrder() requires an account_id parameter for margin orders');
             }
@@ -2116,7 +2118,7 @@ export default class coinex extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinex#createOrder
@@ -2516,7 +2518,7 @@ export default class coinex extends Exchange {
         return results;
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrder
@@ -2616,9 +2618,10 @@ export default class coinex extends Exchange {
             'market': market['id'],
         };
         const accountId = this.safeInteger (params, 'account_id');
-        const defaultType = this.safeString (this.options, 'defaultType');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
-        if (defaultType === 'margin') {
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new BadRequest (this.id + ' cancelOrder() requires an account_id parameter for margin orders');
             }
@@ -2981,8 +2984,9 @@ export default class coinex extends Exchange {
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const accountId = this.safeInteger (params, 'account_id');
-        const defaultType = this.safeString (this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new BadRequest (this.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
             }
@@ -3296,7 +3300,7 @@ export default class coinex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const depositAddress = this.parseDepositAddress (data, currency);
         const options = this.safeValue (this.options, 'fetchDepositAddress', {});
-        const fillResponseFromRequest = this.safeValue (options, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool (options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             depositAddress['network'] = this.safeNetworkCode (network, currency);
         }
@@ -3385,8 +3389,9 @@ export default class coinex extends Exchange {
         }
         const swap = (type === 'swap');
         const accountId = this.safeInteger (params, 'account_id');
-        const defaultType = this.safeString (this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new BadRequest (this.id + ' fetchMyTrades() requires an account_id parameter for margin trades');
             }
@@ -3488,11 +3493,17 @@ export default class coinex extends Exchange {
          * @name coinex#fetchPositions
          * @description fetch all open positions
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
+         * @param {int} [params.side] *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
+        let defaultMethod = undefined;
+        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'perpetualPrivateGetPositionPending');
+        const isHistory = (defaultMethod === 'perpetualPrivateGetPositionFinished');
         symbols = this.marketSymbols (symbols);
         const request = {};
         let market = undefined;
@@ -3509,8 +3520,21 @@ export default class coinex extends Exchange {
             }
             market = this.market (symbol);
             request['market'] = market['id'];
+        } else {
+            if (isHistory) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a symbol argument for closed positions');
+            }
         }
-        const response = await this.perpetualPrivateGetPositionPending (this.extend (request, params));
+        if (isHistory) {
+            request['limit'] = 100;
+            request['side'] = this.safeInteger (params, 'side', 0); // 0: All, 1: Sell, 2: Buy
+        }
+        let response = undefined;
+        if (defaultMethod === 'perpetualPrivateGetPositionPending') {
+            response = await this.perpetualPrivateGetPositionPending (this.extend (request, params));
+        } else {
+            response = await this.perpetualPrivateGetPositionFinished (this.extend (request, params));
+        }
         //
         //     {
         //         "code": 0,
@@ -3763,7 +3787,7 @@ export default class coinex extends Exchange {
         });
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinex#setMarginMode
@@ -3812,7 +3836,7 @@ export default class coinex extends Exchange {
         return await this.perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinex#setLeverage
@@ -4310,7 +4334,7 @@ export default class coinex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinex#withdraw
@@ -4336,7 +4360,7 @@ export default class coinex extends Exchange {
         const request = {
             'coin_type': currency['id'],
             'coin_address': address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
-            'actual_amount': parseFloat (amount), // the actual amount without fees, https://www.coinex.com/fees
+            'actual_amount': parseFloat (this.numberToString (amount)), // the actual amount without fees, https://www.coinex.com/fees
             'transfer_method': 'onchain', // onchain, local
         };
         if (networkCode !== undefined) {
@@ -4570,7 +4594,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name coinex#transfer
@@ -4724,9 +4748,10 @@ export default class coinex extends Exchange {
             request['limit'] = 100;
         }
         params = this.omit (params, 'page');
-        const defaultType = this.safeString (this.options, 'defaultType');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTransfers', params);
         let response = undefined;
-        if (defaultType === 'margin') {
+        if (marginMode !== undefined) {
             response = await this.privateGetMarginTransferHistory (this.extend (request, params));
         } else {
             response = await this.privateGetContractTransferHistory (this.extend (request, params));
@@ -5120,7 +5145,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         /**
          * @method
          * @name coinex#borrowIsolatedMargin
@@ -5316,6 +5341,26 @@ export default class coinex extends Exchange {
             depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
         }
         return depositWithdrawFees;
+    }
+
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {Array} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeBool (params, 'margin', false);
+        let marginMode = undefined;
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
+        if (marginMode === undefined) {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'isolated';
+            }
+        }
+        return [ marginMode, params ];
     }
 
     nonce () {

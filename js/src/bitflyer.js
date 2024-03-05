@@ -31,6 +31,7 @@ export default class bitflyer extends Exchange {
                 'swap': undefined,
                 'future': undefined,
                 'option': false,
+                'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,

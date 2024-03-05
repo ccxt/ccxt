@@ -180,9 +180,9 @@ export default class idex extends idexRest {
         const length = keys.length;
         if (length === 0) {
             const limit = this.safeInteger (this.options, 'tradesLimit');
-            this.trades = new ArrayCacheBySymbolById (limit);
+            this.trades = new ArrayCacheBySymbolById (limit) as any;
         }
-        const trades = this.trades;
+        const trades = this.trades as any;
         trades.append (trade);
         client.resolve (trades, messageHash);
     }
@@ -337,7 +337,7 @@ export default class idex extends idexRest {
                         const symbol = this.safeSymbol (marketId);
                         if (!(symbol in this.orderbooks)) {
                             const orderbook = this.countedOrderBook ({});
-                            (orderbook as any).cache = [];
+                            // orderbook.cache = []; // cache is never used?
                             this.orderbooks[symbol] = orderbook;
                         }
                         this.spawn (this.fetchOrderBookSnapshot, client, symbol);

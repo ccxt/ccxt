@@ -3,7 +3,7 @@ import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../bas
 import Client from '../base/ws/Client.js';
 export default class poloniexfutures extends poloniexfuturesRest {
     describe(): any;
-    negotiate(privateChannel: any, params?: {}): any;
+    negotiate(privateChannel: any, params?: {}): Promise<any>;
     negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
     requestId(): any;
     subscribe(name: string, isPrivate: boolean, symbol?: Str, subscription?: any, params?: {}): Promise<any>;
@@ -24,7 +24,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
     parseOrderStatus(status: string, type: string): string;
     parseWsOrder(order: any, market?: any): Order;
     handleTicker(client: Client, message: any): any;
-    handleL3OrderBook(client: Client, message: any): any;
+    handleL3OrderBook(client: Client, message: any): void;
     handleLevel2(client: Client, message: any): void;
     handleL2OrderBook(client: Client, message: any): void;
     handeL2Snapshot(client: Client, message: any): void;
@@ -34,13 +34,13 @@ export default class poloniexfutures extends poloniexfuturesRest {
     handleBalance(client: Client, message: any): any;
     parseWsBalance(response: any): Balances;
     handleSystemStatus(client: Client, message: any): any;
-    handleSubject(client: Client, message: any): any;
+    handleSubject(client: Client, message: any): void;
     ping(client: Client): {
         id: any;
         type: string;
     };
     handlePong(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
     handleAuthenticate(client: any, message: any): any;
 }

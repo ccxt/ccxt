@@ -161,6 +161,164 @@
         ]
       }
     ],
+    "fetchClosedOrders": [
+      {
+        "description": "Swap closed orders",
+        "method": "fetchClosedOrders",
+        "disabled": true,
+        "input": [
+          "LTC/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "data": [
+            {
+              "accFillSz": "1",
+              "algoClOrdId": "",
+              "algoId": "",
+              "attachAlgoClOrdId": "",
+              "attachAlgoOrds": [],
+              "avgPx": "68.24",
+              "cTime": "1706612162995",
+              "cancelSource": "",
+              "cancelSourceReason": "",
+              "category": "normal",
+              "ccy": "",
+              "clOrdId": "e847386590ce4dBC2f7dbb9924c2b77c",
+              "fee": "-0.00003412",
+              "feeCcy": "USDT",
+              "fillPx": "68.24",
+              "fillSz": "1",
+              "fillTime": "1706612162995",
+              "instId": "LTC-USDT-SWAP",
+              "instType": "SWAP",
+              "lever": "3.0",
+              "ordId": "672515387010932736",
+              "ordType": "market",
+              "pnl": "0",
+              "posSide": "long",
+              "px": "",
+              "pxType": "",
+              "pxUsd": "",
+              "pxVol": "",
+              "quickMgnType": "",
+              "rebate": "0",
+              "rebateCcy": "USDT",
+              "reduceOnly": "false",
+              "side": "buy",
+              "slOrdPx": "",
+              "slTriggerPx": "",
+              "slTriggerPxType": "",
+              "source": "",
+              "state": "filled",
+              "stpId": "",
+              "stpMode": "",
+              "sz": "1",
+              "tag": "e847386590ce4dBC",
+              "tdMode": "cross",
+              "tgtCcy": "",
+              "tpOrdPx": "",
+              "tpTriggerPx": "",
+              "tpTriggerPxType": "",
+              "tradeId": "38002016",
+              "uTime": "1706612162996"
+            }
+          ],
+          "msg": ""
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "accFillSz": "1",
+              "algoClOrdId": "",
+              "algoId": "",
+              "attachAlgoClOrdId": "",
+              "attachAlgoOrds": [],
+              "avgPx": "68.24",
+              "cTime": "1706612162995",
+              "cancelSource": "",
+              "cancelSourceReason": "",
+              "category": "normal",
+              "ccy": "",
+              "clOrdId": "e847386590ce4dBC2f7dbb9924c2b77c",
+              "fee": "-0.00003412",
+              "feeCcy": "USDT",
+              "fillPx": "68.24",
+              "fillSz": "1",
+              "fillTime": "1706612162995",
+              "instId": "LTC-USDT-SWAP",
+              "instType": "SWAP",
+              "lever": "3.0",
+              "ordId": "672515387010932736",
+              "ordType": "market",
+              "pnl": "0",
+              "posSide": "long",
+              "px": "",
+              "pxType": "",
+              "pxUsd": "",
+              "pxVol": "",
+              "quickMgnType": "",
+              "rebate": "0",
+              "rebateCcy": "USDT",
+              "reduceOnly": "false",
+              "side": "buy",
+              "slOrdPx": "",
+              "slTriggerPx": "",
+              "slTriggerPxType": "",
+              "source": "",
+              "state": "filled",
+              "stpId": "",
+              "stpMode": "",
+              "sz": "1",
+              "tag": "e847386590ce4dBC",
+              "tdMode": "cross",
+              "tgtCcy": "",
+              "tpOrdPx": "",
+              "tpTriggerPx": "",
+              "tpTriggerPxType": "",
+              "tradeId": "38002016",
+              "uTime": "1706612162996"
+            },
+            "id": "672515387010932736",
+            "clientOrderId": "e847386590ce4dBC2f7dbb9924c2b77c",
+            "timestamp": 1706612162995,
+            "datetime": "2024-01-30T10:56:02.995Z",
+            "lastTradeTimestamp": 1706612162995,
+            "lastUpdateTimestamp": 1706612162996,
+            "symbol": "LTC/USDT:USDT",
+            "type": "market",
+            "timeInForce": "IOC",
+            "postOnly": null,
+            "side": "buy",
+            "price": 68.24,
+            "stopLossPrice": null,
+            "takeProfitPrice": null,
+            "stopPrice": null,
+            "triggerPrice": null,
+            "average": 68.24,
+            "cost": 0.06824,
+            "amount": 1,
+            "filled": 1,
+            "remaining": 0,
+            "status": "closed",
+            "fee": {
+              "cost": 0.00003412,
+              "currency": "USDT"
+            },
+            "trades": [],
+            "reduceOnly": false,
+            "fees": [
+              {
+                "cost": 0.00003412,
+                "currency": "USDT"
+              }
+            ]
+          }
+        ]
+      }
+    ],
     "fetchMyTrades": [
         {
             "description": "Fetch spot trade",
@@ -254,6 +412,776 @@
               }
             ]
         }
+    ],
+    "fetchPositions": [
+      {
+        "description": "linear swap position",
+        "method": "fetchPositions",
+        "disabled": true,
+        "input": [
+          [
+            "LTC/USDT:USDT"
+          ]
+        ],
+        "httpResponse": {
+          "code": "0",
+          "data": [
+            {
+              "adl": "1",
+              "availPos": "1",
+              "avgPx": "68.24",
+              "baseBal": "",
+              "baseBorrowed": "",
+              "baseInterest": "",
+              "bePx": "68.30827413706852",
+              "bizRefId": "",
+              "bizRefType": "",
+              "cTime": "1706612162996",
+              "ccy": "USDT",
+              "closeOrderAlgo": [],
+              "deltaBS": "",
+              "deltaPA": "",
+              "fee": "-0.00003412",
+              "fundingFee": "0",
+              "gammaBS": "",
+              "gammaPA": "",
+              "idxPx": "68.2172",
+              "imr": "0.0227466666666667",
+              "instId": "LTC-USDT-SWAP",
+              "instType": "SWAP",
+              "interest": "",
+              "last": "68.24",
+              "lever": "3",
+              "liab": "",
+              "liabCcy": "",
+              "liqPenalty": "0",
+              "liqPx": "",
+              "margin": "",
+              "markPx": "68.24",
+              "mgnMode": "cross",
+              "mgnRatio": "141687115.0546428",
+              "mmr": "0.00044356",
+              "notionalUsd": "0.0682283992",
+              "optVal": "",
+              "pendingCloseOrdLiabVal": "",
+              "pnl": "0",
+              "pos": "1",
+              "posCcy": "",
+              "posId": "653944598162657280",
+              "posSide": "long",
+              "quoteBal": "",
+              "quoteBorrowed": "",
+              "quoteInterest": "",
+              "realizedPnl": "-0.00003412",
+              "spotInUseAmt": "",
+              "spotInUseCcy": "",
+              "thetaBS": "",
+              "thetaPA": "",
+              "tradeId": "38002016",
+              "uTime": "1706612162996",
+              "upl": "0",
+              "uplLastPx": "0",
+              "uplRatio": "0",
+              "uplRatioLastPx": "0",
+              "usdPx": "",
+              "vegaBS": "",
+              "vegaPA": ""
+            }
+          ],
+          "msg": ""
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "adl": "1",
+              "availPos": "1",
+              "avgPx": "68.24",
+              "baseBal": "",
+              "baseBorrowed": "",
+              "baseInterest": "",
+              "bePx": "68.30827413706852",
+              "bizRefId": "",
+              "bizRefType": "",
+              "cTime": "1706612162996",
+              "ccy": "USDT",
+              "closeOrderAlgo": [],
+              "deltaBS": "",
+              "deltaPA": "",
+              "fee": "-0.00003412",
+              "fundingFee": "0",
+              "gammaBS": "",
+              "gammaPA": "",
+              "idxPx": "68.2172",
+              "imr": "0.0227466666666667",
+              "instId": "LTC-USDT-SWAP",
+              "instType": "SWAP",
+              "interest": "",
+              "last": "68.24",
+              "lever": "3",
+              "liab": "",
+              "liabCcy": "",
+              "liqPenalty": "0",
+              "liqPx": "",
+              "margin": "",
+              "markPx": "68.24",
+              "mgnMode": "cross",
+              "mgnRatio": "141687115.0546428",
+              "mmr": "0.00044356",
+              "notionalUsd": "0.0682283992",
+              "optVal": "",
+              "pendingCloseOrdLiabVal": "",
+              "pnl": "0",
+              "pos": "1",
+              "posCcy": "",
+              "posId": "653944598162657280",
+              "posSide": "long",
+              "quoteBal": "",
+              "quoteBorrowed": "",
+              "quoteInterest": "",
+              "realizedPnl": "-0.00003412",
+              "spotInUseAmt": "",
+              "spotInUseCcy": "",
+              "thetaBS": "",
+              "thetaPA": "",
+              "tradeId": "38002016",
+              "uTime": "1706612162996",
+              "upl": "0",
+              "uplLastPx": "0",
+              "uplRatio": "0",
+              "uplRatioLastPx": "0",
+              "usdPx": "",
+              "vegaBS": "",
+              "vegaPA": ""
+            },
+            "id": null,
+            "symbol": "LTC/USDT:USDT",
+            "notional": 0.0682283992,
+            "marginMode": "cross",
+            "liquidationPrice": null,
+            "entryPrice": 68.24,
+            "unrealizedPnl": 0,
+            "percentage": 0,
+            "contracts": 1,
+            "contractSize": 0.001,
+            "markPrice": 68.24,
+            "lastPrice": null,
+            "side": "long",
+            "hedged": true,
+            "timestamp": 1706612162996,
+            "datetime": "2024-01-30T10:56:02.996Z",
+            "lastUpdateTimestamp": null,
+            "maintenanceMargin": 0.00044356,
+            "maintenanceMarginPercentage": 0.0065,
+            "collateral": 0.0227466666666667,
+            "initialMargin": 0.0227466666666667,
+            "initialMarginPercentage": 0.3333,
+            "leverage": 3,
+            "marginRatio": 0.0194,
+            "stopLossPrice": null,
+            "takeProfitPrice": null
+          }
+        ]
+      },
+      {
+        "description": "fetch history positions",
+        "method": "fetchPositions",
+        "input": [],
+        "httpResponse": {
+          "code": "0",
+          "data": [
+            {
+              "cTime": "1708351230102",
+              "ccy": "USDT",
+              "closeAvgPx": "1.2567",
+              "closeTotalPos": "40",
+              "direction": "short",
+              "fee": "-0.0351036",
+              "fundingFee": "0",
+              "instId": "SUSHI-USDT-SWAP",
+              "instType": "SWAP",
+              "lever": "10.0",
+              "liqPenalty": "0",
+              "mgnMode": "isolated",
+              "openAvgPx": "1.2462",
+              "openMaxPos": "40",
+              "pnl": "-0.42",
+              "pnlRatio": "-0.0912982667308618",
+              "posId": "666159086676836352",
+              "realizedPnl": "-0.4551036",
+              "triggerPx": "",
+              "type": "2",
+              "uTime": "1708354805699",
+              "uly": "SUSHI-USDT"
+            }
+          ],
+          "msg": ""
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "cTime": "1708351230102",
+              "ccy": "USDT",
+              "closeAvgPx": "1.2567",
+              "closeTotalPos": "40",
+              "direction": "short",
+              "fee": "-0.0351036",
+              "fundingFee": "0",
+              "instId": "SUSHI-USDT-SWAP",
+              "instType": "SWAP",
+              "lever": "10.0",
+              "liqPenalty": "0",
+              "mgnMode": "isolated",
+              "openAvgPx": "1.2462",
+              "openMaxPos": "40",
+              "pnl": "-0.42",
+              "pnlRatio": "-0.0912982667308618",
+              "posId": "666159086676836352",
+              "realizedPnl": "-0.4551036",
+              "triggerPx": "",
+              "type": "2",
+              "uTime": "1708354805699",
+              "uly": "SUSHI-USDT"
+            },
+            "id": "666159086676836352",
+            "symbol": "SUSHI/USDT:USDT",
+            "notional": null,
+            "marginMode": "isolated",
+            "liquidationPrice": null,
+            "entryPrice": 1.2462,
+            "unrealizedPnl": null,
+            "realizedPnl": -0.4551036,
+            "percentage": null,
+            "contracts": null,
+            "contractSize": 1,
+            "markPrice": null,
+            "lastPrice": 1.2567,
+            "side": "short",
+            "hedged": true,
+            "timestamp": 1708351230102,
+            "datetime": "2024-02-19T14:00:30.102Z",
+            "lastUpdateTimestamp": 1708354805699,
+            "maintenanceMargin": null,
+            "maintenanceMarginPercentage": 0,
+            "collateral": null,
+            "initialMargin": null,
+            "initialMarginPercentage": 0.1,
+            "leverage": 10,
+            "marginRatio": null,
+            "stopLossPrice": null,
+            "takeProfitPrice": null
+          }
+        ]
+      }
+    ],
+    "fetchOrderBook": [
+      {
+        "description": "Swap orderbook",
+        "method": "fetchOrderBook",
+        "input": [
+          "BTC/USDT:USDT",
+          2
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "",
+          "data": [
+            {
+              "asks": [
+                [
+                  "43466.4",
+                  "14881",
+                  "0",
+                  "1"
+                ],
+                [
+                  "43466.5",
+                  "14624",
+                  "0",
+                  "1"
+                ]
+              ],
+              "bids": [
+                [
+                  "43466.3",
+                  "13807",
+                  "0",
+                  "1"
+                ],
+                [
+                  "43466.2",
+                  "17151",
+                  "0",
+                  "1"
+                ]
+              ],
+              "ts": "1706612067750"
+            }
+          ]
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT:USDT",
+          "bids": [
+            [
+              43466.3,
+              13807,
+              0
+            ],
+            [
+              43466.2,
+              17151,
+              0
+            ]
+          ],
+          "asks": [
+            [
+              43466.4,
+              14881,
+              0
+            ],
+            [
+              43466.5,
+              14624,
+              0
+            ]
+          ],
+          "timestamp": 1706612067750,
+          "datetime": "2024-01-30T10:54:27.750Z",
+          "nonce": null
+        }
+      },
+      {
+        "description": "spot orderbook",
+        "method": "fetchOrderBook",
+        "input": [
+          "BTC/USDT",
+          2
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "",
+          "data": [
+            {
+              "asks": [
+                [
+                  "42577.7",
+                  "12.20654162",
+                  "0",
+                  "1"
+                ],
+                [
+                  "42578.1",
+                  "16.1505328",
+                  "0",
+                  "1"
+                ]
+              ],
+              "bids": [
+                [
+                  "42573.2",
+                  "14.39980682",
+                  "0",
+                  "1"
+                ],
+                [
+                  "42572.4",
+                  "28.26873519",
+                  "0",
+                  "2"
+                ]
+              ],
+              "ts": "1706804049059"
+            }
+          ]
+        },
+        "parsedResponse": {
+          "symbol": "BTC/USDT",
+          "bids": [
+            [
+              42573.2,
+              14.39980682,
+              0
+            ],
+            [
+              42572.4,
+              28.26873519,
+              0
+            ]
+          ],
+          "asks": [
+            [
+              42577.7,
+              12.20654162,
+              0
+            ],
+            [
+              42578.1,
+              16.1505328,
+              0
+            ]
+          ],
+          "timestamp": 1706804049059,
+          "datetime": "2024-02-01T16:14:09.059Z",
+          "nonce": null
+        }
+      }
+    ],
+    "fetchOHLCV": [
+      {
+        "description": "spot ohlcv with limit and since",
+        "method": "fetchOHLCV",
+        "input": [
+          "BTC/USDT",
+          "1h",
+          1706628191000,
+          3
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "",
+          "data": [
+            [
+              "1706637600000",
+              "43398.6",
+              "43493.9",
+              "43279.9",
+              "43373.9",
+              "5070.79611732",
+              "220057933.233687634",
+              "220057933.233687634",
+              "1"
+            ],
+            [
+              "1706634000000",
+              "43495.9",
+              "43591.7",
+              "43300",
+              "43398.6",
+              "4492.95408114",
+              "195072853.268772597",
+              "195072853.268772597",
+              "1"
+            ],
+            [
+              "1706630400000",
+              "43377.1",
+              "43500",
+              "43220.9",
+              "43495.9",
+              "7137.30786672",
+              "309343235.363089398",
+              "309343235.363089398",
+              "1"
+            ]
+          ]
+        },
+        "parsedResponse": [
+          [
+            1706630400000,
+            43377.1,
+            43500,
+            43220.9,
+            43495.9,
+            7137.30786672
+          ],
+          [
+            1706634000000,
+            43495.9,
+            43591.7,
+            43300,
+            43398.6,
+            4492.95408114
+          ],
+          [
+            1706637600000,
+            43398.6,
+            43493.9,
+            43279.9,
+            43373.9,
+            5070.79611732
+          ]
+        ]
+      }
+    ],
+    "fetchDepositAddressesByNetwork": [
+      {
+        "description": "fetch deposit addresses by network",
+        "method": "fetchDepositAddressesByNetwork",
+        "input": [
+          "USDT"
+        ],
+        "httpResponse": {
+          "code": "0",
+          "data": [
+            {
+              "chain": "USDT-Arbitrum One",
+              "ctAddr": "9fcbb9",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-Arbitrum One",
+              "ctAddr": "9fcbb9",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            },
+            {
+              "chain": "USDT-Solana",
+              "ctAddr": "enwNYB",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add5",
+              "selected": true
+            },
+            {
+              "chain": "USDT-Solana",
+              "ctAddr": "enwNYB",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add6",
+              "selected": false
+            },
+            {
+              "chain": "USDT-Optimism",
+              "ctAddr": "e58e58",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-Optimism",
+              "ctAddr": "e58e58",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            },
+            {
+              "chain": "USDT-Polygon",
+              "ctAddr": "b58e8f",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-Polygon",
+              "ctAddr": "b58e8f",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            },
+            {
+              "chain": "USDT-Avalanche C-Chain",
+              "ctAddr": "f4a8c7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-Avalanche C-Chain",
+              "ctAddr": "f4a8c7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            },
+            {
+              "chain": "USDT-ERC20",
+              "ctAddr": "831ec7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-ERC20",
+              "ctAddr": "831ec7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            },
+            {
+              "chain": "USDT-TRC20",
+              "ctAddr": "gjLj6t",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add3",
+              "selected": false
+            },
+            {
+              "chain": "USDT-TRC20",
+              "ctAddr": "gjLj6t",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add4",
+              "selected": true
+            },
+            {
+              "chain": "USDT-OKTC",
+              "ctAddr": "c65c50",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            },
+            {
+              "chain": "USDT-OKTC",
+              "ctAddr": "c65c50",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add2",
+              "selected": false
+            }
+          ],
+          "msg": ""
+        },
+        "parsedResponse": {
+          "ARBONE": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "ARBONE",
+            "info": {
+              "chain": "USDT-Arbitrum One",
+              "ctAddr": "9fcbb9",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          },
+          "SOL": {
+            "currency": "USDT",
+            "address": "add5",
+            "tag": null,
+            "network": "SOL",
+            "info": {
+              "chain": "USDT-Solana",
+              "ctAddr": "enwNYB",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add5",
+              "selected": true
+            }
+          },
+          "OPTIMISM": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "OPTIMISM",
+            "info": {
+              "chain": "USDT-Optimism",
+              "ctAddr": "e58e58",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          },
+          "MATIC": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "MATIC",
+            "info": {
+              "chain": "USDT-Polygon",
+              "ctAddr": "b58e8f",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          },
+          "AVAXC": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "AVAXC",
+            "info": {
+              "chain": "USDT-Avalanche C-Chain",
+              "ctAddr": "f4a8c7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          },
+          "ERC20": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "ERC20",
+            "info": {
+              "chain": "USDT-ERC20",
+              "ctAddr": "831ec7",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          },
+          "TRC20": {
+            "currency": "USDT",
+            "address": "add4",
+            "tag": null,
+            "network": "TRC20",
+            "info": {
+              "chain": "USDT-TRC20",
+              "ctAddr": "gjLj6t",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add4",
+              "selected": true
+            }
+          },
+          "OKTC": {
+            "currency": "USDT",
+            "address": "add1",
+            "tag": null,
+            "network": "OKTC",
+            "info": {
+              "chain": "USDT-OKTC",
+              "ctAddr": "c65c50",
+              "ccy": "USDT",
+              "to": "6",
+              "verifiedName": "",
+              "addr": "add1",
+              "selected": true
+            }
+          }
+        }
+      }
     ]
   }
 }
