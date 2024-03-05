@@ -3300,24 +3300,24 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'granularity': selectedTimeframe,
         };
-        const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'until', 'till' ]);
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
         const defaultLimit = 100; // by default, exchange returns 100 items
         const msInDay = 1000 * 60 * 60 * 24;
         if (limit !== undefined) {
             limit = Math.min (limit, maxLimit);
             request['limit'] = limit;
         }
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
         if (since !== undefined) {
             request['startTime'] = since;
-            if (market['spot']) {
+            if (market['spot'] && (until === undefined)) {
                 // for spot we need to send "entTime" too
                 const limitForEnd = (limit !== undefined) ? limit : defaultLimit;
                 const calculatedEnd = this.sum (since, duration * limitForEnd);
-                request['endTime'] = (until === undefined) ? calculatedEnd : Math.min (until, calculatedEnd);
+                request['endTime'] = calculatedEnd;
             }
         }
         let response = undefined;
