@@ -10,50 +10,104 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
     public function public_get_public_currency($params = array()) {
         return $this->request('public/currency', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function public_get_public_currency_currency($params = array()) {
+        return $this->request('public/currency/{currency}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function public_get_public_symbol($params = array()) {
         return $this->request('public/symbol', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function public_get_public_symbol_symbol($params = array()) {
+        return $this->request('public/symbol/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function public_get_public_ticker($params = array()) {
         return $this->request('public/ticker', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function public_get_public_ticker_symbol($params = array()) {
+        return $this->request('public/ticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function public_get_public_price_rate($params = array()) {
         return $this->request('public/price/rate', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function public_get_public_price_history($params = array()) {
+        return $this->request('public/price/history', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function public_get_public_price_ticker($params = array()) {
+        return $this->request('public/price/ticker', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function public_get_public_price_ticker_symbol($params = array()) {
+        return $this->request('public/price/ticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function public_get_public_trades($params = array()) {
         return $this->request('public/trades', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function public_get_public_trades_symbol($params = array()) {
+        return $this->request('public/trades/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function public_get_public_orderbook($params = array()) {
         return $this->request('public/orderbook', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function public_get_public_orderbook_symbol($params = array()) {
+        return $this->request('public/orderbook/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function public_get_public_candles($params = array()) {
         return $this->request('public/candles', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function public_get_public_candles_symbol($params = array()) {
+        return $this->request('public/candles/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function public_get_public_converted_candles($params = array()) {
+        return $this->request('public/converted/candles', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function public_get_public_converted_candles_symbol($params = array()) {
+        return $this->request('public/converted/candles/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function public_get_public_futures_info($params = array()) {
         return $this->request('public/futures/info', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function public_get_public_futures_info_symbol($params = array()) {
+        return $this->request('public/futures/info/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function public_get_public_futures_history_funding($params = array()) {
         return $this->request('public/futures/history/funding', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function public_get_public_futures_history_funding_symbol($params = array()) {
+        return $this->request('public/futures/history/funding/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function public_get_public_futures_candles_index_price($params = array()) {
         return $this->request('public/futures/candles/index_price', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function public_get_public_futures_candles_index_price_symbol($params = array()) {
+        return $this->request('public/futures/candles/index_price/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function public_get_public_futures_candles_mark_price($params = array()) {
         return $this->request('public/futures/candles/mark_price', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function public_get_public_futures_candles_mark_price_symbol($params = array()) {
+        return $this->request('public/futures/candles/mark_price/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function public_get_public_futures_candles_premium_index($params = array()) {
         return $this->request('public/futures/candles/premium_index', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function public_get_public_futures_candles_premium_index_symbol($params = array()) {
+        return $this->request('public/futures/candles/premium_index/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function public_get_public_futures_candles_open_interest($params = array()) {
         return $this->request('public/futures/candles/open_interest', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function public_get_public_futures_candles_open_interest_symbol($params = array()) {
+        return $this->request('public/futures/candles/open_interest/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_get_spot_balance($params = array()) {
         return $this->request('spot/balance', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function private_get_spot_balance_currency($params = array()) {
+        return $this->request('spot/balance/{currency}', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function private_get_spot_order($params = array()) {
-        return $this->request('spot/order', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('spot/order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_spot_order_client_order_id($params = array()) {
-        return $this->request('spot/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('spot/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_spot_fee($params = array()) {
         return $this->request('spot/fee', 'private', 'GET', $params, null, null, array("cost" => 15));
@@ -68,43 +122,55 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
         return $this->request('spot/history/trade', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     public function private_get_margin_account($params = array()) {
-        return $this->request('margin/account', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('margin/account', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_margin_account_isolated_symbol($params = array()) {
-        return $this->request('margin/account/isolated/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('margin/account/isolated/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_margin_account_cross_currency($params = array()) {
+        return $this->request('margin/account/cross/{currency}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_margin_order($params = array()) {
-        return $this->request('margin/order', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('margin/order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_margin_order_client_order_id($params = array()) {
-        return $this->request('margin/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('margin/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_margin_history_clearing($params = array()) {
-        return $this->request('margin/history/clearing', 'private', 'GET', $params, null, null, array("cost" => 15));
+    public function private_get_margin_config($params = array()) {
+        return $this->request('margin/config', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     public function private_get_margin_history_order($params = array()) {
         return $this->request('margin/history/order', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function private_get_margin_history_trade($params = array()) {
+        return $this->request('margin/history/trade', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function private_get_margin_history_positions($params = array()) {
         return $this->request('margin/history/positions', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
-    public function private_get_margin_history_trade($params = array()) {
-        return $this->request('margin/history/trade', 'private', 'GET', $params, null, null, array("cost" => 15));
+    public function private_get_margin_history_clearing($params = array()) {
+        return $this->request('margin/history/clearing', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     public function private_get_futures_balance($params = array()) {
         return $this->request('futures/balance', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function private_get_futures_balance_currency($params = array()) {
+        return $this->request('futures/balance/{currency}', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function private_get_futures_account($params = array()) {
-        return $this->request('futures/account', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('futures/account', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_futures_account_isolated_symbol($params = array()) {
-        return $this->request('futures/account/isolated/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('futures/account/isolated/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_futures_order($params = array()) {
-        return $this->request('futures/order', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('futures/order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_futures_order_client_order_id($params = array()) {
-        return $this->request('futures/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('futures/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_futures_config($params = array()) {
+        return $this->request('futures/config', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     public function private_get_futures_fee($params = array()) {
         return $this->request('futures/fee', 'private', 'GET', $params, null, null, array("cost" => 15));
@@ -112,41 +178,50 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
     public function private_get_futures_fee_symbol($params = array()) {
         return $this->request('futures/fee/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
-    public function private_get_futures_history_clearing($params = array()) {
-        return $this->request('futures/history/clearing', 'private', 'GET', $params, null, null, array("cost" => 15));
-    }
     public function private_get_futures_history_order($params = array()) {
         return $this->request('futures/history/order', 'private', 'GET', $params, null, null, array("cost" => 15));
-    }
-    public function private_get_futures_history_positions($params = array()) {
-        return $this->request('futures/history/positions', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     public function private_get_futures_history_trade($params = array()) {
         return $this->request('futures/history/trade', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function private_get_futures_history_positions($params = array()) {
+        return $this->request('futures/history/positions', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function private_get_futures_history_clearing($params = array()) {
+        return $this->request('futures/history/clearing', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function private_get_wallet_balance($params = array()) {
-        return $this->request('wallet/balance', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/balance', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function private_get_wallet_balance_currency($params = array()) {
+        return $this->request('wallet/balance/{currency}', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_wallet_crypto_address($params = array()) {
-        return $this->request('wallet/crypto/address', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/address', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_wallet_crypto_address_recent_deposit($params = array()) {
-        return $this->request('wallet/crypto/address/recent-deposit', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/address/recent-deposit', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_wallet_crypto_address_recent_withdraw($params = array()) {
-        return $this->request('wallet/crypto/address/recent-withdraw', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/address/recent-withdraw', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_wallet_crypto_address_check_mine($params = array()) {
-        return $this->request('wallet/crypto/address/check-mine', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/address/check-mine', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_wallet_transactions($params = array()) {
-        return $this->request('wallet/transactions', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/transactions', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
-    public function private_get_wallet_crypto_check_offchain_available($params = array()) {
-        return $this->request('wallet/crypto/check-offchain-available', 'private', 'GET', $params, null, null, array("cost" => 15));
+    public function private_get_wallet_transactions_tx_id($params = array()) {
+        return $this->request('wallet/transactions/{tx_id}', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_wallet_crypto_fee_estimate($params = array()) {
-        return $this->request('wallet/crypto/fee/estimate', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/fee/estimate', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function private_get_wallet_airdrops($params = array()) {
+        return $this->request('wallet/airdrops', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function private_get_wallet_amount_locks($params = array()) {
+        return $this->request('wallet/amount-locks', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_sub_account($params = array()) {
         return $this->request('sub-account', 'private', 'GET', $params, null, null, array("cost" => 15));
@@ -163,23 +238,44 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
     public function private_post_spot_order($params = array()) {
         return $this->request('spot/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_spot_order_list($params = array()) {
+        return $this->request('spot/order/list', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_margin_order($params = array()) {
         return $this->request('margin/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_margin_order_list($params = array()) {
+        return $this->request('margin/order/list', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_futures_order($params = array()) {
         return $this->request('futures/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_wallet_convert($params = array()) {
-        return $this->request('wallet/convert', 'private', 'POST', $params, null, null, array("cost" => 15));
+    public function private_post_futures_order_list($params = array()) {
+        return $this->request('futures/order/list', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_wallet_crypto_address($params = array()) {
-        return $this->request('wallet/crypto/address', 'private', 'POST', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/address', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     public function private_post_wallet_crypto_withdraw($params = array()) {
-        return $this->request('wallet/crypto/withdraw', 'private', 'POST', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/withdraw', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function private_post_wallet_convert($params = array()) {
+        return $this->request('wallet/convert', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     public function private_post_wallet_transfer($params = array()) {
-        return $this->request('wallet/transfer', 'private', 'POST', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/transfer', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function private_post_wallet_internal_withdraw($params = array()) {
+        return $this->request('wallet/internal/withdraw', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function private_post_wallet_crypto_check_offchain_available($params = array()) {
+        return $this->request('wallet/crypto/check-offchain-available', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function private_post_wallet_crypto_fees_estimate($params = array()) {
+        return $this->request('wallet/crypto/fees/estimate', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function private_post_wallet_airdrops_id_claim($params = array()) {
+        return $this->request('wallet/airdrops/{id}/claim', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     public function private_post_sub_account_freeze($params = array()) {
         return $this->request('sub-account/freeze', 'private', 'POST', $params, null, null, array("cost" => 15));
@@ -223,8 +319,8 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
     public function private_delete_futures_position($params = array()) {
         return $this->request('futures/position', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function private_delete_futures_position_isolated_symbol($params = array()) {
-        return $this->request('futures/position/isolated/{symbol}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    public function private_delete_futures_position_margin_mode_symbol($params = array()) {
+        return $this->request('futures/position/{margin_mode}/{symbol}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function private_delete_futures_order($params = array()) {
         return $this->request('futures/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
@@ -233,7 +329,7 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
         return $this->request('futures/order/{client_order_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function private_delete_wallet_crypto_withdraw_id($params = array()) {
-        return $this->request('wallet/crypto/withdraw/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('wallet/crypto/withdraw/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 30));
     }
     public function private_put_margin_account_isolated_symbol($params = array()) {
         return $this->request('margin/account/isolated/{symbol}', 'private', 'PUT', $params, null, null, array("cost" => 1));
@@ -242,55 +338,109 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
         return $this->request('futures/account/isolated/{symbol}', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function private_put_wallet_crypto_withdraw_id($params = array()) {
-        return $this->request('wallet/crypto/withdraw/{id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
+        return $this->request('wallet/crypto/withdraw/{id}', 'private', 'PUT', $params, null, null, array("cost" => 30));
     }
     public function publicGetPublicCurrency($params = array()) {
         return $this->request('public/currency', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function publicGetPublicCurrencyCurrency($params = array()) {
+        return $this->request('public/currency/{currency}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function publicGetPublicSymbol($params = array()) {
         return $this->request('public/symbol', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicSymbolSymbol($params = array()) {
+        return $this->request('public/symbol/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function publicGetPublicTicker($params = array()) {
         return $this->request('public/ticker', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function publicGetPublicTickerSymbol($params = array()) {
+        return $this->request('public/ticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function publicGetPublicPriceRate($params = array()) {
         return $this->request('public/price/rate', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicPriceHistory($params = array()) {
+        return $this->request('public/price/history', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicPriceTicker($params = array()) {
+        return $this->request('public/price/ticker', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicPriceTickerSymbol($params = array()) {
+        return $this->request('public/price/ticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function publicGetPublicTrades($params = array()) {
         return $this->request('public/trades', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function publicGetPublicTradesSymbol($params = array()) {
+        return $this->request('public/trades/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function publicGetPublicOrderbook($params = array()) {
         return $this->request('public/orderbook', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicOrderbookSymbol($params = array()) {
+        return $this->request('public/orderbook/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function publicGetPublicCandles($params = array()) {
         return $this->request('public/candles', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function publicGetPublicCandlesSymbol($params = array()) {
+        return $this->request('public/candles/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicConvertedCandles($params = array()) {
+        return $this->request('public/converted/candles', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicConvertedCandlesSymbol($params = array()) {
+        return $this->request('public/converted/candles/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function publicGetPublicFuturesInfo($params = array()) {
         return $this->request('public/futures/info', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicFuturesInfoSymbol($params = array()) {
+        return $this->request('public/futures/info/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function publicGetPublicFuturesHistoryFunding($params = array()) {
         return $this->request('public/futures/history/funding', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function publicGetPublicFuturesHistoryFundingSymbol($params = array()) {
+        return $this->request('public/futures/history/funding/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function publicGetPublicFuturesCandlesIndexPrice($params = array()) {
         return $this->request('public/futures/candles/index_price', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicFuturesCandlesIndexPriceSymbol($params = array()) {
+        return $this->request('public/futures/candles/index_price/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function publicGetPublicFuturesCandlesMarkPrice($params = array()) {
         return $this->request('public/futures/candles/mark_price', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function publicGetPublicFuturesCandlesMarkPriceSymbol($params = array()) {
+        return $this->request('public/futures/candles/mark_price/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function publicGetPublicFuturesCandlesPremiumIndex($params = array()) {
         return $this->request('public/futures/candles/premium_index', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetPublicFuturesCandlesPremiumIndexSymbol($params = array()) {
+        return $this->request('public/futures/candles/premium_index/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
     public function publicGetPublicFuturesCandlesOpenInterest($params = array()) {
         return $this->request('public/futures/candles/open_interest', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function publicGetPublicFuturesCandlesOpenInterestSymbol($params = array()) {
+        return $this->request('public/futures/candles/open_interest/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function privateGetSpotBalance($params = array()) {
         return $this->request('spot/balance', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function privateGetSpotBalanceCurrency($params = array()) {
+        return $this->request('spot/balance/{currency}', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function privateGetSpotOrder($params = array()) {
-        return $this->request('spot/order', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('spot/order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetSpotOrderClientOrderId($params = array()) {
-        return $this->request('spot/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('spot/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetSpotFee($params = array()) {
         return $this->request('spot/fee', 'private', 'GET', $params, null, null, array("cost" => 15));
@@ -305,43 +455,55 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
         return $this->request('spot/history/trade', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     public function privateGetMarginAccount($params = array()) {
-        return $this->request('margin/account', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('margin/account', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetMarginAccountIsolatedSymbol($params = array()) {
-        return $this->request('margin/account/isolated/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('margin/account/isolated/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetMarginAccountCrossCurrency($params = array()) {
+        return $this->request('margin/account/cross/{currency}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetMarginOrder($params = array()) {
-        return $this->request('margin/order', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('margin/order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetMarginOrderClientOrderId($params = array()) {
-        return $this->request('margin/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('margin/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetMarginHistoryClearing($params = array()) {
-        return $this->request('margin/history/clearing', 'private', 'GET', $params, null, null, array("cost" => 15));
+    public function privateGetMarginConfig($params = array()) {
+        return $this->request('margin/config', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     public function privateGetMarginHistoryOrder($params = array()) {
         return $this->request('margin/history/order', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function privateGetMarginHistoryTrade($params = array()) {
+        return $this->request('margin/history/trade', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function privateGetMarginHistoryPositions($params = array()) {
         return $this->request('margin/history/positions', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
-    public function privateGetMarginHistoryTrade($params = array()) {
-        return $this->request('margin/history/trade', 'private', 'GET', $params, null, null, array("cost" => 15));
+    public function privateGetMarginHistoryClearing($params = array()) {
+        return $this->request('margin/history/clearing', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     public function privateGetFuturesBalance($params = array()) {
         return $this->request('futures/balance', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function privateGetFuturesBalanceCurrency($params = array()) {
+        return $this->request('futures/balance/{currency}', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function privateGetFuturesAccount($params = array()) {
-        return $this->request('futures/account', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('futures/account', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetFuturesAccountIsolatedSymbol($params = array()) {
-        return $this->request('futures/account/isolated/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('futures/account/isolated/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetFuturesOrder($params = array()) {
-        return $this->request('futures/order', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('futures/order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetFuturesOrderClientOrderId($params = array()) {
-        return $this->request('futures/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('futures/order/{client_order_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetFuturesConfig($params = array()) {
+        return $this->request('futures/config', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     public function privateGetFuturesFee($params = array()) {
         return $this->request('futures/fee', 'private', 'GET', $params, null, null, array("cost" => 15));
@@ -349,41 +511,50 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
     public function privateGetFuturesFeeSymbol($params = array()) {
         return $this->request('futures/fee/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
-    public function privateGetFuturesHistoryClearing($params = array()) {
-        return $this->request('futures/history/clearing', 'private', 'GET', $params, null, null, array("cost" => 15));
-    }
     public function privateGetFuturesHistoryOrder($params = array()) {
         return $this->request('futures/history/order', 'private', 'GET', $params, null, null, array("cost" => 15));
-    }
-    public function privateGetFuturesHistoryPositions($params = array()) {
-        return $this->request('futures/history/positions', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
     public function privateGetFuturesHistoryTrade($params = array()) {
         return $this->request('futures/history/trade', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function privateGetFuturesHistoryPositions($params = array()) {
+        return $this->request('futures/history/positions', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function privateGetFuturesHistoryClearing($params = array()) {
+        return $this->request('futures/history/clearing', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function privateGetWalletBalance($params = array()) {
-        return $this->request('wallet/balance', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/balance', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function privateGetWalletBalanceCurrency($params = array()) {
+        return $this->request('wallet/balance/{currency}', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetWalletCryptoAddress($params = array()) {
-        return $this->request('wallet/crypto/address', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/address', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetWalletCryptoAddressRecentDeposit($params = array()) {
-        return $this->request('wallet/crypto/address/recent-deposit', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/address/recent-deposit', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetWalletCryptoAddressRecentWithdraw($params = array()) {
-        return $this->request('wallet/crypto/address/recent-withdraw', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/address/recent-withdraw', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetWalletCryptoAddressCheckMine($params = array()) {
-        return $this->request('wallet/crypto/address/check-mine', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/address/check-mine', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetWalletTransactions($params = array()) {
-        return $this->request('wallet/transactions', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/transactions', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
-    public function privateGetWalletCryptoCheckOffchainAvailable($params = array()) {
-        return $this->request('wallet/crypto/check-offchain-available', 'private', 'GET', $params, null, null, array("cost" => 15));
+    public function privateGetWalletTransactionsTxId($params = array()) {
+        return $this->request('wallet/transactions/{tx_id}', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetWalletCryptoFeeEstimate($params = array()) {
-        return $this->request('wallet/crypto/fee/estimate', 'private', 'GET', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/fee/estimate', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function privateGetWalletAirdrops($params = array()) {
+        return $this->request('wallet/airdrops', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function privateGetWalletAmountLocks($params = array()) {
+        return $this->request('wallet/amount-locks', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetSubAccount($params = array()) {
         return $this->request('sub-account', 'private', 'GET', $params, null, null, array("cost" => 15));
@@ -400,23 +571,44 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
     public function privatePostSpotOrder($params = array()) {
         return $this->request('spot/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostSpotOrderList($params = array()) {
+        return $this->request('spot/order/list', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privatePostMarginOrder($params = array()) {
         return $this->request('margin/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostMarginOrderList($params = array()) {
+        return $this->request('margin/order/list', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostFuturesOrder($params = array()) {
         return $this->request('futures/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostWalletConvert($params = array()) {
-        return $this->request('wallet/convert', 'private', 'POST', $params, null, null, array("cost" => 15));
+    public function privatePostFuturesOrderList($params = array()) {
+        return $this->request('futures/order/list', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostWalletCryptoAddress($params = array()) {
-        return $this->request('wallet/crypto/address', 'private', 'POST', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/address', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     public function privatePostWalletCryptoWithdraw($params = array()) {
-        return $this->request('wallet/crypto/withdraw', 'private', 'POST', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/crypto/withdraw', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function privatePostWalletConvert($params = array()) {
+        return $this->request('wallet/convert', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     public function privatePostWalletTransfer($params = array()) {
-        return $this->request('wallet/transfer', 'private', 'POST', $params, null, null, array("cost" => 15));
+        return $this->request('wallet/transfer', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function privatePostWalletInternalWithdraw($params = array()) {
+        return $this->request('wallet/internal/withdraw', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function privatePostWalletCryptoCheckOffchainAvailable($params = array()) {
+        return $this->request('wallet/crypto/check-offchain-available', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function privatePostWalletCryptoFeesEstimate($params = array()) {
+        return $this->request('wallet/crypto/fees/estimate', 'private', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function privatePostWalletAirdropsIdClaim($params = array()) {
+        return $this->request('wallet/airdrops/{id}/claim', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
     public function privatePostSubAccountFreeze($params = array()) {
         return $this->request('sub-account/freeze', 'private', 'POST', $params, null, null, array("cost" => 15));
@@ -460,8 +652,8 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
     public function privateDeleteFuturesPosition($params = array()) {
         return $this->request('futures/position', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
-    public function privateDeleteFuturesPositionIsolatedSymbol($params = array()) {
-        return $this->request('futures/position/isolated/{symbol}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    public function privateDeleteFuturesPositionMarginModeSymbol($params = array()) {
+        return $this->request('futures/position/{margin_mode}/{symbol}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteFuturesOrder($params = array()) {
         return $this->request('futures/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
@@ -470,7 +662,7 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
         return $this->request('futures/order/{client_order_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteWalletCryptoWithdrawId($params = array()) {
-        return $this->request('wallet/crypto/withdraw/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('wallet/crypto/withdraw/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 30));
     }
     public function privatePutMarginAccountIsolatedSymbol($params = array()) {
         return $this->request('margin/account/isolated/{symbol}', 'private', 'PUT', $params, null, null, array("cost" => 1));
@@ -479,6 +671,6 @@ abstract class hitbtc3 extends \ccxt\async\hitbtc {
         return $this->request('futures/account/isolated/{symbol}', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function privatePutWalletCryptoWithdrawId($params = array()) {
-        return $this->request('wallet/crypto/withdraw/{id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
+        return $this->request('wallet/crypto/withdraw/{id}', 'private', 'PUT', $params, null, null, array("cost" => 30));
     }
 }

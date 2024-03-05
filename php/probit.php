@@ -26,19 +26,21 @@ class probit extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
                 'createMarketOrder' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
@@ -49,6 +51,8 @@ class probit extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
@@ -240,8 +244,8 @@ class probit extends Exchange {
         /**
          * @see https://docs-en.probit.com/reference/market
          * retrieves data on all $markets for probit
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetMarket ($params);
         //
@@ -269,79 +273,79 @@ class probit extends Exchange {
         //     }
         //
         $markets = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'id');
-            $baseId = $this->safe_string($market, 'base_currency_id');
-            $quoteId = $this->safe_string($market, 'quote_currency_id');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $closed = $this->safe_value($market, 'closed', false);
-            $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
-            $taker = Precise::string_div($takerFeeRate, '100');
-            $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');
-            $maker = Precise::string_div($makerFeeRate, '100');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => !$closed,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'taker' => $this->parse_number($taker),
-                'maker' => $this->parse_number($maker),
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_precision'))),
-                    'price' => $this->safe_number($market, 'price_increment'),
-                    'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'cost_precision'))),
+        return $this->parse_markets($markets);
+    }
+
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'id');
+        $baseId = $this->safe_string($market, 'base_currency_id');
+        $quoteId = $this->safe_string($market, 'quote_currency_id');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $closed = $this->safe_bool($market, 'closed', false);
+        $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
+        $taker = Precise::string_div($takerFeeRate, '100');
+        $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');
+        $maker = Precise::string_div($makerFeeRate, '100');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => !$closed,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'taker' => $this->parse_number($taker),
+            'maker' => $this->parse_number($maker),
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_precision'))),
+                'price' => $this->safe_number($market, 'price_increment'),
+                'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'cost_precision'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'min_quantity'),
-                        'max' => $this->safe_number($market, 'max_quantity'),
-                    ),
-                    'price' => array(
-                        'min' => $this->safe_number($market, 'min_price'),
-                        'max' => $this->safe_number($market, 'max_price'),
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'min_cost'),
-                        'max' => $this->safe_number($market, 'max_cost'),
-                    ),
+                'amount' => array(
+                    'min' => $this->safe_number($market, 'min_quantity'),
+                    'max' => $this->safe_number($market, 'max_quantity'),
                 ),
-                'info' => $market,
-            );
-        }
-        return $result;
+                'price' => array(
+                    'min' => $this->safe_number($market, 'min_price'),
+                    'max' => $this->safe_number($market, 'max_price'),
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($market, 'min_cost'),
+                    'max' => $this->safe_number($market, 'max_cost'),
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
     }
 
     public function fetch_currencies($params = array ()) {
         /**
          * @see https://docs-en.probit.com/reference/currency
          * fetches all available $currencies on an exchange
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
         $response = $this->publicGetCurrencyWithPlatform ($params);
@@ -415,8 +419,8 @@ class probit extends Exchange {
             $networkList = array();
             for ($j = 0; $j < count($platformsByPriority); $j++) {
                 $network = $platformsByPriority[$j];
-                $id = $this->safe_string($network, 'id');
-                $networkCode = $this->network_id_to_code($id);
+                $idInner = $this->safe_string($network, 'id');
+                $networkCode = $this->network_id_to_code($idInner);
                 $currentDepositSuspended = $this->safe_value($network, 'deposit_suspended');
                 $currentWithdrawalSuspended = $this->safe_value($network, 'withdrawal_suspended');
                 $currentDeposit = !$currentDepositSuspended;
@@ -427,14 +431,22 @@ class probit extends Exchange {
                 }
                 $precision = $this->parse_precision($this->safe_string($network, 'precision'));
                 $withdrawFee = $this->safe_value($network, 'withdrawal_fee', array());
-                $fee = $this->safe_value($withdrawFee, 0, array());
+                $networkFee = $this->safe_value($withdrawFee, 0, array());
+                for ($k = 0; $k < count($withdrawFee); $k++) {
+                    $withdrawPlatform = $withdrawFee[$k];
+                    $feeCurrencyId = $this->safe_string($withdrawPlatform, 'currency_id');
+                    if ($feeCurrencyId === $id) {
+                        $networkFee = $withdrawPlatform;
+                        break;
+                    }
+                }
                 $networkList[$networkCode] = array(
-                    'id' => $id,
+                    'id' => $idInner,
                     'network' => $networkCode,
                     'active' => $currentActive,
                     'deposit' => $currentDeposit,
                     'withdraw' => $currentWithdraw,
-                    'fee' => $this->safe_number($fee, 'amount'),
+                    'fee' => $this->safe_number($networkFee, 'amount'),
                     'precision' => $this->parse_number($precision),
                     'limits' => array(
                         'withdraw' => array(
@@ -502,7 +514,7 @@ class probit extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -521,18 +533,18 @@ class probit extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/balance
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
         //
         //     {
-        //         data => array(
+        //         "data" => array(
         //             {
         //                 "currency_id":"XRP",
         //                 "total":"100",
@@ -544,13 +556,13 @@ class probit extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/order_book
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
@@ -573,12 +585,12 @@ class probit extends Exchange {
         return $this->parse_order_book($dataBySide, $market['symbol'], null, 'buy', 'sell', 'price', 'quantity');
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/ticker
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
@@ -608,12 +620,12 @@ class probit extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/ticker
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
@@ -646,7 +658,7 @@ class probit extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "last":"0.022902",
@@ -697,7 +709,7 @@ class probit extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
@@ -722,7 +734,7 @@ class probit extends Exchange {
         $response = $this->privateGetTradeHistory (array_merge($request, $params));
         //
         //     {
-        //         $data => array(
+        //         "data" => array(
         //             {
         //                 "id":"BTC-USDT:183566",
         //                 "order_id":"17209376",
@@ -743,21 +755,20 @@ class probit extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/trade-1
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'market_id' => $market['id'],
-            'limit' => 100,
             'start_time' => '1970-01-01T00:00:00.000Z',
             'end_time' => $this->iso8601($this->milliseconds()),
         );
@@ -765,7 +776,9 @@ class probit extends Exchange {
             $request['start_time'] = $this->iso8601($since);
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, 1000);
+        } else {
+            $request['limit'] = 1000; // required to set any value
         }
         $response = $this->publicGetTrade (array_merge($request, $params));
         //
@@ -794,7 +807,7 @@ class probit extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -867,7 +880,7 @@ class probit extends Exchange {
         /**
          * @see https://docs-en.probit.com/reference/time
          * fetches the current integer $timestamp in milliseconds from the exchange server
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer $timestamp in milliseconds from the exchange server
          */
         $response = $this->publicGetTime ($params);
@@ -913,7 +926,7 @@ class probit extends Exchange {
         }
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/candle
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -921,7 +934,7 @@ class probit extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -978,7 +991,7 @@ class probit extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "market_id":"ETH-BTC",
@@ -1002,14 +1015,14 @@ class probit extends Exchange {
         );
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/open_order-1
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -1025,14 +1038,14 @@ class probit extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/order
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -1062,7 +1075,7 @@ class probit extends Exchange {
          * @see https://docs-en.probit.com/reference/order-3
          * fetches information on an $order made by the user
          * @param {string} $symbol unified $symbol of the $market the $order was made in
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
@@ -1095,23 +1108,23 @@ class probit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         $id,
         //         user_id,
         //         market_id,
-        //         $type => 'orderType',
-        //         $side => 'side',
+        //         "type" => "orderType",
+        //         "side" => "side",
         //         quantity,
         //         limit_price,
-        //         time_in_force => 'timeInForce',
+        //         "time_in_force" => "timeInForce",
         //         filled_cost,
         //         filled_quantity,
         //         open_quantity,
         //         cancelled_quantity,
-        //         $status => 'orderStatus',
-        //         time => 'date',
+        //         "status" => "orderStatus",
+        //         "time" => "date",
         //         client_order_id,
         //     }
         //
@@ -1165,16 +1178,17 @@ class probit extends Exchange {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
-         * @see https://docs-en.probit.com/reference/order-1
          * create a trade $order
+         * @see https://docs-en.probit.com/reference/order-1
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {float} $amount how much you want to trade in units of the base currency
+         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -1192,30 +1206,32 @@ class probit extends Exchange {
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
         }
-        $costToPrecision = null;
+        $quoteAmount = null;
         if ($type === 'limit') {
             $request['limit_price'] = $this->price_to_precision($symbol, $price);
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         } elseif ($type === 'market') {
             // for $market buy it requires the $amount of quote currency to spend
             if ($side === 'buy') {
-                $cost = $this->safe_number($params, 'cost');
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($createMarketBuyOrderRequiresPrice) {
-                    if ($price !== null) {
-                        if ($cost === null) {
-                            $amountString = $this->number_to_string($amount);
-                            $priceString = $this->number_to_string($price);
-                            $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                        }
-                    } elseif ($cost === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total $cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_string($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($cost !== null) {
+                    $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                } elseif ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                     }
                 } else {
-                    $cost = ($cost === null) ? $amount : $cost;
+                    $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
-                $costToPrecision = $this->cost_to_precision($symbol, $cost);
-                $request['cost'] = $costToPrecision;
+                $request['cost'] = $quoteAmount;
             } else {
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             }
@@ -1224,21 +1240,21 @@ class probit extends Exchange {
         $response = $this->privatePostNewOrder (array_merge($request, $query));
         //
         //     {
-        //         $data => {
+        //         "data" => {
         //             id,
         //             user_id,
         //             market_id,
-        //             $type => 'orderType',
-        //             $side => 'side',
+        //             "type" => "orderType",
+        //             "side" => "side",
         //             quantity,
         //             limit_price,
-        //             time_in_force => 'timeInForce',
+        //             "time_in_force" => "timeInForce",
         //             filled_cost,
         //             filled_quantity,
         //             open_quantity,
         //             cancelled_quantity,
-        //             status => 'orderStatus',
-        //             time => 'date',
+        //             "status" => "orderStatus",
+        //             "time" => "date",
         //             client_order_id,
         //         }
         //     }
@@ -1249,7 +1265,7 @@ class probit extends Exchange {
         // returned by the exchange on $market buys
         if (($type === 'market') && ($side === 'buy')) {
             $order['amount'] = null;
-            $order['cost'] = $this->parse_number($costToPrecision);
+            $order['cost'] = $this->parse_number($quoteAmount);
             $order['remaining'] = null;
         }
         return $order;
@@ -1261,7 +1277,7 @@ class probit extends Exchange {
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -1278,7 +1294,7 @@ class probit extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'destination_tag');
         $currencyId = $this->safe_string($depositAddress, 'currency_id');
@@ -1300,7 +1316,7 @@ class probit extends Exchange {
          * @see https://docs-en.probit.com/reference/deposit_address
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
@@ -1348,12 +1364,12 @@ class probit extends Exchange {
         return $this->parse_deposit_address($firstAddress, $currency);
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * @see https://docs-en.probit.com/reference/deposit_address
          * fetch deposit addresses for multiple currencies and chain types
          * @param {string[]|null} $codes list of unified $currency $codes, default is null
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
          */
         $this->load_markets();
@@ -1371,7 +1387,7 @@ class probit extends Exchange {
         return $this->parse_deposit_addresses($data, $codes);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * @see https://docs-en.probit.com/reference/withdrawal
          * make a withdrawal
@@ -1379,7 +1395,7 @@ class probit extends Exchange {
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -1417,13 +1433,13 @@ class probit extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $request = array(
@@ -1433,13 +1449,13 @@ class probit extends Exchange {
         return $result;
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made to an account
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $request = array(
@@ -1457,7 +1473,8 @@ class probit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch transactions for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch transactions for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
@@ -1469,9 +1486,20 @@ class probit extends Exchange {
         }
         if ($since !== null) {
             $request['start_time'] = $this->iso8601($since);
+        } else {
+            $request['start_time'] = $this->iso8601(1);
+        }
+        $until = $this->safe_integer_2($params, 'till', 'until');
+        if ($until !== null) {
+            $request['end_time'] = $this->iso8601($until);
+            $params = $this->omit($params, array( 'until', 'till' ));
+        } else {
+            $request['end_time'] = $this->iso8601($this->milliseconds());
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
+        } else {
+            $request['limit'] = 100;
         }
         $response = $this->privateGetTransferPayment (array_merge($request, $params));
         //
@@ -1498,12 +1526,34 @@ class probit extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
+        //
+        //     {
+        //         "id" => "01211d4b-0e68-41d6-97cb-298bfe2cab67",
+        //         "type" => "deposit",
+        //         "status" => "done",
+        //         "amount" => "0.01",
+        //         "address" => "0x9e7430fc0bdd14745bd00a1b92ed25133a7c765f",
+        //         "time" => "2023-06-14T12:03:11.000Z",
+        //         "hash" => "0x0ff5bedc9e378f9529acc6b9840fa8c2ef00fd0275e0bac7fa0589a9b5d1712e",
+        //         "currency_id" => "ETH",
+        //         "confirmations":0,
+        //         "fee" => "0",
+        //         "destination_tag" => null,
+        //         "platform_id" => "ETH",
+        //         "fee_currency_id" => "ETH",
+        //         "payment_service_name":null,
+        //         "payment_service_display_name":null,
+        //         "crypto":null
+        //     }
+        //
         $id = $this->safe_string($transaction, 'id');
+        $networkId = $this->safe_string($transaction, 'platform_id');
+        $networkCode = $this->network_id_to_code($networkId);
         $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'destination_tag');
@@ -1513,19 +1563,19 @@ class probit extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency_id');
         $code = $this->safe_currency_code($currencyId);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $feeCostString = $this->safe_string($transaction, 'fee');
         $fee = null;
-        if ($feeCost !== null && $feeCost !== 0) {
+        if ($feeCostString !== null && $feeCostString !== '0') {
             $fee = array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCostString),
             );
         }
         return array(
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
-            'network' => null,
+            'network' => $networkCode,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => $address,
@@ -1538,6 +1588,8 @@ class probit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'updated' => null,
+            'internal' => null,
+            'comment' => null,
             'fee' => $fee,
             'info' => $transaction,
         );
@@ -1562,7 +1614,7 @@ class probit extends Exchange {
          * @see https://docs-en.probit.com/reference/currency
          * fetch deposit and withdraw fees
          * @param {string[]|null} $codes list of unified currency $codes
-         * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
          */
         $this->load_markets();
@@ -1626,39 +1678,39 @@ class probit extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'id');
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         // {
-        //     id => 'USDT',
-        //     display_name => array( 'ko-kr' => '테더', 'en-us' => 'Tether' ),
-        //     show_in_ui => true,
-        //     platform => [
+        //     "id" => "USDT",
+        //     "display_name" => array( "ko-kr" => '테더', "en-us" => "Tether" ),
+        //     "show_in_ui" => true,
+        //     "platform" => [
         //       array(
-        //         id => 'ETH',
-        //         priority => '1',
-        //         deposit => true,
-        //         withdrawal => true,
-        //         currency_id => 'USDT',
-        //         precision => '6',
-        //         min_confirmation_count => '15',
-        //         require_destination_tag => false,
-        //         allow_withdrawal_destination_tag => false,
-        //         display_name => [Object],
-        //         min_deposit_amount => '0',
-        //         min_withdrawal_amount => '1',
-        //         withdrawal_fee => [Array],
-        //         deposit_fee => array(),
-        //         suspended_reason => '',
-        //         deposit_suspended => false,
-        //         withdrawal_suspended => false,
-        //         platform_currency_display_name => [Object]
+        //         "id" => "ETH",
+        //         "priority" => "1",
+        //         "deposit" => true,
+        //         "withdrawal" => true,
+        //         "currency_id" => "USDT",
+        //         "precision" => "6",
+        //         "min_confirmation_count" => "15",
+        //         "require_destination_tag" => false,
+        //         "allow_withdrawal_destination_tag" => false,
+        //         "display_name" => [Object],
+        //         "min_deposit_amount" => "0",
+        //         "min_withdrawal_amount" => "1",
+        //         "withdrawal_fee" => [Array],
+        //         "deposit_fee" => array(),
+        //         "suspended_reason" => '',
+        //         "deposit_suspended" => false,
+        //         "withdrawal_suspended" => false,
+        //         "platform_currency_display_name" => [Object]
         //       ),
         //     ],
-        //     internal_transfer => array( suspended_reason => null, suspended => false ),
-        //     stakeable => false,
-        //     unstakeable => false,
-        //     auto_stake => false,
-        //     auto_stake_amount => '0'
+        //     "internal_transfer" => array( suspended_reason => null, suspended => false ),
+        //     "stakeable" => false,
+        //     "unstakeable" => false,
+        //     "auto_stake" => false,
+        //     "auto_stake_amount" => "0"
         //   }
         //
         $depositWithdrawFee = $this->deposit_withdraw_fee(array());
@@ -1673,7 +1725,7 @@ class probit extends Exchange {
             $networkCode = $this->network_id_to_code($networkId, $currency['code']);
             $withdrawalFees = $this->safe_value($network, 'withdrawal_fee', array());
             $withdrawFee = $this->safe_number($withdrawalFees[0], 'amount');
-            if (strlen($withdrawalFees) > 0) {
+            if (strlen($withdrawalFees)) {
                 $withdrawResult = array(
                     'fee' => $withdrawFee,
                     'percentage' => ($withdrawFee !== null) ? false : null,
@@ -1746,7 +1798,7 @@ class probit extends Exchange {
         /**
          * @see https://docs-en.probit.com/reference/token
          * sign in, must be called prior to using other authenticated methods
-         * @param {array} [$params] extra parameters specific to the probit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return $response from exchange
          */
         $this->check_required_credentials();
@@ -1756,9 +1808,9 @@ class probit extends Exchange {
         $response = $this->accountsPostToken (array_merge($request, $params));
         //
         //     {
-        //         access_token => '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
-        //         token_type => 'bearer',
-        //         expires_in => 900
+        //         "access_token" => "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
+        //         "token_type" => "bearer",
+        //         "expires_in" => 900
         //     }
         //
         $expiresIn = $this->safe_integer($response, 'expires_in');

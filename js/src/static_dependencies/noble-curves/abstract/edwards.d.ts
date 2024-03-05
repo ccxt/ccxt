@@ -61,6 +61,7 @@ export declare type CurveFn = {
     CURVE: ReturnType<typeof validateOpts>;
     getPublicKey: (privateKey: Hex) => Uint8Array;
     sign: (message: Hex, privateKey: Hex) => Uint8Array;
+    signModified?: (message: Hex, privateKey: Hex) => Uint8Array;
     verify: (sig: Hex, message: Hex, publicKey: Hex) => boolean;
     ExtendedPoint: ExtPointConstructor;
     utils: {

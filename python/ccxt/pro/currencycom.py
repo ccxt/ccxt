@@ -6,8 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Balances, Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
 from ccxt.base.precise import Precise
 
 
@@ -71,33 +72,33 @@ class currencycom(ccxt.async_support.currencycom):
     def handle_balance(self, client: Client, message, subscription):
         #
         #     {
-        #         status: 'OK',
-        #         correlationId: '1',
-        #         payload: {
-        #             makerCommission: 0.2,
-        #             takerCommission: 0.2,
-        #             buyerCommission: 0.2,
-        #             sellerCommission: 0.2,
-        #             canTrade: True,
-        #             canWithdraw: True,
-        #             canDeposit: True,
-        #             updateTime: 1596742699,
-        #             balances: [
+        #         "status": "OK",
+        #         "correlationId": "1",
+        #         "payload": {
+        #             "makerCommission": 0.2,
+        #             "takerCommission": 0.2,
+        #             "buyerCommission": 0.2,
+        #             "sellerCommission": 0.2,
+        #             "canTrade": True,
+        #             "canWithdraw": True,
+        #             "canDeposit": True,
+        #             "updateTime": 1596742699,
+        #             "balances": [
         #                 {
-        #                     accountId: 5470306579272968,
-        #                     collateralCurrency: True,
-        #                     asset: 'ETH',
-        #                     free: 0,
-        #                     locked: 0,
-        #                     default: False
+        #                     "accountId": 5470306579272968,
+        #                     "collateralCurrency": True,
+        #                     "asset": "ETH",
+        #                     "free": 0,
+        #                     "locked": 0,
+        #                     "default": False
         #                 },
         #                 {
-        #                     accountId: 5470310874305732,
-        #                     collateralCurrency: True,
-        #                     asset: 'USD',
-        #                     free: 47.82576735,
-        #                     locked: 1.187925,
-        #                     default: True
+        #                     "accountId": 5470310874305732,
+        #                     "collateralCurrency": True,
+        #                     "asset": "USD",
+        #                     "free": 47.82576736,
+        #                     "locked": 1.187925,
+        #                     "default": True
         #                 },
         #             ]
         #         }
@@ -114,27 +115,27 @@ class currencycom(ccxt.async_support.currencycom):
     def handle_ticker(self, client: Client, message, subscription):
         #
         #     {
-        #         status: 'OK',
-        #         correlationId: '1',
-        #         payload: {
-        #             tickers: [
+        #         "status": "OK",
+        #         "correlationId": "1",
+        #         "payload": {
+        #             "tickers": [
         #                 {
-        #                     symbol: 'BTC/USD_LEVERAGE',
-        #                     priceChange: '484.05',
-        #                     priceChangePercent: '4.14',
-        #                     weightedAvgPrice: '11682.83',
-        #                     prevClosePrice: '11197.70',
-        #                     lastPrice: '11682.80',
-        #                     lastQty: '0.25',
-        #                     bidPrice: '11682.80',
-        #                     askPrice: '11682.85',
-        #                     openPrice: '11197.70',
-        #                     highPrice: '11734.05',
-        #                     lowPrice: '11080.95',
-        #                     volume: '299.133',
-        #                     quoteVolume: '3488040.3465',
-        #                     openTime: 1596585600000,
-        #                     closeTime: 1596654452674
+        #                     "symbol": "BTC/USD_LEVERAGE",
+        #                     "priceChange": "484.05",
+        #                     "priceChangePercent": "4.14",
+        #                     "weightedAvgPrice": "11682.83",
+        #                     "prevClosePrice": "11197.70",
+        #                     "lastPrice": "11682.80",
+        #                     "lastQty": "0.25",
+        #                     "bidPrice": "11682.80",
+        #                     "askPrice": "11682.85",
+        #                     "openPrice": "11197.70",
+        #                     "highPrice": "11734.05",
+        #                     "lowPrice": "11080.95",
+        #                     "volume": "299.133",
+        #                     "quoteVolume": "3488040.3465",
+        #                     "openTime": 1596585600000,
+        #                     "closeTime": 1596654452674
         #                 }
         #             ]
         #         }
@@ -155,14 +156,14 @@ class currencycom(ccxt.async_support.currencycom):
     def handle_trade(self, trade, market=None):
         #
         #     {
-        #         price: 11668.55,
-        #         size: 0.001,
-        #         id: 1600300736,
-        #         ts: 1596653426822,
-        #         symbol: 'BTC/USD_LEVERAGE',
-        #         orderId: '00a02503-0079-54c4-0000-00004020163c',
-        #         clientOrderId: '00a02503-0079-54c4-0000-482f0000754f',
-        #         buyer: False
+        #         "price": 11668.55,
+        #         "size": 0.001,
+        #         "id": 1600300736,
+        #         "ts": 1596653426822,
+        #         "symbol": "BTC/USD_LEVERAGE",
+        #         "orderId": "00a02503-0079-54c4-0000-00004020163c",
+        #         "clientOrderId": "00a02503-0079-54c4-0000-482f0000754f",
+        #         "buyer": False
         #     }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -196,17 +197,17 @@ class currencycom(ccxt.async_support.currencycom):
     def handle_trades(self, client: Client, message, subscription):
         #
         #     {
-        #         status: 'OK',
-        #         destination: 'internal.trade',
-        #         payload: {
-        #             price: 11668.55,
-        #             size: 0.001,
-        #             id: 1600300736,
-        #             ts: 1596653426822,
-        #             symbol: 'BTC/USD_LEVERAGE',
-        #             orderId: '00a02503-0079-54c4-0000-00004020163c',
-        #             clientOrderId: '00a02503-0079-54c4-0000-482f0000754f',
-        #             buyer: False
+        #         "status": "OK",
+        #         "destination": "internal.trade",
+        #         "payload": {
+        #             "price": 11668.55,
+        #             "size": 0.001,
+        #             "id": 1600300736,
+        #             "ts": 1596653426822,
+        #             "symbol": "BTC/USD_LEVERAGE",
+        #             "orderId": "00a02503-0079-54c4-0000-00004020163c",
+        #             "clientOrderId": "00a02503-0079-54c4-0000-482f0000754f",
+        #             "buyer": False
         #         }
         #     }
         #
@@ -236,16 +237,16 @@ class currencycom(ccxt.async_support.currencycom):
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
-        #         status: 'OK',
-        #         destination: 'ohlc.event',
-        #         payload: {
-        #             interval: 'M1',
-        #             symbol: 'BTC/USD_LEVERAGE',
-        #             t: 1596650940000,
-        #             h: 11670.05,
-        #             l: 11658.1,
-        #             o: 11668.55,
-        #             c: 11666.05
+        #         "status": "OK",
+        #         "destination": "ohlc.event",
+        #         "payload": {
+        #             "interval": "M1",
+        #             "symbol": "BTC/USD_LEVERAGE",
+        #             "t": 1596650940000,
+        #             "h": 11670.05,
+        #             "l": 11658.1,
+        #             "o": 11668.55,
+        #             "c": 11666.05
         #         }
         #     }
         #
@@ -321,20 +322,20 @@ class currencycom(ccxt.async_support.currencycom):
         })
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the currencycom api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         return await self.watch_private('/api/v1/account', params)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the currencycom api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -357,14 +358,14 @@ class currencycom(ccxt.async_support.currencycom):
         })
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the currencycom api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -373,12 +374,12 @@ class currencycom(ccxt.async_support.currencycom):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the currencycom api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -386,14 +387,14 @@ class currencycom(ccxt.async_support.currencycom):
         orderbook = await self.watch_public('depthMarketData.subscribe', symbol, params)
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the currencycom api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -424,11 +425,11 @@ class currencycom(ccxt.async_support.currencycom):
     def handle_order_book(self, client: Client, message):
         #
         #     {
-        #         status: 'OK',
-        #         destination: 'marketdepth.event',
-        #         payload: {
-        #             data: '{"ts":1596235401337,"bid":{"11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000},"ofr":{"11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000}}',
-        #             symbol: 'BTC/USD_LEVERAGE'
+        #         "status": "OK",
+        #         "destination": "marketdepth.event",
+        #         "payload": {
+        #             "data": "{"ts":1596235401337,"bid":{"11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000},"ofr":{"11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000}}",
+        #             "symbol": "BTC/USD_LEVERAGE"
         #         }
         #     }
         #
@@ -444,6 +445,7 @@ class currencycom(ccxt.async_support.currencycom):
         if orderbook is None:
             orderbook = self.order_book()
         orderbook.reset({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
@@ -457,47 +459,47 @@ class currencycom(ccxt.async_support.currencycom):
     def handle_message(self, client: Client, message):
         #
         #     {
-        #         status: 'OK',
-        #         correlationId: '1',
-        #         payload: {
-        #             tickers: [
+        #         "status": "OK",
+        #         "correlationId": "1",
+        #         "payload": {
+        #             "tickers": [
         #                 {
-        #                     symbol: '1COV',
-        #                     priceChange: '-0.29',
-        #                     priceChangePercent: '-0.80',
-        #                     prevClosePrice: '36.33',
-        #                     lastPrice: '36.04',
-        #                     openPrice: '36.33',
-        #                     highPrice: '36.46',
-        #                     lowPrice: '35.88',
-        #                     openTime: 1595548800000,
-        #                     closeTime: 1595795305401
+        #                     "symbol": "1COV",
+        #                     "priceChange": "-0.29",
+        #                     "priceChangePercent": "-0.80",
+        #                     "prevClosePrice": "36.33",
+        #                     "lastPrice": "36.04",
+        #                     "openPrice": "36.33",
+        #                     "highPrice": "36.46",
+        #                     "lowPrice": "35.88",
+        #                     "openTime": 1595548800000,
+        #                     "closeTime": 1595795305401
         #                 }
         #             ]
         #         }
         #     }
         #
         #     {
-        #         status: 'OK',
-        #         destination: 'marketdepth.event',
-        #         payload: {
-        #             data: '{"ts":1596235401337,"bid":{"11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000},"ofr":{"11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000}}',
-        #             symbol: 'BTC/USD_LEVERAGE'
+        #         "status": "OK",
+        #         "destination": "marketdepth.event",
+        #         "payload": {
+        #             "data": "{"ts":1596235401337,"bid":{"11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000},"ofr":{"11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000}}",
+        #             "symbol": "BTC/USD_LEVERAGE"
         #         }
         #     }
         #
         #     {
-        #         status: 'OK',
-        #         destination: 'internal.trade',
-        #         payload: {
-        #             price: 11634.75,
-        #             size: 0.001,
-        #             id: 1605492357,
-        #             ts: 1596263802399,
-        #             instrumentId: 45076691096786110,
-        #             orderId: '00a02503-0079-54c4-0000-0000401fff51',
-        #             clientOrderId: '00a02503-0079-54c4-0000-482b00002f17',
-        #             buyer: False
+        #         "status": "OK",
+        #         "destination": "internal.trade",
+        #         "payload": {
+        #             "price": 11634.75,
+        #             "size": 0.001,
+        #             "id": 1605492357,
+        #             "ts": 1596263802399,
+        #             "instrumentId": 45076691096786110,
+        #             "orderId": "00a02503-0079-54c4-0000-0000401fff51",
+        #             "clientOrderId": "00a02503-0079-54c4-0000-482b00002f17",
+        #             "buyer": False
         #         }
         #     }
         #
@@ -508,17 +510,18 @@ class currencycom(ccxt.async_support.currencycom):
             subscription = self.safe_value(subscriptionsById, requestId)
             if subscription is not None:
                 if status == 'OK':
-                    destination = self.safe_string(subscription, 'destination')
-                    if destination is not None:
+                    subscriptionDestination = self.safe_string(subscription, 'destination')
+                    if subscriptionDestination is not None:
                         methods = {
                             '/api/v1/ticker/24hr': self.handle_ticker,
                             '/api/v1/account': self.handle_balance,
                         }
-                        method = self.safe_value(methods, destination)
+                        method = self.safe_value(methods, subscriptionDestination)
                         if method is None:
-                            return message
+                            return
                         else:
-                            return method(client, message, subscription)
+                            method(client, message, subscription)
+                            return
         destination = self.safe_string(message, 'destination')
         if destination is not None:
             methods = {
@@ -528,7 +531,5 @@ class currencycom(ccxt.async_support.currencycom):
                 'ping': self.handle_pong,
             }
             method = self.safe_value(methods, destination)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)

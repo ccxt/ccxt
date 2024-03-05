@@ -10,7 +10,11 @@ error_hierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
-                'MarginModeAlreadySet': {},
+            },
+            'OperationRejected': {
+                'NoChange': {
+                    'MarginModeAlreadySet': {},
+                },
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -29,17 +33,20 @@ error_hierarchy = {
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
+            'ProxyError': {},
         },
-        'NetworkError': {
-            'DDoSProtection': {
+        'OperationFailed': {
+            'NetworkError': {
+                'DDoSProtection': {},
                 'RateLimitExceeded': {},
+                'ExchangeNotAvailable': {
+                    'OnMaintenance': {},
+                },
+                'InvalidNonce': {},
+                'RequestTimeout': {},
             },
-            'ExchangeNotAvailable': {
-                'OnMaintenance': {},
-            },
-            'InvalidNonce': {},
-            'RequestTimeout': {},
         },
+        'ExchangeClosedByUser': {},
     },
 }
 
@@ -80,7 +87,15 @@ class BadSymbol(BadRequest):
     pass
 
 
-class MarginModeAlreadySet(BadRequest):
+class OperationRejected(ExchangeError):
+    pass
+
+
+class NoChange(OperationRejected):
+    pass
+
+
+class MarginModeAlreadySet(NoChange):
     pass
 
 
@@ -140,7 +155,15 @@ class NotSupported(ExchangeError):
     pass
 
 
-class NetworkError(BaseError):
+class ProxyError(ExchangeError):
+    pass
+
+
+class OperationFailed(BaseError):
+    pass
+
+
+class NetworkError(OperationFailed):
     pass
 
 
@@ -148,7 +171,7 @@ class DDoSProtection(NetworkError):
     pass
 
 
-class RateLimitExceeded(DDoSProtection):
+class RateLimitExceeded(NetworkError):
     pass
 
 
@@ -168,6 +191,10 @@ class RequestTimeout(NetworkError):
     pass
 
 
+class ExchangeClosedByUser(BaseError):
+    pass
+
+
 __all__ = [
     'error_hierarchy',
     'BaseError',
@@ -179,6 +206,8 @@ __all__ = [
     'ArgumentsRequired',
     'BadRequest',
     'BadSymbol',
+    'OperationRejected',
+    'NoChange',
     'MarginModeAlreadySet',
     'BadResponse',
     'NullResponse',
@@ -194,11 +223,14 @@ __all__ = [
     'DuplicateOrderId',
     'ContractUnavailable',
     'NotSupported',
+    'ProxyError',
+    'OperationFailed',
     'NetworkError',
     'DDoSProtection',
     'RateLimitExceeded',
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout'
+    'RequestTimeout',
+    'ExchangeClosedByUser'
 ]

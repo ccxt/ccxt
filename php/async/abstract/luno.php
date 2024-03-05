@@ -10,6 +10,9 @@ abstract class luno extends \ccxt\async\Exchange {
     public function exchange_get_markets($params = array()) {
         return $this->request('markets', 'exchange', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function exchangeprivate_get_candles($params = array()) {
+        return $this->request('candles', 'exchangePrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_orderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -99,6 +102,9 @@ abstract class luno extends \ccxt\async\Exchange {
     }
     public function exchangeGetMarkets($params = array()) {
         return $this->request('markets', 'exchange', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function exchangePrivateGetCandles($params = array()) {
+        return $this->request('candles', 'exchangePrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetOrderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));

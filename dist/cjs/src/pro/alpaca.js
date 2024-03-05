@@ -50,7 +50,7 @@ class alpaca extends alpaca$1 {
          * @name alpaca#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const url = this.urls['api']['ws']['crypto'];
@@ -67,13 +67,13 @@ class alpaca extends alpaca$1 {
     handleTicker(client, message) {
         //
         //    {
-        //         T: 'q',
-        //         S: 'BTC/USDT',
-        //         bp: 17394.44,
-        //         bs: 0.021981,
-        //         ap: 17397.99,
-        //         as: 0.02,
-        //         t: '2022-12-16T06:07:56.611063286Z'
+        //         "T": "q",
+        //         "S": "BTC/USDT",
+        //         "bp": 17394.44,
+        //         "bs": 0.021981,
+        //         "ap": 17397.99,
+        //         "as": 0.02,
+        //         "t": "2022-12-16T06:07:56.611063286Z"
         //    ]
         //
         const ticker = this.parseTicker(message);
@@ -85,13 +85,13 @@ class alpaca extends alpaca$1 {
     parseTicker(ticker, market = undefined) {
         //
         //    {
-        //         T: 'q',
-        //         S: 'BTC/USDT',
-        //         bp: 17394.44,
-        //         bs: 0.021981,
-        //         ap: 17397.99,
-        //         as: 0.02,
-        //         t: '2022-12-16T06:07:56.611063286Z'
+        //         "T": "q",
+        //         "S": "BTC/USDT",
+        //         "bp": 17394.44,
+        //         "bs": 0.021981,
+        //         "ap": 17397.99,
+        //         "as": 0.02,
+        //         "t": "2022-12-16T06:07:56.611063286Z"
         //    }
         //
         const marketId = this.safeString(ticker, 'S');
@@ -128,7 +128,7 @@ class alpaca extends alpaca$1 {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const url = this.urls['api']['ws']['crypto'];
@@ -150,16 +150,16 @@ class alpaca extends alpaca$1 {
     handleOHLCV(client, message) {
         //
         //    {
-        //        T: 'b',
-        //        S: 'BTC/USDT',
-        //        o: 17416.39,
-        //        h: 17424.82,
-        //        l: 17416.39,
-        //        c: 17424.82,
-        //        v: 1.341054,
-        //        t: '2022-12-16T06:53:00Z',
-        //        n: 21,
-        //        vw: 17421.9529234915
+        //        "T": "b",
+        //        "S": "BTC/USDT",
+        //        "o": 17416.39,
+        //        "h": 17424.82,
+        //        "l": 17416.39,
+        //        "c": 17424.82,
+        //        "v": 1.341054,
+        //        "t": "2022-12-16T06:53:00Z",
+        //        "n": 21,
+        //        "vw": 17421.9529234915
         //    }
         //
         const marketId = this.safeString(message, 'S');
@@ -182,7 +182,7 @@ class alpaca extends alpaca$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return.
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const url = this.urls['api']['ws']['crypto'];
@@ -202,29 +202,29 @@ class alpaca extends alpaca$1 {
         //
         // snapshot
         //    {
-        //        T: "o",
-        //        S: "BTC/USDT",
-        //        t: "2022-12-16T06:35:31.585113205Z",
-        //        b: [{
-        //                p: 17394.37,
-        //                s: 0.015499,
+        //        "T": "o",
+        //        "S": "BTC/USDT",
+        //        "t": "2022-12-16T06:35:31.585113205Z",
+        //        "b": [{
+        //                "p": 17394.37,
+        //                "s": 0.015499,
         //            },
         //            ...
         //        ],
-        //        a: [{
-        //                p: 17398.8,
-        //                s: 0.042919,
+        //        "a": [{
+        //                "p": 17398.8,
+        //                "s": 0.042919,
         //            },
         //            ...
         //        ],
-        //        r: true,
+        //        "r": true,
         //    }
         //
         const marketId = this.safeString(message, 'S');
         const symbol = this.safeSymbol(marketId);
         const datetime = this.safeString(message, 't');
         const timestamp = this.parse8601(datetime);
-        const isSnapshot = this.safeValue(message, 'r', false);
+        const isSnapshot = this.safeBool(message, 'r', false);
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook();
@@ -262,7 +262,7 @@ class alpaca extends alpaca$1 {
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         const url = this.urls['api']['ws']['crypto'];
@@ -284,13 +284,13 @@ class alpaca extends alpaca$1 {
     handleTrades(client, message) {
         //
         //     {
-        //         T: 't',
-        //         S: 'BTC/USDT',
-        //         p: 17408.8,
-        //         s: 0.042919,
-        //         t: '2022-12-16T06:43:18.327Z',
-        //         i: 16585162,
-        //         tks: 'B'
+        //         "T": "t",
+        //         "S": "BTC/USDT",
+        //         "p": 17408.8,
+        //         "s": 0.042919,
+        //         "t": "2022-12-16T06:43:18.327Z",
+        //         "i": 16585162,
+        //         "tks": "B"
         //     ]
         //
         const marketId = this.safeString(message, 'S');
@@ -314,7 +314,7 @@ class alpaca extends alpaca$1 {
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.unifiedMargin] use unified margin account
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
@@ -345,8 +345,8 @@ class alpaca extends alpaca$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         const url = this.urls['api']['ws']['trading'];
@@ -377,46 +377,46 @@ class alpaca extends alpaca$1 {
     handleOrder(client, message) {
         //
         //    {
-        //        stream: 'trade_updates',
-        //        data: {
-        //          event: 'new',
-        //          timestamp: '2022-12-16T07:28:51.67621869Z',
-        //          order: {
-        //            id: 'c2470331-8993-4051-bf5d-428d5bdc9a48',
-        //            client_order_id: '0f1f3764-107a-4d09-8b9a-d75a11738f5c',
-        //            created_at: '2022-12-16T02:28:51.673531798-05:00',
-        //            updated_at: '2022-12-16T02:28:51.678736847-05:00',
-        //            submitted_at: '2022-12-16T02:28:51.673015558-05:00',
-        //            filled_at: null,
-        //            expired_at: null,
-        //            cancel_requested_at: null,
-        //            canceled_at: null,
-        //            failed_at: null,
-        //            replaced_at: null,
-        //            replaced_by: null,
-        //            replaces: null,
-        //            asset_id: '276e2673-764b-4ab6-a611-caf665ca6340',
-        //            symbol: 'BTC/USD',
-        //            asset_class: 'crypto',
-        //            notional: null,
-        //            qty: '0.01',
-        //            filled_qty: '0',
-        //            filled_avg_price: null,
-        //            order_class: '',
-        //            order_type: 'market',
-        //            type: 'market',
-        //            side: 'buy',
-        //            time_in_force: 'gtc',
-        //            limit_price: null,
-        //            stop_price: null,
-        //            status: 'new',
-        //            extended_hours: false,
-        //            legs: null,
-        //            trail_percent: null,
-        //            trail_price: null,
-        //            hwm: null
+        //        "stream": "trade_updates",
+        //        "data": {
+        //          "event": "new",
+        //          "timestamp": "2022-12-16T07:28:51.67621869Z",
+        //          "order": {
+        //            "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        //            "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        //            "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        //            "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        //            "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        //            "filled_at": null,
+        //            "expired_at": null,
+        //            "cancel_requested_at": null,
+        //            "canceled_at": null,
+        //            "failed_at": null,
+        //            "replaced_at": null,
+        //            "replaced_by": null,
+        //            "replaces": null,
+        //            "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        //            "symbol": "BTC/USD",
+        //            "asset_class": "crypto",
+        //            "notional": null,
+        //            "qty": "0.01",
+        //            "filled_qty": "0",
+        //            "filled_avg_price": null,
+        //            "order_class": '',
+        //            "order_type": "market",
+        //            "type": "market",
+        //            "side": "buy",
+        //            "time_in_force": "gtc",
+        //            "limit_price": null,
+        //            "stop_price": null,
+        //            "status": "new",
+        //            "extended_hours": false,
+        //            "legs": null,
+        //            "trail_percent": null,
+        //            "trail_price": null,
+        //            "hwm": null
         //          },
-        //          execution_id: '5f781a30-b9a3-4c86-b466-2175850cf340'
+        //          "execution_id": "5f781a30-b9a3-4c86-b466-2175850cf340"
         //        }
         //      }
         //
@@ -437,46 +437,46 @@ class alpaca extends alpaca$1 {
     handleMyTrade(client, message) {
         //
         //    {
-        //        stream: 'trade_updates',
-        //        data: {
-        //          event: 'new',
-        //          timestamp: '2022-12-16T07:28:51.67621869Z',
-        //          order: {
-        //            id: 'c2470331-8993-4051-bf5d-428d5bdc9a48',
-        //            client_order_id: '0f1f3764-107a-4d09-8b9a-d75a11738f5c',
-        //            created_at: '2022-12-16T02:28:51.673531798-05:00',
-        //            updated_at: '2022-12-16T02:28:51.678736847-05:00',
-        //            submitted_at: '2022-12-16T02:28:51.673015558-05:00',
-        //            filled_at: null,
-        //            expired_at: null,
-        //            cancel_requested_at: null,
-        //            canceled_at: null,
-        //            failed_at: null,
-        //            replaced_at: null,
-        //            replaced_by: null,
-        //            replaces: null,
-        //            asset_id: '276e2673-764b-4ab6-a611-caf665ca6340',
-        //            symbol: 'BTC/USD',
-        //            asset_class: 'crypto',
-        //            notional: null,
-        //            qty: '0.01',
-        //            filled_qty: '0',
-        //            filled_avg_price: null,
-        //            order_class: '',
-        //            order_type: 'market',
-        //            type: 'market',
-        //            side: 'buy',
-        //            time_in_force: 'gtc',
-        //            limit_price: null,
-        //            stop_price: null,
-        //            status: 'new',
-        //            extended_hours: false,
-        //            legs: null,
-        //            trail_percent: null,
-        //            trail_price: null,
-        //            hwm: null
+        //        "stream": "trade_updates",
+        //        "data": {
+        //          "event": "new",
+        //          "timestamp": "2022-12-16T07:28:51.67621869Z",
+        //          "order": {
+        //            "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        //            "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        //            "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        //            "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        //            "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        //            "filled_at": null,
+        //            "expired_at": null,
+        //            "cancel_requested_at": null,
+        //            "canceled_at": null,
+        //            "failed_at": null,
+        //            "replaced_at": null,
+        //            "replaced_by": null,
+        //            "replaces": null,
+        //            "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        //            "symbol": "BTC/USD",
+        //            "asset_class": "crypto",
+        //            "notional": null,
+        //            "qty": "0.01",
+        //            "filled_qty": "0",
+        //            "filled_avg_price": null,
+        //            "order_class": '',
+        //            "order_type": "market",
+        //            "type": "market",
+        //            "side": "buy",
+        //            "time_in_force": "gtc",
+        //            "limit_price": null,
+        //            "stop_price": null,
+        //            "status": "new",
+        //            "extended_hours": false,
+        //            "legs": null,
+        //            "trail_percent": null,
+        //            "trail_price": null,
+        //            "hwm": null
         //          },
-        //          execution_id: '5f781a30-b9a3-4c86-b466-2175850cf340'
+        //          "execution_id": "5f781a30-b9a3-4c86-b466-2175850cf340"
         //        }
         //      }
         //
@@ -501,39 +501,39 @@ class alpaca extends alpaca$1 {
     parseMyTrade(trade, market = undefined) {
         //
         //    {
-        //        id: 'c2470331-8993-4051-bf5d-428d5bdc9a48',
-        //        client_order_id: '0f1f3764-107a-4d09-8b9a-d75a11738f5c',
-        //        created_at: '2022-12-16T02:28:51.673531798-05:00',
-        //        updated_at: '2022-12-16T02:28:51.678736847-05:00',
-        //        submitted_at: '2022-12-16T02:28:51.673015558-05:00',
-        //        filled_at: null,
-        //        expired_at: null,
-        //        cancel_requested_at: null,
-        //        canceled_at: null,
-        //        failed_at: null,
-        //        replaced_at: null,
-        //        replaced_by: null,
-        //        replaces: null,
-        //        asset_id: '276e2673-764b-4ab6-a611-caf665ca6340',
-        //        symbol: 'BTC/USD',
-        //        asset_class: 'crypto',
-        //        notional: null,
-        //        qty: '0.01',
-        //        filled_qty: '0',
-        //        filled_avg_price: null,
-        //        order_class: '',
-        //        order_type: 'market',
-        //        type: 'market',
-        //        side: 'buy',
-        //        time_in_force: 'gtc',
-        //        limit_price: null,
-        //        stop_price: null,
-        //        status: 'new',
-        //        extended_hours: false,
-        //        legs: null,
-        //        trail_percent: null,
-        //        trail_price: null,
-        //        hwm: null
+        //        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        //        "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        //        "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        //        "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        //        "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        //        "filled_at": null,
+        //        "expired_at": null,
+        //        "cancel_requested_at": null,
+        //        "canceled_at": null,
+        //        "failed_at": null,
+        //        "replaced_at": null,
+        //        "replaced_by": null,
+        //        "replaces": null,
+        //        "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        //        "symbol": "BTC/USD",
+        //        "asset_class": "crypto",
+        //        "notional": null,
+        //        "qty": "0.01",
+        //        "filled_qty": "0",
+        //        "filled_avg_price": null,
+        //        "order_class": '',
+        //        "order_type": "market",
+        //        "type": "market",
+        //        "side": "buy",
+        //        "time_in_force": "gtc",
+        //        "limit_price": null,
+        //        "stop_price": null,
+        //        "status": "new",
+        //        "extended_hours": false,
+        //        "legs": null,
+        //        "trail_percent": null,
+        //        "trail_price": null,
+        //        "hwm": null
         //    }
         //
         const marketId = this.safeString(trade, 'symbol');
@@ -563,9 +563,9 @@ class alpaca extends alpaca$1 {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future('authenticated');
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             let request = {
                 'action': 'auth',
                 'key': this.apiKey,
@@ -581,16 +581,16 @@ class alpaca extends alpaca$1 {
                     },
                 };
             }
-            this.spawn(this.watch, url, messageHash, request, messageHash, future);
+            this.watch(url, messageHash, request, messageHash, future);
         }
-        return await future;
+        return future;
     }
     handleErrorMessage(client, message) {
         //
         //    {
-        //        T: 'error',
-        //        code: 400,
-        //        msg: 'invalid syntax'
+        //        "T": "error",
+        //        "code": 400,
+        //        "msg": "invalid syntax"
         //    }
         //
         const code = this.safeString(message, 'code');
@@ -600,8 +600,8 @@ class alpaca extends alpaca$1 {
     handleConnected(client, message) {
         //
         //    {
-        //        T: 'success',
-        //        msg: 'connected'
+        //        "T": "success",
+        //        "msg": "connected"
         //    }
         //
         return message;
@@ -610,15 +610,18 @@ class alpaca extends alpaca$1 {
         for (let i = 0; i < message.length; i++) {
             const data = message[i];
             const T = this.safeString(data, 'T');
-            const msg = this.safeValue(data, 'msg', {});
+            const msg = this.safeString(data, 'msg');
             if (T === 'subscription') {
-                return this.handleSubscription(client, data);
+                this.handleSubscription(client, data);
+                return;
             }
             if (T === 'success' && msg === 'connected') {
-                return this.handleConnected(client, data);
+                this.handleConnected(client, data);
+                return;
             }
             if (T === 'success' && msg === 'authenticated') {
-                return this.handleAuthenticate(client, data);
+                this.handleAuthenticate(client, data);
+                return;
             }
             const methods = {
                 'error': this.handleErrorMessage,
@@ -647,7 +650,8 @@ class alpaca extends alpaca$1 {
     }
     handleMessage(client, message) {
         if (Array.isArray(message)) {
-            return this.handleCryptoMessage(client, message);
+            this.handleCryptoMessage(client, message);
+            return;
         }
         this.handleTradingMessage(client, message);
     }
@@ -655,8 +659,8 @@ class alpaca extends alpaca$1 {
         //
         // crypto
         //    {
-        //        T: 'success',
-        //        msg: 'connected'
+        //        "T": "success",
+        //        "msg": "connected"
         //    ]
         //
         // trading
@@ -669,11 +673,11 @@ class alpaca extends alpaca$1 {
         //    }
         // error
         //    {
-        //        stream: 'authorization',
-        //        data: {
-        //            action: 'authenticate',
-        //            message: 'access key verification failed',
-        //            status: 'unauthorized'
+        //        "stream": "authorization",
+        //        "data": {
+        //            "action": "authenticate",
+        //            "message": "access key verification failed",
+        //            "status": "unauthorized"
         //        }
         //    }
         //
@@ -681,7 +685,8 @@ class alpaca extends alpaca$1 {
         const data = this.safeValue(message, 'data', {});
         const status = this.safeString(data, 'status');
         if (T === 'success' || status === 'authorized') {
-            client.resolve(message, 'authenticated');
+            const promise = client.futures['authenticated'];
+            promise.resolve(message);
             return;
         }
         throw new errors.AuthenticationError(this.id + ' failed to authenticate.');
@@ -690,19 +695,19 @@ class alpaca extends alpaca$1 {
         //
         // crypto
         //    {
-        //          T: 'subscription',
-        //          trades: [],
-        //          quotes: [ 'BTC/USDT' ],
-        //          orderbooks: [],
-        //          bars: [],
-        //          updatedBars: [],
-        //          dailyBars: []
+        //          "T": "subscription",
+        //          "trades": [],
+        //          "quotes": [ "BTC/USDT" ],
+        //          "orderbooks": [],
+        //          "bars": [],
+        //          "updatedBars": [],
+        //          "dailyBars": []
         //    }
         // trading
         //    {
-        //        stream: 'listening',
-        //        data: {
-        //            streams: ['trade_updates']
+        //        "stream": "listening",
+        //        "data": {
+        //            "streams": ["trade_updates"]
         //        }
         //    }
         //

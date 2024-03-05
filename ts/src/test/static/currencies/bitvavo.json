@@ -1,0 +1,506 @@
+{
+    "BTC": {
+        "info": {
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "decimals": "8",
+            "depositFee": "0",
+            "depositConfirmations": "3",
+            "depositStatus": "OK",
+            "withdrawalFee": "0.0002",
+            "withdrawalMinAmount": "0.00001",
+            "withdrawalStatus": "OK",
+            "networks": [
+                "Mainnet"
+            ],
+            "message": ""
+        },
+        "id": "BTC",
+        "code": "BTC",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "Mainnet": {
+                "info": {
+                    "symbol": "BTC",
+                    "name": "Bitcoin",
+                    "decimals": "8",
+                    "depositFee": "0",
+                    "depositConfirmations": "3",
+                    "depositStatus": "OK",
+                    "withdrawalFee": "0.0002",
+                    "withdrawalMinAmount": "0.00001",
+                    "withdrawalStatus": "OK",
+                    "networks": [
+                        "Mainnet"
+                    ],
+                    "message": ""
+                },
+                "id": "Mainnet",
+                "network": "Mainnet",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0002,
+                "precision": 8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.00001
+                    }
+                }
+            }
+        },
+        "fee": 0.0002,
+        "precision": 8,
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {
+                "min": 0.00001
+            }
+        }
+    },
+    "USDT": {
+        "info": {
+            "symbol": "USDT",
+            "name": "Tether",
+            "decimals": "6",
+            "depositFee": "0",
+            "depositConfirmations": "64",
+            "depositStatus": "OK",
+            "withdrawalFee": "4.1",
+            "withdrawalMinAmount": "4.1",
+            "withdrawalStatus": "OK",
+            "networks": [
+                "ETH"
+            ],
+            "message": ""
+        },
+        "id": "USDT",
+        "code": "USDT",
+        "name": "Tether",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "symbol": "USDT",
+                    "name": "Tether",
+                    "decimals": "6",
+                    "depositFee": "0",
+                    "depositConfirmations": "64",
+                    "depositStatus": "OK",
+                    "withdrawalFee": "4.1",
+                    "withdrawalMinAmount": "4.1",
+                    "withdrawalStatus": "OK",
+                    "networks": [
+                        "ETH"
+                    ],
+                    "message": ""
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 4.1,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 4.1
+                    }
+                }
+            }
+        },
+        "fee": 4.1,
+        "precision": 6,
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {
+                "min": 4.1
+            }
+        }
+    },
+    "EUR": {
+        "info": {
+            "symbol": "EUR",
+            "name": "Euro",
+            "decimals": "2",
+            "depositFee": "0",
+            "depositConfirmations": "0",
+            "depositStatus": "OK",
+            "withdrawalFee": "0",
+            "withdrawalMinAmount": "0",
+            "withdrawalStatus": "OK",
+            "networks": [
+                "SEPA"
+            ],
+            "message": ""
+        },
+        "id": "EUR",
+        "code": "EUR",
+        "name": "Euro",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "SEPA": {
+                "info": {
+                    "symbol": "EUR",
+                    "name": "Euro",
+                    "decimals": "2",
+                    "depositFee": "0",
+                    "depositConfirmations": "0",
+                    "depositStatus": "OK",
+                    "withdrawalFee": "0",
+                    "withdrawalMinAmount": "0",
+                    "withdrawalStatus": "OK",
+                    "networks": [
+                        "SEPA"
+                    ],
+                    "message": ""
+                },
+                "id": "SEPA",
+                "network": "SEPA",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "precision": 2,
+                "limits": {
+                    "withdraw": {
+                        "min": 0
+                    }
+                }
+            }
+        },
+        "fee": 0,
+        "precision": 2,
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {
+                "min": 0
+            }
+        }
+    },
+    "LTC": {
+        "info": {
+            "symbol": "LTC",
+            "name": "Litecoin",
+            "decimals": "8",
+            "depositFee": "0",
+            "depositConfirmations": "10",
+            "depositStatus": "OK",
+            "withdrawalFee": "0.001",
+            "withdrawalMinAmount": "0.001",
+            "withdrawalStatus": "OK",
+            "networks": [
+                "Mainnet"
+            ],
+            "message": ""
+        },
+        "id": "LTC",
+        "code": "LTC",
+        "name": "Litecoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "Mainnet": {
+                "info": {
+                    "symbol": "LTC",
+                    "name": "Litecoin",
+                    "decimals": "8",
+                    "depositFee": "0",
+                    "depositConfirmations": "10",
+                    "depositStatus": "OK",
+                    "withdrawalFee": "0.001",
+                    "withdrawalMinAmount": "0.001",
+                    "withdrawalStatus": "OK",
+                    "networks": [
+                        "Mainnet"
+                    ],
+                    "message": ""
+                },
+                "id": "Mainnet",
+                "network": "Mainnet",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.001,
+                "precision": 8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.001
+                    }
+                }
+            }
+        },
+        "fee": 0.001,
+        "precision": 8,
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {
+                "min": 0.001
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "symbol": "ETH",
+            "name": "Ethereum",
+            "decimals": "8",
+            "depositFee": "0",
+            "depositConfirmations": "64",
+            "depositStatus": "OK",
+            "withdrawalFee": "0.002",
+            "withdrawalMinAmount": "0.002",
+            "withdrawalStatus": "OK",
+            "networks": [
+                "Mainnet"
+            ],
+            "message": ""
+        },
+        "id": "ETH",
+        "code": "ETH",
+        "name": "Ethereum",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "Mainnet": {
+                "info": {
+                    "symbol": "ETH",
+                    "name": "Ethereum",
+                    "decimals": "8",
+                    "depositFee": "0",
+                    "depositConfirmations": "64",
+                    "depositStatus": "OK",
+                    "withdrawalFee": "0.002",
+                    "withdrawalMinAmount": "0.002",
+                    "withdrawalStatus": "OK",
+                    "networks": [
+                        "Mainnet"
+                    ],
+                    "message": ""
+                },
+                "id": "Mainnet",
+                "network": "Mainnet",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.002,
+                "precision": 8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.002
+                    }
+                }
+            }
+        },
+        "fee": 0.002,
+        "precision": 8,
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {
+                "min": 0.002
+            }
+        }
+    },
+    "ADA": {
+        "info": {
+            "symbol": "ADA",
+            "name": "Cardano",
+            "decimals": "6",
+            "depositFee": "0",
+            "depositConfirmations": "15",
+            "depositStatus": "OK",
+            "withdrawalFee": "0.2",
+            "withdrawalMinAmount": "2",
+            "withdrawalStatus": "OK",
+            "networks": [
+                "Mainnet"
+            ],
+            "message": ""
+        },
+        "id": "ADA",
+        "code": "ADA",
+        "name": "Cardano",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "Mainnet": {
+                "info": {
+                    "symbol": "ADA",
+                    "name": "Cardano",
+                    "decimals": "6",
+                    "depositFee": "0",
+                    "depositConfirmations": "15",
+                    "depositStatus": "OK",
+                    "withdrawalFee": "0.2",
+                    "withdrawalMinAmount": "2",
+                    "withdrawalStatus": "OK",
+                    "networks": [
+                        "Mainnet"
+                    ],
+                    "message": ""
+                },
+                "id": "Mainnet",
+                "network": "Mainnet",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.2,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 2
+                    }
+                }
+            }
+        },
+        "fee": 0.2,
+        "precision": 6,
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {
+                "min": 2
+            }
+        }
+    },
+    "XRP": {
+        "info": {
+            "symbol": "XRP",
+            "name": "Ripple",
+            "decimals": "6",
+            "depositFee": "0",
+            "depositConfirmations": "1",
+            "depositStatus": "OK",
+            "withdrawalFee": "0",
+            "withdrawalMinAmount": "1",
+            "withdrawalStatus": "OK",
+            "networks": [
+                "Mainnet"
+            ],
+            "message": ""
+        },
+        "id": "XRP",
+        "code": "XRP",
+        "name": "Ripple",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "Mainnet": {
+                "info": {
+                    "symbol": "XRP",
+                    "name": "Ripple",
+                    "decimals": "6",
+                    "depositFee": "0",
+                    "depositConfirmations": "1",
+                    "depositStatus": "OK",
+                    "withdrawalFee": "0",
+                    "withdrawalMinAmount": "1",
+                    "withdrawalStatus": "OK",
+                    "networks": [
+                        "Mainnet"
+                    ],
+                    "message": ""
+                },
+                "id": "Mainnet",
+                "network": "Mainnet",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 1
+                    }
+                }
+            }
+        },
+        "fee": 0,
+        "precision": 6,
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {
+                "min": 1
+            }
+        }
+    },
+    "USDC": {
+        "info": {
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "decimals": "6",
+            "depositFee": "0",
+            "depositConfirmations": "64",
+            "depositStatus": "OK",
+            "withdrawalFee": "4.1",
+            "withdrawalMinAmount": "4.1",
+            "withdrawalStatus": "OK",
+            "networks": [
+                "ETH"
+            ],
+            "message": ""
+        },
+        "id": "USDC",
+        "code": "USDC",
+        "name": "USD Coin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "symbol": "USDC",
+                    "name": "USD Coin",
+                    "decimals": "6",
+                    "depositFee": "0",
+                    "depositConfirmations": "64",
+                    "depositStatus": "OK",
+                    "withdrawalFee": "4.1",
+                    "withdrawalMinAmount": "4.1",
+                    "withdrawalStatus": "OK",
+                    "networks": [
+                        "ETH"
+                    ],
+                    "message": ""
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 4.1,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 4.1
+                    }
+                }
+            }
+        },
+        "fee": 4.1,
+        "precision": 6,
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {
+                "min": 4.1
+            }
+        }
+    }
+}

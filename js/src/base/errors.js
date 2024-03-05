@@ -48,6 +48,12 @@ class ExchangeError extends Error {
         this.name = 'ExchangeError';
     }
 }
+class ExchangeClosedByUser extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ExchangeClosedByUser';
+    }
+}
 class AuthenticationError extends ExchangeError {
     constructor(message) {
         super(message);
@@ -84,13 +90,19 @@ class BadRequest extends ExchangeError {
         this.name = 'BadRequest';
     }
 }
+class OperationRejected extends ExchangeError {
+    constructor(message) {
+        super(message);
+        this.name = 'OperationRejected';
+    }
+}
 class BadSymbol extends BadRequest {
     constructor(message) {
         super(message);
         this.name = 'BadSymbol';
     }
 }
-class NoChange extends BadRequest {
+class NoChange extends OperationRejected {
     constructor(message) {
         super(message);
         this.name = 'NoChange';
@@ -186,8 +198,20 @@ class NotSupported extends ExchangeError {
         this.name = 'NotSupported';
     }
 }
+class OperationFailed extends BaseError {
+    constructor(message) {
+        super(message);
+        this.name = 'OperationFailed';
+    }
+}
+class ProxyError extends ExchangeError {
+    constructor(message) {
+        super(message);
+        this.name = 'OperationFailed';
+    }
+}
 // Network error
-class NetworkError extends BaseError {
+class NetworkError extends OperationFailed {
     constructor(message) {
         super(message);
         this.name = 'NetworkError';
@@ -199,7 +223,7 @@ class DDoSProtection extends NetworkError {
         this.name = 'DDoSProtection';
     }
 }
-class RateLimitExceeded extends DDoSProtection {
+class RateLimitExceeded extends NetworkError {
     constructor(message) {
         super(message);
         this.name = 'RateLimitExceeded';
@@ -236,6 +260,6 @@ class RequestTimeout extends NetworkError {
 //     // Derived class hierarchy
 //     errorHierarchy
 // )
-const errors = { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable };
-export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable };
+const errors = { BaseError, ExchangeClosedByUser, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed, ProxyError };
+export { BaseError, ExchangeClosedByUser, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed, ProxyError };
 export default errors;
