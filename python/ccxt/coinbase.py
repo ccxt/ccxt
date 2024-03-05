@@ -2908,10 +2908,12 @@ class coinbase(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
+        maxLimit = 300
+        limit = maxLimit if (limit is None) else min(limit, maxLimit)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 299)
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit - 1)
         market = self.market(symbol)
         request = {
             'product_id': market['id'],
@@ -2920,18 +2922,18 @@ class coinbase(Exchange, ImplicitAPI):
         until = self.safe_value_n(params, ['until', 'till', 'end'])
         params = self.omit(params, ['until', 'till'])
         duration = self.parse_timeframe(timeframe)
-        candles300 = 300 * duration
+        requestedDuration = limit * duration
         sinceString = None
         if since is not None:
             sinceString = self.number_to_string(self.parse_to_int(since / 1000))
         else:
             now = str(self.seconds())
-            sinceString = Precise.string_sub(now, str(candles300))
+            sinceString = Precise.string_sub(now, str(requestedDuration))
         request['start'] = sinceString
         endString = self.number_to_string(until)
         if until is None:
             # 300 candles max
-            endString = Precise.string_add(sinceString, str(candles300))
+            endString = Precise.string_add(sinceString, str(requestedDuration))
         request['end'] = endString
         response = self.v3PrivateGetBrokerageProductsProductIdCandles(self.extend(request, params))
         #
@@ -2988,8 +2990,16 @@ class coinbase(Exchange, ImplicitAPI):
         request = {
             'product_id': market['id'],
         }
+        if since is not None:
+            request['start'] = self.number_to_string(self.parse_to_int(since / 1000))
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
+        until = None
+        until, params = self.handle_option_and_params(params, 'fetchTrades', 'until')
+        if until is not None:
+            request['end'] = self.number_to_string(self.parse_to_int(until / 1000))
+        elif since is not None:
+            raise ArgumentsRequired(self.id + ' fetchTrades() requires a `until` parameter when you use `since` argument')
         response = self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
         #
         #     {
@@ -3110,7 +3120,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'pricebook', {})
+        data = self.safe_dict(response, 'pricebook', {})
         time = self.safe_string(data, 'time')
         timestamp = self.parse8601(time)
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'size')
@@ -3534,21 +3544,20 @@ class coinbase(Exchange, ImplicitAPI):
                         body = self.json(query)
             else:
                 self.check_required_credentials()
-                nonce = str(self.nonce())
+                timestampString = str(self.seconds())
                 payload = ''
                 if method != 'GET':
                     if query:
                         body = self.json(query)
                         payload = body
-                else:
-                    if query:
-                        payload += '?' + self.urlencode(query)
-                auth = nonce + method + savedPath + payload
+                # 'GET' doesn't need payload in the signature. inside url is enough
+                # https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                auth = timestampString + method + savedPath + payload
                 signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 headers = {
                     'CB-ACCESS-KEY': self.apiKey,
                     'CB-ACCESS-SIGN': signature,
-                    'CB-ACCESS-TIMESTAMP': nonce,
+                    'CB-ACCESS-TIMESTAMP': timestampString,
                     'Content-Type': 'application/json',
                 }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -1,6 +1,6 @@
 {
     "exchange": "coinbase",
-    "skipKeys": ["client_order_id"],
+    "skipKeys": ["client_order_id", "start", "end"],
     "outputType": "json",
     "methods": {
         "fetchTime": [
@@ -197,6 +197,50 @@
                 ]
             }
         ],
+        "fetchTrades": [
+            {
+                "description": "without arguments",
+                "method": "fetchTrades",
+                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/ticker",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "with since, limit and until",
+                "method": "fetchTrades",
+                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/ticker?start=1678012344&limit=15&end=1678012744",
+                "input": [
+                  "BTC/USDT",
+                  1678012344389,
+                  15,
+                  {
+                    "until": 1678012744389
+                  }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "without aguments",
+                "method": "fetchOHLCV",
+                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/candles?granularity=ONE_MINUTE&start=1709531236&end=1709549236",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.coinbase.com/api/v3/brokerage/products/BTC-USDT/candles?granularity=ONE_MINUTE&start=1678012344&end=1678013544",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1678012344389,
+                  20
+                ]
+            }
+        ],
         "editOrder": [
             {
                 "description": "edit order",
@@ -318,6 +362,16 @@
                   ]
                 ]
             }
+        ],
+        "fetchOrderBook": [
+          {
+            "description": "fetch orderbook",
+            "method": "fetchOrderBook",
+            "url": "https://api.coinbase.com/api/v3/brokerage/product_book?product_id=BTC-USD",
+            "input": [
+              "BTC/USD"
+            ]
+          }
         ]
     }
 }

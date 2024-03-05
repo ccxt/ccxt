@@ -1235,7 +1235,7 @@ public partial class testMainClass : BaseTest
                 {
                     continue;
                 }
-                object isDisabled = exchange.safeValue(result, "disabled", false);
+                object isDisabled = exchange.safeBool(result, "disabled", false);
                 if (isTrue(isDisabled))
                 {
                     continue;
@@ -1269,17 +1269,17 @@ public partial class testMainClass : BaseTest
                 object oldExchangeOptions = exchange.options; // snapshot options;
                 object testExchangeOptions = exchange.safeValue(result, "options", new Dictionary<string, object>() {});
                 exchange.options = exchange.deepExtend(oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
-                object isDisabled = exchange.safeValue(result, "disabled", false);
+                object isDisabled = exchange.safeBool(result, "disabled", false);
                 if (isTrue(isDisabled))
                 {
                     continue;
                 }
-                object isDisabledCSharp = exchange.safeValue(result, "disabledCS", false);
+                object isDisabledCSharp = exchange.safeBool(result, "disabledCS", false);
                 if (isTrue(isTrue(isDisabledCSharp) && isTrue((isEqual(this.lang, "C#")))))
                 {
                     continue;
                 }
-                object isDisabledPHP = exchange.safeValue(result, "disabledPHP", false);
+                object isDisabledPHP = exchange.safeBool(result, "disabledPHP", false);
                 if (isTrue(isTrue(isDisabledPHP) && isTrue((isEqual(this.lang, "PHP")))))
                 {
                     continue;

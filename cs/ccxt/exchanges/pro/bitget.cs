@@ -576,7 +576,7 @@ public partial class bitget : ccxt.bitget
             this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
-            object checksum = this.safeValue(this.options, "checksum", true);
+            object checksum = this.safeBool(this.options, "checksum", true);
             object isSnapshot = isEqual(this.safeString(message, "action"), "snapshot"); // snapshot does not have a checksum
             if (isTrue(!isTrue(isSnapshot) && isTrue(checksum)))
             {

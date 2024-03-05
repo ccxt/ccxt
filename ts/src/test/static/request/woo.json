@@ -258,9 +258,8 @@
             {
                 "description": "fetch USDT transfers",
                 "method": "fetchTransfers",
-                "url": "https://api.woo.org/v1/asset/history?balance_token=USDT&type=COLLATERAL",
+                "url": "https://api.woo.org/v1/asset/main_sub_transfer_history",
                 "input": [
-                    "USDT"
                 ]
             }
         ],
@@ -383,6 +382,119 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.staging.woo.org/v1/order",
+                "input": [
+                  "1111779",
+                  "LTC/USDT:USDT"
+                ],
+                "output": "order_id=1111779&symbol=PERP_LTC_USDT"
+            },
+            {
+                "description": "cancelOrder - algo",
+                "method": "cancelOrder",
+                "url": "https://api.staging.woo.org/v3/algo/order/1111779",
+                "input": [
+                  "1111779",
+                  "LTC/USDT:USDT",
+                  {
+                    "stop": true
+                  }
+                ],
+                "output": "{}"
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.woo.org/v1/public/system_info",
+                "input": [
+                ]
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://api.woo.org/v1/public/system_info",
+                "input": [
+                ]
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.woo.org/v1/public/info",
+                "input": [
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.woo.org/v3/accountinfo",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.woo.org/v1/public/token",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.woo.org/v1/public/orderbook/SPOT_LTC_USDT?max_level=5",
+                "input": [
+                    "LTC/USDT",
+                    5
+                ]
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetchOrderTrades",
+                "method": "fetchOrderTrades",
+                "url": "https://api.woo.org/v1/order/1034475822/trades",
+                "input": [
+                    "1034475822",
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "url": "https://api.woo.org/v1/sub_account/assets",
+                "input": [
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer",
+                "method": "transfer",
+                "url": "https://api.woo.org/v1/asset/main_sub_transfer",
+                "input": [
+                    "USDT",
+                    1000,
+                    "0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3",
+                    "c01e6940-a735-4022-9b6c-9d3971cdfdfa"
+                ],
+                "output": "amount=1000&from_application_id=0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3&to_application_id=c01e6940-a735-4022-9b6c-9d3971cdfdfa&token=USDT"
             }
         ]
     }

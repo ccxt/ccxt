@@ -9,7 +9,6 @@ import hashlib
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
 
@@ -481,10 +480,12 @@ class mexc(ccxt.async_support.mexc):
                 bookside.store(price, amount)
 
     def handle_delta(self, orderbook, delta):
-        nonce = self.safe_integer(orderbook, 'nonce')
+        existingNonce = self.safe_integer(orderbook, 'nonce')
         deltaNonce = self.safe_integer_2(delta, 'r', 'version')
-        if deltaNonce != nonce and deltaNonce != nonce + 1:
-            raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
+        if deltaNonce < existingNonce:
+            # even when doing < comparison, self happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            # so, we just skip old updates
+            return
         orderbook['nonce'] = deltaNonce
         asks = self.safe_value(delta, 'asks', [])
         bids = self.safe_value(delta, 'bids', [])

@@ -3068,10 +3068,12 @@ export default class coinbase extends Exchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        const maxLimit = 300;
+        limit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 299);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit - 1);
         }
         const market = this.market(symbol);
         const request = {
@@ -3081,20 +3083,20 @@ export default class coinbase extends Exchange {
         const until = this.safeValueN(params, ['until', 'till', 'end']);
         params = this.omit(params, ['until', 'till']);
         const duration = this.parseTimeframe(timeframe);
-        const candles300 = 300 * duration;
+        const requestedDuration = limit * duration;
         let sinceString = undefined;
         if (since !== undefined) {
             sinceString = this.numberToString(this.parseToInt(since / 1000));
         }
         else {
             const now = this.seconds().toString();
-            sinceString = Precise.stringSub(now, candles300.toString());
+            sinceString = Precise.stringSub(now, requestedDuration.toString());
         }
         request['start'] = sinceString;
         let endString = this.numberToString(until);
         if (until === undefined) {
             // 300 candles max
-            endString = Precise.stringAdd(sinceString, candles300.toString());
+            endString = Precise.stringAdd(sinceString, requestedDuration.toString());
         }
         request['end'] = endString;
         const response = await this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, params));
@@ -3154,8 +3156,19 @@ export default class coinbase extends Exchange {
         const request = {
             'product_id': market['id'],
         };
+        if (since !== undefined) {
+            request['start'] = this.numberToString(this.parseToInt(since / 1000));
+        }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
+        }
+        let until = undefined;
+        [until, params] = this.handleOptionAndParams(params, 'fetchTrades', 'until');
+        if (until !== undefined) {
+            request['end'] = this.numberToString(this.parseToInt(until / 1000));
+        }
+        else if (since !== undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchTrades() requires a `until` parameter when you use `since` argument');
         }
         const response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, params));
         //
@@ -3289,7 +3302,7 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'pricebook', {});
+        const data = this.safeDict(response, 'pricebook', {});
         const time = this.safeString(data, 'time');
         const timestamp = this.parse8601(time);
         return this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks', 'price', 'size');
@@ -3742,7 +3755,7 @@ export default class coinbase extends Exchange {
             }
             else {
                 this.checkRequiredCredentials();
-                const nonce = this.nonce().toString();
+                const timestampString = this.seconds().toString();
                 let payload = '';
                 if (method !== 'GET') {
                     if (Object.keys(query).length) {
@@ -3750,17 +3763,14 @@ export default class coinbase extends Exchange {
                         payload = body;
                     }
                 }
-                else {
-                    if (Object.keys(query).length) {
-                        payload += '?' + this.urlencode(query);
-                    }
-                }
-                const auth = nonce + method + savedPath + payload;
+                // 'GET' doesn't need payload in the signature. inside url is enough
+                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                const auth = timestampString + method + savedPath + payload;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,
                     'CB-ACCESS-SIGN': signature,
-                    'CB-ACCESS-TIMESTAMP': nonce,
+                    'CB-ACCESS-TIMESTAMP': timestampString,
                     'Content-Type': 'application/json',
                 };
             }

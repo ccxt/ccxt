@@ -53,7 +53,7 @@ class bitfinex2 extends bitfinex2$1 {
             'symbol': marketId,
         };
         const result = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, { 'checksum': false });
-        const checksum = this.safeValue(this.options, 'checksum', true);
+        const checksum = this.safeBool(this.options, 'checksum', true);
         if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
             client.subscriptions[messageHash]['checksum'] = true;
             await client.send({

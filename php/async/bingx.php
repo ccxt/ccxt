@@ -456,7 +456,7 @@ class bingx extends Exchange {
             if (!$this->check_required_credentials(false)) {
                 return null;
             }
-            $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+            $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
             if ($isSandbox) {
                 return null;
             }
@@ -708,7 +708,7 @@ class bingx extends Exchange {
              * @return {array[]} an array of objects representing market data
              */
             $requests = array( $this->fetch_swap_markets($params) );
-            $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+            $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
             if (!$isSandbox) {
                 $requests[] = $this->fetch_spot_markets($params); // sandbox is swap only
             }
@@ -4201,7 +4201,7 @@ class bingx extends Exchange {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
-        $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+        $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($isSandbox && ($type !== 'swap')) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
         }

@@ -2264,7 +2264,7 @@ class binance(ccxt.async_support.binance):
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, symbols, isPortfolioMargin)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.safe_value(self.positions, type)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
             snapshot = await client.future(type + ':fetchPositionsSnapshot')

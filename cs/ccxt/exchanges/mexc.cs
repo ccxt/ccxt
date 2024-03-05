@@ -5559,7 +5559,7 @@ public partial class mexc : Exchange
                     { "source", this.safeString(this.options, "broker", "CCXT") },
                 };
             }
-            if (isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))))
+            if (isTrue(isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))) || isTrue((isEqual(method, "DELETE")))))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }

@@ -485,7 +485,7 @@ class blofin extends Exchange {
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
-        $spot = $this->safe_value($market, 'spot', false);
+        $spot = $this->safe_bool($market, 'spot', false);
         $quoteVolume = $spot ? $this->safe_string($ticker, 'volCurrency24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         $high = $this->safe_string($ticker, 'high24h');

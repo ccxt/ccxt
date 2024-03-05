@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.58'
+__version__ = '4.2.59'
 
 # -----------------------------------------------------------------------------
 
@@ -3848,6 +3848,8 @@ class Exchange(object):
         if value is not None:
             params = self.omit(params, [optionName, defaultOptionName])
         else:
+            # handle routed methods like "watchTrades > watchTradesForSymbols"(or "watchTicker > watchTickers")
+            methodName, params = self.handleParamString(params, 'callerMethodName', methodName)
             # check if exchange has properties for self method
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:

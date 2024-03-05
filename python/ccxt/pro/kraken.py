@@ -674,7 +674,7 @@ class kraken(ccxt.async_support.kraken):
                 example = self.safe_value(b, 0)
             # don't remove self line or I will poop on your face
             orderbook.limit()
-            checksum = self.safe_value(self.options, 'checksum', True)
+            checksum = self.safe_bool(self.options, 'checksum', True)
             if checksum:
                 priceString = self.safe_string(example, 0)
                 amountString = self.safe_string(example, 1)

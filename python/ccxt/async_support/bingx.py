@@ -458,7 +458,7 @@ class bingx(Exchange, ImplicitAPI):
         """
         if not self.check_required_credentials(False):
             return None
-        isSandbox = self.safe_value(self.options, 'sandboxMode', False)
+        isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
         if isSandbox:
             return None
         response = await self.walletsV1PrivateGetCapitalConfigGetall(params)
@@ -693,7 +693,7 @@ class bingx(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         requests = [self.fetch_swap_markets(params)]
-        isSandbox = self.safe_value(self.options, 'sandboxMode', False)
+        isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
         if not isSandbox:
             requests.append(self.fetch_spot_markets(params))  # sandbox is swap only
         promises = await asyncio.gather(*requests)
@@ -3903,7 +3903,7 @@ class bingx(Exchange, ImplicitAPI):
         type = section[0]
         version = section[1]
         access = section[2]
-        isSandbox = self.safe_value(self.options, 'sandboxMode', False)
+        isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
         if isSandbox and (type != 'swap'):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints')
         url = self.implode_hostname(self.urls['api'][type])
