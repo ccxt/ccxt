@@ -158,8 +158,8 @@ export default class hyperliquid extends Exchange {
             },
             'fees': {
                 'swap': {
-                    'taker': this.parseNumber ('0.0006'),
-                    'maker': this.parseNumber ('0.0004'),
+                    'taker': this.parseNumber ('0.00035'),
+                    'maker': this.parseNumber ('0.0001'),
                 },
             },
             'requiredCredentials': {
@@ -344,6 +344,9 @@ export default class hyperliquid extends Exchange {
                 symbol = symbol + ':' + settle;
             }
         }
+        const fees = this.safeDict (this.fees, 'swap', {});
+        const taker = this.safeNumber (fees, 'taker');
+        const maker = this.safeNumber (fees, 'maker');
         return {
             'id': baseId,
             'symbol': symbol,
@@ -363,9 +366,9 @@ export default class hyperliquid extends Exchange {
             'contract': contract,
             'linear': true,
             'inverse': false,
-            'taker': undefined,
-            'maker': undefined,
-            'contractSize': undefined,
+            'taker': taker,
+            'maker': maker,
+            'contractSize': this.parseNumber ('1'),
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
