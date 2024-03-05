@@ -188,6 +188,7 @@ export default class hyperliquid extends Exchange {
             'commonCurrencies': {
             },
             'options': {
+                'sandboxMode': false,
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
             },
@@ -681,7 +682,7 @@ export default class hyperliquid extends Exchange {
 
     signL1Action (action, nonce, vaultAdress = undefined): object {
         const hash = this.actionHash (action, vaultAdress, nonce);
-        const isTestnet = this.safeBool (this.options, 'sandboxMode', true);
+        const isTestnet = this.safeBool (this.options, 'sandboxMode', false);
         const phantomAgent = this.constructPhantomAgent (hash, isTestnet);
         // const data = {
         //     'domain': {
