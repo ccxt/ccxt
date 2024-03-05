@@ -3313,10 +3313,12 @@ export default class bitget extends Exchange {
         }
         if (since !== undefined) {
             request['startTime'] = since;
-            // in this case, we need to send "entTime" too
-            const limitForEnd = (limit !== undefined) ? limit : defaultLimit;
-            const calculatedEnd = this.sum (since, duration * limitForEnd);
-            request['endTime'] = (until === undefined) ? calculatedEnd : Math.min (until, calculatedEnd);
+            if (market['spot']) {
+                // for spot we need to send "entTime" too
+                const limitForEnd = (limit !== undefined) ? limit : defaultLimit;
+                const calculatedEnd = this.sum (since, duration * limitForEnd);
+                request['endTime'] = (until === undefined) ? calculatedEnd : Math.min (until, calculatedEnd);
+            }
         }
         let response = undefined;
         const now = this.milliseconds ();
