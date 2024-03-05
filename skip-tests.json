@@ -283,8 +283,6 @@
         }
     },
     "bithumb": {
-        "skip": "fetchMarkets returning undefined",
-        "until": "2023-09-05",
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -293,6 +291,18 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchOrderBook": {
+                "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4074"
+            },
+            "fetchL2OrderBook": {
+                "ask": "same as above"
+            },
+            "watchOrderBook": {
+                "ask": "same as above"
+            },
+            "watchOrderBookForSymbols": {
+                "ask": "same as above"
             }
         }
     },
