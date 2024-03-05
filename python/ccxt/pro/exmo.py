@@ -495,22 +495,22 @@ class exmo(ccxt.async_support.exmo):
         orderBook = self.safe_value(message, 'data', {})
         messageHash = 'orderbook:' + symbol
         timestamp = self.safe_integer(message, 'ts')
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.order_book({})
-            self.orderbooks[symbol] = storedOrderBook
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book({})
+            self.orderbooks[symbol] = orderbook
         event = self.safe_string(message, 'event')
         if event == 'snapshot':
             snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'bid', 'ask')
-            storedOrderBook.reset(snapshot)
+            orderbook.reset(snapshot)
         else:
             asks = self.safe_value(orderBook, 'ask', [])
             bids = self.safe_value(orderBook, 'bid', [])
-            self.handle_deltas(storedOrderBook['asks'], asks)
-            self.handle_deltas(storedOrderBook['bids'], bids)
-            storedOrderBook['timestamp'] = timestamp
-            storedOrderBook['datetime'] = self.iso8601(timestamp)
-        client.resolve(storedOrderBook, messageHash)
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+        client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
         bidAsk = self.parse_bid_ask(delta, 0, 1)
@@ -544,7 +544,8 @@ class exmo(ccxt.async_support.exmo):
         }
         eventHandler = self.safe_value(events, event)
         if eventHandler is not None:
-            return eventHandler(client, message)
+            eventHandler(client, message)
+            return
         if (event == 'update') or (event == 'snapshot'):
             topic = self.safe_string(message, 'topic')
             if topic is not None:
@@ -565,7 +566,8 @@ class exmo(ccxt.async_support.exmo):
                 }
                 handler = self.safe_value(handlers, channel)
                 if handler is not None:
-                    return handler(client, message)
+                    handler(client, message)
+                    return
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
     def handle_subscribed(self, client: Client, message):
@@ -603,7 +605,7 @@ class exmo(ccxt.async_support.exmo):
         messageHash = 'authenticated'
         client.resolve(message, messageHash)
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         messageHash = 'authenticated'
         type, query = self.handle_market_type_and_params('authenticate', None, params)
         url = self.urls['api']['ws'][type]

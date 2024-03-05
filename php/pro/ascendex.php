@@ -223,7 +223,7 @@ class ascendex extends \ccxt\async\ascendex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $channel = 'depth-realtime' . ':' . $market['id'];
+            $channel = 'depth' . ':' . $market['id'];
             $params = array_merge($params, array(
                 'ch' => $channel,
             ));
@@ -236,7 +236,7 @@ class ascendex extends \ccxt\async\ascendex {
         return Async\async(function () use ($symbol, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $action = 'depth-snapshot-realtime';
+            $action = 'depth-snapshot';
             $channel = $action . ':' . $market['id'];
             $params = array_merge($params, array(
                 'action' => $action,
@@ -247,6 +247,18 @@ class ascendex extends \ccxt\async\ascendex {
             ));
             $orderbook = Async\await($this->watch_public($channel, $params));
             return $orderbook->limit ();
+        }) ();
+    }
+
+    public function fetch_order_book_snapshot(string $symbol, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $restOrderBook = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book();
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $orderbook->reset ($restOrderBook);
+            return $orderbook;
         }) ();
     }
 
@@ -890,8 +902,8 @@ class ascendex extends \ccxt\async\ascendex {
             'ping' => array($this, 'handle_ping'),
             'auth' => array($this, 'handle_authenticate'),
             'sub' => array($this, 'handle_subscription_status'),
-            'depth-realtime' => array($this, 'handle_order_book'),
-            'depth-snapshot-realtime' => array($this, 'handle_order_book_snapshot'),
+            'depth' => array($this, 'handle_order_book'),
+            'depth-snapshot' => array($this, 'handle_order_book_snapshot'),
             'trades' => array($this, 'handle_trades'),
             'bar' => array($this, 'handle_ohlcv'),
             'balance' => array($this, 'handle_balance'),
@@ -910,7 +922,6 @@ class ascendex extends \ccxt\async\ascendex {
                 $this->handle_balance($client, $message);
             }
         }
-        return $message;
     }
 
     public function handle_subscription_status(Client $client, $message) {
@@ -920,7 +931,7 @@ class ascendex extends \ccxt\async\ascendex {
         //     array( m => 'sub', id => "1647515701", ch => "depth:BTC/USDT", code => 0 )
         //
         $channel = $this->safe_string($message, 'ch', '');
-        if (mb_strpos($channel, 'depth-realtime') > -1) {
+        if (mb_strpos($channel, 'depth') > -1 && !(mb_strpos($channel, 'depth-snapshot') > -1)) {
             $this->handle_order_book_subscription($client, $message);
         }
         return $message;
@@ -930,12 +941,17 @@ class ascendex extends \ccxt\async\ascendex {
         $channel = $this->safe_string($message, 'ch');
         $parts = explode(':', $channel);
         $marketId = $parts[1];
-        $symbol = $this->safe_symbol($marketId);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
         $this->orderbooks[$symbol] = $this->order_book(array());
-        $this->spawn(array($this, 'watch_order_book_snapshot'), $symbol);
+        if ($this->options['defaultType'] === 'swap' || $market['contract']) {
+            $this->spawn(array($this, 'fetch_order_book_snapshot'), $symbol);
+        } else {
+            $this->spawn(array($this, 'watch_order_book_snapshot'), $symbol);
+        }
     }
 
     public function pong($client, $message) {

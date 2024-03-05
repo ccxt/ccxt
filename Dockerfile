@@ -30,6 +30,12 @@ RUN pip3 install tox
 RUN pip3 install aiohttp
 RUN pip3 install cryptography
 RUN pip3 install requests
+# Dotnet
+RUN curl -fsSL https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -o packages-microsoft-prod.deb
+RUN dpkg -i packages-microsoft-prod.deb
+RUN rm packages-microsoft-prod.deb
+RUN apt-get update
+RUN apt-get install -y dotnet-sdk-7.0
 # Installs as a local Node & Python module, so that `require ('ccxt')` and `import ccxt` should work after that
 RUN npm install
 RUN ln -s /ccxt /usr/lib/node_modules/

@@ -178,6 +178,9 @@ abstract class bitmart extends \ccxt\Exchange {
     public function private_get_contract_private_get_open_orders($params = array()) {
         return $this->request('contract/private/get-open-orders', 'private', 'GET', $params, null, null, array("cost" => 1.2));
     }
+    public function private_get_contract_private_current_plan_order($params = array()) {
+        return $this->request('contract/private/current-plan-order', 'private', 'GET', $params, null, null, array("cost" => 1.2));
+    }
     public function private_get_contract_private_trades($params = array()) {
         return $this->request('contract/private/trades', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -453,6 +456,9 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function privateGetContractPrivateGetOpenOrders($params = array()) {
         return $this->request('contract/private/get-open-orders', 'private', 'GET', $params, null, null, array("cost" => 1.2));
+    }
+    public function privateGetContractPrivateCurrentPlanOrder($params = array()) {
+        return $this->request('contract/private/current-plan-order', 'private', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function privateGetContractPrivateTrades($params = array()) {
         return $this->request('contract/private/trades', 'private', 'GET', $params, null, null, array("cost" => 10));

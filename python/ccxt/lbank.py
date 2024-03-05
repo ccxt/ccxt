@@ -36,6 +36,7 @@ class lbank(Exchange, ImplicitAPI):
             # 50 per second for making and cancelling orders 1000ms / 50 = 20
             # 20 per second for all other requests, cost = 50 / 20 = 2.5
             'rateLimit': 20,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'spot': True,
@@ -60,6 +61,7 @@ class lbank(Exchange, ImplicitAPI):
                 'fetchClosedOrders': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
@@ -344,7 +346,7 @@ class lbank(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}):
         """
-        retrieves data on all markets for lbank2
+        retrieves data on all markets for lbank
         :see: https://www.lbank.com/en-US/docs/index.html#trading-pairs
         :see: https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -903,12 +905,15 @@ class lbank(Exchange, ImplicitAPI):
             request['size'] = min(limit, 600)
         else:
             request['size'] = 600  # max
-        method = self.safe_string(params, 'method')
+        options = self.safe_value(self.options, 'fetchTrades', {})
+        defaultMethod = self.safe_string(options, 'method', 'spotPublicGetTrades')
+        method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'fetchTrades', {})
-            method = self.safe_string(options, 'method', 'spotPublicGetTrades')
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'spotPublicGetSupplementTrades':
+            response = self.spotPublicGetSupplementTrades(self.extend(request, params))
+        else:
+            response = self.spotPublicGetTrades(self.extend(request, params))
         #
         #      {
         #          "result":"true",
@@ -1133,11 +1138,16 @@ class lbank(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        method = self.safe_string(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'fetchBalance', {})
-            method = self.safe_string(options, 'method', 'spotPrivatePostSupplementUserInfo')
-        response = getattr(self, method)()
+        options = self.safe_value(self.options, 'fetchBalance', {})
+        defaultMethod = self.safe_string(options, 'method', 'spotPrivatePostSupplementUserInfo')
+        method = self.safe_string(params, 'method', defaultMethod)
+        response = None
+        if method == 'spotPrivatePostSupplementUserInfoAccount':
+            response = self.spotPrivatePostSupplementUserInfoAccount()
+        elif method == 'spotPrivatePostUserInfo':
+            response = self.spotPrivatePostUserInfo()
+        else:
+            response = self.spotPrivatePostSupplementUserInfo()
         #
         #    {
         #        "result": "true",
@@ -1217,7 +1227,7 @@ class lbank(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://www.lbank.com/en-US/docs/index.html#place-order
@@ -1234,7 +1244,7 @@ class lbank(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://www.lbank.com/en-US/docs/index.html#place-order
@@ -1250,7 +1260,7 @@ class lbank(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'custom_id', 'clientOrderId')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         params = self.omit(params, ['custom_id', 'clientOrderId', 'timeInForce', 'postOnly'])
         request = {
@@ -1298,13 +1308,15 @@ class lbank(Exchange, ImplicitAPI):
                 request['price'] = quoteAmount
         if clientOrderId is not None:
             request['custom_id'] = clientOrderId
-        method = None
-        method = self.safe_string(params, 'method')
+        options = self.safe_value(self.options, 'createOrder', {})
+        defaultMethod = self.safe_string(options, 'method', 'spotPrivatePostSupplementCreateOrder')
+        method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'createOrder', {})
-            method = self.safe_string(options, 'method', 'spotPrivatePostSupplementCreateOrder')
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'spotPrivatePostCreateOrder':
+            response = self.spotPrivatePostCreateOrder(self.extend(request, params))
+        else:
+            response = self.spotPrivatePostSupplementCreateOrder(self.extend(request, params))
         #
         #      {
         #          "result":true,
@@ -1804,12 +1816,16 @@ class lbank(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
-        method = self.safe_string(params, 'method')
+        options = self.safe_value(self.options, 'fetchDepositAddress', {})
+        defaultMethod = self.safe_string(options, 'method', 'fetchDepositAddressDefault')
+        method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'fetchDepositAddress', {})
-            method = self.safe_string(options, 'method', 'fetchDepositAddressDefault')
-        return getattr(self, method)(code, params)
+        response = None
+        if method == 'fetchDepositAddressSupplement':
+            response = self.fetch_deposit_address_supplement(code, params)
+        else:
+            response = self.fetch_deposit_address_default(code, params)
+        return response
 
     def fetch_deposit_address_default(self, code: str, params={}):
         self.load_markets()
@@ -1888,7 +1904,7 @@ class lbank(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://www.lbank.com/en-US/docs/index.html#withdrawal
@@ -2147,11 +2163,11 @@ class lbank(Exchange, ImplicitAPI):
         withdraws = self.safe_value(data, 'withdraws', [])
         return self.parse_transactions(withdraws, currency, since, limit)
 
-    def fetch_transaction_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes: List[str] = None, params={}):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        :param str[]|None codes: not used by lbank2 fetchTransactionFees()
+        :param str[]|None codes: not used by lbank fetchTransactionFees()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
@@ -2160,12 +2176,14 @@ class lbank(Exchange, ImplicitAPI):
         isAuthorized = self.check_required_credentials(False)
         result = None
         if isAuthorized is True:
-            method = self.safe_string(params, 'method')
+            options = self.safe_value(self.options, 'fetchTransactionFees', {})
+            defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
+            method = self.safe_string(params, 'method', defaultMethod)
             params = self.omit(params, 'method')
-            if method is None:
-                options = self.safe_value(self.options, 'fetchTransactionFees', {})
-                method = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
-            result = getattr(self, method)(params)
+            if method == 'fetchPublicTransactionFees':
+                result = self.fetch_public_transaction_fees(params)
+            else:
+                result = self.fetch_private_transaction_fees(params)
         else:
             result = self.fetch_public_transaction_fees(params)
         return result
@@ -2291,16 +2309,19 @@ class lbank(Exchange, ImplicitAPI):
         """
         self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        method = None
+        response = None
         if isAuthorized is True:
-            method = self.safe_string(params, 'method')
+            options = self.safe_value(self.options, 'fetchDepositWithdrawFees', {})
+            defaultMethod = self.safe_string(options, 'method', 'fetchPrivateDepositWithdrawFees')
+            method = self.safe_string(params, 'method', defaultMethod)
             params = self.omit(params, 'method')
-            if method is None:
-                options = self.safe_value(self.options, 'fetchDepositWithdrawFees', {})
-                method = self.safe_string(options, 'method', 'fetchPrivateDepositWithdrawFees')
+            if method == 'fetchPublicDepositWithdrawFees':
+                self.fetch_public_deposit_withdraw_fees(codes, params)
+            else:
+                self.fetch_private_deposit_withdraw_fees(codes, params)
         else:
-            method = 'fetchPublicDepositWithdrawFees'
-        return getattr(self, method)(codes, params)
+            self.fetch_public_deposit_withdraw_fees(codes, params)
+        return response
 
     def fetch_private_deposit_withdraw_fees(self, codes=None, params={}):
         # complete response
@@ -2508,7 +2529,7 @@ class lbank(Exchange, ImplicitAPI):
             uppercaseHash = hash.upper()
             sign = None
             if signatureMethod == 'RSA':
-                cacheSecretAsPem = self.safe_value(self.options, 'cacheSecretAsPem', True)
+                cacheSecretAsPem = self.safe_bool(self.options, 'cacheSecretAsPem', True)
                 pem = None
                 if cacheSecretAsPem:
                     pem = self.safe_value(self.options, 'pem')

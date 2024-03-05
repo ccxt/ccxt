@@ -774,7 +774,7 @@ class wazirx(Exchange, ImplicitAPI):
         response = await self.privateDeleteOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://docs.wazirx.com/#new-order-trade
         create a trade order

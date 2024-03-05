@@ -1,5 +1,5 @@
 import lunoRest from '../luno.js';
-import type { Int, Trade, OrderBook } from '../base/types.js';
+import type { Int, Trade, OrderBook, IndexType } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class luno extends lunoRest {
     describe(): any;
@@ -8,7 +8,7 @@ export default class luno extends lunoRest {
     parseTrade(trade: any, market?: any): Trade;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any, subscription: any): void;
-    customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: string, amountKey?: string, thirdKey?: any): {
+    customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: IndexType, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): {
         symbol: any;
         bids: any;
         asks: any;
@@ -16,8 +16,8 @@ export default class luno extends lunoRest {
         datetime: string;
         nonce: any;
     };
-    parseBidsAsks(bidasks: any, priceKey?: string, amountKey?: string, thirdKey?: any): any[];
-    customParseBidAsk(bidask: any, priceKey?: string, amountKey?: string, thirdKey?: any): number[];
-    handleDelta(orderbook: any, message: any): any;
-    handleMessage(client: Client, message: any): any;
+    parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, thirdKey?: IndexType): any[];
+    customParseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, thirdKey?: IndexType): number[];
+    handleDelta(orderbook: any, message: any): void;
+    handleMessage(client: Client, message: any): void;
 }

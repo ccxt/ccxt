@@ -44,6 +44,7 @@ class kucoin(ccxt.async_support.kucoin):
                 'watchOrderBook': {
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
+                    'method': '/market/level2',  # '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
                 },
             },
             'streaming': {
@@ -54,57 +55,64 @@ class kucoin(ccxt.async_support.kucoin):
             },
         })
 
-    def negotiate(self, privateChannel, params={}):
+    async def negotiate(self, privateChannel, params={}):
         connectId = 'private' if privateChannel else 'public'
         urls = self.safe_value(self.options, 'urls', {})
         spawaned = self.safe_value(urls, connectId)
         if spawaned is not None:
-            return spawaned
+            return await spawaned
         # we store an awaitable to the url
         # so that multiple calls don't asynchronously
         # fetch different urls and overwrite each other
         urls[connectId] = self.spawn(self.negotiate_helper, privateChannel, params)
         self.options['urls'] = urls
-        return urls[connectId]
+        future = urls[connectId]
+        return await future
 
     async def negotiate_helper(self, privateChannel, params={}):
         response = None
         connectId = 'private' if privateChannel else 'public'
-        if privateChannel:
-            response = await self.privatePostBulletPrivate(params)
-            #
-            #     {
-            #         "code": "200000",
-            #         "data": {
-            #             "instanceServers": [
-            #                 {
-            #                     "pingInterval":  50000,
-            #                     "endpoint": "wss://push-private.kucoin.com/endpoint",
-            #                     "protocol": "websocket",
-            #                     "encrypt": True,
-            #                     "pingTimeout": 10000
-            #                 }
-            #             ],
-            #             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-            #         }
-            #     }
-            #
-        else:
-            response = await self.publicPostBulletPublic(params)
-        data = self.safe_value(response, 'data', {})
-        instanceServers = self.safe_value(data, 'instanceServers', [])
-        firstInstanceServer = self.safe_value(instanceServers, 0)
-        pingInterval = self.safe_integer(firstInstanceServer, 'pingInterval')
-        endpoint = self.safe_string(firstInstanceServer, 'endpoint')
-        token = self.safe_string(data, 'token')
-        result = endpoint + '?' + self.urlencode({
-            'token': token,
-            'privateChannel': privateChannel,
-            'connectId': connectId,
-        })
-        client = self.client(result)
-        client.keepAlive = pingInterval
-        return result
+        try:
+            if privateChannel:
+                response = await self.privatePostBulletPrivate(params)
+                #
+                #     {
+                #         "code": "200000",
+                #         "data": {
+                #             "instanceServers": [
+                #                 {
+                #                     "pingInterval":  50000,
+                #                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+                #                     "protocol": "websocket",
+                #                     "encrypt": True,
+                #                     "pingTimeout": 10000
+                #                 }
+                #             ],
+                #             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                #         }
+                #     }
+                #
+            else:
+                response = await self.publicPostBulletPublic(params)
+            data = self.safe_value(response, 'data', {})
+            instanceServers = self.safe_value(data, 'instanceServers', [])
+            firstInstanceServer = self.safe_value(instanceServers, 0)
+            pingInterval = self.safe_integer(firstInstanceServer, 'pingInterval')
+            endpoint = self.safe_string(firstInstanceServer, 'endpoint')
+            token = self.safe_string(data, 'token')
+            result = endpoint + '?' + self.urlencode({
+                'token': token,
+                'privateChannel': privateChannel,
+                'connectId': connectId,
+            })
+            client = self.client(result)
+            client.keepAlive = pingInterval
+            return result
+        except Exception as e:
+            future = self.safe_value(self.options['urls'], connectId)
+            future.reject(e)
+            del self.options['urls'][connectId]
+        return None
 
     def request_id(self):
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
@@ -250,7 +258,9 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
         # watchTickers
-        client.resolve(ticker, 'tickers')
+        allTickers = {}
+        allTickers[symbol] = ticker
+        client.resolve(allTickers, 'tickers')
         messageHashes = self.find_message_hashes(client, 'tickers::')
         for i in range(0, len(messageHashes)):
             currentMessageHash = messageHashes[i]
@@ -403,10 +413,15 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         #
@@ -428,35 +443,46 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         if limit is not None:
-            if (limit != 20) and (limit != 100):
-                raise ExchangeError(self.id + " watchOrderBook 'limit' argument must be None, 20 or 100")
+            if (limit != 20) and (limit != 100) and (limit != 50) and (limit != 5):
+                raise ExchangeError(self.id + " watchOrderBook 'limit' argument must be None, 5, 20, 50 or 100")
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         marketIds = self.market_ids(symbols)
         url = await self.negotiate(False)
-        topic = '/market/level2:' + ','.join(marketIds)
+        method: str = None
+        method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', '/market/level2')
+        if (limit == 5) or (limit == 50):
+            method = '/spotMarket/level2Depth' + str(limit)
+        topic = method + ':' + ','.join(marketIds)
         messageHashes = []
         subscriptionHashes = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             messageHashes.append('orderbook:' + symbol)
             marketId = marketIds[i]
-            subscriptionHashes.append('/market/level2:' + marketId)
-        subscription = {
-            'method': self.handle_order_book_subscription,
-            'symbols': symbols,
-            'limit': limit,
-        }
+            subscriptionHashes.append(method + ':' + marketId)
+        subscription = {}
+        if method == '/market/level2':  # other streams return the entire orderbook, so we don't need to fetch the snapshot through REST
+            subscription = {
+                'method': self.handle_order_book_subscription,
+                'symbols': symbols,
+                'limit': limit,
+            }
         orderbook = await self.subscribe_multiple(url, messageHashes, topic, subscriptionHashes, params, subscription)
         return orderbook.limit()
 
@@ -480,36 +506,65 @@ class kucoin(ccxt.async_support.kucoin):
         #         }
         #     }
         #
+        #     {
+        #         "topic": "/spotMarket/level2Depth5:BTC-USDT",
+        #         "type": "message",
+        #         "data": {
+        #             "asks": [
+        #                 [
+        #                     "42815.6",
+        #                     "1.24016245"
+        #                 ]
+        #             ],
+        #             "bids": [
+        #                 [
+        #                     "42815.5",
+        #                     "0.08652716"
+        #                 ]
+        #             ],
+        #             "timestamp": 1707204474018
+        #         },
+        #         "subject": "level2"
+        #     }
+        #
         data = self.safe_value(message, 'data')
-        marketId = self.safe_string(data, 'symbol')
+        subject = self.safe_string(message, 'subject')
+        topic = self.safe_string(message, 'topic')
+        topicParts = topic.split(':')
+        topicSymbol = self.safe_string(topicParts, 1)
+        topicChannel = self.safe_string(topicParts, 0)
+        marketId = self.safe_string(data, 'symbol', topicSymbol)
         symbol = self.safe_symbol(marketId, None, '-')
         messageHash = 'orderbook:' + symbol
-        storedOrderBook = self.orderbooks[symbol]
-        nonce = self.safe_integer(storedOrderBook, 'nonce')
-        deltaEnd = self.safe_integer(data, 'sequenceEnd')
-        if nonce is None:
-            cacheLength = len(storedOrderBook.cache)
-            topic = self.safe_string(message, 'topic')
-            topicParts = topic.split(':')
-            topicSymbol = self.safe_string(topicParts, 1)
-            topicChannel = self.safe_string(topicParts, 0)
-            subscriptions = list(client.subscriptions.keys())
-            subscription = None
-            for i in range(0, len(subscriptions)):
-                key = subscriptions[i]
-                if (key.find(topicSymbol) >= 0) and (key.find(topicChannel) >= 0):
-                    subscription = client.subscriptions[key]
-                    break
-            limit = self.safe_integer(subscription, 'limit')
-            snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
-            if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
-            storedOrderBook.cache.append(data)
-            return
-        elif nonce >= deltaEnd:
-            return
-        self.handle_delta(storedOrderBook, data)
-        client.resolve(storedOrderBook, messageHash)
+        orderbook = self.safe_dict(self.orderbooks, symbol)
+        if subject == 'level2':
+            if orderbook is None:
+                orderbook = self.order_book()
+            else:
+                orderbook.reset()
+            orderbook['symbol'] = symbol
+        else:
+            nonce = self.safe_integer(orderbook, 'nonce')
+            deltaEnd = self.safe_integer_2(data, 'sequenceEnd', 'timestamp')
+            if nonce is None:
+                cacheLength = len(orderbook.cache)
+                subscriptions = list(client.subscriptions.keys())
+                subscription = None
+                for i in range(0, len(subscriptions)):
+                    key = subscriptions[i]
+                    if (key.find(topicSymbol) >= 0) and (key.find(topicChannel) >= 0):
+                        subscription = client.subscriptions[key]
+                        break
+                limit = self.safe_integer(subscription, 'limit')
+                snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
+                if cacheLength == snapshotDelay:
+                    self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
+                orderbook.cache.append(data)
+                return
+            elif nonce >= deltaEnd:
+                return
+        self.handle_delta(orderbook, data)
+        client.resolve(orderbook, messageHash)
 
     def get_cache_index(self, orderbook, cache):
         firstDelta = self.safe_value(cache, 0)
@@ -526,11 +581,11 @@ class kucoin(ccxt.async_support.kucoin):
         return len(cache)
 
     def handle_delta(self, orderbook, delta):
-        orderbook['nonce'] = self.safe_integer(delta, 'sequenceEnd')
-        timestamp = self.safe_integer(delta, 'time')
+        timestamp = self.safe_integer_2(delta, 'time', 'timestamp')
+        orderbook['nonce'] = self.safe_integer(delta, 'sequenceEnd', timestamp)
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
-        changes = self.safe_value(delta, 'changes')
+        changes = self.safe_value(delta, 'changes', delta)
         bids = self.safe_value(changes, 'bids', [])
         asks = self.safe_value(changes, 'asks', [])
         storedBids = orderbook['bids']
@@ -916,9 +971,11 @@ class kucoin(ccxt.async_support.kucoin):
         #
         topic = self.safe_string(message, 'topic')
         if topic == '/market/ticker:all':
-            return self.handle_ticker(client, message)
+            self.handle_ticker(client, message)
+            return
         subject = self.safe_string(message, 'subject')
         methods = {
+            'level2': self.handle_order_book,
             'trade.l2update': self.handle_order_book,
             'trade.ticker': self.handle_ticker,
             'trade.snapshot': self.handle_ticker,
@@ -930,10 +987,8 @@ class kucoin(ccxt.async_support.kucoin):
             'stopOrder': self.handle_order,
         }
         method = self.safe_value(methods, subject)
-        if method is None:
-            return message
-        else:
-            return method(client, message)
+        if method is not None:
+            method(client, message)
 
     def ping(self, client):
         # kucoin does not support built-in ws protocol-level ping-pong
@@ -978,4 +1033,4 @@ class kucoin(ccxt.async_support.kucoin):
         }
         method = self.safe_value(methods, type)
         if method is not None:
-            return method(client, message)
+            method(client, message)

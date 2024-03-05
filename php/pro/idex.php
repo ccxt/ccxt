@@ -343,7 +343,7 @@ class idex extends \ccxt\async\idex {
                         $symbol = $this->safe_symbol($marketId);
                         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
                             $orderbook = $this->counted_order_book(array());
-                            $orderbook->cache = array();
+                            // $orderbook->cache = array(); // cache is never used?
                             $this->orderbooks[$symbol] = $orderbook;
                         }
                         $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $symbol);

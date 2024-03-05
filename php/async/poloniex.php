@@ -49,6 +49,7 @@ class poloniex extends Exchange {
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingRate' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -725,7 +726,10 @@ class poloniex extends Exchange {
                 $code = $this->safe_currency_code($id);
                 $name = $this->safe_string($currency, 'name');
                 $networkId = $this->safe_string($currency, 'blockchain');
-                $networkCode = $this->network_id_to_code($networkId, $code);
+                $networkCode = null;
+                if ($networkId !== null) {
+                    $networkCode = $this->network_id_to_code($networkId, $code);
+                }
                 $delisted = $this->safe_value($currency, 'delisted');
                 $walletEnabled = $this->safe_string($currency, 'walletState') === 'ENABLED';
                 $depositEnabled = $this->safe_string($currency, 'walletDepositState') === 'ENABLED';
@@ -1262,7 +1266,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1362,7 +1366,7 @@ class poloniex extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1855,7 +1859,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -1908,7 +1912,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

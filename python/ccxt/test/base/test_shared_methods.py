@@ -17,6 +17,7 @@ import numbers  # noqa E402
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.base.errors import OperationFailed  # noqa E402
 from ccxt.base.errors import OnMaintenance  # noqa E402
+from ccxt.base.errors import ArgumentsRequired  # noqa E402
 
 def log_template(exchange, method, entry):
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> '
@@ -39,7 +40,7 @@ def string_value(value):
 
 def assert_type(exchange, skipped_properties, entry, key, format):
     if key in skipped_properties:
-        return
+        return None
     # because "typeof" string is not transpilable without === 'name', we list them manually at this moment
     entry_key_val = exchange.safe_value(entry, key)
     format_key_val = exchange.safe_value(format, key)
@@ -64,6 +65,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
         for i in range(0, len(format)):
             empty_allowed_for_this_key = exchange.in_array(i, empty_allowed_for)
             value = entry[i]
+            if i in skipped_properties:
+                continue
             # check when:
             # - it's not inside "allowe empty values" list
             # - it's not undefined
@@ -71,7 +74,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
                 continue
             assert value is not None, str(i) + ' index is expected to have a value' + log_text
             # because of other langs, this is needed for arrays
-            assert assert_type(exchange, skipped_properties, entry, i, format), str(i) + ' index does not have an expected type ' + log_text
+            type_assertion = assert_type(exchange, skipped_properties, entry, i, format)
+            assert type_assertion, str(i) + ' index does not have an expected type ' + log_text
     else:
         assert isinstance(entry, dict), 'entry is not an object' + log_text
         keys = list(format.keys())
@@ -80,6 +84,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             if key in skipped_properties:
                 continue
             assert key in entry, '\"' + string_value(key) + '\" key is missing from structure' + log_text
+            if key in skipped_properties:
+                continue
             empty_allowed_for_this_key = exchange.in_array(key, empty_allowed_for)
             value = entry[key]
             # check when:
@@ -91,7 +97,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             assert value is not None, '\"' + string_value(key) + '\" key is expected to have a value' + log_text
             # add exclusion for info key, as it can be any type
             if key != 'info':
-                assert assert_type(exchange, skipped_properties, entry, key, format), '\"' + string_value(key) + '\" key is neither undefined, neither of expected type' + log_text
+                type_assertion = assert_type(exchange, skipped_properties, entry, key, format)
+                assert type_assertion, '\"' + string_value(key) + '\" key is neither undefined, neither of expected type' + log_text
 
 
 def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=None, key_name_or_index='timestamp'):
@@ -174,9 +181,13 @@ def assert_symbol(exchange, skipped_properties, method, entry, key, expected_sym
     actual_symbol = exchange.safe_string(entry, key)
     if actual_symbol is not None:
         assert isinstance(actual_symbol, str), 'symbol should be either undefined or a string' + log_text
-        assert (actual_symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
     if expected_symbol is not None:
         assert actual_symbol == expected_symbol, 'symbol in response (\"' + string_value(actual_symbol) + '\") should be equal to expected symbol (\"' + string_value(expected_symbol) + '\")' + log_text
+
+
+def assert_symbol_in_markets(exchange, skipped_properties, method, symbol):
+    log_text = log_template(exchange, method, {})
+    assert (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
 
 
 def assert_greater(exchange, skipped_properties, method, entry, key, compare_to):
@@ -265,10 +276,10 @@ def assert_fee_structure(exchange, skipped_properties, method, entry, key):
 def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=True):
     for i in range(0, len(items)):
         if i > 0:
-            ascending_or_descending = 'ascending' if ascending else 'descending'
             current_ts = items[i - 1]['timestamp']
             next_ts = items[i]['timestamp']
             if current_ts is not None and next_ts is not None:
+                ascending_or_descending = 'ascending' if ascending else 'descending'
                 comparison = (current_ts <= next_ts) if ascending else (current_ts >= next_ts)
                 assert comparison, exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp, but ' + str(current_ts) + ' is opposite with its next ' + str(next_ts) + ' ' + exchange.json(items)
 

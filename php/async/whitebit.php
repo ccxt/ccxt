@@ -24,7 +24,7 @@ class whitebit extends Exchange {
             'name' => 'WhiteBit',
             'version' => 'v4',
             'countries' => array( 'EE' ),
-            'rateLimit' => 500,
+            'rateLimit' => 50,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -71,6 +71,7 @@ class whitebit extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPositionMode' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -231,6 +232,7 @@ class whitebit extends Exchange {
                     'account' => 'spot',
                 ),
                 'accountsByType' => array(
+                    'funding' => 'main',
                     'main' => 'main',
                     'spot' => 'spot',
                     'margin' => 'collateral',
@@ -426,8 +428,8 @@ class whitebit extends Exchange {
                 $currency = $response[$id];
                 // breaks down in Python due to utf8 encoding issues on the exchange side
                 // $name = $this->safe_string($currency, 'name');
-                $canDeposit = $this->safe_value($currency, 'can_deposit', true);
-                $canWithdraw = $this->safe_value($currency, 'can_withdraw', true);
+                $canDeposit = $this->safe_bool($currency, 'can_deposit', true);
+                $canWithdraw = $this->safe_bool($currency, 'can_withdraw', true);
                 $active = $canDeposit && $canWithdraw;
                 $code = $this->safe_currency_code($id);
                 $result[$code] = array(
@@ -456,7 +458,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_transaction_fees($codes = null, $params = array ()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * @deprecated
@@ -1183,7 +1185,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1332,9 +1334,9 @@ class whitebit extends Exchange {
             } else {
                 $options = $this->safe_value($this->options, 'fetchBalance', array());
                 $defaultAccount = $this->safe_string($options, 'account');
-                $account = $this->safe_string($params, 'account', $defaultAccount);
-                $params = $this->omit($params, 'account');
-                if ($account === 'main') {
+                $account = $this->safe_string_2($params, 'account', 'type', $defaultAccount);
+                $params = $this->omit($params, array( 'account', 'type' ));
+                if ($account === 'main' || $account === 'funding') {
                     $response = Async\await($this->v4PrivatePostMainAccountBalance ($params));
                 } else {
                     $response = Async\await($this->v4PrivatePostTradeAccountBalance ($params));
@@ -1702,7 +1704,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a market
@@ -1729,7 +1731,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -1778,7 +1780,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

@@ -441,6 +441,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchStatus
          * @description the latest known information on the availability of the exchange API
+         * @see https://coins-docs.github.io/rest-api/#test-connectivity
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
@@ -459,6 +460,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://coins-docs.github.io/rest-api/#check-server-time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -474,6 +476,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchMarkets
          * @description retrieves data on all markets for coinsph
+         * @see https://coins-docs.github.io/rest-api/#exchange-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -611,6 +614,9 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
+         * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
+         * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -629,7 +635,14 @@ export default class coinsph extends Exchange {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeValue (this.options, 'fetchTickers', {});
         const method = this.safeString (options, 'method', defaultMethod);
-        const tickers = await this[method] (this.extend (request, params));
+        let tickers = undefined;
+        if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
+            tickers = await this.publicGetOpenapiQuoteV1TickerPrice (this.extend (request, params));
+        } else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
+            tickers = await this.publicGetOpenapiQuoteV1TickerBookTicker (this.extend (request, params));
+        } else {
+            tickers = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
+        }
         return this.parseTickers (tickers, symbols, params);
     }
 
@@ -638,6 +651,9 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
+         * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
+         * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -650,7 +666,14 @@ export default class coinsph extends Exchange {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeValue (this.options, 'fetchTicker', {});
         const method = this.safeString (options, 'method', defaultMethod);
-        const ticker = await this[method] (this.extend (request, params));
+        let ticker = undefined;
+        if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
+            ticker = await this.publicGetOpenapiQuoteV1TickerPrice (this.extend (request, params));
+        } else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
+            ticker = await this.publicGetOpenapiQuoteV1TickerBookTicker (this.extend (request, params));
+        } else {
+            ticker = await this.publicGetOpenapiQuoteV1Ticker24hr (this.extend (request, params));
+        }
         return this.parseTicker (ticker, market);
     }
 
@@ -738,6 +761,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://coins-docs.github.io/rest-api/#order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -775,6 +799,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://coins-docs.github.io/rest-api/#klinecandlestick-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -841,6 +866,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://coins-docs.github.io/rest-api/#recent-trades-list
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
@@ -882,6 +908,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
@@ -912,6 +939,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -984,10 +1012,10 @@ export default class coinsph extends Exchange {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
-        const isBuyer = this.safeString2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeValue2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
-            side = (isBuyer === 'true') ? 'buy' : 'sell';
+            side = (isBuyer === true) ? 'buy' : 'sell';
         }
         const isMaker = this.safeString2 (trade, 'isMaker', undefined);
         let takerOrMaker = undefined;
@@ -1020,6 +1048,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://coins-docs.github.io/rest-api/#accept-the-quote
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1051,11 +1080,10 @@ export default class coinsph extends Exchange {
 
     parseBalance (response): Balances {
         const balances = this.safeValue (response, 'balances', []);
-        const timestamp = this.milliseconds ();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1069,7 +1097,7 @@ export default class coinsph extends Exchange {
         return this.safeBalance (result);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#createOrder
@@ -1082,11 +1110,14 @@ export default class coinsph extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
+         * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // todo: add test order low priority
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const testOrder = this.safeBool (params, 'test', false);
+        params = this.omit (params, 'test');
         let orderType = this.safeString (params, 'type', type);
         orderType = this.encodeOrderType (orderType);
         params = this.omit (params, 'type');
@@ -1146,7 +1177,12 @@ export default class coinsph extends Exchange {
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit (params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        const response = await this.privatePostOpenapiV1Order (this.extend (request, params));
+        let response = undefined;
+        if (testOrder) {
+            response = await this.privatePostOpenapiV1OrderTest (this.extend (request, params));
+        } else {
+            response = await this.privatePostOpenapiV1Order (this.extend (request, params));
+        }
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1182,6 +1218,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://coins-docs.github.io/rest-api/#query-order-user_data
          * @param {int|string} id order id
          * @param {string} symbol not used by coinsph fetchOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1205,6 +1242,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://coins-docs.github.io/rest-api/#query-order-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1227,6 +1265,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://coins-docs.github.io/rest-api/#history-orders-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve (default 500, max 1000)
@@ -1257,6 +1296,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#cancelOrder
          * @description cancels an open order
+         * @see https://coins-docs.github.io/rest-api/#cancel-order-trade
          * @param {string} id order id
          * @param {string} symbol not used by coinsph cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1280,6 +1320,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#cancelAllOrders
          * @description cancel open orders of market
+         * @see https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1470,6 +1511,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1498,6 +1540,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1545,7 +1588,7 @@ export default class coinsph extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#withdraw
@@ -1559,7 +1602,7 @@ export default class coinsph extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const options = this.safeValue (this.options, 'withdraw');
-        const warning = this.safeValue (options, 'warning', true);
+        const warning = this.safeBool (options, 'warning', true);
         if (warning) {
             throw new InvalidAddress (this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }

@@ -6,7 +6,9 @@ export default class cryptocom extends cryptocomRest {
     pong(client: any, message: any): Promise<void>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBookSnapshot(client: Client, message: any): void;
+    handleDelta(bookside: any, delta: any): void;
+    handleDeltas(bookside: any, deltas: any): void;
+    handleOrderBook(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
