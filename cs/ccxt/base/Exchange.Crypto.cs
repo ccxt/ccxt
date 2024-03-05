@@ -20,7 +20,15 @@ public partial class Exchange
 
     public static string Hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex")
     {
-        var request = request2 as String;
+        string request;
+        if (request2 is String)
+        {
+            request = (string)request2;
+        }
+        else
+        {
+            request = Encoding.ASCII.GetString(request2 as byte[]);
+        }
         Byte[] secretBytes;
         if (secret2 is String)
         {

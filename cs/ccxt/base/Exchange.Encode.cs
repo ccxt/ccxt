@@ -68,7 +68,29 @@ public partial class Exchange
 
     public object binaryConcat(object a, object b)
     {
-        return (string)a + (string)b; // stub
+        byte[] first;
+        byte[] second;
+        if (a is string)
+        {
+            first = Encoding.ASCII.GetBytes(a as string);
+        }
+        else
+        {
+            first = (byte[])a;
+        }
+        if (b is string)
+        {
+            second = Encoding.ASCII.GetBytes(b as string);
+        }
+        else
+        {
+            second = (byte[])b;
+        }
+        var result = new byte[first.Length + second.Length];
+        first.CopyTo(result, 0);
+        second.CopyTo(result, first.Length);
+        return result;
+        // return (string)a + (string)b; // stub
     }
 
     public object binaryConcatArray(object a)
