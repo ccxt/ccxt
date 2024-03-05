@@ -3342,8 +3342,9 @@ export default class bitget extends Exchange {
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        const retrievableDaysMapForSpot = this.options['diapasonsForRecentEndpoint'];
-        const maxRetrievableDaysForNonHistory = this.safeInteger (retrievableDaysMapForSpot, timeframe, 30); // default to safe minimum
+        const ohlcOptions = this.safeDict (this.options, 'fetchOHLCV', {});
+        const retrievableDaysMap = this.safeDict (ohlcOptions, 'diapasonsForRecentEndpoint', {});
+        const maxRetrievableDaysForNonHistory = this.safeInteger (retrievableDaysMap, timeframe, 30); // default to safe minimum
         const endpointTsBoundary = now - maxRetrievableDaysForNonHistory * msInDay;
         // checks if we need history endpoint
         let needsHistoryEndpoint = false;
