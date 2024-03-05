@@ -591,7 +591,8 @@ export default class hyperliquid extends Exchange {
          */
         let user = undefined;
         [ user, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'user');
-        [ user, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'address', user);
+        let user2 = user;
+        [ user2, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'address', user2);
         if (user === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() require user or address parameter.');
         }
