@@ -1221,21 +1221,35 @@
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid":"messed bid-ask",
-                "ask":"messed bid-ask"
+                "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid":"messed bid-ask",
-                "ask":"messed bid-ask"
+                "spread": "same as above"
             },
             "fetchAccounts": {
                 "type": "type is not provided"
             },
             "fetchLeverageTiers": "swap only supported",
             "watchTicker": {
-                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610"
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
+                "spread": "same as above"
+            },
+            "watchTickers": {
+                "spread": "same as above"
+            },
+            "fetchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916"
+            },
+            "fetchL2OrderBook": {
+                "spread": "same as above"
+            },
+            "watchOrderBook": {
+                "spread": "same as above"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same as above"
             }
         }
     },
