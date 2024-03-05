@@ -3305,26 +3305,17 @@ export default class bitget extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        // for contracts, there can be maximum 90 days between start-end times
-        const defaultLimit = 100;
-        const maxDistanceDays = 90;
+        const defaultLimit = 100; // by default, exchange returns 100 items
         const msInDay = 1000 * 60 * 60 * 24;
         if (limit !== undefined) {
             limit = Math.min (limit, maxLimit);
             request['limit'] = limit;
         }
-        else {
-            limit = 100; // default 100
-            // for contracts, lower default to hardcap 90 days
-            if (market['contract'] && duration >= msInDay) {
-                limit = this.parseToInt (maxDistanceDays * msInDay / duration);
-            }
-        }
-        
         if (since !== undefined) {
             request['startTime'] = since;
             // in this case, we need to send "entTime" too
-            const calculatedEnd = this.sum (since, duration * limit);
+            const limitForEnd = (limit !== undefined) ? limit : defaultLimit;
+            const calculatedEnd = this.sum (since, duration * limitForEnd);
             request['endTime'] = (until === undefined) ? calculatedEnd : Math.min (until, calculatedEnd);
         }
         let response = undefined;
@@ -3349,9 +3340,15 @@ export default class bitget extends Exchange {
             '1w': 1000,
             '1M': 1000,
         };
-        const maxRetrievableDays = this.safeInteger (retrievableDaysMapForSpot, timeframe, 30); // default to safe minimum
-        const endpointTsBoundary = now - maxRetrievableDays * msInDay;
-        const needsHistoryEndpoint = (since !== undefined && since < endpointTsBoundary) || (until !== undefined && until - limit * duration < endpointTsBoundary);
+        const maxRetrievableDaysForNonHistory = this.safeInteger (retrievableDaysMapForSpot, timeframe, 30); // default to safe minimum
+        const endpointTsBoundary = now - maxRetrievableDaysForNonHistory * msInDay;
+        // checks if we need history endpoint
+        let needsHistoryEndpoint = false;
+        if (since !== undefined && since < endpointTsBoundary) {
+            needsHistoryEndpoint = true;
+        } else if (until !== undefined && ((limit === undefined && until < endpointTsBoundary) || (limit !== undefined && until - limit * duration < endpointTsBoundary))) {
+            needsHistoryEndpoint = true;
+        }
         if (market['spot']) {
             if (needsHistoryEndpoint) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
@@ -3359,14 +3356,15 @@ export default class bitget extends Exchange {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             }
         } else {
-            let showError = false;
-            if (limit * duration > maxDistanceDays * msInDay) {
-                showError = true;
-            } else if (since !== undefined && until !== undefined && until - since > maxDistanceDays * msInDay) {
-                showError = true;
+            const maxDistanceDaysForContracts = 90; // maximum 90 days allowed between start-end times
+            let distanceError = false;
+            if (limit !== undefined && limit * duration > maxDistanceDaysForContracts * msInDay) {
+                distanceError = true;
+            } else if (since !== undefined && until !== undefined && until - since > maxDistanceDaysForContracts * msInDay) {
+                distanceError = true;
             }
-            if (showError) {
-                throw new BadRequest (this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDays.toString () + ' days');
+            if (distanceError) {
+                throw new BadRequest (this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDaysForContracts.toString () + ' days');
             }
             const priceType = this.safeString (params, 'price');
             params = this.omit (params, [ 'price' ]);
