@@ -7,7 +7,6 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
-import testFetchWithdrawals from '../test/Exchange/test.fetchWithdrawals.js';
 
 //  ---------------------------------------------------------------------------
 
