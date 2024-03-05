@@ -490,7 +490,7 @@ public partial class blofin : Exchange
         object symbol = getValue(market, "symbol");
         object last = this.safeString(ticker, "last");
         object open = this.safeString(ticker, "open24h");
-        object spot = this.safeValue(market, "spot", false);
+        object spot = this.safeBool(market, "spot", false);
         object quoteVolume = ((bool) isTrue(spot)) ? this.safeString(ticker, "volCurrency24h") : null;
         object baseVolume = this.safeString(ticker, "vol24h");
         object high = this.safeString(ticker, "high24h");

@@ -4810,7 +4810,7 @@ class binance extends binance$1 {
         let stopPriceIsRequired = false;
         let quantityIsRequired = false;
         if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
+            const quoteOrderQty = this.safeBool(this.options, 'quoteOrderQty', true);
             if (quoteOrderQty) {
                 const quoteOrderQtyNew = this.safeValue2(params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
@@ -10318,7 +10318,7 @@ class binance extends binance$1 {
             // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
             // binanceusdm
             if (e instanceof errors.MarginModeAlreadySet) {
-                const throwMarginModeAlreadySet = this.safeValue(this.options, 'throwMarginModeAlreadySet', false);
+                const throwMarginModeAlreadySet = this.safeBool(this.options, 'throwMarginModeAlreadySet', false);
                 if (throwMarginModeAlreadySet) {
                     throw e;
                 }

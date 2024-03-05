@@ -4774,7 +4774,7 @@ class binance extends Exchange {
         $stopPriceIsRequired = false;
         $quantityIsRequired = false;
         if ($uppercaseType === 'MARKET') {
-            $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
+            $quoteOrderQty = $this->safe_bool($this->options, 'quoteOrderQty', true);
             if ($quoteOrderQty) {
                 $quoteOrderQtyNew = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
                 $precision = $market['precision']['price'];
@@ -10164,7 +10164,7 @@ class binance extends Exchange {
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm
                 if ($e instanceof MarginModeAlreadySet) {
-                    $throwMarginModeAlreadySet = $this->safe_value($this->options, 'throwMarginModeAlreadySet', false);
+                    $throwMarginModeAlreadySet = $this->safe_bool($this->options, 'throwMarginModeAlreadySet', false);
                     if ($throwMarginModeAlreadySet) {
                         throw $e;
                     } else {

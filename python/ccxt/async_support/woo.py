@@ -491,7 +491,7 @@ class woo(Exchange, ImplicitAPI):
         #      ]
         # }
         #
-        resultResponse = self.safe_value(response, 'rows', {})
+        resultResponse = self.safe_list(response, 'rows', [])
         return self.parse_trades(resultResponse, market, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -2179,7 +2179,7 @@ class woo(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             if method == 'POST' and (path == 'algo/order' or path == 'order'):
-                isSandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+                isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
                 if not isSandboxMode:
                     applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
                     brokerId = self.safe_string(self.options, 'brokerId', applicationId)

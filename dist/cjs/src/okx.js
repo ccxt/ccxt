@@ -1557,7 +1557,7 @@ class okx extends okx$1 {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        const isSandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials(false) || isSandboxMode) {
             return undefined;
         }

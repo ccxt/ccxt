@@ -1227,7 +1227,7 @@ public partial class bitvavo : ccxt.bitvavo
 
     public virtual void checkMessageHashDoesNotExist(object messageHash)
     {
-        object supressMultipleWsRequestsError = this.safeValue(this.options, "supressMultipleWsRequestsError", false);
+        object supressMultipleWsRequestsError = this.safeBool(this.options, "supressMultipleWsRequestsError", false);
         if (!isTrue(supressMultipleWsRequestsError))
         {
             var client = this.safeValue(this.clients, getValue(getValue(this.urls, "api"), "ws"));

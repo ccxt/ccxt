@@ -494,7 +494,7 @@ export default class woo extends Exchange {
         //      ]
         // }
         //
-        const resultResponse = this.safeValue (response, 'rows', {});
+        const resultResponse = this.safeList (response, 'rows', []);
         return this.parseTrades (resultResponse, market, since, limit);
     }
 
@@ -2355,7 +2355,7 @@ export default class woo extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
-                const isSandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+                const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
                 if (!isSandboxMode) {
                     const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     const brokerId = this.safeString (this.options, 'brokerId', applicationId);

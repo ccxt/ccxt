@@ -1510,7 +1510,7 @@ export default class bitmex extends Exchange {
             request['endTime'] = this.iso8601(until);
         }
         const duration = this.parseTimeframe(timeframe) * 1000;
-        const fetchOHLCVOpenTimestamp = this.safeValue(this.options, 'fetchOHLCVOpenTimestamp', true);
+        const fetchOHLCVOpenTimestamp = this.safeBool(this.options, 'fetchOHLCVOpenTimestamp', true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
             let timestamp = since;

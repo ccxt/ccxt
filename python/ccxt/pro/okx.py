@@ -528,7 +528,7 @@ class okx(ccxt.async_support.okx):
         storedBids = orderbook['bids']
         self.handle_deltas(storedAsks, asks)
         self.handle_deltas(storedBids, bids)
-        checksum = self.safe_value(self.options, 'checksum', True)
+        checksum = self.safe_bool(self.options, 'checksum', True)
         if checksum:
             asksLength = len(storedAsks)
             bidsLength = len(storedBids)

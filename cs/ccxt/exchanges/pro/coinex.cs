@@ -602,7 +602,7 @@ public partial class coinex : ccxt.coinex
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         object messageHash = "ohlcv";
-        object watchOHLCVWarning = this.safeValue(this.options, "watchOHLCVWarning", true);
+        object watchOHLCVWarning = this.safeBool(this.options, "watchOHLCVWarning", true);
         var client = this.safeValue(this.clients, url, new Dictionary<string, object>() {});
         object clientSub = this.safeValue(client as WebSocketClient, "subscriptions", new Dictionary<string, object>() {});
         object existingSubscription = this.safeValue(clientSub, messageHash);
