@@ -118,7 +118,7 @@
                 "method": "editOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  6530857127,
+                  "6530857127",
                   "SOL/USDC:USDC",
                   "limit",
                   "buy",

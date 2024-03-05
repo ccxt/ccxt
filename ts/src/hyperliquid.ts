@@ -1119,7 +1119,7 @@ export default class hyperliquid extends Exchange {
             orderReq['c'] = clientOrderId;
         }
         const modifyReq = {
-            'oid': id,
+            'oid': this.parseToInt (id),
             'order': orderReq,
         };
         const modifyAction = {
