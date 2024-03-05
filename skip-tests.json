@@ -1234,6 +1234,18 @@
             },
             "watchTickers": {
                 "spread": "same as above"
+            },
+            "fetchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916"
+            },
+            "fetchL2OrderBook": {
+                "spread": "same as above"
+            },
+            "watchOrderBook": {
+                "spread": "same as above"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same as above"
             }
         }
     },
