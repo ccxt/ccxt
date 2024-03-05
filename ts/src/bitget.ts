@@ -1342,6 +1342,23 @@ export default class bitget extends Exchange {
                     'swap': {
                         'method': 'publicMixGetV2MixMarketCandles', // or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     },
+                    'diapasonsForRecentEndpoint': {
+                        '1m': 30,
+                        '3m': 30,
+                        '5m': 30,
+                        '10m': 52,
+                        '15m': 52,
+                        '30m': 52,
+                        '1h': 83,
+                        '2h': 120,
+                        '4h': 240,
+                        '6h': 360,
+                        '12h': 360,
+                        '1d': 360,
+                        '3d': 1000,
+                        '1w': 1000,
+                        '1M': 1000,
+                    },
                 },
                 'fetchTrades': {
                     'spot': {
@@ -3325,23 +3342,7 @@ export default class bitget extends Exchange {
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        const retrievableDaysMapForSpot = {
-            '1m': 30,
-            '3m': 30,
-            '5m': 30,
-            '10m': 52,
-            '15m': 52,
-            '30m': 52,
-            '1h': 83,
-            '2h': 120,
-            '4h': 240,
-            '6h': 360,
-            '12h': 360,
-            '1d': 360,
-            '3d': 1000,
-            '1w': 1000,
-            '1M': 1000,
-        };
+        const retrievableDaysMapForSpot = this.options['diapasonsForRecentEndpoint'];
         const maxRetrievableDaysForNonHistory = this.safeInteger (retrievableDaysMapForSpot, timeframe, 30); // default to safe minimum
         const endpointTsBoundary = now - maxRetrievableDaysForNonHistory * msInDay;
         // checks if we need history endpoint
