@@ -1915,7 +1915,7 @@ export default class blofin extends Exchange {
          * @method
          * @name blofin#fetchLeverage
          * @description fetch the set leverage for a market
-         * @see https://blofin.com/docs#set-leverage
+         * @see https://docs.blofin.com/index.html#get-leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
