@@ -237,7 +237,7 @@ export default class coinbaseinternational extends Exchange {
             },
             'options': {
                 'clientOrderId': 'ccxt',
-                'portfolio': '1wp37qsc-1-0', // default portfolio id
+                'portfolio': '', // default portfolio id
                 'withdraw': {
                     'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 },
@@ -1280,7 +1280,7 @@ export default class coinbaseinternational extends Exchange {
         let tif = undefined;
         [ tif, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'tif', 'timeInForce');
         // market orders must be IOC
-        if (type === 'market') {
+        if (typeId === 'MARKET') {
             if (tif !== undefined && tif !== 'IOC') {
                 throw new InvalidOrder (this.id + 'createOrder() market orders must have tif set to "IOC"');
             }
