@@ -2617,14 +2617,14 @@ export default class binance extends binanceRest {
         //     }
         //
         const marketId = this.safeString (position, 's');
-        const contracts = this.safeNumber (position, 'pa');
+        const contracts = this.safeString (position, 'pa');
         const contractsAbs = Precise.stringAbs (this.safeString (position, 'pa'));
         let positionSide = this.safeStringLower (position, 'ps');
         let hedged = true;
         if (positionSide === 'both') {
             hedged = false;
-            if (contracts !== 0) {
-                if (contracts < 0) {
+            if (!Precise.stringEq (contracts, '0')) {
+                if (Precise.stringLt (contracts, '0')) {
                     positionSide = 'short';
                 } else {
                     positionSide = 'long';
