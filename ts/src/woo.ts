@@ -2174,6 +2174,7 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#transfer
+         * @see https://docs.woo.org/#get-transfer-history
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
@@ -2198,7 +2199,7 @@ export default class woo extends Exchange {
         //     }
         //
         const transfer = this.parseTransfer (response, currency);
-        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['amount'] = amount;
