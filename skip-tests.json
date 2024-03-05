@@ -809,8 +809,8 @@
         }
     },
     "delta": {
-        "skip": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269219719#L3723",
-        "until": "2024-03-05",
+        "skip": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4301",
+        "until": "2024-03-15",
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
             "fetchOrderBook": "ask crossing bids test failing",
