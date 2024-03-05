@@ -916,9 +916,6 @@ export default class hyperliquid extends Exchange {
             'signature': signature,
             // 'vaultAddress': vaultAddress,
         };
-        if (vaultAddress !== undefined) {
-            request['vaultAddress'] = vaultAddress;
-        }
         const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
