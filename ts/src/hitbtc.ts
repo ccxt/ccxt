@@ -2686,7 +2686,7 @@ export default class hitbtc extends Exchange {
         if ((network !== undefined) && (code === 'USDT')) {
             const parsedNetwork = this.safeString (networks, network);
             if (parsedNetwork !== undefined) {
-                request['currency'] = parsedNetwork;
+                request['network_code'] = parsedNetwork;
             }
             params = this.omit (params, 'network');
         }
