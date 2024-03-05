@@ -418,7 +418,7 @@ export default class woo extends Exchange {
         //     "success": true
         // }
         //
-        const data = this.safeValue (response, 'rows', []);
+        const data = this.safeList (response, 'rows', []);
         return this.parseMarkets (data);
     }
 
@@ -674,7 +674,7 @@ export default class woo extends Exchange {
         //         "timestamp": 1673323685109
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const maker = this.safeString (data, 'makerFeeRate');
         const taker = this.safeString (data, 'takerFeeRate');
         const result = {};
@@ -762,7 +762,7 @@ export default class woo extends Exchange {
         //     "success": true
         // }
         //
-        const tokenRows = this.safeValue (tokenResponse, 'rows', []);
+        const tokenRows = this.safeList (tokenResponse, 'rows', []);
         const networksByCurrencyId = this.groupBy (tokenRows, 'balance_token');
         const currencyIds = Object.keys (networksByCurrencyId);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -926,7 +926,7 @@ export default class woo extends Exchange {
          * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         params = this.omit (params, [ 'reduceOnly', 'reduce_only' ]);
         const orderType = type.toUpperCase ();
         await this.loadMarkets ();
@@ -1086,9 +1086,9 @@ export default class woo extends Exchange {
         //     },
         //     "timestamp": "1686149372216"
         // }
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         if (data !== undefined) {
-            const rows = this.safeValue (data, 'rows', []);
+            const rows = this.safeList (data, 'rows', []);
             return this.parseOrder (rows[0], market);
         }
         const order = this.parseOrder (response, market);
@@ -1186,7 +1186,7 @@ export default class woo extends Exchange {
         //         "timestamp": 0
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -1259,8 +1259,8 @@ export default class woo extends Exchange {
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         if (stop) {
             return await this.v3PrivateDeleteAlgoOrdersPending (params);
         }
@@ -1295,8 +1295,8 @@ export default class woo extends Exchange {
          */
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         let response = undefined;
@@ -1369,9 +1369,9 @@ export default class woo extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let market: Market = undefined;
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
         const trailing = this.safeBool (params, 'trailing', false);
-        params = this.omit (params, [ 'stop', 'trailing' ]);
+        params = this.omit (params, [ 'stop', 'trailing', 'trigger' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1426,7 +1426,7 @@ export default class woo extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', response);
-        const orders = this.safeValue (data, 'rows');
+        const orders = this.safeList (data, 'rows');
         return this.parseOrders (orders, market, since, limit, params);
     }
 
@@ -1530,7 +1530,7 @@ export default class woo extends Exchange {
             'type': orderType,
             'timeInForce': this.parseTimeInForce (orderType),
             'postOnly': undefined, // TO_DO
-            'reduceOnly': this.safeValue (order, 'reduce_only'),
+            'reduceOnly': this.safeBool (order, 'reduce_only'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1689,7 +1689,7 @@ export default class woo extends Exchange {
             //    }
             //
         }
-        const rows = this.safeValue (response, 'rows', []);
+        const rows = this.safeList (response, 'rows', []);
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
@@ -1744,7 +1744,7 @@ export default class woo extends Exchange {
         //       }
         //     ]
         // }
-        const trades = this.safeValue (response, 'rows', []);
+        const trades = this.safeList (response, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -1793,7 +1793,7 @@ export default class woo extends Exchange {
         //         ...
         //     ]
         // }
-        const trades = this.safeValue (response, 'rows', []);
+        const trades = this.safeList (response, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -1822,7 +1822,7 @@ export default class woo extends Exchange {
         //         "success": true
         //     }
         //
-        const rows = this.safeValue (response, 'rows', []);
+        const rows = this.safeList (response, 'rows', []);
         return this.parseAccounts (rows, params);
     }
 
@@ -1878,7 +1878,7 @@ export default class woo extends Exchange {
         //         "timestamp": 1673323746259
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseBalance (data);
     }
 
@@ -1886,7 +1886,7 @@ export default class woo extends Exchange {
         const result = {
             'info': response,
         };
-        const balances = this.safeValue (response, 'holding', []);
+        const balances = this.safeList (response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
@@ -2289,7 +2289,7 @@ export default class woo extends Exchange {
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
         const code = currencyDefined['code'];
         const timestamp = this.safeTimestamp (transfer, 'created_time');
-        const success = this.safeValue (transfer, 'success');
+        const success = this.safeBool (transfer, 'success');
         let status: Str = undefined;
         if (success !== undefined) {
             status = success ? 'ok' : 'failed';
@@ -2341,11 +2341,11 @@ export default class woo extends Exchange {
         if (tag !== undefined) {
             request['extra'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
         const network = this.safeStringUpper (params, 'network');
         const networkId = this.safeString (networks, network, network);
-        const coinNetwork = this.safeValue (currencyNetworks, networkId, {});
+        const coinNetwork = this.safeDict (currencyNetworks, networkId, {});
         const coinNetworkId = this.safeString (coinNetwork, 'id');
         if (coinNetworkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() require network parameter');
@@ -2492,7 +2492,7 @@ export default class woo extends Exchange {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        const success = this.safeValue (response, 'success');
+        const success = this.safeBool (response, 'success');
         const errorCode = this.safeString (response, 'code');
         if (!success) {
             const feedback = this.id + ' ' + this.json (response);
@@ -2570,7 +2570,7 @@ export default class woo extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeValue (response, 'rows', []);
+        const result = this.safeList (response, 'rows', []);
         return this.parseIncomes (result, market, since, limit);
     }
 
@@ -2654,7 +2654,7 @@ export default class woo extends Exchange {
         //         "timestamp":1653633985646
         //     }
         //
-        const rows = this.safeValue (response, 'rows', {});
+        const rows = this.safeList (response, 'rows', []);
         const result = this.parseFundingRates (rows);
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -2709,7 +2709,7 @@ export default class woo extends Exchange {
         //         "timestamp":1653640814885
         //     }
         //
-        const result = this.safeValue (response, 'rows');
+        const result = this.safeList (response, 'rows');
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -2876,8 +2876,8 @@ export default class woo extends Exchange {
         //         "timestamp": 1673323880342
         //     }
         //
-        const result = this.safeValue (response, 'data', {});
-        const positions = this.safeValue (result, 'positions', []);
+        const result = this.safeDict (response, 'data', {});
+        const positions = this.safeList (result, 'positions', []);
         return this.parsePositions (positions, symbols);
     }
 
