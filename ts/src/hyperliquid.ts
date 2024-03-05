@@ -959,7 +959,7 @@ export default class hyperliquid extends Exchange {
         return await this.cancelOrders ([ id ], symbol, params);
     }
 
-    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name hyperliquid#cancelOrders
@@ -973,6 +973,9 @@ export default class hyperliquid extends Exchange {
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
@@ -1807,7 +1810,7 @@ export default class hyperliquid extends Exchange {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] margin mode must be either [isolated, cross]
+         * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -1815,10 +1818,7 @@ export default class hyperliquid extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marginMode = this.safeString (params, 'marginMode');
-        if (marginMode === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a marginMode parameter');
-        }
+        const marginMode = this.safeString (params, 'marginMode', 'cross');
         const isCross = (marginMode === 'cross');
         const asset = this.parseToInt (market['baseId']);
         const nonce = this.milliseconds ();
