@@ -83,9 +83,12 @@ public partial class binance : Exchange
                 { "fetchLastPrices", true },
                 { "fetchLedger", true },
                 { "fetchLedgerEntry", true },
-                { "fetchLeverage", true },
+                { "fetchLeverage", "emulated" },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", false },
+                { "fetchMarginMode", "emulated" },
+                { "fetchMarginModes", true },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -4958,7 +4961,7 @@ public partial class binance : Exchange
         object quantityIsRequired = false;
         if (isTrue(isEqual(uppercaseType, "MARKET")))
         {
-            object quoteOrderQty = this.safeValue(this.options, "quoteOrderQty", true);
+            object quoteOrderQty = this.safeBool(this.options, "quoteOrderQty", true);
             if (isTrue(quoteOrderQty))
             {
                 object quoteOrderQtyNew = this.safeValue2(parameters, "quoteOrderQty", "cost");
@@ -10939,7 +10942,7 @@ public partial class binance : Exchange
             // binanceusdm
             if (isTrue(e is MarginModeAlreadySet))
             {
-                object throwMarginModeAlreadySet = this.safeValue(this.options, "throwMarginModeAlreadySet", false);
+                object throwMarginModeAlreadySet = this.safeBool(this.options, "throwMarginModeAlreadySet", false);
                 if (isTrue(throwMarginModeAlreadySet))
                 {
                     throw e;
@@ -11026,38 +11029,33 @@ public partial class binance : Exchange
         return response;
     }
 
-    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
     {
         /**
         * @method
-        * @name binance#fetchLeverage
-        * @description fetch the set leverage for a market
+        * @name binance#fetchLeverages
+        * @description fetch the set leverage for all markets
         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
-        * @param {string} symbol unified market symbol
+        * @param {string[]} [symbols] a list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadLeverageBrackets(false, parameters);
-        object market = this.market(symbol);
-        if (!isTrue(getValue(market, "contract")))
-        {
-            throw new NotSupported ((string)add(this.id, " fetchLeverage() supports linear and inverse contracts only")) ;
-        }
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchLeverage", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchLeverages", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLeverage", market, parameters, "linear");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLeverages", null, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object isPortfolioMargin = null;
-        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchLeverage", "papi", "portfolioMargin", false);
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchLeverages", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         object response = null;
@@ -11081,25 +11079,43 @@ public partial class binance : Exchange
             }
         } else
         {
-            throw new NotSupported ((string)add(this.id, " fetchPositions() supports linear and inverse contracts only")) ;
+            throw new NotSupported ((string)add(this.id, " fetchLeverages() supports linear and inverse contracts only")) ;
         }
-        object positions = this.safeList(response, "positions", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        object leverages = this.safeList(response, "positions", new List<object>() {});
+        return this.parseLeverages(leverages, symbols, "symbol");
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        object marginModeRaw = this.safeBool(leverage, "isolated");
+        object marginMode = null;
+        if (isTrue(!isEqual(marginModeRaw, null)))
         {
-            object position = getValue(positions, i);
-            object innerSymbol = this.safeString(position, "symbol");
-            if (isTrue(isEqual(innerSymbol, getValue(market, "id"))))
-            {
-                object isolated = this.safeBool(position, "isolated");
-                object marginMode = ((bool) isTrue(isolated)) ? "isolated" : "cross";
-                return new Dictionary<string, object>() {
-                    { "info", position },
-                    { "marginMode", marginMode },
-                    { "leverage", this.safeInteger(position, "leverage") },
-                };
-            }
+            marginMode = ((bool) isTrue(marginModeRaw)) ? "isolated" : "cross";
         }
-        return response;
+        object side = this.safeStringLower(leverage, "positionSide");
+        object longLeverage = null;
+        object shortLeverage = null;
+        object leverageValue = this.safeInteger(leverage, "leverage");
+        if (isTrue(isEqual(side, "both")))
+        {
+            longLeverage = leverageValue;
+            shortLeverage = leverageValue;
+        } else if (isTrue(isEqual(side, "long")))
+        {
+            longLeverage = leverageValue;
+        } else if (isTrue(isEqual(side, "short")))
+        {
+            shortLeverage = leverageValue;
+        }
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", marginMode },
+            { "longLeverage", longLeverage },
+            { "shortLeverage", shortLeverage },
+        };
     }
 
     public async virtual Task<object> fetchSettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -13061,6 +13077,56 @@ public partial class binance : Exchange
         return new Dictionary<string, object>() {
             { "info", response },
             { "hedged", dualSidePosition },
+        };
+    }
+
+    public async override Task<object> fetchMarginModes(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchMarginMode
+        * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
+        * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} struct of marginMode
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            symbols = this.marketSymbols(symbols);
+            market = this.market(getValue(symbols, 0));
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "linear")))
+        {
+            response = await this.fapiPrivateV2GetAccount(parameters);
+        } else if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.dapiPrivateGetAccount(parameters);
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " fetchMarginModes () supports linear and inverse subTypes only")) ;
+        }
+        object assets = this.safeValue(response, "positions", new List<object>() {});
+        return this.parseMarginModes(assets, symbols, "symbol", "swap");
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marketId = this.safeString(marginMode, "symbol");
+        market = this.safeMarket(marketId, market);
+        object isIsolated = this.safeBool(marginMode, "isolated");
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", ((bool) isTrue(isIsolated)) ? "isolated" : "cross" },
         };
     }
 }

@@ -536,7 +536,7 @@ class bitget extends bitget$1 {
             this.handleDeltas(storedOrderBook['bids'], bids);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
-            const checksum = this.safeValue(this.options, 'checksum', true);
+            const checksum = this.safeBool(this.options, 'checksum', true);
             const isSnapshot = this.safeString(message, 'action') === 'snapshot'; // snapshot does not have a checksum
             if (!isSnapshot && checksum) {
                 const storedAsks = storedOrderBook['asks'];

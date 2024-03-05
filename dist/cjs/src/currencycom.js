@@ -1806,12 +1806,22 @@ class currencycom extends currencycom$1 {
         };
         const response = await this.privateGetV2LeverageSettings(this.extend(request, params));
         //
-        // {
-        //     "values": [ 1, 2, 5, 10, ],
-        //     "value": "10",
-        // }
+        //     {
+        //         "values": [ 1, 2, 5, 10, ],
+        //         "value": "10",
+        //     }
         //
-        return this.safeNumber(response, 'value');
+        return this.parseLeverage(response, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const leverageValue = this.safeInteger(leverage, 'value');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        };
     }
     async fetchDepositAddress(code, params = {}) {
         /**

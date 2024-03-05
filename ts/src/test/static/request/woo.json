@@ -374,6 +374,16 @@
                 "output": "position_mode=ONE_WAY"
             }
         ],
+        "fetchTrades": [
+            {
+                "description": "Fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://api.woo.org/v1/public/market_trades?symbol=SPOT_BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancelOrder",
@@ -423,16 +433,6 @@
                 "method": "fetchMarkets",
                 "url": "https://api.woo.org/v1/public/info",
                 "input": [
-                ]
-            }
-        ],
-        "fetchTrades": [
-            {
-                "description": "fetchTrades",
-                "method": "fetchTrades",
-                "url": "https://api.woo.org/v1/public/market_trades?symbol=SPOT_LTC_USDT",
-                "input": [
-                    "LTC/USDT"
                 ]
             }
         ],

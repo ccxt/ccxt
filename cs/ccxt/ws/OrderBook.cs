@@ -14,6 +14,7 @@ public interface IOrderBook : IDictionary<string, object>
     public IOrderBook update(object snapshot);
     IAsks asks { get; set; }
     IBids bids { get; set; }
+    public IList<object> cache { get; set; }
 }
 
 public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook

@@ -3176,13 +3176,15 @@ public partial class coinbase : Exchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object maxLimit = 300;
+        limit = ((bool) isTrue((isEqual(limit, null)))) ? maxLimit : mathMin(limit, maxLimit);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 299);
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, subtract(maxLimit, 1));
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -3192,7 +3194,7 @@ public partial class coinbase : Exchange
         object until = this.safeValueN(parameters, new List<object>() {"until", "till", "end"});
         parameters = this.omit(parameters, new List<object>() {"until", "till"});
         object duration = this.parseTimeframe(timeframe);
-        object candles300 = multiply(300, duration);
+        object requestedDuration = multiply(limit, duration);
         object sinceString = null;
         if (isTrue(!isEqual(since, null)))
         {
@@ -3200,14 +3202,14 @@ public partial class coinbase : Exchange
         } else
         {
             object now = ((object)this.seconds()).ToString();
-            sinceString = Precise.stringSub(now, ((object)candles300).ToString());
+            sinceString = Precise.stringSub(now, ((object)requestedDuration).ToString());
         }
         ((IDictionary<string,object>)request)["start"] = sinceString;
         object endString = this.numberToString(until);
         if (isTrue(isEqual(until, null)))
         {
             // 300 candles max
-            endString = Precise.stringAdd(sinceString, ((object)candles300).ToString());
+            endString = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
         }
         ((IDictionary<string,object>)request)["end"] = endString;
         object response = await this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, parameters));
@@ -3265,9 +3267,24 @@ public partial class coinbase : Exchange
         object request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "id") },
         };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start"] = this.numberToString(this.parseToInt(divide(since, 1000)));
+        }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
+        }
+        object until = null;
+        var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "until");
+        until = ((IList<object>)untilparametersVariable)[0];
+        parameters = ((IList<object>)untilparametersVariable)[1];
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
+        } else if (isTrue(!isEqual(since, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTrades() requires a `until` parameter when you use `since` argument")) ;
         }
         object response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters));
         //
@@ -3417,7 +3434,7 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "pricebook", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "pricebook", new Dictionary<string, object>() {});
         object time = this.safeString(data, "time");
         object timestamp = this.parse8601(time);
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
@@ -3915,7 +3932,7 @@ public partial class coinbase : Exchange
             } else
             {
                 this.checkRequiredCredentials();
-                object nonce = ((object)this.nonce()).ToString();
+                object timestampString = ((object)this.seconds()).ToString();
                 object payload = "";
                 if (isTrue(!isEqual(method, "GET")))
                 {
@@ -3924,19 +3941,15 @@ public partial class coinbase : Exchange
                         body = this.json(query);
                         payload = body;
                     }
-                } else
-                {
-                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
-                    {
-                        payload = add(payload, add("?", this.urlencode(query)));
-                    }
                 }
-                object auth = add(add(add(nonce, method), savedPath), payload);
+                // 'GET' doesn't need payload in the signature. inside url is enough
+                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                object auth = add(add(add(timestampString, method), savedPath), payload);
                 object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "CB-ACCESS-KEY", this.apiKey },
                     { "CB-ACCESS-SIGN", signature },
-                    { "CB-ACCESS-TIMESTAMP", nonce },
+                    { "CB-ACCESS-TIMESTAMP", timestampString },
                     { "Content-Type", "application/json" },
                 };
             }

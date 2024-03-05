@@ -65,6 +65,10 @@ public partial class testMainClass : BaseTest
                 {
                     object emptyAllowedForThisKey = exchange.inArray(i, emptyAllowedFor);
                     object value = getValue(entry, i);
+                    if (isTrue(inOp(skippedProperties, i)))
+                    {
+                        continue;
+                    }
                     // check when:
                     // - it's not inside "allowe empty values" list
                     // - it's not undefined
@@ -74,7 +78,8 @@ public partial class testMainClass : BaseTest
                     }
                     assert(!isEqual(value, null), add(add(((object)i).ToString(), " index is expected to have a value"), logText));
                     // because of other langs, this is needed for arrays
-                    assert(assertType(exchange, skippedProperties, entry, i, format), add(add(((object)i).ToString(), " index does not have an expected type "), logText));
+                    object typeAssertion = assertType(exchange, skippedProperties, entry, i, format);
+                    assert(typeAssertion, add(add(((object)i).ToString(), " index does not have an expected type "), logText));
                 }
             } else
             {
@@ -88,6 +93,10 @@ public partial class testMainClass : BaseTest
                         continue;
                     }
                     assert(inOp(entry, key), add(add(add("\"", stringValue(key)), "\" key is missing from structure"), logText));
+                    if (isTrue(inOp(skippedProperties, key)))
+                    {
+                        continue;
+                    }
                     object emptyAllowedForThisKey = exchange.inArray(key, emptyAllowedFor);
                     object value = getValue(entry, key);
                     // check when:
@@ -102,7 +111,8 @@ public partial class testMainClass : BaseTest
                     // add exclusion for info key, as it can be any type
                     if (isTrue(!isEqual(key, "info")))
                     {
-                        assert(assertType(exchange, skippedProperties, entry, key, format), add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
+                        object typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
+                        assert(typeAssertion, add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
                     }
                 }
             }

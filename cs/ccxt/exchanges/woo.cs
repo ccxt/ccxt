@@ -485,7 +485,7 @@ public partial class woo : Exchange
         //      ]
         // }
         //
-        object resultResponse = this.safeValue(response, "rows", new Dictionary<string, object>() {});
+        object resultResponse = this.safeList(response, "rows", new List<object>() {});
         return this.parseTrades(resultResponse, market, since, limit);
     }
 
@@ -2488,7 +2488,7 @@ public partial class woo : Exchange
             this.checkRequiredCredentials();
             if (isTrue(isTrue(isEqual(method, "POST")) && isTrue((isTrue(isEqual(path, "algo/order")) || isTrue(isEqual(path, "order"))))))
             {
-                object isSandboxMode = this.safeValue(this.options, "sandboxMode", false);
+                object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if (!isTrue(isSandboxMode))
                 {
                     object applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
@@ -2854,8 +2854,18 @@ public partial class woo : Exchange
 
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
+        /**
+        * @method
+        * @name woo#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://docs.woo.org/#get-account-information-new
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object market = this.market(symbol);
         object response = await this.v3PrivateGetAccountinfo(parameters);
         //
         //     {
@@ -2885,11 +2895,19 @@ public partial class woo : Exchange
         //         "timestamp": 1673323685109
         //     }
         //
-        object result = this.safeValue(response, "data");
-        object leverage = this.safeNumber(result, "leverage");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object leverageValue = this.safeInteger(leverage, "leverage");
         return new Dictionary<string, object>() {
-            { "info", response },
-            { "leverage", leverage },
+            { "info", leverage },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", null },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
         };
     }
 

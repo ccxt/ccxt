@@ -3041,10 +3041,12 @@ class coinbase extends Exchange {
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
+        $maxLimit = 300;
+        $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 299);
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit - 1);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -3054,19 +3056,19 @@ class coinbase extends Exchange {
         $until = $this->safe_value_n($params, array( 'until', 'till', 'end' ));
         $params = $this->omit($params, array( 'until', 'till' ));
         $duration = $this->parse_timeframe($timeframe);
-        $candles300 = 300 * $duration;
+        $requestedDuration = $limit * $duration;
         $sinceString = null;
         if ($since !== null) {
             $sinceString = $this->number_to_string($this->parse_to_int($since / 1000));
         } else {
             $now = (string) $this->seconds();
-            $sinceString = Precise::string_sub($now, (string) $candles300);
+            $sinceString = Precise::string_sub($now, (string) $requestedDuration);
         }
         $request['start'] = $sinceString;
         $endString = $this->number_to_string($until);
         if ($until === null) {
             // 300 $candles max
-            $endString = Precise::string_add($sinceString, (string) $candles300);
+            $endString = Precise::string_add($sinceString, (string) $requestedDuration);
         }
         $request['end'] = $endString;
         $response = $this->v3PrivateGetBrokerageProductsProductIdCandles (array_merge($request, $params));
@@ -3126,8 +3128,18 @@ class coinbase extends Exchange {
         $request = array(
             'product_id' => $market['id'],
         );
+        if ($since !== null) {
+            $request['start'] = $this->number_to_string($this->parse_to_int($since / 1000));
+        }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, 1000);
+        }
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'until');
+        if ($until !== null) {
+            $request['end'] = $this->number_to_string($this->parse_to_int($until / 1000));
+        } elseif ($since !== null) {
+            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a `$until` parameter when you use `$since` argument');
         }
         $response = $this->v3PrivateGetBrokerageProductsProductIdTicker (array_merge($request, $params));
         //
@@ -3259,7 +3271,7 @@ class coinbase extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'pricebook', array());
+        $data = $this->safe_dict($response, 'pricebook', array());
         $time = $this->safe_string($data, 'time');
         $timestamp = $this->parse8601($time);
         return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'size');
@@ -3707,24 +3719,22 @@ class coinbase extends Exchange {
                 }
             } else {
                 $this->check_required_credentials();
-                $nonce = (string) $this->nonce();
+                $timestampString = (string) $this->seconds();
                 $payload = '';
                 if ($method !== 'GET') {
                     if ($query) {
                         $body = $this->json($query);
                         $payload = $body;
                     }
-                } else {
-                    if ($query) {
-                        $payload .= '?' . $this->urlencode($query);
-                    }
                 }
-                $auth = $nonce . $method . $savedPath . $payload;
+                // 'GET' doesn't need $payload in the $signature-> inside $url is enough
+                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                $auth = $timestampString . $method . $savedPath . $payload;
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $headers = array(
                     'CB-ACCESS-KEY' => $this->apiKey,
                     'CB-ACCESS-SIGN' => $signature,
-                    'CB-ACCESS-TIMESTAMP' => $nonce,
+                    'CB-ACCESS-TIMESTAMP' => $timestampString,
                     'Content-Type' => 'application/json',
                 );
             }

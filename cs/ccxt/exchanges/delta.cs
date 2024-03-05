@@ -2866,6 +2866,7 @@ public partial class delta : Exchange
         object request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "numericId") },
         };
+        object response = await this.privateGetProductsProductIdOrdersLeverage(this.extend(request, parameters));
         //
         //     {
         //         "result": {
@@ -2879,7 +2880,21 @@ public partial class delta : Exchange
         //         "success": true
         //     }
         //
-        return await this.privateGetProductsProductIdOrdersLeverage(this.extend(request, parameters));
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseLeverage(result, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "index_symbol");
+        object leverageValue = this.safeInteger(leverage, "leverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", this.safeStringLower(leverage, "margin_mode") },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
     }
 
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
