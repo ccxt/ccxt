@@ -219,17 +219,21 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
+            "fetchTicker": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3651"
+            },
             "fetchTickers": {
+                "spread": "same as above",
                 "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177570#L3624",
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269219719#L3210",
-                "ask": "same",
                 "bidVolume": "same",
                 "askVolume": "same"
             },
+            "watchTicker": {
+                "spread": "same as above"
+            },
             "watchTickers": {
+                "spread": "same as above",
                 "open": "same",
-                "bid": "same",
-                "ask": "same",
                 "bidVolume": "same",
                 "askVolume": "same"
             },
