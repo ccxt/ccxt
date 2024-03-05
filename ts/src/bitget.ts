@@ -2926,8 +2926,14 @@ export default class bitget extends Exchange {
             const currencyCode = this.safeCurrencyCode (this.safeString (feeStructure, 'feeCoin'));
             fee = {
                 'currency': currencyCode,
-                'cost': Precise.stringAbs (this.safeString (feeStructure, 'totalFee')),
             };
+            const feeCostString = this.safeString (feeStructure, 'totalFee');
+            const deduction = this.safeString (feeStructure, 'deduction') === 'yes' ? true : false;
+            if (deduction) {
+                fee['cost'] = feeCostString;
+            } else {
+                fee['cost'] = Precise.stringNeg (feeCostString);
+            }
         }
         return this.safeTrade ({
             'info': trade,
