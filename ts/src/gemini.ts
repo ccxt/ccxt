@@ -264,12 +264,12 @@ export default class gemini extends Exchange {
                     'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 10,
                 },
+                'fetchUsdtMarkets': [ 'btcusdt', 'ethusdt' ], // this is only used if markets-fetch is set from "web"; keep this list updated (not available trough web api)
                 'fetchCurrencies': {
                     'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
-                'fetchUsdtMarkets': [ 'btcusdt', 'ethusdt' ], // keep this list updated (not available trough web api)
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networks': {
                     'BTC': 'bitcoin',
