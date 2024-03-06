@@ -5653,7 +5653,7 @@ export default class okx extends Exchange {
         const fromAccountId = this.safeString (transfer, 'from');
         const toAccountId = this.safeString (transfer, 'to');
         const accountsById = this.safeValue (this.options, 'accountsById', {});
-        const timestamp = this.safeInteger (transfer, 'ts', this.milliseconds ());
+        const timestamp = this.safeInteger (transfer, 'ts');
         const balanceChange = this.safeString (transfer, 'sz');
         if (balanceChange !== undefined) {
             amount = this.parseNumber (Precise.stringAbs (balanceChange));
