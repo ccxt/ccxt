@@ -2168,8 +2168,8 @@ public partial class kucoinfutures : kucoin
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "items", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object trades = this.safeList(data, "items", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 

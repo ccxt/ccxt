@@ -1496,8 +1496,12 @@ class kraken(Exchange, ImplicitAPI):
         #      }
         #  }
         #
-        description = self.safe_value(order, 'descr', {})
-        orderDescription = self.safe_string(description, 'order', description)
+        description = self.safe_dict(order, 'descr', {})
+        orderDescription = None
+        if description is not None:
+            orderDescription = self.safe_string(description, 'order')
+        else:
+            orderDescription = self.safe_string(order, 'descr')
         side = None
         type = None
         marketId = None

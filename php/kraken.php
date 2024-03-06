@@ -1541,8 +1541,13 @@ class kraken extends Exchange {
         //      }
         //  }
         //
-        $description = $this->safe_value($order, 'descr', array());
-        $orderDescription = $this->safe_string($description, 'order', $description);
+        $description = $this->safe_dict($order, 'descr', array());
+        $orderDescription = null;
+        if ($description !== null) {
+            $orderDescription = $this->safe_string($description, 'order');
+        } else {
+            $orderDescription = $this->safe_string($order, 'descr');
+        }
         $side = null;
         $type = null;
         $marketId = null;

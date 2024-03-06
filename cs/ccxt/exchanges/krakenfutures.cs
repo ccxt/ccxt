@@ -47,6 +47,7 @@ public partial class krakenfutures : Exchange
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchIsolatedPositions", false },
                 { "fetchLeverage", true },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
@@ -2601,6 +2602,36 @@ public partial class krakenfutures : Exchange
         // { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
         //
         return await this.privatePutLeveragepreferences(this.extend(request, parameters));
+    }
+
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name krakenfutures#fetchLeverages
+        * @description fetch the set leverage for all contract and margin markets
+        * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+        * @param {string[]} [symbols] a list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.privateGetLeveragepreferences(parameters);
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2024-03-06T02:35:46.336Z",
+        //         "leveragePreferences": [
+        //             {
+        //                 "symbol": "PF_ETHUSD",
+        //                 "maxLeverage": 30.00
+        //             },
+        //         ]
+        //     }
+        //
+        object leveragePreferences = this.safeList(response, "leveragePreferences", new List<object>() {});
+        return this.parseLeverages(leveragePreferences, symbols, "symbol");
     }
 
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)

@@ -1550,8 +1550,14 @@ export default class kraken extends Exchange {
         //      }
         //  }
         //
-        const description = this.safeValue(order, 'descr', {});
-        const orderDescription = this.safeString(description, 'order', description);
+        const description = this.safeDict(order, 'descr', {});
+        let orderDescription = undefined;
+        if (description !== undefined) {
+            orderDescription = this.safeString(description, 'order');
+        }
+        else {
+            orderDescription = this.safeString(order, 'descr');
+        }
         let side = undefined;
         let type = undefined;
         let marketId = undefined;

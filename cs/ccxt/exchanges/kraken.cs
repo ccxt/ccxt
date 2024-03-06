@@ -1628,8 +1628,15 @@ public partial class kraken : Exchange
         //      }
         //  }
         //
-        object description = this.safeValue(order, "descr", new Dictionary<string, object>() {});
-        object orderDescription = this.safeString(description, "order", description);
+        object description = this.safeDict(order, "descr", new Dictionary<string, object>() {});
+        object orderDescription = null;
+        if (isTrue(!isEqual(description, null)))
+        {
+            orderDescription = this.safeString(description, "order");
+        } else
+        {
+            orderDescription = this.safeString(order, "descr");
+        }
         object side = null;
         object type = null;
         object marketId = null;

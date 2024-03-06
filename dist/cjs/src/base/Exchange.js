@@ -10,6 +10,17 @@ var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
 var crypto = require('./functions/crypto.js');
 var totp = require('./functions/totp.js');
+var index = require('../static_dependencies/ethers/index.js');
+require('../static_dependencies/ethers/utils/base58.js');
+require('../static_dependencies/ethers/utils/errors.js');
+require('../static_dependencies/ethers/utils/events.js');
+require('../static_dependencies/ethers/utils/fixednumber.js');
+require('../static_dependencies/ethers/utils/maths.js');
+require('../static_dependencies/ethers/utils/utf8.js');
+require('../static_dependencies/noble-hashes/sha3.js');
+require('../static_dependencies/noble-hashes/sha256.js');
+require('../static_dependencies/ethers/address/address.js');
+var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
 var generic = require('./functions/generic.js');
 var misc = require('./functions/misc.js');
 
@@ -32,7 +43,7 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
+const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -219,6 +230,7 @@ class Exchange {
         this.ymd = ymd;
         this.base64ToString = base64ToString;
         this.crc32 = crc32;
+        this.packb = packb;
         this.httpProxyAgentModule = undefined;
         this.httpsProxyAgentModule = undefined;
         this.socksProxyAgentModule = undefined;
@@ -1413,6 +1425,15 @@ class Exchange {
         modifiedContent = modifiedContent.replaceAll('"{', '{');
         modifiedContent = modifiedContent.replaceAll('}"', '}');
         return modifiedContent;
+    }
+    ethAbiEncode(types, args) {
+        return this.base16ToBinary(index["default"].encode(types, args).slice(2));
+    }
+    ethEncodeStructuredData(domain, messageTypes, messageData) {
+        return this.base16ToBinary(typedData.TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
+    }
+    intToBase16(elem) {
+        return elem.toString(16);
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------

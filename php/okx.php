@@ -5569,7 +5569,7 @@ class okx extends Exchange {
         $fromAccountId = $this->safe_string($transfer, 'from');
         $toAccountId = $this->safe_string($transfer, 'to');
         $accountsById = $this->safe_value($this->options, 'accountsById', array());
-        $timestamp = $this->safe_integer($transfer, 'ts', $this->milliseconds());
+        $timestamp = $this->safe_integer($transfer, 'ts');
         $balanceChange = $this->safe_string($transfer, 'sz');
         if ($balanceChange !== null) {
             $amount = $this->parse_number(Precise::string_abs($balanceChange));

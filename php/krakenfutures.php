@@ -51,6 +51,7 @@ class krakenfutures extends Exchange {
                 'fetchIsolatedBorrowRates' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => true,
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
@@ -2420,6 +2421,32 @@ class krakenfutures extends Exchange {
         // array( result => "success", serverTime => "2023-08-01T09:40:32.345Z" )
         //
         return $this->privatePutLeveragepreferences (array_merge($request, $params));
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()): Leverages {
+        /**
+         * fetch the set leverage for all contract and margin markets
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+         */
+        $this->load_markets();
+        $response = $this->privateGetLeveragepreferences ($params);
+        //
+        //     {
+        //         "result" => "success",
+        //         "serverTime" => "2024-03-06T02:35:46.336Z",
+        //         "leveragePreferences" => array(
+        //             array(
+        //                 "symbol" => "PF_ETHUSD",
+        //                 "maxLeverage" => 30.00
+        //             ),
+        //         )
+        //     }
+        //
+        $leveragePreferences = $this->safe_list($response, 'leveragePreferences', array());
+        return $this->parse_leverages($leveragePreferences, $symbols, 'symbol');
     }
 
     public function fetch_leverage(string $symbol, $params = array ()): Leverage {

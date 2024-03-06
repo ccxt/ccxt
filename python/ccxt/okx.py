@@ -5301,7 +5301,7 @@ class okx(Exchange, ImplicitAPI):
         fromAccountId = self.safe_string(transfer, 'from')
         toAccountId = self.safe_string(transfer, 'to')
         accountsById = self.safe_value(self.options, 'accountsById', {})
-        timestamp = self.safe_integer(transfer, 'ts', self.milliseconds())
+        timestamp = self.safe_integer(transfer, 'ts')
         balanceChange = self.safe_string(transfer, 'sz')
         if balanceChange is not None:
             amount = self.parse_number(Precise.string_abs(balanceChange))
