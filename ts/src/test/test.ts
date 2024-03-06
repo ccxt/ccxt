@@ -1428,7 +1428,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testCoinex (),
             this.testBingx (),
             this.testPhemex (),
-            this.testBlofin ()
+            this.testBlofin (),
+            this.testHyperliquid (),
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1717,6 +1718,20 @@ export default class testMainClass extends baseMainTestClass {
             request = jsonParse (exchange.last_request_body);
         }
         const brokerId = request['brokerId'];
+        assert (brokerId.startsWith (id.toString ()), 'brokerId does not start with id');
+        await close (exchange);
+    }
+
+    async testHyperliquid () {
+        const exchange = this.initOfflineExchange ('hyperliquid');
+        const id = '1';
+        let request = undefined;
+        try {
+            await exchange.createOrder ('LTC/USDC:USDC', 'market', 'buy', 1);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const brokerId = request['action']['brokerCode'];
         assert (brokerId.startsWith (id.toString ()), 'brokerId does not start with id');
         await close (exchange);
     }
