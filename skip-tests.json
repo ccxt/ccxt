@@ -219,17 +219,21 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
+            "fetchTicker": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3651"
+            },
             "fetchTickers": {
+                "spread": "same as above",
                 "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177570#L3624",
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269219719#L3210",
-                "ask": "same",
                 "bidVolume": "same",
                 "askVolume": "same"
             },
+            "watchTicker": {
+                "spread": "same as above"
+            },
             "watchTickers": {
+                "spread": "same as above",
                 "open": "same",
-                "bid": "same",
-                "ask": "same",
                 "bidVolume": "same",
                 "askVolume": "same"
             },
@@ -239,9 +243,7 @@
             "fetchL2OrderBook": {
                 "bid": "same"
             },
-            "watchOrderBook": {
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999"  
-            },
+            "watchOrderBook": "complete skip because of frequent checksum mismatches: https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3553 and also for this https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3999",
             "watchOrderBookForSymbols": {
                 "bid": "same"  
             }
@@ -283,8 +285,6 @@
         }
     },
     "bithumb": {
-        "skip": "fetchMarkets returning undefined",
-        "until": "2023-09-05",
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -293,6 +293,18 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchOrderBook": {
+                "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4074"
+            },
+            "fetchL2OrderBook": {
+                "ask": "same as above"
+            },
+            "watchOrderBook": {
+                "ask": "same as above"
+            },
+            "watchOrderBookForSymbols": {
+                "ask": "same as above"
             }
         }
     },
@@ -795,8 +807,8 @@
         }
     },
     "delta": {
-        "skip": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269219719#L3723",
-        "until": "2024-03-05",
+        "skip": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4301",
+        "until": "2024-03-15",
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
             "fetchOrderBook": "ask crossing bids test failing",
@@ -1217,21 +1229,35 @@
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid":"messed bid-ask",
-                "ask":"messed bid-ask"
+                "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid":"messed bid-ask",
-                "ask":"messed bid-ask"
+                "spread": "same as above"
             },
             "fetchAccounts": {
                 "type": "type is not provided"
             },
             "fetchLeverageTiers": "swap only supported",
             "watchTicker": {
-                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610"
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
+                "spread": "same as above"
+            },
+            "watchTickers": {
+                "spread": "same as above"
+            },
+            "fetchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916"
+            },
+            "fetchL2OrderBook": {
+                "spread": "same as above"
+            },
+            "watchOrderBook": {
+                "spread": "same as above"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same as above"
             }
         }
     },
@@ -1577,6 +1603,8 @@
     "wazirx": {
         "skipWs": "timeouts",
         "skipMethods": {
+            "loadMarkets": "private",
+            "fetchCurrencies": "private",
             "fetchTickers": {
                 "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269200021#L4048"
             }
@@ -1602,6 +1630,22 @@
                 "maker": "is undefined"
             },
             "fetchCurrencies": {
+                "deposit": "not provided",
+                "withdraw": "not provided"
+            }
+        }
+    },
+    "hyperliquid": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "different"
+            },
+            "fetchTrades": "private",
+            "fetchCurrencies": {
+                "id": "skip",
+                "precision": "skip",
+                "networks": "not provided",
+                "limits" : "not provided",
                 "deposit": "not provided",
                 "withdraw": "not provided"
             }

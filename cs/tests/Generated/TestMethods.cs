@@ -1193,6 +1193,7 @@ public partial class testMainClass : BaseTest
             { "secret", "secretsecret" },
             { "password", "password" },
             { "walletAddress", "wallet" },
+            { "privateKey", "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771" },
             { "uid", "uid" },
             { "token", "token" },
             { "accounts", new List<object>() {new Dictionary<string, object>() {

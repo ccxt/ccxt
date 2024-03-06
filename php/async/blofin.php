@@ -83,6 +83,7 @@ class blofin extends Exchange {
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => true,
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
@@ -187,6 +188,7 @@ class blofin extends Exchange {
                         'account/balance' => 1,
                         'account/positions' => 1,
                         'account/leverage-info' => 1,
+                        'account/batch-leverage-info' => 1,
                         'trade/orders-tpsl-pending' => 1,
                         'trade/orders-history' => 1,
                         'trade/orders-tpsl-history' => 1,
@@ -1909,11 +1911,67 @@ class blofin extends Exchange {
         ));
     }
 
+    public function fetch_leverages(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch the set leverage for all contract markets
+             * @see https://docs.blofin.com/index.html#get-multiple-leverage
+             * @param {string[]} $symbols a list of unified market $symbols, required on blofin
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->marginMode] 'cross' or 'isolated'
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+             */
+            Async\await($this->load_markets());
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' fetchLeverages() requires a $symbols argument');
+            }
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverages', $params);
+            if ($marginMode === null) {
+                $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross $marginMode
+            }
+            if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
+                throw new BadRequest($this->id . ' fetchLeverages() requires a $marginMode parameter that must be either cross or isolated');
+            }
+            $symbols = $this->market_symbols($symbols);
+            $instIds = '';
+            for ($i = 0; $i < count($symbols); $i++) {
+                $entry = $symbols[$i];
+                $entryMarket = $this->market($entry);
+                if ($i > 0) {
+                    $instIds = $instIds . ',' . $entryMarket['id'];
+                } else {
+                    $instIds = $instIds . $entryMarket['id'];
+                }
+            }
+            $request = array(
+                'instId' => $instIds,
+                'marginMode' => $marginMode,
+            );
+            $response = Async\await($this->privateGetAccountBatchLeverageInfo (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "success",
+            //         "data" => array(
+            //             array(
+            //                 "leverage" => "3",
+            //                 "marginMode" => "cross",
+            //                 "instId" => "BTC-USDT"
+            //             ),
+            //         )
+            //     }
+            //
+            $leverages = $this->safe_list($response, 'data', array());
+            return $this->parse_leverages($leverages, $symbols, 'instId');
+        }) ();
+    }
+
     public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
-             * @see https://blofin.com/docs#set-leverage
+             * @see https://docs.blofin.com/index.html#get-leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated'

@@ -6,6 +6,14 @@ import type { TransferEntry, Balances, Currency, FundingRateHistory, Int, Market
  */
 export default class woo extends Exchange {
     describe(): any;
+    fetchStatus(params?: {}): Promise<{
+        status: string;
+        updated: any;
+        eta: any;
+        url: any;
+        info: any;
+    }>;
+    fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: any): Market;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

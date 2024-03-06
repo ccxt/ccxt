@@ -1,5 +1,5 @@
 import Exchange from './abstract/blofin.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages } from './base/types.js';
 /**
  * @class blofin
  * @augments Exchange
@@ -110,6 +110,7 @@ export default class blofin extends Exchange {
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     parsePosition(position: any, market?: Market): Position;
+    fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: any, market?: any): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;

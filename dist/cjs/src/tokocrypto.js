@@ -1016,8 +1016,28 @@ class tokocrypto extends tokocrypto$1 {
                 request['limit'] = limit;
             }
             const responseInner = this.publicGetOpenV1MarketTrades(this.extend(request, params));
-            const data = this.safeValue(responseInner, 'data', {});
-            return this.parseTrades(data, market, since, limit);
+            //
+            //    {
+            //       "code": 0,
+            //       "msg": "success",
+            //       "data": {
+            //           "list": [
+            //                {
+            //                    "id": 28457,
+            //                    "price": "4.00000100",
+            //                    "qty": "12.00000000",
+            //                    "time": 1499865549590,
+            //                    "isBuyerMaker": true,
+            //                    "isBestMatch": true
+            //                }
+            //            ]
+            //        },
+            //        "timestamp": 1571921637091
+            //    }
+            //
+            const data = this.safeDict(responseInner, 'data', {});
+            const list = this.safeList(data, 'list', []);
+            return this.parseTrades(list, market, since, limit);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000

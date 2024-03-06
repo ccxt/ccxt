@@ -2630,7 +2630,7 @@ class hitbtc extends Exchange {
         if (($network !== null) && ($code === 'USDT')) {
             $parsedNetwork = $this->safe_string($networks, $network);
             if ($parsedNetwork !== null) {
-                $request['currency'] = $parsedNetwork;
+                $request['network_code'] = $parsedNetwork;
             }
             $params = $this->omit($params, 'network');
         }

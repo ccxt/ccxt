@@ -94,6 +94,9 @@ import {OrderBook as Ob} from './ws/OrderBook.js';
 
 import totp from './functions/totp.js';
 
+import ethers from '../static_dependencies/ethers/index.js';
+import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+
 const {
     aggregate,
     arrayConcat,
@@ -142,6 +145,7 @@ const {
     omit,
     omitZero,
     ordered,
+    packb,
     parse8601,
     parseDate,
     parseTimeframe,
@@ -226,7 +230,6 @@ export type {
     Trade,
     Transaction
 } from './types.js';
-
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -469,6 +472,7 @@ export default class Exchange {
     omit = omit;
     omitZero = omitZero;
     ordered = ordered;
+    packb = packb
     parse8601 = parse8601;
     parseDate = parseDate;
     parseTimeframe = parseTimeframe;
@@ -1768,6 +1772,18 @@ export default class Exchange {
         modifiedContent = modifiedContent.replaceAll ('"{', '{');
         modifiedContent = modifiedContent.replaceAll ('}"', '}');
         return modifiedContent;
+    }
+
+    ethAbiEncode (types, args) {
+        return this.base16ToBinary (ethers.encode (types, args).slice (2));
+    }
+
+    ethEncodeStructuredData (domain, messageTypes, messageData) {
+        return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
+    }
+
+    intToBase16(elem): string {
+        return elem.toString(16);
     }
 
     /* eslint-enable */
