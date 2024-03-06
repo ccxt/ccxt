@@ -93,6 +93,16 @@
                     }
                 ]
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.wazirx.com/sapi/v1/crypto/withdraws?coin=btc&recvWindow=10000&timestamp=1709695287062&signature=284094fb8c4816b0ab1ee041f3705061419e37986080259b8a72a03b1aeae3c1",
+                "input": [
+                    "BTC"
+                ]
+            }
         ]
     }
 }

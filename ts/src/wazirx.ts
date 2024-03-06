@@ -3,7 +3,7 @@ import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, PermissionDeni
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 /**
  * @class wazirx
@@ -84,7 +84,7 @@ export default class wazirx extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -1123,6 +1123,123 @@ export default class wazirx extends Exchange {
             'tag': undefined,
             'network': this.networkCodeToId (networkCode, code),
             'info': response,
+        };
+    }
+
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name wazirx#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @see https://docs.wazirx.com/#withdraw-history-supporting-network-user_data
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.privateGetCryptoWithdraws (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "address": "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        //             "amount": "8.91000000",
+        //             "createdAt": "2019-10-12 09:12:02",
+        //             "lastUpdated": "2019-10-12 11:12:02",
+        //             "coin": "USDT",
+        //             "id": "b6ae22b3aa844210a7041aee7589627c",
+        //             "withdrawOrderId": "WITHDRAWtest123",
+        //             "network": "ETH",
+        //             "status": 1,
+        //             "transactionFee": "0.004",
+        //             "failureInfo":"The address is not valid. Please confirm with the recipient",
+        //             "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '0': 'ok',
+            '1': 'fail',
+            '2': 'pending',
+            '3': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "address": "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        //         "amount": "8.91000000",
+        //         "createdAt": "2019-10-12 09:12:02",
+        //         "lastUpdated": "2019-10-12 11:12:02",
+        //         "coin": "USDT",
+        //         "id": "b6ae22b3aa844210a7041aee7589627c",
+        //         "withdrawOrderId": "WITHDRAWtest123",
+        //         "network": "ETH",
+        //         "status": 1,
+        //         "transactionFee": "0.004",
+        //         "failureInfo": "The address is not valid. Please confirm with the recipient",
+        //         "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        //     }
+        //
+        const currencyId = this.safeString (transaction, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        const updated = this.parse8601 (this.safeString (transaction, 'lastUpdated'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const feeCost = this.safeNumber (transaction, 'transactionFee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network')),
+            'address': this.safeString (transaction, 'address'),
+            'addressTo': this.safeString (transaction, 'address'),
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': 'withdrawal',
+            'amount': this.safeNumber (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+            'internal': undefined,
+            'comment': undefined,
         };
     }
 
