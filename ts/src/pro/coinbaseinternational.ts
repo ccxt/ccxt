@@ -2,7 +2,7 @@
 
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
-import { Ticker, Int, Trade, OrderBook, Market } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market, Dict, MarketInterface, Strings } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
@@ -61,14 +61,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         });
     }
 
-    async subscribe (name, symbol = undefined, params = {}) {
+    async subscribe (name: string, symbols: Strings = undefined, params = {}) {
         /**
          * @ignore
          * @method
          * @description subscribes to a websocket channel
          * @see https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
          * @param {string} name the name of the channel
-         * @param {string|string[]} [symbol] unified market symbol
+         * @param {string[]} [symbols] unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} subscription to a websocket channel
          */
@@ -76,16 +76,17 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         let market = undefined;
         let messageHash = name;
         let productIds = [];
-        if (symbol === undefined) {
-            symbol = this.symbols;
+        if (symbols === undefined) {
+            symbols = this.symbols;
         }
-        if (Array.isArray (symbol)) {
-            const symbols = this.marketSymbols (symbol);
-            const marketIds = this.marketIds (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength > 1) {
+            const parsedSymbols = this.marketSymbols (symbols);
+            const marketIds = this.marketIds (parsedSymbols);
             productIds = marketIds;
-            messageHash = messageHash + '::' + symbols.join (',');
-        } else if (symbol !== undefined) {
-            market = this.market (symbol);
+            messageHash = messageHash + '::' + parsedSymbols.join (',');
+        } else if (symbolsLength === 1) {
+            market = this.market (symbols[0]);
             messageHash = name + '::' + market['symbol'];
             productIds = [ market['id'] ];
         }
@@ -108,7 +109,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.watch (url, messageHash, this.extend (subscribe, params), messageHash);
     }
 
-    async subscribeMultiple (name, symbols = undefined, params = {}) {
+    async subscribeMultiple (name: string, symbols: Strings = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -161,7 +162,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
-        return await this.subscribe ('RISK', symbol, params);
+        return await this.subscribe ('RISK', [ symbol ], params);
     }
 
     async watchFundingRates (symbols: string[], params = {}): Promise<{}> {
@@ -189,7 +190,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          */
         let channel = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
-        return await this.subscribe (channel, symbol, params);
+        return await this.subscribe (channel, [ symbol ], params);
     }
 
     handleInstrument (client: Client, message) {
@@ -224,7 +225,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
 
-    parseWsInstrument (ticker, market = undefined) {
+    parseWsInstrument (ticker: Dict, market: MarketInterface = undefined) {
         //
         //    {
         //        "sequence": 1,
@@ -378,7 +379,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const trades = await this.subscribeMultiple ('MATCH', symbols, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -401,12 +402,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //
         const trade = this.parseWsTrade (message);
         const symbol = trade['symbol'];
-        let tradesArray = this.safeValue (this.trades, symbol);
         const channel = this.safeString (message, 'channel');
-        if (tradesArray === undefined) {
+        if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesArray = new ArrayCache (limit);
+            const tradesArrayCache = new ArrayCache (limit);
+            this.trades[symbol] = tradesArrayCache;
         }
+        const tradesArray = this.trades[symbol];
         tradesArray.append (trade);
         this.trades[symbol] = tradesArray;
         client.resolve (tradesArray, channel);
@@ -437,7 +439,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'datetime': datetime,
             'symbol': this.safeSymbol (marketId, market),
             'type': undefined,
-            'side': this.safeString (trade, 'agressor_side').toLowerCase (),
+            'side': this.safeStringLower (trade, 'agressor_side'),
             'takerOrMaker': undefined,
             'price': this.safeString (trade, 'trade_price'),
             'amount': this.safeString (trade, 'trade_qty'),
@@ -516,10 +518,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbol = this.safeSymbol (marketId);
         const datetime = this.safeString (message, 'time');
         const channel = this.safeString (message, 'channel');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (type === 'SNAPSHOT') {
+        if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-            orderbook = this.orderBook (message, limit);
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+        }
+        const orderbook = this.orderbooks[symbol];
+        if (type === 'SNAPSHOT') {
+            orderbook.reset (message);
             orderbook['symbol'] = symbol;
         } else {
             const changes = this.safeList (message, 'changes', []);
