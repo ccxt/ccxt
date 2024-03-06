@@ -645,6 +645,16 @@
                   }
                 ]
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Fetch the set leverage of a spot margin market",
+                "method": "fetchLeverage",
+                "url": "https://api.coinex.com/v1/margin/config?access_id=36280D3BC1284980A37DDAE67EBABE74&tonce=1709711145773",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
         ]
     },
     "disabledTests": {}
