@@ -1231,6 +1231,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privatePostAccountSimulatedMargin",parameters);
     }
 
+    public async Task<object> privatePostAccountPositionBuilder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountPositionBuilder",parameters);
+    }
+
     public async Task<object> privatePostAccountSetRiskOffsetType (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountSetRiskOffsetType",parameters);

@@ -51,6 +51,7 @@ public partial class bingx : Exchange
                 { "fetchFundingRates", true },
                 { "fetchLeverage", true },
                 { "fetchLiquidations", false },
+                { "fetchMarginMode", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
                 { "fetchMyLiquidations", true },
@@ -59,6 +60,7 @@ public partial class bingx : Exchange
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
+                { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -69,6 +71,7 @@ public partial class bingx : Exchange
                 { "setLeverage", true },
                 { "setMargin", true },
                 { "setMarginMode", true },
+                { "setPositionMode", true },
                 { "transfer", true },
             } },
             { "hostname", "bingx.com" },
@@ -446,7 +449,7 @@ public partial class bingx : Exchange
         {
             return null;
         }
-        object isSandbox = this.safeValue(this.options, "sandboxMode", false);
+        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(isSandbox))
         {
             return null;
@@ -709,7 +712,7 @@ public partial class bingx : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         object requests = new List<object> {this.fetchSwapMarkets(parameters)};
-        object isSandbox = this.safeValue(this.options, "sandboxMode", false);
+        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (!isTrue(isSandbox))
         {
             ((IList<object>)requests).Add(this.fetchSpotMarkets(parameters)); // sandbox is swap only
@@ -1475,7 +1478,10 @@ public partial class bingx : Exchange
         {
             symbols = this.marketSymbols(symbols);
             object firstSymbol = this.safeString(symbols, 0);
-            market = this.market(firstSymbol);
+            if (isTrue(!isEqual(firstSymbol, null)))
+            {
+                market = this.market(firstSymbol);
+            }
         }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
@@ -3721,7 +3727,20 @@ public partial class bingx : Exchange
         //        }
         //    }
         //
-        return response;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", null },
+            { "longLeverage", this.safeInteger(leverage, "longLeverage") },
+            { "shortLeverage", this.safeInteger(leverage, "shortLeverage") },
+        };
     }
 
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -3734,6 +3753,7 @@ public partial class bingx : Exchange
         * @param {float} leverage the rate of leverage
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
         * @returns {object} response from the exchange
         */
         parameters ??= new Dictionary<string, object>();
@@ -3742,7 +3762,7 @@ public partial class bingx : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
         }
         object side = this.safeStringUpper(parameters, "side");
-        this.checkRequiredArgument("setLeverage", side, "side", new List<object>() {"LONG", "SHORT"});
+        this.checkRequiredArgument("setLeverage", side, "side", new List<object>() {"LONG", "SHORT", "BOTH"});
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -4198,6 +4218,37 @@ public partial class bingx : Exchange
         return positions;
     }
 
+    public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bingx#fetchPositionMode
+        * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode
+        * @param {string} symbol unified symbol of the market to fetch the order book for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an object detailing whether the market is in hedged or one-way mode
+        */
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.swapV1PrivateGetPositionSideDual(parameters);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "timeStamp": "1709002057516",
+        //         "data": {
+        //             "dualSidePosition": "false"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object dualSidePosition = this.safeString(data, "dualSidePosition");
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "hedged", (isEqual(dualSidePosition, "true")) },
+        };
+    }
+
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         /**
@@ -4284,6 +4335,48 @@ public partial class bingx : Exchange
         return this.parseOrder(data, market);
     }
 
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bingx#fetchMarginMode
+        * @description fetches the margin mode of the trading pair
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode
+        * @param {string} symbol unified symbol of the market to fetch the margin mode for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} Struct of MarginMode
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.swapV2PrivateGetTradeMarginType(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "marginType": "CROSSED"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseMarginMode(data, market);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marginType = this.safeStringLower(marginMode, "marginType");
+        marginType = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : marginType;
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", marginType },
+        };
+    }
+
     public override object sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
@@ -4292,7 +4385,7 @@ public partial class bingx : Exchange
         object type = getValue(section, 0);
         object version = getValue(section, 1);
         object access = getValue(section, 2);
-        object isSandbox = this.safeValue(this.options, "sandboxMode", false);
+        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(isTrue(isSandbox) && isTrue((!isEqual(type, "swap")))))
         {
             throw new NotSupported ((string)add(add(add(this.id, " does not have a testnet/sandbox URL for "), type), " endpoints")) ;

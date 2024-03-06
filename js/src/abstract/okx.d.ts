@@ -245,6 +245,7 @@ interface Exchange {
     privatePostAccountQuickMarginBorrowRepay(params?: {}): Promise<implicitReturnType>;
     privatePostAccountBorrowRepay(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSimulatedMargin(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountPositionBuilder(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetRiskOffsetType(params?: {}): Promise<implicitReturnType>;
     privatePostAccountActivateOption(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetAutoLoan(params?: {}): Promise<implicitReturnType>;

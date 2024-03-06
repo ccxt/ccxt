@@ -44,6 +44,7 @@ public partial class coinbase : Exchange
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", true },
+                { "deposit", true },
                 { "editOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
@@ -55,6 +56,9 @@ public partial class coinbase : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
+                { "fetchDeposit", true },
+                { "fetchDepositAddress", "emulated" },
+                { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
@@ -125,8 +129,11 @@ public partial class coinbase : Exchange
                     } },
                 } },
                 { "v3", new Dictionary<string, object>() {
+                    { "public", new Dictionary<string, object>() {
+                        { "get", new List<object>() {"brokerage/time"} },
+                    } },
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"brokerage/accounts", "brokerage/accounts/{account_uuid}", "brokerage/orders/historical/batch", "brokerage/orders/historical/fills", "brokerage/orders/historical/{order_id}", "brokerage/products", "brokerage/products/{product_id}", "brokerage/products/{product_id}/candles", "brokerage/products/{product_id}/ticker", "brokerage/portfolios", "brokerage/portfolios/{portfolio_uuid}", "brokerage/transaction_summary", "brokerage/product_book", "brokerage/best_bid_ask", "brokerage/convert/trade/{trade_id}", "brokerage/time", "brokerage/cfm/balance_summary", "brokerage/cfm/positions", "brokerage/cfm/positions/{product_id}", "brokerage/cfm/sweeps", "brokerage/intx/portfolio/{portfolio_uuid}", "brokerage/intx/positions/{portfolio_uuid}", "brokerage/intx/positions/{portfolio_uuid}/{symbol}"} },
+                        { "get", new List<object>() {"brokerage/accounts", "brokerage/accounts/{account_uuid}", "brokerage/orders/historical/batch", "brokerage/orders/historical/fills", "brokerage/orders/historical/{order_id}", "brokerage/products", "brokerage/products/{product_id}", "brokerage/products/{product_id}/candles", "brokerage/products/{product_id}/ticker", "brokerage/portfolios", "brokerage/portfolios/{portfolio_uuid}", "brokerage/transaction_summary", "brokerage/product_book", "brokerage/best_bid_ask", "brokerage/convert/trade/{trade_id}", "brokerage/cfm/balance_summary", "brokerage/cfm/positions", "brokerage/cfm/positions/{product_id}", "brokerage/cfm/sweeps", "brokerage/intx/portfolio/{portfolio_uuid}", "brokerage/intx/positions/{portfolio_uuid}", "brokerage/intx/positions/{portfolio_uuid}/{symbol}"} },
                         { "post", new List<object>() {"brokerage/orders", "brokerage/orders/batch_cancel", "brokerage/orders/edit", "brokerage/orders/edit_preview", "brokerage/orders/preview", "brokerage/portfolios", "brokerage/portfolios/move_funds", "brokerage/convert/quote", "brokerage/convert/trade/{trade_id}", "brokerage/cfm/sweeps/schedule", "brokerage/intx/allocate"} },
                         { "put", new List<object>() {"brokerage/portfolios/{portfolio_uuid}"} },
                         { "delete", new List<object>() {"brokerage/portfolios/{portfolio_uuid}", "brokerage/cfm/sweeps"} },
@@ -205,6 +212,7 @@ public partial class coinbase : Exchange
                 { "fetchTickers", "fetchTickersV3" },
                 { "fetchAccounts", "fetchAccountsV3" },
                 { "fetchBalance", "v2PrivateGetAccounts" },
+                { "fetchTime", "v2PublicGetTime" },
                 { "user_native_currency", "USD" },
             } },
         });
@@ -218,20 +226,31 @@ public partial class coinbase : Exchange
         * @description fetches the current integer timestamp in milliseconds from the exchange server
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
         parameters ??= new Dictionary<string, object>();
-        object response = await this.v2PublicGetTime(parameters);
-        //
-        //     {
-        //         "data": {
-        //             "epoch": 1589295679,
-        //             "iso": "2020-05-12T15:01:19Z"
-        //         }
-        //     }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return this.safeTimestamp(data, "epoch");
+        object defaultMethod = this.safeString(this.options, "fetchTime", "v2PublicGetTime");
+        object method = this.safeString(parameters, "method", defaultMethod);
+        parameters = this.omit(parameters, "method");
+        object response = null;
+        if (isTrue(isEqual(method, "v2PublicGetTime")))
+        {
+            response = await this.v2PublicGetTime(parameters);
+            //
+            //     {
+            //         "data": {
+            //             "epoch": 1589295679,
+            //             "iso": "2020-05-12T15:01:19Z"
+            //         }
+            //     }
+            //
+            response = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        } else
+        {
+            response = await this.v3PublicGetBrokerageTime(parameters);
+        }
+        return this.safeTimestamp2(response, "epoch", "epochSeconds");
     }
 
     public async override Task<object> fetchAccounts(object parameters = null)
@@ -1726,22 +1745,24 @@ public partial class coinbase : Exchange
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
+        * @param {object} [params.type] "spot" (default) or "swap"
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = new Dictionary<string, object>() {
-            { "limit", 250 },
-        };
+        object request = new Dictionary<string, object>() {};
         object response = null;
         object isV3 = this.safeBool(parameters, "v3", false);
-        parameters = this.omit(parameters, "v3");
+        object type = this.safeString(parameters, "type");
+        parameters = this.omit(parameters, new List<object>() {"v3", "type"});
         object method = this.safeString(this.options, "fetchBalance", "v3PrivateGetBrokerageAccounts");
         if (isTrue(isTrue((isV3)) || isTrue((isEqual(method, "v3PrivateGetBrokerageAccounts")))))
         {
+            ((IDictionary<string,object>)request)["limit"] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, parameters));
         } else
         {
+            ((IDictionary<string,object>)request)["limit"] = 100;
             response = await this.v2PrivateGetAccounts(this.extend(request, parameters));
         }
         //
@@ -1815,6 +1836,7 @@ public partial class coinbase : Exchange
         //         "size": 9
         //     }
         //
+        ((IDictionary<string,object>)parameters)["type"] = type;
         return this.parseCustomBalance(response, parameters);
     }
 
@@ -3154,13 +3176,15 @@ public partial class coinbase : Exchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object maxLimit = 300;
+        limit = ((bool) isTrue((isEqual(limit, null)))) ? maxLimit : mathMin(limit, maxLimit);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 299);
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, subtract(maxLimit, 1));
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -3170,7 +3194,7 @@ public partial class coinbase : Exchange
         object until = this.safeValueN(parameters, new List<object>() {"until", "till", "end"});
         parameters = this.omit(parameters, new List<object>() {"until", "till"});
         object duration = this.parseTimeframe(timeframe);
-        object candles300 = multiply(300, duration);
+        object requestedDuration = multiply(limit, duration);
         object sinceString = null;
         if (isTrue(!isEqual(since, null)))
         {
@@ -3178,14 +3202,14 @@ public partial class coinbase : Exchange
         } else
         {
             object now = ((object)this.seconds()).ToString();
-            sinceString = Precise.stringSub(now, ((object)candles300).ToString());
+            sinceString = Precise.stringSub(now, ((object)requestedDuration).ToString());
         }
         ((IDictionary<string,object>)request)["start"] = sinceString;
         object endString = this.numberToString(until);
         if (isTrue(isEqual(until, null)))
         {
             // 300 candles max
-            endString = Precise.stringAdd(sinceString, ((object)candles300).ToString());
+            endString = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
         }
         ((IDictionary<string,object>)request)["end"] = endString;
         object response = await this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, parameters));
@@ -3243,9 +3267,24 @@ public partial class coinbase : Exchange
         object request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "id") },
         };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start"] = this.numberToString(this.parseToInt(divide(since, 1000)));
+        }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
+        }
+        object until = null;
+        var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "until");
+        until = ((IList<object>)untilparametersVariable)[0];
+        parameters = ((IList<object>)untilparametersVariable)[1];
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
+        } else if (isTrue(!isEqual(since, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTrades() requires a `until` parameter when you use `since` argument")) ;
         }
         object response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters));
         //
@@ -3395,7 +3434,7 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "pricebook", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "pricebook", new Dictionary<string, object>() {});
         object time = this.safeString(data, "time");
         object timestamp = this.parse8601(time);
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
@@ -3554,7 +3593,7 @@ public partial class coinbase : Exchange
     {
         /**
         * @method
-        * @name ascendex#fetchDepositAddress
+        * @name coinbase#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
         * @param {string} code unified currency code
@@ -3691,6 +3730,157 @@ public partial class coinbase : Exchange
         };
     }
 
+    public async virtual Task<object> deposit(object code, object amount, object id, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#deposit
+        * @description make a deposit
+        * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds
+        * @param {string} code unified currency code
+        * @param {float} amount the amount to deposit
+        * @param {string} id the payment method id to be used for the deposit, can be retrieved from v2PrivateGetPaymentMethods
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.accountId] the id of the account to deposit into
+        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object accountId = this.safeString2(parameters, "account_id", "accountId");
+        parameters = this.omit(parameters, new List<object>() {"account_id", "accountId"});
+        if (isTrue(isEqual(accountId, null)))
+        {
+            if (isTrue(isEqual(code, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " deposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
+            }
+            accountId = await this.findAccountId(code);
+            if (isTrue(isEqual(accountId, null)))
+            {
+                throw new ExchangeError ((string)add(add(this.id, " deposit() could not find account id for "), code)) ;
+            }
+        }
+        object request = new Dictionary<string, object>() {
+            { "account_id", accountId },
+            { "amount", this.numberToString(amount) },
+            { "currency", ((string)code).ToUpper() },
+            { "payment_method", id },
+        };
+        object response = await this.v2PrivatePostAccountsAccountIdDeposits(this.extend(request, parameters));
+        //
+        //     {
+        //         "data": {
+        //             "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "status": "created",
+        //             "payment_method": {
+        //                 "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //                 "resource": "payment_method",
+        //                 "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //             },
+        //             "transaction": {
+        //                 "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //                 "resource": "transaction",
+        //                 "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //             },
+        //             "amount": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "subtotal": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "created_at": "2015-01-31T20:49:02Z",
+        //             "updated_at": "2015-02-11T16:54:02-08:00",
+        //             "resource": "deposit",
+        //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "committed": true,
+        //             "fee": {
+        //                 "amount": "0.00",
+        //                 "currency": "USD"
+        //             },
+        //             "payout_at": "2015-02-18T16:54:00-08:00"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseTransaction(data);
+    }
+
+    public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchDeposit
+        * @description fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
+        * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+        * @param {string} id deposit id
+        * @param {string} [code] unified currency code
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.accountId] the id of the account that the funds were deposited into
+        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object accountId = this.safeString2(parameters, "account_id", "accountId");
+        parameters = this.omit(parameters, new List<object>() {"account_id", "accountId"});
+        if (isTrue(isEqual(accountId, null)))
+        {
+            if (isTrue(isEqual(code, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
+            }
+            accountId = await this.findAccountId(code);
+            if (isTrue(isEqual(accountId, null)))
+            {
+                throw new ExchangeError ((string)add(add(this.id, " fetchDeposit() could not find account id for "), code)) ;
+            }
+        }
+        object request = new Dictionary<string, object>() {
+            { "account_id", accountId },
+            { "deposit_id", id },
+        };
+        object response = await this.v2PrivateGetAccountsAccountIdDepositsDepositId(this.extend(request, parameters));
+        //
+        //     {
+        //         "data": {
+        //             "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "status": "completed",
+        //             "payment_method": {
+        //                 "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //                 "resource": "payment_method",
+        //                 "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //             },
+        //             "transaction": {
+        //                 "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //                 "resource": "transaction",
+        //                 "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //             },
+        //             "amount": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "subtotal": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "created_at": "2015-01-31T20:49:02Z",
+        //             "updated_at": "2015-02-11T16:54:02-08:00",
+        //             "resource": "deposit",
+        //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "committed": true,
+        //             "fee": {
+        //                 "amount": "0.00",
+        //                 "currency": "USD"
+        //             },
+        //             "payout_at": "2015-02-18T16:54:00-08:00"
+        //         }
+        //     }
+        //
+        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        return this.parseTransaction(data);
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
@@ -3719,6 +3909,13 @@ public partial class coinbase : Exchange
                     { "Authorization", authorization },
                     { "Content-Type", "application/json" },
                 };
+                if (isTrue(!isEqual(method, "GET")))
+                {
+                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                    {
+                        body = this.json(query);
+                    }
+                }
             } else if (isTrue(isTrue(this.token) && !isTrue(this.checkRequiredCredentials(false))))
             {
                 headers = new Dictionary<string, object>() {
@@ -3735,7 +3932,7 @@ public partial class coinbase : Exchange
             } else
             {
                 this.checkRequiredCredentials();
-                object nonce = ((object)this.nonce()).ToString();
+                object timestampString = ((object)this.seconds()).ToString();
                 object payload = "";
                 if (isTrue(!isEqual(method, "GET")))
                 {
@@ -3745,12 +3942,14 @@ public partial class coinbase : Exchange
                         payload = body;
                     }
                 }
-                object auth = add(add(add(nonce, method), savedPath), payload);
+                // 'GET' doesn't need payload in the signature. inside url is enough
+                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                object auth = add(add(add(timestampString, method), savedPath), payload);
                 object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "CB-ACCESS-KEY", this.apiKey },
                     { "CB-ACCESS-SIGN", signature },
-                    { "CB-ACCESS-TIMESTAMP", nonce },
+                    { "CB-ACCESS-TIMESTAMP", timestampString },
                     { "Content-Type", "application/json" },
                 };
             }

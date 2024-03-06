@@ -2509,14 +2509,14 @@ public partial class cryptocom : Exchange
         * @method
         * @name cryptocom#fetchDepositWithdrawFees
         * @description fetch deposit and withdraw fees
-        * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
         * @param {string[]|undefined} codes list of unified currency codes
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.v2PrivatePostPrivateGetCurrencyNetworks(parameters);
+        object response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
         object data = this.safeValue(response, "result");
         object currencyMap = this.safeValue(data, "currency_map");
         return this.parseDepositWithdrawFees(currencyMap, codes, "full_name");

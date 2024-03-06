@@ -113,12 +113,12 @@ function json_stringify($s) {
 }
 
 function convert_to_snake_case($input) {
-    return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $input));
+    $res = strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $input));
+    return str_replace('o_h_l_c_v', 'ohlcv', $res);
 }
 
 function get_test_name($methodName) {
-    $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', convert_to_snake_case($methodName));
-    return 'test_' . $snake_cased;
+    return 'test_' . convert_to_snake_case($methodName);
 }
 
 function io_file_exists($path) {
@@ -712,7 +712,7 @@ class testMainClass extends baseMainTestClass {
             if (!$result) {
                 return false;
             }
-            $symbols = ['BTC/CNY', 'BTC/USD', 'BTC/USDT', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'BTC/JPY', 'ETH/EUR', 'ETH/JPY', 'ETH/CNY', 'ETH/USD', 'LTC/CNY', 'DASH/BTC', 'DOGE/BTC', 'BTC/AUD', 'BTC/PLN', 'USD/SLL', 'BTC/RUB', 'BTC/UAH', 'LTC/BTC', 'EUR/USD'];
+            $symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/CNY', 'BTC/USD', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'BTC/JPY', 'ETH/EUR', 'ETH/JPY', 'ETH/CNY', 'ETH/USD', 'LTC/CNY', 'DASH/BTC', 'DOGE/BTC', 'BTC/AUD', 'BTC/PLN', 'USD/SLL', 'BTC/RUB', 'BTC/UAH', 'LTC/BTC', 'EUR/USD'];
             $result_symbols = [];
             $exchange_specific_symbols = $exchange->symbols;
             for ($i = 0; $i < count($exchange_specific_symbols); $i++) {
@@ -784,8 +784,8 @@ class testMainClass extends baseMainTestClass {
     public function get_valid_symbol($exchange, $spot = true) {
         $current_type_markets = $this->get_markets_from_exchange($exchange, $spot);
         $codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT', 'ATOM', 'BAT', 'BTG', 'DASH', 'DOGE', 'ETC', 'IOTA', 'LSK', 'MKR', 'NEO', 'PAX', 'QTUM', 'TRX', 'TUSD', 'USD', 'USDC', 'WAVES', 'XEM', 'XMR', 'ZEC', 'ZRX'];
-        $spot_symbols = ['BTC/USD', 'BTC/USDT', 'BTC/CNY', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'ETH/USD', 'ETH/USDT', 'BTC/JPY', 'LTC/BTC', 'ZRX/WETH', 'EUR/USD'];
-        $swap_symbols = ['BTC/USDT:USDT', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USD:USD', 'LTC/USDT:USDT', 'DOGE/USDT:USDT', 'ADA/USDT:USDT', 'BTC/USD:BTC', 'ETH/USD:ETH'];
+        $spot_symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/USD', 'BTC/CNY', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'ETH/USD', 'ETH/USDT', 'BTC/JPY', 'LTC/BTC', 'ZRX/WETH', 'EUR/USD'];
+        $swap_symbols = ['BTC/USDT:USDT', 'BTC/USDC:USDC', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USD:USD', 'LTC/USDT:USDT', 'DOGE/USDT:USDT', 'ADA/USDT:USDT', 'BTC/USD:BTC', 'ETH/USD:ETH'];
         $target_symbols = $spot ? $spot_symbols : $swap_symbols;
         $symbol = $this->get_test_symbol($exchange, $spot, $target_symbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
@@ -850,19 +850,19 @@ class testMainClass extends baseMainTestClass {
                 dump('[INFO:MAIN] Selected SWAP SYMBOL:', $swap_symbol);
             }
             if (!$this->private_test_only) {
-                // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['type']` setting
+                // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
                 if ($exchange->has['spot'] && $spot_symbol !== null) {
                     if ($this->info) {
                         dump('[INFO] ### SPOT TESTS ###');
                     }
-                    $exchange->options['type'] = 'spot';
+                    $exchange->options['defaultType'] = 'spot';
                     Async\await($this->run_public_tests($exchange, $spot_symbol));
                 }
                 if ($exchange->has['swap'] && $swap_symbol !== null) {
                     if ($this->info) {
                         dump('[INFO] ### SWAP TESTS ###');
                     }
-                    $exchange->options['type'] = 'swap';
+                    $exchange->options['defaultType'] = 'swap';
                     Async\await($this->run_public_tests($exchange, $swap_symbol));
                 }
             }
@@ -911,6 +911,7 @@ class testMainClass extends baseMainTestClass {
                 'fetchBorrowInterest' => [$code, $symbol],
                 'cancelAllOrders' => [$symbol],
                 'fetchCanceledOrders' => [$symbol],
+                'fetchMarginModes' => [$symbol],
                 'fetchPosition' => [$symbol],
                 'fetchDeposit' => [$code],
                 'createDepositAddress' => [$code],
@@ -1350,7 +1351,7 @@ class testMainClass extends baseMainTestClass {
                     if (($test_name !== null) && ($test_name !== $description)) {
                         continue;
                     }
-                    $is_disabled = $exchange->safe_value($result, 'disabled', false);
+                    $is_disabled = $exchange->safe_bool($result, 'disabled', false);
                     if ($is_disabled) {
                         continue;
                     }
@@ -1382,15 +1383,15 @@ class testMainClass extends baseMainTestClass {
                     $old_exchange_options = $exchange->options; // snapshot options;
                     $test_exchange_options = $exchange->safe_value($result, 'options', array());
                     $exchange->options = $exchange->deep_extend($old_exchange_options, $test_exchange_options); // custom options to be used in the tests
-                    $is_disabled = $exchange->safe_value($result, 'disabled', false);
+                    $is_disabled = $exchange->safe_bool($result, 'disabled', false);
                     if ($is_disabled) {
                         continue;
                     }
-                    $is_disabled_c_sharp = $exchange->safe_value($result, 'disabledCS', false);
+                    $is_disabled_c_sharp = $exchange->safe_bool($result, 'disabledCS', false);
                     if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
                         continue;
                     }
-                    $is_disabled_php = $exchange->safe_value($result, 'disabledPHP', false);
+                    $is_disabled_php = $exchange->safe_bool($result, 'disabledPHP', false);
                     if ($is_disabled_php && ($this->lang === 'PHP')) {
                         continue;
                     }

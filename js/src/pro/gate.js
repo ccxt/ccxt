@@ -386,8 +386,9 @@ export default class gate extends gateRest {
         const parts = channel.split('.');
         const rawMarketType = this.safeString(parts, 0);
         const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
+        const result = this.safeValue(message, 'result');
         let results = [];
-        if (marketType === 'contract') {
+        if (Array.isArray(result)) {
             results = this.safeList(message, 'result', []);
         }
         else {
@@ -824,7 +825,7 @@ export default class gate extends gateRest {
         const client = this.client(url);
         this.setPositionsCache(client, type, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.safeValue(this.positions, type);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             return await client.future(type + ':fetchPositionsSnapshot');

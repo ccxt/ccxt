@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -89,6 +89,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': True,
+                'fetchLeverages': True,
                 'fetchLeverageTiers': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
@@ -193,6 +194,7 @@ class blofin(Exchange, ImplicitAPI):
                         'account/balance': 1,
                         'account/positions': 1,
                         'account/leverage-info': 1,
+                        'account/batch-leverage-info': 1,
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
@@ -491,7 +493,7 @@ class blofin(Exchange, ImplicitAPI):
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        spot = self.safe_value(market, 'spot', False)
+        spot = self.safe_bool(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCurrency24h') if spot else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
@@ -1757,10 +1759,58 @@ class blofin(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_leverage(self, symbol: str, params={}):
+    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+        """
+        fetch the set leverage for all contract markets
+        :see: https://docs.blofin.com/index.html#get-multiple-leverage
+        :param str[] symbols: a list of unified market symbols, required on blofin
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated'
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.load_markets()
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchLeverages() requires a symbols argument')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchLeverages', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross marginMode
+        if (marginMode != 'cross') and (marginMode != 'isolated'):
+            raise BadRequest(self.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated')
+        symbols = self.market_symbols(symbols)
+        instIds = ''
+        for i in range(0, len(symbols)):
+            entry = symbols[i]
+            entryMarket = self.market(entry)
+            if i > 0:
+                instIds = instIds + ',' + entryMarket['id']
+            else:
+                instIds = instIds + entryMarket['id']
+        request = {
+            'instId': instIds,
+            'marginMode': marginMode,
+        }
+        response = await self.privateGetAccountBatchLeverageInfo(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "leverage": "3",
+        #                 "marginMode": "cross",
+        #                 "instId": "BTC-USDT"
+        #             },
+        #         ]
+        #     }
+        #
+        leverages = self.safe_list(response, 'data', [])
+        return self.parse_leverages(leverages, symbols, 'instId')
+
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
-        :see: https://blofin.com/docs#set-leverage
+        :see: https://docs.blofin.com/index.html#get-leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
@@ -1779,7 +1829,30 @@ class blofin(Exchange, ImplicitAPI):
             'marginMode': marginMode,
         }
         response = await self.privateGetAccountLeverageInfo(self.extend(request, params))
-        return response
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": {
+        #             "leverage": "3",
+        #             "marginMode": "cross",
+        #             "instId": "BTC-USDT"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_leverage(data, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'instId')
+        leverageValue = self.safe_integer(leverage, 'leverage')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': self.safe_string_lower(leverage, 'marginMode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
 
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """

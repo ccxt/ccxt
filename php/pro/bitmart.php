@@ -116,8 +116,9 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function subscribe_multiple(string $channel, string $type, array $symbols, $params = array ()) {
+    public function subscribe_multiple(string $channel, string $type, ?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($channel, $type, $symbols, $params) {
+            $symbols = $this->market_symbols($symbols, $type, false, true);
             $url = $this->implode_hostname($this->urls['api']['ws'][$type]['public']);
             $channelType = ($type === 'spot') ? 'spot' : 'futures';
             $actionType = ($type === 'spot') ? 'op' : 'action';
@@ -128,6 +129,10 @@ class bitmart extends \ccxt\async\bitmart {
                 $message = $channelType . '/' . $channel . ':' . $market['id'];
                 $rawSubscriptions[] = $message;
                 $messageHashes[] = $channel . ':' . $market['symbol'];
+            }
+            // exclusion, futures "tickers" need one generic $request for all $symbols
+            if (($type !== 'spot') && ($channel === 'ticker')) {
+                $rawSubscriptions = array( $channelType . '/' . $channel );
             }
             $request = array(
                 'args' => $rawSubscriptions,
@@ -332,20 +337,15 @@ class bitmart extends \ccxt\async\bitmart {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
-            $market = $this->market($symbol);
-            $type = 'spot';
-            list($type, $params) = $this->handle_market_type_and_params('watchTicker', $market, $params);
-            if ($type === 'swap') {
-                throw new NotSupported($this->id . ' watchTicker() does not support ' . $type . ' markets. Use watchTickers() instead');
-            }
-            return Async\await($this->subscribe('ticker', $symbol, $type, $params));
+            $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
+            return $tickers[$symbol];
         }) ();
     }
 
@@ -353,46 +353,19 @@ class bitmart extends \ccxt\async\bitmart {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/futures/#overview
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->get_market_from_symbols($symbols);
-            $type = 'spot';
-            list($type, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
-            $url = $this->implode_hostname($this->urls['api']['ws'][$type]['public']);
-            $symbols = $this->market_symbols($symbols);
-            $messageHash = 'tickers::' . $type;
-            if ($symbols !== null) {
-                $messageHash .= '::' . implode(',', $symbols);
-            }
-            $request = null;
-            $tickers = null;
-            $isSpot = ($type === 'spot');
-            if ($isSpot) {
-                if ($symbols === null) {
-                    throw new ArgumentsRequired($this->id . ' watchTickers() for ' . $type . ' $market $type requires $symbols argument to be provided');
-                }
-                $marketIds = $this->market_ids($symbols);
-                $finalArray = array();
-                for ($i = 0; $i < count($marketIds); $i++) {
-                    $finalArray[] = 'spot/ticker:' . $marketIds[$i];
-                }
-                $request = array(
-                    'op' => 'subscribe',
-                    'args' => $finalArray,
-                );
-                $tickers = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-            } else {
-                $request = array(
-                    'action' => 'subscribe',
-                    'args' => array( 'futures/ticker' ),
-                );
-                $tickers = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-            }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
+            $ticker = Async\await($this->subscribe_multiple('ticker', $marketType, $symbols, $params));
             if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$ticker['symbol']] = $ticker;
                 return $tickers;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
@@ -876,21 +849,34 @@ class bitmart extends \ccxt\async\bitmart {
         if ($data === null) {
             return;
         }
-        $stored = null;
         $symbol = null;
-        for ($i = 0; $i < count($data); $i++) {
-            $trade = $this->parse_ws_trade($data[$i]);
-            $symbol = $trade['symbol'];
-            $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = $this->safe_value($this->trades, $symbol);
-            if ($stored === null) {
-                $stored = new ArrayCache ($tradesLimit);
-                $this->trades[$symbol] = $stored;
+        $length = count($data);
+        $isSwap = (is_array($message) && array_key_exists('group', $message));
+        if ($isSwap) {
+            // in swap, chronologically decreasing => 1709536849322, 1709536848954,
+            $maxLen = max ($length - 1, 0);
+            for ($i = $maxLen; $i >= 0; $i--) {
+                $symbol = $this->handle_trade_loop($data[$i]);
             }
-            $stored->append ($trade);
+        } else {
+            // in spot, chronologically increasing => 1709536771200, 1709536771226,
+            for ($i = 0; $i < $length; $i++) {
+                $symbol = $this->handle_trade_loop($data[$i]);
+            }
         }
-        $messageHash = 'trade:' . $symbol;
-        $client->resolve ($stored, $messageHash);
+        $client->resolve ($this->trades[$symbol], 'trade:' . $symbol);
+    }
+
+    public function handle_trade_loop($entry) {
+        $trade = $this->parse_ws_trade($entry);
+        $symbol = $trade['symbol'];
+        $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+        if ($this->safe_value($this->trades, $symbol) === null) {
+            $this->trades[$symbol] = new ArrayCache ($tradesLimit);
+        }
+        $stored = $this->trades[$symbol];
+        $stored->append ($trade);
+        return $symbol;
     }
 
     public function parse_ws_trade($trade, ?array $market = null) {
@@ -971,45 +957,21 @@ class bitmart extends \ccxt\async\bitmart {
         //
         $table = $this->safe_string($message, 'table');
         $isSpot = ($table !== null);
-        $data = $this->safe_value($message, 'data');
-        if ($data === null) {
+        $rawTickers = array();
+        if ($isSpot) {
+            $rawTickers = $this->safe_list($message, 'data', array());
+        } else {
+            $rawTickers = array( $this->safe_value($message, 'data', array()) );
+        }
+        if (strlen(!$rawTickers)) {
             return;
         }
-        if ($isSpot) {
-            for ($i = 0; $i < count($data); $i++) {
-                $ticker = $this->parse_ticker($data[$i]);
-                $symbol = $ticker['symbol'];
-                $marketId = $this->safe_string($ticker['info'], 'symbol');
-                $messageHash = $table . ':' . $marketId;
-                $this->tickers[$symbol] = $ticker;
-                $client->resolve ($ticker, $messageHash);
-                $this->resolve_message_hashes_for_symbol($client, $symbol, $ticker, 'tickers::');
-            }
-        } else {
-            // on each update for contract markets, single $ticker is provided
-            $ticker = $this->parse_ws_swap_ticker($data);
-            $symbol = $this->safe_string($ticker, 'symbol');
+        for ($i = 0; $i < count($rawTickers); $i++) {
+            $ticker = $isSpot ? $this->parse_ticker($rawTickers[$i]) : $this->parse_ws_swap_ticker($rawTickers[$i]);
+            $symbol = $ticker['symbol'];
             $this->tickers[$symbol] = $ticker;
-            $client->resolve ($ticker, 'tickers::swap');
-            $this->resolve_message_hashes_for_symbol($client, $symbol, $ticker, 'tickers::');
-        }
-    }
-
-    public function resolve_message_hashes_for_symbol($client, $symbol, $result, $prexif) {
-        $prefixSeparator = '::';
-        $symbolsSeparator = ',';
-        $messageHashes = $this->find_message_hashes($client, $prexif);
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $parts = explode($prefixSeparator, $messageHash);
-            $length = count($parts);
-            $symbolsString = $parts[$length - 1];
-            $symbols = explode($symbolsSeparator, $symbolsString);
-            if ($this->in_array($symbol, $symbols)) {
-                $response = array();
-                $response[$symbol] = $result;
-                $client->resolve ($response, $messageHash);
-            }
+            $messageHash = 'ticker:' . $symbol;
+            $client->resolve ($ticker, $messageHash);
         }
     }
 
@@ -1350,13 +1312,13 @@ class bitmart extends \ccxt\async\bitmart {
                 $update = $datas[$i];
                 $marketId = $this->safe_string($update, 'symbol');
                 $symbol = $this->safe_symbol($marketId);
-                $orderbook = $this->safe_dict($this->orderbooks, $symbol);
-                if ($orderbook === null) {
-                    $orderbook = $this->order_book(array(), $limit);
-                    $orderbook['symbol'] = $symbol;
-                    $this->orderbooks[$symbol] = $orderbook;
+                if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                    $ob = $this->order_book(array(), $limit);
+                    $ob['symbol'] = $symbol;
+                    $this->orderbooks[$symbol] = $ob;
                 }
-                $type = $this->safe_value($update, 'type');
+                $orderbook = $this->orderbooks[$symbol];
+                $type = $this->safe_string($update, 'type');
                 if (($type === 'snapshot') || (!(mb_strpos($channelName, 'increase') !== false))) {
                     $orderbook->reset (array());
                 }
@@ -1379,12 +1341,12 @@ class bitmart extends \ccxt\async\bitmart {
             $depths = $data['depths'];
             $marketId = $this->safe_string($data, 'symbol');
             $symbol = $this->safe_symbol($marketId);
-            $orderbook = $this->safe_dict($this->orderbooks, $symbol);
-            if ($orderbook === null) {
-                $orderbook = $this->order_book(array(), $limit);
-                $orderbook['symbol'] = $symbol;
-                $this->orderbooks[$symbol] = $orderbook;
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                $ob = $this->order_book(array(), $limit);
+                $ob['symbol'] = $symbol;
+                $this->orderbooks[$symbol] = $ob;
             }
+            $orderbook = $this->orderbooks[$symbol];
             $way = $this->safe_number($data, 'way');
             $side = ($way === 1) ? 'bids' : 'asks';
             if ($way === 1) {

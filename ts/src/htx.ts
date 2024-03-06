@@ -1234,9 +1234,10 @@ export default class htx extends Exchange {
     async fetchStatus (params = {}) {
         await this.loadMarkets ();
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
+        const enabledForContracts = this.handleOption ('fetchStatus', 'enableForContracts', false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
         let response = undefined;
-        if (marketType !== 'spot') {
+        if (marketType !== 'spot' && enabledForContracts) {
             const subType = this.safeString (params, 'subType', this.options['defaultSubType']);
             if (marketType === 'swap') {
                 if (subType === 'linear') {
@@ -1253,7 +1254,7 @@ export default class htx extends Exchange {
             } else if (marketType === 'contract') {
                 response = await this.contractPublicGetHeartbeat ();
             }
-        } else {
+        } else if (marketType === 'spot') {
             response = await this.statusPublicSpotGetApiV2SummaryJson ();
         }
         //
@@ -1422,7 +1423,11 @@ export default class htx extends Exchange {
         let url = undefined;
         if (marketType === 'contract') {
             const statusRaw = this.safeString (response, 'status');
-            status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            if (statusRaw === undefined) {
+                status = undefined;
+            } else {
+                status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            }
             updated = this.safeString (response, 'ts');
         } else {
             const statusData = this.safeValue (response, 'status', {});
@@ -2570,7 +2575,10 @@ export default class htx extends Exchange {
         amountString = this.safeString (trade, 'trade_volume', amountString);
         const costString = this.safeString (trade, 'trade_turnover');
         let fee = undefined;
-        let feeCost = this.safeString2 (trade, 'filled-fees', 'trade_fee');
+        let feeCost = this.safeString (trade, 'filled-fees');
+        if (feeCost === undefined) {
+            feeCost = Precise.stringNeg (this.safeString (trade, 'trade_fee'));
+        }
         const feeCurrencyId = this.safeString2 (trade, 'fee-currency', 'fee_asset');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         const filledPoints = this.safeString (trade, 'filled-points');

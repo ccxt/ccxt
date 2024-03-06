@@ -760,11 +760,10 @@ public partial class ascendex : Exchange
 
     public override object parseBalance(object response)
     {
-        object timestamp = this.milliseconds();
         object result = new Dictionary<string, object>() {
             { "info", response },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
         };
         object balances = this.safeValue(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
@@ -781,11 +780,10 @@ public partial class ascendex : Exchange
 
     public virtual object parseMarginBalance(object response)
     {
-        object timestamp = this.milliseconds();
         object result = new Dictionary<string, object>() {
             { "info", response },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
         };
         object balances = this.safeValue(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
@@ -805,11 +803,10 @@ public partial class ascendex : Exchange
 
     public virtual object parseSwapBalance(object response)
     {
-        object timestamp = this.milliseconds();
         object result = new Dictionary<string, object>() {
             { "info", response },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
         };
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object collaterals = this.safeValue(data, "collaterals", new List<object>() {});
@@ -834,6 +831,8 @@ public partial class ascendex : Exchange
         * @see https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.type] wallet type, 'spot', 'margin', or 'swap'
+        * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -3390,12 +3389,11 @@ public partial class ascendex : Exchange
         //
         object status = this.safeInteger(transfer, "code");
         object currencyCode = this.safeCurrencyCode(null, currency);
-        object timestamp = this.milliseconds();
         return new Dictionary<string, object>() {
             { "info", transfer },
             { "id", null },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "currency", currencyCode },
             { "amount", null },
             { "fromAccount", null },

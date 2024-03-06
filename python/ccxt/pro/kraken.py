@@ -361,7 +361,7 @@ class kraken(ccxt.async_support.kraken):
         #     [
         #         0,  # channelID
         #         [ #     price        volume         time             side type misc
-        #             ["5541.20000", "0.15850568", "1534614057.321597", "s", "l", ""],
+        #             ["5541.20000", "0.15850568", "1534614057.321596", "s", "l", ""],
         #             ["6060.00000", "0.02455000", "1534614057.324998", "b", "l", ""],
         #         ],
         #         "trade",
@@ -674,7 +674,7 @@ class kraken(ccxt.async_support.kraken):
                 example = self.safe_value(b, 0)
             # don't remove self line or I will poop on your face
             orderbook.limit()
-            checksum = self.safe_value(self.options, 'checksum', True)
+            checksum = self.safe_bool(self.options, 'checksum', True)
             if checksum:
                 priceString = self.safe_string(example, 0)
                 amountString = self.safe_string(example, 1)

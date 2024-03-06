@@ -37,10 +37,17 @@ class binance extends \ccxt\async\binance {
                 'cancelOrderWs' => true,
                 'cancelOrdersWs' => false,
                 'cancelAllOrdersWs' => true,
+                'fetchBalanceWs' => true,
+                'fetchDepositsWs' => false,
+                'fetchMarketsWs' => false,
+                'fetchMyTradesWs' => true,
+                'fetchOHLCVWs' => true,
+                'fetchOpenOrdersWs' => true,
                 'fetchOrderWs' => true,
                 'fetchOrdersWs' => true,
-                'fetchBalanceWs' => true,
-                'fetchMyTradesWs' => true,
+                'fetchTradesWs' => true,
+                'fetchTradingFeesWs' => false,
+                'fetchWithdrawalsWs' => false,
             ),
             'urls' => array(
                 'test' => array(
@@ -59,6 +66,7 @@ class binance extends \ccxt\async\binance {
                         'future' => 'wss://fstream.binance.com/ws',
                         'delivery' => 'wss://dstream.binance.com/ws',
                         'ws' => 'wss://ws-api.binance.com:443/ws-api/v3',
+                        'papi' => 'wss://fstream.binance.com/pm/ws',
                     ),
                 ),
             ),
@@ -847,6 +855,96 @@ class binance extends \ccxt\async\binance {
         $client->resolve ($stored, $messageHash);
     }
 
+    public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#klines
+             * query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string} $symbol unified $symbol of the market to query OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int} $since timestamp in ms of the earliest candle to fetch
+             * @param {int} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @param {int} $params->until timestamp in ms of the earliest candle to fetch
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string} $params->timeZone default=0 (UTC)
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $this->check_is_spot('fetchOHLCVWs', $symbol, $params);
+            $url = $this->urls['api']['ws']['ws'];
+            $requestId = $this->request_id($url);
+            $messageHash = (string) $requestId;
+            $returnRateLimits = false;
+            list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOHLCVWs', 'returnRateLimits', false);
+            $payload = array(
+                'symbol' => $this->market_id($symbol),
+                'returnRateLimits' => $returnRateLimits,
+                'interval' => $this->timeframes[$timeframe],
+            );
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            if ($since !== null) {
+                $payload['startTime'] = $since;
+            }
+            if ($limit !== null) {
+                $payload['limit'] = $limit;
+            }
+            if ($until !== null) {
+                $payload['endTime'] = $until;
+            }
+            $message = array(
+                'id' => $messageHash,
+                'method' => 'klines',
+                'params' => array_merge($payload, $params),
+            );
+            $subscription = array(
+                'method' => array($this, 'handle_fetch_ohlcv'),
+            );
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        }) ();
+    }
+
+    public function handle_fetch_ohlcv(Client $client, $message) {
+        //
+        //    {
+        //        "id" => "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
+        //        "status" => 200,
+        //        "result" => array(
+        //            array(
+        //                1655971200000,      // Kline open time
+        //                "0.01086000",       // Open price
+        //                "0.01086600",       // High price
+        //                "0.01083600",       // Low price
+        //                "0.01083800",       // Close price
+        //                "2290.53800000",    // Volume
+        //                1655974799999,      // Kline close time
+        //                "24.85074442",      // Quote asset volume
+        //                2283,               // Number of trades
+        //                "1171.64000000",    // Taker buy base asset volume
+        //                "12.71225884",      // Taker buy quote asset volume
+        //                "0"                 // Unused field, ignore
+        //            )
+        //        ),
+        //        "rateLimits" => array(
+        //            {
+        //                "rateLimitType" => "REQUEST_WEIGHT",
+        //                "interval" => "MINUTE",
+        //                "intervalNum" => 1,
+        //                "limit" => 6000,
+        //                "count" => 2
+        //            }
+        //        )
+        //    }
+        //
+        $result = $this->safe_list($message, 'result');
+        $parsed = $this->parse_ohlcvs($result);
+        // use a reverse lookup in a static map instead
+        $messageHash = $this->safe_string($message, 'id');
+        $client->resolve ($parsed, $messageHash);
+    }
+
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
@@ -1158,43 +1256,46 @@ class binance extends \ccxt\async\binance {
     public function authenticate($params = array ()) {
         return Async\async(function () use ($params) {
             $time = $this->milliseconds();
-            $query = null;
             $type = null;
-            list($type, $query) = $this->handle_market_type_and_params('authenticate', null, $params);
+            list($type, $params) = $this->handle_market_type_and_params('authenticate', null, $params);
             $subType = null;
-            list($subType, $query) = $this->handle_sub_type_and_params('authenticate', null, $query);
+            list($subType, $params) = $this->handle_sub_type_and_params('authenticate', null, $params);
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'authenticate', 'papi', 'portfolioMargin', false);
             if ($this->isLinear ($type, $subType)) {
                 $type = 'future';
             } elseif ($this->isInverse ($type, $subType)) {
                 $type = 'delivery';
             }
             $marginMode = null;
-            list($marginMode, $query) = $this->handle_margin_mode_and_params('authenticate', $query);
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('authenticate', $params);
             $isIsolatedMargin = ($marginMode === 'isolated');
             $isCrossMargin = ($marginMode === 'cross') || ($marginMode === null);
-            $symbol = $this->safe_string($query, 'symbol');
-            $query = $this->omit($query, 'symbol');
+            $symbol = $this->safe_string($params, 'symbol');
+            $params = $this->omit($params, 'symbol');
             $options = $this->safe_value($this->options, $type, array());
             $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
             $delay = $this->sum($listenKeyRefreshRate, 10000);
             if ($time - $lastAuthenticatedTime > $delay) {
                 $response = null;
-                if ($type === 'future') {
-                    $response = Async\await($this->fapiPrivatePostListenKey ($query));
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiPostListenKey ($params));
+                } elseif ($type === 'future') {
+                    $response = Async\await($this->fapiPrivatePostListenKey ($params));
                 } elseif ($type === 'delivery') {
-                    $response = Async\await($this->dapiPrivatePostListenKey ($query));
+                    $response = Async\await($this->dapiPrivatePostListenKey ($params));
                 } elseif ($type === 'margin' && $isCrossMargin) {
-                    $response = Async\await($this->sapiPostUserDataStream ($query));
+                    $response = Async\await($this->sapiPostUserDataStream ($params));
                 } elseif ($isIsolatedMargin) {
                     if ($symbol === null) {
                         throw new ArgumentsRequired($this->id . ' authenticate() requires a $symbol argument for isolated margin mode');
                     }
                     $marketId = $this->market_id($symbol);
-                    $query = array_merge($query, array( 'symbol' => $marketId ));
-                    $response = Async\await($this->sapiPostUserDataStreamIsolated ($query));
+                    $params = array_merge($params, array( 'symbol' => $marketId ));
+                    $response = Async\await($this->sapiPostUserDataStreamIsolated ($params));
                 } else {
-                    $response = Async\await($this->publicPostUserDataStream ($query));
+                    $response = Async\await($this->publicPostUserDataStream ($params));
                 }
                 $this->options[$type] = array_merge($options, array(
                     'listenKey' => $this->safe_string($response, 'listenKey'),
@@ -1210,6 +1311,8 @@ class binance extends \ccxt\async\binance {
             // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
             $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
             $type = $this->safe_string($params, 'type', $type);
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
             $subTypeInfo = $this->handle_sub_type_and_params('keepAliveListenKey', null, $params);
             $subType = $subTypeInfo[0];
             if ($this->isLinear ($type, $subType)) {
@@ -1225,24 +1328,30 @@ class binance extends \ccxt\async\binance {
             }
             $request = array();
             $symbol = $this->safe_string($params, 'symbol');
-            $sendParams = $this->omit($params, array( 'type', 'symbol' ));
+            $params = $this->omit($params, array( 'type', 'symbol' ));
             $time = $this->milliseconds();
             try {
-                if ($type === 'future') {
-                    Async\await($this->fapiPrivatePutListenKey (array_merge($request, $sendParams)));
+                if ($isPortfolioMargin) {
+                    Async\await($this->papiPutListenKey (array_merge($request, $params)));
+                } elseif ($type === 'future') {
+                    Async\await($this->fapiPrivatePutListenKey (array_merge($request, $params)));
                 } elseif ($type === 'delivery') {
-                    Async\await($this->dapiPrivatePutListenKey (array_merge($request, $sendParams)));
+                    Async\await($this->dapiPrivatePutListenKey (array_merge($request, $params)));
                 } else {
                     $request['listenKey'] = $listenKey;
                     if ($type === 'margin') {
                         $request['symbol'] = $symbol;
-                        Async\await($this->sapiPutUserDataStream (array_merge($request, $sendParams)));
+                        Async\await($this->sapiPutUserDataStream (array_merge($request, $params)));
                     } else {
-                        Async\await($this->publicPutUserDataStream (array_merge($request, $sendParams)));
+                        Async\await($this->publicPutUserDataStream (array_merge($request, $params)));
                     }
                 }
             } catch (Exception $error) {
-                $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
+                $urlType = $type;
+                if ($isPortfolioMargin) {
+                    $urlType = 'papi';
+                }
+                $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
                 $client = $this->client($url);
                 $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
                 for ($i = 0; $i < count($messageHashes); $i++) {
@@ -1276,7 +1385,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function set_balance_cache(Client $client, $type) {
+    public function set_balance_cache(Client $client, $type, $isPortfolioMargin = false) {
         if (is_array($client->subscriptions) && array_key_exists($type, $client->subscriptions)) {
             return;
         }
@@ -1286,16 +1395,22 @@ class binance extends \ccxt\async\binance {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
                 $client->future ($messageHash);
-                $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type);
+                $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type, $isPortfolioMargin);
             }
         } else {
             $this->balance[$type] = array();
         }
     }
 
-    public function load_balance_snapshot($client, $messageHash, $type) {
-        return Async\async(function () use ($client, $messageHash, $type) {
-            $response = Async\await($this->fetch_balance(array( 'type' => $type )));
+    public function load_balance_snapshot($client, $messageHash, $type, $isPortfolioMargin) {
+        return Async\async(function () use ($client, $messageHash, $type, $isPortfolioMargin) {
+            $params = array(
+                'type' => $type,
+            );
+            if ($isPortfolioMargin) {
+                $params['portfolioMargin'] = true;
+            }
+            $response = Async\await($this->fetch_balance($params));
             $this->balance[$type] = array_merge($response, $this->safe_value($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
             $future = $client->futures[$messageHash];
@@ -1392,6 +1507,7 @@ class binance extends \ccxt\async\binance {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch the balance of a portfolio margin account
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -1400,15 +1516,21 @@ class binance extends \ccxt\async\binance {
             $type = $this->safe_string($params, 'type', $defaultType);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params);
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchBalance', 'papi', 'portfolioMargin', false);
+            $urlType = $type;
+            if ($isPortfolioMargin) {
+                $urlType = 'papi';
+            }
             if ($this->isLinear ($type, $subType)) {
                 $type = 'future';
             } elseif ($this->isInverse ($type, $subType)) {
                 $type = 'delivery';
             }
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
+            $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
             $client = $this->client($url);
-            $this->set_balance_cache($client, $type);
-            $this->set_positions_cache($client, $type);
+            $this->set_balance_cache($client, $type, $isPortfolioMargin);
+            $this->set_positions_cache($client, $type, null, $isPortfolioMargin);
             $options = $this->safe_value($this->options, 'watchBalance');
             $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
             $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
@@ -1958,6 +2080,29 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
+    public function fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-$order-history-user_data
+             * fetch closed $orders
+             * @param {string} $symbol unified market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open $orders for
+             * @param {int} [$limit] the maximum number of open $orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             */
+            $orders = Async\await($this->fetch_orders_ws($symbol, $since, $limit, $params));
+            $closedOrders = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = $orders[$i];
+                if ($order['status'] === 'closed') {
+                    $closedOrders[] = $order;
+                }
+            }
+            return $closedOrders;
+        }) ();
+    }
+
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -2000,11 +2145,14 @@ class binance extends \ccxt\async\binance {
             /**
              * watches information on multiple $orders made by the user
              * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+             * @see https://binance-docs.github.io/apidocs/pm/en/#event-futures-order-update
+             * @see https://binance-docs.github.io/apidocs/pm/en/#event-margin-order-update
              * @param {string} $symbol unified $market $symbol of the $market the $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string|null} [$params->marginMode] 'cross' or 'isolated', for spot margin
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch portfolio margin account $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -2032,10 +2180,15 @@ class binance extends \ccxt\async\binance {
             if (($type === 'margin') || (($type === 'spot') && ($marginMode !== null))) {
                 $urlType = 'spot'; // spot-margin shares the same stream spot
             }
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchOrders', 'papi', 'portfolioMargin', false);
+            if ($isPortfolioMargin) {
+                $urlType = 'papi';
+            }
             $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
             $client = $this->client($url);
-            $this->set_balance_cache($client, $type);
-            $this->set_positions_cache($client, $type);
+            $this->set_balance_cache($client, $type, $isPortfolioMargin);
+            $this->set_positions_cache($client, $type, null, $isPortfolioMargin);
             $message = null;
             $orders = Async\await($this->watch($url, $messageHash, $message, $type));
             if ($this->newUpdates) {
@@ -2292,6 +2445,7 @@ class binance extends \ccxt\async\binance {
              * watch all open positions
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch positions in a portfolio margin account
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
@@ -2321,12 +2475,18 @@ class binance extends \ccxt\async\binance {
                 $type = 'delivery';
             }
             $messageHash = $type . ':positions' . $messageHash;
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchPositions', 'papi', 'portfolioMargin', false);
+            $urlType = $type;
+            if ($isPortfolioMargin) {
+                $urlType = 'papi';
+            }
+            $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
             $client = $this->client($url);
-            $this->set_balance_cache($client, $type);
-            $this->set_positions_cache($client, $type, $symbols);
+            $this->set_balance_cache($client, $type, $isPortfolioMargin);
+            $this->set_positions_cache($client, $type, $symbols, $isPortfolioMargin);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_value('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
             $cache = $this->safe_value($this->positions, $type);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
                 $snapshot = Async\await($client->future ($type . ':fetchPositionsSnapshot'));
@@ -2340,7 +2500,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function set_positions_cache(Client $client, $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, $type, ?array $symbols = null, $isPortfolioMargin = false) {
         if ($type === 'spot') {
             return;
         }
@@ -2355,16 +2515,22 @@ class binance extends \ccxt\async\binance {
             $messageHash = $type . ':fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
                 $client->future ($messageHash);
-                $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $type);
+                $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $type, $isPortfolioMargin);
             }
         } else {
             $this->positions[$type] = new ArrayCacheBySymbolBySide ();
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash, $type) {
-        return Async\async(function () use ($client, $messageHash, $type) {
-            $positions = Async\await($this->fetch_positions(null, array( 'type' => $type )));
+    public function load_positions_snapshot($client, $messageHash, $type, $isPortfolioMargin) {
+        return Async\async(function () use ($client, $messageHash, $type, $isPortfolioMargin) {
+            $params = array(
+                'type' => $type,
+            );
+            if ($isPortfolioMargin) {
+                $params['portfolioMargin'] = true;
+            }
+            $positions = Async\await($this->fetch_positions(null, $params));
             $this->positions[$type] = new ArrayCacheBySymbolBySide ();
             $cache = $this->positions[$type];
             for ($i = 0; $i < count($positions); $i++) {
@@ -2460,8 +2626,20 @@ class binance extends \ccxt\async\binance {
         //     }
         //
         $marketId = $this->safe_string($position, 's');
+        $contracts = $this->safe_string($position, 'pa');
+        $contractsAbs = Precise::string_abs($this->safe_string($position, 'pa'));
         $positionSide = $this->safe_string_lower($position, 'ps');
-        $hedged = $positionSide !== 'both';
+        $hedged = true;
+        if ($positionSide === 'both') {
+            $hedged = false;
+            if (!Precise::string_eq($contracts, '0')) {
+                if (Precise::string_lt($contracts, '0')) {
+                    $positionSide = 'short';
+                } else {
+                    $positionSide = 'long';
+                }
+            }
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2472,7 +2650,7 @@ class binance extends \ccxt\async\binance {
             'entryPrice' => $this->safe_number($position, 'ep'),
             'unrealizedPnl' => $this->safe_number($position, 'up'),
             'percentage' => null,
-            'contracts' => $this->safe_number($position, 'pa'),
+            'contracts' => $this->parse_number($contractsAbs),
             'contractSize' => null,
             'markPrice' => null,
             'side' => $positionSide,
@@ -2539,12 +2717,59 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
+    public function fetch_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://binance-docs.github.io/apidocs/websocket_api/en/#recent-$trades
+             * fetch all $trades made by the user
+             * @param {string} $symbol unified market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of $trades structures to retrieve, default=500, max=1000
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int} [$params->fromId] trade ID to begin at
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             */
+            Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new BadRequest($this->id . ' fetchTradesWs () requires a $symbol argument');
+            }
+            $this->check_is_spot('fetchTradesWs', $symbol, $params);
+            $url = $this->urls['api']['ws']['ws'];
+            $requestId = $this->request_id($url);
+            $messageHash = (string) $requestId;
+            $returnRateLimits = false;
+            list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchTradesWs', 'returnRateLimits', false);
+            $payload = array(
+                'symbol' => $this->market_id($symbol),
+                'returnRateLimits' => $returnRateLimits,
+            );
+            if ($limit !== null) {
+                $payload['limit'] = $limit;
+            }
+            $message = array(
+                'id' => $messageHash,
+                'method' => 'trades.historical',
+                'params' => array_merge($payload, $params),
+            );
+            $subscription = array(
+                'method' => array($this, 'handle_trades_ws'),
+            );
+            $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+            return $this->filter_by_since_limit($trades, $since, $limit);
+        }) ();
+    }
+
     public function handle_trades_ws(Client $client, $message) {
+        //
+        // fetchMyTradesWs
         //
         //    {
         //        "id" => "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
         //        "status" => 200,
-        //        "result" => [array(
+        //        "result" => array(
+        //            array(
         //                "symbol" => "BTCUSDT",
         //                "id" => 1650422481,
         //                "orderId" => 12569099453,
@@ -2560,7 +2785,26 @@ class binance extends \ccxt\async\binance {
         //                "isBestMatch" => true
         //            ),
         //            ...
-        //        ],
+        //        ),
+        //    }
+        //
+        // fetchTradesWs
+        //
+        //    {
+        //        "id" => "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
+        //        "status" => 200,
+        //        "result" => array(
+        //            {
+        //                "id" => 0,
+        //                "price" => "0.00005000",
+        //                "qty" => "40.00000000",
+        //                "quoteQty" => "0.00200000",
+        //                "time" => 1500004800376,
+        //                "isBuyerMaker" => true,
+        //                "isBestMatch" => true
+        //            }
+        //            ...
+        //        ),
         //    }
         //
         $messageHash = $this->safe_string($message, 'id');
@@ -2577,6 +2821,7 @@ class binance extends \ccxt\async\binance {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch $trades in a portfolio margin account
              * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
@@ -2605,10 +2850,15 @@ class binance extends \ccxt\async\binance {
             if ($type === 'margin') {
                 $urlType = 'spot'; // spot-margin shares the same stream spot
             }
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
+            if ($isPortfolioMargin) {
+                $urlType = 'papi';
+            }
             $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
             $client = $this->client($url);
-            $this->set_balance_cache($client, $type);
-            $this->set_positions_cache($client, $type);
+            $this->set_balance_cache($client, $type, $isPortfolioMargin);
+            $this->set_positions_cache($client, $type, null, $isPortfolioMargin);
             $message = null;
             $trades = Async\await($this->watch($url, $messageHash, $message, $type));
             if ($this->newUpdates) {

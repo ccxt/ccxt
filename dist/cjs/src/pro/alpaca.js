@@ -610,7 +610,7 @@ class alpaca extends alpaca$1 {
         for (let i = 0; i < message.length; i++) {
             const data = message[i];
             const T = this.safeString(data, 'T');
-            const msg = this.safeValue(data, 'msg', {});
+            const msg = this.safeString(data, 'msg');
             if (T === 'subscription') {
                 this.handleSubscription(client, data);
                 return;

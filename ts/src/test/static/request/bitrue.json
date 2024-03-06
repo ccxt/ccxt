@@ -240,7 +240,7 @@
                 ]
             },
             {
-                "description": "Cancel spot order",
+                "description": "Cancel swap order",
                 "method": "cancelOrder",
                 "url": "https://fapi.bitrue.com/fapi/v2/cancel",
                 "input": [
@@ -249,6 +249,16 @@
                 ],
                 "output": "{\"recvWindow\":5000,\"orderId\":\"1941111689217512895\",\"contractName\":\"E-LTC-USDT\"}"
             }
+        ],
+        "fetchWithdrawals": [
+          {
+            "description": "Fetch Withdrawals",
+            "method": "fetchWithdrawals",
+            "url": "https://www.bitrue.com/api/v1/withdraw/history?timestamp=1709351446237&recvWindow=5000&coin=usdc&status=5&signature=5f27a957b7e087e9eb4ade590ae3969695b19d9f3d6de68713d75a0376fbce0d",
+            "input": [
+              "USDC"
+            ]
+          }
         ]
     }
 }
