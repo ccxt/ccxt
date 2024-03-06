@@ -1632,5 +1632,21 @@
                 "withdraw": "not provided"
             }
         }
+    },
+    "hyperliquid": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "different"
+            },
+            "fetchTrades": "private",
+            "fetchCurrencies": {
+                "id": "skip",
+                "precision": "skip",
+                "networks": "not provided",
+                "limits" : "not provided",
+                "deposit": "not provided",
+                "withdraw": "not provided"
+            }
+        }
     }
 }
