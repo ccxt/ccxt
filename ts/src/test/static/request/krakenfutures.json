@@ -197,6 +197,14 @@
                   "BTC/USD:USD"
                 ]
             }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "Fetch leverages of all markets with a set leverage value",
+                "method": "fetchLeverages",
+                "url": "https://demo-futures.kraken.com/derivatives/api/v3/leveragepreferences",
+                "input": []
+            }
         ]
     }
 }

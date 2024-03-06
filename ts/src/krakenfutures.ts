@@ -2477,9 +2477,9 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchLeverages
-         * @description fetch the set leverage for all contract markets
+         * @description fetch the set leverage for all contract and margin markets
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
-         * @param {string[]} symbols a list of unified market symbols
+         * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
