@@ -187,6 +187,16 @@
                 ],
                 "output": "json={\"batchOrder\":[{\"order\":\"cancel\",\"order_id\":\"3d080c9b-6a50-45c1-8365-11c00295f011\"}]}"
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Swap fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://demo-futures.kraken.com/derivatives/api/v3/leveragepreferences?symbol=PF_XBTUSD",
+                "input": [
+                  "BTC/USD:USD"
+                ]
+            }
         ]
     }
 }
