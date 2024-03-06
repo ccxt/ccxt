@@ -1615,17 +1615,14 @@ class bitget(Exchange, ImplicitAPI):
             inverse = (base == settle)
             linear = not inverse
             priceDecimals = self.safe_integer(market, 'pricePlace')
-            amountDecimals = self.safe_integer(market, 'volumePlace')
             priceStep = self.safe_string(market, 'priceEndStep')
-            amountStep = self.safe_string(market, 'minTradeNum')
+            amountStep = self.safe_string(market, 'sizeMultiplier')
             precisePrice = Precise(priceStep)
             precisePrice.decimals = max(precisePrice.decimals, priceDecimals)
             precisePrice.reduce()
             priceString = str(precisePrice)
             pricePrecision = self.parse_number(priceString)
             preciseAmount = Precise(amountStep)
-            preciseAmount.decimals = max(preciseAmount.decimals, amountDecimals)
-            preciseAmount.reduce()
             amountString = str(preciseAmount)
             amountPrecision = self.parse_number(amountString)
         status = self.safe_string_2(market, 'status', 'symbolStatus')
@@ -3775,7 +3772,7 @@ class bitget(Exchange, ImplicitAPI):
             filled = self.safe_string(order, 'baseVolume')
         side = self.safe_string(order, 'side')
         order_type = self.safe_string(order, 'orderType')
-        if side == 'buy' and order_type == 'market' and average:
+        if marketType == 'spot' and side == 'buy' and order_type == 'market' and average:
             size = Precise.string_div(size, average)
             size = self.amount_to_precision(market['symbol'], size)
         return self.safe_order({
