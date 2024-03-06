@@ -87,6 +87,7 @@ function precisionFromString (str) {
         const numStr = str.replace (/\de/, '')
         return parseInt (numStr) * -1
     }
+    
     // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
     // if (str.indexOf ('.') === -1) {
     //     return str.length * -1
@@ -98,12 +99,29 @@ function precisionFromString (str) {
 
 /*  ------------------------------------------------------------------------ */
 
-const decimalToPrecision = (
+const decimalToPrecisionWrapper = (
     x,
     roundingMode,
     numPrecisionDigits,
     countingMode = DECIMAL_PLACES,
     paddingMode = NO_PADDING
+) => {
+    let precision = numPrecisionDigits;
+    if (countingMode === TICK_SIZE) {
+        precision = decimalToPrecision (numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
+        precision = precisionFromString (precision);
+    }
+    x = decimalToPrecision (x, ROUND, precision+1, DECIMAL_PLACES, NO_PADDING);
+
+    return decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
+};
+
+const decimalToPrecision = (
+    x,
+    roundingMode,
+    numPrecisionDigits,
+    countingMode = DECIMAL_PLACES,
+    paddingMode = NO_PADDING,
 ) => {
     if (countingMode === TICK_SIZE) {
         if (typeof numPrecisionDigits === 'string') {
@@ -301,7 +319,7 @@ function omitZero (stringNumber) {
 export {
     numberToString,
     precisionFromString,
-    decimalToPrecision,
+    decimalToPrecisionWrapper as decimalToPrecision,
     truncate_to_string,
     truncate,
     omitZero,
