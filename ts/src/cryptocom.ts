@@ -1024,7 +1024,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
         const request = {
@@ -1058,7 +1058,7 @@ export default class cryptocom extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        const postOnly = this.safeBool (params, 'postOnly', false);
         if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = [ 'POST_ONLY' ];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
@@ -1071,16 +1071,16 @@ export default class cryptocom extends Exchange {
         const isTakeProfitTrigger = (takeProfitPrice !== undefined);
         if (isTrigger) {
             request['ref_price'] = this.priceToPrecision (symbol, triggerPrice);
-            price = price.toString ();
+            const priceString = this.numberToString (price);
             if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
                 if (side === 'buy') {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
                     } else {
                         request['type'] = 'STOP_LIMIT';
                     }
                 } else {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'STOP_LIMIT';
                     } else {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
@@ -1088,13 +1088,13 @@ export default class cryptocom extends Exchange {
                 }
             } else {
                 if (side === 'buy') {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT';
                     } else {
                         request['type'] = 'STOP_LOSS';
                     }
                 } else {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'STOP_LOSS';
                     } else {
                         request['type'] = 'TAKE_PROFIT';
@@ -1122,7 +1122,7 @@ export default class cryptocom extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#createOrder
@@ -1239,7 +1239,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrders (result);
     }
 
-    createAdvancedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createAdvancedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -1267,7 +1267,7 @@ export default class cryptocom extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        const postOnly = this.safeBool (params, 'postOnly', false);
         if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = [ 'POST_ONLY' ];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
@@ -1279,16 +1279,16 @@ export default class cryptocom extends Exchange {
         const isStopLossTrigger = (stopLossPrice !== undefined);
         const isTakeProfitTrigger = (takeProfitPrice !== undefined);
         if (isTrigger) {
-            price = price.toString ();
+            const priceString = this.numberToString (price);
             if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
                 if (side === 'buy') {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
                     } else {
                         request['type'] = 'STOP_LIMIT';
                     }
                 } else {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'STOP_LIMIT';
                     } else {
                         request['type'] = 'TAKE_PROFIT_LIMIT';
@@ -1296,13 +1296,13 @@ export default class cryptocom extends Exchange {
                 }
             } else {
                 if (side === 'buy') {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'TAKE_PROFIT';
                     } else {
                         request['type'] = 'STOP_LOSS';
                     }
                 } else {
-                    if (Precise.stringLt (price, triggerPrice)) {
+                    if (Precise.stringLt (priceString, triggerPrice)) {
                         request['type'] = 'STOP_LOSS';
                     } else {
                         request['type'] = 'TAKE_PROFIT';
@@ -1591,7 +1591,7 @@ export default class cryptocom extends Exchange {
         return [ address, tag ];
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#withdraw
@@ -2241,7 +2241,7 @@ export default class cryptocom extends Exchange {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
-        const isMargin = this.safeValue (params, 'margin', false);
+        const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, 'margin');
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams (methodName, params);
@@ -2312,13 +2312,13 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v2PrivatePostPrivateGetCurrencyNetworks (params);
+        const response = await this.v1PrivatePostPrivateGetCurrencyNetworks (params);
         const data = this.safeValue (response, 'result');
         const currencyMap = this.safeValue (data, 'currency_map');
         return this.parseDepositWithdrawFees (currencyMap, codes, 'full_name');

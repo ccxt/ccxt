@@ -78,15 +78,12 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
             assert($base_volume !== null, 'quoteVolume & vwap is defined, but baseVolume is not' . $log_text);
         }
     }
-    if (!(is_array($skipped_properties) && array_key_exists('ask', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('bid', $skipped_properties))) {
+    if (!(is_array($skipped_properties) && array_key_exists('spread', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('ask', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('bid', $skipped_properties))) {
         $ask_string = $exchange->safe_string($entry, 'ask');
         $bid_string = $exchange->safe_string($entry, 'bid');
         if (($ask_string !== null) && ($bid_string !== null)) {
             assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', $exchange->safe_string($entry, 'bid'));
         }
     }
-    // if singular fetchTicker was called, then symbol needs to be asserted
-    if ($method === 'fetchTicker') {
-        assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
-    }
+    assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
 }

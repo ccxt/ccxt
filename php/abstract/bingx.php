@@ -31,6 +31,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spot_v1_private_get_trade_historyorders($params = array()) {
         return $this->request('trade/historyOrders', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spot_v1_private_get_trade_mytrades($params = array()) {
+        return $this->request('trade/myTrades', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function spot_v1_private_get_user_commissionrate($params = array()) {
         return $this->request('user/commissionRate', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -45,6 +48,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function spot_v1_private_post_trade_batchorders($params = array()) {
         return $this->request('trade/batchOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spot_v1_private_post_trade_order_cancelreplace($params = array()) {
+        return $this->request('trade/order/cancelReplace', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
     public function spot_v1_private_post_trade_cancelorders($params = array()) {
         return $this->request('trade/cancelOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
@@ -67,8 +73,20 @@ abstract class bingx extends \ccxt\Exchange {
     public function spot_v3_private_post_post_asset_transfer($params = array()) {
         return $this->request('post/asset/transfer', array('spot', 'v3', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
+    public function swap_v1_public_get_ticker_price($params = array()) {
+        return $this->request('ticker/price', array('swap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function swap_v1_private_get_positionside_dual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v1_private_get_market_markpriceklines($params = array()) {
+        return $this->request('market/markPriceKlines', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v1_private_get_trade_batchcancelreplace($params = array()) {
+        return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v1_private_post_trade_cancelreplace($params = array()) {
+        return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function swap_v1_private_post_positionside_dual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -117,6 +135,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swap_v2_private_get_trade_openorders($params = array()) {
         return $this->request('trade/openOrders', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function swap_v2_private_get_trade_openorder($params = array()) {
+        return $this->request('trade/openOrder', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
     public function swap_v2_private_get_trade_order($params = array()) {
         return $this->request('trade/order', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
@@ -298,6 +319,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spotV1PrivateGetTradeHistoryOrders($params = array()) {
         return $this->request('trade/historyOrders', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spotV1PrivateGetTradeMyTrades($params = array()) {
+        return $this->request('trade/myTrades', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
     public function spotV1PrivateGetUserCommissionRate($params = array()) {
         return $this->request('user/commissionRate', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -312,6 +336,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function spotV1PrivatePostTradeBatchOrders($params = array()) {
         return $this->request('trade/batchOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function spotV1PrivatePostTradeOrderCancelReplace($params = array()) {
+        return $this->request('trade/order/cancelReplace', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
     public function spotV1PrivatePostTradeCancelOrders($params = array()) {
         return $this->request('trade/cancelOrders', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
@@ -334,8 +361,20 @@ abstract class bingx extends \ccxt\Exchange {
     public function spotV3PrivatePostPostAssetTransfer($params = array()) {
         return $this->request('post/asset/transfer', array('spot', 'v3', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
+    public function swapV1PublicGetTickerPrice($params = array()) {
+        return $this->request('ticker/price', array('swap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function swapV1PrivateGetPositionSideDual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivateGetMarketMarkPriceKlines($params = array()) {
+        return $this->request('market/markPriceKlines', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivateGetTradeBatchCancelReplace($params = array()) {
+        return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivatePostTradeCancelReplace($params = array()) {
+        return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function swapV1PrivatePostPositionSideDual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -384,6 +423,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swapV2PrivateGetTradeOpenOrders($params = array()) {
         return $this->request('trade/openOrders', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function swapV2PrivateGetTradeOpenOrder($params = array()) {
+        return $this->request('trade/openOrder', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
     public function swapV2PrivateGetTradeOrder($params = array()) {
         return $this->request('trade/order', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 3));

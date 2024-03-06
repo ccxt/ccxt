@@ -169,7 +169,7 @@
                 "BTC/USDT",
                 "market",
                 "buy",
-                null,
+                0,
                 null,
                 {
                   "cost": 8
@@ -560,6 +560,19 @@
                   "trailing": true
                 }
               ]
+            },
+            {
+              "description": "fetch open tp/sl orders",
+              "method": "fetchOpenOrders",
+              "url": "https://api.bitget.com/api/v2/mix/order/orders-plan-pending?planType=profit_loss&productType=USDT-FUTURES&symbol=ADAUSDT",
+              "input": [
+                "ADA/USDT:USDT",
+                null,
+                null,
+                {
+                  "planType": "profit_loss"
+                }
+              ]
             }
         ],
         "fetchClosedOrders": [
@@ -725,6 +738,12 @@
                     "BTC/USDT:USDT"
                   ]
                 ]
+            },
+            {
+              "description": "Fetch linear positions without symbol",
+              "method": "fetchPositions",
+              "url": "https://api.bitget.com/api/v2/mix/position/all-position?marginCoin=USDT&productType=USDT-FUTURES",
+              "input": []
             }
         ],
         "setLeverage": [
@@ -733,7 +752,7 @@
                 "method": "setLeverage",
                 "url": "https://api.bitget.com/api/v2/mix/account/set-leverage",
                 "input": [
-                  "15",
+                  15,
                   "ADA/USDT:USDT"
                 ],
                 "output": "{\"symbol\":\"ADAUSDT\",\"marginCoin\":\"USDT\",\"leverage\":\"15\",\"productType\":\"USDT-FUTURES\"}"
@@ -997,6 +1016,211 @@
               }
             ],
             "output": "{\"productType\":\"USDT-FUTURES\"}"
+          }
+        ],
+        "fetchOHLCV": [
+          {
+            "description": "Spot ohlcv with historical endpoint and until parameter",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/spot/market/candles?symbol=BTCUSDT&granularity=1h&limit=1&endTime=1704969352000",
+            "input": [
+              "BTC/USDT",
+              "1h",
+              null,
+              1,
+              {
+                "until": 1704969352000
+              }
+            ]
+          },
+          {
+            "description": "Spot ohlcv with since and until",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1h&limit=1&startTime=1704067200000&endTime=1704070800000",
+            "input": [
+              "BTC/USDT",
+              "1h",
+              1704067200000,
+              1,
+              {
+                "until": 1704070800000
+              }
+            ]
+          },
+          {
+            "description": "Swap ohlcv with until",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/mix/market/candles?symbol=BTCUSDT&granularity=1H&limit=1&endTime=1704969352000&productType=USDT-FUTURES",
+            "input": [
+              "BTC/USDT:USDT",
+              "1h",
+              null,
+              1,
+              {
+                "until": 1704969352000
+              }
+            ]
+          },
+          {
+            "description": "Swap ohlcv with since",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1H&limit=1&startTime=1704067200000&endTime=1704070800000&productType=USDT-FUTURES",
+            "input": [
+              "BTC/USDT:USDT",
+              "1h",
+              1704067200000,
+              1
+            ]
+          },
+          {
+            "description": "Swap ohlcv with since and until",
+            "method": "fetchOHLCV",
+            "url": "https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&granularity=1H&limit=1&startTime=1704067200000&endTime=1704153600000&productType=USDT-FUTURES",
+            "input": [
+              "BTC/USDT:USDT",
+              "1h",
+              1704067200000,
+              1,
+              {
+                "until": 1704153600000
+              }
+            ]
+          }
+        ],
+        "fetchCanceledAndClosedOrders": [
+          {
+            "description": "spot canceled and closed orders",
+            "method": "fetchCanceledAndClosedOrders",
+            "url": "https://api.bitget.com/api/v2/spot/trade/history-orders?symbol=LTCUSDT",
+            "input": [
+              "LTC/USDT"
+            ]
+          },
+          {
+            "description": "swap canceled and closed orders",
+            "method": "fetchCanceledAndClosedOrders",
+            "url": "https://api.bitget.com/api/v2/mix/order/orders-history?productType=USDT-FUTURES&symbol=LTCUSDT",
+            "input": [
+              "LTC/USDT:USDT"
+            ]
+          }
+        ],
+        "fetchOrderBook": [
+          {
+            "description": "spot orderbook",
+            "method": "fetchOrderBook",
+            "url": "https://api.bitget.com/api/v2/spot/market/orderbook?symbol=BTCUSDT&limit=5",
+            "input": [
+              "BTC/USDT",
+              5
+            ]
+          },
+          {
+            "description": "swap orderbook",
+            "method": "fetchOrderBook",
+            "url": "https://api.bitget.com/api/v2/mix/market/merge-depth?symbol=BTCUSDT&limit=5&productType=USDT-FUTURES",
+            "input": [
+              "BTC/USDT:USDT",
+              5
+            ]
+          }
+        ],
+        "fetchTrades": [
+          {
+            "description": "fetch spot trades",
+            "method": "fetchTrades",
+            "url": "https://api.bitget.com/api/v2/spot/market/fills-history?symbol=BTCUSDT&limit=5",
+            "input": [
+              "BTC/USDT",
+              null,
+              5
+            ]
+          },
+          {
+            "description": "fetch swap trades",
+            "method": "fetchTrades",
+            "url": "https://api.bitget.com/api/v2/mix/market/fills-history?symbol=BTCUSDT&limit=5&productType=USDT-FUTURES",
+            "input": [
+              "BTC/USDT:USDT",
+              null,
+              5
+            ]
+          }
+        ],
+        "fetchTradingFee": [
+          {
+            "description": "fetch trading fee spot",
+            "method": "fetchTradingFee",
+            "url": "https://api.bitget.com/api/v2/common/trade-rate?businessType=spot&symbol=BTCUSDT",
+            "input": [
+              "BTC/USDT"
+            ]
+          }
+        ],
+        "fetchTradingFees": [
+          {
+            "description": "spot trading fees",
+            "method": "fetchTradingFees",
+            "url": "https://api.bitget.com/api/v2/spot/public/symbols",
+            "input": []
+          }
+        ],
+        "fetchLedger": [
+          {
+            "description": "fetch USDT ledger",
+            "method": "fetchLedger",
+            "url": "https://api.bitget.com/api/v2/spot/account/bills?coin=USDT",
+            "input": [
+              "USDT"
+            ]
+          }
+        ],
+        "fetchFundingHistory": [
+          {
+            "description": "fetch funding history",
+            "method": "fetchFundingHistory",
+            "url": "https://api.bitget.com/api/v2/mix/account/bill?businessType=contract_settle_fee&marginCoin=USDT&productType=USDT-FUTURES&symbol=BTCUSDT",
+            "input": [
+              "BTC/USDT:USDT"
+            ]
+          }
+        ],
+        "fetchOpenInterest": [
+          {
+            "description": "fetch BTC/USDT:USDT OI",
+            "method": "fetchOpenInterest",
+            "url": "https://api.bitget.com/api/v2/mix/market/open-interest?symbol=BTCUSDT&productType=USDT-FUTURES",
+            "input": [
+              "BTC/USDT:USDT"
+            ]
+          }
+        ],
+        "fetchDepositAddress": [
+          {
+            "description": "fetch deposit address $AI",
+            "method": "fetchDepositAddress",
+            "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-address?coin=$AI",
+            "input": [
+              "$AI"
+            ]
+          },
+          {
+            "description": "fetch USDT deposit address",
+            "method": "fetchDepositAddress",
+            "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-address?coin=USDT",
+            "input": [
+              "USDT"
+            ]
+          }
+        ],
+        "fetchLeverage": [
+          {
+            "description": "Swap fetch set leverage",
+            "method": "fetchLeverage",
+            "url": "https://api.bitget.com/api/v2/mix/account/account?marginCoin=USDT&productType=USDT-FUTURES&symbol=BTCUSDT",
+            "input": [
+              "BTC/USDT:USDT"
+            ]
           }
         ]
     }

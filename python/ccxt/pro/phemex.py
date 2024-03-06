@@ -603,13 +603,13 @@ class phemex(ccxt.async_support.phemex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_delta(self, bookside, delta, market=None):
+    def custom_handle_delta(self, bookside, delta, market=None):
         bidAsk = self.custom_parse_bid_ask(delta, 0, 1, market)
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside, deltas, market=None):
+    def custom_handle_deltas(self, bookside, deltas, market=None):
         for i in range(0, len(deltas)):
-            self.handle_delta(bookside, deltas[i], market)
+            self.custom_handle_delta(bookside, deltas[i], market)
 
     def handle_order_book(self, client: Client, message):
         #
@@ -677,8 +677,8 @@ class phemex(ccxt.async_support.phemex):
                 changes = self.safe_value_2(message, 'book', 'orderbook_p', {})
                 asks = self.safe_value(changes, 'asks', [])
                 bids = self.safe_value(changes, 'bids', [])
-                self.handle_deltas(orderbook['asks'], asks, market)
-                self.handle_deltas(orderbook['bids'], bids, market)
+                self.custom_handle_deltas(orderbook['asks'], asks, market)
+                self.custom_handle_deltas(orderbook['bids'], bids, market)
                 orderbook['nonce'] = nonce
                 orderbook['timestamp'] = timestamp
                 orderbook['datetime'] = self.iso8601(timestamp)
@@ -1343,16 +1343,21 @@ class phemex(ccxt.async_support.phemex):
             method = client.subscriptions[id]
             del client.subscriptions[id]
             if method is not True:
-                return method(client, message)
+                method(client, message)
+                return
         methodName = self.safe_string(message, 'method', '')
         if ('market24h' in message) or ('spot_market24h' in message) or (methodName.find('perp_market24h_pack_p') >= 0):
-            return self.handle_ticker(client, message)
+            self.handle_ticker(client, message)
+            return
         elif ('trades' in message) or ('trades_p' in message):
-            return self.handle_trades(client, message)
+            self.handle_trades(client, message)
+            return
         elif ('kline' in message) or ('kline_p' in message):
-            return self.handle_ohlcv(client, message)
+            self.handle_ohlcv(client, message)
+            return
         elif ('book' in message) or ('orderbook_p' in message):
-            return self.handle_order_book(client, message)
+            self.handle_order_book(client, message)
+            return
         if ('orders' in message) or ('orders_p' in message):
             orders = self.safe_value_2(message, 'orders', 'orders_p', {})
             self.handle_orders(client, orders)
@@ -1428,4 +1433,4 @@ class phemex(ccxt.async_support.phemex):
                 client.subscriptions[subscriptionHash] = self.handle_authenticate
             future = self.watch(url, messageHash, message)
             client.subscriptions[messageHash] = future
-        return await future
+        return future

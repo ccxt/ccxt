@@ -45,7 +45,13 @@ class Future(asyncio.Future):
                     if are_all_canceled and future._state == 'PENDING':
                         future.set_exception(ExchangeClosedByUser('Connection closed by the user'))
                         return
+
+                    # handle wait_for scenario
+                    if are_all_canceled and future._state == 'CANCELLED':
+                        return
+
                     first = futures_list[0]
+
                     first_result = first.result()
                     future.set_result(first_result)
             else:

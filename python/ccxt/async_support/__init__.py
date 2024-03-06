@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.11'
+__version__ = '4.2.60'
 
 # -----------------------------------------------------------------------------
 
@@ -29,9 +29,9 @@ from ccxt.base.errors import AccountSuspended                         # noqa: F4
 from ccxt.base.errors import ArgumentsRequired                        # noqa: F401
 from ccxt.base.errors import BadRequest                               # noqa: F401
 from ccxt.base.errors import BadSymbol                                # noqa: F401
-from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
-from ccxt.base.errors import NoChange                                 # noqa: F401
 from ccxt.base.errors import OperationRejected                        # noqa: F401
+from ccxt.base.errors import NoChange                                 # noqa: F401
+from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
@@ -77,7 +77,6 @@ from ccxt.async_support.bitcoincom import bitcoincom                            
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
 from ccxt.async_support.bitfinex2 import bitfinex2                              # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
-from ccxt.async_support.bitforex import bitforex                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                                  # noqa: F401
 from ccxt.async_support.bitmart import bitmart                                  # noqa: F401
@@ -91,6 +90,7 @@ from ccxt.async_support.bitteam import bitteam                                  
 from ccxt.async_support.bitvavo import bitvavo                                  # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                        # noqa: F401
 from ccxt.async_support.blockchaincom import blockchaincom                      # noqa: F401
+from ccxt.async_support.blofin import blofin                                    # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                                # noqa: F401
 from ccxt.async_support.btcbox import btcbox                                    # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                            # noqa: F401
@@ -103,6 +103,7 @@ from ccxt.async_support.coincheck import coincheck                              
 from ccxt.async_support.coinex import coinex                                    # noqa: F401
 from ccxt.async_support.coinlist import coinlist                                # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
+from ccxt.async_support.coinmetro import coinmetro                              # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
@@ -141,6 +142,7 @@ from ccxt.async_support.novadax import novadax                                  
 from ccxt.async_support.oceanex import oceanex                                  # noqa: F401
 from ccxt.async_support.okcoin import okcoin                                    # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
+from ccxt.async_support.onetrading import onetrading                            # noqa: F401
 from ccxt.async_support.p2b import p2b                                          # noqa: F401
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
@@ -177,7 +179,6 @@ exchanges = [
     'bitfinex',
     'bitfinex2',
     'bitflyer',
-    'bitforex',
     'bitget',
     'bithumb',
     'bitmart',
@@ -191,6 +192,7 @@ exchanges = [
     'bitvavo',
     'bl3p',
     'blockchaincom',
+    'blofin',
     'btcalpha',
     'btcbox',
     'btcmarkets',
@@ -203,6 +205,7 @@ exchanges = [
     'coinex',
     'coinlist',
     'coinmate',
+    'coinmetro',
     'coinone',
     'coinsph',
     'coinspot',
@@ -241,6 +244,7 @@ exchanges = [
     'oceanex',
     'okcoin',
     'okx',
+    'onetrading',
     'p2b',
     'paymium',
     'phemex',

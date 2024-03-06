@@ -96,7 +96,7 @@ export default class currencycom extends currencycomRest {
         //                     "accountId": 5470310874305732,
         //                     "collateralCurrency": true,
         //                     "asset": "USD",
-        //                     "free": 47.82576735,
+        //                     "free": 47.82576736,
         //                     "locked": 1.187925,
         //                     "default": true
         //                 },
@@ -481,6 +481,7 @@ export default class currencycom extends currencycomRest {
             orderbook = this.orderBook ();
         }
         orderbook.reset ({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
@@ -554,9 +555,10 @@ export default class currencycom extends currencycomRest {
                         };
                         const method = this.safeValue (methods, subscriptionDestination);
                         if (method === undefined) {
-                            return message;
+                            return;
                         } else {
-                            return method.call (this, client, message, subscription);
+                            method.call (this, client, message, subscription);
+                            return;
                         }
                     }
                 }
@@ -571,10 +573,8 @@ export default class currencycom extends currencycomRest {
                 'ping': this.handlePong,
             };
             const method = this.safeValue (methods, destination);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         }
     }

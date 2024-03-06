@@ -27,6 +27,7 @@ const langKeys = {
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python 3 tests only
     '--python-async': false, // run Python 3 async tests only
+    '--csharp': false,  // run C# tests only
     '--php-async': false,    // run php async tests only,
 }
 
@@ -66,6 +67,11 @@ for (const arg of args) {
 
 const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 
+// for REST exchange test, we might need to wait for 200+ seconds for some exchanges
+// for WS, watchOHLCV might need 60 seconds for update (so, spot & swap ~ 120sec)
+const timeoutSeconds = wsFlag ? 120 : 250;
+
+
 /*  --------------------------------------------------------------------------- */
 
 const exchangeOptions = []
@@ -94,7 +100,9 @@ if (!exchanges.length) {
 /*  --------------------------------------------------------------------------- */
 
 const sleep = s => new Promise (resolve => setTimeout (resolve, s*1000))
-const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => { throw new Error ('timed out') }) ])
+const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => {
+    throw new Error ('RUNTEST_TIMED_OUT');
+}) ])
 
 /*  --------------------------------------------------------------------------- */
 
@@ -104,17 +112,10 @@ const exec = (bin, ...args) => {
     stderr,  not separating them into distinct buffers — so that we can show
     the same output as if it were running in a terminal.                        */
 
-    return timeout (250, new Promise (return_ => {
+    let output = ''
+    let stderr = ''
 
-        const psSpawn = ps.spawn (bin, args)
-
-        let output = ''
-        let stderr = ''
-
-        psSpawn.stdout.on ('data', data => { output += data.toString () })
-        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); })
-
-        psSpawn.on ('exit', code => {
+    const generateResultFromOutput = (output, stderr, code) => {
             // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
             // const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
             // stderr = removeDebuger(stderr);
@@ -162,22 +163,36 @@ const exec = (bin, ...args) => {
                 warnings.push (stderr)
             }
 
-            return_ ({
+            return {
                 failed: hasFailed || code !== 0,
                 output,
                 warnings,
                 infos,
-            })
-        })
+            }
+    }
 
-    })).catch (e => ({
+    return timeout (timeoutSeconds, new Promise (return_ => {
 
-        failed: true,
-        output: e.message,
-        warnings: [],
-        infos: [],
+        const psSpawn = ps.spawn (bin, args)
 
-    }));
+        psSpawn.stdout.on ('data', data => { output += data.toString () })
+        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); })
+
+        psSpawn.on ('exit', code => return_ (generateResultFromOutput (output, stderr, code)) )
+
+    })).catch (e => {
+        const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
+        if (isTimeout) {
+            stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
+            return generateResultFromOutput (output, stderr, 0);
+        }
+        return {
+            failed: true,
+            output: e.message,
+            warnings: [],
+            infos: [],
+        }
+    } );
 };
 
 /*  ------------------------------------------------------------------------ */
@@ -251,11 +266,18 @@ const testExchange = async (exchange) => {
         args.push ('--info')
     }
     const allTestsWithoutTs = [
-            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',              ...args] },
-            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py',   ...args] },
-            { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] }
+            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
+            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
+            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
+            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
+            { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] },
         ]
 
+        if (!skipSettings[exchange] || !skipSettings[exchange].skipCSharp) {
+            allTestsWithoutTs.push (
+                { language: 'C#',             key: '--csharp',        exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',               ...args] },
+            )
+        }
         // if it's not WS tests, then add sync versions to tests queue
         if (!wsFlag) {
             allTestsWithoutTs.push (
@@ -310,7 +332,7 @@ const testExchange = async (exchange) => {
 
     // independenly of the success result, show infos
     // ( these infos will be shown as soon as each exchange test is finished, and will not wait 100% of all tests to be finished )
-    const displayInfos = false; // temporarily disable from run-tests, because they are still outputed in console from individual langs
+    const displayInfos = true; // temporarily disable from run-tests, because they are still outputed in console from individual langs
     if (displayInfos) {
         if (debugKeys['--info'] && infos.length) {
             // show info if enabled

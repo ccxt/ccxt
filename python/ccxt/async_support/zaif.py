@@ -421,7 +421,7 @@ class zaif(Exchange, ImplicitAPI):
                 response = []
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
         create a trade order
@@ -557,7 +557,7 @@ class zaif(Exchange, ImplicitAPI):
         response = await self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_orders(response['return'], market, since, limit)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
         make a withdrawal
@@ -691,7 +691,7 @@ class zaif(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         if not success:
             raise ExchangeError(feedback)
         return None

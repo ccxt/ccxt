@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Int, Order, OrderBook, Str, Strings, Ticker, Trade
+from ccxt.base.types import Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -122,7 +122,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         name = 'ticker'
         return await self.subscribe(name, symbol, name, params)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
@@ -892,4 +892,4 @@ class coinbasepro(ccxt.async_support.coinbasepro):
                 else:
                     self.handle_trade(client, message)
         else:
-            return method(client, message)
+            method(client, message)
