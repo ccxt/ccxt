@@ -13,5 +13,5 @@ export default class independentreserve extends independentreserveRest {
     handleDeltas(bookside: any, deltas: any): void;
     handleHeartbeat(client: Client, message: any): any;
     handleSubscriptions(client: Client, message: any): any;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
 }

@@ -869,7 +869,7 @@ export default class huobijp extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}): Promise<Trade[]> {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = 1000, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name huobijp#fetchTrades
@@ -949,7 +949,7 @@ export default class huobijp extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = 1000, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name huobijp#fetchOHLCV
@@ -1061,7 +1061,7 @@ export default class huobijp extends Exchange {
             const depositEnabled = this.safeValue (currency, 'deposit-enabled');
             const withdrawEnabled = this.safeValue (currency, 'withdraw-enabled');
             const countryDisabled = this.safeValue (currency, 'country-disabled');
-            const visible = this.safeValue (currency, 'visible', false);
+            const visible = this.safeBool (currency, 'visible', false);
             const state = this.safeString (currency, 'state');
             const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
             const name = this.safeString (currency, 'display-name');
@@ -1390,7 +1390,7 @@ export default class huobijp extends Exchange {
         }, market);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name huobijp#createMarketBuyOrderWithCost
@@ -1409,7 +1409,7 @@ export default class huobijp extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#createOrder
@@ -1826,7 +1826,7 @@ export default class huobijp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#withdraw

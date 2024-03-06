@@ -892,4 +892,4 @@ class coinbasepro(ccxt.async_support.coinbasepro):
                 else:
                     self.handle_trade(client, message)
         else:
-            return method(client, message)
+            method(client, message)

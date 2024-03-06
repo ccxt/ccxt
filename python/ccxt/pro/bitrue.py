@@ -408,7 +408,7 @@ class bitrue(ccxt.async_support.bitrue):
             except Exception as error:
                 self.options['listenKey'] = None
                 self.options['listenKeyUrl'] = None
-                return
+                return None
             #
             #     {
             #         "msg": "succ",

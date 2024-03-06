@@ -51,6 +51,7 @@ If you found a security issue or a critical vulnerability and reporting it in pu
   - `/js/*` (these are compiled from the typescript version)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
+  - `/cs/*` (except for base classes)
   - `/ccxt.js`
   - `/README.md` (exchange lists are generated automatically)
   - `/package.json`
@@ -119,6 +120,13 @@ If you're not going to develop CCXT and contribute code to the CCXT library, the
   composer install ccxt
   ```
 
+- [C# / Nugget](https://github.com/ccxt/ccxt/wiki/Install#netc)
+
+  ```shell
+  # C# / Nugget
+  dotnet add ccxt
+  ```
+
 ### With Docker
 
 The easiest way is to use Docker to run an isolated build & test environment with all the dependencies installed:
@@ -152,7 +160,8 @@ This way you can keep the build tools and processes isolated, not having to work
   - iconv
   - mbstring
   - PCRE
-  - bcmath (php<7.1)
+  - bcmath (php<7.1) or gmp (this is a built-in extension as of PHP 7.2+)
+- [C#](https://dotnet.microsoft.com/en-us/download) 7.0
 
 #### Build Steps
 
@@ -200,6 +209,7 @@ The contents of the repository are structured as follows:
 /js/                       # the JS version of the library
 /ts/                       # the TypeScript version of the library
 /php/                      # PHP ccxt module/package folder
+/cs/                       # C#/dotnet package folder
 /python/                   # Python ccxt module/package folder for PyPI
 /python/__init__.py        # entry point for the Python version of the ccxt.library
 /python/async_support/     # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
@@ -259,13 +269,23 @@ These Python base classes and files are not transpiled:
 
 #### PHP
 
-These files containing derived exchange classes are transpiled from JS into PHP:
+These files containing derived exchange classes are transpiled from TS into C#:
 
 - `ts/[_a-z].ts` → `php/[_a-z].php`
 
 These PHP base classes and files are not transpiled:
 
 - `php/Exchange.php php/ExchangeError.php php/Precise.php ...`
+
+#### C#
+
+These files containing derived exchange classes are transpiled from TS into C#:
+
+- `ts/src/[_a-z].ts` → `cs/src/exchanges/[_a-z].cs`
+
+These C# base classes and files are not transpiled:
+
+- `cs/base/*`
 
 #### Typescript
 

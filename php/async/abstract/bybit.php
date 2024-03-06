@@ -370,12 +370,6 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_get_v5_account_borrow_history($params = array()) {
         return $this->request('v5/account/borrow-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_v5_account_set_collateral_switch($params = array()) {
-        return $this->request('v5/account/set-collateral-switch', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function private_get_v5_account_set_collateral_switch_batch($params = array()) {
-        return $this->request('v5/account/set-collateral-switch-batch', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
     public function private_get_v5_account_collateral_info($params = array()) {
         return $this->request('v5/account/collateral-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -874,6 +868,12 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_post_v5_lending_redeem_cancel($params = array()) {
         return $this->request('v5/lending/redeem-cancel', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function private_post_v5_account_set_collateral_switch($params = array()) {
+        return $this->request('v5/account/set-collateral-switch', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_v5_account_set_collateral_switch_batch($params = array()) {
+        return $this->request('v5/account/set-collateral-switch-batch', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function publicGetSpotV3PublicSymbols($params = array()) {
         return $this->request('spot/v3/public/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1236,12 +1236,6 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privateGetV5AccountBorrowHistory($params = array()) {
         return $this->request('v5/account/borrow-history', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function privateGetV5AccountSetCollateralSwitch($params = array()) {
-        return $this->request('v5/account/set-collateral-switch', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function privateGetV5AccountSetCollateralSwitchBatch($params = array()) {
-        return $this->request('v5/account/set-collateral-switch-batch', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV5AccountCollateralInfo($params = array()) {
         return $this->request('v5/account/collateral-info', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1740,5 +1734,11 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privatePostV5LendingRedeemCancel($params = array()) {
         return $this->request('v5/lending/redeem-cancel', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AccountSetCollateralSwitch($params = array()) {
+        return $this->request('v5/account/set-collateral-switch', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AccountSetCollateralSwitchBatch($params = array()) {
+        return $this->request('v5/account/set-collateral-switch-batch', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
 }

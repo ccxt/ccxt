@@ -377,7 +377,7 @@ class coinmetro extends coinmetro$1 {
         const quote = this.safeCurrencyCode(quoteId);
         const basePrecisionAndLimits = this.parseMarketPrecisionAndLimits(baseId);
         const quotePrecisionAndLimits = this.parseMarketPrecisionAndLimits(quoteId);
-        const margin = this.safeValue(market, 'margin', false);
+        const margin = this.safeBool(market, 'margin', false);
         const tradingFees = this.safeValue(this.fees, 'trading', {});
         return this.safeMarketStructure({
             'id': id,
@@ -1166,7 +1166,8 @@ class coinmetro extends coinmetro$1 {
         }
         let type = undefined;
         let referenceId = undefined;
-        if (descriptionArray.length > 1) {
+        const length = descriptionArray.length;
+        if (length > 1) {
             type = this.parseLedgerEntryType(descriptionArray[0]);
             if (descriptionArray[1] !== '-') {
                 referenceId = descriptionArray[1];
@@ -1336,7 +1337,7 @@ class coinmetro extends coinmetro$1 {
         };
         const marginMode = undefined;
         [params, params] = this.handleMarginModeAndParams('cancelOrder', params);
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         params = this.omit(params, 'margin');
         let response = undefined;
         if (isMargin || (marginMode !== undefined)) {

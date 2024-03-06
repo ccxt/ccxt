@@ -16,5 +16,5 @@ export default class bitopro extends bitoproRest {
     authenticate(url: any): void;
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
 }

@@ -514,7 +514,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'taker': fee,
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://lightning.bitflyer.com/docs?lang=en#send-a-new-order
@@ -615,7 +615,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit=100, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -639,7 +639,7 @@ class bitflyer(Exchange, ImplicitAPI):
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit=100, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -654,7 +654,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit=100, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -756,7 +756,7 @@ class bitflyer(Exchange, ImplicitAPI):
         # todo unify parsePosition/parsePositions
         return response
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds

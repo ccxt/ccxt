@@ -282,7 +282,7 @@ class probit extends Exchange {
         $quoteId = $this->safe_string($market, 'quote_currency_id');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $closed = $this->safe_value($market, 'closed', false);
+        $closed = $this->safe_bool($market, 'closed', false);
         $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
         $taker = Precise::string_div($takerFeeRate, '100');
         $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');
@@ -419,8 +419,8 @@ class probit extends Exchange {
             $networkList = array();
             for ($j = 0; $j < count($platformsByPriority); $j++) {
                 $network = $platformsByPriority[$j];
-                $networkId = $this->safe_string($network, 'id');
-                $networkCode = $this->network_id_to_code($networkId);
+                $idInner = $this->safe_string($network, 'id');
+                $networkCode = $this->network_id_to_code($idInner);
                 $currentDepositSuspended = $this->safe_value($network, 'deposit_suspended');
                 $currentWithdrawalSuspended = $this->safe_value($network, 'withdrawal_suspended');
                 $currentDeposit = !$currentDepositSuspended;
@@ -441,7 +441,7 @@ class probit extends Exchange {
                     }
                 }
                 $networkList[$networkCode] = array(
-                    'id' => $networkId,
+                    'id' => $idInner,
                     'network' => $networkCode,
                     'active' => $currentActive,
                     'deposit' => $currentDeposit,
@@ -1178,7 +1178,7 @@ class probit extends Exchange {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://docs-en.probit.com/reference/order-1
@@ -1364,7 +1364,7 @@ class probit extends Exchange {
         return $this->parse_deposit_address($firstAddress, $currency);
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * @see https://docs-en.probit.com/reference/deposit_address
          * fetch deposit addresses for multiple currencies and chain types
@@ -1387,7 +1387,7 @@ class probit extends Exchange {
         return $this->parse_deposit_addresses($data, $codes);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * @see https://docs-en.probit.com/reference/withdrawal
          * make a withdrawal
@@ -1526,7 +1526,7 @@ class probit extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
@@ -1563,12 +1563,12 @@ class probit extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency_id');
         $code = $this->safe_currency_code($currencyId);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $feeCostString = $this->safe_string($transaction, 'fee');
         $fee = null;
-        if ($feeCost !== null && $feeCost !== 0) {
+        if ($feeCostString !== null && $feeCostString !== '0') {
             $fee = array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCostString),
             );
         }
         return array(

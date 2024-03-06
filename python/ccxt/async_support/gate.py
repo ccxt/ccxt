@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -64,7 +64,7 @@ class gate(Exchange, ImplicitAPI):
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
                         'subAccounts': 'https://api.gateio.ws/api/v4',
-                        'portfolio': 'https://api.gateio.ws/api/v4',
+                        'unified': 'https://api.gateio.ws/api/v4',
                         'rebate': 'https://api.gateio.ws/api/v4',
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
@@ -287,11 +287,14 @@ class gate(Exchange, ImplicitAPI):
                             'saved_address': 1,
                             'fee': 1,
                             'total_balance': 2.5,
+                            'small_balance': 1,
+                            'small_balance_history': 1,
                         },
                         'post': {
                             'transfers': 2.5,  # 8r/s cost = 20 / 8 = 2.5
                             'sub_account_transfers': 2.5,
                             'sub_account_to_sub_account': 2.5,
+                            'small_balance': 1,
                         },
                     },
                     'subAccounts': {
@@ -314,7 +317,7 @@ class gate(Exchange, ImplicitAPI):
                             'sub_accounts/{user_id}/keys/{key}': 2.5,
                         },
                     },
-                    'portfolio': {
+                    'unified': {
                         'get': {
                             'accounts': 20 / 15,
                             'account_mode': 20 / 15,
@@ -323,6 +326,7 @@ class gate(Exchange, ImplicitAPI):
                             'loans': 20 / 15,
                             'loan_records': 20 / 15,
                             'interest_records': 20 / 15,
+                            'estimate_rate': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
@@ -888,7 +892,7 @@ class gate(Exchange, ImplicitAPI):
         reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
         return reconstructedDate
 
-    def create_expired_option_market(self, symbol):
+    def create_expired_option_market(self, symbol: str):
         # support expired option contracts
         quote = 'USDT'
         settle = quote
@@ -969,7 +973,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         rawPromises = [
             self.fetch_contract_markets(params),
             self.fetch_option_markets(params),
@@ -1561,11 +1565,13 @@ class gate(Exchange, ImplicitAPI):
             currency = parts[0]
             code = self.safe_currency_code(currency)
             networkId = self.safe_string(entry, 'chain')
-            networkCode = self.network_id_to_code(networkId, code)
+            networkCode = None
+            if networkId is not None:
+                networkCode = self.network_id_to_code(networkId, code)
             delisted = self.safe_value(entry, 'delisted')
-            withdrawDisabled = self.safe_value(entry, 'withdraw_disabled', False)
-            depositDisabled = self.safe_value(entry, 'deposit_disabled', False)
-            tradeDisabled = self.safe_value(entry, 'trade_disabled', False)
+            withdrawDisabled = self.safe_bool(entry, 'withdraw_disabled', False)
+            depositDisabled = self.safe_bool(entry, 'deposit_disabled', False)
+            tradeDisabled = self.safe_bool(entry, 'trade_disabled', False)
             withdrawEnabled = not withdrawDisabled
             depositEnabled = not depositDisabled
             tradeEnabled = not tradeDisabled
@@ -1591,32 +1597,33 @@ class gate(Exchange, ImplicitAPI):
             withdrawAvailable = self.safe_value(result[code], 'withdraw')
             withdrawAvailable = withdrawEnabled if (withdrawEnabled) else withdrawAvailable
             networks = self.safe_value(result[code], 'networks', {})
-            networks[networkCode] = {
-                'info': entry,
-                'id': networkId,
-                'network': networkCode,
-                'currencyId': currencyId,
-                'lowerCaseCurrencyId': currencyIdLower,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'active': active,
-                'fee': None,
-                'precision': self.parse_number('1e-4'),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': entry,
+                    'id': networkId,
+                    'network': networkCode,
+                    'currencyId': currencyId,
+                    'lowerCaseCurrencyId': currencyIdLower,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'active': active,
+                    'fee': None,
+                    'precision': self.parse_number('1e-4'),
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            }
+                }
             result[code]['networks'] = networks
             info = self.safe_value(result[code], 'info', [])
             info.append(entry)
@@ -2016,7 +2023,7 @@ class gate(Exchange, ImplicitAPI):
             'taker': self.safe_number(info, takerKey),
         }
 
-    async def fetch_transaction_fees(self, codes=None, params={}):
+    async def fetch_transaction_fees(self, codes: List[str] = None, params={}):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
@@ -2503,6 +2510,7 @@ class gate(Exchange, ImplicitAPI):
         type, query = self.handle_market_type_and_params('fetchTickers', market, params)
         request, requestParams = self.prepare_request(None, type, query)
         response = None
+        request['timezone'] = 'utc0'  # default to utc
         if type == 'spot' or type == 'margin':
             response = await self.publicSpotGetTickers(self.extend(request, requestParams))
         elif type == 'swap':
@@ -2516,7 +2524,7 @@ class gate(Exchange, ImplicitAPI):
             request['underlying'] = self.safe_string(optionParts, 0)
             response = await self.publicOptionsGetTickers(self.extend(request, requestParams))
         else:
-            raise NotSupported(self.id + ' fetchTickers() not support self market type')
+            raise NotSupported(self.id + ' fetchTickers() not support self market type, provide symbols or set params["defaultType"] to one from spot/margin/swap/future/option')
         return self.parse_tickers(response, symbols)
 
     def parse_balance_helper(self, entry):
@@ -3383,7 +3391,7 @@ class gate(Exchange, ImplicitAPI):
         response = await self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :see: https://www.gate.io/docs/developers/apiv4/en/#withdraw
@@ -3530,7 +3538,7 @@ class gate(Exchange, ImplicitAPI):
             },
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         Create an order on the exchange
         :see: https://www.gate.io/docs/developers/apiv4/en/#create-an-order
@@ -3696,7 +3704,7 @@ class gate(Exchange, ImplicitAPI):
             response = await self.privateFuturesPostSettleBatchOrders(ordersRequests)
         return self.parse_orders(response)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         market = self.market(symbol)
         contract = market['contract']
         trigger = self.safe_value(params, 'trigger')
@@ -3806,7 +3814,7 @@ class gate(Exchange, ImplicitAPI):
                 if timeInForce is not None:
                     request['time_in_force'] = timeInForce
             clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
-            textIsRequired = self.safe_value(params, 'textIsRequired', False)
+            textIsRequired = self.safe_bool(params, 'textIsRequired', False)
             if clientOrderId is not None:
                 # user-defined, must follow the rules if not empty
                 #     prefixed with t-
@@ -3903,7 +3911,7 @@ class gate(Exchange, ImplicitAPI):
                     }
         return self.extend(request, params)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
         :see: https://www.gate.io/docs/developers/apiv4/en/#create-an-order
@@ -3919,7 +3927,7 @@ class gate(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
         :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
@@ -4147,7 +4155,7 @@ class gate(Exchange, ImplicitAPI):
         #        "message": "Not enough balance"
         #    }
         #
-        succeeded = self.safe_value(order, 'succeeded', True)
+        succeeded = self.safe_bool(order, 'succeeded', True)
         if not succeeded:
             # cancelOrders response
             return self.safe_order({
@@ -4729,7 +4737,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
-    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :see: https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
@@ -4805,7 +4813,7 @@ class gate(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    async def set_leverage(self, leverage, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage
@@ -4827,14 +4835,15 @@ class gate(Exchange, ImplicitAPI):
         defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
         crossLeverageLimit = self.safe_string(query, 'cross_leverage_limit')
         marginMode = self.safe_string(query, 'marginMode', defaultMarginMode)
+        stringifiedMargin = self.number_to_string(leverage)
         if crossLeverageLimit is not None:
             marginMode = 'cross'
-            leverage = crossLeverageLimit
+            stringifiedMargin = crossLeverageLimit
         if marginMode == 'cross' or marginMode == 'cross_margin':
-            request['cross_leverage_limit'] = str(leverage)
+            request['cross_leverage_limit'] = stringifiedMargin
             request['leverage'] = '0'
         else:
-            request['leverage'] = str(leverage)
+            request['leverage'] = stringifiedMargin
         response = None
         if market['swap']:
             response = await self.privateFuturesPostSettlePositionsContractLeverage(self.extend(request, query))
@@ -5430,7 +5439,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.safe_value(response, 0)
         return self.parse_margin_loan(response, currency)
 
-    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://www.gate.io/docs/developers/apiv4/en/#marginuni
@@ -5473,7 +5482,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    async def borrow_cross_margin(self, code: str, amount, params={}):
+    async def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
         :see: https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
@@ -6175,7 +6184,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def set_position_mode(self, hedged, symbol=None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: str = None, params={}):
         """
         set dual/hedged mode to True or False for a swap market, make sure all positions are closed and no orders are open before setting dual mode
         :see: https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
@@ -6439,6 +6448,7 @@ class gate(Exchange, ImplicitAPI):
             entryMarketId = self.safe_string(entry, 'name')
             if entryMarketId == marketId:
                 return self.parse_greeks(entry, market)
+        return None
 
     def parse_greeks(self, greeks, market: Market = None):
         #

@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks } from './src/base/types.js'
+import type { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory, MarginMode, Greeks, Leverage, Leverages } from './src/base/types.js'
 import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange }  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.29';
+const version = '4.2.60';
 
 (Exchange as any).ccxtVersion = version
 
@@ -64,7 +64,6 @@ import bitcoincom from  './src/bitcoincom.js'
 import bitfinex from  './src/bitfinex.js'
 import bitfinex2 from  './src/bitfinex2.js'
 import bitflyer from  './src/bitflyer.js'
-import bitforex from  './src/bitforex.js'
 import bitget from  './src/bitget.js'
 import bithumb from  './src/bithumb.js'
 import bitmart from  './src/bitmart.js'
@@ -78,6 +77,7 @@ import bitteam from  './src/bitteam.js'
 import bitvavo from  './src/bitvavo.js'
 import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
+import blofin from  './src/blofin.js'
 import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
@@ -201,6 +201,7 @@ import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
 import onetradingPro from  './src/pro/onetrading.js'
+import p2bPro from  './src/pro/p2b.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
@@ -229,7 +230,6 @@ const exchanges = {
     'bitfinex':               bitfinex,
     'bitfinex2':              bitfinex2,
     'bitflyer':               bitflyer,
-    'bitforex':               bitforex,
     'bitget':                 bitget,
     'bithumb':                bithumb,
     'bitmart':                bitmart,
@@ -243,6 +243,7 @@ const exchanges = {
     'bitvavo':                bitvavo,
     'bl3p':                   bl3p,
     'blockchaincom':          blockchaincom,
+    'blofin':                 blofin,
     'btcalpha':               btcalpha,
     'btcbox':                 btcbox,
     'btcmarkets':             btcmarkets,
@@ -366,6 +367,7 @@ const pro = {
     'okcoin':                 okcoinPro,
     'okx':                    okxPro,
     'onetrading':             onetradingPro,
+    'p2b':                    p2bPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'poloniexfutures':        poloniexfuturesPro,
@@ -454,6 +456,8 @@ export {
     FundingHistory,
     MarginMode,
     Greeks,
+    Leverage,
+    Leverages,
     ace,
     alpaca,
     ascendex,
@@ -472,7 +476,6 @@ export {
     bitfinex,
     bitfinex2,
     bitflyer,
-    bitforex,
     bitget,
     bithumb,
     bitmart,
@@ -486,6 +489,7 @@ export {
     bitvavo,
     bl3p,
     blockchaincom,
+    blofin,
     btcalpha,
     btcbox,
     btcmarkets,

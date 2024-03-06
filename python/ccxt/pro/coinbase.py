@@ -88,7 +88,7 @@ class coinbase(ccxt.async_support.coinbase):
         }
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def watch_ticker(self, symbol, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
@@ -251,7 +251,7 @@ class coinbase(ccxt.async_support.coinbase):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
@@ -437,7 +437,8 @@ class coinbase(ccxt.async_support.coinbase):
             side = self.safe_string(self.options['sides'], sideId)
             price = self.safe_number(trade, 'price_level')
             amount = self.safe_number(trade, 'new_quantity')
-            orderbook[side].store(price, amount)
+            orderbookSide = orderbook[side]
+            orderbookSide.store(price, amount)
 
     def handle_order_book(self, client, message):
         #
@@ -525,4 +526,4 @@ class coinbase(ccxt.async_support.coinbase):
             errorMessage = self.safe_string(message, 'message')
             raise ExchangeError(errorMessage)
         method = self.safe_value(methods, channel)
-        return method(client, message)
+        method(client, message)

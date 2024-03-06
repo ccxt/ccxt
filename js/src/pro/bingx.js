@@ -8,7 +8,7 @@
 import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import Precise from '../base/Precise.js';
+import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class bingx extends bingxRest {
     describe() {
@@ -720,7 +720,7 @@ export default class bingx extends bingxRest {
     }
     setBalanceCache(client, type, subscriptionHash, params) {
         if (subscriptionHash in client.subscriptions) {
-            return undefined;
+            return;
         }
         const fetchBalanceSnapshot = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {

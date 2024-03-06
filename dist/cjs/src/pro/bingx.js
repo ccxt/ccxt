@@ -717,7 +717,7 @@ class bingx extends bingx$1 {
     }
     setBalanceCache(client, type, subscriptionHash, params) {
         if (subscriptionHash in client.subscriptions) {
-            return undefined;
+            return;
         }
         const fetchBalanceSnapshot = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {

@@ -717,7 +717,7 @@ class coinone(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'transactions', [])
         return self.parse_trades(data, market, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
@@ -1019,7 +1019,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_deposit_addresses(self, codes=None, params={}):
+    def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
         """
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: list of unified currency codes, default is None

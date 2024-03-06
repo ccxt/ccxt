@@ -122,8 +122,8 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $future;
     }
 
-    public function subscribe_public(string $name, ?array $symbols = null, $params = array ()) {
-        return Async\async(function () use ($name, $symbols, $params) {
+    public function subscribe_public(string $name, string $messageHashPrefix, ?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($name, $messageHashPrefix, $symbols, $params) {
             /**
              * @ignore
              * @param {string} $name websocket endpoint $name
@@ -132,7 +132,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              */
             Async\await($this->load_markets());
             $url = $this->urls['api']['ws']['public'];
-            $messageHash = $name;
+            $messageHash = $messageHashPrefix;
             if ($symbols !== null) {
                 $messageHash = $messageHash . '::' . implode(',', $symbols);
             }
@@ -182,7 +182,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
-            $messageHash = $this->nonce();
+            $messageHash = (string) $this->nonce();
             $subscribe = array(
                 'method' => $name,
                 'params' => $params,
@@ -229,7 +229,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                     'symbols' => [ $market['id'] ],
                 ),
             );
-            $orderbook = Async\await($this->subscribe_public($name, array( $symbol ), $this->deep_extend($request, $params)));
+            $orderbook = Async\await($this->subscribe_public($name, 'orderbooks', array( $symbol ), $this->deep_extend($request, $params)));
             return $orderbook->limit ();
         }) ();
     }
@@ -260,13 +260,12 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $data = $this->safe_value_2($message, 'snapshot', 'update', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
-        $channel = $this->safe_string($message, 'ch');
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $item = $data[$marketId];
-            $messageHash = $channel . '::' . $symbol;
+            $messageHash = 'orderbooks::' . $symbol;
             if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
                 $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
                 $limit = $this->safe_integer($subscription, 'limit');
@@ -326,7 +325,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                     'symbols' => [ $market['id'] ],
                 ),
             );
-            $result = Async\await($this->subscribe_public($name, array( $symbol ), $this->deep_extend($request, $params)));
+            $result = Async\await($this->subscribe_public($name, 'tickers', array( $symbol ), $this->deep_extend($request, $params)));
             return $this->safe_value($result, $symbol);
         }) ();
     }
@@ -362,7 +361,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                     'symbols' => $marketIds,
                 ),
             );
-            $tickers = Async\await($this->subscribe_public($name, $symbols, $this->deep_extend($request, $params)));
+            $tickers = Async\await($this->subscribe_public($name, 'tickers', $symbols, $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
                 return $tickers;
             }
@@ -411,7 +410,6 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $data = $this->safe_value($message, 'data', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
-        $channel = $this->safe_string($message, 'ch');
         $newTickers = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -420,10 +418,9 @@ class hitbtc extends \ccxt\async\hitbtc {
             $ticker = $this->parse_ws_ticker($data[$marketId], $market);
             $this->tickers[$symbol] = $ticker;
             $newTickers[$symbol] = $ticker;
-            $messageHash = $channel . '::' . $symbol;
-            $client->resolve ($newTickers, $messageHash);
         }
-        $messageHashes = $this->find_message_hashes($client, $channel . '::');
+        $client->resolve ($newTickers, 'tickers');
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
             $parts = explode('::', $messageHash);
@@ -436,7 +433,6 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $client->resolve ($tickers, $messageHash);
             }
         }
-        $client->resolve ($this->tickers, $channel);
         return $message;
     }
 
@@ -517,7 +513,8 @@ class hitbtc extends \ccxt\async\hitbtc {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $trades = Async\await($this->subscribe_public('trades', array( $symbol ), $this->deep_extend($request, $params)));
+            $name = 'trades';
+            $trades = Async\await($this->subscribe_public($name, 'trades', array( $symbol ), $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -650,7 +647,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             if ($limit !== null) {
                 $request['params']['limit'] = $limit;
             }
-            $ohlcv = Async\await($this->subscribe_public($name, array( $symbol ), $this->deep_extend($request, $params)));
+            $ohlcv = Async\await($this->subscribe_public($name, 'candles', array( $symbol ), $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -713,7 +710,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             for ($j = 0; $j < count($ohlcvs); $j++) {
                 $stored->append ($ohlcvs[$j]);
             }
-            $messageHash = $channel . '::' . $symbol;
+            $messageHash = 'candles::' . $symbol;
             $client->resolve ($stored, $messageHash);
         }
         return $message;
@@ -1015,7 +1012,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }) ();
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()): PromiseInterface {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order

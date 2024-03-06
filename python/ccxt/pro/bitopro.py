@@ -440,7 +440,5 @@ class bitopro(ccxt.async_support.bitopro):
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)
-        if method is None:
-            return message
-        else:
-            return method(client, message)
+        if method is not None:
+            method(client, message)

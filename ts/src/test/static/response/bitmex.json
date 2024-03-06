@@ -308,6 +308,110 @@
           "stopLossPrice": null
         }
       }
+    ],
+    "fetchMyTrades": [
+      {
+        "description": "fetch swap trades",
+        "method": "fetchMyTrades",
+        "input": [
+          "BTC/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": [
+          {
+            "execID": "b83edd70-2c2d-7eb8-fa36-58cb88962a4f",
+            "orderID": "eaf968c6-906b-4aaa-a32a-ab65d6e06ed7",
+            "account": "395724",
+            "symbol": "XBTUSDT",
+            "side": "Buy",
+            "lastQty": "1000",
+            "lastPx": "20933",
+            "lastLiquidityInd": "RemovedLiquidity",
+            "orderQty": "1000",
+            "price": "20933",
+            "currency": "USDT",
+            "settlCurrency": "USDt",
+            "execType": "Trade",
+            "ordType": "Market",
+            "timeInForce": "ImmediateOrCancel",
+            "ordStatus": "Filled",
+            "workingIndicator": false,
+            "leavesQty": "0",
+            "cumQty": "1000",
+            "avgPx": "20933",
+            "commission": "0.00075",
+            "tradePublishIndicator": "PublishTrade",
+            "text": "Submission from testnet.bitmex.com",
+            "trdMatchID": "1b8956e3-246e-3f12-e868-156cc056e82e",
+            "execCost": "20933000",
+            "execComm": "15699",
+            "homeNotional": "0.001",
+            "foreignNotional": "-20.933",
+            "transactTime": "2022-06-20T11:50:52.376Z",
+            "timestamp": "2022-06-20T11:50:52.376Z"
+          }
+        ],
+        "parsedResponse": [
+          {
+            "info": {
+              "execID": "b83edd70-2c2d-7eb8-fa36-58cb88962a4f",
+              "orderID": "eaf968c6-906b-4aaa-a32a-ab65d6e06ed7",
+              "account": "395724",
+              "symbol": "XBTUSDT",
+              "side": "Buy",
+              "lastQty": "1000",
+              "lastPx": "20933",
+              "lastLiquidityInd": "RemovedLiquidity",
+              "orderQty": "1000",
+              "price": "20933",
+              "currency": "USDT",
+              "settlCurrency": "USDt",
+              "execType": "Trade",
+              "ordType": "Market",
+              "timeInForce": "ImmediateOrCancel",
+              "ordStatus": "Filled",
+              "workingIndicator": false,
+              "leavesQty": "0",
+              "cumQty": "1000",
+              "avgPx": "20933",
+              "commission": "0.00075",
+              "tradePublishIndicator": "PublishTrade",
+              "text": "Submission from testnet.bitmex.com",
+              "trdMatchID": "1b8956e3-246e-3f12-e868-156cc056e82e",
+              "execCost": "20933000",
+              "execComm": "15699",
+              "homeNotional": "0.001",
+              "foreignNotional": "-20.933",
+              "transactTime": "2022-06-20T11:50:52.376Z",
+              "timestamp": "2022-06-20T11:50:52.376Z"
+            },
+            "timestamp": 1655725852376,
+            "datetime": "2022-06-20T11:50:52.376Z",
+            "symbol": "BTC/USDT:USDT",
+            "id": "1b8956e3-246e-3f12-e868-156cc056e82e",
+            "order": "eaf968c6-906b-4aaa-a32a-ab65d6e06ed7",
+            "type": "market",
+            "takerOrMaker": "taker",
+            "side": "buy",
+            "price": 20933,
+            "cost": 20933000,
+            "amount": 1000,
+            "fee": {
+              "cost": 15699,
+              "currency": "USDT",
+              "rate": 0.00075
+            },
+            "fees": [
+              {
+                "cost": 15699,
+                "currency": "USDT",
+                "rate": 0.00075
+              }
+            ]
+          }
+        ]
+      }
     ]
   }
 }

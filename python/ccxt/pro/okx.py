@@ -528,7 +528,7 @@ class okx(ccxt.async_support.okx):
         storedBids = orderbook['bids']
         self.handle_deltas(storedAsks, asks)
         self.handle_deltas(storedBids, bids)
-        checksum = self.safe_value(self.options, 'checksum', True)
+        checksum = self.safe_bool(self.options, 'checksum', True)
         if checksum:
             asksLength = len(storedAsks)
             bidsLength = len(storedBids)
@@ -710,7 +710,7 @@ class okx(ccxt.async_support.okx):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     async def watch_balance(self, params={}) -> Balances:
         """
@@ -815,7 +815,7 @@ class okx(ccxt.async_support.okx):
         # By default, receive order updates from any instrument type
         type = None
         type, params = self.handle_option_and_params(params, 'watchMyTrades', 'type', 'ANY')
-        isStop = self.safe_value(params, 'stop', False)
+        isStop = self.safe_bool(params, 'stop', False)
         params = self.omit(params, ['stop'])
         await self.load_markets()
         await self.authenticate({'access': 'business' if isStop else 'private'})
@@ -851,8 +851,6 @@ class okx(ccxt.async_support.okx):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        if self.is_empty(symbols):
-            raise ArgumentsRequired(self.id + ' watchPositions requires a list of symbols')
         await self.load_markets()
         await self.authenticate(params)
         symbols = self.market_symbols(symbols)
@@ -860,7 +858,21 @@ class okx(ccxt.async_support.okx):
             'instType': 'ANY',
         }
         channel = 'positions'
-        newPositions = await self.subscribe_multiple('private', channel, symbols, self.extend(request, params))
+        newPositions = None
+        if symbols is None:
+            arg = {
+                'channel': 'positions',
+                'instType': 'ANY',
+            }
+            args = [arg]
+            nonSymbolRequest = {
+                'op': 'subscribe',
+                'args': args,
+            }
+            url = self.get_url(channel, 'private')
+            newPositions = await self.watch(url, channel, nonSymbolRequest, channel)
+        else:
+            newPositions = await self.subscribe_multiple('private', channel, symbols, self.extend(request, params))
         if self.newUpdates:
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
@@ -953,6 +965,7 @@ class okx(ccxt.async_support.okx):
             positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
             if not self.is_empty(positions):
                 client.resolve(positions, messageHash)
+        client.resolve(newPositions, channel)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1453,7 +1466,8 @@ class okx(ccxt.async_support.okx):
         #
         #
         if message == 'pong':
-            return self.handle_pong(client, message)
+            self.handle_pong(client, message)
+            return
         # table = self.safe_string(message, 'table')
         # if table is None:
         event = self.safe_string_2(message, 'event', 'op')
@@ -1471,10 +1485,8 @@ class okx(ccxt.async_support.okx):
                 'mass-cancel': self.handle_cancel_all_orders,
             }
             method = self.safe_value(methods, event)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)
         else:
             arg = self.safe_value(message, 'arg', {})
             channel = self.safe_string(arg, 'channel')
@@ -1499,7 +1511,5 @@ class okx(ccxt.async_support.okx):
             if method is None:
                 if channel.find('candle') == 0:
                     self.handle_ohlcv(client, message)
-                else:
-                    return message
             else:
-                return method(client, message)
+                method(client, message)

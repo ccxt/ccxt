@@ -19,7 +19,7 @@ class whitebit extends whitebit$1 {
             'name': 'WhiteBit',
             'version': 'v4',
             'countries': ['EE'],
-            'rateLimit': 500,
+            'rateLimit': 50,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -227,6 +227,7 @@ class whitebit extends whitebit$1 {
                     'account': 'spot',
                 },
                 'accountsByType': {
+                    'funding': 'main',
                     'main': 'main',
                     'spot': 'spot',
                     'margin': 'collateral',
@@ -422,8 +423,8 @@ class whitebit extends whitebit$1 {
             const currency = response[id];
             // breaks down in Python due to utf8 encoding issues on the exchange side
             // const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeValue(currency, 'can_deposit', true);
-            const canWithdraw = this.safeValue(currency, 'can_withdraw', true);
+            const canDeposit = this.safeBool(currency, 'can_deposit', true);
+            const canWithdraw = this.safeBool(currency, 'can_withdraw', true);
             const active = canDeposit && canWithdraw;
             const code = this.safeCurrencyCode(id);
             result[code] = {
@@ -1320,9 +1321,9 @@ class whitebit extends whitebit$1 {
         else {
             const options = this.safeValue(this.options, 'fetchBalance', {});
             const defaultAccount = this.safeString(options, 'account');
-            const account = this.safeString(params, 'account', defaultAccount);
-            params = this.omit(params, 'account');
-            if (account === 'main') {
+            const account = this.safeString2(params, 'account', 'type', defaultAccount);
+            params = this.omit(params, ['account', 'type']);
+            if (account === 'main' || account === 'funding') {
                 response = await this.v4PrivatePostMainAccountBalance(params);
             }
             else {

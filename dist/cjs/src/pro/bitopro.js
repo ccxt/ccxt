@@ -464,11 +464,8 @@ class bitopro extends bitopro$1 {
         };
         const event = this.safeString(message, 'event');
         const method = this.safeValue(methods, event);
-        if (method === undefined) {
-            return message;
-        }
-        else {
-            return method.call(this, client, message);
+        if (method !== undefined) {
+            method.call(this, client, message);
         }
     }
 }

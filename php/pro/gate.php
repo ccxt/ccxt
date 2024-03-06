@@ -19,7 +19,7 @@ class gate extends \ccxt\async\gate {
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchTicker' => true,
-                'watchTickers' => true, // for now
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchMyTrades' => true,
@@ -215,7 +215,7 @@ class gate extends \ccxt\async\gate {
                 // max $limit is 100
                 $subscription = $client->subscriptions[$messageHash];
                 $limit = $this->safe_integer($subscription, 'limit');
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array()); // needed for c#, number of args needs to match
             }
             $storedOrderBook->cache[] = $delta;
             return;
@@ -279,6 +279,7 @@ class gate extends \ccxt\async\gate {
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -287,45 +288,22 @@ class gate extends \ccxt\async\gate {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $marketId = $market['id'];
-            $url = $this->get_url_by_market($market);
-            $messageType = $this->get_type_by_market($market);
-            list($topic, $query) = $this->handle_option_and_params($params, 'watchTicker', 'name', 'tickers');
-            $channel = $messageType . '.' . $topic;
-            $messageHash = 'ticker:' . $symbol;
-            $payload = array( $marketId );
-            return Async\await($this->subscribe_public($url, $messageHash, $payload, $channel, $query));
+            $params['callerMethodName'] = 'watchTicker';
+            $result = Async\await($this->watch_tickers(array( $symbol ), $params));
+            return $this->safe_value($result, $symbol);
         }) ();
     }
 
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
+             * @see https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchTickers requires symbols');
-            }
-            $market = $this->market($symbols[0]);
-            $messageType = $this->get_type_by_market($market);
-            $marketIds = $this->market_ids($symbols);
-            list($topic, $query) = $this->handle_option_and_params($params, 'watchTicker', 'method', 'tickers');
-            $channel = $messageType . '.' . $topic;
-            $messageHash = 'tickers';
-            $url = $this->get_url_by_market($market);
-            $ticker = Async\await($this->subscribe_public($url, $messageHash, $marketIds, $channel, $query));
-            $result = array();
-            if ($this->newUpdates) {
-                $result[$ticker['symbol']] = $ticker;
-            } else {
-                $result = $this->tickers;
-            }
-            return $this->filter_by_array($result, 'symbol', $symbols, true);
+            return Async\await($this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchTickers', array_merge(array( 'method' => 'tickers' ), $params)));
         }) ();
     }
 
@@ -347,6 +325,26 @@ class gate extends \ccxt\async\gate {
         //          "low_24h" => "42721.03"
         //        }
         //    }
+        //
+        $this->handle_ticker_and_bid_ask('ticker', $client, $message);
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
+             * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+             * watches best bid & ask for $symbols
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            return Async\await($this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchBidsAsks', array_merge(array( 'method' => 'book_ticker' ), $params)));
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        //
         //    {
         //        "time" => 1671363004,
         //        "time_ms" => 1671363004235,
@@ -363,24 +361,66 @@ class gate extends \ccxt\async\gate {
         //        }
         //    }
         //
+        $this->handle_ticker_and_bid_ask('bidask', $client, $message);
+    }
+
+    public function subscribe_watch_tickers_and_bids_asks(?array $symbols = null, ?string $callerMethodName = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $callerMethodName, $params) {
+            Async\await($this->load_markets());
+            list($callerMethodName, $params) = $this->handle_param_string($params, 'callerMethodName', $callerMethodName);
+            $symbols = $this->market_symbols($symbols, null, false);
+            $market = $this->market($symbols[0]);
+            $messageType = $this->get_type_by_market($market);
+            $marketIds = $this->market_ids($symbols);
+            $channelName = null;
+            list($channelName, $params) = $this->handle_option_and_params($params, $callerMethodName, 'method');
+            $url = $this->get_url_by_market($market);
+            $channel = $messageType . '.' . $channelName;
+            $isWatchTickers = mb_strpos($callerMethodName, 'watchTicker') !== false;
+            $prefix = $isWatchTickers ? 'ticker' : 'bidask';
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $messageHashes[] = $prefix . ':' . $symbol;
+            }
+            $tickerOrBidAsk = Async\await($this->subscribe_public_multiple($url, $messageHashes, $marketIds, $channel, $params));
+            if ($this->newUpdates) {
+                $items = array();
+                $items[$tickerOrBidAsk['symbol']] = $tickerOrBidAsk;
+                return $items;
+            }
+            $result = $isWatchTickers ? $this->tickers : $this->bidsasks;
+            return $this->filter_by_array($result, 'symbol', $symbols, true);
+        }) ();
+    }
+
+    public function handle_ticker_and_bid_ask(string $objectName, Client $client, $message) {
         $channel = $this->safe_string($message, 'channel');
         $parts = explode('.', $channel);
         $rawMarketType = $this->safe_string($parts, 0);
         $marketType = ($rawMarketType === 'futures') ? 'contract' : 'spot';
         $result = $this->safe_value($message, 'result');
-        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
-            $result = array( $result );
+        $results = array();
+        if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
+            $results = $this->safe_list($message, 'result', array());
+        } else {
+            $rawTicker = $this->safe_dict($message, 'result', array());
+            $results = array( $rawTicker );
         }
-        for ($i = 0; $i < count($result); $i++) {
-            $ticker = $result[$i];
-            $marketId = $this->safe_string($ticker, 's');
+        $isTicker = ($objectName === 'ticker'); // whether ticker or bid-ask
+        for ($i = 0; $i < count($results); $i++) {
+            $rawTicker = $results[$i];
+            $marketId = $this->safe_string($rawTicker, 's');
             $market = $this->safe_market($marketId, null, '_', $marketType);
-            $parsed = $this->parse_ticker($ticker, $market);
-            $symbol = $parsed['symbol'];
-            $this->tickers[$symbol] = $parsed;
-            $messageHash = 'ticker:' . $symbol;
-            $client->resolve ($parsed, $messageHash);
-            $client->resolve ($parsed, 'tickers');
+            $parsedItem = $this->parse_ticker($rawTicker, $market);
+            $symbol = $parsedItem['symbol'];
+            if ($isTicker) {
+                $this->tickers[$symbol] = $parsedItem;
+            } else {
+                $this->bidsasks[$symbol] = $parsedItem;
+            }
+            $messageHash = $objectName . ':' . $symbol;
+            $client->resolve ($parsedItem, $messageHash);
         }
     }
 
@@ -805,7 +845,7 @@ class gate extends \ccxt\async\gate {
             $client = $this->client($url);
             $this->set_positions_cache($client, $type, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_value('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
             $cache = $this->safe_value($this->positions, $type);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
                 return Async\await($client->future ($type . ':fetchPositionsSnapshot'));
@@ -1199,7 +1239,7 @@ class gate extends \ccxt\async\gate {
             'orders' => array($this, 'handle_order'),
             'positions' => array($this, 'handle_positions'),
             'tickers' => array($this, 'handle_ticker'),
-            'book_ticker' => array($this, 'handle_ticker'),
+            'book_ticker' => array($this, 'handle_bid_ask'),
             'trades' => array($this, 'handle_trades'),
             'order_book_update' => array($this, 'handle_order_book'),
             'balances' => array($this, 'handle_balance'),

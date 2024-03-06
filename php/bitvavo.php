@@ -566,7 +566,7 @@ class bitvavo extends Exchange {
         //         "market":"ETH-BTC",
         //         "open":"0.022578",
         //         "high":"0.023019",
-        //         "low":"0.022573",
+        //         "low":"0.022572",
         //         "last":"0.023019",
         //         "volume":"25.16366324",
         //         "volumeQuote":"0.57333305",
@@ -1042,7 +1042,7 @@ class bitvavo extends Exchange {
         );
     }
 
-    public function create_order_request(?string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(?string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -1105,7 +1105,7 @@ class bitvavo extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_order(?string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(?string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
@@ -1205,7 +1205,7 @@ class bitvavo extends Exchange {
         return $request;
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
@@ -1690,7 +1690,7 @@ class bitvavo extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

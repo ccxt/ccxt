@@ -284,6 +284,7 @@ export default class okx extends Exchange {
                         'trade/easy-convert-history': 20,
                         'trade/one-click-repay-currency-list': 20,
                         'trade/one-click-repay-history': 20,
+                        'trade/account-rate-limit': 1,
                         // asset
                         'asset/currencies': 5 / 3,
                         'asset/balances': 5 / 3,
@@ -344,9 +345,11 @@ export default class okx extends Exchange {
                         'tradingBot/grid/sub-orders': 1,
                         'tradingBot/grid/positions': 1,
                         'tradingBot/grid/ai-param': 1,
-                        'tradingBot/public/rsi-back-testing': 1,
+                        'tradingBot/signal/signals': 1,
                         'tradingBot/signal/orders-algo-details': 1,
+                        'tradingBot/signal/orders-algo-history': 1,
                         'tradingBot/signal/positions': 1,
+                        'tradingBot/signal/positions-history': 1,
                         'tradingBot/signal/sub-orders': 1,
                         'tradingBot/signal/event-history': 1,
                         'tradingBot/recurring/orders-algo-pending': 1,
@@ -444,6 +447,7 @@ export default class okx extends Exchange {
                         'account/quick-margin-borrow-repay': 4,
                         'account/borrow-repay': 5 / 3,
                         'account/simulated_margin': 10,
+                        'account/position-builder': 10,
                         'account/set-riskOffset-type': 2,
                         'account/activate-option': 4,
                         'account/set-auto-loan': 4,
@@ -466,6 +470,15 @@ export default class okx extends Exchange {
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/signal/create-signal': 1,
+                        'tradingBot/signal/order-algo': 1,
+                        'tradingBot/signal/stop-order-algo': 1,
+                        'tradingBot/signal/margin-balance': 1,
+                        'tradingBot/signal/amendTPSL': 1,
+                        'tradingBot/signal/set-instruments': 1,
+                        'tradingBot/signal/close-position': 1,
+                        'tradingBot/signal/sub-order': 1,
+                        'tradingBot/signal/cancel-sub-order': 1,
                         'tradingBot/recurring/order-algo': 1,
                         'tradingBot/recurring/amend-order-algo': 1,
                         'tradingBot/recurring/stop-order-algo': 1,
@@ -563,6 +576,7 @@ export default class okx extends Exchange {
                     '50027': PermissionDenied,
                     '50028': ExchangeError,
                     '50044': BadRequest,
+                    '50062': ExchangeError,
                     // API Class
                     '50100': ExchangeError,
                     '50101': AuthenticationError,
@@ -617,6 +631,15 @@ export default class okx extends Exchange {
                     '51072': InvalidOrder,
                     '51073': InvalidOrder,
                     '51074': InvalidOrder,
+                    '51090': InvalidOrder,
+                    '51091': InvalidOrder,
+                    '51092': InvalidOrder,
+                    '51093': InvalidOrder,
+                    '51094': InvalidOrder,
+                    '51095': InvalidOrder,
+                    '51096': InvalidOrder,
+                    '51098': InvalidOrder,
+                    '51099': InvalidOrder,
                     '51100': InvalidOrder,
                     '51101': InvalidOrder,
                     '51102': InvalidOrder,
@@ -1513,8 +1536,8 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
-        return this.parseMarkets(data);
+        const dataResponse = this.safeValue(response, 'data', []);
+        return this.parseMarkets(dataResponse);
     }
     safeNetwork(networkId) {
         const networksById = {
@@ -1537,7 +1560,7 @@ export default class okx extends Exchange {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        const isSandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials(false) || isSandboxMode) {
             return undefined;
         }
@@ -1617,7 +1640,7 @@ export default class okx extends Exchange {
                 if ((networkId !== undefined) && (networkId.indexOf('-') >= 0)) {
                     const parts = networkId.split('-');
                     const chainPart = this.safeString(parts, 1, networkId);
-                    const networkCode = this.safeNetwork(chainPart);
+                    const networkCode = this.networkIdToCode(chainPart, currency['code']);
                     const precision = this.parsePrecision(this.safeString(chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
@@ -2141,7 +2164,8 @@ export default class okx extends Exchange {
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
             }
-            request['before'] = since;
+            const startTime = Math.max(since - 1, 0);
+            request['before'] = startTime;
             request['after'] = this.sum(since, durationInMilliseconds * limit);
         }
         const until = this.safeInteger(params, 'until');
@@ -2743,7 +2767,7 @@ export default class okx extends Exchange {
                 }
                 request['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 const takeProfitLimitPrice = this.safeValueN(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx']);
-                const takeProfitOrderType = this.safeString(takeProfit, 'type');
+                const takeProfitOrderType = this.safeString2(takeProfit, 'type', 'tpOrdKind');
                 if (takeProfitOrderType !== undefined) {
                     const takeProfitLimitOrderType = (takeProfitOrderType === 'limit');
                     const takeProfitMarketOrderType = (takeProfitOrderType === 'market');
@@ -2755,6 +2779,7 @@ export default class okx extends Exchange {
                             throw new InvalidOrder(this.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order');
                         }
                         else {
+                            request['tpOrdKind'] = takeProfitOrderType;
                             request['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice);
                         }
                     }
@@ -2763,6 +2788,7 @@ export default class okx extends Exchange {
                     }
                 }
                 else if (takeProfitLimitPrice !== undefined) {
+                    request['tpOrdKind'] = 'limit';
                     request['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
                 }
                 else {
@@ -2787,6 +2813,7 @@ export default class okx extends Exchange {
             const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
             // if TP and SL are sent together
             // as ordType 'conditional' only stop-loss order will be applied
+            // tpOrdKind is 'condition' which is the default
             if (twoWayCondition) {
                 request['ordType'] = 'oco';
             }
@@ -2840,6 +2867,7 @@ export default class okx extends Exchange {
          * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
          * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
          * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+         * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -3005,6 +3033,7 @@ export default class okx extends Exchange {
                 takeProfitTriggerPrice = this.safeValue(takeProfit, 'triggerPrice');
                 takeProfitPrice = this.safeValue(takeProfit, 'price');
                 const takeProfitType = this.safeString(takeProfit, 'type');
+                request['newTpOrdKind'] = (takeProfitType === 'limit') ? takeProfitType : 'condition';
                 request['newTpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 request['newTpOrdPx'] = (takeProfitType === 'market') ? '-1' : this.priceToPrecision(symbol, takeProfitPrice);
                 request['newTpTriggerPxType'] = takeProfitTriggerPriceType;
@@ -3050,6 +3079,7 @@ export default class okx extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
          * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+         * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -3106,7 +3136,7 @@ export default class okx extends Exchange {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (stop || trailing) {
             const orderInner = await this.cancelOrders([id], symbol, params);
             return this.safeValue(orderInner, 0);
@@ -3140,7 +3170,7 @@ export default class okx extends Exchange {
          * @param {string[]|string} ids order ids
          * @returns {string[]} list of order ids
          */
-        if (typeof ids === 'string') {
+        if ((ids !== undefined) && typeof ids === 'string') {
             return ids.split(',');
         }
         else {
@@ -3174,7 +3204,7 @@ export default class okx extends Exchange {
         const clientOrderIds = this.parseIds(this.safeValue2(params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds(this.safeValue(params, 'algoId'));
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (stop || trailing) {
             method = 'privatePostTradeCancelAlgos';
         }
@@ -3635,7 +3665,6 @@ export default class okx extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] Timestamp in ms of the latest time to retrieve orders for
          * @param {bool} [params.stop] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
@@ -3673,19 +3702,15 @@ export default class okx extends Exchange {
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
         if (trailing) {
             request['ordType'] = 'move_order_stop';
         }
-        else if (stop || (ordType in algoOrderTypes)) {
-            if (stop) {
-                if (ordType === undefined) {
-                    throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
-                }
-            }
+        else if (stop && (ordType === undefined)) {
+            request['ordType'] = 'trigger';
         }
         const query = this.omit(params, ['method', 'stop', 'trigger', 'trailing']);
         let response = undefined;
@@ -3842,7 +3867,7 @@ export default class okx extends Exchange {
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
         const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         if (trailing) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['ordType'] = 'move_order_stop';
@@ -3992,7 +4017,7 @@ export default class okx extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] True if fetching trigger or conditional orders
+         * @param {bool} [params.trigger] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
@@ -4030,13 +4055,13 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const options = this.safeValue(this.options, 'fetchClosedOrders', {});
-        const algoOrderTypes = this.safeValue(this.options, 'algoOrderTypes', {});
+        const options = this.safeDict(this.options, 'fetchClosedOrders', {});
+        const algoOrderTypes = this.safeDict(this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrdersHistory');
         let method = this.safeString(params, 'method', defaultMethod);
         const ordType = this.safeString(params, 'ordType');
-        const stop = this.safeValue2(params, 'stop', 'trigger');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trailing = this.safeBool(params, 'trailing', false);
         if (trailing || stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['state'] = 'effective';
@@ -4044,11 +4069,9 @@ export default class okx extends Exchange {
         if (trailing) {
             request['ordType'] = 'move_order_stop';
         }
-        else if (stop || (ordType in algoOrderTypes)) {
-            if (stop) {
-                if (ordType === undefined) {
-                    throw new ArgumentsRequired(this.id + ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
-                }
+        else if (stop) {
+            if (ordType === undefined) {
+                request['ordType'] = 'trigger';
             }
         }
         else {
@@ -4205,10 +4228,13 @@ export default class okx extends Exchange {
             market = this.market(symbol);
             request['instId'] = market['id'];
         }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
         [request, params] = this.handleUntilOption('end', request, params);
         const [type, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType(type);
-        if (limit !== undefined) {
+        if ((limit !== undefined) && (since === undefined)) { // let limit = n, okx will return the n most recent results, instead of the n results after limit, so limit should only be sent when since is undefined
             request['limit'] = limit; // default 100, max 100
         }
         const response = await this.privateGetTradeFillsHistory(this.extend(request, query));
@@ -5138,7 +5164,37 @@ export default class okx extends Exchange {
         //        "msg": ""
         //     }
         //
-        return response;
+        const data = this.safeList(response, 'data', []);
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        let marketId = undefined;
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            marginMode = this.safeStringLower(entry, 'mgnMode');
+            marketId = this.safeString(entry, 'instId');
+            const positionSide = this.safeStringLower(entry, 'posSide');
+            if (positionSide === 'long') {
+                longLeverage = this.safeInteger(entry, 'lever');
+            }
+            else if (positionSide === 'short') {
+                shortLeverage = this.safeInteger(entry, 'lever');
+            }
+            else {
+                longLeverage = this.safeInteger(entry, 'lever');
+                shortLeverage = this.safeInteger(entry, 'lever');
+            }
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -5221,6 +5277,7 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchPositions
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history history
          * @description fetch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5361,13 +5418,38 @@ export default class okx extends Exchange {
         //        "vegaBS": "",
         //        "vegaPA": ""
         //    }
+        // history
+        //    {
+        //        "cTime":"1708351230102",
+        //        "ccy":"USDT",
+        //        "closeAvgPx":"1.2567",
+        //        "closeTotalPos":"40",
+        //        "direction":"short",
+        //        "fee":"-0.0351036",
+        //        "fundingFee":"0",
+        //        "instId":"SUSHI-USDT-SWAP",
+        //        "instType":"SWAP",
+        //        "lever":"10.0",
+        //        "liqPenalty":"0",
+        //        "mgnMode":"isolated",
+        //        "openAvgPx":"1.2462",
+        //        "openMaxPos":"40",
+        //        "pnl":"-0.42",
+        //        "pnlRatio":"-0.0912982667308618",
+        //        "posId":"666159086676836352",
+        //        "realizedPnl":"-0.4551036",
+        //        "triggerPx":"",
+        //        "type":"2",
+        //        "uTime":"1708354805699",
+        //        "uly":"SUSHI-USDT"
+        //    }
         //
         const marketId = this.safeString(position, 'instId');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
         const pos = this.safeString(position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise.stringAbs(pos);
-        let side = this.safeString(position, 'posSide');
+        let side = this.safeString2(position, 'posSide', 'direction');
         const hedged = side !== 'net';
         const contracts = this.parseNumber(contractsAbs);
         if (market['margin']) {
@@ -5408,7 +5490,7 @@ export default class okx extends Exchange {
         const notional = this.parseNumber(notionalString);
         const marginMode = this.safeString(position, 'mgnMode');
         let initialMarginString = undefined;
-        const entryPriceString = this.safeString(position, 'avgPx');
+        const entryPriceString = this.safeString2(position, 'avgPx', 'openAvgPx');
         const unrealizedPnlString = this.safeString(position, 'upl');
         const leverageString = this.safeString(position, 'lever');
         let initialMarginPercentage = undefined;
@@ -5435,27 +5517,28 @@ export default class okx extends Exchange {
         const liquidationPrice = this.safeNumber(position, 'liqPx');
         const percentageString = this.safeString(position, 'uplRatio');
         const percentage = this.parseNumber(Precise.stringMul(percentageString, '100'));
-        const timestamp = this.safeInteger(position, 'uTime');
+        const timestamp = this.safeInteger(position, 'cTime');
         const marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
         return this.safePosition({
             'info': position,
-            'id': undefined,
+            'id': this.safeString(position, 'posId'),
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber(entryPriceString),
             'unrealizedPnl': this.parseNumber(unrealizedPnlString),
+            'realizedPnl': this.safeNumber(position, 'realizedPnl'),
             'percentage': percentage,
             'contracts': contracts,
             'contractSize': contractSize,
             'markPrice': this.parseNumber(markPriceString),
-            'lastPrice': undefined,
+            'lastPrice': this.safeNumber(position, 'closeAvgPx'),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(position, 'uTime'),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': this.parseNumber(collateralString),
@@ -7216,6 +7299,7 @@ export default class okx extends Exchange {
                 return this.parseGreeks(entry, market);
             }
         }
+        return undefined;
     }
     parseGreeks(greeks, market = undefined) {
         //

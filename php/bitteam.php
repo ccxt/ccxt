@@ -351,7 +351,7 @@ class bitteam extends Exchange {
         $created = $this->parse8601($timeStart);
         $minCost = null;
         $currenciesValuedInUsd = $this->safe_value($this->options, 'currenciesValuedInUsd', array());
-        $quoteInUsd = $this->safe_value($currenciesValuedInUsd, $quote, false);
+        $quoteInUsd = $this->safe_bool($currenciesValuedInUsd, $quote, false);
         if ($quoteInUsd) {
             $settings = $this->safe_value($market, 'settings', array());
             $minCost = $this->safe_number($settings, 'limit_usd');
@@ -537,7 +537,7 @@ class bitteam extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $numericId = $this->safe_integer($currency, 'id');
             $code = $this->safe_currency_code($id);
-            $active = $this->safe_value($currency, 'active', false);
+            $active = $this->safe_bool($currency, 'active', false);
             $precision = $this->safe_integer($currency, 'precision');
             $txLimits = $this->safe_value($currency, 'txLimits', array());
             $minWithdraw = $this->safe_string($txLimits, 'minWithdraw');
@@ -960,7 +960,7 @@ class bitteam extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate

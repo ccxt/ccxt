@@ -17,13 +17,13 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
     handleOrderBook(client: Client, message: any): void;
     watchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<any>;
-    handleOrderBookSnapshot(client: Client, message: any): any;
+    handleOrderBookSnapshot(client: Client, message: any): void;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleOrderBookSubscriptions(client: Client, message: any, marketIds: any): void;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    editOrderWs(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
     handleMultipleOrders(client: Client, message: any): void;
@@ -56,7 +56,7 @@ export default class bitvavo extends bitvavoRest {
     handleOrder(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
-    authenticate(params?: {}): any;
+    authenticate(params?: {}): Promise<any>;
     handleAuthenticationMessage(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
