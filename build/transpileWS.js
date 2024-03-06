@@ -37,7 +37,7 @@ class CCXTProTranspiler extends Transpiler {
         return 'class ' + className + '(' +  baseClasses.join (', ') + '):'
     }
 
-    createPythonClassImports (baseClass, async = false) {
+    createPythonClassImports (baseClass, className, async = false) {
 
         const baseClasses = {
             'Exchange': 'base.exchange',
@@ -236,11 +236,21 @@ class CCXTProTranspiler extends Transpiler {
             , tsFolder = './ts/src/pro/'
             , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, jsFolder, exchanges }
 
-        // createFolderRecursively (python2Folder)
-        createFolderRecursively (python3Folder)
-        createFolderRecursively (phpAsyncFolder)
+         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
+        if (transpilingSingleExchange) {
+            force = true; // when transpiling single exchange, we always force
+        }
+            // createFolderRecursively (python2Folder)
+        if (!transpilingSingleExchange) {
+            createFolderRecursively (phpAsyncFolder)
+            createFolderRecursively (python3Folder)
+        }
 
         const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
+
+        if (transpilingSingleExchange) {
+            return;
+        }
 
         this.transpileWsTests ()
 
@@ -258,6 +268,31 @@ class CCXTProTranspiler extends Transpiler {
         // this.transpileErrorHierarchy ({ tsFilename })
 
         log.bright.green ('Transpiled successfully.')
+    }
+
+    
+    afterTranspileClass (result, contents) {
+        // if same class import (like binanceWS extending binanceRest)
+        if (result.baseClass === result.className + 'Rest') {
+            return result;
+        }
+        // we need this because exchanges like binanceusWs extends binanceWs but we need to get the binanceus
+        // Rest describe() to inherit all the properties
+        const matchOfRestImports = contents.matchAll('\nimport (.*?)Rest from \'..(.*?)\';');
+        const matches = [...matchOfRestImports];
+        if (matches.length) {
+            for (const match of matches) {
+                if (match[1]) {
+                    const exchangeName = match[1];
+                    const exchangeNameRest = exchangeName + 'Rest';
+                    result.python3 = result.python3.replace ('\nclass ', 'import ccxt.async_support.' + exchangeName + ' as ' + exchangeNameRest + '\n\n\nclass ');
+                    // correct `new Xyz()` format
+                    result.python3 = result.python3.replace ('new ' + exchangeNameRest, exchangeNameRest);
+                    result.phpAsync = result.phpAsync.replace ('new '+ exchangeNameRest, 'new \\ccxt\\async\\' + exchangeName);
+                }
+            }
+        }
+        return result;
     }
 }
 

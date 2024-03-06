@@ -22,5 +22,5 @@ async def test_fetch_order_books(exchange, skipped_properties):
     order_book_keys = list(order_books.keys())
     assert len(order_book_keys), exchange.id + ' ' + method + ' returned 0 length data'
     for i in range(0, len(order_book_keys)):
-        symbol = order_book_keys[i]
-        test_order_book(exchange, skipped_properties, method, order_books[symbol], symbol)
+        symbol_inner = order_book_keys[i]
+        test_order_book(exchange, skipped_properties, method, order_books[symbol_inner], symbol_inner)

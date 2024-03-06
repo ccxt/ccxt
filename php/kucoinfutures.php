@@ -31,14 +31,19 @@ class kucoinfutures extends kucoin {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
                 'closePosition' => true,
                 'closePositions' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
+                'createStopLossOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'createTakeProfitOrder' => true,
+                'createTriggerOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRateHistories' => false,
@@ -53,7 +58,7 @@ class kucoinfutures extends kucoin {
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
-                'fetchFundingRateHistory' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -1073,7 +1078,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @see https://docs.kucoin.com/futures/#place-an-order
@@ -1088,7 +1093,7 @@ class kucoinfutures extends kucoin {
          * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
          * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
          * @param {string} [$params->timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-         * @param {string} [$params->postOnly] Post only flag, invalid when $timeInForce is IOC or FOK
+         * @param {string} [$params->postOnly] Post only flag, invalid when timeInForce is IOC or FOK
          * ----------------- Exchange Specific Parameters -----------------
          * @param {float} [$params->leverage] Leverage size of the order
          * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
@@ -1101,6 +1106,77 @@ class kucoinfutures extends kucoin {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
+        $market = $this->market($symbol);
+        $testOrder = $this->safe_bool($params, 'test', false);
+        $params = $this->omit($params, 'test');
+        $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
+        $response = null;
+        if ($testOrder) {
+            $response = $this->futuresPrivatePostOrdersTest ($orderRequest);
+        } else {
+            $response = $this->futuresPrivatePostOrders ($orderRequest);
+        }
+        //
+        //    {
+        //        "code" => "200000",
+        //        "data" => array(
+        //            "orderId" => "619717484f1d010001510cde",
+        //        ),
+        //    }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_order($data, $market);
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        /**
+         * create a list of trade $orders
+         * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-$orders
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params]  extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $symbol = $this->safe_string($rawOrder, 'symbol');
+            $market = $this->market($symbol);
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $orderRequest = $this->create_contract_order_request($market['id'], $type, $side, $amount, $price, $orderParams);
+            $ordersRequests[] = $orderRequest;
+        }
+        $response = $this->futuresPrivatePostOrdersMulti ($ordersRequests);
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => array(
+        //             array(
+        //                 "orderId" => "135241412609331200",
+        //                 "clientOid" => "3d8fcc13-0b13-447f-ad30-4b3441e05213",
+        //                 "symbol" => "LTCUSDTM",
+        //                 "code" => "200000",
+        //                 "msg" => "success"
+        //             ),
+        //             {
+        //                 "orderId" => "135241412747743234",
+        //                 "clientOid" => "b878c7ee-ae3e-4d63-a20b-038acbb7306f",
+        //                 "symbol" => "LTCUSDTM",
+        //                 "code" => "200000",
+        //                 "msg" => "success"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data);
+    }
+
+    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         // required param, cannot be used twice
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId', $this->uuid());
@@ -1170,47 +1246,7 @@ class kucoinfutures extends kucoin {
             }
         }
         $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
-        $response = null;
-        $testOrder = $this->safe_value($params, 'test', false);
-        $params = $this->omit($params, 'test');
-        if ($testOrder) {
-            $response = $this->futuresPrivatePostOrdersTest (array_merge($request, $params));
-        } else {
-            $response = $this->futuresPrivatePostOrders (array_merge($request, $params));
-        }
-        //
-        //    {
-        //        "code" => "200000",
-        //        "data" => array(
-        //            "orderId" => "619717484f1d010001510cde",
-        //        ),
-        //    }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->safe_order(array(
-            'id' => $this->safe_string($data, 'orderId'),
-            'clientOrderId' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'lastTradeTimestamp' => null,
-            'symbol' => null,
-            'type' => null,
-            'side' => null,
-            'price' => null,
-            'amount' => null,
-            'cost' => null,
-            'average' => null,
-            'filled' => null,
-            'remaining' => null,
-            'status' => null,
-            'fee' => null,
-            'trades' => null,
-            'timeInForce' => null,
-            'postOnly' => null,
-            'stopPrice' => null,
-            'triggerPrice' => null,
-            'info' => $response,
-        ), $market);
+        return array_merge($request, $params);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1260,7 +1296,7 @@ class kucoinfutures extends kucoin {
          * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-$stop-orders
          * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {array} [$params->stop] When true, all the trigger orders will be cancelled
+         * @param {array} [$params->trigger] When true, all the trigger orders will be cancelled
          * @return Response from the exchange
          */
         $this->load_markets();
@@ -1268,8 +1304,8 @@ class kucoinfutures extends kucoin {
         if ($symbol !== null) {
             $request['symbol'] = $this->market_id($symbol);
         }
-        $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
         if ($stop) {
             $response = $this->futuresPrivateDeleteStopOrders (array_merge($request, $params));
@@ -1436,7 +1472,7 @@ class kucoinfutures extends kucoin {
          * @param {int} [$since] timestamp in ms of the earliest order to retrieve
          * @param {int} [$limit] The maximum number of $orders to retrieve
          * @param {array} [$params] exchange specific parameters
-         * @param {bool} [$params->stop] set to true to retrieve untriggered $stop $orders
+         * @param {bool} [$params->trigger] set to true to retrieve untriggered $stop $orders
          * @param {int} [$params->until] End time in ms
          * @param {string} [$params->side] buy or sell
          * @param {string} [$params->type] $limit or $market
@@ -1449,9 +1485,9 @@ class kucoinfutures extends kucoin {
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchOrdersByStatus', $symbol, $since, $limit, $params);
         }
-        $stop = $this->safe_value($params, 'stop');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
         $until = $this->safe_integer_2($params, 'until', 'till');
-        $params = $this->omit($params, array( 'stop', 'until', 'till' ));
+        $params = $this->omit($params, array( 'stop', 'until', 'till', 'trigger' ));
         if ($status === 'closed') {
             $status = 'done';
         } elseif ($status === 'open') {
@@ -1559,7 +1595,7 @@ class kucoinfutures extends kucoin {
         return $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order($id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @see https://docs.kucoin.com/futures/#get-details-of-a-single-order
@@ -1673,10 +1709,26 @@ class kucoinfutures extends kucoin {
         //         "reduceOnly" => false
         //     }
         //
+        // createOrder
+        //
+        //     {
+        //         "orderId" => "619717484f1d010001510cde"
+        //     }
+        //
+        // createOrders
+        //
+        //     {
+        //         "orderId" => "80465574458560512",
+        //         "clientOid" => "5c52e11203aa677f33e491",
+        //         "symbol" => "ETHUSDTM",
+        //         "code" => "200000",
+        //         "msg" => "success"
+        //     }
+        //
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $orderId = $this->safe_string($order, 'id');
+        $orderId = $this->safe_string_2($order, 'id', 'orderId');
         $type = $this->safe_string($order, 'type');
         $timestamp = $this->safe_integer($order, 'createdAt');
         $datetime = $this->iso8601($timestamp);
@@ -1702,18 +1754,25 @@ class kucoinfutures extends kucoin {
         // precision reported by their api is 8 d.p.
         // $average = Precise::string_div($cost, Precise::string_mul($filled, $market['contractSize']));
         // bool
-        $isActive = $this->safe_value($order, 'isActive', false);
-        $cancelExist = $this->safe_value($order, 'cancelExist', false);
-        $status = $isActive ? 'open' : 'closed';
+        $isActive = $this->safe_value($order, 'isActive');
+        $cancelExist = $this->safe_bool($order, 'cancelExist', false);
+        $status = null;
+        if ($isActive !== null) {
+            $status = $isActive ? 'open' : 'closed';
+        }
         $status = $cancelExist ? 'canceled' : $status;
-        $fee = array(
-            'currency' => $feeCurrency,
-            'cost' => $feeCost,
-        );
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $feeCurrency,
+                'cost' => $feeCost,
+            );
+        }
         $clientOrderId = $this->safe_string($order, 'clientOid');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_number($order, 'stopPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
+        $reduceOnly = $this->safe_value($order, 'reduceOnly');
         $lastUpdateTimestamp = $this->safe_integer($order, 'updatedAt');
         return $this->safe_order(array(
             'id' => $orderId,
@@ -1722,6 +1781,7 @@ class kucoinfutures extends kucoin {
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
+            'reduceOnly' => $reduceOnly,
             'side' => $side,
             'amount' => $amount,
             'price' => $price,
@@ -1745,7 +1805,7 @@ class kucoinfutures extends kucoin {
     public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
-         * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-funding-rate
+         * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -1769,7 +1829,7 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $fundingTimestamp = $this->safe_number($data, 'timePoint');
+        $fundingTimestamp = $this->safe_integer($data, 'timePoint');
         // the website displayes the previous funding rate as "funding rate"
         return array(
             'info' => $data,
@@ -1780,15 +1840,15 @@ class kucoinfutures extends kucoin {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'fundingRate' => $this->safe_number($data, 'predictedValue'),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
-            'nextFundingRate' => null,
+            'fundingRate' => $this->safe_number($data, 'value'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => $this->safe_number($data, 'predictedValue'),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
-            'previousFundingRate' => $this->safe_number($data, 'value'),
-            'previousFundingTimestamp' => $fundingTimestamp,
-            'previousFundingDatetime' => $this->iso8601($fundingTimestamp),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 
@@ -1844,7 +1904,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_balance($response);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -2338,63 +2398,63 @@ class kucoinfutures extends kucoin {
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-public-funding-history#$request-url
          * fetches historical funding rate prices
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] not used by kucuoinfutures
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {int} [$params->until] end time in ms
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
         $this->load_markets();
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
-        if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
-        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
+            'from' => 0,
+            'to' => $this->milliseconds(),
         );
-        if ($limit !== null) {
-            $request['maxCount'] = $limit;
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
+        if ($since !== null) {
+            $request['from'] = $since;
+            if ($until === null) {
+                $request['to'] = $since + 1000 * 8 * 60 * 60 * 100;
+            }
         }
-        $response = $this->webExchangeGetContractSymbolFundingRates (array_merge($request, $params));
+        if ($until !== null) {
+            $request['to'] = $until;
+            if ($since === null) {
+                $request['to'] = $until - 1000 * 8 * 60 * 60 * 100;
+            }
+        }
+        $response = $this->futuresPublicGetContractFundingRates (array_merge($request, $params));
         //
-        //    {
-        //        "success" => true,
-        //        "code" => "200",
-        //        "msg" => "success",
-        //        "retry" => false,
-        //        "data" => {
-        //            "dataList" => array(
-        //                array(
-        //                    "symbol" => "XBTUSDTM",
-        //                    "granularity" => 28800000,
-        //                    "timePoint" => 1675108800000,
-        //                    "value" => 0.0001
-        //                ),
-        //                ...
-        //            ),
-        //            "hasMore" => true
-        //        }
-        //    }
+        //     {
+        //         "code" => "200000",
+        //         "data" => array(
+        //             {
+        //                 "symbol" => "IDUSDTM",
+        //                 "fundingRate" => 2.26E-4,
+        //                 "timepoint" => 1702296000000
+        //             }
+        //         )
+        //     }
         //
         $data = $this->safe_value($response, 'data');
-        $dataList = $this->safe_value($data, 'dataList');
-        return $this->parse_funding_rate_histories($dataList, $market, $since, $limit);
+        return $this->parse_funding_rate_histories($data, $market, $since, $limit);
     }
 
     public function parse_funding_rate_history($info, ?array $market = null) {
-        $timestamp = $this->safe_integer($info, 'timePoint');
+        $timestamp = $this->safe_integer($info, 'timepoint');
         $marketId = $this->safe_string($info, 'symbol');
         return array(
             'info' => $info,
             'symbol' => $this->safe_symbol($marketId, $market),
-            'fundingRate' => $this->safe_number($info, 'value'),
+            'fundingRate' => $this->safe_number($info, 'fundingRate'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
@@ -2413,7 +2473,7 @@ class kucoinfutures extends kucoin {
         $this->load_markets();
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        $testOrder = $this->safe_value($params, 'test', false);
+        $testOrder = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, array( 'test', 'clientOrderId' ));
         if ($clientOrderId === null) {
             $clientOrderId = $this->number_to_string($this->nonce());

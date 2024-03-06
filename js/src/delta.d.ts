@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
@@ -7,8 +7,7 @@ import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, O
 export default class delta extends Exchange {
     describe(): any;
     convertExpireDate(date: any): string;
-    createExpiredOptionMarket(symbol: any): MarketInterface;
-    market(symbol: any): any;
+    createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
     fetchTime(params?: {}): Promise<number>;
     fetchStatus(params?: {}): Promise<{
@@ -36,8 +35,8 @@ export default class delta extends Exchange {
     parsePosition(position: any, market?: Market): Position;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -154,8 +153,9 @@ export default class delta extends Exchange {
     };
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
-    fetchLeverage(symbol: string, params?: {}): Promise<any>;
-    setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    parseLeverage(leverage: any, market?: any): Leverage;
+    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
         info: any;

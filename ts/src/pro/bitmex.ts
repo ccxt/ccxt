@@ -5,7 +5,7 @@ import bitmexRest from '../bitmex.js';
 import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -23,7 +23,7 @@ export default class bitmex extends bitmexRest {
                 'watchOrders': true,
                 'watchPostions': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
             },
@@ -65,17 +65,50 @@ export default class bitmex extends bitmexRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        symbol = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return tickers[symbol];
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name bitmex#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true);
         const name = 'instrument';
-        const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
+        const messageHashes = [];
+        const rawSubscriptions = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                const subscription = name + ':' + market['id'];
+                rawSubscriptions.push (subscription);
+                const messageHash = 'ticker:' + symbol;
+                messageHashes.push (messageHash);
+            }
+        } else {
+            rawSubscriptions.push (name);
+            messageHashes.push ('alltickers');
+        }
         const request = {
             'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
+            'args': rawSubscriptions,
         };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), rawSubscriptions);
+        if (this.newUpdates) {
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
@@ -305,19 +338,22 @@ export default class bitmex extends bitmexRest {
         //         ]
         //     }
         //
-        const table = this.safeString (message, 'table');
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
+        const tickers = {};
         for (let i = 0; i < data.length; i++) {
             const update = data[i];
-            const marketId = this.safeValue (update, 'symbol');
-            const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            const messageHash = table + ':' + marketId;
-            let ticker = this.safeValue (this.tickers, symbol, {});
-            const info = this.safeValue (ticker, 'info', {});
-            ticker = this.parseTicker (this.extend (info, update), market);
-            this.tickers[symbol] = ticker;
-            client.resolve (ticker, messageHash);
+            const marketId = this.safeString (update, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            if (!(symbol in this.tickers)) {
+                this.tickers[symbol] = this.parseTicker ({});
+            }
+            const updatedTicker = this.parseTicker (update);
+            const fullParsedTicker = this.deepExtend (this.tickers[symbol], updatedTicker);
+            tickers[symbol] = fullParsedTicker;
+            this.tickers[symbol] = fullParsedTicker;
+            const messageHash = 'ticker:' + symbol;
+            client.resolve (fullParsedTicker, messageHash);
+            client.resolve (fullParsedTicker, 'alltickers');
         }
         return message;
     }
@@ -588,7 +624,7 @@ export default class bitmex extends bitmexRest {
     }
 
     handleAuthenticationMessage (client: Client, message) {
-        const authenticated = this.safeValue (message, 'success', false);
+        const authenticated = this.safeBool (message, 'success', false);
         const messageHash = 'authenticated';
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
@@ -1310,7 +1346,7 @@ export default class bitmex extends bitmexRest {
             const messageHash = table + ':' + market['id'];
             const result = [
                 this.parse8601 (this.safeString (candle, 'timestamp')) - duration * 1000,
-                this.safeFloat (candle, 'open'),
+                undefined, // set open price to undefined, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 this.safeFloat (candle, 'high'),
                 this.safeFloat (candle, 'low'),
                 this.safeFloat (candle, 'close'),
@@ -1501,7 +1537,7 @@ export default class bitmex extends bitmexRest {
         //
         //     { "error": "Rate limit exceeded, retry in 29 seconds." }
         //
-        const error = this.safeValue (message, 'error');
+        const error = this.safeString (message, 'error');
         if (error !== undefined) {
             const request = this.safeValue (message, 'request', {});
             const args = this.safeValue (request, 'args', []);
@@ -1512,7 +1548,7 @@ export default class bitmex extends bitmexRest {
                 const broadKey = this.findBroadlyMatchedKey (broad, error);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new ExchangeError (error);
+                    exception = new ExchangeError ((error as string)); // c# requirement for now
                 } else {
                     exception = new broad[broadKey] (error);
                 }
@@ -1580,12 +1616,10 @@ export default class bitmex extends bitmexRest {
                 const request = this.safeValue (message, 'request', {});
                 const op = this.safeValue (request, 'op');
                 if (op === 'authKeyExpires') {
-                    return this.handleAuthenticationMessage.call (this, client, message);
-                } else {
-                    return message;
+                    this.handleAuthenticationMessage (client, message);
                 }
             } else {
-                return method.call (this, client, message);
+                method.call (this, client, message);
             }
         }
     }

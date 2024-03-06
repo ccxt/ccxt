@@ -732,7 +732,7 @@ class cex extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @see https://docs.cex.io/#place-order
          * create a trade order
@@ -1147,14 +1147,15 @@ class cex extends Exchange {
          */
         $this->load_markets();
         $request = array();
-        $method = 'privatePostOpenOrders';
         $market = null;
+        $orders = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
-            $method .= 'Pair';
+            $orders = $this->privatePostOpenOrdersPair (array_merge($request, $params));
+        } else {
+            $orders = $this->privatePostOpenOrders (array_merge($request, $params));
         }
-        $orders = $this->$method (array_merge($request, $params));
         for ($i = 0; $i < count($orders); $i++) {
             $orders[$i] = array_merge($orders[$i], array( 'status' => 'open' ));
         }
@@ -1175,10 +1176,9 @@ class cex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         $this->load_markets();
-        $method = 'privatePostArchivedOrdersPair';
         $market = $this->market($symbol);
         $request = array( 'pair' => $market['id'] );
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->privatePostArchivedOrdersPair (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -1523,7 +1523,7 @@ class cex extends Exchange {
         return $this->safe_string($this->options['order']['status'], $status, $status);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://docs.cex.io/#cancel-replace-order

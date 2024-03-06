@@ -47,6 +47,7 @@ class kucoin extends kucoin$1 {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -313,6 +314,7 @@ class kucoin extends kucoin$1 {
                         'premium/query': 4.5,
                         'trade-statistics': 4.5,
                         'funding-rate/{symbol}/current': 3,
+                        'contract/funding-rates': 7.5,
                         'timestamp': 3,
                         'status': 6,
                         // ?
@@ -342,6 +344,7 @@ class kucoin extends kucoin$1 {
                         'openOrderStatistics': 15,
                         'position': 3,
                         'positions': 3,
+                        'margin/maxWithdrawMargin': 15,
                         'contracts/risk-limit/{symbol}': 7.5,
                         'funding-history': 7.5, // 5FW
                     },
@@ -352,7 +355,9 @@ class kucoin extends kucoin$1 {
                         // futures
                         'orders': 3,
                         'orders/test': 3,
+                        'orders/multi': 4.5,
                         'position/margin/auto-deposit-status': 6,
+                        'margin/withdrawMargin': 15,
                         'position/margin/deposit-margin': 6,
                         'position/risk-limit-level/change': 6,
                         // ws
@@ -935,7 +940,7 @@ class kucoin extends kucoin$1 {
         //
         const data = this.safeValue(response, 'data');
         const options = this.safeValue(this.options, 'fetchMarkets', {});
-        const fetchTickersFees = this.safeValue(options, 'fetchTickersFees', true);
+        const fetchTickersFees = this.safeBool(options, 'fetchTickersFees', true);
         let tickersResponse = {};
         if (fetchTickersFees) {
             tickersResponse = await this.publicGetMarketAllTickers(params);
@@ -1143,14 +1148,14 @@ class kucoin extends kucoin$1 {
                 const chain = chains[j];
                 const chainId = this.safeString(chain, 'chainId');
                 const networkCode = this.networkIdToCode(chainId);
-                const chainWithdrawEnabled = this.safeValue(chain, 'isWithdrawEnabled', false);
+                const chainWithdrawEnabled = this.safeBool(chain, 'isWithdrawEnabled', false);
                 if (isWithdrawEnabled === undefined) {
                     isWithdrawEnabled = chainWithdrawEnabled;
                 }
                 else {
                     isWithdrawEnabled = isWithdrawEnabled || chainWithdrawEnabled;
                 }
-                const chainDepositEnabled = this.safeValue(chain, 'isDepositEnabled', false);
+                const chainDepositEnabled = this.safeBool(chain, 'isDepositEnabled', false);
                 if (isDepositEnabled === undefined) {
                     isDepositEnabled = chainDepositEnabled;
                 }
@@ -1908,9 +1913,9 @@ class kucoin extends kucoin$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const testOrder = this.safeValue(params, 'test', false);
+        const testOrder = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
-        const isHf = this.safeValue(params, 'hf', false);
+        const isHf = this.safeBool(params, 'hf', false);
         const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
         const tradeType = this.safeString(params, 'tradeType'); // keep it for backward compatibility
         const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
@@ -2037,7 +2042,7 @@ class kucoin extends kucoin$1 {
             'symbol': market['id'],
             'orderList': ordersRequests,
         };
-        const hf = this.safeValue(params, 'hf', false);
+        const hf = this.safeBool(params, 'hf', false);
         params = this.omit(params, 'hf');
         let response = undefined;
         if (hf) {
@@ -2219,7 +2224,7 @@ class kucoin extends kucoin$1 {
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
         const stop = this.safeValue2(params, 'stop', 'trigger', false);
-        const hf = this.safeValue(params, 'hf', false);
+        const hf = this.safeBool(params, 'hf', false);
         if (hf) {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol parameter for hf orders');
@@ -2274,8 +2279,8 @@ class kucoin extends kucoin$1 {
          */
         await this.loadMarkets();
         const request = {};
-        const stop = this.safeValue(params, 'stop', false);
-        const hf = this.safeValue(params, 'hf', false);
+        const stop = this.safeBool(params, 'stop', false);
+        const hf = this.safeBool(params, 'hf', false);
         params = this.omit(params, ['stop', 'hf']);
         const [marginMode, query] = this.handleMarginModeAndParams('cancelAllOrders', params);
         if (symbol !== undefined) {
@@ -2332,8 +2337,8 @@ class kucoin extends kucoin$1 {
         await this.loadMarkets();
         let lowercaseStatus = status.toLowerCase();
         const until = this.safeInteger2(params, 'until', 'till');
-        const stop = this.safeValue(params, 'stop', false);
-        const hf = this.safeValue(params, 'hf', false);
+        const stop = this.safeBool(params, 'stop', false);
+        const hf = this.safeBool(params, 'hf', false);
         params = this.omit(params, ['stop', 'hf', 'till', 'until']);
         const [marginMode, query] = this.handleMarginModeAndParams('fetchOrdersByStatus', params);
         if (lowercaseStatus === 'open') {
@@ -2419,7 +2424,7 @@ class kucoin extends kucoin$1 {
         //         }
         //    }
         const responseData = this.safeValue(response, 'data', {});
-        const orders = this.safeValue(responseData, 'items', []);
+        const orders = this.safeValue(responseData, 'items', responseData);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2507,8 +2512,8 @@ class kucoin extends kucoin$1 {
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
-        const stop = this.safeValue(params, 'stop', false);
-        const hf = this.safeValue(params, 'hf', false);
+        const stop = this.safeBool(params, 'stop', false);
+        const hf = this.safeBool(params, 'hf', false);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2685,10 +2690,10 @@ class kucoin extends kucoin$1 {
         const marketId = this.safeString(order, 'symbol');
         const timestamp = this.safeInteger(order, 'createdAt');
         const feeCurrencyId = this.safeString(order, 'feeCurrency');
-        const cancelExist = this.safeValue(order, 'cancelExist', false);
+        const cancelExist = this.safeBool(order, 'cancelExist', false);
         const responseStop = this.safeString(order, 'stop');
         const stop = responseStop !== undefined;
-        const stopTriggered = this.safeValue(order, 'stopTriggered', false);
+        const stopTriggered = this.safeBool(order, 'stopTriggered', false);
         const isActive = this.safeValue2(order, 'isActive', 'active');
         const responseStatus = this.safeString(order, 'status');
         let status = undefined;
@@ -2785,7 +2790,7 @@ class kucoin extends kucoin$1 {
             return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
         }
         let request = {};
-        const hf = this.safeValue(params, 'hf', false);
+        const hf = this.safeBool(params, 'hf', false);
         if (hf && symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol parameter for hf orders');
         }
@@ -3445,10 +3450,12 @@ class kucoin extends kucoin$1 {
          * @name kucoin#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.kucoin.com/#list-accounts
+         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
          * @see https://docs.kucoin.com/#query-isolated-margin-account-info
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
          * @param {object} [params.type] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.hf] *default if false* if true, the result includes the balance of the high frequency account
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
@@ -3460,8 +3467,13 @@ class kucoin extends kucoin$1 {
         const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
         const requestedType = this.safeString(params, 'type', defaultType);
         const accountsByType = this.safeValue(this.options, 'accountsByType');
-        const type = this.safeString(accountsByType, requestedType, requestedType);
+        let type = this.safeString(accountsByType, requestedType, requestedType);
         params = this.omit(params, 'type');
+        const isHf = this.safeBool(params, 'hf', false);
+        if (isHf) {
+            type = 'trade_hf';
+        }
+        params = this.omit(params, 'hf');
         const [marginMode, query] = this.handleMarginModeAndParams('fetchBalance', params);
         let response = undefined;
         const request = {};
@@ -3543,7 +3555,7 @@ class kucoin extends kucoin$1 {
             'datetime': undefined,
         };
         if (isolated) {
-            const assets = this.safeValue(data, 'assets', []);
+            const assets = this.safeValue(data, 'assets', data);
             for (let i = 0; i < assets.length; i++) {
                 const entry = assets[i];
                 const marketId = this.safeString(entry, 'symbol');
@@ -3845,11 +3857,11 @@ class kucoin extends kucoin$1 {
             }
         }
         let fee = undefined;
-        const feeCost = this.safeNumber(item, 'fee');
+        const feeCost = this.safeString(item, 'fee');
         let feeCurrency = undefined;
-        if (feeCost !== 0) {
+        if (feeCost !== '0') {
             feeCurrency = code;
-            fee = { 'cost': feeCost, 'currency': feeCurrency };
+            fee = { 'cost': this.parseNumber(feeCost), 'currency': feeCurrency };
         }
         return {
             'id': id,
@@ -3874,12 +3886,14 @@ class kucoin extends kucoin$1 {
          * @method
          * @name kucoin#fetchLedger
          * @see https://docs.kucoin.com/#get-account-ledgers
+         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
+         * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @see https://docs.kucoin.com/#get-account-ledgers
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -3888,6 +3902,8 @@ class kucoin extends kucoin$1 {
         await this.loadAccounts();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
+        const isHf = this.safeValue(params, 'hf');
+        params = this.omit(params, 'hf');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
         }
@@ -3908,7 +3924,20 @@ class kucoin extends kucoin$1 {
             request['currency'] = currency['id'];
         }
         [request, params] = this.handleUntilOption('endAt', request, params);
-        const response = await this.privateGetAccountsLedgers(this.extend(request, params));
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchLedger', params);
+        let response = undefined;
+        if (isHf) {
+            if (marginMode !== undefined) {
+                response = await this.privateGetHfMarginAccountLedgers(this.extend(request, params));
+            }
+            else {
+                response = await this.privateGetHfAccountsLedgers(this.extend(request, params));
+            }
+        }
+        else {
+            response = await this.privateGetAccountsLedgers(this.extend(request, params));
+        }
         //
         //     {
         //         "code":"200000",
@@ -3946,8 +3975,12 @@ class kucoin extends kucoin$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
-        const items = this.safeValue(data, 'items');
+        const dataList = this.safeList(response, 'data');
+        if (dataList !== undefined) {
+            return this.parseLedger(dataList, currency, since, limit);
+        }
+        const data = this.safeDict(response, 'data');
+        const items = this.safeList(data, 'items', []);
         return this.parseLedger(items, currency, since, limit);
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
@@ -4393,7 +4426,7 @@ class kucoin extends kucoin$1 {
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
         let url = this.urls['api'][api];
-        if (Object.keys(query).length) {
+        if (!this.isEmpty(query)) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.rawencode(query);
             }

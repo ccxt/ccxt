@@ -73,7 +73,7 @@ class coinone extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
-                'ws' => false,
+                'ws' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -701,7 +701,7 @@ class coinone extends Exchange {
             'target_currency' => $market['base'],
         );
         if ($limit !== null) {
-            $request['size'] = $limit; // only support 10, 50, 100, 150, 200
+            $request['size'] = min ($limit, 200);
         }
         $response = $this->v2PublicGetTradesQuoteCurrencyTargetCurrency (array_merge($request, $params));
         //
@@ -726,7 +726,7 @@ class coinone extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
@@ -1049,7 +1049,7 @@ class coinone extends Exchange {
         return $response;
     }
 
-    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit addresses for multiple currencies and chain types
          * @param {string[]|null} $codes list of unified currency $codes, default is null

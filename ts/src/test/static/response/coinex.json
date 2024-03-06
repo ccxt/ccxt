@@ -123,7 +123,7 @@
                 "role": "2",
                 "settle_price": "73.78",
                 "side": "2",
-                "time": "1703591279.143554",
+                "time": "1703591279.143",
                 "user_id": "3707264"
               }
             ]
@@ -162,7 +162,7 @@
               "role": "2",
               "settle_price": "73.78",
               "side": "2",
-              "time": "1703591279.143554",
+              "time": "1703591279.143",
               "user_id": "3707264"
             },
             "timestamp": 1703591279143,
@@ -319,7 +319,7 @@
               {
                 "amount": "0.1",
                 "client_id": "x-167673045-8012a4a93415be8f",
-                "create_time": "1703591279.143549",
+                "create_time": "1703591279.143000",
                 "deal_asset_fee": "0",
                 "deal_fee": "0.003689",
                 "deal_profit": "0",
@@ -347,7 +347,7 @@
                 "taker_fee": "0.0005",
                 "target": "0",
                 "type": "2",
-                "update_time": "1703591279.143554",
+                "update_time": "1703591279.143000",
                 "user_id": "3707264"
               }
             ]
@@ -386,7 +386,7 @@
             "info": {
               "amount": "0.1",
               "client_id": "x-167673045-8012a4a93415be8f",
-              "create_time": "1703591279.143549",
+              "create_time": "1703591279.143000",
               "deal_asset_fee": "0",
               "deal_fee": "0.003689",
               "deal_profit": "0",
@@ -414,7 +414,7 @@
               "taker_fee": "0.0005",
               "target": "0",
               "type": "2",
-              "update_time": "1703591279.143554",
+              "update_time": "1703591279.143000",
               "user_id": "3707264"
             },
             "fees": [

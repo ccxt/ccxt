@@ -67,6 +67,8 @@ export default class ascendex extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -275,11 +277,14 @@ export default class ascendex extends Exchange {
                     'fillResponseFromRequest': true,
                 },
                 'networks': {
-                    'BSC': 'BEP20 (BSC)',
+                    'BSC': 'BEP20 ' + '(BSC)',
                     'ARB': 'arbitrum',
                     'SOL': 'Solana',
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
+                    'TRC': 'TRC20',
+                    'TRX': 'TRC20',
+                    'ERC': 'ERC20',
                 },
                 'networksById': {
                     'BEP20 (BSC)': 'BSC',
@@ -287,6 +292,16 @@ export default class ascendex extends Exchange {
                     'Solana': 'SOL',
                     'avalanche C chain': 'AVAX',
                     'Omni': 'OMNI',
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
+                    'GO20': 'GO20',
+                    'BEP2': 'BEP2',
+                    'Bitcoin': 'BTC',
+                    'Bitcoin ABC': 'BCH',
+                    'Litecoin': 'LTC',
+                    'Matic Network': 'MATIC',
+                    'xDai': 'STAKE',
+                    'Akash': 'AKT',
                 },
             },
             'exceptions': {
@@ -620,7 +635,7 @@ export default class ascendex extends Exchange {
                 symbol = base + '/' + quote + ':' + settle;
             }
             const fee = this.safeNumber(market, 'commissionReserveRate');
-            const marginTradable = this.safeValue(market, 'marginTradable', false);
+            const marginTradable = this.safeBool(market, 'marginTradable', false);
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -742,11 +757,10 @@ export default class ascendex extends Exchange {
         ];
     }
     parseBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const balances = this.safeValue(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
@@ -760,11 +774,10 @@ export default class ascendex extends Exchange {
         return this.safeBalance(result);
     }
     parseMarginBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const balances = this.safeValue(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
@@ -781,11 +794,10 @@ export default class ascendex extends Exchange {
         return this.safeBalance(result);
     }
     parseSwapBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const data = this.safeValue(response, 'data', {});
         const collaterals = this.safeValue(data, 'collaterals', []);
@@ -807,16 +819,20 @@ export default class ascendex extends Exchange {
          * @see https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] wallet type, 'spot', 'margin', or 'swap'
+         * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         await this.loadAccounts();
-        let query = undefined;
         let marketType = undefined;
-        [marketType, query] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        const isMargin = this.safeValue(params, 'margin', false);
-        marketType = isMargin ? 'margin' : marketType;
-        query = this.omit(query, 'margin');
+        let marginMode = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
+        const isMargin = this.safeBool(params, 'margin', false);
+        const isCross = marginMode === 'cross';
+        marketType = (isMargin || isCross) ? 'margin' : marketType;
+        params = this.omit(params, 'margin');
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, marketType, 'cash');
         const account = this.safeValue(this.accounts, 0, {});
@@ -824,15 +840,18 @@ export default class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
+        if ((marginMode === 'isolated') && (marketType !== 'swap')) {
+            throw new BadRequest(this.id + ' does not supported isolated margin trading');
+        }
         if ((accountCategory === 'cash') || (accountCategory === 'margin')) {
             request['account-category'] = accountCategory;
         }
         let response = undefined;
         if ((marketType === 'spot') || (marketType === 'margin')) {
-            response = await this.v1PrivateAccountCategoryGetBalance(this.extend(request, query));
+            response = await this.v1PrivateAccountCategoryGetBalance(this.extend(request, params));
         }
         else if (marketType === 'swap') {
-            response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, query));
+            response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, params));
         }
         else {
             throw new NotSupported(this.id + ' fetchBalance() is not currently supported for ' + marketType + ' markets');
@@ -1170,7 +1189,7 @@ export default class ascendex extends Exchange {
         const timestamp = this.safeInteger(trade, 'ts');
         const priceString = this.safeString2(trade, 'price', 'p');
         const amountString = this.safeString(trade, 'q');
-        const buyerIsMaker = this.safeValue(trade, 'bm', false);
+        const buyerIsMaker = this.safeBool(trade, 'bm', false);
         const side = buyerIsMaker ? 'sell' : 'buy';
         market = this.safeMarket(undefined, market);
         return this.safeTrade({
@@ -1514,7 +1533,7 @@ export default class ascendex extends Exchange {
         const isLimitOrder = ((type === 'limit') || (type === 'stop_limit'));
         const timeInForce = this.safeString(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarketOrder, false, params);
-        const reduceOnly = this.safeValue(params, 'reduceOnly', false);
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
@@ -2371,8 +2390,8 @@ export default class ascendex extends Exchange {
         const tag = this.safeString(depositAddress, tagId);
         this.checkAddress(address);
         const code = (currency === undefined) ? undefined : currency['code'];
-        const chainName = this.safeString(depositAddress, 'chainName');
-        const network = this.safeNetwork(chainName);
+        const chainName = this.safeString(depositAddress, 'blockchain');
+        const network = this.networkIdToCode(chainName, code);
         return {
             'currency': code,
             'address': address,
@@ -2382,20 +2401,7 @@ export default class ascendex extends Exchange {
         };
     }
     safeNetwork(networkId) {
-        const networksById = {
-            'TRC20': 'TRC20',
-            'ERC20': 'ERC20',
-            'GO20': 'GO20',
-            'BEP2': 'BEP2',
-            'BEP20 (BSC)': 'BEP20',
-            'Bitcoin': 'BTC',
-            'Bitcoin ABC': 'BCH',
-            'Litecoin': 'LTC',
-            'Matic Network': 'MATIC',
-            'Solana': 'SOL',
-            'xDai': 'STAKE',
-            'Akash': 'AKT',
-        };
+        const networksById = this.safeDict(this.options, 'networksById');
         return this.safeString(networksById, networkId, networkId);
     }
     async fetchDepositAddress(code, params = {}) {
@@ -2403,16 +2409,20 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] unified network code for deposit chain
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        const chainName = this.safeString(params, 'chainName');
-        params = this.omit(params, 'chainName');
+        const networkCode = this.safeString2(params, 'network', 'chainName');
+        const networkId = this.networkCodeToId(networkCode);
+        params = this.omit(params, ['chainName']);
         const request = {
             'asset': currency['id'],
+            'blockchain': networkId,
         };
         const response = await this.v1PrivateGetWalletDepositAddress(this.extend(request, params));
         //
@@ -2448,22 +2458,22 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const addresses = this.safeValue(data, 'address', []);
+        const data = this.safeDict(response, 'data', {});
+        const addresses = this.safeList(data, 'address', []);
         const numAddresses = addresses.length;
         let address = undefined;
         if (numAddresses > 1) {
             const addressesByChainName = this.indexBy(addresses, 'chainName');
-            if (chainName === undefined) {
+            if (networkId === undefined) {
                 const chainNames = Object.keys(addressesByChainName);
                 const chains = chainNames.join(', ');
                 throw new ArgumentsRequired(this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
             }
-            address = this.safeValue(addressesByChainName, chainName, {});
+            address = this.safeDict(addressesByChainName, networkId, {});
         }
         else {
             // first address
-            address = this.safeValue(addresses, 0, {});
+            address = this.safeDict(addresses, 0, {});
         }
         const result = this.parseDepositAddress(address, currency);
         return this.extend(result, {
@@ -3126,7 +3136,7 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#transfer
          * @description transfer currency internally between wallets on the same account
-         * @param {string} code unified currency code
+         * @param {string} code unified currency codeåå
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
@@ -3157,7 +3167,7 @@ export default class ascendex extends Exchange {
         //    { "code": "0" }
         //
         const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer(response, currency);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
@@ -3173,12 +3183,11 @@ export default class ascendex extends Exchange {
         //
         const status = this.safeInteger(transfer, 'code');
         const currencyCode = this.safeCurrencyCode(undefined, currency);
-        const timestamp = this.milliseconds();
         return {
             'info': transfer,
             'id': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'currency': currencyCode,
             'amount': undefined,
             'fromAccount': undefined,

@@ -186,6 +186,29 @@
                     "USDT"
                 ]
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://big.one/api/v3/asset_pairs/tickers?pair_names=BTC-USDT",
+                "input": [
+                  [
+                    "BTC/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://big.one/api/contract/v2/instruments",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "XRP/USDT:USDT"
+                  ]
+                ]
+            }
         ]
     }
 }

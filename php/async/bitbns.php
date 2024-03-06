@@ -32,6 +32,7 @@ class bitbns extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => null, // coming soon
+                'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -586,7 +587,7 @@ class bitbns extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order

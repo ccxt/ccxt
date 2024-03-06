@@ -66,7 +66,8 @@ export default class hitbtc extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': false,
-                'fetchMarginMode': true,
+                'fetchMarginMode': 'emulated',
+                'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -141,6 +142,8 @@ export default class hitbtc extends Exchange {
                         'public/orderbook/{symbol}': 10,
                         'public/candles': 10,
                         'public/candles/{symbol}': 10,
+                        'public/converted/candles': 10,
+                        'public/converted/candles/{symbol}': 10,
                         'public/futures/info': 10,
                         'public/futures/info/{symbol}': 10,
                         'public/futures/history/funding': 10,
@@ -693,7 +696,7 @@ export default class hitbtc extends Exchange {
             const expiry = this.safeInteger(market, 'expiry');
             const contract = (marketType === 'futures');
             const spot = (marketType === 'spot');
-            const marginTrading = this.safeValue(market, 'margin_trading', false);
+            const marginTrading = this.safeBool(market, 'margin_trading', false);
             const margin = spot && marginTrading;
             const future = (expiry !== undefined);
             const swap = (contract && !future);
@@ -828,9 +831,9 @@ export default class hitbtc extends Exchange {
             const entry = response[currencyId];
             const name = this.safeString(entry, 'full_name');
             const precision = this.safeNumber(entry, 'precision_transfer');
-            const payinEnabled = this.safeValue(entry, 'payin_enabled', false);
-            const payoutEnabled = this.safeValue(entry, 'payout_enabled', false);
-            const transferEnabled = this.safeValue(entry, 'transfer_enabled', false);
+            const payinEnabled = this.safeBool(entry, 'payin_enabled', false);
+            const payoutEnabled = this.safeBool(entry, 'payout_enabled', false);
+            const transferEnabled = this.safeBool(entry, 'transfer_enabled', false);
             const active = payinEnabled && payoutEnabled && transferEnabled;
             const rawNetworks = this.safeValue(entry, 'networks', []);
             const networks = {};
@@ -843,8 +846,8 @@ export default class hitbtc extends Exchange {
                 const network = this.safeNetwork(networkId);
                 fee = this.safeNumber(rawNetwork, 'payout_fee');
                 const networkPrecision = this.safeNumber(rawNetwork, 'precision_payout');
-                const payinEnabledNetwork = this.safeValue(entry, 'payin_enabled', false);
-                const payoutEnabledNetwork = this.safeValue(entry, 'payout_enabled', false);
+                const payinEnabledNetwork = this.safeBool(entry, 'payin_enabled', false);
+                const payoutEnabledNetwork = this.safeBool(entry, 'payout_enabled', false);
                 const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
                 if (payinEnabledNetwork && !depositEnabled) {
                     depositEnabled = true;
@@ -2508,7 +2511,7 @@ export default class hitbtc extends Exchange {
             'stopLossPrice': undefined,
         }, market);
     }
-    async fetchMarginMode(symbol = undefined, params = {}) {
+    async fetchMarginModes(symbols = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchMarginMode
@@ -2521,70 +2524,66 @@ export default class hitbtc extends Exchange {
          */
         await this.loadMarkets();
         let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols(symbols);
+            market = this.market(symbols[0]);
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchMarginMode', market, params);
         let response = undefined;
         if (marketType === 'margin') {
             response = await this.privateGetMarginConfig(params);
+            //
+            //     {
+            //         "config": [{
+            //             "symbol": "BTCUSD",
+            //             "margin_call_leverage_mul": "1.50",
+            //             "liquidation_leverage_mul": "2.00",
+            //             "max_initial_leverage": "10.00",
+            //             "margin_mode": "Isolated",
+            //             "force_close_fee": "0.05",
+            //             "enabled": true,
+            //             "active": true,
+            //             "limit_base": "50000.00",
+            //             "limit_power": "2.2",
+            //             "unlimited_threshold": "10.0"
+            //         }]
+            //     }
+            //
         }
         else if (marketType === 'swap') {
             response = await this.privateGetFuturesConfig(params);
+            //
+            //     {
+            //         "config": [{
+            //             "symbol": "BTCUSD_PERP",
+            //             "margin_call_leverage_mul": "1.20",
+            //             "liquidation_leverage_mul": "2.00",
+            //             "max_initial_leverage": "100.00",
+            //             "margin_mode": "Isolated",
+            //             "force_close_fee": "0.001",
+            //             "enabled": true,
+            //             "active": false,
+            //             "limit_base": "5000000.000000000000",
+            //             "limit_power": "1.25",
+            //             "unlimited_threshold": "2.00"
+            //         }]
+            //     }
+            //
         }
         else {
-            throw new BadSymbol(this.id + ' fetchMarginMode() supports swap contracts and margin only');
+            throw new BadSymbol(this.id + ' fetchMarginModes () supports swap contracts and margin only');
         }
-        //
-        // margin
-        //     {
-        //         "config": [{
-        //             "symbol": "BTCUSD",
-        //             "margin_call_leverage_mul": "1.50",
-        //             "liquidation_leverage_mul": "2.00",
-        //             "max_initial_leverage": "10.00",
-        //             "margin_mode": "Isolated",
-        //             "force_close_fee": "0.05",
-        //             "enabled": true,
-        //             "active": true,
-        //             "limit_base": "50000.00",
-        //             "limit_power": "2.2",
-        //             "unlimited_threshold": "10.0"
-        //         }]
-        //     }
-        //
-        // swap
-        //     {
-        //         "config": [{
-        //             "symbol": "BTCUSD_PERP",
-        //             "margin_call_leverage_mul": "1.20",
-        //             "liquidation_leverage_mul": "2.00",
-        //             "max_initial_leverage": "100.00",
-        //             "margin_mode": "Isolated",
-        //             "force_close_fee": "0.001",
-        //             "enabled": true,
-        //             "active": false,
-        //             "limit_base": "5000000.000000000000",
-        //             "limit_power": "1.25",
-        //             "unlimited_threshold": "2.00"
-        //         }]
-        //     }
-        //
-        const config = this.safeValue(response, 'config', []);
-        const marginModes = [];
-        for (let i = 0; i < config.length; i++) {
-            const data = this.safeValue(config, i);
-            const marketId = this.safeString(data, 'symbol');
-            const marketInner = this.safeMarket(marketId);
-            marginModes.push({
-                'info': data,
-                'symbol': this.safeString(marketInner, 'symbol'),
-                'marginMode': this.safeStringLower(data, 'margin_mode'),
-            });
-        }
-        const filteredMargin = this.filterBySymbol(marginModes, symbol);
-        return this.safeValue(filteredMargin, 0);
+        const config = this.safeList(response, 'config', []);
+        return this.parseMarginModes(config, symbols, 'symbol');
+    }
+    parseMarginMode(marginMode, market = undefined) {
+        const marketId = this.safeString(marginMode, 'symbol');
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': this.safeStringLower(marginMode, 'margin_mode'),
+        };
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**
@@ -2633,11 +2632,10 @@ export default class hitbtc extends Exchange {
         //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         //     ]
         //
-        const timestamp = this.milliseconds();
         return {
             'id': this.safeString(transfer, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'currency': this.safeCurrencyCode(undefined, currency),
             'amount': undefined,
             'fromAccount': undefined,
@@ -2704,12 +2702,12 @@ export default class hitbtc extends Exchange {
         if ((network !== undefined) && (code === 'USDT')) {
             const parsedNetwork = this.safeString(networks, network);
             if (parsedNetwork !== undefined) {
-                request['currency'] = parsedNetwork;
+                request['network_code'] = parsedNetwork;
             }
             params = this.omit(params, 'network');
         }
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
-        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        const includeFee = this.safeBool(withdrawOptions, 'includeFee', false);
         if (includeFee) {
             request['include_fee'] = true;
         }
@@ -3231,7 +3229,7 @@ export default class hitbtc extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const leverage = this.safeString(params, 'leverage');
-        if (market['type'] === 'swap') {
+        if (market['swap']) {
             if (leverage === undefined) {
                 throw new ArgumentsRequired(this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -3255,21 +3253,15 @@ export default class hitbtc extends Exchange {
         let marginMode = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('modifyMarginHelper', market, params);
         [marginMode, params] = this.handleMarginModeAndParams('modifyMarginHelper', params);
-        params = this.omit(params, ['marginMode', 'margin']);
         let response = undefined;
-        if (marginMode !== undefined) {
+        if (marketType === 'swap') {
+            response = await this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, params));
+        }
+        else if ((marketType === 'margin') || (marketType === 'spot') || (marginMode === 'isolated')) {
             response = await this.privatePutMarginAccountIsolatedSymbol(this.extend(request, params));
         }
         else {
-            if (marketType === 'swap') {
-                response = await this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, params));
-            }
-            else if (marketType === 'margin') {
-                response = await this.privatePutMarginAccountIsolatedSymbol(this.extend(request, params));
-            }
-            else {
-                throw new NotSupported(this.id + ' modifyMarginHelper() not support this market type');
-            }
+            throw new NotSupported(this.id + ' modifyMarginHelper() not support this market type');
         }
         //
         //     {
@@ -3410,7 +3402,18 @@ export default class hitbtc extends Exchange {
         //         ]
         //     }
         //
-        return this.safeNumber(response, 'leverage');
+        return this.parseLeverage(response, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        const leverageValue = this.safeInteger(leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': this.safeStringLower(leverage, 'type'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         /**
@@ -3581,7 +3584,7 @@ export default class hitbtc extends Exchange {
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
-        const isMargin = this.safeValue(params, 'margin', false);
+        const isMargin = this.safeBool(params, 'margin', false);
         let marginMode = undefined;
         [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
         if (marginMode === undefined) {
