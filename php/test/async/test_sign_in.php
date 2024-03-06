@@ -1,8 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
-use React\Async;
-use React\Promise;
 
 // ----------------------------------------------------------------------------
 
@@ -10,7 +7,8 @@ use React\Promise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-
+use React\Async;
+use React\Promise;
 
 function test_sign_in($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {

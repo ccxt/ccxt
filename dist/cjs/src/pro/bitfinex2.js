@@ -53,7 +53,7 @@ class bitfinex2 extends bitfinex2$1 {
             'symbol': marketId,
         };
         const result = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, { 'checksum': false });
-        const checksum = this.safeValue(this.options, 'checksum', true);
+        const checksum = this.safeBool(this.options, 'checksum', true);
         if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
             client.subscriptions[messageHash]['checksum'] = true;
             await client.send({
@@ -72,13 +72,13 @@ class bitfinex2 extends bitfinex2$1 {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name biftfinex2#watchOHLCV
+         * @name bitfinex2#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the biftfinex2 api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -192,8 +192,8 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const trades = await this.subscribe('trades', symbol, params);
         if (this.newUpdates) {
@@ -206,11 +206,11 @@ class bitfinex2 extends bitfinex2$1 {
          * @method
          * @name bitfinex2#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         let messageHash = 'myTrade';
@@ -230,7 +230,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @name bitfinex2#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.subscribe('ticker', symbol, params);
@@ -267,13 +267,13 @@ class bitfinex2 extends bitfinex2$1 {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
         }
-        const array = this.myTrades;
-        array.append(trade);
-        this.myTrades = array;
+        const tradesArray = this.myTrades;
+        tradesArray.append(trade);
+        this.myTrades = tradesArray;
         // generic subscription
-        client.resolve(array, name);
+        client.resolve(tradesArray, name);
         // specific subscription
-        client.resolve(array, messageHash);
+        client.resolve(tradesArray, messageHash);
     }
     handleTrades(client, message, subscription) {
         //
@@ -296,7 +296,7 @@ class bitfinex2 extends bitfinex2$1 {
         //
         //    [
         //        360141,
-        //        'te',
+        //        "te",
         //        [
         //            1128060969, // id
         //            1654702500098, // mts
@@ -320,7 +320,9 @@ class bitfinex2 extends bitfinex2$1 {
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
-            const trades = this.safeValue(message, 1, []);
+            let trades = this.safeList(message, 1, []);
+            // needs to be reversed to make chronological order
+            trades = trades.reverse();
             for (let i = 0; i < trades.length; i++) {
                 const parsed = this.parseWsTrade(trades[i], market);
                 stored.append(parsed);
@@ -339,7 +341,6 @@ class bitfinex2 extends bitfinex2$1 {
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
-        return message;
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -520,7 +521,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if (limit !== undefined) {
@@ -574,7 +575,6 @@ class bitfinex2 extends bitfinex2$1 {
         const messageHash = channel + ':' + marketId;
         const prec = this.safeString(subscription, 'prec', 'P0');
         const isRaw = (prec === 'R0');
-        const id = this.safeString(message, 0);
         // if it is an initial snapshot
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -592,12 +592,13 @@ class bitfinex2 extends bitfinex2$1 {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
+                    const delta2 = delta[2];
+                    const size = (delta2 < 0) ? -delta2 : delta2;
+                    const side = (delta2 < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    const id = this.safeString(delta, 0);
+                    const idString = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
-                    bookside.store(price, size, id);
+                    bookside.store(price, size, idString);
                 }
             }
             else {
@@ -613,35 +614,38 @@ class bitfinex2 extends bitfinex2$1 {
                     bookside.store(price, size, counter);
                 }
             }
+            orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else {
             const deltas = message[1];
-            const orderbook = this.orderbooks[symbol];
+            const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
-                const price = this.safeFloat(deltas, 1);
-                const size = (deltas[2] < 0) ? -deltas[2] : deltas[2];
-                const side = (deltas[2] < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
+                const price = this.safeString(deltas, 1);
+                const deltas2 = deltas[2];
+                const size = (deltas2 < 0) ? -deltas2 : deltas2;
+                const side = (deltas2 < 0) ? 'asks' : 'bids';
+                const bookside = orderbookItem[side];
                 // price = 0 means that you have to remove the order from your book
-                const amount = (price > 0) ? size : 0;
-                bookside.store(price, amount, id);
+                const amount = Precise["default"].stringGt(price, '0') ? size : '0';
+                const idString = this.safeString(deltas, 0);
+                bookside.store(this.parseNumber(price), this.parseNumber(amount), idString);
             }
             else {
-                const amount = this.safeNumber(deltas, 2);
-                const counter = this.safeNumber(deltas, 1);
-                const price = this.safeNumber(deltas, 0);
-                const size = (amount < 0) ? -amount : amount;
-                const side = (amount < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
-                bookside.store(price, size, counter);
+                const amount = this.safeString(deltas, 2);
+                const counter = this.safeString(deltas, 1);
+                const price = this.safeString(deltas, 0);
+                const size = Precise["default"].stringLt(amount, '0') ? Precise["default"].stringNeg(amount) : amount;
+                const side = Precise["default"].stringLt(amount, '0') ? 'asks' : 'bids';
+                const bookside = orderbookItem[side];
+                bookside.store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
             }
             client.resolve(orderbook, messageHash);
         }
     }
     handleChecksum(client, message, subscription) {
         //
-        // [ 173904, 'cs', -890884919 ]
+        // [ 173904, "cs", -890884919 ]
         //
         const marketId = this.safeString(subscription, 'symbol');
         const symbol = this.safeSymbol(marketId);
@@ -655,17 +659,21 @@ class bitfinex2 extends bitfinex2$1 {
         const stringArray = [];
         const bids = book['bids'];
         const asks = book['asks'];
+        const prec = this.safeString(subscription, 'prec', 'P0');
+        const isRaw = (prec === 'R0');
+        const idToCheck = isRaw ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
             const bid = this.safeValue(bids, i);
             const ask = this.safeValue(asks, i);
             if (bid !== undefined) {
-                stringArray.push(this.numberToString(bids[i][0]));
+                stringArray.push(this.numberToString(bids[i][idToCheck]));
                 stringArray.push(this.numberToString(bids[i][1]));
             }
             if (ask !== undefined) {
-                stringArray.push(this.numberToString(asks[i][0]));
-                stringArray.push(this.numberToString(-asks[i][1]));
+                stringArray.push(this.numberToString(asks[i][idToCheck]));
+                const aski1 = asks[i][1];
+                stringArray.push(this.numberToString(-aski1));
             }
         }
         const payload = stringArray.join(':');
@@ -680,10 +688,10 @@ class bitfinex2 extends bitfinex2$1 {
         /**
          * @method
          * @name bitfinex2#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const balanceType = this.safeString(params, 'wallet', 'exchange'); // exchange, margin
@@ -696,24 +704,24 @@ class bitfinex2 extends bitfinex2$1 {
         // snapshot (exchange + margin together)
         //   [
         //       0,
-        //       'ws',
+        //       "ws",
         //       [
         //           [
-        //               'exchange',
-        //               'LTC',
+        //               "exchange",
+        //               "LTC",
         //               0.05479727,
         //               0,
         //               null,
-        //               'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //               "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //               null,
         //           ]
         //           [
-        //               'margin',
-        //               'USTF0',
+        //               "margin",
+        //               "USTF0",
         //               11.960650700086292,
         //               0,
         //               null,
-        //               'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //               "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //               null,
         //           ],
         //       ],
@@ -722,22 +730,22 @@ class bitfinex2 extends bitfinex2$1 {
         // spot
         //   [
         //       0,
-        //       'wu',
+        //       "wu",
         //       [
-        //         'exchange',
-        //         'LTC', // currency
+        //         "exchange",
+        //         "LTC", // currency
         //         0.06729727, // wallet balance
         //         0, // unsettled balance
         //         0.06729727, // available balance might be null
-        //         'Exchange 0.4 LTC for UST @ 65.075',
+        //         "Exchange 0.4 LTC for UST @ 65.075",
         //         {
-        //           reason: 'TRADE',
-        //           order_id: 96596397973,
-        //           order_id_oppo: 96596632735,
-        //           trade_price: '65.075',
-        //           trade_amount: '-0.4',
-        //           order_cid: 1654636218766,
-        //           order_gid: null
+        //           "reason": "TRADE",
+        //           "order_id": 96596397973,
+        //           "order_id_oppo": 96596632735,
+        //           "trade_price": "65.075",
+        //           "trade_amount": "-0.4",
+        //           "order_cid": 1654636218766,
+        //           "order_gid": null
         //         }
         //       ]
         //   ]
@@ -745,12 +753,12 @@ class bitfinex2 extends bitfinex2$1 {
         // margin
         //
         //   [
-        //       'margin',
-        //       'USTF0',
+        //       "margin",
+        //       "USTF0",
         //       11.960650700086292, // total
         //       0,
         //       6.776250700086292, // available
-        //       'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //       "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //       null
         //   ]
         //
@@ -785,12 +793,12 @@ class bitfinex2 extends bitfinex2$1 {
     parseWsBalance(balance) {
         //
         //     [
-        //         'exchange',
-        //         'LTC',
+        //         "exchange",
+        //         "LTC",
         //         0.05479727, // balance
         //         0,
         //         null, // available null if not calculated yet
-        //         'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //         "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //         null,
         //     ]
         //
@@ -806,10 +814,10 @@ class bitfinex2 extends bitfinex2$1 {
     handleSystemStatus(client, message) {
         //
         //     {
-        //         event: 'info',
-        //         version: 2,
-        //         serverId: 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-        //         platform: { status: 1 }, // 1 for operative, 0 for maintenance
+        //         "event": "info",
+        //         "version": 2,
+        //         "serverId": "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+        //         "platform": { status: 1 }, // 1 for operative, 0 for maintenance
         //     }
         //
         return message;
@@ -817,26 +825,27 @@ class bitfinex2 extends bitfinex2$1 {
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         event: 'subscribed',
-        //         channel: 'book',
-        //         chanId: 67473,
-        //         symbol: 'tBTCUSD',
-        //         prec: 'P0',
-        //         freq: 'F0',
-        //         len: '25',
-        //         pair: 'BTCUSD'
+        //         "event": "subscribed",
+        //         "channel": "book",
+        //         "chanId": 67473,
+        //         "symbol": "tBTCUSD",
+        //         "prec": "P0",
+        //         "freq": "F0",
+        //         "len": "25",
+        //         "pair": "BTCUSD"
         //     }
         //
         const channelId = this.safeString(message, 'chanId');
         client.subscriptions[channelId] = message;
         return message;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const nonce = this.milliseconds();
             const payload = 'AUTH' + nonce.toString();
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384, 'hex');
@@ -849,8 +858,7 @@ class bitfinex2 extends bitfinex2$1 {
                 'event': event,
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -859,7 +867,8 @@ class bitfinex2 extends bitfinex2$1 {
         const status = this.safeString(message, 'status');
         if (status === 'OK') {
             // we resolve the future here permanently so authentication only happens once
-            client.resolve(message, messageHash);
+            const future = this.safeValue(client.futures, messageHash);
+            future.resolve(true);
         }
         else {
             const error = new errors.AuthenticationError(this.json(message));
@@ -877,8 +886,8 @@ class bitfinex2 extends bitfinex2$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
@@ -986,17 +995,17 @@ class bitfinex2 extends bitfinex2$1 {
         //       97084883506, // order id
         //       null,
         //       1655110144596, // clientOrderId
-        //       'tLTCUST', // symbol
+        //       "tLTCUST", // symbol
         //       1655110144596, // created timestamp
         //       1655110144598, // updated timestamp
         //       0, // amount
         //       0.1, // amount_orig negative if sell order
-        //       'EXCHANGE MARKET', // type
+        //       "EXCHANGE MARKET", // type
         //       null,
         //       null,
         //       null,
         //       0,
-        //       'EXECUTED @ 42.821(0.1)', // status
+        //       "EXECUTED @ 42.821(0.1)", // status
         //       null,
         //       null,
         //       42.799, // price
@@ -1011,7 +1020,7 @@ class bitfinex2 extends bitfinex2$1 {
         //       null,
         //       null,
         //       null,
-        //       'BFX',
+        //       "BFX",
         //       null,
         //       null,
         //       {}
@@ -1021,11 +1030,11 @@ class bitfinex2 extends bitfinex2$1 {
         const clientOrderId = this.safeString(order, 1);
         const marketId = this.safeString(order, 3);
         const symbol = this.safeSymbol(marketId);
-        market = this.safeMarket(marketId);
-        let amount = this.safeNumber(order, 7);
+        market = this.safeMarket(symbol);
+        let amount = this.safeString(order, 7);
         let side = 'buy';
-        if (amount < 0) {
-            amount = Math.abs(amount);
+        if (Precise["default"].stringLt(amount, '0')) {
+            amount = Precise["default"].stringAbs(amount);
             side = 'sell';
         }
         const remaining = Precise["default"].stringAbs(this.safeString(order, 6));
@@ -1072,31 +1081,31 @@ class bitfinex2 extends bitfinex2$1 {
         //
         //     [
         //         1231,
-        //         'hb',
+        //         "hb",
         //     ]
         //
         // auth message
         //    {
-        //        event: 'auth',
-        //        status: 'OK',
-        //        chanId: 0,
-        //        userId: 3159883,
-        //        auth_id: 'ac7108e7-2f26-424d-9982-c24700dc02ca',
-        //        caps: {
-        //          orders: { read: 1, write: 1 },
-        //          account: { read: 1, write: 1 },
-        //          funding: { read: 1, write: 1 },
-        //          history: { read: 1, write: 0 },
-        //          wallets: { read: 1, write: 1 },
-        //          withdraw: { read: 0, write: 1 },
-        //          positions: { read: 1, write: 1 },
-        //          ui_withdraw: { read: 0, write: 0 }
+        //        "event": "auth",
+        //        "status": "OK",
+        //        "chanId": 0,
+        //        "userId": 3159883,
+        //        "auth_id": "ac7108e7-2f26-424d-9982-c24700dc02ca",
+        //        "caps": {
+        //          "orders": { read: 1, write: 1 },
+        //          "account": { read: 1, write: 1 },
+        //          "funding": { read: 1, write: 1 },
+        //          "history": { read: 1, write: 0 },
+        //          "wallets": { read: 1, write: 1 },
+        //          "withdraw": { read: 0, write: 1 },
+        //          "positions": { read: 1, write: 1 },
+        //          "ui_withdraw": { read: 0, write: 0 }
         //        }
         //    }
         //
         if (Array.isArray(message)) {
             if (message[1] === 'hb') {
-                return message; // skip heartbeats within subscription channels for now
+                return; // skip heartbeats within subscription channels for now
             }
             const subscription = this.safeValue(client.subscriptions, channelId, {});
             const channel = this.safeString(subscription, 'channel');
@@ -1124,11 +1133,8 @@ class bitfinex2 extends bitfinex2$1 {
             else {
                 method = this.safeValue2(publicMethods, name, channel);
             }
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message, subscription);
+            if (method !== undefined) {
+                method.call(this, client, message, subscription);
             }
         }
         else {
@@ -1140,11 +1146,8 @@ class bitfinex2 extends bitfinex2$1 {
                     'auth': this.handleAuthenticationMessage,
                 };
                 const method = this.safeValue(methods, event);
-                if (method === undefined) {
-                    return message;
-                }
-                else {
-                    return method.call(this, client, message);
+                if (method !== undefined) {
+                    method.call(this, client, message);
                 }
             }
         }

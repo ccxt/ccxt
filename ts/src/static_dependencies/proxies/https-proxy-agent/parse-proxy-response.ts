@@ -1,8 +1,8 @@
-import createDebug from 'debug';
+// import createDebug from 'debug';
 import { IncomingHttpHeaders } from 'http';
 import { Readable } from 'stream';
 
-const debug = createDebug('https-proxy-agent:parse-proxy-response');
+// const debug = createDebug('https-proxy-agent:parse-proxy-response');
 
 export interface ConnectResponse {
 	statusCode: number;
@@ -35,16 +35,16 @@ export function parseProxyResponse(
 		}
 
 		function onclose(err?: Error) {
-			debug('onclose had error %o', err);
+			// debug('onclose had error %o', err);
 		}
 
 		function onend() {
-			debug('onend');
+			// debug('onend');
 		}
 
 		function onerror(err: Error) {
 			cleanup();
-			debug('onerror %o', err);
+			// debug('onerror %o', err);
 			reject(err);
 		}
 
@@ -57,7 +57,7 @@ export function parseProxyResponse(
 
 			if (endOfHeaders === -1) {
 				// keep buffering
-				debug('have not received end of HTTP headers yet...');
+				// debug('have not received end of HTTP headers yet...');
 				read();
 				return;
 			}
@@ -88,7 +88,7 @@ export function parseProxyResponse(
 					headers[key] = value;
 				}
 			}
-			debug('got proxy server response: %o', firstLine);
+			// debug('got proxy server response: %o', firstLine);
 			cleanup();
 			resolve({
 				connect: {

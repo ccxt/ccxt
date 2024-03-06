@@ -1,0 +1,133 @@
+{
+    "exchange": "alpaca",
+    "skipKeys": ["client_order_id"],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "Spot market buy",
+                "method": "createOrder",
+                "url": "https://paper-api.alpaca.markets/v2/orders",
+                "input": [
+                  "BTC/USD",
+                  "market",
+                  "buy",
+                  "1",
+                  "5"
+                ],
+                "output": "{\"symbol\":\"BTC/USD\",\"qty\":\"1\",\"side\":\"buy\",\"type\":\"market\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_b17b85b6309a4e9e91eb1f3ad5591efe\"}"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://paper-api.alpaca.markets/v2/orders",
+                "input": [
+                  "BTC/USD",
+                  "market",
+                  "sell",
+                  0.001
+                ],
+                "output": "{\"symbol\":\"BTC/USD\",\"qty\":\"0.001\",\"side\":\"sell\",\"type\":\"market\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_f7e2354ca93c4f1d9cb351b584863faa\"}"
+            },
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://paper-api.alpaca.markets/v2/orders",
+                "input": [
+                  "BTC/USD",
+                  "limit",
+                  "buy",
+                  0.001,
+                  "20000"
+                ],
+                "output": "{\"symbol\":\"BTC/USD\",\"qty\":\"0.001\",\"side\":\"buy\",\"type\":\"limit\",\"limit_price\":\"20000\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_0b7a535d63a745659e6cc4ffe97e0b7b\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel order",
+                "method": "cancelOrder",
+                "url": "https://paper-api.alpaca.markets/v2/orders/eb625a98-5137-4c3d-b88c-699151ed21a8",
+                "input": [
+                  "eb625a98-5137-4c3d-b88c-699151ed21a8"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order",
+                "method": "fetchOrder",
+                "url": "https://paper-api.alpaca.markets/v2/orders/eb625a98-5137-4c3d-b88c-699151ed21a8",
+                "input": [
+                  "eb625a98-5137-4c3d-b88c-699151ed21a8"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOrders",
+                "url": "https://api.alpaca.markets/v2/orders?status=all&symbols=LTC%2FUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.alpaca.markets/v2/orders?status=open&symbols=LTC%2FUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Spot closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.alpaca.markets/v2/orders?status=closed&symbols=LTC%2FUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/trades?symbols=BTC%2FUSDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades with method: marketPublicGetV1beta3CryptoLocLatestTrades",
+                "method": "fetchTrades",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/latest/trades?symbols=BTC%2FUSDT",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "method": "marketPublicGetV1beta3CryptoLocLatestTrades"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch trades with method: marketPublicGetV1beta3CryptoLocTrades",
+                "method": "fetchTrades",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/trades?symbols=BTC%2FUSD",
+                "input": [
+                  "BTC/USD",
+                  null,
+                  null,
+                  {
+                    "method": "marketPublicGetV1beta3CryptoLocTrades"
+                  }
+                ]
+            }
+        ]
+    }
+}

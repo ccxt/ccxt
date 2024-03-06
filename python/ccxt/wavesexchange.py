@@ -5,11 +5,10 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.wavesexchange import ImplicitAPI
-import math
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
+import json
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -32,7 +31,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': ['CH'],  # Switzerland
-            'certified': True,
+            'certified': False,
             'pro': False,
             'has': {
                 'CORS': None,
@@ -43,6 +42,8 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
@@ -50,12 +51,11 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchDepositAddress': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
@@ -64,6 +64,8 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -93,6 +95,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'signIn': True,
                 'transfer': False,
                 'withdraw': True,
+                'ws': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -112,23 +115,23 @@ class wavesexchange(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'test': {
-                    'matcher': 'https://matcher-testnet.waves.exchange',
+                    'matcher': 'https://matcher-testnet.wx.network',
                     'node': 'https://nodes-testnet.wavesnodes.com',
                     'public': 'https://api-testnet.wavesplatform.com/v0',
-                    'private': 'https://api-testnet.waves.exchange/v1',
-                    'forward': 'https://testnet.waves.exchange/api/v1/forward/matcher',
-                    'market': 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
+                    'private': 'https://api-testnet.wx.network/v1',
+                    'forward': 'https://testnet.wx.network/api/v1/forward/matcher',
+                    'market': 'https://testnet.wx.network/api/v1/forward/marketdata/api/v1',
                 },
                 'api': {
-                    'matcher': 'https://matcher.waves.exchange',
-                    'node': 'https://nodes.waves.exchange',
+                    'matcher': 'https://matcher.wx.network',
+                    'node': 'https://nodes.wx.network',
                     'public': 'https://api.wavesplatform.com/v0',
-                    'private': 'https://api.waves.exchange/v1',
-                    'forward': 'https://waves.exchange/api/v1/forward/matcher',
-                    'market': 'https://waves.exchange/api/v1/forward/marketdata/api/v1',
+                    'private': 'https://api.wx.network/v1',
+                    'forward': 'https://wx.network/api/v1/forward/matcher',
+                    'market': 'https://wx.network/api/v1/forward/marketdata/api/v1',
                 },
-                'doc': 'https://docs.waves.exchange',
-                'www': 'https://waves.exchange',
+                'doc': 'https://docs.wx.network',
+                'www': 'https://wx.network',
             },
             'api': {
                 'matcher': {
@@ -141,28 +144,36 @@ class wavesexchange(Exchange, ImplicitAPI):
                         'matcher/debug/currentOffset',
                         'matcher/debug/lastOffset',
                         'matcher/debug/oldestSnapshotOffset',
+                        'matcher/debug/config',
+                        'matcher/debug/address/{address}',
+                        'matcher/debug/status',
+                        'matcher/debug/address/{address}/check',
                         'matcher/orderbook',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}',
+                        'matcher/orderbook/{baseId}/{quoteId}',
                         'matcher/orderbook/{baseId}/{quoteId}/publicKey/{publicKey}',
                         'matcher/orderbook/{baseId}/{quoteId}/{orderId}',
                         'matcher/orderbook/{baseId}/{quoteId}/info',
                         'matcher/orderbook/{baseId}/{quoteId}/status',
-                        'matcher/orderbook/{baseId}/{quoteId}/tradeableBalance/{address}',
+                        'matcher/orderbook/{baseId}/{quoteId}/tradableBalance/{address}',
                         'matcher/orderbook/{publicKey}',
                         'matcher/orderbook/{publicKey}/{orderId}',
                         'matcher/orders/{address}',
                         'matcher/orders/{address}/{orderId}',
                         'matcher/transactions/{orderId}',
+                        'api/v1/orderbook/{baseId}/{quoteId}',
                     ],
                     'post': [
                         'matcher/orderbook',
                         'matcher/orderbook/market',
                         'matcher/orderbook/cancel',
                         'matcher/orderbook/{baseId}/{quoteId}/cancel',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/calculateFee',
+                        'matcher/orderbook/{baseId}/{quoteId}/calculateFee',
+                        'matcher/orderbook/{baseId}/{quoteId}/delete',
+                        'matcher/orderbook/{baseId}/{quoteId}/cancelAll',
                         'matcher/debug/saveSnapshots',
                         'matcher/orders/{address}/cancel',
                         'matcher/orders/cancel/{orderId}',
+                        'matcher/orders/serialize',
                     ],
                     'delete': [
                         'matcher/orderbook/{baseId}/{quoteId}',
@@ -313,7 +324,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 },
             },
             'currencies': {
-                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_number('8')}),
+                'WX': self.safe_currency_structure({'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': self.parse_to_int('8')}),
             },
             'precisionMode': DECIMAL_PLACES,
             'options': {
@@ -331,10 +342,6 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                },
-                'networksById': {
-                    'ETH': 'ERC20',
-                    'BSC': 'BEP20',
                 },
             },
             'commonCurrencies': {
@@ -372,6 +379,7 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def set_sandbox_mode(self, enabled):
         self.options['messagePrefix'] = 'T' if enabled else 'W'
+        self.options['sandboxMode'] = enabled
         super(wavesexchange, self).set_sandbox_mode(enabled)
 
     def get_fees_for_asset(self, symbol: str, side, amount, price, params={}):
@@ -380,13 +388,13 @@ class wavesexchange(Exchange, ImplicitAPI):
         amount = self.custom_amount_to_precision(symbol, amount)
         price = self.custom_price_to_precision(symbol, price)
         request = self.extend({
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
             'orderType': side,
             'amount': amount,
             'price': price,
         }, params)
-        return self.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee(request)
+        return self.matcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee(request)
 
     def custom_calculate_fee(self, symbol: str, type, side, amount, price, takerOrMaker='taker', params={}):
         response = self.get_fees_for_asset(symbol, side, amount, price)
@@ -400,7 +408,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #        "matcherFee":"4077612"
         #     }
         #  }
-        isDiscountFee = self.safe_value(params, 'isDiscountFee', False)
+        isDiscountFee = self.safe_bool(params, 'isDiscountFee', False)
         mode = None
         if isDiscountFee:
             mode = self.safe_value(response, 'discount')
@@ -429,7 +437,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             # currencies can have any name because you can create you own token
             # result someone can create a fake token called BTC
             # we use self mapping to determine the real tokens
-            # https://docs.waves.exchange/en/waves-matcher/matcher-api#asset-pair
+            # https://docs.wx.network/en/waves-matcher/matcher-api#asset-pair
             response = self.matcherGetMatcherSettings()
             # {
             #   "orderVersions": [
@@ -489,7 +497,7 @@ class wavesexchange(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for wavesexchange
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         response = self.marketGetTickers()
@@ -578,25 +586,26 @@ class wavesexchange(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': entry,
             })
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
         request = self.extend({
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }, params)
-        response = self.matcherGetMatcherOrderbookAmountAssetPriceAsset(request)
+        response = self.matcherGetMatcherOrderbookBaseIdQuoteId(request)
         timestamp = self.safe_integer(response, 'timestamp')
         bids = self.parse_order_book_side(self.safe_value(response, 'bids'), market, limit)
         asks = self.parse_order_book_side(self.safe_value(response, 'asks'), market, limit)
@@ -609,20 +618,31 @@ class wavesexchange(Exchange, ImplicitAPI):
             'nonce': None,
         }
 
-    def parse_order_book_side(self, bookSide, market=None, limit: Optional[int] = None):
+    def parse_order_book_side(self, bookSide, market=None, limit: Int = None):
         precision = market['precision']
-        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-        amountPrecision = math.pow(10, precision['amount'])
-        difference = precision['amount'] - precision['price']
-        pricePrecision = math.pow(10, wavesPrecision - difference)
+        wavesPrecision = self.safe_string(self.options, 'wavesPrecision', '8')
+        amountPrecision = '1e' + self.number_to_string(precision['amount'])
+        amountPrecisionString = self.number_to_string(precision['amount'])
+        pricePrecisionString = self.number_to_string(precision['price'])
+        difference = Precise.string_sub(amountPrecisionString, pricePrecisionString)
+        pricePrecision = '1e' + Precise.string_sub(wavesPrecision, difference)
         result = []
         for i in range(0, len(bookSide)):
             entry = bookSide[i]
-            price = self.safe_integer(entry, 'price', 0) / pricePrecision
-            amount = self.safe_integer(entry, 'amount', 0) / amountPrecision
+            entryPrice = self.safe_string(entry, 'price', '0')
+            entryAmount = self.safe_string(entry, 'amount', '0')
+            price = None
+            amount = None
+            if (pricePrecision is not None) and (entryPrice is not None):
+                price = Precise.string_div(entryPrice, pricePrecision)
+            if (amountPrecision is not None) and (entryAmount is not None):
+                amount = Precise.string_div(entryAmount, amountPrecision)
             if (limit is not None) and (i > limit):
                 break
-            result.append([price, amount])
+            result.append([
+                self.parse_number(price),
+                self.parse_number(amount),
+            ])
         return result
 
     def check_required_keys(self):
@@ -695,7 +715,7 @@ class wavesexchange(Exchange, ImplicitAPI):
     def sign_in(self, params={}):
         """
         sign in, must be called prior to using other authenticated methods
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns: response from exchange
         """
         if not self.safe_string(self.options, 'accessToken'):
@@ -703,14 +723,14 @@ class wavesexchange(Exchange, ImplicitAPI):
             expiresDelta = 60 * 60 * 24 * 7
             seconds = self.sum(self.seconds(), expiresDelta)
             seconds = str(seconds)
-            clientId = 'waves.exchange'
+            clientId = 'wx.network'
             # W for production, T for testnet
             defaultMessagePrefix = self.safe_string(self.options, 'messagePrefix', 'W')
             message = defaultMessagePrefix + ':' + clientId + ':' + seconds
             messageHex = self.binary_to_base16(self.encode(message))
             payload = prefix + messageHex
             hexKey = self.binary_to_base16(self.base58_to_binary(self.secret))
-            signature = self.eddsa(payload, hexKey, 'ed25519')
+            signature = self.axolotl(payload, hexKey, 'ed25519')
             request = {
                 'grant_type': 'password',
                 'scope': 'general',
@@ -719,16 +739,16 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'client_id': clientId,
             }
             response = self.privatePostOauth2Token(request)
-            # {access_token: 'eyJhbGciOXJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5MTk3NTA1NywiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkOWI5IiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.B-XwexBnUAzbWknVN68RKT0ZP5w6Qk1SKJ8usL3OIwDEzCUUX9PjW-5TQHmiCRcA4oft8lqXEiCwEoNfsblCo_jTpRo518a1vZkIbHQk0-13Dm1K5ewGxfxAwBk0g49odcbKdjl64TN1yM_PO1VtLVuiTeZP-XF-S42Uj-7fcO-r7AulyQLuTE0uo-Qdep8HDCk47rduZwtJOmhFbCCnSgnLYvKWy3CVTeldsR77qxUY-vy8q9McqeP7Id-_MWnsob8vWXpkeJxaEsw1Fke1dxApJaJam09VU8EB3ZJWpkT7V8PdafIrQGeexx3jhKKxo7rRb4hDV8kfpVoCgkvFan',
-            #   token_type: 'bearer',
-            #   refresh_token: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwiYXRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkXWI5IiwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5Mzk2MjI1OCwiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiM2MzZWRlMTktNjI5My00MTNlLWJmMWUtZTRlZDZlYzUzZTgzIiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.gD1Qj0jfqayfZpBvNY0t3ccMyK5hdbT7dY-_5L6LxwV0Knan4ndEtvygxlTOczmJUKtnA4T1r5GBFgNMZTvtViKZIbqZNysEg2OY8UxwDaF4VPeGJLg_QXEnn8wBeBQdyMafh9UQdwD2ci7x-saM4tOAGmncAygfTDxy80201gwDhfAkAGerb9kL00oWzSJScldxu--pNLDBUEHZt52MSEel10HGrzvZkkvvSh67vcQo5TOGb5KG6nh65UdJCwr41AVz4fbQPP-N2Nkxqy0TE_bqVzZxExXgvcS8TS0Z82T3ijJa_ct7B9wblpylBnvmyj3VycUzufD6uy8MUGq32D',
-            #   expires_in: 604798,
-            #   scope: 'general'}
+            # {access_token: "eyJhbGciOXJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5MTk3NTA1NywiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkOWI5IiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.B-XwexBnUAzbWknVN68RKT0ZP5w6Qk1SKJ8usL3OIwDEzCUUX9PjW-5TQHmiCRcA4oft8lqXEiCwEoNfsblCo_jTpRo518a1vZkIbHQk0-13Dm1K5ewGxfxAwBk0g49odcbKdjl64TN1yM_PO1VtLVuiTeZP-XF-S42Uj-7fcO-r7AulyQLuTE0uo-Qdep8HDCk47rduZwtJOmhFbCCnSgnLYvKWy3CVTeldsR77qxUY-vy8q9McqeP7Id-_MWnsob8vWXpkeJxaEsw1Fke1dxApJaJam09VU8EB3ZJWpkT7V8PdafIrQGeexx3jhKKxo7rRb4hDV8kfpVoCgkvFan",
+            #   "token_type": "bearer",
+            #   "refresh_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwiYXRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkXWI5IiwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5Mzk2MjI1OCwiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiM2MzZWRlMTktNjI5My00MTNlLWJmMWUtZTRlZDZlYzUzZTgzIiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.gD1Qj0jfqayfZpBvNY0t3ccMyK5hdbT7dY-_5L6LxwV0Knan4ndEtvygxlTOczmJUKtnA4T1r5GBFgNMZTvtViKZIbqZNysEg2OY8UxwDaF4VPeGJLg_QXEnn8wBeBQdyMafh9UQdwD2ci7x-saM4tOAGmncAygfTDxy80201gwDhfAkAGerb9kL00oWzSJScldxu--pNLDBUEHZt52MSEel10HGrzvZkkvvSh67vcQo5TOGb5KG6nh65UdJCwr41AVz4fbQPP-N2Nkxqy0TE_bqVzZxExXgvcS8TS0Z82T3ijJa_ct7B9wblpylBnvmyj3VycUzufD6uy8MUGq32D",
+            #   "expires_in": 604798,
+            #   "scope": "general"}
             self.options['accessToken'] = self.safe_string(response, 'access_token')
             return self.options['accessToken']
         return None
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #       {
         #           "symbol": "WAVES/BTC",
@@ -757,15 +777,15 @@ class wavesexchange(Exchange, ImplicitAPI):
         #  fetch ticker
         #
         #       {
-        #           firstPrice: '21749',
-        #           lastPrice: '22000',
-        #           volume: '0.73747149',
-        #           quoteVolume: '16409.44564928645471',
-        #           high: '23589.999941',
-        #           low: '21010.000845',
-        #           weightedAveragePrice: '22250.955964',
-        #           txsCount: '148',
-        #           volumeWaves: '0.0000000000680511203072'
+        #           "firstPrice": "21749",
+        #           "lastPrice": "22000",
+        #           "volume": "0.73747149",
+        #           "quoteVolume": "16409.44564928645471",
+        #           "high": "23589.999941",
+        #           "low": "21010.000845",
+        #           "weightedAveragePrice": "22250.955964",
+        #           "txsCount": "148",
+        #           "volumeWaves": "0.0000000000680511203072"
         #       }
         #
         timestamp = self.safe_integer(ticker, 'timestamp')
@@ -802,11 +822,11 @@ class wavesexchange(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -843,11 +863,11 @@ class wavesexchange(Exchange, ImplicitAPI):
         dataTicker = self.safe_value(ticker, 'data', {})
         return self.parse_ticker(dataTicker, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the aax api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -882,14 +902,14 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -965,22 +985,22 @@ class wavesexchange(Exchange, ImplicitAPI):
             result.append(ohlcvs[i])
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
-        #         __type: 'candle',
-        #         data: {
-        #             time: '2020-06-05T20:46:00.000Z',
-        #             open: 240.573975,
-        #             close: 240.573975,
-        #             high: 240.573975,
-        #             low: 240.573975,
-        #             volume: 0.01278413,
-        #             quoteVolume: 3.075528,
-        #             weightedAveragePrice: 240.573975,
-        #             maxHeight: 2093895,
-        #             txsCount: 5,
-        #             timeClose: '2020-06-05T20:46:59.999Z'
+        #         "__type": "candle",
+        #         "data": {
+        #             "time": "2020-06-05T20:46:00.000Z",
+        #             "open": 240.573975,
+        #             "close": 240.573975,
+        #             "high": 240.573975,
+        #             "low": 240.573975,
+        #             "volume": 0.01278413,
+        #             "quoteVolume": 3.075528,
+        #             "weightedAveragePrice": 240.573975,
+        #             "maxHeight": 2093895,
+        #             "txsCount": 5,
+        #             "timeClose": "2020-06-05T20:46:59.999Z"
         #         }
         #     }
         #
@@ -998,7 +1018,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.sign_in()
@@ -1148,15 +1168,21 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def custom_price_to_precision(self, symbol, price):
         market = self.markets[symbol]
-        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-        difference = market['precision']['amount'] - market['precision']['price']
-        return self.parse_to_int(float(self.to_precision(price, wavesPrecision - difference)))
+        wavesPrecision = self.safe_string(self.options, 'wavesPrecision', '8')
+        amount = self.number_to_string(market['precision']['amount'])
+        precisionPrice = self.number_to_string(market['precision']['price'])
+        difference = Precise.string_sub(amount, precisionPrice)
+        precision = Precise.string_sub(wavesPrecision, difference)
+        pricePrecision = self.to_precision(price, str(precision))
+        return self.parse_to_int(float(pricePrecision))
 
     def custom_amount_to_precision(self, symbol, amount):
-        return self.parse_to_int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
+        amountPrecision = self.number_to_string(self.to_precision(amount, self.number_to_string(self.markets[symbol]['precision']['amount'])))
+        return self.parse_to_int(float(amountPrecision))
 
     def currency_to_precision(self, code, amount, networkCode=None):
-        return self.parse_to_int(float(self.to_precision(amount, self.currencies[code]['precision'])))
+        amountPrecision = self.number_to_string(self.to_precision(amount, self.currencies[code]['precision']))
+        return self.parse_to_int(float(amountPrecision))
 
     def from_precision(self, amount, scale):
         if amount is None:
@@ -1167,11 +1193,13 @@ class wavesexchange(Exchange, ImplicitAPI):
         return str(precise)
 
     def to_precision(self, amount, scale):
-        amountString = str(amount)
+        amountString = self.number_to_string(amount)
         precise = Precise(amountString)
-        precise.decimals = precise.decimals - scale
+        # precise.decimals should be integer
+        precise.decimals = self.parse_to_int(Precise.string_sub(self.number_to_string(precise.decimals), self.number_to_string(scale)))
         precise.reduce()
-        return str(precise)
+        stringValue = str(precise)
+        return stringValue
 
     def currency_from_precision(self, currency, amount):
         scale = self.currencies[currency]['precision']
@@ -1196,15 +1224,16 @@ class wavesexchange(Exchange, ImplicitAPI):
             return {'WAVES': 1}
         return rates
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.stopPrice]: The price at which a stop order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_dependencies()
@@ -1215,9 +1244,10 @@ class wavesexchange(Exchange, ImplicitAPI):
         amountAsset = self.get_asset_id(market['baseId'])
         priceAsset = self.get_asset_id(market['quoteId'])
         isMarketOrder = (type == 'market')
+        stopPrice = self.safe_float_2(params, 'triggerPrice', 'stopPrice')
+        isStopOrder = (stopPrice is not None)
         if (isMarketOrder) and (price is None):
             raise InvalidOrder(self.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell')
-        orderType = 0 if (side == 'buy') else 1
         timestamp = self.milliseconds()
         defaultExpiryDelta = self.safe_integer(self.options, 'createOrderDefaultExpiry', 2419200000)
         expiration = self.sum(timestamp, defaultExpiryDelta)
@@ -1232,7 +1262,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #        "matcherFee":"4077612"
         #     }
         #  }
-        base = self.safe_value(matcherFees, 'base')
+        base = self.safe_value_2(matcherFees, 'base', 'discount')
         baseFeeAssetId = self.safe_string(base, 'feeAssetId')
         baseFeeAsset = self.safe_currency_code(baseFeeAssetId)
         baseMatcherFee = self.safe_string(base, 'matcherFee')
@@ -1273,26 +1303,12 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise InsufficientFunds(self.id + ' not enough funds on none of the eligible asset fees')
         amount = self.custom_amount_to_precision(symbol, amount)
         price = self.custom_price_to_precision(symbol, price)
-        byteArray = [
-            self.number_to_be(3, 1),
-            self.base58_to_binary(self.apiKey),
-            self.base58_to_binary(matcherPublicKey),
-            self.get_asset_bytes(market['baseId']),
-            self.get_asset_bytes(market['quoteId']),
-            self.number_to_be(orderType, 1),
-            self.number_to_be(price, 8),
-            self.number_to_be(amount, 8),
-            self.number_to_be(timestamp, 8),
-            self.number_to_be(expiration, 8),
-            self.number_to_be(matcherFee, 8),
-            self.get_asset_bytes(matcherFeeAssetId),
-        ]
-        binary = self.binary_concat_array(byteArray)
-        signature = self.eddsa(self.binary_to_base16(binary), self.binary_to_base16(self.base58_to_binary(self.secret)), 'ed25519')
         assetPair = {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
         }
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        chainId = 84 if (sandboxMode) else 87
         body = {
             'senderPublicKey': self.apiKey,
             'matcherPublicKey': matcherPublicKey,
@@ -1303,35 +1319,68 @@ class wavesexchange(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'expiration': expiration,
             'matcherFee': int(matcherFee),
-            'signature': signature,
-            'version': 3,
+            'priceMode': 'assetDecimals',
+            'version': 4,
+            'chainId': chainId,
         }
+        if isStopOrder:
+            #
+            # {
+            #     "v": 1,  # version(int)
+            #     "c": { # condition(object)
+            #         "t": "sp",  # condition type. for now only "stop-price"(string)
+            #         "v": { # value(object)
+            #             "p": "123",  # price(long)
+            #         },
+            #     },
+            # }
+            #
+            attachment = {
+                'v': 1,
+                'c': {
+                    't': 'sp',
+                    'v': {
+                        'p': self.custom_price_to_precision(symbol, stopPrice),
+                    },
+                },
+            }
+            body['attachment'] = self.binary_to_base58(self.encode(json.dumps(attachment)))
         if matcherFeeAssetId != 'WAVES':
             body['matcherFeeAssetId'] = matcherFeeAssetId
+        serializedOrder = self.matcherPostMatcherOrdersSerialize(body)
+        if (serializedOrder[0] == '"') and (serializedOrder[(len(serializedOrder) - 1)] == '"'):
+            serializedOrder = serializedOrder[1:len(serializedOrder) - 1]
+        signature = self.axolotl(self.binary_to_base16(self.base58_to_binary(serializedOrder)), self.binary_to_base16(self.base58_to_binary(self.secret)), 'ed25519')
+        body['signature'] = signature
         #
         #     {
-        #         "success":true,
-        #         "message":{
-        #             "version":3,
-        #             "id":"GK5ox4RfLJFtqjQsCbDmvCya8ZhFVEUQDtF4yYuAJ6C7",
-        #             "sender":"3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
-        #             "senderPublicKey":"AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF",
-        #             "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
-        #             "assetPair":{
-        #                 "amountAsset":"C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS",
-        #                 "priceAsset":"WAVES"
-        #             },
-        #             "orderType":"buy",
-        #             "amount":110874978,
-        #             "price":514397851,
-        #             "timestamp":1650473255988,
-        #             "expiration":1652892455988,
-        #             "matcherFee":7074571,
-        #             "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on",
-        #             "signature":"5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8",
-        #             "proofs":["5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8"]
+        #         "success": True,
+        #         "message": {
+        #           "version": 4,
+        #           "id": "8VR49dLZFaYcVwzx9TqVMTAZCSUoyB74kLUHrEPCSJgN",
+        #           "sender": "3MpEdBXtsRHRj2TvZURSb8uLDxzneVbYczW",
+        #           "senderPublicKey": "8aUTNqHGCBiubySBRhcS1N6NC5jLczhVcndRfMAuwtkY",
+        #           "matcherPublicKey": "8QUAqtTckM5B8gvcuP7mMswat9SjKUuafJMusEoSn1Gy",
+        #           "assetPair": {
+        #             "amountAsset": "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        #             "priceAsset": "25FEqEjRkqK6yCkiT7Lz6SAYz7gUFCtxfCChnrVFD5AT"
+        #           },
+        #           "orderType": "sell",
+        #           "amount": 100000,
+        #           "price": 480000,
+        #           "timestamp": 1690852043772,
+        #           "expiration": 1693271243772,
+        #           "matcherFee": 83327570,
+        #           "signature": "3QYDWQVSP4kdqpTLodCuboh8bpWd6GW5s1pQyKdce1JBDwX6t4kH5Xtuq35pqo94gxjo3cfG6k6Xuic2JaYLubkK",
+        #           "proofs": [
+        #             "3QYDWQVSP4kdqpTLodCuboh8bpWd6GW5s1pQyKdce1JBDwX6t4kH5Xtuq35pqo94gxjo3cfG6k6Xuic2JaYLubkK"
+        #           ],
+        #           "matcherFeeAssetId": "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        #           "eip712Signature": null,
+        #           "priceMode": "assetDecimals",
+        #           "attachment": "2PQ4akZHnMSZrQissuu5uudoXbgsipeDnFcRtXtjVgkdm1gUWEgGzp"
         #         },
-        #         "status":"OrderAccepted"
+        #         "status": "OrderAccepted"
         #     }
         #
         if isMarketOrder:
@@ -1343,12 +1392,12 @@ class wavesexchange(Exchange, ImplicitAPI):
             value = self.safe_value(response, 'message')
             return self.parse_order(value, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_dependencies()
@@ -1389,11 +1438,11 @@ class wavesexchange(Exchange, ImplicitAPI):
             'trades': None,
         }
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_dependencies()
@@ -1409,7 +1458,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'Timestamp': str(timestamp),
             'Signature': signature,
@@ -1419,19 +1468,19 @@ class wavesexchange(Exchange, ImplicitAPI):
         response = self.matcherGetMatcherOrderbookPublicKeyOrderId(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_dependencies()
         self.check_required_keys()
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         timestamp = self.milliseconds()
@@ -1441,7 +1490,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'Accept': 'application/json',
             'Timestamp': str(timestamp),
@@ -1451,30 +1500,30 @@ class wavesexchange(Exchange, ImplicitAPI):
             'quoteId': market['quoteId'],
         }
         response = self.matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey(self.extend(request, params))
-        # [{id: '3KicDeWayY2mdrRoYdCkP3gUAoUZUNT1AA6GAtWuPLfa',
-        #     type: 'sell',
-        #     orderType: 'limit',
-        #     amount: 1,
-        #     fee: 300000,
-        #     price: 100000000,
-        #     timestamp: 1591651254076,
-        #     filled: 0,
-        #     filledFee: 0,
-        #     feeAsset: 'WAVES',
-        #     status: 'Accepted',
-        #     assetPair:
+        # [{id: "3KicDeWayY2mdrRoYdCkP3gUAoUZUNT1AA6GAtWuPLfa",
+        #     "type": "sell",
+        #     "orderType": "limit",
+        #     "amount": 1,
+        #     "fee": 300000,
+        #     "price": 100000000,
+        #     "timestamp": 1591651254076,
+        #     "filled": 0,
+        #     "filledFee": 0,
+        #     "feeAsset": "WAVES",
+        #     "status": "Accepted",
+        #     "assetPair":
         #      {amountAsset: null,
-        #        priceAsset: '8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS'},
-        #     avgWeighedPrice: 0}, ...]
+        #        "priceAsset": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"},
+        #     "avgWeighedPrice": 0}, ...]
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1490,13 +1539,13 @@ class wavesexchange(Exchange, ImplicitAPI):
         response = self.forwardGetMatcherOrdersAddress(request)
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1547,55 +1596,57 @@ class wavesexchange(Exchange, ImplicitAPI):
         quoteId = self.safe_string(assetPair, 'priceAsset', 'WAVES')
         return self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
         #     {
-        #         'version': 3,
-        #         'id': 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
-        #         'sender': '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        #         'senderPublicKey': 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        #         'matcherPublicKey': '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        #         'assetPair': {
-        #             'amountAsset': '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        #             'priceAsset': 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p',
+        #         "version": 4,
+        #         "id": "BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS",
+        #         "sender": "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
+        #         "senderPublicKey": "AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF",
+        #         "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #         "assetPair": {
+        #             "amountAsset": "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
+        #             "priceAsset": "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
         #         },
-        #         'orderType': 'buy',
-        #         'amount': 10000,
-        #         'price': 400000000,
-        #         'timestamp': 1599848586891,
-        #         'expiration': 1602267786891,
-        #         'matcherFee': 3008,
-        #         'matcherFeeAssetId': '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        #         'signature': '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
-        #         'proofs': [
-        #             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        #         "orderType": "buy",
+        #         "amount": 10000,
+        #         "price": 400000000,
+        #         "timestamp": 1599848586891,
+        #         "expiration": 1602267786891,
+        #         "matcherFee": 3008,
+        #         "matcherFeeAssetId": "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
+        #         "signature": "3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy",
+        #         "proofs": [
+        #             "3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy",
         #         ],
+        #         "attachment":"77rnoyFX5BDr15hqZiUtgXKSN46zsbHHQjVNrTMLZcLz62mmFKr39FJ"
         #     }
         #
         #
         # fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         #
         #     {
-        #         id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
-        #         type: 'buy',
-        #         orderType: 'limit',
-        #         amount: 30000000000,
-        #         filled: 0,
-        #         price: 1000000,
-        #         fee: 300000,
-        #         filledFee: 0,
-        #         feeAsset: 'WAVES',
-        #         timestamp: 1594303779322,
-        #         status: 'Cancelled',
-        #         assetPair: {
-        #             amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        #             priceAsset: 'WAVES'
+        #         "id": "81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8",
+        #         "type": "buy",
+        #         "orderType": "limit",
+        #         "amount": 30000000000,
+        #         "filled": 0,
+        #         "price": 1000000,
+        #         "fee": 300000,
+        #         "filledFee": 0,
+        #         "feeAsset": "WAVES",
+        #         "timestamp": 1594303779322,
+        #         "status": "Cancelled",
+        #         "assetPair": {
+        #             "amountAsset": "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
+        #             "priceAsset": "WAVES"
         #         },
-        #         avgWeighedPrice: 0,
-        #         version: 3,
-        #         totalExecutedPriceAssets: 0,  # in fetchOpenOrder/s
+        #         "avgWeighedPrice": 0,
+        #         "version": 4,
+        #         "totalExecutedPriceAssets": 0,  # in fetchOpenOrder/s
+        #         "attachment":"77rnoyFX5BDr15hqZiUtgXKSN46zsbHHQjVNrTMLZcLz62mmFKr39FJ"
         #     }
         #
         timestamp = self.safe_integer(order, 'timestamp')
@@ -1633,6 +1684,16 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'currency': currency,
                 'fee': self.parse_number(self.currency_from_precision(currency, self.safe_string(order, 'matcherFee'))),
             }
+        triggerPrice = None
+        attachment = self.safe_string(order, 'attachment')
+        if attachment is not None:
+            decodedAttachment = self.parse_json(self.decode(self.base58_to_binary(attachment)))
+            if decodedAttachment is not None:
+                c = self.safe_value(decodedAttachment, 'c')
+                if c is not None:
+                    v = self.safe_value(c, 'v')
+                    if v is not None:
+                        triggerPrice = self.safe_string(v, 'p')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1646,8 +1707,8 @@ class wavesexchange(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -1670,11 +1731,11 @@ class wavesexchange(Exchange, ImplicitAPI):
         else:
             return cachedAddreess
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         # makes a lot of different requests to get all the data
         # in particular:
@@ -1769,7 +1830,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         matcherRequest = {
             'publicKey': self.apiKey,
             'signature': signature,
@@ -1808,13 +1869,13 @@ class wavesexchange(Exchange, ImplicitAPI):
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
@@ -1897,14 +1958,14 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1913,7 +1974,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'priceAsset': market['quoteId'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 100)
         if since is not None:
             request['timeStart'] = since
         response = self.publicGetTransactionsExchange(request)
@@ -1986,52 +2047,52 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
-        # {__type: 'transaction',
-        #   data:
-        #    {id: 'HSdruioHqvYHeyn9hhyoHdRWPB2bFA8ujeCPZMK6992c',
-        #      timestamp: '2020-06-09T19:34:51.897Z',
-        #      height: 2099684,
-        #      type: 7,
-        #      version: 2,
-        #      proofs:
-        #       ['26teDHERQgwjjHqEn4REcDotNG8M21xjou3X42XuDuCvrRkQo6aPyrswByH3UrkWG8v27ZAaVNzoxDg4teNcLtde'],
-        #      fee: 0.003,
-        #      sender: '3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu',
-        #      senderPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        #      buyMatcherFee: 0.00299999,
-        #      sellMatcherFee: 0.00299999,
-        #      price: 0.00012003,
-        #      amount: 60.80421562,
-        #      order1:
-        #       {id: 'CBRwP3ar4oMvvpUiGyfxc1syh41488SDi2GkrjuBDegv',
-        #         senderPublicKey: 'DBXSHBz96NFsMu7xh4fi2eT9ZnyxefAHXsMxUayzgC6a',
-        #         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        #         assetPair: [Object],
-        #         orderType: 'buy',
-        #         price: 0.00012003,
-        #         sender: '3PJfFRgVuJ47UY4ckb74EGzEBzkHXtmG1LA',
-        #         amount: 60.80424773,
-        #         timestamp: '2020-06-09T19:34:51.885Z',
-        #         expiration: '2020-06-10T12:31:31.885Z',
-        #         matcherFee: 0.003,
-        #         signature: '4cA3ZAb3XAEEXaFG7caqpto5TRbpR5PkhZpxoNQZ9ZReNvjuJQs5a3THnumv7rcqmVUiVtuHAgk2f67ANcqtKyJ8',
-        #         matcherFeeAssetId: null},
-        #      order2:
-        #       {id: 'CHJSLQ6dfSPs6gu2mAegrMUcRiDEDqaj2GKfvptMjS3M',
-        #         senderPublicKey: '3RUC4NGFZm9H8VJhSSjJyFLdiE42qNiUagDcZPwjgDf8',
-        #         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        #         assetPair: [Object],
-        #         orderType: 'sell',
-        #         price: 0.00012003,
-        #         sender: '3P9vKoQpMZtaSkHKpNh977YY9ZPzTuntLAq',
-        #         amount: 60.80424773,
-        #         timestamp: '2020-06-09T19:34:51.887Z',
-        #         expiration: '2020-06-10T12:31:31.887Z',
-        #         matcherFee: 0.003,
-        #         signature: '3SFyrcqzou2ddZyNisnLYaGhLt5qRjKxH8Nw3s4T5U7CEKGX9DDo8dS27RgThPVGbYF1rYET1FwrWoQ2UFZ6SMTR',
-        #         matcherFeeAssetId: null}}}
+        # {__type: "transaction",
+        #   "data":
+        #    {id: "HSdruioHqvYHeyn9hhyoHdRWPB2bFA8ujeCPZMK6992c",
+        #      "timestamp": "2020-06-09T19:34:51.897Z",
+        #      "height": 2099684,
+        #      "type": 7,
+        #      "version": 2,
+        #      "proofs":
+        #       ["26teDHERQgwjjHqEn4REcDotNG8M21xjou3X42XuDuCvrRkQo6aPyrswByH3UrkWG8v27ZAaVNzoxDg4teNcLtde"],
+        #      "fee": 0.003,
+        #      "sender": "3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        #      "senderPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #      "buyMatcherFee": 0.00299999,
+        #      "sellMatcherFee": 0.00299999,
+        #      "price": 0.00012003,
+        #      "amount": 60.80421562,
+        #      "order1":
+        #       {id: "CBRwP3ar4oMvvpUiGyfxc1syh41488SDi2GkrjuBDegv",
+        #         "senderPublicKey": "DBXSHBz96NFsMu7xh4fi2eT9ZnyxefAHXsMxUayzgC6a",
+        #         "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #         "assetPair": [Object],
+        #         "orderType": "buy",
+        #         "price": 0.00012003,
+        #         "sender": "3PJfFRgVuJ47UY4ckb74EGzEBzkHXtmG1LA",
+        #         "amount": 60.80424773,
+        #         "timestamp": "2020-06-09T19:34:51.885Z",
+        #         "expiration": "2020-06-10T12:31:31.885Z",
+        #         "matcherFee": 0.003,
+        #         "signature": "4cA3ZAb3XAEEXaFG7caqpto5TRbpR5PkhZpxoNQZ9ZReNvjuJQs5a3THnumv7rcqmVUiVtuHAgk2f67ANcqtKyJ8",
+        #         "matcherFeeAssetId": null},
+        #      "order2":
+        #       {id: "CHJSLQ6dfSPs6gu2mAegrMUcRiDEDqaj2GKfvptMjS3M",
+        #         "senderPublicKey": "3RUC4NGFZm9H8VJhSSjJyFLdiE42qNiUagDcZPwjgDf8",
+        #         "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #         "assetPair": [Object],
+        #         "orderType": "sell",
+        #         "price": 0.00012003,
+        #         "sender": "3P9vKoQpMZtaSkHKpNh977YY9ZPzTuntLAq",
+        #         "amount": 60.80424773,
+        #         "timestamp": "2020-06-09T19:34:51.887Z",
+        #         "expiration": "2020-06-10T12:31:31.887Z",
+        #         "matcherFee": 0.003,
+        #         "signature": "3SFyrcqzou2ddZyNisnLYaGhLt5qRjKxH8Nw3s4T5U7CEKGX9DDo8dS27RgThPVGbYF1rYET1FwrWoQ2UFZ6SMTR",
+        #         "matcherFeeAssetId": null}}}
         #
         data = self.safe_value(trade, 'data')
         datetime = self.safe_string(data, 'timestamp')
@@ -2075,7 +2136,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None):
+    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None) -> Any:
         depositWithdrawFees = {}
         codes = self.market_codes(codes)
         for i in range(0, len(response)):
@@ -2131,20 +2192,21 @@ class wavesexchange(Exchange, ImplicitAPI):
             entry = depositWithdrawFees[code]
             networks = self.safe_value(entry, 'networks')
             networkKeys = list(networks.keys())
-            if len(networkKeys) == 1:
+            networkKeysLength = len(networkKeys)
+            if networkKeysLength == 1:
                 network = self.safe_value(networks, networkKeys[0])
                 depositWithdrawFees[code]['withdraw'] = self.safe_value(network, 'withdraw')
                 depositWithdrawFees[code]['deposit'] = self.safe_value(network, 'deposit')
         return depositWithdrawFees
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://docs.waves.exchange/en/api/gateways/deposit/currencies
-        see https://docs.waves.exchange/en/api/gateways/withdraw/currencies
+        :see: https://docs.wx.network/en/api/gateways/deposit/currencies
+        :see: https://docs.wx.network/en/api/gateways/withdraw/currencies
         :param str[]|None codes: list of unified currency codes
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         data = []
@@ -2215,7 +2277,7 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'error')
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         Exception = self.safe_value(self.exceptions, errorCode)
         if Exception is not None:
             messageInner = self.safe_string(response, 'message')
@@ -2227,14 +2289,14 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
-        :param dict [params]: extra parameters specific to the wavesexchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -2259,7 +2321,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         isErc20 = True
         noPrefix = self.remove0x_prefix(address)
         lower = noPrefix.lower()
-        for i in range(0, len(lower)):
+        stringLength = len(lower) * 1
+        for i in range(0, stringLength):
             character = lower[i]
             if not (character in set):
                 isErc20 = False
@@ -2323,7 +2386,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'senderPublicKey': self.apiKey,
             'amount': amountInteger,
@@ -2353,7 +2416,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -2385,6 +2448,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'tag': None,
             'tagTo': None,
             'comment': None,
+            'internal': None,
             'fee': None,
             'info': transaction,
         }

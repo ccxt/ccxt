@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class blockchaincom extends \ccxt\async\blockchaincom {
 
@@ -40,7 +41,6 @@ class blockchaincom extends \ccxt\async\blockchaincom {
                     ),
                     'noOriginHeader' => false,
                 ),
-                'sequenceNumbers' => array(),
             ),
             'streaming' => array(
             ),
@@ -57,13 +57,13 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ));
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://exchange.blockchain.com/api/#balances
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->authenticate($params));
             $messageHash = 'balance';
@@ -81,11 +81,11 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         //  subscribed
         //     {
-        //         seqnum => 1,
-        //         $event => 'subscribed',
-        //         channel => 'balances',
-        //         local_currency => 'USD',
-        //         batching => false
+        //         "seqnum" => 1,
+        //         "event" => "subscribed",
+        //         "channel" => "balances",
+        //         "local_currency" => "USD",
+        //         "batching" => false
         //     }
         //  snapshot
         //     {
@@ -109,7 +109,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         $event = $this->safe_string($message, 'event');
         if ($event === 'subscribed') {
-            return $message;
+            return;
         }
         $result = array( 'info' => $message );
         $balances = $this->safe_value($message, 'balances', array());
@@ -118,16 +118,16 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($entry, 'available');
-            $account['total'] = $this->safe_number($entry, 'balance');
+            $account['free'] = $this->safe_string($entry, 'available');
+            $account['total'] = $this->safe_string($entry, 'balance');
             $result[$code] = $account;
         }
         $messageHash = 'balance';
-        $this->balance = $result;
+        $this->balance = $this->safe_balance($result);
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market->
@@ -136,7 +136,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
              * @param {string} $timeframe the length of time each candle represents. Allows '1m', '5m', '15m', '1h', '6h' '1d'. Can only watch one $timeframe per $symbol->
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -164,27 +164,26 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         //  subscribed
         //     {
-        //         seqnum => 0,
-        //         $event => 'subscribed',
-        //         channel => 'prices',
-        //         $symbol => 'BTC-USDT',
-        //         granularity => 60
+        //         "seqnum" => 0,
+        //         "event" => "subscribed",
+        //         "channel" => "prices",
+        //         "symbol" => "BTC-USDT",
+        //         "granularity" => 60
         //     }
         //
         //  updated
         //     {
-        //         seqnum => 1,
-        //         $event => 'updated',
-        //         channel => 'prices',
-        //         $symbol => 'BTC-USD',
-        //         price => array( 1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0 )
+        //         "seqnum" => 1,
+        //         "event" => "updated",
+        //         "channel" => "prices",
+        //         "symbol" => "BTC-USD",
+        //         "price" => array( 1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0 )
         //     }
         //
         $event = $this->safe_string($message, 'event');
-        if ($event === 'subscribed') {
-            return $message;
-        } elseif ($event === 'rejected') {
-            throw new ExchangeError($this->id . ' ' . $this->json($message));
+        if ($event === 'rejected') {
+            $jsonMessage = $this->json($message);
+            throw new ExchangeError($this->id . ' ' . $jsonMessage);
         } elseif ($event === 'updated') {
             $marketId = $this->safe_string($message, 'symbol');
             $symbol = $this->safe_symbol($marketId, null, '-');
@@ -202,19 +201,19 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             }
             $stored->append ($ohlcv);
             $client->resolve ($stored, $messageHash);
-        } else {
+        } elseif ($event !== 'subscribed') {
             throw new NotSupported($this->id . ' ' . $this->json($message));
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://exchange.blockchain.com/api/#ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -235,29 +234,29 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         //  subscribed
         //     {
-        //         seqnum => 0,
-        //         $event => 'subscribed',
-        //         channel => 'ticker',
-        //         $symbol => 'BTC-USD'
+        //         "seqnum" => 0,
+        //         "event" => "subscribed",
+        //         "channel" => "ticker",
+        //         "symbol" => "BTC-USD"
         //     }
         //  snapshot
         //     {
-        //         seqnum => 1,
-        //         $event => 'snapshot',
-        //         channel => 'ticker',
-        //         $symbol => 'BTC-USD',
-        //         price_24h => 23071.4,
-        //         volume_24h => 236.28398636,
-        //         last_trade_price => 23936.4,
-        //         mark_price => 23935.335240262
+        //         "seqnum" => 1,
+        //         "event" => "snapshot",
+        //         "channel" => "ticker",
+        //         "symbol" => "BTC-USD",
+        //         "price_24h" => 23071.4,
+        //         "volume_24h" => 236.28398636,
+        //         "last_trade_price" => 23936.4,
+        //         "mark_price" => 23935.335240262
         //     }
         // update
         //     {
-        //         seqnum => 2,
-        //         $event => 'updated',
-        //         channel => 'ticker',
-        //         $symbol => 'BTC-USD',
-        //         mark_price => 23935.242443617
+        //         "seqnum" => 2,
+        //         "event" => "updated",
+        //         "channel" => "ticker",
+        //         "symbol" => "BTC-USD",
+        //         "mark_price" => 23935.242443617
         //     }
         //
         $event = $this->safe_string($message, 'event');
@@ -266,7 +265,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $symbol = $market['symbol'];
         $ticker = null;
         if ($event === 'subscribed') {
-            return $message;
+            return;
         } elseif ($event === 'snapshot') {
             $ticker = $this->parse_ticker($message, $market);
         } elseif ($event === 'updated') {
@@ -281,11 +280,11 @@ class blockchaincom extends \ccxt\async\blockchaincom {
     public function parse_ws_updated_ticker($ticker, $lastTicker = null, $market = null) {
         //
         //     {
-        //         seqnum => 2,
-        //         event => 'updated',
-        //         channel => 'ticker',
-        //         $symbol => 'BTC-USD',
-        //         mark_price => 23935.242443617
+        //         "seqnum" => 2,
+        //         "event" => "updated",
+        //         "channel" => "ticker",
+        //         "symbol" => "BTC-USD",
+        //         "mark_price" => 23935.242443617
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -315,7 +314,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ), $market);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -323,8 +322,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of    $trades to fetch
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -346,27 +345,27 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         //  subscribed
         //     {
-        //         seqnum => 0,
-        //         $event => 'subscribed',
-        //         channel => 'trades',
-        //         $symbol => 'BTC-USDT'
+        //         "seqnum" => 0,
+        //         "event" => "subscribed",
+        //         "channel" => "trades",
+        //         "symbol" => "BTC-USDT"
         //     }
         //  updates
         //     {
-        //         seqnum => 1,
-        //         $event => 'updated',
-        //         channel => 'trades',
-        //         $symbol => 'BTC-USDT',
-        //         timestamp => '2022-08-08T17:23:48.163096Z',
-        //         side => 'sell',
-        //         qty => 0.083523,
-        //         price => 23940.67,
-        //         trade_id => '563078810223444'
+        //         "seqnum" => 1,
+        //         "event" => "updated",
+        //         "channel" => "trades",
+        //         "symbol" => "BTC-USDT",
+        //         "timestamp" => "2022-08-08T17:23:48.163096Z",
+        //         "side" => "sell",
+        //         "qty" => 0.083523,
+        //         "price" => 23940.67,
+        //         "trade_id" => "563078810223444"
         //     }
         //
         $event = $this->safe_string($message, 'event');
         if ($event !== 'updated') {
-            return $message;
+            return;
         }
         $marketId = $this->safe_string($message, 'symbol');
         $symbol = $this->safe_symbol($marketId);
@@ -387,15 +386,15 @@ class blockchaincom extends \ccxt\async\blockchaincom {
     public function parse_ws_trade($trade, $market = null) {
         //
         //     {
-        //         seqnum => 1,
-        //         event => 'updated',
-        //         channel => 'trades',
-        //         symbol => 'BTC-USDT',
-        //         timestamp => '2022-08-08T17:23:48.163096Z',
-        //         side => 'sell',
-        //         qty => 0.083523,
-        //         price => 23940.67,
-        //         trade_id => '563078810223444'
+        //         "seqnum" => 1,
+        //         "event" => "updated",
+        //         "channel" => "trades",
+        //         "symbol" => "BTC-USDT",
+        //         "timestamp" => "2022-08-08T17:23:48.163096Z",
+        //         "side" => "sell",
+        //         "qty" => 0.083523,
+        //         "price" => 23940.67,
+        //         "trade_id" => "563078810223444"
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -417,16 +416,16 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ), $market);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @see https://exchange.blockchain.com/api/#mass-order-status-$request-ordermassstatusrequest
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -452,75 +451,75 @@ class blockchaincom extends \ccxt\async\blockchaincom {
     public function handle_orders(Client $client, $message) {
         //
         //     {
-        //         seqnum => 1,
-        //         $event => 'rejected',
-        //         channel => 'trading',
-        //         text => 'Not subscribed to channel'
+        //         "seqnum" => 1,
+        //         "event" => "rejected",
+        //         "channel" => "trading",
+        //         "text" => "Not subscribed to channel"
         //     }
         //  snapshot
         //     {
-        //         seqnum => 2,
-        //         $event => 'snapshot',
-        //         channel => 'trading',
-        //         $orders => array(
+        //         "seqnum" => 2,
+        //         "event" => "snapshot",
+        //         "channel" => "trading",
+        //         "orders" => array(
         //           {
-        //             orderID => '562965341621940',
-        //             gwOrderId => 181011136260,
-        //             clOrdID => '016caf67f7a94508webd',
-        //             symbol => 'BTC-USD',
-        //             side => 'sell',
-        //             ordType => 'limit',
-        //             orderQty => 0.000675,
-        //             leavesQty => 0.000675,
-        //             cumQty => 0,
-        //             avgPx => 0,
-        //             ordStatus => 'open',
-        //             timeInForce => 'GTC',
-        //             text => 'New order',
-        //             execType => '0',
-        //             execID => '21415965325',
-        //             transactTime => '2022-08-08T23:31:00.550795Z',
-        //             msgType => 8,
-        //             lastPx => 0,
-        //             lastShares => 0,
-        //             tradeId => '0',
-        //             fee => 0,
-        //             price => 30000,
-        //             marginOrder => false,
-        //             closePositionOrder => false
+        //             "orderID" => "562965341621940",
+        //             "gwOrderId" => 181011136260,
+        //             "clOrdID" => "016caf67f7a94508webd",
+        //             "symbol" => "BTC-USD",
+        //             "side" => "sell",
+        //             "ordType" => "limit",
+        //             "orderQty" => 0.000675,
+        //             "leavesQty" => 0.000675,
+        //             "cumQty" => 0,
+        //             "avgPx" => 0,
+        //             "ordStatus" => "open",
+        //             "timeInForce" => "GTC",
+        //             "text" => "New $order",
+        //             "execType" => "0",
+        //             "execID" => "21415965325",
+        //             "transactTime" => "2022-08-08T23:31:00.550795Z",
+        //             "msgType" => 8,
+        //             "lastPx" => 0,
+        //             "lastShares" => 0,
+        //             "tradeId" => "0",
+        //             "fee" => 0,
+        //             "price" => 30000,
+        //             "marginOrder" => false,
+        //             "closePositionOrder" => false
         //           }
         //         ),
-        //         positions => array()
+        //         "positions" => array()
         //     }
         //  update
         //     {
-        //         seqnum => 3,
-        //         $event => 'updated',
-        //         channel => 'trading',
-        //         orderID => '562965341621940',
-        //         gwOrderId => 181011136260,
-        //         clOrdID => '016caf67f7a94508webd',
-        //         symbol => 'BTC-USD',
-        //         side => 'sell',
-        //         ordType => 'limit',
-        //         orderQty => 0.000675,
-        //         leavesQty => 0.000675,
-        //         cumQty => 0,
-        //         avgPx => 0,
-        //         ordStatus => 'cancelled',
-        //         timeInForce => 'GTC',
-        //         text => 'Canceled by User',
-        //         execType => '4',
-        //         execID => '21416034921',
-        //         transactTime => '2022-08-08T23:33:25.727785Z',
-        //         msgType => 8,
-        //         lastPx => 0,
-        //         lastShares => 0,
-        //         tradeId => '0',
-        //         fee => 0,
-        //         price => 30000,
-        //         marginOrder => false,
-        //         closePositionOrder => false
+        //         "seqnum" => 3,
+        //         "event" => "updated",
+        //         "channel" => "trading",
+        //         "orderID" => "562965341621940",
+        //         "gwOrderId" => 181011136260,
+        //         "clOrdID" => "016caf67f7a94508webd",
+        //         "symbol" => "BTC-USD",
+        //         "side" => "sell",
+        //         "ordType" => "limit",
+        //         "orderQty" => 0.000675,
+        //         "leavesQty" => 0.000675,
+        //         "cumQty" => 0,
+        //         "avgPx" => 0,
+        //         "ordStatus" => "cancelled",
+        //         "timeInForce" => "GTC",
+        //         "text" => "Canceled by User",
+        //         "execType" => "4",
+        //         "execID" => "21416034921",
+        //         "transactTime" => "2022-08-08T23:33:25.727785Z",
+        //         "msgType" => 8,
+        //         "lastPx" => 0,
+        //         "lastShares" => 0,
+        //         "tradeId" => "0",
+        //         "fee" => 0,
+        //         "price" => 30000,
+        //         "marginOrder" => false,
+        //         "closePositionOrder" => false
         //     }
         //
         $event = $this->safe_string($message, 'event');
@@ -531,7 +530,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         if ($event === 'subscribed') {
-            return $message;
+            return;
         } elseif ($event === 'rejected') {
             throw new ExchangeError($this->id . ' ' . $this->json($message));
         } elseif ($event === 'snapshot') {
@@ -552,33 +551,33 @@ class blockchaincom extends \ccxt\async\blockchaincom {
     public function parse_ws_order($order, $market = null) {
         //
         //     {
-        //         seqnum => 3,
-        //         event => 'updated',
-        //         channel => 'trading',
-        //         orderID => '562965341621940',
-        //         gwOrderId => 181011136260,
-        //         clOrdID => '016caf67f7a94508webd',
-        //         symbol => 'BTC-USD',
-        //         side => 'sell',
-        //         ordType => 'limit',
-        //         orderQty => 0.000675,
-        //         leavesQty => 0.000675,
-        //         cumQty => 0,
-        //         avgPx => 0,
-        //         ordStatus => 'cancelled',
-        //         timeInForce => 'GTC',
-        //         text => 'Canceled by User',
-        //         execType => '4',
-        //         execID => '21416034921',
-        //         transactTime => '2022-08-08T23:33:25.727785Z',
-        //         msgType => 8,
-        //         lastPx => 0,
-        //         lastShares => 0,
-        //         $tradeId => '0',
-        //         fee => 0,
-        //         price => 30000,
-        //         marginOrder => false,
-        //         closePositionOrder => false
+        //         "seqnum" => 3,
+        //         "event" => "updated",
+        //         "channel" => "trading",
+        //         "orderID" => "562965341621940",
+        //         "gwOrderId" => 181011136260,
+        //         "clOrdID" => "016caf67f7a94508webd",
+        //         "symbol" => "BTC-USD",
+        //         "side" => "sell",
+        //         "ordType" => "limit",
+        //         "orderQty" => 0.000675,
+        //         "leavesQty" => 0.000675,
+        //         "cumQty" => 0,
+        //         "avgPx" => 0,
+        //         "ordStatus" => "cancelled",
+        //         "timeInForce" => "GTC",
+        //         "text" => "Canceled by User",
+        //         "execType" => "4",
+        //         "execID" => "21416034921",
+        //         "transactTime" => "2022-08-08T23:33:25.727785Z",
+        //         "msgType" => 8,
+        //         "lastPx" => 0,
+        //         "lastShares" => 0,
+        //         "tradeId" => "0",
+        //         "fee" => 0,
+        //         "price" => 30000,
+        //         "marginOrder" => false,
+        //         "closePositionOrder" => false
         //     }
         //
         $datetime = $this->safe_string($order, 'transactTime');
@@ -632,16 +631,16 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://exchange.blockchain.com/api/#l2-order-book
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {arrayConstructor} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {arrayConstructor} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] accepts l2 or l3 for level 2 or level 3 order book
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -664,99 +663,70 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         //  subscribe
         //     {
-        //         seqnum => 0,
-        //         $event => 'subscribed',
-        //         channel => 'l2',
-        //         $symbol => 'BTC-USDT',
-        //         batching => false
+        //         "seqnum" => 0,
+        //         "event" => "subscribed",
+        //         "channel" => "l2",
+        //         "symbol" => "BTC-USDT",
+        //         "batching" => false
         //     }
         //  $snapshot
         //     {
-        //         seqnum => 1,
-        //         $event => 'snapshot',
-        //         channel => 'l2',
-        //         $symbol => 'BTC-USDT',
-        //         $bids => array(
+        //         "seqnum" => 1,
+        //         "event" => "snapshot",
+        //         "channel" => "l2",
+        //         "symbol" => "BTC-USDT",
+        //         "bids" => array(
         //           array( num => 1, px => 0.01, qty => 22 ),
         //         ),
-        //         $asks => array(
+        //         "asks" => array(
         //           array( num => 1, px => 23840.26, qty => 0.25 ),
         //         ),
-        //         $timestamp => '2022-08-08T22:03:19.071870Z'
+        //         "timestamp" => "2022-08-08T22:03:19.071870Z"
         //     }
         //  update
         //     {
-        //         seqnum => 2,
-        //         $event => 'updated',
-        //         channel => 'l2',
-        //         $symbol => 'BTC-USDT',
-        //         $bids => array(),
-        //         $asks => array( array( num => 1, px => 23855.06, qty => 1.04786347 ) ),
-        //         $timestamp => '2022-08-08T22:03:19.014680Z'
+        //         "seqnum" => 2,
+        //         "event" => "updated",
+        //         "channel" => "l2",
+        //         "symbol" => "BTC-USDT",
+        //         "bids" => array(),
+        //         "asks" => array( array( num => 1, px => 23855.06, qty => 1.04786347 ) ),
+        //         "timestamp" => "2022-08-08T22:03:19.014680Z"
         //     }
         //
         $event = $this->safe_string($message, 'event');
+        if ($event === 'subscribed') {
+            return;
+        }
         $type = $this->safe_string($message, 'channel');
         $marketId = $this->safe_string($message, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook:' . $symbol . ':' . $type;
         $datetime = $this->safe_string($message, 'timestamp');
         $timestamp = $this->parse8601($datetime);
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->counted_order_book(array());
-            $this->orderbooks[$symbol] = $storedOrderBook;
+        if ($this->safe_value($this->orderbooks, $symbol) === null) {
+            $this->orderbooks[$symbol] = $this->counted_order_book();
         }
-        if ($event === 'subscribed') {
-            return $message;
-        } elseif ($event === 'snapshot') {
-            $snapshot = $this->parse_counted_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
-            $storedOrderBook->reset ($snapshot);
+        $orderbook = $this->orderbooks[$symbol];
+        if ($event === 'snapshot') {
+            $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
+            $orderbook->reset ($snapshot);
         } elseif ($event === 'updated') {
             $asks = $this->safe_value($message, 'asks', array());
             $bids = $this->safe_value($message, 'bids', array());
-            $this->handle_deltas($storedOrderBook['asks'], $asks);
-            $this->handle_deltas($storedOrderBook['bids'], $bids);
-            $storedOrderBook['timestamp'] = $timestamp;
-            $storedOrderBook['datetime'] = $datetime;
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $datetime;
         } else {
             throw new NotSupported($this->id . ' watchOrderBook() does not support ' . $event . ' yet');
         }
-        $client->resolve ($storedOrderBook, $messageHash);
-    }
-
-    public function parse_counted_bid_ask($bidAsk, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $price = $this->safe_number($bidAsk, $priceKey);
-        $amount = $this->safe_number($bidAsk, $amountKey);
-        $count = $this->safe_number($bidAsk, $countKey);
-        return array( $price, $amount, $count );
-    }
-
-    public function parse_counted_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $bidasks = $this->to_array($bidasks);
-        $result = array();
-        for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->parse_counted_bid_ask($bidasks[$i], $priceKey, $amountKey, $countKey);
-        }
-        return $result;
-    }
-
-    public function parse_counted_order_book($orderbook, string $symbol, ?int $timestamp = null, int|string $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $bids = $this->parse_counted_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countKey);
-        $asks = $this->parse_counted_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countKey);
-        return array(
-            'symbol' => $symbol,
-            'bids' => $this->sort_by($bids, 0, true),
-            'asks' => $this->sort_by($asks, 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'nonce' => null,
-        );
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
-        $array = $this->parse_counted_bid_ask($delta, 'px', 'qty', 'num');
-        $bookside->storeArray ($array);
+        $bookArray = $this->parse_bid_ask($delta, 'px', 'qty', 'num');
+        $bookside->storeArray ($bookArray);
     }
 
     public function handle_deltas($bookside, $deltas) {
@@ -765,23 +735,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         }
     }
 
-    public function check_sequence_number(Client $client, $message) {
-        $seqnum = $this->safe_integer($message, 'seqnum', 0);
-        $channel = $this->safe_string($message, 'channel', '');
-        $sequenceNumbersByChannel = $this->safe_value($this->options, 'sequenceNumbers', array());
-        $lastSeqnum = $this->safe_integer($sequenceNumbersByChannel, $channel);
-        if ($lastSeqnum === null) {
-            $this->options['sequenceNumbers'][$channel] = $seqnum;
-        } else {
-            if ($seqnum !== $lastSeqnum + 1) {
-                throw new ExchangeError($this->id . ' ' . $channel . ' $seqnum ' . $seqnum . ' is not the expected ' . ($lastSeqnum + 1));
-            }
-            $this->options['sequenceNumbers'][$channel] = $seqnum;
-        }
-    }
-
     public function handle_message(Client $client, $message) {
-        $this->check_sequence_number($client, $message);
         $channel = $this->safe_string($message, 'channel');
         $handlers = array(
             'ticker' => array($this, 'handle_ticker'),
@@ -795,7 +749,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         );
         $handler = $this->safe_value($handlers, $channel);
         if ($handler !== null) {
-            return $handler($client, $message);
+            $handler($client, $message);
+            return;
         }
         throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
     }
@@ -803,10 +758,10 @@ class blockchaincom extends \ccxt\async\blockchaincom {
     public function handle_authentication_message(Client $client, $message) {
         //
         //     {
-        //         seqnum => 0,
-        //         $event => 'subscribed',
-        //         channel => 'auth',
-        //         readOnly => false
+        //         "seqnum" => 0,
+        //         "event" => "subscribed",
+        //         "channel" => "auth",
+        //         "readOnly" => false
         //     }
         //
         $event = $this->safe_string($message, 'event');

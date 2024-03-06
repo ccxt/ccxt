@@ -6,8 +6,8 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ArgumentsRequired;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitrue extends \ccxt\async\bitrue {
 
@@ -57,13 +57,13 @@ class bitrue extends \ccxt\async\bitrue {
         ));
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-             * @param {array} [$params] extra parameters specific to the bitrue api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             $url = Async\await($this->authenticate());
             $messageHash = 'balance';
@@ -81,47 +81,47 @@ class bitrue extends \ccxt\async\bitrue {
     public function handle_balance(Client $client, $message) {
         //
         //     {
-        //         e => 'BALANCE',
-        //         x => 'OutboundAccountPositionTradeEvent',
-        //         E => 1657799510175,
-        //         I => '302274978401288200',
-        //         i => 1657799510175,
-        //         B => [array(
-        //                 a => 'btc',
-        //                 F => '0.0006000000000000',
-        //                 T => 1657799510000,
-        //                 f => '0.0006000000000000',
-        //                 t => 0
+        //         "e" => "BALANCE",
+        //         "x" => "OutboundAccountPositionTradeEvent",
+        //         "E" => 1657799510175,
+        //         "I" => "302274978401288200",
+        //         "i" => 1657799510175,
+        //         "B" => [array(
+        //                 "a" => "btc",
+        //                 "F" => "0.0006000000000000",
+        //                 "T" => 1657799510000,
+        //                 "f" => "0.0006000000000000",
+        //                 "t" => 0
         //             ),
         //             {
-        //                 a => 'usdt',
-        //                 T => 0,
-        //                 L => '0.0000000000000000',
-        //                 l => '-11.8705317318000000',
-        //                 t => 1657799510000
+        //                 "a" => "usdt",
+        //                 "T" => 0,
+        //                 "L" => "0.0000000000000000",
+        //                 "l" => "-11.8705317318000000",
+        //                 "t" => 1657799510000
         //             }
         //         ],
-        //         u => 1814396
+        //         "u" => 1814396
         //     }
         //
         //     {
-        //      e => 'BALANCE',
-        //      x => 'OutboundAccountPositionOrderEvent',
-        //      E => 1670051332478,
-        //      I => '353662845694083072',
-        //      i => 1670051332478,
-        //      B => array(
+        //      "e" => "BALANCE",
+        //      "x" => "OutboundAccountPositionOrderEvent",
+        //      "E" => 1670051332478,
+        //      "I" => "353662845694083072",
+        //      "i" => 1670051332478,
+        //      "B" => array(
         //        {
-        //          a => 'eth',
-        //          F => '0.0400000000000000',
-        //          T => 1670051332000,
-        //          f => '-0.0100000000000000',
-        //          L => '0.0100000000000000',
-        //          l => '0.0100000000000000',
-        //          t => 1670051332000
+        //          "a" => "eth",
+        //          "F" => "0.0400000000000000",
+        //          "T" => 1670051332000,
+        //          "f" => "-0.0100000000000000",
+        //          "L" => "0.0100000000000000",
+        //          "l" => "0.0100000000000000",
+        //          "t" => 1670051332000
         //        }
         //      ),
-        //      u => 2285311
+        //      "u" => 2285311
         //    }
         //
         $balances = $this->safe_value($message, 'B', array());
@@ -133,18 +133,18 @@ class bitrue extends \ccxt\async\bitrue {
     public function parse_ws_balances($balances) {
         //
         //    [array(
-        //         a => 'btc',
-        //         F => '0.0006000000000000',
-        //         T => 1657799510000,
-        //         f => '0.0006000000000000',
-        //         t => 0
+        //         "a" => "btc",
+        //         "F" => "0.0006000000000000",
+        //         "T" => 1657799510000,
+        //         "f" => "0.0006000000000000",
+        //         "t" => 0
         //     ),
         //     array(
-        //         a => 'usdt',
-        //         T => 0,
-        //         L => '0.0000000000000000',
-        //         l => '-11.8705317318000000',
-        //         t => 1657799510000
+        //         "a" => "usdt",
+        //         "T" => 0,
+        //         "L" => "0.0000000000000000",
+        //         "l" => "-11.8705317318000000",
+        //         "t" => 1657799510000
         //     )]
         //
         $this->balance['info'] = $balances;
@@ -172,7 +172,7 @@ class bitrue extends \ccxt\async\bitrue {
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on user $orders
@@ -180,7 +180,7 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {string[]} symbols unified symbols of the $market to watch the $orders for
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum amount of $orders to return
-             * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-structure order structure~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -208,25 +208,25 @@ class bitrue extends \ccxt\async\bitrue {
     public function handle_order(Client $client, $message) {
         //
         //    {
-        //        e => 'ORDER',
-        //        i => 16122802798,
-        //        E => 1657882521876,
-        //        I => '302623154710888464',
-        //        u => 1814396,
-        //        s => 'btcusdt',
-        //        S => 2,
-        //        o => 1,
-        //        q => '0.0005',
-        //        p => '60000',
-        //        X => 0,
-        //        x => 1,
-        //        z => '0',
-        //        n => '0',
-        //        N => 'usdt',
-        //        O => 1657882521876,
-        //        L => '0',
-        //        l => '0',
-        //        Y => '0'
+        //        "e" => "ORDER",
+        //        "i" => 16122802798,
+        //        "E" => 1657882521876,
+        //        "I" => "302623154710888464",
+        //        "u" => 1814396,
+        //        "s" => "btcusdt",
+        //        "S" => 2,
+        //        "o" => 1,
+        //        "q" => "0.0005",
+        //        "p" => "60000",
+        //        "X" => 0,
+        //        "x" => 1,
+        //        "z" => "0",
+        //        "n" => "0",
+        //        "N" => "usdt",
+        //        "O" => 1657882521876,
+        //        "L" => "0",
+        //        "l" => "0",
+        //        "Y" => "0"
         //    }
         //
         $parsed = $this->parse_ws_order($message);
@@ -243,25 +243,25 @@ class bitrue extends \ccxt\async\bitrue {
     public function parse_ws_order($order, $market = null) {
         //
         //    {
-        //        e => 'ORDER',
-        //        i => 16122802798,
-        //        E => 1657882521876,
-        //        I => '302623154710888464',
-        //        u => 1814396,
-        //        s => 'btcusdt',
-        //        S => 2,
-        //        o => 1,
-        //        q => '0.0005',
-        //        p => '60000',
-        //        X => 0,
-        //        x => 1,
-        //        z => '0',
-        //        n => '0',
-        //        N => 'usdt',
-        //        O => 1657882521876,
-        //        L => '0',
-        //        l => '0',
-        //        Y => '0'
+        //        "e" => "ORDER",
+        //        "i" => 16122802798,
+        //        "E" => 1657882521876,
+        //        "I" => "302623154710888464",
+        //        "u" => 1814396,
+        //        "s" => "btcusdt",
+        //        "S" => 2,
+        //        "o" => 1,
+        //        "q" => "0.0005",
+        //        "p" => "60000",
+        //        "X" => 0,
+        //        "x" => 1,
+        //        "z" => "0",
+        //        "n" => "0",
+        //        "N" => "usdt",
+        //        "O" => 1657882521876,
+        //        "L" => "0",
+        //        "l" => "0",
+        //        "Y" => "0"
         //    }
         //
         $timestamp = $this->safe_integer($order, 'E');
@@ -300,11 +300,8 @@ class bitrue extends \ccxt\async\bitrue {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' watchOrderBook() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -364,7 +361,12 @@ class bitrue extends \ccxt\async\bitrue {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($message, 'ts');
         $tick = $this->safe_value($message, 'tick', array());
-        $orderbook = $this->parse_order_book($tick, $symbol, $timestamp, 'buys', 'asks');
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->order_book();
+        }
+        $snapshot = $this->parse_order_book($tick, $symbol, $timestamp, 'buys', 'asks');
+        $orderbook->reset ($snapshot);
         $this->orderbooks[$symbol] = $orderbook;
         $messageHash = 'orderbook:' . $symbol;
         $client->resolve ($orderbook, $messageHash);
@@ -438,7 +440,7 @@ class bitrue extends \ccxt\async\bitrue {
                 } catch (Exception $error) {
                     $this->options['listenKey'] = null;
                     $this->options['listenKeyUrl'] = null;
-                    return;
+                    return null;
                 }
                 //
                 //     {

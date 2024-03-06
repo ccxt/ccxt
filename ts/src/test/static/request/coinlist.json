@@ -1,0 +1,100 @@
+{
+    "exchange": "coinlist",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "Spot market buy",
+                "method": "createOrder",
+                "url": "https://trade-api.coinlist.co/v1/orders",
+                "input": [
+                    "SOL/USDT",
+                    "market",
+                    "buy",
+                    0.1
+                ],
+                "output": "{\"symbol\":\"SOL-USDT\",\"type\":\"market\",\"side\":\"buy\",\"size\":\"0.1\"}"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://trade-api.coinlist.co/v1/orders",
+                "input": [
+                    "SOL/USDT",
+                    "market",
+                    "sell",
+                    0.1
+                ],
+                "output": "{\"symbol\":\"SOL-USDT\",\"type\":\"market\",\"side\":\"sell\",\"size\":\"0.1\"}"
+            },
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://trade-api.coinlist.co/v1/orders",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    30
+                ],
+                "output": "{\"symbol\":\"SOL-USDT\",\"type\":\"limit\",\"side\":\"buy\",\"size\":\"0.1\",\"price\":\"30\"}"
+            },
+            {
+                "description": "Stop limit buy",
+                "method": "createOrder",
+                "url": "https://trade-api.coinlist.co/v1/orders",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    30,
+                    {
+                        "stopPrice": 45
+                    }
+                ],
+                "output": "{\"symbol\":\"SOL-USDT\",\"type\":\"stop_limit\",\"side\":\"buy\",\"size\":\"0.1\",\"price\":\"30\",\"stop_price\":\"45\"}"
+            },
+            {
+                "description": "Stop market buy",
+                "method": "createOrder",
+                "url": "https://trade-api.coinlist.co/v1/orders",
+                "input": [
+                    "SOL/USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "triggerPrice": 55
+                    }
+                ],
+                "output": "{\"symbol\":\"SOL-USDT\",\"type\":\"stop_market\",\"side\":\"buy\",\"size\":\"0.1\",\"stop_price\":\"55\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://trade-api.coinlist.co/v1/balances?type=spot",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://trade-api.coinlist.co/v1/balances?type=swap",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ]
+    }
+}
