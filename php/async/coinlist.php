@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinlist extends Exchange {
 
@@ -32,10 +33,11 @@ class coinlist extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -49,14 +51,13 @@ class coinlist extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchBorrowInterest' => false,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => false,
@@ -71,6 +72,8 @@ class coinlist extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchL3OrderBook' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
@@ -108,7 +111,8 @@ class coinlist extends Exchange {
                 'fetchWithdrawals' => false,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => false,
-                'repayMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -149,6 +153,9 @@ class coinlist extends Exchange {
                         'v1/symbols/{symbol}/auctions/{auction_code}' => 1, // not unified
                         'v1/time' => 1,
                         'v1/assets' => 1,
+                        'v1/leaderboard' => 1,
+                        'v1/affiliate/{competition_code}' => 1,
+                        'v1/competition/{competition_id}' => 1,
                     ),
                 ),
                 'private' => array(
@@ -156,6 +163,7 @@ class coinlist extends Exchange {
                         'v1/fees' => 1,
                         'v1/accounts' => 1,
                         'v1/accounts/{trader_id}' => 1, // not unified
+                        'v1/accounts/{trader_id}/alias' => 1,
                         'v1/accounts/{trader_id}/ledger' => 1,
                         'v1/accounts/{trader_id}/wallets' => 1, // not unified
                         'v1/accounts/{trader_id}/wallet-ledger' => 1,
@@ -169,6 +177,8 @@ class coinlist extends Exchange {
                         'v1/transfers' => 1,
                         'v1/user' => 1, // not unified
                         'v1/credits' => 1, // not unified
+                        'v1/positions' => 1,
+                        'v1/accounts/{trader_id}/competitions' => 1,
                     ),
                     'post' => array(
                         'v1/keys' => 1, // not unified
@@ -180,6 +190,8 @@ class coinlist extends Exchange {
                         'v1/transfers/internal-transfer' => 1,
                         'v1/transfers/withdrawal-request' => 1,
                         'v1/orders/bulk' => 1, // not unified
+                        'v1/accounts/{trader_id}/competitions' => 1,
+                        'v1/accounts/{trader_id}/create-competition' => 1,
                     ),
                     'patch' => array(
                         'v1/orders/{order_id}' => 1,
@@ -304,7 +316,7 @@ class coinlist extends Exchange {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-system-time
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetV1Time ($params));
@@ -324,7 +336,7 @@ class coinlist extends Exchange {
             /**
              * fetches all available $currencies on an exchange
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
             $response = Async\await($this->publicGetV1Assets ($params));
@@ -356,7 +368,7 @@ class coinlist extends Exchange {
                 $currency = $currencies[$i];
                 $id = $this->safe_string($currency, 'asset');
                 $code = $this->safe_currency_code($id);
-                $isTransferable = $this->safe_value($currency, 'is_transferable', false);
+                $isTransferable = $this->safe_bool($currency, 'is_transferable', false);
                 $withdrawEnabled = $isTransferable;
                 $depositEnabled = $isTransferable;
                 $active = $isTransferable;
@@ -389,109 +401,108 @@ class coinlist extends Exchange {
             /**
              * retrieves data on all $markets for coinlist
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing market data
              */
             $response = Async\await($this->publicGetV1Symbols ($params));
             //
             //     {
-            //         symbols => array(
+            //         "symbols" => array(
             //             array(
-            //                 symbol => 'CQT-USDT',
-            //                 base_currency => 'CQT',
-            //                 is_trader_geofenced => false,
-            //                 list_time => '2021-06-15T00:00:00.000Z',
-            //                 type => 'spot',
-            //                 series_code => 'CQT-USDT-SPOT',
-            //                 long_name => 'Covalent',
-            //                 asset_class => 'CRYPTO',
-            //                 minimum_price_increment => '0.0001',
-            //                 minimum_size_increment => '0.0001',
-            //                 quote_currency => 'USDT',
-            //                 index_code => null,
-            //                 price_band_threshold_market => '0.05',
-            //                 price_band_threshold_limit => '0.25',
-            //                 last_price => '0.12160000',
-            //                 fair_price => '0.12300000',
-            //                 index_price => null
+            //                 "symbol" => "CQT-USDT",
+            //                 "base_currency" => "CQT",
+            //                 "is_trader_geofenced" => false,
+            //                 "list_time" => "2021-06-15T00:00:00.000Z",
+            //                 "type" => "spot",
+            //                 "series_code" => "CQT-USDT-SPOT",
+            //                 "long_name" => "Covalent",
+            //                 "asset_class" => "CRYPTO",
+            //                 "minimum_price_increment" => "0.0001",
+            //                 "minimum_size_increment" => "0.0001",
+            //                 "quote_currency" => "USDT",
+            //                 "index_code" => null,
+            //                 "price_band_threshold_market" => "0.05",
+            //                 "price_band_threshold_limit" => "0.25",
+            //                 "last_price" => "0.12160000",
+            //                 "fair_price" => "0.12300000",
+            //                 "index_price" => null
             //             ),
             //         )
             //     }
             //
             $markets = $this->safe_value($response, 'symbols', array());
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $id = $this->safe_string($market, 'symbol');
-                $baseId = $this->safe_string($market, 'base_currency');
-                $quoteId = $this->safe_string($market, 'quote_currency');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $amountPrecision = $this->safe_string($market, 'minimum_size_increment');
-                $pricePrecision = $this->safe_string($market, 'minimum_price_increment');
-                $created = $this->safe_string($market, 'list_time');
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => true,
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->parse_number($amountPrecision),
-                        'price' => $this->parse_number($pricePrecision),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => $this->parse8601($created),
-                    'info' => $market,
-                );
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'symbol');
+        $baseId = $this->safe_string($market, 'base_currency');
+        $quoteId = $this->safe_string($market, 'quote_currency');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $amountPrecision = $this->safe_string($market, 'minimum_size_increment');
+        $pricePrecision = $this->safe_string($market, 'minimum_price_increment');
+        $created = $this->safe_string($market, 'list_time');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => true,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($amountPrecision),
+                'price' => $this->parse_number($pricePrecision),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => $this->parse8601($created),
+            'info' => $market,
+        );
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
-             * @param {string[]|} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -522,14 +533,14 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-$market-summary
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -561,7 +572,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "type":"spot",
@@ -615,15 +626,15 @@ class coinlist extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-order-book-level-2
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -655,7 +666,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -664,7 +675,7 @@ class coinlist extends Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of $candles to fetch
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
@@ -719,7 +730,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "2023-10-17T15:30:00.000Z",
@@ -741,7 +752,7 @@ class coinlist extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -749,9 +760,9 @@ class coinlist extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -762,7 +773,7 @@ class coinlist extends Exchange {
                 $request['start_time'] = $this->iso8601($since);
             }
             if ($limit !== null) {
-                $request['count'] = $limit;
+                $request['count'] = min ($limit, 500);
             }
             $until = $this->safe_integer_2($params, 'till', 'until');
             if ($until !== null) {
@@ -799,7 +810,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //     {
@@ -814,15 +825,15 @@ class coinlist extends Exchange {
         //
         // fetchMyTrades
         //     {
-        //         $symbol => 'ETH-USDT',
-        //         auction_code => 'ETH-USDT-2023-10-20T13:22:14.000Z',
-        //         order_id => '83ed365f-497d-433b-96c1-9d08c1a12842',
-        //         quantity => '0.0008',
-        //         price => '1615.24000000',
-        //         $fee => '0.005815',
-        //         fee_type => 'taker',
-        //         fee_currency => 'USDT',
-        //         logical_time => '2023-10-20T13:22:14.000Z'
+        //         "symbol" => "ETH-USDT",
+        //         "auction_code" => "ETH-USDT-2023-10-20T13:22:14.000Z",
+        //         "order_id" => "83ed365f-497d-433b-96c1-9d08c1a12842",
+        //         "quantity" => "0.0008",
+        //         "price" => "1615.24000000",
+        //         "fee" => "0.005815",
+        //         "fee_type" => "taker",
+        //         "fee_currency" => "USDT",
+        //         "logical_time" => "2023-10-20T13:22:14.000Z"
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -880,8 +891,8 @@ class coinlist extends Exchange {
             /**
              * fetch the trading $fees for multiple markets
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$fees
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=fee-structure fee structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetV1Fees ($params));
@@ -972,7 +983,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_fee_tiers($feeTiers, $market = null) {
+    public function parse_fee_tiers($feeTiers, ?array $market = null) {
         //
         //     base => array(
         //         fees => array( $maker => '0', $taker => '0.0045', liquidation => '0' ),
@@ -1039,13 +1050,15 @@ class coinlist extends Exchange {
             }
             $takerFees = $this->sort_by($takerFees, 1, true);
             $makerFees = $this->sort_by($makerFees, 1, true);
-            $firstTier = $this->safe_value($takerFees, 0, array());
-            $exchangeFees = $this->safe_value($this, 'fees', array());
-            $exchangeFeesTrading = $this->safe_value($exchangeFees, 'trading', array());
-            $exchangeFeesTradingTiers = $this->safe_value($exchangeFeesTrading, 'tiers', array());
-            $exchangeFeesTradingTiersTaker = $this->safe_value($exchangeFeesTradingTiers, 'taker', array());
-            $exchangeFeesTradingTiersMaker = $this->safe_value($exchangeFeesTradingTiers, 'maker', array());
-            if (($keysLength === strlen($exchangeFeesTradingTiersTaker)) && (strlen($firstTier) > 0)) {
+            $firstTier = $this->safe_dict($takerFees, 0, array());
+            $exchangeFees = $this->safe_dict($this, 'fees', array());
+            $exchangeFeesTrading = $this->safe_dict($exchangeFees, 'trading', array());
+            $exchangeFeesTradingTiers = $this->safe_dict($exchangeFeesTrading, 'tiers', array());
+            $exchangeFeesTradingTiersTaker = $this->safe_list($exchangeFeesTradingTiers, 'taker', array());
+            $exchangeFeesTradingTiersMaker = $this->safe_list($exchangeFeesTradingTiers, 'maker', array());
+            $exchangeFeesTradingTiersTakerLength = count($exchangeFeesTradingTiersTaker);
+            $firstTierLength = count($firstTier);
+            if (($keysLength === $exchangeFeesTradingTiersTakerLength) && ($firstTierLength > 0)) {
                 for ($i = 0; $i < $keysLength; $i++) {
                     $takerFees[$i][0] = $exchangeFeesTradingTiersTaker[$i][0];
                     $makerFees[$i][0] = $exchangeFeesTradingTiersMaker[$i][0];
@@ -1063,8 +1076,8 @@ class coinlist extends Exchange {
             /**
              * fetch all the $accounts associated with a profile
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$accounts
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure account structures} indexed by the account type
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetV1Accounts ($params));
@@ -1098,13 +1111,13 @@ class coinlist extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetV1Balances ($params));
@@ -1112,7 +1125,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         //     {
         //         "asset_balances" => array(
@@ -1126,11 +1139,10 @@ class coinlist extends Exchange {
         //         "net_liquidation_value_usd" => "string"
         //     }
         //
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $totalBalances = $this->safe_value($response, 'asset_balances', array());
         $usedBalances = $this->safe_value($response, 'asset_holds', array());
@@ -1154,9 +1166,9 @@ class coinlist extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve (default 200, max 500)
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1179,28 +1191,28 @@ class coinlist extends Exchange {
             $response = Async\await($this->privateGetV1Fills (array_merge($request, $params)));
             //
             //     {
-            //         $fills => array(
+            //         "fills" => array(
             //             array(
-            //                 $symbol => 'ETH-USDT',
-            //                 auction_code => 'ETH-USDT-2023-10-20T13:16:30.000Z',
-            //                 order_id => '39911d5f-c789-4a7d-ad34-820a804d1da6',
-            //                 quantity => '-0.0009',
-            //                 price => '1608.83000000',
-            //                 fee => '0.006516',
-            //                 fee_type => 'taker',
-            //                 fee_currency => 'USDT',
-            //                 logical_time => '2023-10-20T13:16:30.000Z'
+            //                 "symbol" => "ETH-USDT",
+            //                 "auction_code" => "ETH-USDT-2023-10-20T13:16:30.000Z",
+            //                 "order_id" => "39911d5f-c789-4a7d-ad34-820a804d1da6",
+            //                 "quantity" => "-0.0009",
+            //                 "price" => "1608.83000000",
+            //                 "fee" => "0.006516",
+            //                 "fee_type" => "taker",
+            //                 "fee_currency" => "USDT",
+            //                 "logical_time" => "2023-10-20T13:16:30.000Z"
             //             ),
             //             array(
-            //                 $symbol => 'ETH-USDT',
-            //                 auction_code => 'ETH-USDT-2023-10-20T13:22:14.000Z',
-            //                 order_id => '83ed365f-497d-433b-96c1-9d08c1a12842',
-            //                 quantity => '0.0008',
-            //                 price => '1615.24000000',
-            //                 fee => '0.005815',
-            //                 fee_type => 'taker',
-            //                 fee_currency => 'USDT',
-            //                 logical_time => '2023-10-20T13:22:14.000Z'
+            //                 "symbol" => "ETH-USDT",
+            //                 "auction_code" => "ETH-USDT-2023-10-20T13:22:14.000Z",
+            //                 "order_id" => "83ed365f-497d-433b-96c1-9d08c1a12842",
+            //                 "quantity" => "0.0008",
+            //                 "price" => "1615.24000000",
+            //                 "fee" => "0.005815",
+            //                 "fee_type" => "taker",
+            //                 "fee_currency" => "USDT",
+            //                 "logical_time" => "2023-10-20T13:22:14.000Z"
             //             ),
             //         )
             //     }
@@ -1210,7 +1222,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -1219,8 +1231,8 @@ class coinlist extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to retrieve
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             $request = array(
                 'order_id' => $id,
@@ -1229,18 +1241,18 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$orders
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve (default 200, max 500)
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {int} [$limit] the maximum number of order structures to retrieve (default 200, max 500)
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {string|string[]} [$params->status] the $status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending' (default array( 'accepted', 'done', 'canceled', 'rejected', 'pending' ))
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $status = $this->safe_string($params, 'status');
@@ -1305,8 +1317,8 @@ class coinlist extends Exchange {
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-specific-order-by-$id
              * @param {int|string} $id order $id
              * @param {string} $symbol not used by coinlist fetchOrder ()
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1341,7 +1353,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1349,9 +1361,9 @@ class coinlist extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve (default 200, max 500)
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1361,7 +1373,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1369,9 +1381,9 @@ class coinlist extends Exchange {
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of closed order structures to retrieve (default 200, max 500)
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1389,9 +1401,9 @@ class coinlist extends Exchange {
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of canceled order structures to retrieve (default 200, max 500)
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1407,8 +1419,8 @@ class coinlist extends Exchange {
              * cancel open $orders of $market
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-$orders
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1420,8 +1432,8 @@ class coinlist extends Exchange {
             $response = Async\await($this->privateDeleteV1Orders (array_merge($request, $params)));
             //
             //     {
-            //         message => 'Order cancellation $request received.',
-            //         timestamp => '2023-10-26T10:29:28.652Z'
+            //         "message" => "Order cancellation $request received.",
+            //         "timestamp" => "2023-10-26T10:29:28.652Z"
             //     }
             //
             $orders = array( $response );
@@ -1436,8 +1448,8 @@ class coinlist extends Exchange {
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-order-by-$id
              * @param {string} $id order $id
              * @param {string} $symbol not used by coinlist cancelOrder ()
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1446,9 +1458,9 @@ class coinlist extends Exchange {
             $response = Async\await($this->privateDeleteV1OrdersOrderId (array_merge($request, $params)));
             //
             //     {
-            //         message => 'Cancel order $request received.',
-            //         order_id => 'd36e7588-6525-485c-b768-8ad8b3f745f9',
-            //         timestamp => '2023-10-26T14:36:37.559Z'
+            //         "message" => "Cancel order $request received.",
+            //         "order_id" => "d36e7588-6525-485c-b768-8ad8b3f745f9",
+            //         "timestamp" => "2023-10-26T14:36:37.559Z"
             //     }
             //
             return $this->parse_order($response);
@@ -1462,8 +1474,8 @@ class coinlist extends Exchange {
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-orders
              * @param {string[]} $ids order $ids
              * @param {string} $symbol not used by coinlist cancelOrders ()
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $params = $ids;
@@ -1472,7 +1484,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1482,11 +1494,11 @@ class coinlist extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately (default false)
              * @param {float} [$params->triggerPrice] only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders (the $price at which an $order is triggered)
              * @param {string} [$params->clientOrderId] client $order id (default null)
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1547,7 +1559,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1557,8 +1569,8 @@ class coinlist extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             if ($amount === null) {
@@ -1579,7 +1591,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOrder
         //     {
@@ -1636,21 +1648,21 @@ class coinlist extends Exchange {
         //
         // cancelOrder
         //     {
-        //         message => 'Cancel $order request received.',
-        //         order_id => 'd36e7588-6525-485c-b768-8ad8b3f745f9',
-        //         $timestamp => '2023-10-26T14:36:37.559Z'
+        //         "message" => "Cancel $order request received.",
+        //         "order_id" => "d36e7588-6525-485c-b768-8ad8b3f745f9",
+        //         "timestamp" => "2023-10-26T14:36:37.559Z"
         //     }
         //
         // cancelOrders
         //     {
-        //         message => 'Order cancellation request received.',
-        //         $timestamp => '2023-10-26T10:29:28.652Z'
+        //         "message" => "Order cancellation request received.",
+        //         "timestamp" => "2023-10-26T10:29:28.652Z"
         //     }
         //
         // cancelAllOrders
         //     {
-        //         message => 'Order cancellation request received.',
-        //         $timestamp => '2023-10-26T10:29:28.652Z'
+        //         "message" => "Order cancellation request received.",
+        //         "timestamp" => "2023-10-26T10:29:28.652Z"
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
@@ -1729,7 +1741,7 @@ class coinlist extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
@@ -1740,8 +1752,8 @@ class coinlist extends Exchange {
              * @param {float} $amount amount to $transfer
              * @param {string} $fromAccount account to $transfer from
              * @param {string} $toAccount account to $transfer to
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$transfer-structure $transfer structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1790,9 +1802,9 @@ class coinlist extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch $transfers for
              * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 200, max 500)
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -1839,7 +1851,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // fetchTransfers
         //     {
@@ -1904,7 +1916,7 @@ class coinlist extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
@@ -1912,8 +1924,8 @@ class coinlist extends Exchange {
              * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal
              * @param {int} [$limit] max number of deposit/withdrawals to return (default 200, max 500)
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositsWithdrawals() requires a $code argument');
@@ -1982,7 +1994,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * $request a withdrawal from CoinList wallet. (Disabled by default. Contact CoinList to apply for an exception.)
@@ -1991,8 +2003,8 @@ class coinlist extends Exchange {
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2012,7 +2024,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         // withdraw
         //
         //     {
@@ -2069,6 +2081,8 @@ class coinlist extends Exchange {
             'status' => null,
             'updated' => null,
             'fee' => $fee,
+            'comment' => $this->safe_string($transaction, 'description'),
+            'internal' => null,
         );
     }
 
@@ -2089,9 +2103,9 @@ class coinlist extends Exchange {
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
              * @param {int} [$limit] max number of $ledger entrys to return (default 200, max 500)
-             * @param {array} [$params] extra parameters specific to the coinlist api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ledger-structure $ledger structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
              */
             $traderId = $this->safe_string_2($params, 'trader_id', 'traderId');
             if ($traderId === null) {
@@ -2120,65 +2134,65 @@ class coinlist extends Exchange {
             $response = Async\await($this->privateGetV1AccountsTraderIdLedger (array_merge($request, $params)));
             //
             //     {
-            //         transactions => array(
+            //         "transactions" => array(
             //             array(
-            //                 transaction_id => '0288634e-49bd-494d-b04a-18fd1832d394',
-            //                 transaction_type => 'XFER',
-            //                 type => 'deposit',
-            //                 asset => 'ETH',
-            //                 symbol => null,
-            //                 amount => '0.010000000000000000',
-            //                 details => null,
-            //                 created_at => '2023-10-20T13:15:39.443Z'
+            //                 "transaction_id" => "0288634e-49bd-494d-b04a-18fd1832d394",
+            //                 "transaction_type" => "XFER",
+            //                 "type" => "deposit",
+            //                 "asset" => "ETH",
+            //                 "symbol" => null,
+            //                 "amount" => "0.010000000000000000",
+            //                 "details" => null,
+            //                 "created_at" => "2023-10-20T13:15:39.443Z"
             //             ),
             //             array(
-            //                 transaction_id => '47a45928-abcd-4c12-8bd6-587c3028025f',
-            //                 transaction_type => 'SWAP',
-            //                 type => 'atomic token swap',
-            //                 asset => 'USDT',
-            //                 symbol => 'ETH-USDT',
-            //                 amount => '1.447947',
-            //                 details => null,
-            //                 created_at => '2023-10-20T13:16:30.373Z'
+            //                 "transaction_id" => "47a45928-abcd-4c12-8bd6-587c3028025f",
+            //                 "transaction_type" => "SWAP",
+            //                 "type" => "atomic token swap",
+            //                 "asset" => "USDT",
+            //                 "symbol" => "ETH-USDT",
+            //                 "amount" => "1.447947",
+            //                 "details" => null,
+            //                 "created_at" => "2023-10-20T13:16:30.373Z"
             //             ),
             //             {
-            //                 transaction_id => '1ffe3a54-916e-41f0-b957-3a01309eb009',
-            //                 transaction_type => 'FEE',
-            //                 type => 'fee',
-            //                 asset => 'USDT',
-            //                 symbol => 'ETH-USDT',
-            //                 amount => '-0.006516',
-            //                 details => array(
-            //                     fee_details => array(
+            //                 "transaction_id" => "1ffe3a54-916e-41f0-b957-3a01309eb009",
+            //                 "transaction_type" => "FEE",
+            //                 "type" => "fee",
+            //                 "asset" => "USDT",
+            //                 "symbol" => "ETH-USDT",
+            //                 "amount" => "-0.006516",
+            //                 "details" => array(
+            //                     "fee_details" => array(
             //                         array(
-            //                             insurance_fee => '0',
-            //                             order_id => '39911d5f-c789-4a7d-ad34-820a804d1da6',
-            //                             fee_type => 'taker',
-            //                             fee_currency => 'USDT'
+            //                             "insurance_fee" => "0",
+            //                             "order_id" => "39911d5f-c789-4a7d-ad34-820a804d1da6",
+            //                             "fee_type" => "taker",
+            //                             "fee_currency" => "USDT"
             //                         }
             //                     )
             //                 ),
-            //                 created_at => '2023-10-20T13:16:30.373Z'
+            //                 "created_at" => "2023-10-20T13:16:30.373Z"
             //             ),
             //             array(
-            //                 transaction_id => '3930e8a3-2218-481f-8c3c-2219287e205e',
-            //                 transaction_type => 'SWAP',
-            //                 type => 'atomic token swap',
-            //                 asset => 'ETH',
-            //                 symbol => 'ETH-USDT',
-            //                 amount => '-0.000900000000000000',
-            //                 details => null,
-            //                 created_at => '2023-10-20T13:16:30.373Z'
+            //                 "transaction_id" => "3930e8a3-2218-481f-8c3c-2219287e205e",
+            //                 "transaction_type" => "SWAP",
+            //                 "type" => "atomic token swap",
+            //                 "asset" => "ETH",
+            //                 "symbol" => "ETH-USDT",
+            //                 "amount" => "-0.000900000000000000",
+            //                 "details" => null,
+            //                 "created_at" => "2023-10-20T13:16:30.373Z"
             //             ),
             //             {
-            //                 transaction_id => 'a6c65cb3-95d0-44e2-8202-f70581d6e55c',
-            //                 transaction_type => 'XFER',
-            //                 type => 'withdrawal',
-            //                 asset => 'USD',
-            //                 symbol => null,
-            //                 amount => '-3.00',
-            //                 details => null,
-            //                 created_at => '2023-10-26T14:32:24.887Z'
+            //                 "transaction_id" => "a6c65cb3-95d0-44e2-8202-f70581d6e55c",
+            //                 "transaction_type" => "XFER",
+            //                 "type" => "withdrawal",
+            //                 "asset" => "USD",
+            //                 "symbol" => null,
+            //                 "amount" => "-3.00",
+            //                 "details" => null,
+            //                 "created_at" => "2023-10-26T14:32:24.887Z"
             //             }
             //         )
             //     }
@@ -2188,75 +2202,75 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // deposit transaction from wallet (funding) to pro (trading)
         //     {
-        //         transaction_id => '0288634e-49bd-494d-b04a-18fd1832d394',
-        //         transaction_type => 'XFER',
-        //         $type => 'deposit',
-        //         asset => 'ETH',
-        //         symbol => null,
-        //         $amount => '0.010000000000000000',
-        //         details => null,
-        //         created_at => '2023-10-20T13:15:39.443Z'
+        //         "transaction_id" => "0288634e-49bd-494d-b04a-18fd1832d394",
+        //         "transaction_type" => "XFER",
+        //         "type" => "deposit",
+        //         "asset" => "ETH",
+        //         "symbol" => null,
+        //         "amount" => "0.010000000000000000",
+        //         "details" => null,
+        //         "created_at" => "2023-10-20T13:15:39.443Z"
         //     }
         //
         // withdrawal transaction from pro (trading) to wallet (funding)
         //     {
-        //         transaction_id => 'a6c65cb3-95d0-44e2-8202-f70581d6e55c',
-        //         transaction_type => 'XFER',
-        //         $type => 'withdrawal',
-        //         asset => 'USD',
-        //         symbol => null,
-        //         $amount => '-3.00',
-        //         details => null,
-        //         created_at => '2023-10-26T14:32:24.887Z'
+        //         "transaction_id" => "a6c65cb3-95d0-44e2-8202-f70581d6e55c",
+        //         "transaction_type" => "XFER",
+        //         "type" => "withdrawal",
+        //         "asset" => "USD",
+        //         "symbol" => null,
+        //         "amount" => "-3.00",
+        //         "details" => null,
+        //         "created_at" => "2023-10-26T14:32:24.887Z"
         //     }
         //
         // sell trade
         //     {
-        //         transaction_id => '47a45928-abcd-4c12-8bd6-587c3028025f',
-        //         transaction_type => 'SWAP',
-        //         $type => 'atomic token swap',
-        //         asset => 'USDT',
-        //         symbol => 'ETH-USDT',
-        //         $amount => '1.447947',
-        //         details => null,
-        //         created_at => '2023-10-20T13:16:30.373Z'
+        //         "transaction_id" => "47a45928-abcd-4c12-8bd6-587c3028025f",
+        //         "transaction_type" => "SWAP",
+        //         "type" => "atomic token swap",
+        //         "asset" => "USDT",
+        //         "symbol" => "ETH-USDT",
+        //         "amount" => "1.447947",
+        //         "details" => null,
+        //         "created_at" => "2023-10-20T13:16:30.373Z"
         //     }
         //
         // buy trade
         //     array(
-        //         transaction_id => '46d20a93-45c4-4441-a238-f89602eb8c8c',
-        //         transaction_type => 'SWAP',
-        //         $type => 'atomic token swap',
-        //         asset => 'ETH',
-        //         symbol => 'ETH-USDT',
-        //         $amount => '0.000800000000000000',
-        //         details => null,
-        //         created_at => '2023-10-20T13:22:14.256Z'
+        //         "transaction_id" => "46d20a93-45c4-4441-a238-f89602eb8c8c",
+        //         "transaction_type" => "SWAP",
+        //         "type" => "atomic token swap",
+        //         "asset" => "ETH",
+        //         "symbol" => "ETH-USDT",
+        //         "amount" => "0.000800000000000000",
+        //         "details" => null,
+        //         "created_at" => "2023-10-20T13:22:14.256Z"
         //     ),
         //
         //  fee
         //     {
-        //         transaction_id => '57fd526c-36b1-4721-83ce-42aadcb1e953',
-        //         transaction_type => 'FEE',
-        //         $type => 'fee',
-        //         asset => 'USDT',
-        //         symbol => 'BTC-USDT',
-        //         $amount => '-0.047176',
-        //         details => {
-        //             fee_details => array(
+        //         "transaction_id" => "57fd526c-36b1-4721-83ce-42aadcb1e953",
+        //         "transaction_type" => "FEE",
+        //         "type" => "fee",
+        //         "asset" => "USDT",
+        //         "symbol" => "BTC-USDT",
+        //         "amount" => "-0.047176",
+        //         "details" => {
+        //             "fee_details" => array(
         //                 array(
-        //                     insurance_fee => '0',
-        //                     order_id => 'c0bc33cd-eeb9-40a0-ab5f-2d99f323ef58',
-        //                     fee_type => 'taker',
-        //                     fee_currency => 'USDT'
+        //                     "insurance_fee" => "0",
+        //                     "order_id" => "c0bc33cd-eeb9-40a0-ab5f-2d99f323ef58",
+        //                     "fee_type" => "taker",
+        //                     "fee_currency" => "USDT"
         //                 }
         //             )
         //         ),
-        //         created_at => '2023-10-25T16:46:24.294Z'
+        //         "created_at" => "2023-10-25T16:46:24.294Z"
         //     }
         //
         $id = $this->safe_string($item, 'transaction_id');

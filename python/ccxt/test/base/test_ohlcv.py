@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_ohlcv(exchange, skipped_properties, method, entry, symbol, now):
     format = [1638230400000, exchange.parse_number('0.123'), exchange.parse_number('0.125'), exchange.parse_number('0.121'), exchange.parse_number('0.122'), exchange.parse_number('123.456')]

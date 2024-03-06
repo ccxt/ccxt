@@ -6,9 +6,11 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 
 
@@ -26,12 +28,22 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'watchOrders': True,
                 'watchOHLCV': True,
                 'watchMyTrades': False,
+                'createOrderWs': True,
+                'cancelOrderWs': True,
+                'fetchOpenOrdersWs': True,
+                'cancelAllOrdersWs': True,
             },
             'urls': {
                 'api': {
                     'ws': {
                         'public': 'wss://api.hitbtc.com/api/3/ws/public',
                         'private': 'wss://api.hitbtc.com/api/3/ws/trading',
+                    },
+                },
+                'test': {
+                    'ws': {
+                        'public': 'wss://api.demo.hitbtc.com/api/3/ws/public',
+                        'private': 'wss://api.demo.hitbtc.com/api/3/ws/trading',
                     },
                 },
             },
@@ -92,24 +104,24 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.watch(url, messageHash, request, messageHash)
             #
             #    {
-            #        jsonrpc: '2.0',
-            #        result: True
+            #        "jsonrpc": "2.0",
+            #        "result": True
             #    }
             #
             #    # Failure to return results
             #
             #    {
-            #        jsonrpc: '2.0',
-            #        error: {
-            #            code: 1002,
-            #            message: 'Authorization is required or has been failed',
-            #            description: 'invalid signature format'
+            #        "jsonrpc": "2.0",
+            #        "error": {
+            #            "code": 1002,
+            #            "message": "Authorization is required or has been failed",
+            #            "description": "invalid signature format"
             #        }
             #    }
             #
         return future
 
-    async def subscribe_public(self, name: str, symbols: Optional[List[str]] = None, params={}):
+    async def subscribe_public(self, name: str, messageHashPrefix: str, symbols: Strings = None, params={}):
         """
          * @ignore
         :param str name: websocket endpoint name
@@ -118,7 +130,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         await self.load_markets()
         url = self.urls['api']['ws']['public']
-        messageHash = name
+        messageHash = messageHashPrefix
         if symbols is not None:
             messageHash = messageHash + '::' + ','.join(symbols)
         subscribe = {
@@ -129,7 +141,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def subscribe_private(self, name: str, symbol: Optional[str] = None, params={}):
+    async def subscribe_private(self, name: str, symbol: Str = None, params={}):
         """
          * @ignore
         :param str name: websocket endpoint name
@@ -150,7 +162,25 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def trade_request(self, name: str, params={}):
+        """
+         * @ignore
+        :param str name: websocket endpoint name
+        :param str [symbol]: unified CCXT symbol
+        :param dict [params]: extra parameters specific to the hitbtc api
+        """
+        await self.load_markets()
+        await self.authenticate()
+        url = self.urls['api']['ws']['private']
+        messageHash = str(self.nonce())
+        subscribe = {
+            'method': name,
+            'params': params,
+            'id': messageHash,
+        }
+        return await self.watch(url, messageHash, subscribe, messageHash)
+
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://api.hitbtc.com/#subscribe-to-full-order-book
@@ -160,7 +190,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :see: https://api.hitbtc.com/#subscribe-to-top-of-book-in-batches
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
         :param int [params.depth]: 5 , 10, or 20(default)
         :param int [params.speed]: 100(default), 500, or 1000
@@ -185,7 +215,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'symbols': [market['id']],
             },
         }
-        orderbook = await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
+        orderbook = await self.subscribe_public(name, 'orderbooks', [symbol], self.deep_extend(request, params))
         return orderbook.limit()
 
     def handle_order_book(self, client: Client, message):
@@ -214,13 +244,12 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         data = self.safe_value_2(message, 'snapshot', 'update', {})
         marketIds = list(data.keys())
-        channel = self.safe_string(message, 'ch')
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             symbol = market['symbol']
             item = data[marketId]
-            messageHash = channel + '::' + symbol
+            messageHash = 'orderbooks::' + symbol
             if not (symbol in self.orderbooks):
                 subscription = self.safe_value(client.subscriptions, messageHash, {})
                 limit = self.safe_integer(subscription, 'limit')
@@ -248,7 +277,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://api.hitbtc.com/#subscribe-to-ticker
@@ -256,7 +285,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :see: https://api.hitbtc.com/#subscribe-to-mini-ticker
         :see: https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: 'ticker/{speed}'(default), or 'ticker/price/{speed}'
         :param str [params.speed]: '1s'(default), or '3s'
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -273,13 +302,14 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'symbols': [market['id']],
             },
         }
-        return await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
+        result = await self.subscribe_public(name, 'tickers', [symbol], self.deep_extend(request, params))
+        return self.safe_value(result, symbol)
 
-    async def watch_tickers(self, symbols=None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str params['method']: 'ticker/{speed}'(default),'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
         :param str params['speed']: '1s'(default), or '3s'
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
@@ -303,7 +333,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'symbols': marketIds,
             },
         }
-        tickers = await self.subscribe_public(name, symbols, self.deep_extend(request, params))
+        tickers = await self.subscribe_public(name, 'tickers', symbols, self.deep_extend(request, params))
         if self.newUpdates:
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -349,18 +379,16 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         data = self.safe_value(message, 'data', {})
         marketIds = list(data.keys())
-        channel = self.safe_string(message, 'ch')
-        newTickers = []
+        newTickers = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             symbol = market['symbol']
             ticker = self.parse_ws_ticker(data[marketId], market)
             self.tickers[symbol] = ticker
-            newTickers.append(ticker)
-            messageHash = channel + '::' + symbol
-            client.resolve(self.tickers[symbol], messageHash)
-        messageHashes = self.find_message_hashes(client, channel + '::')
+            newTickers[symbol] = ticker
+        client.resolve(newTickers, 'tickers')
+        messageHashes = self.find_message_hashes(client, 'tickers::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
             parts = messageHash.split('::')
@@ -371,7 +399,6 @@ class hitbtc(ccxt.async_support.hitbtc):
             numTickers = len(tickersSymbols)
             if numTickers > 0:
                 client.resolve(tickers, messageHash)
-        client.resolve(self.tickers, channel)
         return message
 
     def parse_ws_ticker(self, ticker, market=None):
@@ -429,15 +456,15 @@ class hitbtc(ccxt.async_support.hitbtc):
             'info': ticker,
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://api.hitbtc.com/#subscribe-to-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the hitbtc api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -448,7 +475,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         if limit is not None:
             request['limit'] = limit
-        trades = await self.subscribe_public('trades', [symbol], self.deep_extend(request, params))
+        name = 'trades'
+        trades = await self.subscribe_public(name, 'trades', [symbol], self.deep_extend(request, params))
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp')
@@ -511,7 +539,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(stored, messageHash)
         return message
 
-    def parse_ws_trades(self, trades, market: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_ws_trades(self, trades, market: object = None, since: Int = None, limit: Int = None, params={}):
         trades = self.to_array(trades)
         result = []
         for i in range(0, len(trades)):
@@ -548,7 +576,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'fee': None,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://api.hitbtc.com/#subscribe-to-candles
@@ -556,7 +584,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str [timeframe]: the length of time each candle represents
         :param int [since]: not used by hitbtc watchOHLCV
         :param int [limit]: 0 – 1000, default value = 0(no history returned)
-        :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         period = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -569,7 +597,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         if limit is not None:
             request['params']['limit'] = limit
-        ohlcv = await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
+        ohlcv = await self.subscribe_public(name, 'candles', [symbol], self.deep_extend(request, params))
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0)
@@ -627,7 +655,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             ohlcvs = self.parse_ws_ohlcvs(data[marketId], market)
             for j in range(0, len(ohlcvs)):
                 stored.append(ohlcvs[j])
-            messageHash = channel + '::' + symbol
+            messageHash = 'candles::' + symbol
             client.resolve(stored, messageHash)
         return message
 
@@ -652,7 +680,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :see: https://api.hitbtc.com/#subscribe-to-reports
@@ -661,7 +689,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str [symbol]: unified CCXT market symbol
         :param int [since]: timestamp in ms of the earliest order to fetch
         :param int [limit]: the maximum amount of orders to fetch
-        :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -844,13 +872,20 @@ class hitbtc(ccxt.async_support.hitbtc):
         #    }
         #
         timestamp = self.safe_string(order, 'created_at')
-        marketId = self.safe_symbol(order, 'symbol')
+        marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         tradeId = self.safe_string(order, 'trade_id')
         trades = None
         if tradeId is not None:
             trade = self.parse_ws_order_trade(order, market)
             trades = [trade]
+        rawStatus = self.safe_string(order, 'status')
+        report_type = self.safe_string(order, 'report_type')
+        parsedStatus = None
+        if report_type == 'canceled':
+            parsedStatus = self.parse_order_status(report_type)
+        else:
+            parsedStatus = self.parse_order_status(rawStatus)
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'id'),
@@ -869,18 +904,18 @@ class hitbtc(ccxt.async_support.hitbtc):
             'filled': None,
             'remaining': None,
             'cost': None,
-            'status': self.parse_order_status(self.safe_string(order, 'status')),
+            'status': parsedStatus,
             'average': None,
             'trades': trades,
             'fee': None,
         }, market)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         watches balance updates, cannot subscribe to margin account balances
         :see: https://api.hitbtc.com/#subscribe-to-spot-balances
         :see: https://api.hitbtc.com/#subscribe-to-futures-balances
-        :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot', 'swap', or 'future'
          *
          * EXCHANGE SPECIFIC PARAMETERS
@@ -901,6 +936,129 @@ class hitbtc(ccxt.async_support.hitbtc):
             'mode': mode,
         }
         return await self.subscribe_private(name, None, self.extend(request, params))
+
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+        """
+        create a trade order
+        :see: https://api.hitbtc.com/#create-new-spot-order
+        :see: https://api.hitbtc.com/#create-margin-order
+        :see: https://api.hitbtc.com/#create-futures-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
+        :param bool [params.margin]: True for creating a margin order
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
+        :param str [params.timeInForce]: "GTC", "IOC", "FOK", "Day", "GTD"
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = None
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('createOrder', market, params)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        request, params = self.create_order_request(market, marketType, type, side, amount, price, marginMode, params)
+        request = self.extend(request, params)
+        if marketType == 'swap':
+            return await self.trade_request('futures_new_order', request)
+        elif (marketType == 'margin') or (marginMode is not None):
+            return await self.trade_request('margin_new_order', request)
+        else:
+            return await self.trade_request('spot_new_order', request)
+
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
+        """
+        :see: https://api.hitbtc.com/#cancel-spot-order-2
+        :see: https://api.hitbtc.com/#cancel-futures-order-2
+        :see: https://api.hitbtc.com/#cancel-margin-order-2
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported
+        :param bool [params.margin]: True for canceling a margin order
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None
+        request = {
+            'client_order_id': id,
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelOrderWs', market, params)
+        marginMode, query = self.handle_margin_mode_and_params('cancelOrderWs', params)
+        request = self.extend(request, query)
+        if marketType == 'swap':
+            return await self.trade_request('futures_cancel_order', request)
+        elif (marketType == 'margin') or (marginMode is not None):
+            return await self.trade_request('margin_cancel_order', request)
+        else:
+            return await self.trade_request('spot_cancel_order', request)
+
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
+        """
+        :see: https://api.hitbtc.com/#cancel-spot-orders
+        :see: https://api.hitbtc.com/#cancel-futures-order-3
+        cancel all open orders
+        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported
+        :param bool [params.margin]: True for canceling margin orders
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelAllOrdersWs', market, params)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('cancelAllOrdersWs', params)
+        if marketType == 'swap':
+            return await self.trade_request('futures_cancel_orders', params)
+        elif (marketType == 'margin') or (marginMode is not None):
+            raise NotSupported(self.id + ' cancelAllOrdersWs is not supported for margin orders')
+        else:
+            return await self.trade_request('spot_cancel_orders', params)
+
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        :see: https://api.hitbtc.com/#get-active-futures-orders-2
+        :see: https://api.hitbtc.com/#get-margin-orders
+        :see: https://api.hitbtc.com/#get-active-spot-orders
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported
+        :param bool [params.margin]: True for fetching open margin orders
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchOpenOrdersWs', market, params)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrdersWs', params)
+        if marketType == 'swap':
+            return await self.trade_request('futures_get_orders', request)
+        elif (marketType == 'margin') or (marginMode is not None):
+            return await self.trade_request('margin_get_orders', request)
+        else:
+            return await self.trade_request('spot_get_orders', request)
 
     def handle_balance(self, client: Client, message):
         #
@@ -926,11 +1084,53 @@ class hitbtc(ccxt.async_support.hitbtc):
 
     def handle_notification(self, client: Client, message):
         #
-        #     {jsonrpc: '2.0', result: True, id: null}
+        #     {jsonrpc: "2.0", result: True, id: null}
         #
         return message
 
+    def handle_order_request(self, client: Client, message):
+        #
+        # createOrderWs, cancelOrderWs
+        #
+        #    {
+        #        "jsonrpc": "2.0",
+        #        "result": {
+        #            "id": 1130310696965,
+        #            "client_order_id": "OPC2oyHSkEBqIpPtniLqeW-597hUL3Yo",
+        #            "symbol": "ADAUSDT",
+        #            "side": "buy",
+        #            "status": "new",
+        #            "type": "limit",
+        #            "time_in_force": "GTC",
+        #            "quantity": "4",
+        #            "quantity_cumulative": "0",
+        #            "price": "0.3300000",
+        #            "post_only": False,
+        #            "created_at": "2023-11-17T14:58:15.903Z",
+        #            "updated_at": "2023-11-17T14:58:15.903Z",
+        #            "original_client_order_id": "d6b645556af740b1bd1683400fd9cbce",       # spot_replace_order only
+        #            "report_type": "new"
+        #            "margin_mode": "isolated",                                            # margin and future only
+        #            "reduce_only": False,                                                 # margin and future only
+        #        },
+        #        "id": 1700233093414
+        #    }
+        #
+        messageHash = self.safe_integer(message, 'id')
+        result = self.safe_value(message, 'result', {})
+        if isinstance(result, list):
+            parsedOrders = []
+            for i in range(0, len(result)):
+                parsedOrder = self.parse_ws_order(result[i])
+                parsedOrders.append(parsedOrder)
+            client.resolve(parsedOrders, messageHash)
+        else:
+            parsedOrder = self.parse_ws_order(result)
+            client.resolve(parsedOrder, messageHash)
+        return message
+
     def handle_message(self, client: Client, message):
+        self.handle_error(client, message)
         channel = self.safe_string_2(message, 'ch', 'method')
         if channel is not None:
             splitChannel = channel.split('/')
@@ -953,15 +1153,24 @@ class hitbtc(ccxt.async_support.hitbtc):
             if method is not None:
                 method(client, message)
         else:
-            success = self.safe_value(message, 'result')
-            if (success is True) and not ('id' in message):
+            result = self.safe_value(message, 'result')
+            clientOrderId = self.safe_string(result, 'client_order_id')
+            if clientOrderId is not None:
+                self.handle_order_request(client, message)
+            if (result is True) and not ('id' in message):
                 self.handle_authenticate(client, message)
+            if isinstance(result, list):
+                # to do improve self, not very reliable right now
+                first = self.safe_value(result, 0, {})
+                arrayLength = len(result)
+                if (arrayLength == 0) or ('client_order_id' in first):
+                    self.handle_order_request(client, message)
 
     def handle_authenticate(self, client: Client, message):
         #
         #    {
-        #        jsonrpc: '2.0',
-        #        result: True
+        #        "jsonrpc": "2.0",
+        #        "result": True
         #    }
         #
         success = self.safe_value(message, 'result')
@@ -975,3 +1184,26 @@ class hitbtc(ccxt.async_support.hitbtc):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
         return message
+
+    def handle_error(self, client: Client, message):
+        #
+        #    {
+        #        jsonrpc: '2.0',
+        #        error: {
+        #          code: 20001,
+        #          message: 'Insufficient funds',
+        #          description: 'Check that the funds are sufficient, given commissions'
+        #        },
+        #        id: 1700228604325
+        #    }
+        #
+        error = self.safe_value(message, 'error')
+        if error is not None:
+            code = self.safe_value(error, 'code')
+            errorMessage = self.safe_string(error, 'message')
+            description = self.safe_string(error, 'description')
+            feedback = self.id + ' ' + description
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+            raise ExchangeError(feedback)  # unknown message
+        return None

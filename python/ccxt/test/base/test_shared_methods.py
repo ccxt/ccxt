@@ -12,14 +12,19 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402
 import numbers  # noqa E402
 from ccxt.base.precise import Precise  # noqa E402
-
+from ccxt.base.errors import OperationFailed  # noqa E402
+from ccxt.base.errors import OnMaintenance  # noqa E402
+from ccxt.base.errors import ArgumentsRequired  # noqa E402
 
 def log_template(exchange, method, entry):
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> '
+
+
+def is_temporary_failure(e):
+    return (isinstance(e, OperationFailed)) and (not (isinstance(e, OnMaintenance)))
 
 
 def string_value(value):
@@ -35,7 +40,7 @@ def string_value(value):
 
 def assert_type(exchange, skipped_properties, entry, key, format):
     if key in skipped_properties:
-        return
+        return None
     # because "typeof" string is not transpilable without === 'name', we list them manually at this moment
     entry_key_val = exchange.safe_value(entry, key)
     format_key_val = exchange.safe_value(format, key)
@@ -60,6 +65,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
         for i in range(0, len(format)):
             empty_allowed_for_this_key = exchange.in_array(i, empty_allowed_for)
             value = entry[i]
+            if i in skipped_properties:
+                continue
             # check when:
             # - it's not inside "allowe empty values" list
             # - it's not undefined
@@ -67,7 +74,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
                 continue
             assert value is not None, str(i) + ' index is expected to have a value' + log_text
             # because of other langs, this is needed for arrays
-            assert assert_type(exchange, skipped_properties, entry, i, format), str(i) + ' index does not have an expected type ' + log_text
+            type_assertion = assert_type(exchange, skipped_properties, entry, i, format)
+            assert type_assertion, str(i) + ' index does not have an expected type ' + log_text
     else:
         assert isinstance(entry, dict), 'entry is not an object' + log_text
         keys = list(format.keys())
@@ -76,6 +84,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             if key in skipped_properties:
                 continue
             assert key in entry, '\"' + string_value(key) + '\" key is missing from structure' + log_text
+            if key in skipped_properties:
+                continue
             empty_allowed_for_this_key = exchange.in_array(key, empty_allowed_for)
             value = entry[key]
             # check when:
@@ -87,7 +97,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             assert value is not None, '\"' + string_value(key) + '\" key is expected to have a value' + log_text
             # add exclusion for info key, as it can be any type
             if key != 'info':
-                assert assert_type(exchange, skipped_properties, entry, key, format), '\"' + string_value(key) + '\" key is neither undefined, neither of expected type' + log_text
+                type_assertion = assert_type(exchange, skipped_properties, entry, key, format)
+                assert type_assertion, '\"' + string_value(key) + '\" key is neither undefined, neither of expected type' + log_text
 
 
 def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=None, key_name_or_index='timestamp'):
@@ -104,7 +115,7 @@ def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=N
     ts = entry[key_name_or_index]
     if ts is not None:
         assert isinstance(ts, numbers.Real), 'timestamp is not numeric' + log_text
-        assert isinstance(ts, numbers.Integral), 'timestamp should be an integer' + log_text
+        assert isinstance(ts, int), 'timestamp should be an integer' + log_text
         min_ts = 1230940800000  # 03 Jan 2009 - first block
         max_ts = 2147483648000  # 03 Jan 2009 - first block
         assert ts > min_ts, 'timestamp is impossible to be before ' + str(min_ts) + ' (03.01.2009)' + log_text  # 03 Jan 2009 - first block
@@ -170,9 +181,13 @@ def assert_symbol(exchange, skipped_properties, method, entry, key, expected_sym
     actual_symbol = exchange.safe_string(entry, key)
     if actual_symbol is not None:
         assert isinstance(actual_symbol, str), 'symbol should be either undefined or a string' + log_text
-        assert (actual_symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
     if expected_symbol is not None:
         assert actual_symbol == expected_symbol, 'symbol in response (\"' + string_value(actual_symbol) + '\") should be equal to expected symbol (\"' + string_value(expected_symbol) + '\")' + log_text
+
+
+def assert_symbol_in_markets(exchange, skipped_properties, method, symbol):
+    log_text = log_template(exchange, method, {})
+    assert (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + log_text
 
 
 def assert_greater(exchange, skipped_properties, method, entry, key, compare_to):
@@ -243,7 +258,7 @@ def assert_in_array(exchange, skipped_properties, method, entry, key, expected_a
 def assert_fee_structure(exchange, skipped_properties, method, entry, key):
     log_text = log_template(exchange, method, entry)
     key_string = string_value(key)
-    if isinstance(key, numbers.Integral):
+    if isinstance(key, int):
         assert isinstance(entry, list), 'fee container is expected to be an array' + log_text
         assert key < len(entry), 'fee key ' + key_string + ' was expected to be present in entry' + log_text
     else:
@@ -258,16 +273,15 @@ def assert_fee_structure(exchange, skipped_properties, method, entry, key):
         assert_currency_code(exchange, skipped_properties, method, entry, fee_object['currency'])
 
 
-def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=False):
+def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=True):
     for i in range(0, len(items)):
         if i > 0:
-            ascending_or_descending = 'ascending' if ascending else 'descending'
-            first_index = i - 1 if ascending else i
-            second_index = i if ascending else i - 1
-            first_ts = items[first_index]['timestamp']
-            second_ts = items[second_index]['timestamp']
-            if first_ts is not None and second_ts is not None:
-                assert items[first_index]['timestamp'] >= items[second_index]['timestamp'], exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp. ' + exchange.json(items)
+            current_ts = items[i - 1]['timestamp']
+            next_ts = items[i]['timestamp']
+            if current_ts is not None and next_ts is not None:
+                ascending_or_descending = 'ascending' if ascending else 'descending'
+                comparison = (current_ts <= next_ts) if ascending else (current_ts >= next_ts)
+                assert comparison, exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp, but ' + str(current_ts) + ' is opposite with its next ' + str(next_ts) + ' ' + exchange.json(items)
 
 
 def assert_integer(exchange, skipped_properties, method, entry, key):
@@ -277,15 +291,14 @@ def assert_integer(exchange, skipped_properties, method, entry, key):
     if entry is not None:
         value = exchange.safe_value(entry, key)
         if value is not None:
-            is_integer = isinstance(value, numbers.Integral)
+            is_integer = isinstance(value, int)
             assert is_integer, '\"' + string_value(key) + '\" key (value \"' + string_value(value) + '\") is not an integer' + log_text
 
 
 def check_precision_accuracy(exchange, skipped_properties, method, entry, key):
     if key in skipped_properties:
         return
-    is_tick_size_precisionMode = exchange.precisionMode == TICK_SIZE
-    if is_tick_size_precisionMode:
+    if exchange.is_tick_precision():
         # TICK_SIZE should be above zero
         assert_greater(exchange, skipped_properties, method, entry, key, '0')
         # the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
@@ -298,3 +311,25 @@ def check_precision_accuracy(exchange, skipped_properties, method, entry, key):
         assert_integer(exchange, skipped_properties, method, entry, key)  # should be integer
         assert_less_or_equal(exchange, skipped_properties, method, entry, key, '18')  # should be under 18 decimals
         assert_greater_or_equal(exchange, skipped_properties, method, entry, key, '-8')  # in real-world cases, there would not be less than that
+
+
+def remove_proxy_options(exchange, skipped_properties):
+    proxy_url = exchange.check_proxy_url_settings()
+    [http_proxy, https_proxy, socks_proxy] = exchange.check_proxy_settings()
+    # because of bug in transpiled, about `.proxyUrl` being transpiled into `.proxy_url`, we have to use this workaround
+    exchange.set_property(exchange, 'proxyUrl', None)
+    exchange.set_property(exchange, 'proxy_url', None)
+    exchange.set_property(exchange, 'httpProxy', None)
+    exchange.set_property(exchange, 'http_proxy', None)
+    exchange.set_property(exchange, 'httpsProxy', None)
+    exchange.set_property(exchange, 'https_proxy', None)
+    exchange.set_property(exchange, 'socksProxy', None)
+    exchange.set_property(exchange, 'socks_proxy', None)
+    return [proxy_url, http_proxy, https_proxy, socks_proxy]
+
+
+def set_proxy_options(exchange, skipped_properties, proxy_url, http_proxy, https_proxy, socks_proxy):
+    exchange.proxy_url = proxy_url
+    exchange.http_proxy = http_proxy
+    exchange.https_proxy = https_proxy
+    exchange.socks_proxy = socks_proxy

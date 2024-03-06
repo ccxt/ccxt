@@ -5,7 +5,7 @@ import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
 import { AuthenticationError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
@@ -300,7 +300,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name phemex#watchBalance
@@ -308,9 +308,9 @@ export default class phemex extends phemexRest {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-account-order-position-aop
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-wallet-order-messages
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the phemex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.settle] set to USDT to use hedged perpetual api
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
@@ -499,7 +499,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name phemex#watchTicker
@@ -508,8 +508,8 @@ export default class phemex extends phemexRest {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-24-hours-ticker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -533,7 +533,7 @@ export default class phemex extends phemexRest {
         return await this.watch (url, messageHash, request, subscriptionHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name phemex#watchTrades
@@ -544,8 +544,8 @@ export default class phemex extends phemexRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -572,7 +572,7 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name phemex#watchOrderBook
@@ -582,8 +582,8 @@ export default class phemex extends phemexRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -607,7 +607,7 @@ export default class phemex extends phemexRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name phemex#watchOHLCV
@@ -619,7 +619,7 @@ export default class phemex extends phemexRest {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the phemex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -648,14 +648,14 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleDelta (bookside, delta, market = undefined) {
+    customHandleDelta (bookside, delta, market = undefined) {
         const bidAsk = this.customParseBidAsk (delta, 0, 1, market);
         bookside.storeArray (bidAsk);
     }
 
-    handleDeltas (bookside, deltas, market = undefined) {
+    customHandleDeltas (bookside, deltas, market = undefined) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i], market);
+            this.customHandleDelta (bookside, deltas[i], market);
         }
     }
 
@@ -725,8 +725,8 @@ export default class phemex extends phemexRest {
                 const changes = this.safeValue2 (message, 'book', 'orderbook_p', {});
                 const asks = this.safeValue (changes, 'asks', []);
                 const bids = this.safeValue (changes, 'bids', []);
-                this.handleDeltas (orderbook['asks'], asks, market);
-                this.handleDeltas (orderbook['bids'], bids, market);
+                this.customHandleDeltas (orderbook['asks'], asks, market);
+                this.customHandleDeltas (orderbook['bids'], bids, market);
                 orderbook['nonce'] = nonce;
                 orderbook['timestamp'] = timestamp;
                 orderbook['datetime'] = this.iso8601 (timestamp);
@@ -736,7 +736,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name phemex#watchMyTrades
@@ -744,8 +744,8 @@ export default class phemex extends phemexRest {
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -901,16 +901,16 @@ export default class phemex extends phemexRest {
         client.resolve (cachedTrades, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name phemex#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let messageHash = 'orders:';
@@ -1427,18 +1427,23 @@ export default class phemex extends phemexRest {
             const method = client.subscriptions[id];
             delete client.subscriptions[id];
             if (method !== true) {
-                return method.call (this, client, message);
+                method.call (this, client, message);
+                return;
             }
         }
         const methodName = this.safeString (message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (methodName.indexOf ('perp_market24h_pack_p') >= 0)) {
-            return this.handleTicker (client, message);
+            this.handleTicker (client, message);
+            return;
         } else if (('trades' in message) || ('trades_p' in message)) {
-            return this.handleTrades (client, message);
+            this.handleTrades (client, message);
+            return;
         } else if (('kline' in message) || ('kline_p' in message)) {
-            return this.handleOHLCV (client, message);
+            this.handleOHLCV (client, message);
+            return;
         } else if (('book' in message) || ('orderbook_p' in message)) {
-            return this.handleOrderBook (client, message);
+            this.handleOrderBook (client, message);
+            return;
         }
         if (('orders' in message) || ('orders_p' in message)) {
             const orders = this.safeValue2 (message, 'orders', 'orders_p', {});
@@ -1527,6 +1532,6 @@ export default class phemex extends phemexRest {
             future = this.watch (url, messageHash, message);
             client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }

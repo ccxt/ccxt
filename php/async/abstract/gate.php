@@ -202,6 +202,12 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_wallet_get_total_balance($params = array()) {
         return $this->request('total_balance', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 2.5));
     }
+    public function private_wallet_get_small_balance($params = array()) {
+        return $this->request('small_balance', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_wallet_get_small_balance_history($params = array()) {
+        return $this->request('small_balance_history', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_wallet_post_transfers($params = array()) {
         return $this->request('transfers', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -210,6 +216,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function private_wallet_post_sub_account_to_sub_account($params = array()) {
         return $this->request('sub_account_to_sub_account', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_wallet_post_small_balance($params = array()) {
+        return $this->request('small_balance', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_subaccounts_get_sub_accounts($params = array()) {
         return $this->request('sub_accounts', array('private', 'subAccounts'), 'GET', $params, null, null, array("cost" => 2.5));
@@ -241,32 +250,35 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_subaccounts_delete_sub_accounts_user_id_keys_key($params = array()) {
         return $this->request('sub_accounts/{user_id}/keys/{key}', array('private', 'subAccounts'), 'DELETE', $params, null, null, array("cost" => 2.5));
     }
-    public function private_portfolio_get_accounts($params = array()) {
-        return $this->request('accounts', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function private_unified_get_accounts($params = array()) {
+        return $this->request('accounts', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function private_portfolio_get_account_mode($params = array()) {
-        return $this->request('account_mode', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function private_unified_get_account_mode($params = array()) {
+        return $this->request('account_mode', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function private_portfolio_get_borrowable($params = array()) {
-        return $this->request('borrowable', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function private_unified_get_borrowable($params = array()) {
+        return $this->request('borrowable', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function private_portfolio_get_transferable($params = array()) {
-        return $this->request('transferable', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function private_unified_get_transferable($params = array()) {
+        return $this->request('transferable', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function private_portfolio_get_loans($params = array()) {
-        return $this->request('loans', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function private_unified_get_loans($params = array()) {
+        return $this->request('loans', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function private_portfolio_get_loan_records($params = array()) {
-        return $this->request('loan_records', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function private_unified_get_loan_records($params = array()) {
+        return $this->request('loan_records', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function private_portfolio_get_interest_records($params = array()) {
-        return $this->request('interest_records', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function private_unified_get_interest_records($params = array()) {
+        return $this->request('interest_records', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function private_portfolio_post_account_mode($params = array()) {
-        return $this->request('account_mode', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    public function private_unified_get_estimate_rate($params = array()) {
+        return $this->request('estimate_rate', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function private_portfolio_post_loans($params = array()) {
-        return $this->request('loans', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 13.333333333333334));
+    public function private_unified_post_account_mode($params = array()) {
+        return $this->request('account_mode', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_unified_post_loans($params = array()) {
+        return $this->request('loans', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 13.333333333333334));
     }
     public function private_spot_get_fee($params = array()) {
         return $this->request('fee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -499,6 +511,9 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_futures_get_settle_fee($params = array()) {
         return $this->request('{settle}/fee', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_futures_get_settle_risk_limit_tiers($params = array()) {
+        return $this->request('{settle}/risk_limit_tiers', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_futures_get_settle_price_orders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -534,6 +549,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function private_futures_post_settle_countdown_cancel_all($params = array()) {
         return $this->request('{settle}/countdown_cancel_all', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    public function private_futures_post_settle_batch_cancel_orders($params = array()) {
+        return $this->request('{settle}/batch_cancel_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
     }
     public function private_futures_post_settle_price_orders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
@@ -652,6 +670,12 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_options_delete_orders_order_id($params = array()) {
         return $this->request('orders/{order_id}', array('private', 'options'), 'DELETE', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_earn_get_uni_currencies($params = array()) {
+        return $this->request('uni/currencies', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_earn_get_uni_currencies_currency($params = array()) {
+        return $this->request('uni/currencies/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_earn_get_uni_lends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -663,6 +687,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function private_earn_get_uni_interest_records($params = array()) {
         return $this->request('uni/interest_records', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_earn_get_uni_interest_status_currency($params = array()) {
+        return $this->request('uni/interest_status/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_earn_post_uni_lends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
@@ -694,6 +721,30 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_loan_get_collateral_currencies($params = array()) {
         return $this->request('collateral/currencies', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_loan_get_multi_collateral_orders($params = array()) {
+        return $this->request('multi_collateral/orders', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_orders_order_id($params = array()) {
+        return $this->request('multi_collateral/orders/{order_id}', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_repay($params = array()) {
+        return $this->request('multi_collateral/repay', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_mortgage($params = array()) {
+        return $this->request('multi_collateral/mortgage', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_currency_quota($params = array()) {
+        return $this->request('multi_collateral/currency_quota', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_currencies($params = array()) {
+        return $this->request('multi_collateral/currencies', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_ltv($params = array()) {
+        return $this->request('multi_collateral/ltv', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_get_multi_collateral_fixed_rate($params = array()) {
+        return $this->request('multi_collateral/fixed_rate', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_loan_post_collateral_orders($params = array()) {
         return $this->request('collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -702,6 +753,15 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function private_loan_post_collateral_collaterals($params = array()) {
         return $this->request('collateral/collaterals', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_post_multi_collateral_orders($params = array()) {
+        return $this->request('multi_collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_post_multi_collateral_repay($params = array()) {
+        return $this->request('multi_collateral/repay', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_loan_post_multi_collateral_mortgage($params = array()) {
+        return $this->request('multi_collateral/mortgage', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_account_get_detail($params = array()) {
         return $this->request('detail', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
@@ -922,6 +982,12 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateWalletGetTotalBalance($params = array()) {
         return $this->request('total_balance', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 2.5));
     }
+    public function privateWalletGetSmallBalance($params = array()) {
+        return $this->request('small_balance', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateWalletGetSmallBalanceHistory($params = array()) {
+        return $this->request('small_balance_history', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateWalletPostTransfers($params = array()) {
         return $this->request('transfers', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -930,6 +996,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function privateWalletPostSubAccountToSubAccount($params = array()) {
         return $this->request('sub_account_to_sub_account', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privateWalletPostSmallBalance($params = array()) {
+        return $this->request('small_balance', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateSubAccountsGetSubAccounts($params = array()) {
         return $this->request('sub_accounts', array('private', 'subAccounts'), 'GET', $params, null, null, array("cost" => 2.5));
@@ -961,32 +1030,35 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateSubAccountsDeleteSubAccountsUserIdKeysKey($params = array()) {
         return $this->request('sub_accounts/{user_id}/keys/{key}', array('private', 'subAccounts'), 'DELETE', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePortfolioGetAccounts($params = array()) {
-        return $this->request('accounts', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function privateUnifiedGetAccounts($params = array()) {
+        return $this->request('accounts', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function privatePortfolioGetAccountMode($params = array()) {
-        return $this->request('account_mode', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function privateUnifiedGetAccountMode($params = array()) {
+        return $this->request('account_mode', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function privatePortfolioGetBorrowable($params = array()) {
-        return $this->request('borrowable', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function privateUnifiedGetBorrowable($params = array()) {
+        return $this->request('borrowable', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function privatePortfolioGetTransferable($params = array()) {
-        return $this->request('transferable', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function privateUnifiedGetTransferable($params = array()) {
+        return $this->request('transferable', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function privatePortfolioGetLoans($params = array()) {
-        return $this->request('loans', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function privateUnifiedGetLoans($params = array()) {
+        return $this->request('loans', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function privatePortfolioGetLoanRecords($params = array()) {
-        return $this->request('loan_records', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function privateUnifiedGetLoanRecords($params = array()) {
+        return $this->request('loan_records', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function privatePortfolioGetInterestRecords($params = array()) {
-        return $this->request('interest_records', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    public function privateUnifiedGetInterestRecords($params = array()) {
+        return $this->request('interest_records', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function privatePortfolioPostAccountMode($params = array()) {
-        return $this->request('account_mode', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    public function privateUnifiedGetEstimateRate($params = array()) {
+        return $this->request('estimate_rate', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function privatePortfolioPostLoans($params = array()) {
-        return $this->request('loans', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 13.333333333333334));
+    public function privateUnifiedPostAccountMode($params = array()) {
+        return $this->request('account_mode', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateUnifiedPostLoans($params = array()) {
+        return $this->request('loans', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 13.333333333333334));
     }
     public function privateSpotGetFee($params = array()) {
         return $this->request('fee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -1219,6 +1291,9 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateFuturesGetSettleFee($params = array()) {
         return $this->request('{settle}/fee', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateFuturesGetSettleRiskLimitTiers($params = array()) {
+        return $this->request('{settle}/risk_limit_tiers', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateFuturesGetSettlePriceOrders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1254,6 +1329,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function privateFuturesPostSettleCountdownCancelAll($params = array()) {
         return $this->request('{settle}/countdown_cancel_all', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    public function privateFuturesPostSettleBatchCancelOrders($params = array()) {
+        return $this->request('{settle}/batch_cancel_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
     }
     public function privateFuturesPostSettlePriceOrders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
@@ -1372,6 +1450,12 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateOptionsDeleteOrdersOrderId($params = array()) {
         return $this->request('orders/{order_id}', array('private', 'options'), 'DELETE', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function privateEarnGetUniCurrencies($params = array()) {
+        return $this->request('uni/currencies', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateEarnGetUniCurrenciesCurrency($params = array()) {
+        return $this->request('uni/currencies/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function privateEarnGetUniLends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -1383,6 +1467,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function privateEarnGetUniInterestRecords($params = array()) {
         return $this->request('uni/interest_records', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateEarnGetUniInterestStatusCurrency($params = array()) {
+        return $this->request('uni/interest_status/{currency}', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateEarnPostUniLends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
@@ -1414,6 +1501,30 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateLoanGetCollateralCurrencies($params = array()) {
         return $this->request('collateral/currencies', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function privateLoanGetMultiCollateralOrders($params = array()) {
+        return $this->request('multi_collateral/orders', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralOrdersOrderId($params = array()) {
+        return $this->request('multi_collateral/orders/{order_id}', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralRepay($params = array()) {
+        return $this->request('multi_collateral/repay', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralMortgage($params = array()) {
+        return $this->request('multi_collateral/mortgage', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralCurrencyQuota($params = array()) {
+        return $this->request('multi_collateral/currency_quota', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralCurrencies($params = array()) {
+        return $this->request('multi_collateral/currencies', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralLtv($params = array()) {
+        return $this->request('multi_collateral/ltv', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanGetMultiCollateralFixedRate($params = array()) {
+        return $this->request('multi_collateral/fixed_rate', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function privateLoanPostCollateralOrders($params = array()) {
         return $this->request('collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -1422,6 +1533,15 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function privateLoanPostCollateralCollaterals($params = array()) {
         return $this->request('collateral/collaterals', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanPostMultiCollateralOrders($params = array()) {
+        return $this->request('multi_collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanPostMultiCollateralRepay($params = array()) {
+        return $this->request('multi_collateral/repay', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateLoanPostMultiCollateralMortgage($params = array()) {
+        return $this->request('multi_collateral/mortgage', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateAccountGetDetail($params = array()) {
         return $this->request('detail', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));

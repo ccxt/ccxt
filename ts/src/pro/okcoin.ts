@@ -5,7 +5,7 @@ import okcoinRest from '../okcoin.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ export default class okcoin extends okcoinRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name okcoin#watchTrades
@@ -75,8 +75,8 @@ export default class okcoin extends okcoinRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -87,16 +87,16 @@ export default class okcoin extends okcoinRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okcoin#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         await this.authenticate ();
@@ -175,14 +175,14 @@ export default class okcoin extends okcoinRest {
         }
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name okcoin#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.subscribe ('ticker', symbol, params);
     }
@@ -258,7 +258,7 @@ export default class okcoin extends okcoinRest {
         return message;
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name okcoin#watchOHLCV
@@ -267,7 +267,7 @@ export default class okcoin extends okcoinRest {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -327,15 +327,15 @@ export default class okcoin extends okcoinRest {
         }
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name okcoin#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const depth = this.safeString (options, 'depth', 'depth_l2_tbt');
@@ -492,16 +492,16 @@ export default class okcoin extends okcoinRest {
             };
             this.spawn (this.watch, url, messageHash, request, messageHash, future);
         }
-        return await future;
+        return future;
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name okcoin#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
@@ -730,7 +730,8 @@ export default class okcoin extends okcoinRest {
         // }
         //
         if (message === 'pong') {
-            return this.handlePong (client, message);
+            this.handlePong (client, message);
+            return;
         }
         const table = this.safeString (message, 'table');
         if (table === undefined) {
@@ -743,10 +744,8 @@ export default class okcoin extends okcoinRest {
                     'subscribe': this.handleSubscriptionStatus,
                 };
                 const method = this.safeValue (methods, event);
-                if (method === undefined) {
-                    return message;
-                } else {
-                    return method.call (this, client, message);
+                if (method !== undefined) {
+                    method.call (this, client, message);
                 }
             }
         } else {
@@ -767,10 +766,8 @@ export default class okcoin extends okcoinRest {
             if (name.indexOf ('candle') >= 0) {
                 method = this.handleOHLCV;
             }
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         }
     }

@@ -5,13 +5,13 @@ import Exchange from './abstract/lykke.js';
 import { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Balances, Int, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
  * @class lykke
- * @extends Exchange
+ * @augments Exchange
  */
 export default class lykke extends Exchange {
     describe () {
@@ -38,11 +38,11 @@ export default class lykke extends Exchange {
                 'createStopOrder': false,
                 'editOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': false,
@@ -52,6 +52,8 @@ export default class lykke extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -186,7 +188,8 @@ export default class lykke extends Exchange {
          * @method
          * @name lykke#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
+         * @see https://lykkecity.github.io/Trading-API/#get-all-assets
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetAssets (params);
@@ -265,7 +268,8 @@ export default class lykke extends Exchange {
          * @method
          * @name lykke#fetchMarkets
          * @description retrieves data on all markets for lykke
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @see https://lykkecity.github.io/Trading-API/#get-asset-by-id
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetAssetpairs (params);
@@ -352,7 +356,7 @@ export default class lykke extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTickers
         //
@@ -421,14 +425,16 @@ export default class lykke extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name lykke#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://lykkecity.github.io/Trading-API/#get-current-prices
+         * @see https://lykkecity.github.io/Trading-API/#24hr-ticker-price-change-statistics
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -437,7 +443,12 @@ export default class lykke extends Exchange {
         };
         // publicGetTickers or publicGetPrices
         const method = this.safeString (this.options, 'fetchTickerMethod', 'publicGetTickers');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'publicGetPrices') {
+            response = await this.publicGetPrices (this.extend (request, params));
+        } else {
+            response = await this.publicGetTickers (this.extend (request, params));
+        }
         const ticker = this.safeValue (response, 'payload', []);
         //
         // publicGetTickers
@@ -475,14 +486,15 @@ export default class lykke extends Exchange {
         return this.parseTicker (this.safeValue (ticker, 0, {}), market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name lykke#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://lykkecity.github.io/Trading-API/#24hr-ticker-price-change-statistics
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
@@ -507,15 +519,16 @@ export default class lykke extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name lykke#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://lykkecity.github.io/Trading-API/#asset-pair-order-book-ticker
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -555,7 +568,7 @@ export default class lykke extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v');
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         //  public fetchTrades
         //
@@ -613,16 +626,17 @@ export default class lykke extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name lykke#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://lykkecity.github.io/Trading-API/#get-public-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -679,13 +693,14 @@ export default class lykke extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name lykke#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @see https://lykkecity.github.io/Trading-API/#get-the-current-balance
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetBalance (params);
@@ -721,7 +736,7 @@ export default class lykke extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "id":"1b367978-7e4f-454b-b870-64040d484443",
@@ -777,18 +792,20 @@ export default class lykke extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name lykke#createOrder
          * @description create a trade order
+         * @see https://lykkecity.github.io/Trading-API/#place-a-limit-order
+         * @see https://lykkecity.github.io/Trading-API/#place-a-market-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -800,8 +817,12 @@ export default class lykke extends Exchange {
         if (type === 'limit') {
             query['price'] = parseFloat (this.priceToPrecision (market['symbol'], price));
         }
-        const method = 'privatePostOrders' + this.capitalize (type);
-        const result = await this[method] (this.extend (query, params));
+        let result = undefined;
+        if (this.capitalize (type) === 'Market') {
+            result = await this.privatePostOrdersMarket (this.extend (query, params));
+        } else {
+            result = await this.privatePostOrdersLimit (this.extend (query, params));
+        }
         //
         // market
         //
@@ -849,15 +870,16 @@ export default class lykke extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name lykke#cancelOrder
          * @description cancels an open order
+         * @see https://lykkecity.github.io/Trading-API/#cancel-orders-by-id
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'orderId': id,
@@ -871,14 +893,15 @@ export default class lykke extends Exchange {
         return await this.privateDeleteOrdersOrderId (this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name lykke#cancelAllOrders
          * @description cancel all open orders
+         * @see https://lykkecity.github.io/Trading-API/#mass-cancel-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -898,14 +921,15 @@ export default class lykke extends Exchange {
         return await this.privateDeleteOrders (this.extend (request, params));
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://lykkecity.github.io/Trading-API/#get-order-by-id
          * @param {string} symbol not used by lykke fetchOrder
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -935,16 +959,17 @@ export default class lykke extends Exchange {
         return this.parseOrder (payload);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name lykke#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://lykkecity.github.io/Trading-API/#get-active-or-closed-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -984,16 +1009,17 @@ export default class lykke extends Exchange {
         return this.parseOrders (payload, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name lykke#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://lykkecity.github.io/Trading-API/#get-active-or-closed-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1033,16 +1059,17 @@ export default class lykke extends Exchange {
         return this.parseOrders (payload, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://lykkecity.github.io/Trading-API/#get-trade-history
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1088,7 +1115,7 @@ export default class lykke extends Exchange {
         return this.parseTrades (payload, market, since, limit);
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const price = this.safeString (bidask, priceKey);
         const amount = Precise.stringAbs (this.safeString (bidask, amountKey));
         return [ this.parseNumber (price), this.parseNumber (amount) ];
@@ -1099,9 +1126,10 @@ export default class lykke extends Exchange {
          * @method
          * @name lykke#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://lykkecity.github.io/Trading-API/#get-deposit-address-for-a-given-asset
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1131,7 +1159,7 @@ export default class lykke extends Exchange {
         };
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"
@@ -1186,20 +1214,23 @@ export default class lykke extends Exchange {
             'currency': code,
             'status': undefined,
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name lykke#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://lykkecity.github.io/Trading-API/#get-the-history-of-withdrawals-and-deposits
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1233,17 +1264,18 @@ export default class lykke extends Exchange {
         return this.parseTransactions (payload, currency, since, limit);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name lykke#withdraw
          * @description make a withdrawal
+         * @see https://lykkecity.github.io/Trading-API/#withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
-         * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         this.checkAddress (address);

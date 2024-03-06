@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,7 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_trade.php';
+include_once PATH_TO_CCXT . '/test/base/test_trade.php';
 
 function test_fetch_trades($exchange, $skipped_properties, $symbol) {
     $method = 'fetchTrades';
@@ -18,5 +17,7 @@ function test_fetch_trades($exchange, $skipped_properties, $symbol) {
     for ($i = 0; $i < count($trades); $i++) {
         test_trade($exchange, $skipped_properties, $method, $trades[$i], $symbol, $now);
     }
-    assert_timestamp_order($exchange, $method, $symbol, $trades);
+    if (!(is_array($skipped_properties) && array_key_exists('timestamp', $skipped_properties))) {
+        assert_timestamp_order($exchange, $method, $symbol, $trades);
+    }
 }

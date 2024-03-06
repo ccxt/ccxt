@@ -27,19 +27,22 @@ class btcbox extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkOHLCV' => false,
@@ -118,7 +121,7 @@ class btcbox extends Exchange {
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -137,24 +140,26 @@ class btcbox extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} [$params] extra parameters specific to the btcbox api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+         * @see https://blog.btcbox.jp/en/archives/8762#toc13
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://blog.btcbox.jp/en/archives/8762#toc6
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
-         * @param {array} [$params] extra parameters specific to the btcbox api endpoint
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -167,14 +172,13 @@ class btcbox extends Exchange {
         return $this->parse_order_book($response, $market['symbol']);
     }
 
-    public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->milliseconds();
+    public function parse_ticker($ticker, ?array $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
             'bid' => $this->safe_string($ticker, 'buy'),
@@ -195,12 +199,13 @@ class btcbox extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://blog.btcbox.jp/en/archives/8762#toc5
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} [$params] extra parameters specific to the btcbox api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -213,7 +218,7 @@ class btcbox extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -249,14 +254,15 @@ class btcbox extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         * @see https://blog.btcbox.jp/en/archives/8762#toc7
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
-         * @param {array} [$params] extra parameters specific to the btcbox api endpoint
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -280,16 +286,17 @@ class btcbox extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://blog.btcbox.jp/en/archives/8762#toc18
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the btcbox api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -312,10 +319,11 @@ class btcbox extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         * @see https://blog.btcbox.jp/en/archives/8762#toc17
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the btcbox api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         // a special case for btcbox – default $symbol is BTC/JPY
@@ -346,7 +354,7 @@ class btcbox extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "id":11,
@@ -408,9 +416,10 @@ class btcbox extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         * @see https://blog.btcbox.jp/en/archives/8762#toc16
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the btcbox api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         // a special case for btcbox – default $symbol is BTC/JPY
@@ -473,26 +482,28 @@ class btcbox extends Exchange {
         return $orders;
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
+         * @see https://blog.btcbox.jp/en/archives/8762#toc15
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
-         * @param {array} [$params] extra parameters specific to the btcbox api endpoint
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_type('all', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         * @see https://blog.btcbox.jp/en/archives/8762#toc15
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-         * @param {array} [$params] extra parameters specific to the btcbox api endpoint
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_type('open', $symbol, $since, $limit, $params);
     }

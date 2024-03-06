@@ -1,0 +1,695 @@
+{
+    "BTC": {
+        "id": "btc",
+        "numericId": 11,
+        "code": "BTC",
+        "name": "BTC",
+        "info": {
+            "txLimits": {
+                "minDeposit": "0.0001",
+                "minWithdraw": "0.000005",
+                "maxWithdraw": "1000",
+                "withdrawCommissionPercentage": "NaN",
+                "withdrawCommissionFixed": "0.0005"
+            },
+            "id": "11",
+            "status": "1",
+            "symbol": "btc",
+            "title": "Bitcoin",
+            "logoURL": "https://img2.freepng.ru/20171216/19e/bitcoin-png-5a354f46d0c7d2.8667284615134431428552.jpg",
+            "isDiscount": false,
+            "address": "https://bitcoin.org/",
+            "description": "Bitcoin currency",
+            "decimals": "8",
+            "blockChain": "Bitcoin",
+            "precision": "8",
+            "currentRate": null,
+            "active": true,
+            "timeStart": "2021-01-29T04:53:05.762Z",
+            "type": "crypto",
+            "typeNetwork": "internalGW",
+            "idSorting": "1",
+            "links": [
+                {
+                    "tx": "https://www.blockchain.com/btc/tx/",
+                    "address": "https://www.blockchain.com/btc/address/",
+                    "blockChain": "Bitcoin"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0005,
+        "precision": 8,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.000005,
+                "max": 1000
+            },
+            "deposit": {
+                "min": 0.0001
+            }
+        },
+        "networks": {
+            "BTC": {
+                "id": "Bitcoin",
+                "network": "BTC",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.0005,
+                "precision": 8,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.000005,
+                        "max": 1000
+                    },
+                    "deposit": {
+                        "min": 0.0001
+                    }
+                },
+                "info": {
+                    "txLimits": {
+                        "minDeposit": "0.0001",
+                        "minWithdraw": "0.000005",
+                        "maxWithdraw": "1000",
+                        "withdrawCommissionPercentage": "NaN",
+                        "withdrawCommissionFixed": "0.0005"
+                    },
+                    "id": "11",
+                    "status": "1",
+                    "symbol": "btc",
+                    "title": "Bitcoin",
+                    "logoURL": "https://img2.freepng.ru/20171216/19e/bitcoin-png-5a354f46d0c7d2.8667284615134431428552.jpg",
+                    "isDiscount": false,
+                    "address": "https://bitcoin.org/",
+                    "description": "Bitcoin currency",
+                    "decimals": "8",
+                    "blockChain": "Bitcoin",
+                    "precision": "8",
+                    "currentRate": null,
+                    "active": true,
+                    "timeStart": "2021-01-29T04:53:05.762Z",
+                    "type": "crypto",
+                    "typeNetwork": "internalGW",
+                    "idSorting": "1",
+                    "links": [
+                        {
+                            "tx": "https://www.blockchain.com/btc/tx/",
+                            "address": "https://www.blockchain.com/btc/address/",
+                            "blockChain": "Bitcoin"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "ETH": {
+        "id": "eth",
+        "numericId": 2,
+        "code": "ETH",
+        "name": "ETH",
+        "info": {
+            "txLimits": {
+                "minDeposit": "0.0001",
+                "minWithdraw": "0.02",
+                "maxWithdraw": "10000",
+                "withdrawCommissionPercentage": "NaN",
+                "withdrawCommissionFixed": "0.005"
+            },
+            "id": "2",
+            "status": "1",
+            "symbol": "eth",
+            "title": "Ethereum",
+            "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
+            "isDiscount": false,
+            "address": "https://ethereum.org/",
+            "description": "Ethereum ETH",
+            "decimals": "18",
+            "blockChain": "Ethereum",
+            "precision": "8",
+            "currentRate": null,
+            "active": true,
+            "timeStart": "2021-01-28T08:57:41.719Z",
+            "type": "crypto",
+            "typeNetwork": "internalGW",
+            "idSorting": "2",
+            "links": [
+                {
+                    "tx": "https://etherscan.io/tx/",
+                    "address": "https://etherscan.io/address/",
+                    "blockChain": "Ethereum"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.005,
+        "precision": 8,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.02,
+                "max": 10000
+            },
+            "deposit": {
+                "min": 0.0001
+            }
+        },
+        "networks": {
+            "ETH": {
+                "id": "Ethereum",
+                "network": "ETH",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.005,
+                "precision": 18,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.02,
+                        "max": 10000
+                    },
+                    "deposit": {
+                        "min": 0.0001
+                    }
+                },
+                "info": {
+                    "txLimits": {
+                        "minDeposit": "0.0001",
+                        "minWithdraw": "0.02",
+                        "maxWithdraw": "10000",
+                        "withdrawCommissionPercentage": "NaN",
+                        "withdrawCommissionFixed": "0.005"
+                    },
+                    "id": "2",
+                    "status": "1",
+                    "symbol": "eth",
+                    "title": "Ethereum",
+                    "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
+                    "isDiscount": false,
+                    "address": "https://ethereum.org/",
+                    "description": "Ethereum ETH",
+                    "decimals": "18",
+                    "blockChain": "Ethereum",
+                    "precision": "8",
+                    "currentRate": null,
+                    "active": true,
+                    "timeStart": "2021-01-28T08:57:41.719Z",
+                    "type": "crypto",
+                    "typeNetwork": "internalGW",
+                    "idSorting": "2",
+                    "links": [
+                        {
+                            "tx": "https://etherscan.io/tx/",
+                            "address": "https://etherscan.io/address/",
+                            "blockChain": "Ethereum"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "USDT": {
+        "id": "usdt",
+        "numericId": 3,
+        "code": "USDT",
+        "name": "USDT",
+        "info": {
+            "txLimits": {
+                "minDeposit": "0.001",
+                "minWithdraw": "1",
+                "maxWithdraw": "100000",
+                "withdrawCommissionFixed": {
+                    "Tron": "2",
+                    "Binance": "2",
+                    "Ethereum": "2"
+                }
+            },
+            "id": "3",
+            "status": "1",
+            "symbol": "usdt",
+            "title": "Tether USD",
+            "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+            "isDiscount": false,
+            "address": "https://etherscan.io",
+            "description": "Tether USD",
+            "decimals": "6",
+            "blockChain": "",
+            "precision": "6",
+            "currentRate": null,
+            "active": true,
+            "timeStart": "2021-01-28T09:04:17.170Z",
+            "type": "crypto",
+            "typeNetwork": "internalGW",
+            "idSorting": "0",
+            "links": [
+                {
+                    "tx": "https://etherscan.io/tx/",
+                    "address": "https://etherscan.io/address/",
+                    "blockChain": "Ethereum"
+                },
+                {
+                    "tx": "https://tronscan.org/#/transaction/",
+                    "address": "https://tronscan.org/#/address/",
+                    "blockChain": "Tron"
+                },
+                {
+                    "tx": "https://bscscan.com/tx/",
+                    "address": "https://bscscan.com/address/",
+                    "blockChain": "Binance"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "precision": 6,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 1,
+                "max": 100000
+            },
+            "deposit": {
+                "min": 0.001
+            }
+        },
+        "networks": {
+            "TRC20": {
+                "id": "Tron",
+                "network": "TRC20",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 2,
+                "precision": 6,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 1,
+                        "max": 100000
+                    },
+                    "deposit": {
+                        "min": 0.001
+                    }
+                },
+                "info": {
+                    "txLimits": {
+                        "minDeposit": "0.001",
+                        "minWithdraw": "1",
+                        "maxWithdraw": "100000",
+                        "withdrawCommissionFixed": {
+                            "Tron": "2",
+                            "Binance": "2",
+                            "Ethereum": "2"
+                        }
+                    },
+                    "id": "3",
+                    "status": "1",
+                    "symbol": "usdt",
+                    "title": "Tether USD",
+                    "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+                    "isDiscount": false,
+                    "address": "https://etherscan.io",
+                    "description": "Tether USD",
+                    "decimals": "6",
+                    "blockChain": "",
+                    "precision": "6",
+                    "currentRate": null,
+                    "active": true,
+                    "timeStart": "2021-01-28T09:04:17.170Z",
+                    "type": "crypto",
+                    "typeNetwork": "internalGW",
+                    "idSorting": "0",
+                    "links": [
+                        {
+                            "tx": "https://etherscan.io/tx/",
+                            "address": "https://etherscan.io/address/",
+                            "blockChain": "Ethereum"
+                        },
+                        {
+                            "tx": "https://tronscan.org/#/transaction/",
+                            "address": "https://tronscan.org/#/address/",
+                            "blockChain": "Tron"
+                        },
+                        {
+                            "tx": "https://bscscan.com/tx/",
+                            "address": "https://bscscan.com/address/",
+                            "blockChain": "Binance"
+                        }
+                    ]
+                }
+            },
+            "BSC": {
+                "id": "Binance",
+                "network": "BSC",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 2,
+                "precision": 6,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 1,
+                        "max": 100000
+                    },
+                    "deposit": {
+                        "min": 0.001
+                    }
+                },
+                "info": {
+                    "txLimits": {
+                        "minDeposit": "0.001",
+                        "minWithdraw": "1",
+                        "maxWithdraw": "100000",
+                        "withdrawCommissionFixed": {
+                            "Tron": "2",
+                            "Binance": "2",
+                            "Ethereum": "2"
+                        }
+                    },
+                    "id": "3",
+                    "status": "1",
+                    "symbol": "usdt",
+                    "title": "Tether USD",
+                    "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+                    "isDiscount": false,
+                    "address": "https://etherscan.io",
+                    "description": "Tether USD",
+                    "decimals": "6",
+                    "blockChain": "",
+                    "precision": "6",
+                    "currentRate": null,
+                    "active": true,
+                    "timeStart": "2021-01-28T09:04:17.170Z",
+                    "type": "crypto",
+                    "typeNetwork": "internalGW",
+                    "idSorting": "0",
+                    "links": [
+                        {
+                            "tx": "https://etherscan.io/tx/",
+                            "address": "https://etherscan.io/address/",
+                            "blockChain": "Ethereum"
+                        },
+                        {
+                            "tx": "https://tronscan.org/#/transaction/",
+                            "address": "https://tronscan.org/#/address/",
+                            "blockChain": "Tron"
+                        },
+                        {
+                            "tx": "https://bscscan.com/tx/",
+                            "address": "https://bscscan.com/address/",
+                            "blockChain": "Binance"
+                        }
+                    ]
+                }
+            },
+            "ERC20": {
+                "id": "Ethereum",
+                "network": "ERC20",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 2,
+                "precision": 6,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 1,
+                        "max": 100000
+                    },
+                    "deposit": {
+                        "min": 0.001
+                    }
+                },
+                "info": {
+                    "txLimits": {
+                        "minDeposit": "0.001",
+                        "minWithdraw": "1",
+                        "maxWithdraw": "100000",
+                        "withdrawCommissionFixed": {
+                            "Tron": "2",
+                            "Binance": "2",
+                            "Ethereum": "2"
+                        }
+                    },
+                    "id": "3",
+                    "status": "1",
+                    "symbol": "usdt",
+                    "title": "Tether USD",
+                    "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+                    "isDiscount": false,
+                    "address": "https://etherscan.io",
+                    "description": "Tether USD",
+                    "decimals": "6",
+                    "blockChain": "",
+                    "precision": "6",
+                    "currentRate": null,
+                    "active": true,
+                    "timeStart": "2021-01-28T09:04:17.170Z",
+                    "type": "crypto",
+                    "typeNetwork": "internalGW",
+                    "idSorting": "0",
+                    "links": [
+                        {
+                            "tx": "https://etherscan.io/tx/",
+                            "address": "https://etherscan.io/address/",
+                            "blockChain": "Ethereum"
+                        },
+                        {
+                            "tx": "https://tronscan.org/#/transaction/",
+                            "address": "https://tronscan.org/#/address/",
+                            "blockChain": "Tron"
+                        },
+                        {
+                            "tx": "https://bscscan.com/tx/",
+                            "address": "https://bscscan.com/address/",
+                            "blockChain": "Binance"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "LTC": {
+        "id": "ltc",
+        "numericId": 13,
+        "code": "LTC",
+        "name": "LTC",
+        "info": {
+            "txLimits": {
+                "minDeposit": "0.001",
+                "minWithdraw": "0.0001",
+                "maxWithdraw": "100",
+                "withdrawCommissionPercentage": "NaN",
+                "withdrawCommissionFixed": "0.001"
+            },
+            "id": "13",
+            "status": "1",
+            "symbol": "ltc",
+            "title": "Litecoin",
+            "logoURL": "https://litecoin.org/",
+            "isDiscount": false,
+            "address": "https://litecoin.org/",
+            "description": "Litecoin currency",
+            "decimals": "8",
+            "blockChain": "Litecoin",
+            "precision": "8",
+            "currentRate": null,
+            "active": true,
+            "timeStart": "2021-10-13T11:57:56.573Z",
+            "type": "crypto",
+            "typeNetwork": "internalGW",
+            "idSorting": "7",
+            "links": [
+                {
+                    "tx": "https://blockchair.com/ru/litecoin/transaction/",
+                    "address": "https://blockchair.com/ru/litecoin/address/",
+                    "blockChain": "Litecoin"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.001,
+        "precision": 8,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.0001,
+                "max": 100
+            },
+            "deposit": {
+                "min": 0.001
+            }
+        },
+        "networks": {
+            "LTC": {
+                "id": "Litecoin",
+                "network": "LTC",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.001,
+                "precision": 8,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.0001,
+                        "max": 100
+                    },
+                    "deposit": {
+                        "min": 0.001
+                    }
+                },
+                "info": {
+                    "txLimits": {
+                        "minDeposit": "0.001",
+                        "minWithdraw": "0.0001",
+                        "maxWithdraw": "100",
+                        "withdrawCommissionPercentage": "NaN",
+                        "withdrawCommissionFixed": "0.001"
+                    },
+                    "id": "13",
+                    "status": "1",
+                    "symbol": "ltc",
+                    "title": "Litecoin",
+                    "logoURL": "https://litecoin.org/",
+                    "isDiscount": false,
+                    "address": "https://litecoin.org/",
+                    "description": "Litecoin currency",
+                    "decimals": "8",
+                    "blockChain": "Litecoin",
+                    "precision": "8",
+                    "currentRate": null,
+                    "active": true,
+                    "timeStart": "2021-10-13T11:57:56.573Z",
+                    "type": "crypto",
+                    "typeNetwork": "internalGW",
+                    "idSorting": "7",
+                    "links": [
+                        {
+                            "tx": "https://blockchair.com/ru/litecoin/transaction/",
+                            "address": "https://blockchair.com/ru/litecoin/address/",
+                            "blockChain": "Litecoin"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "DEL": {
+        "id": "del",
+        "numericId": 9,
+        "code": "DEL",
+        "name": "DEL",
+        "info": {
+            "txLimits": {
+                "minDeposit": "1",
+                "minWithdraw": "0.1",
+                "maxWithdraw": "5000000",
+                "withdrawCommissionFixed": "2"
+            },
+            "id": "9",
+            "status": "1",
+            "symbol": "del",
+            "title": "Decimal",
+            "logoURL": "https://img2.freepng.ru/20180406/dyq/kisspng-money-bag-currency-symbol-finance-money-bag-5ac729818c4364.6633897015230017295745.jpg",
+            "isDiscount": false,
+            "address": "https://explorer.decimalchain.com",
+            "description": "DecimalChain",
+            "decimals": "18",
+            "blockChain": "Decimal",
+            "precision": "8",
+            "currentRate": null,
+            "active": true,
+            "timeStart": "2021-01-29T04:47:24.183Z",
+            "type": "crypto",
+            "typeNetwork": "internalGW",
+            "idSorting": "4",
+            "links": [
+                {
+                    "tx": "https://explorer.decimalchain.com/transactions/",
+                    "address": "https://explorer.decimalchain.com/address/",
+                    "blockChain": "Decimal"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 2,
+        "precision": 8,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.1,
+                "max": 5000000
+            },
+            "deposit": {
+                "min": 1
+            }
+        },
+        "networks": {
+            "Decimal": {
+                "id": "Decimal",
+                "network": "Decimal",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 2,
+                "precision": 18,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.1,
+                        "max": 5000000
+                    },
+                    "deposit": {
+                        "min": 1
+                    }
+                },
+                "info": {
+                    "txLimits": {
+                        "minDeposit": "1",
+                        "minWithdraw": "0.1",
+                        "maxWithdraw": "5000000",
+                        "withdrawCommissionFixed": "2"
+                    },
+                    "id": "9",
+                    "status": "1",
+                    "symbol": "del",
+                    "title": "Decimal",
+                    "logoURL": "https://img2.freepng.ru/20180406/dyq/kisspng-money-bag-currency-symbol-finance-money-bag-5ac729818c4364.6633897015230017295745.jpg",
+                    "isDiscount": false,
+                    "address": "https://explorer.decimalchain.com",
+                    "description": "DecimalChain",
+                    "decimals": "18",
+                    "blockChain": "Decimal",
+                    "precision": "8",
+                    "currentRate": null,
+                    "active": true,
+                    "timeStart": "2021-01-29T04:47:24.183Z",
+                    "type": "crypto",
+                    "typeNetwork": "internalGW",
+                    "idSorting": "4",
+                    "links": [
+                        {
+                            "tx": "https://explorer.decimalchain.com/transactions/",
+                            "address": "https://explorer.decimalchain.com/address/",
+                            "blockChain": "Decimal"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

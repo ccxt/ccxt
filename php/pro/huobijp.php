@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class huobijp extends \ccxt\async\huobijp {
 
@@ -49,13 +50,13 @@ class huobijp extends \ccxt\async\huobijp {
         return (string) $requestId;
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the huobijp $api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -83,18 +84,18 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         $ch => 'market.btcusdt.detail',
-        //         ts => 1583494163784,
-        //         $tick => {
-        //             id => 209988464418,
-        //             low => 8988,
-        //             high => 9155.41,
-        //             open => 9078.91,
-        //             close => 9136.46,
-        //             vol => 237813910.5928412,
-        //             amount => 26184.202558551195,
-        //             version => 209988464418,
-        //             count => 265673
+        //         "ch" => "market.btcusdt.detail",
+        //         "ts" => 1583494163784,
+        //         "tick" => {
+        //             "id" => 209988464418,
+        //             "low" => 8988,
+        //             "high" => 9155.41,
+        //             "open" => 9078.91,
+        //             "close" => 9136.46,
+        //             "vol" => 237813910.5928412,
+        //             "amount" => 26184.202558551195,
+        //             "version" => 209988464418,
+        //             "count" => 265673
         //         }
         //     }
         //
@@ -113,15 +114,15 @@ class huobijp extends \ccxt\async\huobijp {
         return $message;
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the huobijp $api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -153,19 +154,19 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         $ch => "market.btcusdt.trade.detail",
-        //         ts => 1583495834011,
-        //         $tick => {
-        //             id => 105004645372,
-        //             ts => 1583495833751,
-        //             $data => array(
+        //         "ch" => "market.btcusdt.trade.detail",
+        //         "ts" => 1583495834011,
+        //         "tick" => {
+        //             "id" => 105004645372,
+        //             "ts" => 1583495833751,
+        //             "data" => array(
         //                 {
-        //                     id => 1.050046453727319e+22,
-        //                     ts => 1583495833751,
-        //                     tradeId => 102090727790,
-        //                     amount => 0.003893,
-        //                     price => 9150.01,
-        //                     direction => "sell"
+        //                     "id" => 1.050046453727319e+22,
+        //                     "ts" => 1583495833751,
+        //                     "tradeId" => 102090727790,
+        //                     "amount" => 0.003893,
+        //                     "price" => 9150.01,
+        //                     "direction" => "sell"
         //                 }
         //             )
         //         }
@@ -192,7 +193,7 @@ class huobijp extends \ccxt\async\huobijp {
         return $message;
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -200,7 +201,7 @@ class huobijp extends \ccxt\async\huobijp {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the huobijp $api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -234,17 +235,17 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         $ch => 'market.btcusdt.kline.1min',
-        //         ts => 1583501786794,
-        //         $tick => {
-        //             id => 1583501760,
-        //             open => 9094.5,
-        //             close => 9094.51,
-        //             low => 9094.5,
-        //             high => 9094.51,
-        //             amount => 0.44639786263800907,
-        //             vol => 4059.76919054,
-        //             count => 16
+        //         "ch" => "market.btcusdt.kline.1min",
+        //         "ts" => 1583501786794,
+        //         "tick" => {
+        //             "id" => 1583501760,
+        //             "open" => 9094.5,
+        //             "close" => 9094.51,
+        //             "low" => 9094.5,
+        //             "high" => 9094.51,
+        //             "amount" => 0.44639786263800907,
+        //             "vol" => 4059.76919054,
+        //             "count" => 16
         //         }
         //     }
         //
@@ -268,14 +269,14 @@ class huobijp extends \ccxt\async\huobijp {
         $client->resolve ($stored, $ch);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the huobijp $api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             if (($limit !== null) && ($limit !== 150)) {
                 throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
@@ -310,17 +311,17 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_order_book_snapshot(Client $client, $message, $subscription) {
         //
         //     {
-        //         id => 1583473663565,
-        //         rep => 'market.btcusdt.mbp.150',
-        //         status => 'ok',
-        //         $data => {
-        //             seqNum => 104999417756,
-        //             bids => [
+        //         "id" => 1583473663565,
+        //         "rep" => "market.btcusdt.mbp.150",
+        //         "status" => "ok",
+        //         "data" => {
+        //             "seqNum" => 104999417756,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -375,6 +376,7 @@ class huobijp extends \ccxt\async\huobijp {
                 unset($client->subscriptions[$messageHash]);
                 $client->reject ($e, $messageHash);
             }
+            return null;
         }) ();
     }
 
@@ -393,17 +395,17 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
-        //         ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         $tick => {
-        //             $seqNum => 104998984994,
-        //             $prevSeqNum => 104998984977,
-        //             $bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             $asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -432,17 +434,17 @@ class huobijp extends \ccxt\async\huobijp {
         // deltas
         //
         //     {
-        //         $ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         tick => {
-        //             seqNum => 104998984994,
-        //             prevSeqNum => 104998984977,
-        //             bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -507,8 +509,8 @@ class huobijp extends \ccxt\async\huobijp {
         // involves system status and maintenance updates
         //
         //     {
-        //         id => '1578090234088', // connectId
-        //         type => 'welcome',
+        //         "id" => "1578090234088", // connectId
+        //         "type" => "welcome",
         //     }
         //
         return $message;
@@ -517,17 +519,17 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_subject(Client $client, $message) {
         //
         //     {
-        //         $ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         tick => {
-        //             seqNum => 104998984994,
-        //             prevSeqNum => 104998984977,
-        //             bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -548,10 +550,8 @@ class huobijp extends \ccxt\async\huobijp {
                 // ...
             );
             $method = $this->safe_value($methods, $methodName);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
+            if ($method !== null) {
+                $method($client, $message);
             }
         }
     }
@@ -572,11 +572,11 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_error_message(Client $client, $message) {
         //
         //     {
-        //         ts => 1586323747018,
-        //         $status => 'error',
-        //         'err-code' => 'bad-request',
-        //         'err-msg' => 'invalid mbp.150.symbol linkusdt',
-        //         $id => '2'
+        //         "ts" => 1586323747018,
+        //         "status" => "error",
+        //         'err-code' => "bad-request",
+        //         'err-msg' => "invalid mbp.150.symbol linkusdt",
+        //         "id" => "2"
         //     }
         //
         $status = $this->safe_string($message, 'status');
@@ -611,7 +611,7 @@ class huobijp extends \ccxt\async\huobijp {
             //
             // sometimes huobijp responds with half of a JSON response like
             //
-            //     ' {"ch":"market.ethbtc.m '
+            //     " {"ch":"market.ethbtc.m "
             //
             // this is passed to handleMessage string since it failed to be decoded
             //

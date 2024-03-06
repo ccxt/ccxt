@@ -6,8 +6,10 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
 
@@ -18,12 +20,38 @@ class bitvavo(ccxt.async_support.bitvavo):
         return self.deep_extend(super(bitvavo, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelOrdersWs': False,
+                'fetchTradesWs': False,
                 'watchOrderBook': True,
                 'watchTrades': True,
                 'watchTicker': True,
                 'watchOHLCV': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
+                'cancelAllOrdersWs': True,
+                'cancelOrderWs': True,
+                'createOrderWs': True,
+                'createStopLimitOrderWs': True,
+                'createStopMarketOrderWs': True,
+                'createStopOrderWs': True,
+                'editOrderWs': True,
+                'fetchBalanceWs': True,
+                'fetchCurrenciesWS': True,
+                'fetchDepositAddressWs': True,
+                'fetchDepositsWs': True,
+                'fetchDepositWithdrawFeesWs': True,
+                'fetchMyTradesWs': True,
+                'fetchOHLCVWs': True,
+                'fetchOpenOrdersWs': True,
+                'fetchOrderWs': True,
+                'fetchOrderBookWs': True,
+                'fetchOrdersWs': True,
+                'fetchTickerWs': True,
+                'fetchTickersWs': True,
+                'fetchTimeWs': True,
+                'fetchTradingFeesWs': True,
+                'fetchWithdrawalsWs': True,
+                'withdrawWs': True,
             },
             'urls': {
                 'api': {
@@ -31,6 +59,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                 },
             },
             'options': {
+                'supressMultipleWsRequestsError': False,  # if True, will not raise an error when using the same messageHash for more than one request. By making False you may receive responses from different requests on the same action
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -56,33 +85,33 @@ class bitvavo(ccxt.async_support.bitvavo):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_public('ticker24h', symbol, params)
 
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         event: 'ticker24h',
-        #         data: [
+        #         "event": "ticker24h",
+        #         "data": [
         #             {
-        #                 market: 'ETH-EUR',
-        #                 open: '193.5',
-        #                 high: '202.72',
-        #                 low: '192.46',
-        #                 last: '199.01',
-        #                 volume: '3587.05020246',
-        #                 volumeQuote: '708030.17',
-        #                 bid: '199.56',
-        #                 bidSize: '4.14730803',
-        #                 ask: '199.57',
-        #                 askSize: '6.13642074',
-        #                 timestamp: 1590770885217
+        #                 "market": "ETH-EUR",
+        #                 "open": "193.5",
+        #                 "high": "202.72",
+        #                 "low": "192.46",
+        #                 "last": "199.01",
+        #                 "volume": "3587.05020246",
+        #                 "volumeQuote": "708030.17",
+        #                 "bid": "199.56",
+        #                 "bidSize": "4.14730802",
+        #                 "ask": "199.57",
+        #                 "askSize": "6.13642074",
+        #                 "timestamp": 1590770885217
         #             }
         #         ]
         #     }
@@ -100,14 +129,14 @@ class bitvavo(ccxt.async_support.bitvavo):
             client.resolve(ticker, messageHash)
         return message
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -119,13 +148,13 @@ class bitvavo(ccxt.async_support.bitvavo):
     def handle_trade(self, client: Client, message):
         #
         #     {
-        #         event: 'trade',
-        #         timestamp: 1590779594547,
-        #         market: 'ETH-EUR',
-        #         id: '450c3298-f082-4461-9e2c-a0262cc7cc2e',
-        #         amount: '0.05026233',
-        #         price: '198.46',
-        #         side: 'buy'
+        #         "event": "trade",
+        #         "timestamp": 1590779594547,
+        #         "market": "ETH-EUR",
+        #         "id": "450c3298-f082-4461-9e2c-a0262cc7cc2e",
+        #         "amount": "0.05026233",
+        #         "price": "198.46",
+        #         "side": "buy"
         #     }
         #
         marketId = self.safe_string(message, 'market')
@@ -142,14 +171,14 @@ class bitvavo(ccxt.async_support.bitvavo):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -176,20 +205,36 @@ class bitvavo(ccxt.async_support.bitvavo):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
+    def handle_fetch_ohlcv(self, client: Client, message):
+        #
+        #    {
+        #        action: 'getCandles',
+        #        response: [
+        #            [1690325820000, '26453', '26453', '26436', '26447', '0.01626246'],
+        #            [1690325760000, '26454', '26454', '26453', '26453', '0.00037707']
+        #        ]
+        #    }
+        #
+        action = self.safe_string(message, 'action')
+        response = self.safe_value(message, 'response')
+        ohlcv = self.parse_ohlcvs(response, None, None, None)
+        messageHash = self.build_message_hash(action)
+        client.resolve(ohlcv, messageHash)
+
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
-        #         event: 'candle',
-        #         market: 'BTC-EUR',
-        #         interval: '1m',
-        #         candle: [
+        #         "event": "candle",
+        #         "market": "BTC-EUR",
+        #         "interval": "1m",
+        #         "candle": [
         #             [
         #                 1590797160000,
-        #                 '8480.9',
-        #                 '8480.9',
-        #                 '8480.9',
-        #                 '8480.9',
-        #                 '0.01038628'
+        #                 "8480.9",
+        #                 "8480.9",
+        #                 "8480.9",
+        #                 "8480.9",
+        #                 "0.01038628"
         #             ]
         #         ]
         #     }
@@ -215,13 +260,13 @@ class bitvavo(ccxt.async_support.bitvavo):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -265,14 +310,14 @@ class bitvavo(ccxt.async_support.bitvavo):
     def handle_order_book_message(self, client: Client, message, orderbook):
         #
         #     {
-        #         event: 'book',
-        #         market: 'BTC-EUR',
-        #         nonce: 36947383,
-        #         bids: [
-        #             ['8477.8', '0']
+        #         "event": "book",
+        #         "market": "BTC-EUR",
+        #         "nonce": 36947383,
+        #         "bids": [
+        #             ["8477.8", "0"]
         #         ],
-        #         asks: [
-        #             ['8550.9', '0']
+        #         "asks": [
+        #             ["8550.9", "0"]
         #         ]
         #     }
         #
@@ -286,15 +331,15 @@ class bitvavo(ccxt.async_support.bitvavo):
     def handle_order_book(self, client: Client, message):
         #
         #     {
-        #         event: 'book',
-        #         market: 'BTC-EUR',
-        #         nonce: 36729561,
-        #         bids: [
-        #             ['8513.3', '0'],
-        #             ['8518.8', '0.64236203'],
-        #             ['8513.6', '0.32435481'],
+        #         "event": "book",
+        #         "market": "BTC-EUR",
+        #         "nonce": 36729561,
+        #         "bids": [
+        #             ["8513.3", "0"],
+        #             ['8518.8', "0.64236203"],
+        #             ['8513.6', "0.32435481"],
         #         ],
-        #         asks: []
+        #         "asks": []
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -336,26 +381,26 @@ class bitvavo(ccxt.async_support.bitvavo):
     def handle_order_book_snapshot(self, client: Client, message):
         #
         #     {
-        #         action: 'getBook',
-        #         response: {
-        #             market: 'BTC-EUR',
-        #             nonce: 36946120,
-        #             bids: [
-        #                 ['8494.9', '0.24399521'],
-        #                 ['8494.8', '0.34884085'],
-        #                 ['8493.9', '0.14535128'],
+        #         "action": "getBook",
+        #         "response": {
+        #             "market": "BTC-EUR",
+        #             "nonce": 36946120,
+        #             "bids": [
+        #                 ['8494.9', "0.24399521"],
+        #                 ['8494.8', "0.34884085"],
+        #                 ['8493.9', "0.14535128"],
         #             ],
-        #             asks: [
-        #                 ['8495', '0.46982463'],
-        #                 ['8495.1', '0.12178267'],
-        #                 ['8496.2', '0.21924143'],
+        #             "asks": [
+        #                 ["8495", "0.46982463"],
+        #                 ['8495.1', "0.12178267"],
+        #                 ['8496.2', "0.21924143"],
         #             ]
         #         }
         #     }
         #
         response = self.safe_value(message, 'response')
         if response is None:
-            return message
+            return
         marketId = self.safe_string(response, 'market')
         symbol = self.safe_symbol(marketId, None, '-')
         name = 'book'
@@ -391,17 +436,17 @@ class bitvavo(ccxt.async_support.bitvavo):
                 if method is not None:
                     method(client, message, subscription)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' watchOrders() requires a symbol argument')
         await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
@@ -424,17 +469,17 @@ class bitvavo(ccxt.async_support.bitvavo):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ortradeder-structure
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
         await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
@@ -457,26 +502,562 @@ class bitvavo(ccxt.async_support.bitvavo):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+        """
+        create a trade order
+        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param str [params.timeInForce]: "GTC", "IOC", or "PO"
+        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param bool [params.postOnly]: If True, the order will only be posted to the order book and not executed immediately
+        :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
+        :param str [params.triggerType]: "price"
+        :param str [params.triggerReference]: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use self to determine which parameter will trigger the order
+        :param str [params.selfTradePrevention]: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+        :param bool [params.disableMarketProtection]: don't cancel if the next fill price is 10% worse than the best fill price
+        :param bool [params.responseRequired]: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        return await self.watch_request('privateCreateOrder', request)
+
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}) -> Order:
+        """
+        edit a trade order
+        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float [amount]: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        request = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        return await self.watch_request('privateUpdateOrder', request)
+
+    async def cancel_order_ws(self, id: str, symbol: str = None, params={}):
+        """
+        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        request = self.cancelOrderRequest(id, symbol, params)
+        return await self.watch_request('privateCancelOrder', request)
+
+    async def cancel_all_orders_ws(self, symbol: str = None, params={}):
+        """
+        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+        cancel all open orders
+        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        return await self.watch_request('privateCancelOrders', self.extend(request, params))
+
+    def handle_multiple_orders(self, client: Client, message):
+        #
+        #    {
+        #        action: 'privateCancelOrders',
+        #        response: [{
+        #            orderId: 'd71df826-1130-478a-8741-d219128675b0'
+        #        }]
+        #    }
+        #
+        action = self.safe_string(message, 'action')
+        response = self.safe_value(message, 'response')
+        firstRawOrder = self.safe_value(response, 0, {})
+        marketId = self.safe_string(firstRawOrder, 'market')
+        orders = self.parse_orders(response)
+        messageHash = self.build_message_hash(action, {'market': marketId})
+        client.resolve(orders, messageHash)
+        messageHash = self.build_message_hash(action, message)
+        client.resolve(orders, messageHash)
+
+    async def fetch_order_ws(self, id: str, symbol: str = None, params={}) -> Order:
+        """
+        :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        await self.load_markets()
+        await self.authenticate()
+        market = self.market(symbol)
+        request = {
+            'orderId': id,
+            'market': market['id'],
+        }
+        return await self.watch_request('privateGetOrder', self.extend(request, params))
+
+    async def fetch_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrdersWs() requires a symbol argument')
+        await self.load_markets()
+        await self.authenticate()
+        request = self.fetchOrdersRequest(symbol, since, limit, params)
+        orders = await self.watch_request('privateGetOrders', request)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+
+    async def watch_request(self, action, request):
+        request['action'] = action
+        messageHash = self.build_message_hash(action, request)
+        self.check_message_hash_does_not_exist(messageHash)
+        url = self.urls['api']['ws']
+        return await self.watch(url, messageHash, request, messageHash)
+
+    async def fetch_open_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        request = {
+            # 'market': market['id'],  # rate limit 25 without a market, 1 with market specified
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        orders = await self.watch_request('privateGetOrdersOpen', self.extend(request, params))
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+
+    async def fetch_my_trades_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        :see: https://docs.bitvavo.com/#tag/Trades
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTradesWs() requires a symbol argument')
+        await self.load_markets()
+        await self.authenticate()
+        request = self.fetchMyTradesRequest(symbol, since, limit, params)
+        myTrades = await self.watch_request('privateGetTrades', request)
+        return self.filter_by_symbol_since_limit(myTrades, symbol, since, limit)
+
+    def handle_my_trades(self, client: Client, message):
+        #
+        #    {
+        #        action: 'privateGetTrades',
+        #        response: [
+        #            {
+        #                "id": "108c3633-0276-4480-a902-17a01829deae",
+        #                "orderId": "1d671998-3d44-4df4-965f-0d48bd129a1b",
+        #                "timestamp": 1542967486256,
+        #                "market": "BTC-EUR",
+        #                "side": "buy",
+        #                "amount": "0.005",
+        #                "price": "5000.1",
+        #                "taker": True,
+        #                "fee": "0.03",
+        #                "feeCurrency": "EUR",
+        #                "settled": True
+        #            }
+        #        ]
+        #    }
+        #
+        #
+        action = self.safe_string(message, 'action')
+        response = self.safe_value(message, 'response')
+        firstRawTrade = self.safe_value(response, 0, {})
+        marketId = self.safe_string(firstRawTrade, 'market')
+        trades = self.parse_trades(response, None, None, None)
+        messageHash = self.build_message_hash(action, {'market': marketId})
+        client.resolve(trades, messageHash)
+
+    async def withdraw_ws(self, code: str, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag:
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
+        await self.load_markets()
+        await self.authenticate()
+        request = self.withdrawRequest(code, amount, address, tag, params)
+        return await self.watch_request('privateWithdrawAssets', request)
+
+    def handle_withdraw(self, client: Client, message):
+        #
+        #    {
+        #        action: 'privateWithdrawAssets',
+        #        response: {
+        #         "success": True,
+        #         "symbol": "BTC",
+        #         "amount": "1.5"
+        #        }
+        #    }
+        #
+        action = self.safe_string(message, 'action')
+        messageHash = self.build_message_hash(action, message)
+        response = self.safe_value(message, 'response')
+        withdraw = self.parse_transaction(response)
+        client.resolve(withdraw, messageHash)
+
+    async def fetch_withdrawals_ws(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        :see: https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+        fetch all withdrawals made from an account
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        request = self.fetchWithdrawalsRequest(code, since, limit, params)
+        withdraws = await self.watch_request('privateGetWithdrawalHistory', request)
+        return self.filter_by_currency_since_limit(withdraws, code, since, limit)
+
+    def handle_withdraws(self, client: Client, message):
+        #
+        #    {
+        #        action: 'privateGetWithdrawalHistory',
+        #        response: [{
+        #                timestamp: 1689792085000,
+        #                symbol: 'BTC',
+        #                amount: '0.0009',
+        #                fee: '0',
+        #                status: 'completed',
+        #                txId: '7dbadc658d7d59c129de1332c55ee8e08d0ab74432faae03b417b9809c819d1f'
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        action = self.safe_string(message, 'action')
+        messageHash = self.build_message_hash(action, message)
+        response = self.safe_value(message, 'response')
+        withdrawals = self.parse_transactions(response, None, None, None, {'type': 'withdrawal'})
+        client.resolve(withdrawals, messageHash)
+
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+        """
+        :see: https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        request = self.fetchOHLCVRequest(symbol, timeframe, since, limit, params)
+        action = 'getCandles'
+        ohlcv = await self.watch_request(action, request)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+
+    async def fetch_deposits_ws(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        :see: https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+        fetch all deposits made to an account
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        request = self.fetchDepositsRequest(code, since, limit, params)
+        deposits = await self.watch_request('privateGetDepositHistory', request)
+        return self.filter_by_currency_since_limit(deposits, code, since, limit)
+
+    def handle_deposits(self, client: Client, message):
+        #
+        #    {
+        #        action: 'privateGetDepositHistory',
+        #        response: [{
+        #                timestamp: 1689792085000,
+        #                symbol: 'BTC',
+        #                amount: '0.0009',
+        #                fee: '0',
+        #                status: 'completed',
+        #                txId: '7dbadc658d7d59c129de1332c55ee8e08d0ab74432faae03b417b9809c819d1f'
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        action = self.safe_string(message, 'action')
+        messageHash = self.build_message_hash(action, message)
+        response = self.safe_value(message, 'response')
+        deposits = self.parse_transactions(response, None, None, None, {'type': 'deposit'})
+        client.resolve(deposits, messageHash)
+
+    async def fetch_trading_fees_ws(self, params={}):
+        """
+        :see: https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+        fetch the trading fees for multiple markets
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        await self.authenticate()
+        return await self.watch_request('privateGetAccount', params)
+
+    async def fetch_markets_ws(self, params={}):
+        """
+        :see: https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+        retrieves data on all markets for bitvavo
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
+        """
+        return await self.watch_request('getMarkets', params)
+
+    async def fetch_currencies_ws(self, params={}):
+        """
+        :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+        fetches all available currencies on an exchange
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        await self.load_markets()
+        return await self.watch_request('getAssets', params)
+
+    def handle_fetch_currencies(self, client: Client, message):
+        #
+        #    {
+        #        action: 'getAssets',
+        #        response: [{
+        #                symbol: '1INCH',
+        #                name: '1inch',
+        #                decimals: 8,
+        #                depositFee: '0',
+        #                depositConfirmations: 64,
+        #                depositStatus: 'OK',
+        #                withdrawalFee: '13',
+        #                withdrawalMinAmount: '13',
+        #                withdrawalStatus: 'OK',
+        #                networks: [Array],
+        #                message: ''
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        action = self.safe_string(message, 'action')
+        messageHash = self.build_message_hash(action, message)
+        response = self.safe_value(message, 'response')
+        currencies = self.parseCurrencies(response)
+        client.resolve(currencies, messageHash)
+
+    def handle_trading_fees(self, client, message):
+        #
+        #    {
+        #        action: 'privateGetAccount',
+        #        response: {
+        #            fees: {
+        #                taker: '0.0025',
+        #                maker: '0.0015',
+        #                volume: '1693.74'
+        #            }
+        #        }
+        #    }
+        #
+        action = self.safe_string(message, 'action')
+        messageHash = self.build_message_hash(action, message)
+        response = self.safe_value(message, 'response')
+        fees = self.parse_trading_fees(response)
+        client.resolve(fees, messageHash)
+
+    async def fetch_balance_ws(self, params={}) -> Balances:
+        """
+        :see: https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        return await self.watch_request('privateGetBalance', params)
+
+    def handle_fetch_balance(self, client: Client, message):
+        #
+        #    {
+        #        action: 'privateGetBalance',
+        #        response: [{
+        #                symbol: 'ADA',
+        #                available: '0',
+        #                inOrder: '0'
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        action = self.safe_string(message, 'action', 'privateGetBalance')
+        messageHash = self.build_message_hash(action, message)
+        response = self.safe_value(message, 'response', [])
+        balance = self.parse_balance(response)
+        client.resolve(balance, messageHash)
+
+    def handle_single_order(self, client: Client, message):
+        #
+        #    {
+        #        action: 'privateCreateOrder',
+        #        response: {
+        #            orderId: 'd71df826-1130-478a-8741-d219128675b0',
+        #            market: 'BTC-EUR',
+        #            created: 1689792749748,
+        #            updated: 1689792749748,
+        #            status: 'new',
+        #            side: 'sell',
+        #            orderType: 'limit',
+        #            amount: '0.0002',
+        #            amountRemaining: '0.0002',
+        #            price: '37000',
+        #            onHold: '0.0002',
+        #            onHoldCurrency: 'BTC',
+        #            filledAmount: '0',
+        #            filledAmountQuote: '0',
+        #            feePaid: '0',
+        #            feeCurrency: 'EUR',
+        #            fills: [],
+        #            selfTradePrevention: 'decrementAndCancel',
+        #            visible: True,
+        #            timeInForce: 'GTC',
+        #            postOnly: False
+        #        }
+        #    }
+        #
+        action = self.safe_string(message, 'action')
+        response = self.safe_value(message, 'response', {})
+        order = self.parse_order(response)
+        messageHash = self.build_message_hash(action, response)
+        client.resolve(order, messageHash)
+
+    def handle_markets(self, client: Client, message):
+        #
+        #    {
+        #        action: 'getMarkets',
+        #        response: [{
+        #                market: '1INCH-EUR',
+        #                status: 'trading',
+        #                base: '1INCH',
+        #                quote: 'EUR',
+        #                pricePrecision: 5,
+        #                minOrderInBaseAsset: '2',
+        #                minOrderInQuoteAsset: '5',
+        #                maxOrderInBaseAsset: '1000000000',
+        #                maxOrderInQuoteAsset: '1000000000',
+        #                orderTypes: [Array]
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        action = self.safe_string(message, 'action')
+        response = self.safe_value(message, 'response', {})
+        markets = self.parse_markets(response)
+        messageHash = self.build_message_hash(action, response)
+        client.resolve(markets, messageHash)
+
+    def build_message_hash(self, action, params={}):
+        methods = {
+            'privateCreateOrder': self.action_and_market_message_hash,
+            'privateUpdateOrder': self.action_and_order_id_message_hash,
+            'privateCancelOrder': self.action_and_order_id_message_hash,
+            'privateGetOrder': self.action_and_order_id_message_hash,
+            'privateGetTrades': self.action_and_market_message_hash,
+        }
+        method = self.safe_value(methods, action)
+        messageHash = action
+        if method is not None:
+            messageHash = method(action, params)
+        return messageHash
+
+    def check_message_hash_does_not_exist(self, messageHash):
+        supressMultipleWsRequestsError = self.safe_bool(self.options, 'supressMultipleWsRequestsError', False)
+        if not supressMultipleWsRequestsError:
+            client = self.safe_value(self.clients, self.urls['api']['ws'])
+            if client is not None:
+                future = self.safe_value(client.futures, messageHash)
+                if future is not None:
+                    raise ExchangeError(self.id + ' a similar request with messageHash ' + messageHash + ' is already pending, you must wait for a response, or turn off self error by setting supressMultipleWsRequestsError in the options to True')
+
+    def action_and_market_message_hash(self, action, params={}):
+        symbol = self.safe_string(params, 'market', '')
+        return action + symbol
+
+    def action_and_order_id_message_hash(self, action, params={}):
+        orderId = self.safe_string(params, 'orderId')
+        if orderId is None:
+            raise ExchangeError(self.id + ' privateUpdateOrderMessageHash requires a orderId parameter')
+        return action + orderId
+
     def handle_order(self, client: Client, message):
         #
         #     {
-        #         event: 'order',
-        #         orderId: 'f0e5180f-9497-4d05-9dc2-7056e8a2de9b',
-        #         market: 'ETH-EUR',
-        #         created: 1590948500319,
-        #         updated: 1590948500319,
-        #         status: 'new',
-        #         side: 'sell',
-        #         orderType: 'limit',
-        #         amount: '0.1',
-        #         amountRemaining: '0.1',
-        #         price: '300',
-        #         onHold: '0.1',
-        #         onHoldCurrency: 'ETH',
-        #         selfTradePrevention: 'decrementAndCancel',
-        #         visible: True,
-        #         timeInForce: 'GTC',
-        #         postOnly: False
+        #         "event": "order",
+        #         "orderId": "f0e5180f-9497-4d05-9dc2-7056e8a2de9b",
+        #         "market": "ETH-EUR",
+        #         "created": 1590948500319,
+        #         "updated": 1590948500319,
+        #         "status": "new",
+        #         "side": "sell",
+        #         "orderType": "limit",
+        #         "amount": "0.1",
+        #         "amountRemaining": "0.1",
+        #         "price": "300",
+        #         "onHold": "0.1",
+        #         "onHoldCurrency": "ETH",
+        #         "selfTradePrevention": "decrementAndCancel",
+        #         "visible": True,
+        #         "timeInForce": "GTC",
+        #         "postOnly": False
         #     }
         #
         marketId = self.safe_string(message, 'market')
@@ -494,17 +1075,17 @@ class bitvavo(ccxt.async_support.bitvavo):
     def handle_my_trade(self, client: Client, message):
         #
         #     {
-        #         event: 'fill',
-        #         timestamp: 1590964470132,
-        #         market: 'ETH-EUR',
-        #         orderId: '85d082e1-eda4-4209-9580-248281a29a9a',
-        #         fillId: '861d2da5-aa93-475c-8d9a-dce431bd4211',
-        #         side: 'sell',
-        #         amount: '0.1',
-        #         price: '211.46',
-        #         taker: True,
-        #         fee: '0.056',
-        #         feeCurrency: 'EUR'
+        #         "event": "fill",
+        #         "timestamp": 1590964470132,
+        #         "market": "ETH-EUR",
+        #         "orderId": "85d082e1-eda4-4209-9580-248281a29a9a",
+        #         "fillId": "861d2da5-aa93-475c-8d9a-dce431bd4211",
+        #         "side": "sell",
+        #         "amount": "0.1",
+        #         "price": "211.46",
+        #         "taker": True,
+        #         "fee": "0.056",
+        #         "feeCurrency": "EUR"
         #     }
         #
         marketId = self.safe_string(message, 'market')
@@ -522,9 +1103,9 @@ class bitvavo(ccxt.async_support.bitvavo):
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
-        #         event: 'subscribed',
-        #         subscriptions: {
-        #             book: ['BTC-EUR']
+        #         "event": "subscribed",
+        #         "subscriptions": {
+        #             "book": ["BTC-EUR"]
         #         }
         #     }
         #
@@ -541,7 +1122,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                 method(client, message, subscription)
         return message
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
@@ -566,12 +1147,12 @@ class bitvavo(ccxt.async_support.bitvavo):
     def handle_authentication_message(self, client: Client, message):
         #
         #     {
-        #         event: 'authenticate',
-        #         authenticated: True
+        #         "event": "authenticate",
+        #         "authenticated": True
         #     }
         #
         messageHash = 'authenticated'
-        authenticated = self.safe_value(message, 'authenticated', False)
+        authenticated = self.safe_bool(message, 'authenticated', False)
         if authenticated:
             # we resolve the future here permanently so authentication only happens once
             client.resolve(message, messageHash)
@@ -582,51 +1163,75 @@ class bitvavo(ccxt.async_support.bitvavo):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
+    def handle_error_message(self, client: Client, message):
+        #
+        #    {
+        #        action: 'privateCreateOrder',
+        #        market: 'BTC-EUR',
+        #        errorCode: 217,
+        #        error: 'Minimum order size in quote currency is 5 EUR or 0.001 BTC.'
+        #    }
+        #
+        error = self.safe_string(message, 'error')
+        code = self.safe_integer(error, 'errorCode')
+        action = self.safe_string(message, 'action')
+        messageHash = self.build_message_hash(action, message)
+        rejected = False
+        try:
+            self.handle_errors(code, error, client.url, None, None, error, message, None, None)
+        except Exception as e:
+            rejected = True
+            client.reject(e, messageHash)
+        if not rejected:
+            client.reject(message, messageHash)
+
     def handle_message(self, client: Client, message):
         #
         #     {
-        #         event: 'subscribed',
-        #         subscriptions: {
-        #             book: ['BTC-EUR']
+        #         "event": "subscribed",
+        #         "subscriptions": {
+        #             "book": ["BTC-EUR"]
         #         }
         #     }
         #
-        #
         #     {
-        #         event: 'book',
-        #         market: 'BTC-EUR',
-        #         nonce: 36729561,
-        #         bids: [
-        #             ['8513.3', '0'],
-        #             ['8518.8', '0.64236203'],
-        #             ['8513.6', '0.32435481'],
+        #         "event": "book",
+        #         "market": "BTC-EUR",
+        #         "nonce": 36729561,
+        #         "bids": [
+        #             ["8513.3", "0"],
+        #             ['8518.8', "0.64236203"],
+        #             ['8513.6', "0.32435481"],
         #         ],
-        #         asks: []
+        #         "asks": []
         #     }
         #
         #     {
-        #         action: 'getBook',
-        #         response: {
-        #             market: 'BTC-EUR',
-        #             nonce: 36946120,
-        #             bids: [
-        #                 ['8494.9', '0.24399521'],
-        #                 ['8494.8', '0.34884085'],
-        #                 ['8493.9', '0.14535128'],
+        #         "action": "getBook",
+        #         "response": {
+        #             "market": "BTC-EUR",
+        #             "nonce": 36946120,
+        #             "bids": [
+        #                 ['8494.9', "0.24399521"],
+        #                 ['8494.8', "0.34884085"],
+        #                 ['8493.9', "0.14535128"],
         #             ],
-        #             asks: [
-        #                 ['8495', '0.46982463'],
-        #                 ['8495.1', '0.12178267'],
-        #                 ['8496.2', '0.21924143'],
+        #             "asks": [
+        #                 ["8495", "0.46982463"],
+        #                 ['8495.1', "0.12178267"],
+        #                 ['8496.2', "0.21924143"],
         #             ]
         #         }
         #     }
         #
         #     {
-        #         event: 'authenticate',
-        #         authenticated: True
+        #         "event": "authenticate",
+        #         "authenticated": True
         #     }
         #
+        error = self.safe_string(message, 'error')
+        if error is not None:
+            self.handle_error_message(client, message)
         methods = {
             'subscribed': self.handle_subscription_status,
             'book': self.handle_order_book,
@@ -637,15 +1242,29 @@ class bitvavo(ccxt.async_support.bitvavo):
             'authenticate': self.handle_authentication_message,
             'order': self.handle_order,
             'fill': self.handle_my_trade,
+            'privateCreateOrder': self.handle_single_order,
+            'privateUpdateOrder': self.handle_single_order,
+            'privateGetBalance': self.handle_fetch_balance,
+            'privateCancelOrders': self.handle_multiple_orders,
+            'privateGetOrders': self.handle_multiple_orders,
+            'privateGetOrder': self.handle_single_order,
+            'privateCancelOrder': self.handle_single_order,
+            'privateGetOrdersOpen': self.handle_multiple_orders,
+            'privateGetAccount': self.handle_trading_fees,
+            'privateGetDepositHistory': self.handle_deposits,
+            'privateGetWithdrawalHistory': self.handle_withdraws,
+            'privateWithdrawAssets': self.handle_withdraw,
+            'privateGetTrades': self.handle_my_trades,
+            'getAssets': self.handle_fetch_currencies,
+            'getCandles': self.handle_fetch_ohlcv,
+            'getMarkets': self.handle_markets,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)
         if method is None:
             action = self.safe_string(message, 'action')
             method = self.safe_value(methods, action)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)
         else:
-            return method(client, message)
+            method(client, message)

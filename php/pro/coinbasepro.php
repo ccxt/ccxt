@@ -7,10 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinbasepro extends \ccxt\async\coinbasepro {
 
@@ -95,12 +97,13 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             Async\await($this->load_markets());
             $market = null;
             $symbols = $this->market_symbols($symbols);
-            $messageHash = $messageHashStart . implode(',', $symbols);
+            $messageHashes = array();
             $productIds = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $productIds[] = $market['id'];
+                $messageHashes[] = $messageHashStart . ':' . $market['symbol'];
             }
             $url = $this->urls['api']['ws'];
             if (is_array($params) && array_key_exists('signature', $params)) {
@@ -115,32 +118,31 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 ),
             );
             $request = array_merge($subscribe, $params);
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $name = 'ticker';
             return Async\await($this->subscribe($name, $symbol, $name, $params));
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-$channel
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} [$symbols] unified symbol of the market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $symbolsLength = count($symbols);
@@ -148,24 +150,26 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 throw new BadSymbol($this->id . ' watchTickers requires a non-empty $symbols array');
             }
             $channel = 'ticker';
-            $messageHash = 'tickers::';
-            $newTickers = Async\await($this->subscribe_multiple($channel, $symbols, $messageHash, $params));
+            $messageHash = 'ticker';
+            $ticker = Async\await($this->subscribe_multiple($channel, $symbols, $messageHash, $params));
             if ($this->newUpdates) {
-                return $newTickers;
+                $result = array();
+                $result[$ticker['symbol']] = $ticker;
+                return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -178,15 +182,15 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular symbol
              * @param {string} symbol unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
@@ -195,8 +199,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $name = 'matches';
-            $messageHash = 'multipleTrades::';
-            $trades = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $params));
+            $trades = Async\await($this->subscribe_multiple($name, $symbols, $name, $params));
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
@@ -206,17 +209,19 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
              * @param {string} $symbol unified market $symbol of the market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
-            $this->check_required_symbol('watchMyTrades', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
             $name = 'user';
@@ -230,20 +235,20 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
-    public function watch_my_trades_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
              * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             $symbols = $this->market_symbols($symbols, null, false);
             Async\await($this->load_markets());
             $name = 'user';
-            $messageHash = 'multipleMyTrades::';
+            $messageHash = 'myTrades';
             $authentication = $this->authenticate();
             $trades = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, array_merge($params, $authentication)));
             if ($this->newUpdates) {
@@ -255,20 +260,20 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
-    public function watch_orders_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @param {string[]} $symbols unified symbol of the market to fetch $orders for
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $symbols = $this->market_symbols($symbols, null, false);
             Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
             $name = 'user';
-            $messageHash = 'multipleOrders::';
+            $messageHash = 'orders';
             $authentication = $this->authenticate();
             $orders = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, array_merge($params, $authentication)));
             if ($this->newUpdates) {
@@ -280,15 +285,15 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
@@ -306,14 +311,57 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string[]} $symbols unified array of $symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             */
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 0) {
+                throw new BadRequest($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+            }
+            $name = 'level2';
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $messageHashes = array();
+            for ($i = 0; $i < $symbolsLength; $i++) {
+                $marketId = $marketIds[$i];
+                $messageHashes[] = $name . ':' . $marketId;
+            }
+            $url = $this->urls['api']['ws'];
+            $subscribe = array(
+                'type' => 'subscribe',
+                'product_ids' => $marketIds,
+                'channels' => array(
+                    $name,
+                ),
+            );
+            $request = array_merge($subscribe, $params);
+            $subscription = array(
+                'messageHash' => $name,
+                'symbols' => $symbols,
+                'marketIds' => $marketIds,
+                'limit' => $limit,
+            );
+            $authentication = $this->authenticate();
+            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $authentication), $messageHashes, $subscription));
+            return $orderbook->limit ();
+        }) ();
+    }
+
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             $name = 'level2';
             Async\await($this->load_markets());
@@ -343,58 +391,19 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
-             */
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new BadRequest($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
-            }
-            $name = 'level2';
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $marketIds = $this->market_ids($symbols);
-            $messageHash = 'multipleOrderbooks' . '::' . implode(',', $symbols);
-            $url = $this->urls['api']['ws'];
-            $subscribe = array(
-                'type' => 'subscribe',
-                'product_ids' => $marketIds,
-                'channels' => array(
-                    $name,
-                ),
-            );
-            $request = array_merge($subscribe, $params);
-            $subscription = array(
-                'messageHash' => $messageHash,
-                'symbols' => $symbols,
-                'marketIds' => $marketIds,
-                'limit' => $limit,
-            );
-            $authentication = $this->authenticate();
-            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $authentication), $messageHash, $subscription));
-            return $orderbook->limit ();
-        }) ();
-    }
-
     public function handle_trade(Client $client, $message) {
         //
         //     {
-        //         $type => 'match',
-        //         trade_id => 82047307,
-        //         maker_order_id => '0f358725-2134-435e-be11-753912a326e0',
-        //         taker_order_id => '252b7002-87a3-425c-ac73-f5b9e23f3caf',
-        //         side => 'sell',
-        //         size => '0.00513192',
-        //         price => '9314.78',
-        //         product_id => 'BTC-USD',
-        //         sequence => 12038915443,
-        //         time => '2020-01-31T20:03:41.158814Z'
+        //         "type" => "match",
+        //         "trade_id" => 82047307,
+        //         "maker_order_id" => "0f358725-2134-435e-be11-753912a326e0",
+        //         "taker_order_id" => "252b7002-87a3-425c-ac73-f5b9e23f3caf",
+        //         "side" => "sell",
+        //         "size" => "0.00513192",
+        //         "price" => "9314.78",
+        //         "product_id" => "BTC-USD",
+        //         "sequence" => 12038915443,
+        //         "time" => "2020-01-31T20:03:41.158814Z"
         //     }
         //
         $marketId = $this->safe_string($message, 'product_id');
@@ -414,7 +423,6 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             }
             $tradesArray->append ($trade);
             $client->resolve ($tradesArray, $messageHash);
-            $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $tradesArray);
         }
         return $message;
     }
@@ -423,7 +431,6 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $marketId = $this->safe_string($message, 'product_id');
         if ($marketId !== null) {
             $trade = $this->parse_ws_trade($message);
-            $symbol = $trade['symbol'];
             $type = 'myTrades';
             $messageHash = $type . ':' . $marketId;
             $tradesArray = $this->myTrades;
@@ -434,7 +441,6 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             }
             $tradesArray->append ($trade);
             $client->resolve ($tradesArray, $messageHash);
-            $this->resolve_promise_if_messagehash_matches($client, 'multipleMyTrades::', $symbol, $tradesArray);
         }
         return $message;
     }
@@ -521,7 +527,6 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             'rate' => $feeRate,
             'cost' => $feeCost,
             'currency' => $feeCurrency,
-            'type' => null,
         );
         return $parsed;
     }
@@ -539,18 +544,18 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         // Order is created
         //
         //     {
-        //         $type => 'received',
-        //         side => 'sell',
-        //         product_id => 'BTC-USDC',
-        //         time => '2021-03-05T16:42:21.878177Z',
-        //         $sequence => 5641953814,
-        //         profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id => '54fc141576dcf32596000133',
-        //         order_id => '11838707-bf9c-4d65-8cec-b57c9a7cab42',
-        //         order_type => 'limit',
-        //         size => '0.0001',
-        //         price => '50000',
-        //         client_oid => 'a317abb9-2b30-4370-ebfe-0deecb300180'
+        //         "type" => "received",
+        //         "side" => "sell",
+        //         "product_id" => "BTC-USDC",
+        //         "time" => "2021-03-05T16:42:21.878177Z",
+        //         "sequence" => 5641953814,
+        //         "profile_id" => "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id" => "54fc141576dcf32596000133",
+        //         "order_id" => "11838707-bf9c-4d65-8cec-b57c9a7cab42",
+        //         "order_type" => "limit",
+        //         "size" => "0.0001",
+        //         "price" => "50000",
+        //         "client_oid" => "a317abb9-2b30-4370-ebfe-0deecb300180"
         //     }
         //
         //     {
@@ -567,50 +572,50 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         // Order is on the $order book
         //
         //     {
-        //         $type => 'open',
-        //         side => 'sell',
-        //         product_id => 'BTC-USDC',
-        //         time => '2021-03-05T16:42:21.878177Z',
-        //         $sequence => 5641953815,
-        //         profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id => '54fc141576dcf32596000133',
-        //         price => '50000',
-        //         order_id => '11838707-bf9c-4d65-8cec-b57c9a7cab42',
-        //         remaining_size => '0.0001'
+        //         "type" => "open",
+        //         "side" => "sell",
+        //         "product_id" => "BTC-USDC",
+        //         "time" => "2021-03-05T16:42:21.878177Z",
+        //         "sequence" => 5641953815,
+        //         "profile_id" => "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id" => "54fc141576dcf32596000133",
+        //         "price" => "50000",
+        //         "order_id" => "11838707-bf9c-4d65-8cec-b57c9a7cab42",
+        //         "remaining_size" => "0.0001"
         //     }
         //
         // Order is partially or completely filled
         //
         //     {
-        //         $type => 'match',
-        //         side => 'sell',
-        //         product_id => 'BTC-USDC',
-        //         time => '2021-03-05T16:37:13.396107Z',
-        //         $sequence => 5641897876,
-        //         profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id => '54fc141576dcf32596000133',
-        //         trade_id => 5455505,
-        //         maker_order_id => 'e5f5754d-70a3-4346-95a6-209bcb503629',
-        //         taker_order_id => '88bf7086-7b15-40ff-8b19-ab4e08516d69',
-        //         size => '0.00021019',
-        //         price => '47338.46',
-        //         taker_profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         taker_user_id => '54fc141576dcf32596000133',
-        //         taker_fee_rate => '0.005'
+        //         "type" => "match",
+        //         "side" => "sell",
+        //         "product_id" => "BTC-USDC",
+        //         "time" => "2021-03-05T16:37:13.396107Z",
+        //         "sequence" => 5641897876,
+        //         "profile_id" => "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id" => "54fc141576dcf32596000133",
+        //         "trade_id" => 5455505,
+        //         "maker_order_id" => "e5f5754d-70a3-4346-95a6-209bcb503629",
+        //         "taker_order_id" => "88bf7086-7b15-40ff-8b19-ab4e08516d69",
+        //         "size" => "0.00021019",
+        //         "price" => "47338.46",
+        //         "taker_profile_id" => "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "taker_user_id" => "54fc141576dcf32596000133",
+        //         "taker_fee_rate" => "0.005"
         //     }
         //
         // Order is canceled / closed
         //
         //     {
-        //         $type => 'done',
-        //         side => 'buy',
-        //         product_id => 'BTC-USDC',
-        //         time => '2021-03-05T16:37:13.396107Z',
-        //         $sequence => 5641897877,
-        //         profile_id => '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id => '54fc141576dcf32596000133',
-        //         order_id => '88bf7086-7b15-40ff-8b19-ab4e08516d69',
-        //         reason => 'filled'
+        //         "type" => "done",
+        //         "side" => "buy",
+        //         "product_id" => "BTC-USDC",
+        //         "time" => "2021-03-05T16:37:13.396107Z",
+        //         "sequence" => 5641897877,
+        //         "profile_id" => "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id" => "54fc141576dcf32596000133",
+        //         "order_id" => "88bf7086-7b15-40ff-8b19-ab4e08516d69",
+        //         "reason" => "filled"
         //     }
         //
         $currentOrders = $this->orders;
@@ -637,7 +642,6 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 $parsed = $this->parse_ws_order($message);
                 $orders->append ($parsed);
                 $client->resolve ($orders, $messageHash);
-                $this->resolve_promise_if_messagehash_matches($client, 'multipleOrders::', $symbol, $orders);
             } else {
                 $sequence = $this->safe_integer($message, 'sequence');
                 $previousInfo = $this->safe_value($previousOrder, 'info', array());
@@ -680,7 +684,6 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                         // update the newUpdates count
                         $orders->append ($previousOrder);
                         $client->resolve ($orders, $messageHash);
-                        $this->resolve_promise_if_messagehash_matches($client, 'multipleOrders::', $symbol, $orders);
                     } elseif (($type === 'received') || ($type === 'done')) {
                         $info = array_merge($previousOrder['info'], $message);
                         $order = $this->parse_ws_order($info);
@@ -695,7 +698,6 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                         // update the newUpdates count
                         $orders->append ($previousOrder);
                         $client->resolve ($orders, $messageHash);
-                        $this->resolve_promise_if_messagehash_matches($client, 'multipleOrders::', $symbol, $orders);
                     }
                 }
             }
@@ -755,21 +757,21 @@ class coinbasepro extends \ccxt\async\coinbasepro {
     public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         $type => 'ticker',
-        //         sequence => 12042642428,
-        //         product_id => 'BTC-USD',
-        //         price => '9380.55',
-        //         open_24h => '9450.81000000',
-        //         volume_24h => '9611.79166047',
-        //         low_24h => '9195.49000000',
-        //         high_24h => '9475.19000000',
-        //         volume_30d => '327812.00311873',
-        //         best_bid => '9380.54',
-        //         best_ask => '9380.55',
-        //         side => 'buy',
-        //         time => '2020-02-01T01:40:16.253563Z',
-        //         trade_id => 82062566,
-        //         last_size => '0.41969131'
+        //         "type" => "ticker",
+        //         "sequence" => 12042642428,
+        //         "product_id" => "BTC-USD",
+        //         "price" => "9380.55",
+        //         "open_24h" => "9450.81000000",
+        //         "volume_24h" => "9611.79166047",
+        //         "low_24h" => "9195.49000000",
+        //         "high_24h" => "9475.19000000",
+        //         "volume_30d" => "327812.00311873",
+        //         "best_bid" => "9380.54",
+        //         "best_ask" => "9380.55",
+        //         "side" => "buy",
+        //         "time" => "2020-02-01T01:40:16.253563Z",
+        //         "trade_id" => 82062566,
+        //         "last_size" => "0.41969131"
         //     }
         //
         $marketId = $this->safe_string($message, 'product_id');
@@ -777,43 +779,34 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $ticker = $this->parse_ticker($message);
             $symbol = $ticker['symbol'];
             $this->tickers[$symbol] = $ticker;
-            $type = $this->safe_string($message, 'type');
-            $messageHash = $type . ':' . $marketId;
+            $messageHash = 'ticker:' . $symbol;
+            $idMessageHash = 'ticker:' . $marketId;
             $client->resolve ($ticker, $messageHash);
-            $messageHashes = $this->find_message_hashes($client, 'tickers::');
-            for ($i = 0; $i < count($messageHashes); $i++) {
-                $currentMessageHash = $messageHashes[$i];
-                $parts = explode('::', $currentMessageHash);
-                $symbolsString = $parts[1];
-                $symbols = explode(',', $symbolsString);
-                if ($this->in_array($symbol, $symbols)) {
-                    $client->resolve ($ticker, $currentMessageHash);
-                }
-            }
+            $client->resolve ($ticker, $idMessageHash);
         }
         return $message;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
-        //         $type => 'ticker',
-        //         sequence => 7388547310,
-        //         product_id => 'BTC-USDT',
-        //         price => '22345.67',
-        //         open_24h => '22308.13',
-        //         volume_24h => '470.21123644',
-        //         low_24h => '22150',
-        //         high_24h => '22495.15',
-        //         volume_30d => '25713.98401605',
-        //         best_bid => '22345.67',
-        //         best_bid_size => '0.10647825',
-        //         best_ask => '22349.68',
-        //         best_ask_size => '0.03131702',
-        //         side => 'sell',
-        //         time => '2023-03-04T03:37:20.799258Z',
-        //         trade_id => 11586478,
-        //         last_size => '0.00352175'
+        //         "type" => "ticker",
+        //         "sequence" => 7388547310,
+        //         "product_id" => "BTC-USDT",
+        //         "price" => "22345.67",
+        //         "open_24h" => "22308.13",
+        //         "volume_24h" => "470.21123644",
+        //         "low_24h" => "22150",
+        //         "high_24h" => "22495.15",
+        //         "volume_30d" => "25713.98401605",
+        //         "best_bid" => "22345.67",
+        //         "best_bid_size" => "0.10647825",
+        //         "best_ask" => "22349.68",
+        //         "best_ask_size" => "0.03131702",
+        //         "side" => "sell",
+        //         "time" => "2023-03-04T03:37:20.799258Z",
+        //         "trade_id" => 11586478,
+        //         "last_size" => "0.00352175"
         //     }
         //
         $type = $this->safe_string($ticker, 'type');
@@ -903,7 +896,6 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $orderbook['datetime'] = null;
             $orderbook['symbol'] = $symbol;
             $client->resolve ($orderbook, $messageHash);
-            $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbooks::', $symbol, $orderbook);
         } elseif ($type === 'l2update') {
             $orderbook = $this->orderbooks[$symbol];
             $timestamp = $this->parse8601($this->safe_string($message, 'time'));
@@ -924,18 +916,17 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
             $client->resolve ($orderbook, $messageHash);
-            $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbooks::', $symbol, $orderbook);
         }
     }
 
     public function handle_subscription_status(Client $client, $message) {
         //
         //     {
-        //         type => 'subscriptions',
-        //         channels => array(
+        //         "type" => "subscriptions",
+        //         "channels" => array(
         //             {
-        //                 name => 'level2',
-        //                 product_ids => array( 'ETH-BTC' )
+        //                 "name" => "level2",
+        //                 "product_ids" => array( "ETH-BTC" )
         //             }
         //         )
         //     }
@@ -954,9 +945,9 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         // auth $error
         //
         //     {
-        //         type => 'error',
-        //         $message => 'Authentication Failed',
-        //         $reason => 'array("message":"Invalid API Key")'
+        //         "type" => "error",
+        //         "message" => "Authentication Failed",
+        //         "reason" => "array("message":"Invalid API Key")"
         //     }
         //
         $errMsg = $this->safe_string($message, 'message');
@@ -999,7 +990,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 }
             }
         } else {
-            return $method($client, $message);
+            $method($client, $message);
         }
     }
 }

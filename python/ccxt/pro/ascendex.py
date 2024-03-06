@@ -6,8 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import AuthenticationError
 
@@ -76,14 +77,14 @@ class ascendex(ccxt.async_support.ascendex):
         await self.authenticate(url, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -136,14 +137,14 @@ class ascendex(ccxt.async_support.ascendex):
         client.resolve(stored, messageHash)
         return message
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -160,15 +161,15 @@ class ascendex(ccxt.async_support.ascendex):
     def handle_trades(self, client: Client, message):
         #
         # {
-        #     m: 'trades',
-        #     symbol: 'BTC/USDT',
-        #     data: [
+        #     "m": "trades",
+        #     "symbol": "BTC/USDT",
+        #     "data": [
         #       {
-        #         p: '40744.28',
-        #         q: '0.00150',
-        #         ts: 1647514330758,
-        #         bm: True,
-        #         seqnum: 72057633465800320
+        #         "p": "40744.28",
+        #         "q": "0.00150",
+        #         "ts": 1647514330758,
+        #         "bm": True,
+        #         "seqnum": 72057633465800320
         #       }
         #     ]
         # }
@@ -191,27 +192,27 @@ class ascendex(ccxt.async_support.ascendex):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
-        channel = 'depth-realtime' + ':' + market['id']
+        channel = 'depth' + ':' + market['id']
         params = self.extend(params, {
             'ch': channel,
         })
         orderbook = await self.watch_public(channel, params)
         return orderbook.limit()
 
-    async def watch_order_book_snapshot(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book_snapshot(self, symbol: str, limit: Int = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        action = 'depth-snapshot-realtime'
+        action = 'depth-snapshot'
         channel = action + ':' + market['id']
         params = self.extend(params, {
             'action': action,
@@ -223,19 +224,27 @@ class ascendex(ccxt.async_support.ascendex):
         orderbook = await self.watch_public(channel, params)
         return orderbook.limit()
 
+    async def fetch_order_book_snapshot(self, symbol: str, limit: Int = None, params={}):
+        restOrderBook = await self.fetch_rest_order_book_safe(symbol, limit, params)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
+        orderbook.reset(restOrderBook)
+        return orderbook
+
     def handle_order_book_snapshot(self, client: Client, message):
         #
         # {
-        #     m: 'depth',
-        #     symbol: 'BTC/USDT',
-        #     data: {
-        #       ts: 1647520500149,
-        #       seqnum: 28590487626,
-        #       asks: [
+        #     "m": "depth",
+        #     "symbol": "BTC/USDT",
+        #     "data": {
+        #       "ts": 1647520500149,
+        #       "seqnum": 28590487626,
+        #       "asks": [
         #         [Array], [Array], [Array],
         #         [Array], [Array], [Array],
         #       ],
-        #       bids: [
+        #       "bids": [
         #         [Array], [Array], [Array],
         #         [Array], [Array], [Array],
         #       ]
@@ -262,13 +271,13 @@ class ascendex(ccxt.async_support.ascendex):
     def handle_order_book(self, client: Client, message):
         #
         #   {
-        #       m: 'depth',
-        #       symbol: 'BTC/USDT',
-        #       data: {
-        #         ts: 1647515136144,
-        #         seqnum: 28590470736,
-        #         asks: [[Array], [Array]],
-        #         bids: [[Array], [Array], [Array], [Array], [Array], [Array]]
+        #       "m": "depth",
+        #       "symbol": "BTC/USDT",
+        #       "data": {
+        #         "ts": 1647515136144,
+        #         "seqnum": 28590470736,
+        #         "asks": [[Array], [Array]],
+        #         "bids": [[Array], [Array], [Array], [Array], [Array], [Array]]
         #       }
         #   }
         #
@@ -330,11 +339,11 @@ class ascendex(ccxt.async_support.ascendex):
             orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         type, query = self.handle_market_type_and_params('watchBalance', None, params)
@@ -443,15 +452,15 @@ class ascendex(ccxt.async_support.ascendex):
         messageHash = 'balance' + ':' + type
         client.resolve(self.safe_balance(result), messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -481,41 +490,41 @@ class ascendex(ccxt.async_support.ascendex):
         #
         # spot order
         # {
-        #   m: 'order',
-        #   accountId: 'cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH',
-        #   ac: 'CASH',
-        #   data: {
-        #     sn: 19399016185,
-        #     orderId: 'r17f9d7983faU7223046196CMlrj3bfC',
-        #     s: 'LTC/USDT',
-        #     ot: 'Limit',
-        #     t: 1647614461160,
-        #     p: '50',
-        #     q: '0.1',
-        #     sd: 'Buy',
-        #     st: 'New',
-        #     ap: '0',
-        #     cfq: '0',
-        #     sp: '',
-        #     err: '',
-        #     btb: '0',
-        #     bab: '0',
-        #     qtb: '8',
-        #     qab: '2.995',
-        #     cf: '0',
-        #     fa: 'USDT',
-        #     ei: 'NULL_VAL'
+        #   "m": "order",
+        #   "accountId": "cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH",
+        #   "ac": "CASH",
+        #   "data": {
+        #     "sn": 19399016185,
+        #     "orderId": "r17f9d7983faU7223046196CMlrj3bfC",
+        #     "s": "LTC/USDT",
+        #     "ot": "Limit",
+        #     "t": 1647614461160,
+        #     "p": "50",
+        #     "q": "0.1",
+        #     "sd": "Buy",
+        #     "st": "New",
+        #     "ap": "0",
+        #     "cfq": "0",
+        #     "sp": '',
+        #     "err": '',
+        #     "btb": "0",
+        #     "bab": "0",
+        #     "qtb": "8",
+        #     "qab": "2.995",
+        #     "cf": "0",
+        #     "fa": "USDT",
+        #     "ei": "NULL_VAL"
         #   }
         # }
         #
         #  futures order
         # {
-        #     m: 'futures-order',
-        #     sn: 19399927636,
-        #     e: 'ExecutionReport',
-        #     a: 'futF5SlR9ukAXoDOuXbND4dVpBMw9gzH',  # account id
-        #     ac: 'FUTURES',
-        #     t: 1647622515434,  # last execution time
+        #     "m": "futures-order",
+        #     "sn": 19399927636,
+        #     "e": "ExecutionReport",
+        #     "a": "futF5SlR9ukAXoDOuXbND4dVpBMw9gzH",  # account id
+        #     "ac": "FUTURES",
+        #     "t": 1647622515434,  # last execution time
         #      (...)
         # }
         #
@@ -536,59 +545,59 @@ class ascendex(ccxt.async_support.ascendex):
         #
         # spot order
         #    {
-        #          sn: 19399016185,  #sequence number
-        #          orderId: 'r17f9d7983faU7223046196CMlrj3bfC',
-        #          s: 'LTC/USDT',
-        #          ot: 'Limit',  # order type
-        #          t: 1647614461160,  # last execution timestamp
-        #          p: '50',  # price
-        #          q: '0.1',  # quantity
-        #          sd: 'Buy',  # side
-        #          st: 'New',  # status
-        #          ap: '0',  # average fill price
-        #          cfq: '0',  # cumulated fill quantity
-        #          sp: '',  # stop price
-        #          err: '',
-        #          btb: '0',  # base asset total balance
-        #          bab: '0',  # base asset available balance
-        #          qtb: '8',  # quote asset total balance
-        #          qab: '2.995',  # quote asset available balance
-        #          cf: '0',  # cumulated commission
-        #          fa: 'USDT',  # fee asset
-        #          ei: 'NULL_VAL'
+        #          "sn": 19399016185,  #sequence number
+        #          "orderId": "r17f9d7983faU7223046196CMlrj3bfC",
+        #          "s": "LTC/USDT",
+        #          "ot": "Limit",  # order type
+        #          "t": 1647614461160,  # last execution timestamp
+        #          "p": "50",  # price
+        #          "q": "0.1",  # quantity
+        #          "sd": "Buy",  # side
+        #          "st": "New",  # status
+        #          "ap": "0",  # average fill price
+        #          "cfq": "0",  # cumulated fill quantity
+        #          "sp": '',  # stop price
+        #          "err": '',
+        #          "btb": "0",  # base asset total balance
+        #          "bab": "0",  # base asset available balance
+        #          "qtb": "8",  # quote asset total balance
+        #          "qab": "2.995",  # quote asset available balance
+        #          "cf": "0",  # cumulated commission
+        #          "fa": "USDT",  # fee asset
+        #          "ei": "NULL_VAL"
         #        }
         #
         #  futures order
         # {
-        #     m: 'futures-order',
-        #     sn: 19399927636,
-        #     e: 'ExecutionReport',
-        #     a: 'futF5SlR9ukAXoDOuXbND4dVpBMw9gzH',  # account id
-        #     ac: 'FUTURES',
-        #     t: 1647622515434,  # last execution time
-        #     ct: 1647622515413,  # order creation time
-        #     orderId: 'r17f9df469b1U7223046196Okf5Kbmd',
-        #     sd: 'Buy',  # side
-        #     ot: 'Limit',  # order type
-        #     ei: 'NULL_VAL',
-        #     q: '1',  # quantity
-        #     p: '50',  #price
-        #     sp: '0',  # stopPrice
-        #     spb: '',  # stopTrigger
-        #     s: 'LTC-PERP',  # symbol
-        #     st: 'New',  # state
-        #     err: '',
-        #     lp: '0',  # last filled price
-        #     lq: '0',  # last filled quantity(base asset)
-        #     ap: '0',  # average filled price
-        #     cfq: '0',  # cummulative filled quantity(base asset)
-        #     f: '0',  # commission fee of the current execution
-        #     cf: '0',  # cumulative commission fee
-        #     fa: 'USDT',  # fee asset
-        #     psl: '0',
-        #     pslt: 'market',
-        #     ptp: '0',
-        #     ptpt: 'market'
+        #     "m": "futures-order",
+        #     "sn": 19399927636,
+        #     "e": "ExecutionReport",
+        #     "a": "futF5SlR9ukAXoDOuXbND4dVpBMw9gzH",  # account id
+        #     "ac": "FUTURES",
+        #     "t": 1647622515434,  # last execution time
+        #     "ct": 1647622515413,  # order creation time
+        #     "orderId": "r17f9df469b1U7223046196Okf5Kbmd",
+        #     "sd": "Buy",  # side
+        #     "ot": "Limit",  # order type
+        #     "ei": "NULL_VAL",
+        #     "q": "1",  # quantity
+        #     "p": "50",  #price
+        #     "sp": "0",  # stopPrice
+        #     "spb": '',  # stopTrigger
+        #     "s": "LTC-PERP",  # symbol
+        #     "st": "New",  # state
+        #     "err": '',
+        #     "lp": "0",  # last filled price
+        #     "lq": "0",  # last filled quantity(base asset)
+        #     "ap": "0",  # average filled price
+        #     "cfq": "0",  # cummulative filled quantity(base asset)
+        #     "f": "0",  # commission fee of the current execution
+        #     "cf": "0",  # cumulative commission fee
+        #     "fa": "USDT",  # fee asset
+        #     "psl": "0",
+        #     "pslt": "market",
+        #     "ptp": "0",
+        #     "ptpt": "market"
         #   }
         #
         status = self.parse_order_status(self.safe_string(order, 'st'))
@@ -641,10 +650,10 @@ class ascendex(ccxt.async_support.ascendex):
     def handle_error_message(self, client: Client, message):
         #
         # {
-        #     m: 'disconnected',
-        #     code: 100005,
-        #     reason: 'INVALID_WS_REQUEST_DATA',
-        #     info: 'Session is disconnected due to missing pong message from the client'
+        #     "m": "disconnected",
+        #     "code": 100005,
+        #     "reason": "INVALID_WS_REQUEST_DATA",
+        #     "info": "Session is disconnected due to missing pong message from the client"
         #   }
         #
         errorCode = self.safe_integer(message, 'code')
@@ -668,7 +677,7 @@ class ascendex(ccxt.async_support.ascendex):
 
     def handle_authenticate(self, client: Client, message):
         #
-        #     {m: 'auth', id: '1647605234', code: 0}
+        #     {m: "auth", id: "1647605234", code: 0}
         #
         messageHash = 'authenticated'
         client.resolve(message, messageHash)
@@ -677,51 +686,51 @@ class ascendex(ccxt.async_support.ascendex):
         if self.handle_error_message(client, message):
             return
         #
-        #     {m: 'ping', hp: 3}
+        #     {m: "ping", hp: 3}
         #
-        #     {m: 'sub', ch: 'bar:BTC/USDT', code: 0}
+        #     {m: "sub", ch: "bar:BTC/USDT", code: 0}
         #
-        #     {m: 'sub', id: '1647515701', ch: 'depth:BTC/USDT', code: 0}
+        #     {m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0}
         #
-        #     {m: 'connected', type: 'unauth'}
+        #     {m: "connected", type: "unauth"}
         #
-        #     {m: 'auth', id: '1647605234', code: 0}
+        #     {m: "auth", id: "1647605234", code: 0}
         #
         # order or balance sub
         # {
-        #     m: 'sub',
-        #     id: '1647605952',
-        #     ch: 'order:cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH', or futures-order
-        #     code: 0
+        #     "m": "sub",
+        #     "id": "1647605952",
+        #     "ch": "order:cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH", or futures-order
+        #     "code": 0
         #   }
         #
         # ohlcv
         #  {
-        #     m: 'bar',
-        #     s: 'BTC/USDT',
-        #     data: {
-        #       i: '1',
-        #       ts: 1647510060000,
-        #       o: '40813.93',
-        #       c: '40804.57',
-        #       h: '40814.21',
-        #       l: '40804.56',
-        #       v: '0.01537'
+        #     "m": "bar",
+        #     "s": "BTC/USDT",
+        #     "data": {
+        #       "i": "1",
+        #       "ts": 1647510060000,
+        #       "o": "40813.93",
+        #       "c": "40804.57",
+        #       "h": "40814.21",
+        #       "l": "40804.56",
+        #       "v": "0.01537"
         #     }
         #   }
         #
         # trades
         #
         #    {
-        #        m: 'trades',
-        #        symbol: 'BTC/USDT',
-        #        data: [
+        #        "m": "trades",
+        #        "symbol": "BTC/USDT",
+        #        "data": [
         #          {
-        #            p: '40762.26',
-        #            q: '0.01500',
-        #            ts: 1647514306759,
-        #            bm: True,
-        #            seqnum: 72057633465795180
+        #            "p": "40762.26",
+        #            "q": "0.01500",
+        #            "ts": 1647514306759,
+        #            "bm": True,
+        #            "seqnum": 72057633465795180
         #          }
         #        ]
         #    }
@@ -748,12 +757,12 @@ class ascendex(ccxt.async_support.ascendex):
         #
         # orderbook snapshot
         #  {
-        #     m: 'depth-snapshot',
-        #     symbol: 'BTC/USDT',
-        #     data: {
-        #       ts: 1647525938513,
-        #       seqnum: 28590504772,
-        #       asks: [
+        #     "m": "depth-snapshot",
+        #     "symbol": "BTC/USDT",
+        #     "data": {
+        #       "ts": 1647525938513,
+        #       "seqnum": 28590504772,
+        #       "asks": [
         #         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
         #         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
         #         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
@@ -780,16 +789,16 @@ class ascendex(ccxt.async_support.ascendex):
         #  }
         # future order update
         # {
-        #     m: 'futures-order',
-        #     sn: 19404258063,
-        #     e: 'ExecutionReport',
-        #     a: 'futF5SlR9ukAXoDOuXbND4dVpBMw9gzH',
-        #     ac: 'FUTURES',
-        #     t: 1647681792543,
-        #     ct: 1647622515413,
-        #     orderId: 'r17f9df469b1U7223046196Okf5KbmdL',
+        #     "m": "futures-order",
+        #     "sn": 19404258063,
+        #     "e": "ExecutionReport",
+        #     "a": "futF5SlR9ukAXoDOuXbND4dVpBMw9gzH",
+        #     "ac": "FUTURES",
+        #     "t": 1647681792543,
+        #     "ct": 1647622515413,
+        #     "orderId": "r17f9df469b1U7223046196Okf5KbmdL",
         #         (...)
-        #     ptpt: 'None'
+        #     "ptpt": "None"
         #   }
         #
         # balance update cash
@@ -825,8 +834,8 @@ class ascendex(ccxt.async_support.ascendex):
             'ping': self.handle_ping,
             'auth': self.handle_authenticate,
             'sub': self.handle_subscription_status,
-            'depth-realtime': self.handle_order_book,
-            'depth-snapshot-realtime': self.handle_order_book_snapshot,
+            'depth': self.handle_order_book,
+            'depth-snapshot': self.handle_order_book_snapshot,
             'trades': self.handle_trades,
             'bar': self.handle_ohlcv,
             'balance': self.handle_balance,
@@ -842,16 +851,15 @@ class ascendex(ccxt.async_support.ascendex):
             self.handle_order(client, message)
             if subject == 'order':
                 self.handle_balance(client, message)
-        return message
 
     def handle_subscription_status(self, client: Client, message):
         #
-        #     {m: 'sub', ch: 'bar:BTC/USDT', code: 0}
+        #     {m: "sub", ch: "bar:BTC/USDT", code: 0}
         #
-        #     {m: 'sub', id: '1647515701', ch: 'depth:BTC/USDT', code: 0}
+        #     {m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0}
         #
         channel = self.safe_string(message, 'ch', '')
-        if channel.find('depth-realtime') > -1:
+        if channel.find('depth') > -1 and not (channel.find('depth-snapshot') > -1):
             self.handle_order_book_subscription(client, message)
         return message
 
@@ -859,15 +867,19 @@ class ascendex(ccxt.async_support.ascendex):
         channel = self.safe_string(message, 'ch')
         parts = channel.split(':')
         marketId = parts[1]
-        symbol = self.safe_symbol(marketId)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({})
-        self.spawn(self.watch_order_book_snapshot, symbol)
+        if self.options['defaultType'] == 'swap' or market['contract']:
+            self.spawn(self.fetch_order_book_snapshot, symbol)
+        else:
+            self.spawn(self.watch_order_book_snapshot, symbol)
 
     async def pong(self, client, message):
         #
-        #     {m: 'ping', hp: 3}
+        #     {m: "ping", hp: 3}
         #
         try:
             await client.send({'op': 'pong', 'hp': self.safe_integer(message, 'hp')})
@@ -878,7 +890,7 @@ class ascendex(ccxt.async_support.ascendex):
     def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)
 
-    def authenticate(self, url, params={}):
+    async def authenticate(self, url, params={}):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)

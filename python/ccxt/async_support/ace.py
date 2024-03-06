@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ace import ImplicitAPI
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -37,14 +36,16 @@ class ace(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
                 'editOrder': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
                 'fetchClosedOrders': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': False,
                 'fetchDepositAddress': False,
                 'fetchDeposits': False,
@@ -53,6 +54,8 @@ class ace(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -174,7 +177,7 @@ class ace(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for ace
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetOapiV2ListMarketPair()
@@ -192,68 +195,66 @@ class ace(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            base = self.safe_string(market, 'base')
-            baseCode = self.safe_currency_code(base)
-            quote = self.safe_string(market, 'quote')
-            quoteCode = self.safe_currency_code(quote)
-            symbol = base + '/' + quote
-            result.append({
-                'id': self.safe_string(market, 'symbol'),
-                'uppercaseId': None,
-                'symbol': symbol,
-                'base': baseCode,
-                'baseId': self.safe_integer(market, 'baseCurrencyId'),
-                'quote': quoteCode,
-                'quoteId': self.safe_integer(market, 'quoteCurrencyId'),
-                'settle': None,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'derivative': False,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(market, 'minLimitBaseAmount'),
-                        'max': self.safe_number(market, 'maxLimitBaseAmount'),
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'precision': {
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
-                },
-                'active': None,
-                'created': None,
-                'info': market,
-            })
-        return result
+        return self.parse_markets(response)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_market(self, market) -> Market:
+        baseId = self.safe_string(market, 'base')
+        base = self.safe_currency_code(baseId)
+        quoteId = self.safe_string(market, 'quote')
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
+        return {
+            'id': self.safe_string(market, 'symbol'),
+            'uppercaseId': None,
+            'symbol': symbol,
+            'base': base,
+            'baseId': baseId,
+            'quote': quote,
+            'quoteId': quoteId,
+            'settle': None,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'limits': {
+                'amount': {
+                    'min': self.safe_number(market, 'minLimitBaseAmount'),
+                    'max': self.safe_number(market, 'maxLimitBaseAmount'),
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'precision': {
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
+            },
+            'active': None,
+            'created': None,
+            'info': market,
+        }
+
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "base_volume":229196.34035399999,
@@ -286,13 +287,13 @@ class ace(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the ace api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -310,13 +311,13 @@ class ace(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the ace api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetOapiV2ListTradePrice()
@@ -339,14 +340,14 @@ class ace(Exchange, ImplicitAPI):
             tickers.append(ticker)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-books
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the ace api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -397,7 +398,7 @@ class ace(Exchange, ImplicitAPI):
         orderBook = self.safe_value(response, 'attachment')
         return self.parse_order_book(orderBook, market['symbol'], None, 'bids', 'asks')
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "changeRate": 0,
@@ -425,7 +426,7 @@ class ace(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---klinecandlestick-data
@@ -433,7 +434,7 @@ class ace(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the ace api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -479,7 +480,7 @@ class ace(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, None)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #         "15697850529570392100421100482693"
@@ -506,17 +507,17 @@ class ace(Exchange, ImplicitAPI):
         #             "type": 1
         #         }
         #
-        id = None
-        timestamp = None
-        symbol = None
-        price = None
-        amount = None
-        side = None
-        type = None
-        status = None
-        filled = None
-        remaining = None
-        average = None
+        id: Str
+        timestamp: Int = None
+        symbol: Str = None
+        price: Str = None
+        amount: Str = None
+        side: Str = None
+        type: Str = None
+        status: Str = None
+        filled: Str = None
+        remaining: Str = None
+        average: Str = None
         if isinstance(order, str):
             id = order
         else:
@@ -567,7 +568,7 @@ class ace(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
@@ -576,8 +577,8 @@ class ace(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the ace api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -604,14 +605,14 @@ class ace(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'attachment')
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---cancel-order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the ace api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -628,13 +629,13 @@ class ace(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the ace api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -666,18 +667,18 @@ class ace(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'attachment')
         return self.parse_order(data, None)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the ace api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires the symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -720,7 +721,7 @@ class ace(Exchange, ImplicitAPI):
         #
         return self.parse_orders(orders, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchOrderTrades
         #         {
@@ -767,8 +768,8 @@ class ace(Exchange, ImplicitAPI):
         baseId = self.safe_string(trade, 'baseCurrencyName')
         if quoteId is not None and baseId is not None:
             symbol = baseId + '/' + quoteId
-        side = None
-        tradeSide = self.safe_number(trade, 'buyOrSell')
+        side: Str = None
+        tradeSide = self.safe_integer(trade, 'buyOrSell')
         if tradeSide is not None:
             side = 'buy' if (tradeSide == 1) else 'sell'
         feeString = self.safe_string(trade, 'fee')
@@ -795,7 +796,7 @@ class ace(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }, market)
 
-    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-history
@@ -803,8 +804,8 @@ class ace(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
-        :param dict [params]: extra parameters specific to the ace api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.safe_market(symbol)
@@ -849,15 +850,15 @@ class ace(Exchange, ImplicitAPI):
         trades = self.safe_value(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---trade-list
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the ace api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.safe_market(symbol)
@@ -904,7 +905,7 @@ class ace(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'attachment', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         #     [
         #         {
@@ -932,12 +933,12 @@ class ace(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---account-balance
-        :param dict [params]: extra parameters specific to the ace api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privatePostV2CoinCustomerAccount(params)
@@ -953,9 +954,9 @@ class ace(Exchange, ImplicitAPI):
         #                 "currencyName": "BTC"
         #             }
         #         ],
-        #         message: null,
-        #         parameters: null,
-        #         status: '200'
+        #         "message": null,
+        #         "parameters": null,
+        #         "status": "200"
         #     }
         #
         return self.parse_balance(balances)
@@ -1000,6 +1001,7 @@ class ace(Exchange, ImplicitAPI):
         feedback = self.id + ' ' + body
         status = self.safe_number(response, 'status', 200)
         if status > 200:
-            self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], status, feedback)
+            statusStr = str(status)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], statusStr, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], statusStr, feedback)
         return None

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import coinbaseproRest from '../coinbasepro.js';
-import { AuthenticationError, ExchangeError, BadSymbol, BadRequest } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -86,12 +86,13 @@ export default class coinbasepro extends coinbaseproRest {
         await this.loadMarkets();
         let market = undefined;
         symbols = this.marketSymbols(symbols);
-        const messageHash = messageHashStart + symbols.join(',');
+        const messageHashes = [];
         const productIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             market = this.market(symbol);
             productIds.push(market['id']);
+            messageHashes.push(messageHashStart + ':' + market['symbol']);
         }
         let url = this.urls['api']['ws'];
         if ('signature' in params) {
@@ -106,7 +107,7 @@ export default class coinbasepro extends coinbaseproRest {
             ],
         };
         const request = this.extend(subscribe, params);
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
     async watchTicker(symbol, params = {}) {
         /**
@@ -114,8 +115,8 @@ export default class coinbasepro extends coinbaseproRest {
          * @name coinbasepro#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const name = 'ticker';
         return await this.subscribe(name, symbol, name, params);
@@ -123,13 +124,12 @@ export default class coinbasepro extends coinbaseproRest {
     async watchTickers(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name okx#watchTickers
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+         * @name coinbasepro#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const symbolsLength = symbols.length;
@@ -137,10 +137,12 @@ export default class coinbasepro extends coinbaseproRest {
             throw new BadSymbol(this.id + ' watchTickers requires a non-empty symbols array');
         }
         const channel = 'ticker';
-        const messageHash = 'tickers::';
-        const newTickers = await this.subscribeMultiple(channel, symbols, messageHash, params);
+        const messageHash = 'ticker';
+        const ticker = await this.subscribeMultiple(channel, symbols, messageHash, params);
         if (this.newUpdates) {
-            return newTickers;
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
@@ -152,8 +154,8 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -172,8 +174,8 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the coinbase api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
@@ -182,8 +184,7 @@ export default class coinbasepro extends coinbaseproRest {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const name = 'matches';
-        const messageHash = 'multipleTrades::';
-        const trades = await this.subscribeMultiple(name, symbols, messageHash, params);
+        const trades = await this.subscribeMultiple(name, symbols, name, params);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -199,10 +200,12 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
-        this.checkRequiredSymbol('watchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets();
         symbol = this.symbol(symbol);
         const name = 'user';
@@ -222,13 +225,13 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {string[]} symbols unified symbol of the market to fetch trades for
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         symbols = this.marketSymbols(symbols, undefined, false);
         await this.loadMarkets();
         const name = 'user';
-        const messageHash = 'multipleMyTrades::';
+        const messageHash = 'myTrades';
         const authentication = this.authenticate();
         const trades = await this.subscribeMultiple(name, symbols, messageHash, this.extend(params, authentication));
         if (this.newUpdates) {
@@ -246,13 +249,13 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {string[]} symbols unified symbol of the market to fetch orders for
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        symbols = this.marketSymbols(symbols, undefined, false);
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
         const name = 'user';
-        const messageHash = 'multipleOrders::';
+        const messageHash = 'orders';
         const authentication = this.authenticate();
         const orders = await this.subscribeMultiple(name, symbols, messageHash, this.extend(params, authentication));
         if (this.newUpdates) {
@@ -269,9 +272,9 @@ export default class coinbasepro extends coinbaseproRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new BadSymbol(this.id + ' watchMyTrades requires a symbol');
@@ -287,6 +290,48 @@ export default class coinbasepro extends coinbaseproRest {
         }
         return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
     }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new BadRequest(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        const name = 'level2';
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const marketIds = this.marketIds(symbols);
+        const messageHashes = [];
+        for (let i = 0; i < symbolsLength; i++) {
+            const marketId = marketIds[i];
+            messageHashes.push(name + ':' + marketId);
+        }
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'type': 'subscribe',
+            'product_ids': marketIds,
+            'channels': [
+                name,
+            ],
+        };
+        const request = this.extend(subscribe, params);
+        const subscription = {
+            'messageHash': name,
+            'symbols': symbols,
+            'marketIds': marketIds,
+            'limit': limit,
+        };
+        const authentication = this.authenticate();
+        const orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription);
+        return orderbook.limit();
+    }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
@@ -294,8 +339,8 @@ export default class coinbasepro extends coinbaseproRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const name = 'level2';
         await this.loadMarkets();
@@ -323,57 +368,19 @@ export default class coinbasepro extends coinbaseproRest {
         const orderbook = await this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription);
         return orderbook.limit();
     }
-    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinbasepro#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
-        const symbolsLength = symbols.length;
-        if (symbolsLength === 0) {
-            throw new BadRequest(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
-        }
-        const name = 'level2';
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        const marketIds = this.marketIds(symbols);
-        const messageHash = 'multipleOrderbooks' + '::' + symbols.join(',');
-        const url = this.urls['api']['ws'];
-        const subscribe = {
-            'type': 'subscribe',
-            'product_ids': marketIds,
-            'channels': [
-                name,
-            ],
-        };
-        const request = this.extend(subscribe, params);
-        const subscription = {
-            'messageHash': messageHash,
-            'symbols': symbols,
-            'marketIds': marketIds,
-            'limit': limit,
-        };
-        const authentication = this.authenticate();
-        const orderbook = await this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription);
-        return orderbook.limit();
-    }
     handleTrade(client, message) {
         //
         //     {
-        //         type: 'match',
-        //         trade_id: 82047307,
-        //         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
-        //         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
-        //         side: 'sell',
-        //         size: '0.00513192',
-        //         price: '9314.78',
-        //         product_id: 'BTC-USD',
-        //         sequence: 12038915443,
-        //         time: '2020-01-31T20:03:41.158814Z'
+        //         "type": "match",
+        //         "trade_id": 82047307,
+        //         "maker_order_id": "0f358725-2134-435e-be11-753912a326e0",
+        //         "taker_order_id": "252b7002-87a3-425c-ac73-f5b9e23f3caf",
+        //         "side": "sell",
+        //         "size": "0.00513192",
+        //         "price": "9314.78",
+        //         "product_id": "BTC-USD",
+        //         "sequence": 12038915443,
+        //         "time": "2020-01-31T20:03:41.158814Z"
         //     }
         //
         const marketId = this.safeString(message, 'product_id');
@@ -393,7 +400,6 @@ export default class coinbasepro extends coinbaseproRest {
             }
             tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, tradesArray);
         }
         return message;
     }
@@ -401,7 +407,6 @@ export default class coinbasepro extends coinbaseproRest {
         const marketId = this.safeString(message, 'product_id');
         if (marketId !== undefined) {
             const trade = this.parseWsTrade(message);
-            const symbol = trade['symbol'];
             const type = 'myTrades';
             const messageHash = type + ':' + marketId;
             let tradesArray = this.myTrades;
@@ -412,7 +417,6 @@ export default class coinbasepro extends coinbaseproRest {
             }
             tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleMyTrades::', symbol, tradesArray);
         }
         return message;
     }
@@ -499,7 +503,6 @@ export default class coinbasepro extends coinbaseproRest {
             'rate': feeRate,
             'cost': feeCost,
             'currency': feeCurrency,
-            'type': undefined,
         };
         return parsed;
     }
@@ -515,18 +518,18 @@ export default class coinbasepro extends coinbaseproRest {
         // Order is created
         //
         //     {
-        //         type: 'received',
-        //         side: 'sell',
-        //         product_id: 'BTC-USDC',
-        //         time: '2021-03-05T16:42:21.878177Z',
-        //         sequence: 5641953814,
-        //         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id: '54fc141576dcf32596000133',
-        //         order_id: '11838707-bf9c-4d65-8cec-b57c9a7cab42',
-        //         order_type: 'limit',
-        //         size: '0.0001',
-        //         price: '50000',
-        //         client_oid: 'a317abb9-2b30-4370-ebfe-0deecb300180'
+        //         "type": "received",
+        //         "side": "sell",
+        //         "product_id": "BTC-USDC",
+        //         "time": "2021-03-05T16:42:21.878177Z",
+        //         "sequence": 5641953814,
+        //         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id": "54fc141576dcf32596000133",
+        //         "order_id": "11838707-bf9c-4d65-8cec-b57c9a7cab42",
+        //         "order_type": "limit",
+        //         "size": "0.0001",
+        //         "price": "50000",
+        //         "client_oid": "a317abb9-2b30-4370-ebfe-0deecb300180"
         //     }
         //
         //     {
@@ -543,50 +546,50 @@ export default class coinbasepro extends coinbaseproRest {
         // Order is on the order book
         //
         //     {
-        //         type: 'open',
-        //         side: 'sell',
-        //         product_id: 'BTC-USDC',
-        //         time: '2021-03-05T16:42:21.878177Z',
-        //         sequence: 5641953815,
-        //         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id: '54fc141576dcf32596000133',
-        //         price: '50000',
-        //         order_id: '11838707-bf9c-4d65-8cec-b57c9a7cab42',
-        //         remaining_size: '0.0001'
+        //         "type": "open",
+        //         "side": "sell",
+        //         "product_id": "BTC-USDC",
+        //         "time": "2021-03-05T16:42:21.878177Z",
+        //         "sequence": 5641953815,
+        //         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id": "54fc141576dcf32596000133",
+        //         "price": "50000",
+        //         "order_id": "11838707-bf9c-4d65-8cec-b57c9a7cab42",
+        //         "remaining_size": "0.0001"
         //     }
         //
         // Order is partially or completely filled
         //
         //     {
-        //         type: 'match',
-        //         side: 'sell',
-        //         product_id: 'BTC-USDC',
-        //         time: '2021-03-05T16:37:13.396107Z',
-        //         sequence: 5641897876,
-        //         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id: '54fc141576dcf32596000133',
-        //         trade_id: 5455505,
-        //         maker_order_id: 'e5f5754d-70a3-4346-95a6-209bcb503629',
-        //         taker_order_id: '88bf7086-7b15-40ff-8b19-ab4e08516d69',
-        //         size: '0.00021019',
-        //         price: '47338.46',
-        //         taker_profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         taker_user_id: '54fc141576dcf32596000133',
-        //         taker_fee_rate: '0.005'
+        //         "type": "match",
+        //         "side": "sell",
+        //         "product_id": "BTC-USDC",
+        //         "time": "2021-03-05T16:37:13.396107Z",
+        //         "sequence": 5641897876,
+        //         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id": "54fc141576dcf32596000133",
+        //         "trade_id": 5455505,
+        //         "maker_order_id": "e5f5754d-70a3-4346-95a6-209bcb503629",
+        //         "taker_order_id": "88bf7086-7b15-40ff-8b19-ab4e08516d69",
+        //         "size": "0.00021019",
+        //         "price": "47338.46",
+        //         "taker_profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "taker_user_id": "54fc141576dcf32596000133",
+        //         "taker_fee_rate": "0.005"
         //     }
         //
         // Order is canceled / closed
         //
         //     {
-        //         type: 'done',
-        //         side: 'buy',
-        //         product_id: 'BTC-USDC',
-        //         time: '2021-03-05T16:37:13.396107Z',
-        //         sequence: 5641897877,
-        //         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        //         user_id: '54fc141576dcf32596000133',
-        //         order_id: '88bf7086-7b15-40ff-8b19-ab4e08516d69',
-        //         reason: 'filled'
+        //         "type": "done",
+        //         "side": "buy",
+        //         "product_id": "BTC-USDC",
+        //         "time": "2021-03-05T16:37:13.396107Z",
+        //         "sequence": 5641897877,
+        //         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        //         "user_id": "54fc141576dcf32596000133",
+        //         "order_id": "88bf7086-7b15-40ff-8b19-ab4e08516d69",
+        //         "reason": "filled"
         //     }
         //
         let currentOrders = this.orders;
@@ -613,7 +616,6 @@ export default class coinbasepro extends coinbaseproRest {
                 const parsed = this.parseWsOrder(message);
                 orders.append(parsed);
                 client.resolve(orders, messageHash);
-                this.resolvePromiseIfMessagehashMatches(client, 'multipleOrders::', symbol, orders);
             }
             else {
                 const sequence = this.safeInteger(message, 'sequence');
@@ -657,7 +659,6 @@ export default class coinbasepro extends coinbaseproRest {
                         // update the newUpdates count
                         orders.append(previousOrder);
                         client.resolve(orders, messageHash);
-                        this.resolvePromiseIfMessagehashMatches(client, 'multipleOrders::', symbol, orders);
                     }
                     else if ((type === 'received') || (type === 'done')) {
                         const info = this.extend(previousOrder['info'], message);
@@ -673,7 +674,6 @@ export default class coinbasepro extends coinbaseproRest {
                         // update the newUpdates count
                         orders.append(previousOrder);
                         client.resolve(orders, messageHash);
-                        this.resolvePromiseIfMessagehashMatches(client, 'multipleOrders::', symbol, orders);
                     }
                 }
             }
@@ -732,21 +732,21 @@ export default class coinbasepro extends coinbaseproRest {
     handleTicker(client, message) {
         //
         //     {
-        //         type: 'ticker',
-        //         sequence: 12042642428,
-        //         product_id: 'BTC-USD',
-        //         price: '9380.55',
-        //         open_24h: '9450.81000000',
-        //         volume_24h: '9611.79166047',
-        //         low_24h: '9195.49000000',
-        //         high_24h: '9475.19000000',
-        //         volume_30d: '327812.00311873',
-        //         best_bid: '9380.54',
-        //         best_ask: '9380.55',
-        //         side: 'buy',
-        //         time: '2020-02-01T01:40:16.253563Z',
-        //         trade_id: 82062566,
-        //         last_size: '0.41969131'
+        //         "type": "ticker",
+        //         "sequence": 12042642428,
+        //         "product_id": "BTC-USD",
+        //         "price": "9380.55",
+        //         "open_24h": "9450.81000000",
+        //         "volume_24h": "9611.79166047",
+        //         "low_24h": "9195.49000000",
+        //         "high_24h": "9475.19000000",
+        //         "volume_30d": "327812.00311873",
+        //         "best_bid": "9380.54",
+        //         "best_ask": "9380.55",
+        //         "side": "buy",
+        //         "time": "2020-02-01T01:40:16.253563Z",
+        //         "trade_id": 82062566,
+        //         "last_size": "0.41969131"
         //     }
         //
         const marketId = this.safeString(message, 'product_id');
@@ -754,42 +754,33 @@ export default class coinbasepro extends coinbaseproRest {
             const ticker = this.parseTicker(message);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const type = this.safeString(message, 'type');
-            const messageHash = type + ':' + marketId;
+            const messageHash = 'ticker:' + symbol;
+            const idMessageHash = 'ticker:' + marketId;
             client.resolve(ticker, messageHash);
-            const messageHashes = this.findMessageHashes(client, 'tickers::');
-            for (let i = 0; i < messageHashes.length; i++) {
-                const currentMessageHash = messageHashes[i];
-                const parts = currentMessageHash.split('::');
-                const symbolsString = parts[1];
-                const symbols = symbolsString.split(',');
-                if (this.inArray(symbol, symbols)) {
-                    client.resolve(ticker, currentMessageHash);
-                }
-            }
+            client.resolve(ticker, idMessageHash);
         }
         return message;
     }
     parseTicker(ticker, market = undefined) {
         //
         //     {
-        //         type: 'ticker',
-        //         sequence: 7388547310,
-        //         product_id: 'BTC-USDT',
-        //         price: '22345.67',
-        //         open_24h: '22308.13',
-        //         volume_24h: '470.21123644',
-        //         low_24h: '22150',
-        //         high_24h: '22495.15',
-        //         volume_30d: '25713.98401605',
-        //         best_bid: '22345.67',
-        //         best_bid_size: '0.10647825',
-        //         best_ask: '22349.68',
-        //         best_ask_size: '0.03131702',
-        //         side: 'sell',
-        //         time: '2023-03-04T03:37:20.799258Z',
-        //         trade_id: 11586478,
-        //         last_size: '0.00352175'
+        //         "type": "ticker",
+        //         "sequence": 7388547310,
+        //         "product_id": "BTC-USDT",
+        //         "price": "22345.67",
+        //         "open_24h": "22308.13",
+        //         "volume_24h": "470.21123644",
+        //         "low_24h": "22150",
+        //         "high_24h": "22495.15",
+        //         "volume_30d": "25713.98401605",
+        //         "best_bid": "22345.67",
+        //         "best_bid_size": "0.10647825",
+        //         "best_ask": "22349.68",
+        //         "best_ask_size": "0.03131702",
+        //         "side": "sell",
+        //         "time": "2023-03-04T03:37:20.799258Z",
+        //         "trade_id": 11586478,
+        //         "last_size": "0.00352175"
         //     }
         //
         const type = this.safeString(ticker, 'type');
@@ -876,7 +867,6 @@ export default class coinbasepro extends coinbaseproRest {
             orderbook['datetime'] = undefined;
             orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
         }
         else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];
@@ -898,17 +888,16 @@ export default class coinbasepro extends coinbaseproRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
             client.resolve(orderbook, messageHash);
-            this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
         }
     }
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         type: 'subscriptions',
-        //         channels: [
+        //         "type": "subscriptions",
+        //         "channels": [
         //             {
-        //                 name: 'level2',
-        //                 product_ids: [ 'ETH-BTC' ]
+        //                 "name": "level2",
+        //                 "product_ids": [ "ETH-BTC" ]
         //             }
         //         ]
         //     }
@@ -926,9 +915,9 @@ export default class coinbasepro extends coinbaseproRest {
         // auth error
         //
         //     {
-        //         type: 'error',
-        //         message: 'Authentication Failed',
-        //         reason: '{"message":"Invalid API Key"}'
+        //         "type": "error",
+        //         "message": "Authentication Failed",
+        //         "reason": "{"message":"Invalid API Key"}"
         //     }
         //
         const errMsg = this.safeString(message, 'message');
@@ -974,7 +963,7 @@ export default class coinbasepro extends coinbaseproRest {
             }
         }
         else {
-            return method.call(this, client, message);
+            method.call(this, client, message);
         }
     }
 }
