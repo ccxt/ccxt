@@ -43,7 +43,7 @@ export default class wazirx extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
@@ -934,6 +934,154 @@ export default class wazirx extends Exchange {
             'cancel': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name wazirx#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://docs.wazirx.com/#all-coins-39-information-user_data
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.privateGetCoins (params);
+        //
+        //     [
+        //         {
+        //             "currency": "btc",
+        //             "name": "Bitcoin",
+        //             "networkList": [
+        //                 {
+        //                     "addressRegex": "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^(bc1)[0-9A-Za-z]{39,59}$",
+        //                     "confirmations": 4,
+        //                     "depositDesc": {
+        //                         "description": ""
+        //                     },
+        //                     "depositDust": "0.00000001",
+        //                     "depositEnable": true,
+        //                     "disclaimer": "• \u003cb\u003eSend only using the Bitcoin network.\u003c/b\u003e Using any other network will result in loss of funds.\u003cbr/\u003e• \u003cb\u003eDeposit only BTC to this deposit address.\u003c/b\u003e Depositing any other asset will result in a loss of funds.\u003cbr/\u003e",
+        //                     "fullName": null,
+        //                     "hidden": {
+        //                         "deposit": false,
+        //                         "withdraw": false
+        //                     },
+        //                     "isDefault": true,
+        //                     "maxWithdrawAmount": "3",
+        //                     "minConfirm": 4,
+        //                     "minWithdrawAmount": "0.003",
+        //                     "name": "Bitcoin",
+        //                     "network": "btc",
+        //                     "order": 3,
+        //                     "precision": 8,
+        //                     "requestId": "6d67a13d-26f7-4941-9856-94eba4adfe78",
+        //                     "shortName": "BTC",
+        //                     "specialTip": "Please ensure to select \u003cb\u003eBitcoin\u003c/b\u003e network at sender's wallet.",
+        //                     "withdrawConsent": {
+        //                         "helpUrl": null,
+        //                         "message": "I confirm that this withdrawal of crypto assets is being done to my own wallet, as specified above. I authorize you to share travel rule information with the destination wallet service provider wherever applicable."
+        //                     },
+        //                     "withdrawDesc": {
+        //                         "description": ""
+        //                     },
+        //                     "withdrawEnable": true,
+        //                     "withdrawFee": "0.0015"
+        //                 }
+        //             ],
+        //             "rapidListed": false
+        //         }
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const currencyId = this.safeString (currency, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const name = this.safeString (currency, 'name');
+            const chains = this.safeList (currency, 'networkList', []);
+            const networks = {};
+            let minPrecision = undefined;
+            let minWithdrawFeeString = undefined;
+            let minWithdrawString = undefined;
+            let maxWithdrawString = undefined;
+            let minDepositString = undefined;
+            let deposit = false;
+            let withdraw = false;
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'network');
+                const networkCode = this.networkIdToCode (networkId);
+                const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'precision')));
+                minPrecision = (minPrecision === undefined) ? precision : Math.min (minPrecision, precision);
+                const depositAllowed = this.safeBool (chain, 'depositEnable');
+                deposit = (depositAllowed) ? depositAllowed : deposit;
+                const withdrawAllowed = this.safeBool (chain, 'withdrawEnable');
+                withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
+                const withdrawFeeString = this.safeString (chain, 'withdrawFee');
+                if (withdrawFeeString !== undefined) {
+                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
+                }
+                const minNetworkWithdrawString = this.safeString (chain, 'minWithdrawAmount');
+                if (minNetworkWithdrawString !== undefined) {
+                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
+                }
+                const maxNetworkWithdrawString = this.safeString (chain, 'maxWithdrawAmount');
+                if (maxNetworkWithdrawString !== undefined) {
+                    maxWithdrawString = (maxWithdrawString === undefined) ? maxNetworkWithdrawString : Precise.stringMin (maxNetworkWithdrawString, maxWithdrawString);
+                }
+                const minNetworkDepositString = this.safeString (chain, 'depositDust');
+                if (minNetworkDepositString !== undefined) {
+                    minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise.stringMin (minNetworkDepositString, minDepositString);
+                }
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': depositAllowed && withdrawAllowed,
+                    'deposit': depositAllowed,
+                    'withdraw': withdrawAllowed,
+                    'fee': this.parseNumber (withdrawFeeString),
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.parseNumber (minNetworkWithdrawString),
+                            'max': this.parseNumber (maxNetworkWithdrawString),
+                        },
+                        'deposit': {
+                            'min': this.parseNumber (minNetworkDepositString),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = {
+                'info': currency,
+                'code': code,
+                'id': currencyId,
+                'name': name,
+                'active': deposit && withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': this.parseNumber (minWithdrawFeeString),
+                'precision': minPrecision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.parseNumber (minWithdrawString),
+                        'max': this.parseNumber (maxWithdrawString),
+                    },
+                    'deposit': {
+                        'min': this.parseNumber (minDepositString),
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
