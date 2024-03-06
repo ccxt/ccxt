@@ -130,7 +130,7 @@ export default class hyperliquid extends Exchange {
             },
             'hostname': 'hyperliquid.xyz',
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/ce8c2565-33bf-49c4-9675-33171864712b',
+                'logo': 'https://private-user-images.githubusercontent.com/43336371/310452397-3974aea3-c1a1-40c8-8df1-c2c00c829ca1.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDk3MTk4OTUsIm5iZiI6MTcwOTcxOTU5NSwicGF0aCI6Ii80MzMzNjM3MS8zMTA0NTIzOTctMzk3NGFlYTMtYzFhMS00MGM4LThkZjEtYzJjMDBjODI5Y2ExLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDAzMDYlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwMzA2VDEwMDYzNVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTNhNjk0Yzg4Y2I4MDFhZTViODZmZWI5MWUzNzYxZTExN2JkYjdlZjJkMzM1YjVlNDg5ZmM2MGQ3NDJhYWRhYjkmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.SYtqqL0tfQe6rnqsFNwHRVhKouJTjQEBGX0FPXWGoG8',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
