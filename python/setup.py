@@ -39,7 +39,7 @@ setup(
 
     name=package['name'],
     version=package['version'],
-
+    data_files=[('ccxt', ['ccxt/static_dependencies/ethereum/utils/__json/eth_networks.json'])],
     description=package['description'],
     long_description=long_description,
     long_description_content_type='text/markdown',
