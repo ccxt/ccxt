@@ -1342,7 +1342,7 @@ export default class bitget extends Exchange {
                     'swap': {
                         'method': 'publicMixGetV2MixMarketCandles', // or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     },
-                    'diapasonsForRecentEndpoint': {
+                    'maxDaysPerTimeframe': {
                         '1m': 30,
                         '3m': 30,
                         '5m': 30,
@@ -3343,7 +3343,7 @@ export default class bitget extends Exchange {
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
         const ohlcOptions = this.safeDict (this.options, 'fetchOHLCV', {});
-        const retrievableDaysMap = this.safeDict (ohlcOptions, 'diapasonsForRecentEndpoint', {});
+        const retrievableDaysMap = this.safeDict (ohlcOptions, 'maxDaysPerTimeframe', {});
         const maxRetrievableDaysForNonHistory = this.safeInteger (retrievableDaysMap, timeframe, 30); // default to safe minimum
         const endpointTsBoundary = now - maxRetrievableDaysForNonHistory * msInDay;
         // checks if we need history endpoint
