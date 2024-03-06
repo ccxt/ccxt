@@ -777,6 +777,7 @@ class cryptocom extends Exchange {
             //                     "p" => "26386.00",
             //                     "q" => "0.00453",
             //                     "t" => 1686944282062,
+            //                     "tn" : 1704476468851524373,
             //                     "d" => "4611686018455979970",
             //                     "i" => "BTC_USD"
             //                 ),
@@ -1029,7 +1030,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $request = array(
@@ -1063,7 +1064,7 @@ class cryptocom extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
         if (($postOnly) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
@@ -1076,16 +1077,16 @@ class cryptocom extends Exchange {
         $isTakeProfitTrigger = ($takeProfitPrice !== null);
         if ($isTrigger) {
             $request['ref_price'] = $this->price_to_precision($symbol, $triggerPrice);
-            $price = (string) $price;
+            $priceString = $this->number_to_string($price);
             if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
                 if ($side === 'buy') {
-                    if (Precise::string_lt($price, $triggerPrice)) {
+                    if (Precise::string_lt($priceString, $triggerPrice)) {
                         $request['type'] = 'TAKE_PROFIT_LIMIT';
                     } else {
                         $request['type'] = 'STOP_LIMIT';
                     }
                 } else {
-                    if (Precise::string_lt($price, $triggerPrice)) {
+                    if (Precise::string_lt($priceString, $triggerPrice)) {
                         $request['type'] = 'STOP_LIMIT';
                     } else {
                         $request['type'] = 'TAKE_PROFIT_LIMIT';
@@ -1093,13 +1094,13 @@ class cryptocom extends Exchange {
                 }
             } else {
                 if ($side === 'buy') {
-                    if (Precise::string_lt($price, $triggerPrice)) {
+                    if (Precise::string_lt($priceString, $triggerPrice)) {
                         $request['type'] = 'TAKE_PROFIT';
                     } else {
                         $request['type'] = 'STOP_LOSS';
                     }
                 } else {
-                    if (Precise::string_lt($price, $triggerPrice)) {
+                    if (Precise::string_lt($priceString, $triggerPrice)) {
                         $request['type'] = 'STOP_LOSS';
                     } else {
                         $request['type'] = 'TAKE_PROFIT';
@@ -1127,7 +1128,7 @@ class cryptocom extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1244,7 +1245,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function create_advanced_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_advanced_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -1272,7 +1273,7 @@ class cryptocom extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
         if (($postOnly) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
@@ -1284,16 +1285,16 @@ class cryptocom extends Exchange {
         $isStopLossTrigger = ($stopLossPrice !== null);
         $isTakeProfitTrigger = ($takeProfitPrice !== null);
         if ($isTrigger) {
-            $price = (string) $price;
+            $priceString = $this->number_to_string($price);
             if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
                 if ($side === 'buy') {
-                    if (Precise::string_lt($price, $triggerPrice)) {
+                    if (Precise::string_lt($priceString, $triggerPrice)) {
                         $request['type'] = 'TAKE_PROFIT_LIMIT';
                     } else {
                         $request['type'] = 'STOP_LIMIT';
                     }
                 } else {
-                    if (Precise::string_lt($price, $triggerPrice)) {
+                    if (Precise::string_lt($priceString, $triggerPrice)) {
                         $request['type'] = 'STOP_LIMIT';
                     } else {
                         $request['type'] = 'TAKE_PROFIT_LIMIT';
@@ -1301,13 +1302,13 @@ class cryptocom extends Exchange {
                 }
             } else {
                 if ($side === 'buy') {
-                    if (Precise::string_lt($price, $triggerPrice)) {
+                    if (Precise::string_lt($priceString, $triggerPrice)) {
                         $request['type'] = 'TAKE_PROFIT';
                     } else {
                         $request['type'] = 'STOP_LOSS';
                     }
                 } else {
-                    if (Precise::string_lt($price, $triggerPrice)) {
+                    if (Precise::string_lt($priceString, $triggerPrice)) {
                         $request['type'] = 'STOP_LOSS';
                     } else {
                         $request['type'] = 'TAKE_PROFIT';
@@ -1596,7 +1597,7 @@ class cryptocom extends Exchange {
         return array( $address, $tag );
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1934,7 +1935,8 @@ class cryptocom extends Exchange {
         //         "s" => "sell",
         //         "p" => "26386.00",
         //         "q" => "0.00453",
-        //         "t" => 1686944282062,
+        //         "tn" => 1686944282062,
+        //         "tn" => 1704476468851524373,
         //         "d" => "4611686018455979970",
         //         "i" => "BTC_USD"
         //     }
@@ -2244,7 +2246,7 @@ class cryptocom extends Exchange {
          * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $isMargin = $this->safe_value($params, 'margin', false);
+        $isMargin = $this->safe_bool($params, 'margin', false);
         $params = $this->omit($params, 'margin');
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params($methodName, $params);
@@ -2314,13 +2316,13 @@ class cryptocom extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
-             * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->v2PrivatePostPrivateGetCurrencyNetworks ($params));
+            $response = Async\await($this->v1PrivatePostPrivateGetCurrencyNetworks ($params));
             $data = $this->safe_value($response, 'result');
             $currencyMap = $this->safe_value($data, 'currency_map');
             return $this->parse_deposit_withdraw_fees($currencyMap, $codes, 'full_name');

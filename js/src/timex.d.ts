@@ -6,6 +6,7 @@ import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSid
  */
 export default class timex extends Exchange {
     describe(): any;
+    fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -19,8 +20,8 @@ export default class timex extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -67,6 +68,20 @@ export default class timex extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseOrder(order: any, market?: Market): Order;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        info: any;
+        currency: string;
+        address: string;
+        tag: any;
+        network: any;
+    }>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
+        info: any;
+        currency: string;
+        address: string;
+        tag: any;
+        network: any;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

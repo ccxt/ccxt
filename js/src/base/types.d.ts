@@ -11,6 +11,8 @@ export declare type SubType = 'linear' | 'inverse' | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
 }
+export declare type Dict = Dictionary<any> | undefined;
+export declare type List = Array<any> | undefined;
 /** Request parameters */
 export interface MinMax {
     min: Num;
@@ -24,6 +26,7 @@ export interface FeeInterface {
 export declare type Fee = FeeInterface | undefined;
 export interface MarketInterface {
     id: string;
+    numericId?: Num;
     uppercaseId?: string;
     lowercaseId?: string;
     symbol: string;
@@ -102,6 +105,7 @@ export interface Order {
     filled: number;
     remaining: number;
     stopPrice?: number;
+    triggerPrice?: number;
     takeProfitPrice?: number;
     stopLossPrice?: number;
     cost: number;
@@ -202,11 +206,31 @@ export interface DepositAddressResponse {
     info: any;
     tag?: string;
 }
+export interface FundingRate {
+    symbol: string;
+    info: any;
+    timestamp?: number;
+    fundingRate?: number;
+    datetime?: string;
+    markPrice?: number;
+    indexPrice?: number;
+    interestRate?: number;
+    estimatedSettlePrice?: number;
+    fundingTimestamp?: number;
+    fundingDatetime?: string;
+    nextFundingTimestamp?: number;
+    nextFundingDatetime?: string;
+    nextFundingRate?: number;
+    previousFundingTimestamp?: number;
+    previousFundingDatetime?: string;
+    previousFundingRate?: number;
+}
 export interface Position {
     symbol: string;
-    id: string;
+    id?: string;
+    info: any;
     timestamp?: number;
-    datetime: string;
+    datetime?: string;
     contracts?: number;
     contractSize?: number;
     side: string;
@@ -218,18 +242,83 @@ export interface Position {
     entryPrice?: number;
     markPrice?: number;
     liquidationPrice?: number;
+    marginMode?: string;
     hedged?: boolean;
-    maintenanceMargin?: number;
+    maintenenceMargin?: number;
     maintenanceMarginPercentage?: number;
     initialMargin?: number;
     initialMarginPercentage?: number;
-    marginMode: string;
     marginRatio?: number;
     lastUpdateTimestamp?: number;
     lastPrice?: number;
-    percentage?: number;
     stopLossPrice?: number;
     takeProfitPrice?: number;
+    percentage?: number;
+}
+export interface BorrowInterest {
+    account?: string;
+    currency?: string;
+    interest?: number;
+    interestRate?: number;
+    amountBorrowed?: number;
+    marginMode?: string;
+    timestamp?: number;
+    datetime?: string;
+    info: any;
+}
+export interface LeverageTier {
+    tier?: number;
+    currency?: string;
+    minNotional?: number;
+    maxNotional?: number;
+    maintenanceMarginRate?: number;
+    maxLeverage?: number;
+    info: any;
+}
+export interface LedgerEntry {
+    id?: string;
+    info: any;
+    timestamp?: number;
+    datetime?: string;
+    direction?: string;
+    account?: string;
+    referenceId?: string;
+    referenceAccount?: string;
+    type?: string;
+    currency?: string;
+    amount?: number;
+    before?: number;
+    after?: number;
+    status?: string;
+    fee?: Fee;
+}
+export interface DepositWithdrawFeeNetwork {
+    fee?: number;
+    percentage?: boolean;
+}
+export interface DepositWithdrawFee {
+    info: any;
+    withdraw?: DepositWithdrawFeeNetwork;
+    deposit?: DepositWithdrawFeeNetwork;
+    networks?: Dictionary<DepositWithdrawFeeNetwork>;
+}
+export interface TransferEntry {
+    info?: any;
+    id?: string;
+    timestamp?: number;
+    datetime?: string;
+    currency?: string;
+    amount?: number;
+    fromAccount?: string;
+    toAccount?: string;
+    status?: string;
+}
+export interface BorrowRate {
+    currency?: string;
+    rate?: number;
+    period?: number;
+    timestamp?: number;
+    datetime?: string;
     info: any;
 }
 export interface FundingRateHistory {
@@ -276,7 +365,7 @@ export interface FundingHistory {
     amount: number;
 }
 export interface MarginMode {
-    infp: any;
+    info: any;
     symbol: string;
     marginMode: 'isolated' | 'cross' | string;
 }
@@ -300,6 +389,17 @@ export interface Greeks {
     lastPrice: number;
     underlyingPrice: number;
     info: any;
+}
+export interface Leverage {
+    info: any;
+    symbol: string;
+    marginMode: 'isolated' | 'cross' | string;
+    longLeverage: number;
+    shortLeverage: number;
+}
+export interface Leverages extends Dictionary<Leverage> {
+}
+export interface MarginModes extends Dictionary<MarginMode> {
 }
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [Num, Num, Num, Num, Num, Num];

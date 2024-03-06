@@ -27,7 +27,7 @@ export default class bybit extends bybitRest {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': true,
+                'watchOHLCVForSymbols': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -131,7 +131,7 @@ export default class bybit extends bybitRest {
         return requestId;
     }
 
-    getUrlByMarketType (symbol: Str = undefined, isPrivate = false, method = undefined, params = {}) {
+    getUrlByMarketType (symbol: Str = undefined, isPrivate = false, method: string = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         let isUsdcSettled = undefined;
         let isSpot = undefined;
@@ -187,7 +187,7 @@ export default class bybit extends bybitRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
-        const url = this.getUrlByMarketType (symbol, false, params);
+        const url = this.getUrlByMarketType (symbol, false, 'watchTicker', params);
         params = this.cleanParams (params);
         const options = this.safeValue (this.options, 'watchTicker', {});
         let topic = this.safeString (options, 'name', 'tickers');
@@ -212,8 +212,8 @@ export default class bybit extends bybitRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHash = 'tickers::' + symbols.join (',');
-        const url = this.getUrlByMarketType (symbols[0], false, params);
+        const messageHashes = [];
+        const url = this.getUrlByMarketType (symbols[0], false, 'watchTickers', params);
         params = this.cleanParams (params);
         const options = this.safeValue (this.options, 'watchTickers', {});
         const topic = this.safeString (options, 'name', 'tickers');
@@ -222,10 +222,13 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             topics.push (topic + '.' + marketId);
+            messageHashes.push ('ticker:' + symbols[i]);
         }
-        const ticker = await this.watchTopics (url, messageHash, topics, params);
+        const ticker = await this.watchTopics (url, messageHashes, topics, params);
         if (this.newUpdates) {
-            return ticker;
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
@@ -330,15 +333,29 @@ export default class bybit extends bybitRest {
         //             "price24hPcnt": "-0.0388"
         //         }
         //     }
+        // swap delta
+        //     {
+        //         "topic":"tickers.AAVEUSDT",
+        //         "type":"delta",
+        //         "data":{
+        //            "symbol":"AAVEUSDT",
+        //            "bid1Price":"112.89",
+        //            "bid1Size":"2.12",
+        //            "ask1Price":"112.90",
+        //            "ask1Size":"5.02"
+        //         },
+        //         "cs":78039939929,
+        //         "ts":1709210212704
+        //     }
         //
         const topic = this.safeString (message, 'topic', '');
         const updateType = this.safeString (message, 'type', '');
-        const data = this.safeValue (message, 'data', {});
-        const isSpot = this.safeString (data, 'fundingRate') === undefined;
+        const data = this.safeDict (message, 'data', {});
+        const isSpot = this.safeString (data, 'usdIndexPrice') !== undefined;
         const type = isSpot ? 'spot' : 'contract';
         let symbol = undefined;
         let parsed = undefined;
-        if ((updateType === 'snapshot') || isSpot) {
+        if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
         } else if (updateType === 'delta') {
@@ -348,8 +365,8 @@ export default class bybit extends bybitRest {
             const market = this.safeMarket (marketId, undefined, undefined, type);
             symbol = market['symbol'];
             // update the info in place
-            const ticker = this.safeValue (this.tickers, symbol, {});
-            const rawTicker = this.safeValue (ticker, 'info', {});
+            const ticker = this.safeDict (this.tickers, symbol, {});
+            const rawTicker = this.safeDict (ticker, 'info', {});
             const merged = this.extend (rawTicker, data);
             parsed = this.parseTicker (merged);
         }
@@ -359,17 +376,6 @@ export default class bybit extends bybitRest {
         this.tickers[symbol] = parsed;
         const messageHash = 'ticker:' + symbol;
         client.resolve (this.tickers[symbol], messageHash);
-        // watchTickers part
-        const messageHashes = this.findMessageHashes (client, 'tickers::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHashTicker = messageHashes[i];
-            const parts = messageHashTicker.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            if (this.inArray (parsed['symbol'], symbols)) {
-                client.resolve (parsed, messageHashTicker);
-            }
-        }
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -389,7 +395,7 @@ export default class bybit extends bybitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.getUrlByMarketType (symbol, false, params);
+        const url = this.getUrlByMarketType (symbol, false, 'watchOHLCV', params);
         params = this.cleanParams (params);
         let ohlcv = undefined;
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
@@ -511,7 +517,7 @@ export default class bybit extends bybitRest {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         symbols = this.marketSymbols (symbols);
-        const url = this.getUrlByMarketType (symbols[0], false, params);
+        const url = this.getUrlByMarketType (symbols[0], false, 'watchOrderBook', params);
         params = this.cleanParams (params);
         const market = this.market (symbols[0]);
         if (limit === undefined) {
@@ -646,7 +652,7 @@ export default class bybit extends bybitRest {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         params = this.cleanParams (params);
-        const url = this.getUrlByMarketType (symbols[0], false, params);
+        const url = this.getUrlByMarketType (symbols[0], false, 'watchTrades', params);
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -900,10 +906,14 @@ export default class bybit extends bybitRest {
         }
         const trades = this.myTrades;
         const symbols = {};
-        const method = spot ? 'parseWsTrade' : 'parseTrade';
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
-            const parsed = this[method] (rawTrade);
+            let parsed = undefined;
+            if (spot) {
+                parsed = this.parseWsTrade (rawTrade);
+            } else {
+                parsed = this.parseTrade (rawTrade);
+            }
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             trades.append (parsed);
@@ -924,7 +934,7 @@ export default class bybit extends bybitRest {
          * @name bybit#watchPositions
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
          * @description watch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
@@ -943,7 +953,7 @@ export default class bybit extends bybitRest {
         this.setPositionsCache (client, symbols);
         const cache = this.positions;
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
@@ -958,7 +968,7 @@ export default class bybit extends bybitRest {
 
     setPositionsCache (client: Client, symbols: Strings = undefined) {
         if (this.positions !== undefined) {
-            return this.positions;
+            return;
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         if (fetchPositionsSnapshot) {
@@ -1094,7 +1104,7 @@ export default class bybit extends bybitRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message, subscription = undefined) {
+    handleOrder (client: Client, message) {
         //
         //     spot
         //     {
@@ -1364,8 +1374,8 @@ export default class bybit extends bybitRest {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
         const unified = await this.isUnifiedEnabled ();
-        const isUnifiedMargin = this.safeValue (unified, 0, false);
-        const isUnifiedAccount = this.safeValue (unified, 1, false);
+        const isUnifiedMargin = this.safeBool (unified, 0, false);
+        const isUnifiedAccount = this.safeBool (unified, 1, false);
         const url = this.getUrlByMarketType (undefined, true, method, params);
         await this.authenticate (url);
         const topicByMarket = {
@@ -1658,7 +1668,7 @@ export default class bybit extends bybitRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const expiresInt = this.milliseconds () + 10000;
-            const expires = expiresInt.toString ();
+            const expires = this.numberToString (expiresInt);
             const path = 'GET/realtime';
             const auth = path + expires;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'hex');
@@ -1671,7 +1681,7 @@ export default class bybit extends bybitRest {
             const message = this.extend (request, params);
             this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     handleErrorMessage (client: Client, message) {

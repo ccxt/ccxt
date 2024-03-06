@@ -720,7 +720,7 @@ class cex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://docs.cex.io/#place-order
         create a trade order
@@ -1109,13 +1109,14 @@ class cex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        method = 'privatePostOpenOrders'
         market = None
+        orders = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method += 'Pair'
-        orders = await getattr(self, method)(self.extend(request, params))
+            orders = await self.privatePostOpenOrdersPair(self.extend(request, params))
+        else:
+            orders = await self.privatePostOpenOrders(self.extend(request, params))
         for i in range(0, len(orders)):
             orders[i] = self.extend(orders[i], {'status': 'open'})
         return self.parse_orders(orders, market, since, limit)
@@ -1133,10 +1134,9 @@ class cex(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
-        method = 'privatePostArchivedOrdersPair'
         market = self.market(symbol)
         request = {'pair': market['id']}
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await self.privatePostArchivedOrdersPair(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -1474,7 +1474,7 @@ class cex(Exchange, ImplicitAPI):
     def parse_order_status(self, status):
         return self.safe_string(self.options['order']['status'], status, status)
 
-    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.cex.io/#cancel-replace-order

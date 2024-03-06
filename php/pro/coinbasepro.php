@@ -103,7 +103,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $productIds[] = $market['id'];
-                $messageHashes[] = $messageHashStart . ':' . $market['id'];
+                $messageHashes[] = $messageHashStart . ':' . $market['symbol'];
             }
             $url = $this->urls['api']['ws'];
             if (is_array($params) && array_key_exists('signature', $params)) {
@@ -135,15 +135,14 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-$channel
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} [$symbols] unified symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $symbolsLength = count($symbols);
@@ -151,10 +150,12 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 throw new BadSymbol($this->id . ' watchTickers requires a non-empty $symbols array');
             }
             $channel = 'ticker';
-            $messageHash = 'tickers::';
-            $newTickers = Async\await($this->subscribe_multiple($channel, $symbols, $messageHash, $params));
+            $messageHash = 'ticker';
+            $ticker = Async\await($this->subscribe_multiple($channel, $symbols, $messageHash, $params));
             if ($this->newUpdates) {
-                return $newTickers;
+                $result = array();
+                $result[$ticker['symbol']] = $ticker;
+                return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
@@ -778,19 +779,10 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $ticker = $this->parse_ticker($message);
             $symbol = $ticker['symbol'];
             $this->tickers[$symbol] = $ticker;
-            $type = $this->safe_string($message, 'type');
-            $messageHash = $type . ':' . $marketId;
+            $messageHash = 'ticker:' . $symbol;
+            $idMessageHash = 'ticker:' . $marketId;
             $client->resolve ($ticker, $messageHash);
-            $messageHashes = $this->find_message_hashes($client, 'tickers::');
-            for ($i = 0; $i < count($messageHashes); $i++) {
-                $currentMessageHash = $messageHashes[$i];
-                $parts = explode('::', $currentMessageHash);
-                $symbolsString = $parts[1];
-                $symbols = explode(',', $symbolsString);
-                if ($this->in_array($symbol, $symbols)) {
-                    $client->resolve ($ticker, $currentMessageHash);
-                }
-            }
+            $client->resolve ($ticker, $idMessageHash);
         }
         return $message;
     }
@@ -998,7 +990,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 }
             }
         } else {
-            return $method($client, $message);
+            $method($client, $message);
         }
     }
 }

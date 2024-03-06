@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bitmart.js';
-import { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } from './base/errors.js';
+import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -46,6 +46,7 @@ export default class bitmart extends Exchange {
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'createTrailingPercentOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
@@ -198,6 +199,7 @@ export default class bitmart extends Exchange {
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
                         'contract/private/get-open-orders': 1.2,
+                        'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
                     },
                     'post': {
@@ -263,8 +265,8 @@ export default class bitmart extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber ('0.0025'),
-                    'maker': this.parseNumber ('0.0025'),
+                    'taker': this.parseNumber ('0.0040'),
+                    'maker': this.parseNumber ('0.0035'),
                     'tiers': {
                         'taker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.0020') ],
@@ -307,7 +309,11 @@ export default class bitmart extends Exchange {
                     '30012': AuthenticationError, // 403, Header X-BM-KEY is forbidden to request it
                     '30013': RateLimitExceeded, // 429, Request too many requests
                     '30014': ExchangeNotAvailable, // 503, Service unavailable
-                    // funding account errors
+                    '30016': OnMaintenance, // 200, Service maintenance, the function is temporarily unavailable
+                    '30017': RateLimitExceeded, // 418, Your account request is temporarily rejected due to violation of current limiting rules
+                    '30018': BadRequest, // 503, Request Body requires JSON format
+                    '30019': PermissionDenied, // 200, You do not have the permissions to perform this operation
+                    // funding account & sub account errors
                     '60000': BadRequest, // 400, Invalid request (maybe the body is empty, or the int parameter passes string data)
                     '60001': BadRequest, // 400, Asset account type does not exist
                     '60002': BadRequest, // 400, currency does not exist
@@ -324,13 +330,31 @@ export default class bitmart extends Exchange {
                     '60020': PermissionDenied, // 403, Your account is not allowed to recharge
                     '60021': PermissionDenied, // 403, Your account is not allowed to withdraw
                     '60022': PermissionDenied, // 403, No withdrawals for 24 hours
+                    '60026': PermissionDenied, // 403, Sub-account does not have permission to operate
+                    '60027': PermissionDenied, // 403, Only supports sub-account calls
+                    '60028': AccountSuspended, // 403, Account is disabled for security reasons, please contact customer service
+                    '60029': AccountSuspended, // 403, The account is frozen by the master account, please contact the master account to unfreeze the account
                     '60030': BadRequest, // 405, Method Not Allowed
                     '60031': BadRequest, // 415, Unsupported Media Type
                     '60050': ExchangeError, // 500, User account not found
                     '60051': ExchangeError, // 500, Internal Server Error
                     '61001': InsufficientFunds, // {"message":"Balance not enough","code":61001,"trace":"b85ea1f8-b9af-4001-ac5f-9e061fe93d78","data":{}}
-                    '61003': BadRequest, // {"message":"sub-account not found","code":61003,"trace":"b35ec2fd-0bc9-4ef2-a3c0-6f78d4f335a4","data":{}}
-                    // spot errors
+                    '61003': BadRequest, // 400, {"message":"sub-account not found","code":61003,"trace":"b35ec2fd-0bc9-4ef2-a3c0-6f78d4f335a4","data":{}}
+                    '61004': BadRequest, // 400, Duplicate requests (such as using an existing requestNo)
+                    '61005': BadRequest, // 403, Asset transfer between accounts is not available
+                    '61006': NotSupported, // 403, The sub-account api only supports organization accounts
+                    '61007': ExchangeError, // 403, Please complete your institution verification to enable withdrawal function.
+                    '61008': ExchangeError, // 403, Suspend transfer out
+                    // spot public errors
+                    '70000': ExchangeError, // 200, no data
+                    '70001': BadRequest, // 200, request param can not be null
+                    '70002': BadSymbol, // 200, symbol is invalid
+                    '71001': BadRequest, // 200, after is invalid
+                    '71002': BadRequest, // 200, before is invalid
+                    '71003': BadRequest, // 200, request after or before is invalid
+                    '71004': BadRequest, // 200, request kline count limit
+                    '71005': BadRequest, // 200, request step error
+                    // spot & margin errors
                     '50000': BadRequest, // 400, Bad Request
                     '50001': BadSymbol, // 400, Symbol not found
                     '50002': BadRequest, // 400, From Or To format error
@@ -350,26 +374,75 @@ export default class bitmart extends Exchange {
                     '50016': BadRequest, // 400, Maximum limit is %d
                     '50017': BadRequest, // 400, RequestParam offset is required
                     '50018': BadRequest, // 400, Minimum offset is 1
-                    '50019': BadRequest, // 400, Maximum price is %s
-                    '51004': InsufficientFunds, // {"message":"Exceed the maximum number of borrows available.","code":51004,"trace":"4030b753-9beb-44e6-8352-1633c5edcd47","data":{}}
-                    // '50019': ExchangeError, // 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
+                    '50019': ExchangeError, // 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled]                    '50020': InsufficientFunds, // 400, Balance not enough
                     '50020': InsufficientFunds, // 400, Balance not enough
                     '50021': BadRequest, // 400, Invalid %s
                     '50022': ExchangeNotAvailable, // 400, Service unavailable
                     '50023': BadSymbol, // 400, This Symbol can't place order by api
-                    '50029': InvalidOrder, // {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
-                    '50030': InvalidOrder, // {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
-                    '50032': OrderNotFound, // {"message":"Order does not exist","code":50032,"trace":"8d6b482d-4bf2-4e6c-aab2-9dcd22bf2481","data":{}}
+                    '50024': BadRequest, // 400, Order book size over 200
+                    '50025': BadRequest, // 400, Maximum price is %s
+                    '50026': BadRequest, // 400, The buy order price cannot be higher than the open price
+                    '50027': BadRequest, // 400, The sell order price cannot be lower than the open price
+                    '50028': BadRequest, // 400, Missing parameters
+                    '50029': InvalidOrder, // 400, {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
+                    '50030': OrderNotFound, // 400, {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
+                    '50031': OrderNotFound, // 400, Order is already completed
+                    '50032': OrderNotFound, // 400, {"message":"Order does not exist","code":50032,"trace":"8d6b482d-4bf2-4e6c-aab2-9dcd22bf2481","data":{}}
+                    '50033': InvalidOrder, // 400, The order quantity should be greater than 0 and less than or equal to 10
                     // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
-                    '50035': InvalidOrder, // {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
-                    '50034': InvalidOrder, // {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
-                    '51011': InvalidOrder, // {"message":"param not match : size * price >=5","code":51011,"trace":"525e1d27bfd34d60b2d90ba13a7c0aa9.74.16696421352220797","data":{}}
+                    '50034': InvalidOrder, // 400, {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
+                    '50035': InvalidOrder, // 400, {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
+                    '50036': ExchangeError, // 400, Cancel failed, order is not revocable status
+                    '50037': BadRequest, // 400, The maximum length of clientOrderId cannot exceed 32
+                    '50038': BadRequest, // 400, ClientOrderId only allows a combination of numbers and letters
+                    '50039': BadRequest, // 400, Order_id and clientOrderId cannot be empty at the same time
+                    '50040': BadSymbol, // 400, Symbol Not Available
+                    '50041': ExchangeError, // 400, Out of query time range
+                    '50042': BadRequest, // 400, clientOrderId is duplicate
+                    '51000': BadSymbol, // 400, Currency not found
+                    '51001': ExchangeError, // 400, Margin Account not Opened
+                    '51002': ExchangeError, // 400, Margin Account Not Available
+                    '51003': ExchangeError, // 400, Account Limit
+                    '51004': InsufficientFunds, // 400, {"message":"Exceed the maximum number of borrows available.","code":51004,"trace":"4030b753-9beb-44e6-8352-1633c5edcd47","data":{}}
+                    '51005': InvalidOrder, // 400, Less than the minimum borrowable amount
+                    '51006': InvalidOrder, // 400, Exceeds the amount to be repaid
+                    '51007': BadRequest, // 400, order_mode not found
+                    '51008': ExchangeError, // 400, Operation is limited, please try again later
+                    '51009': InvalidOrder, // 400, Parameter mismatch: limit order/market order quantity should be greater than the minimum number of should buy/sell
+                    '51010': InvalidOrder, // 400, Parameter mismatch: limit order price should be greater than the minimum buy price
+                    '51011': InvalidOrder, // 400, {"message":"param not match : size * price >=5","code":51011,"trace":"525e1d27bfd34d60b2d90ba13a7c0aa9.74.16696421352220797","data":{}}
+                    '51012': InvalidOrder, // 400, Parameter mismatch: limit order price should be greater than the minimum buy price
+                    '51013': InvalidOrder, // 400, Parameter mismatch: Limit order quantity * price should be greater than the minimum transaction amount
+                    '51014': InvalidOrder, // 400, Participation mismatch: the number of market order buy orders should be greater than the minimum buyable amount
+                    '51015': InvalidOrder, // 400, Parameter mismatch: the price of market order buy order placed is too small
+                    '52000': BadRequest, // 400, Unsupported OrderMode Type
+                    '52001': BadRequest, // 400, Unsupported Trade Type
+                    '52002': BadRequest, // 400, Unsupported Side Type
+                    '52003': BadRequest, // 400, Unsupported Query State Type
+                    '52004': BadRequest, // 400, End time must be greater than or equal to Start time
                     '53000': AccountSuspended, // 403, Your account is frozen due to security policies. Please contact customer service
-                    '53001': AccountSuspended, // {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
+                    '53001': AccountSuspended, // 403, {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
+                    '53002': PermissionDenied, // 403, Your account has not yet completed the kyc advanced certification, please complete first
+                    '53003': PermissionDenied, // 403 No permission, please contact the main account
+                    '53005': PermissionDenied, // 403 Don't have permission to access the interface
+                    '53006': PermissionDenied, // 403 Please complete your personal verification(Starter)
+                    '53007': PermissionDenied, // 403 Please complete your personal verification(Advanced)
+                    '53008': PermissionDenied, // 403 Services is not available in your countries and areas
+                    '53009': PermissionDenied, // 403 Your account has not yet completed the qr code certification, please complete first
+                    '53010': PermissionDenied, // 403 This account is restricted from borrowing
                     '57001': BadRequest, // 405, Method Not Allowed
                     '58001': BadRequest, // 415, Unsupported Media Type
                     '59001': ExchangeError, // 500, User account not found
                     '59002': ExchangeError, // 500, Internal Server Error
+                    '59003': ExchangeError, // 500, Spot wallet call fail
+                    '59004': ExchangeError, // 500, Margin wallet service call exception
+                    '59005': PermissionDenied, // 500, Margin wallet service restricted
+                    '59006': ExchangeError, // 500, Transfer fail
+                    '59007': ExchangeError, // 500, Get symbol risk data fail
+                    '59008': ExchangeError, // 500, Trading order failure
+                    '59009': ExchangeError, // 500, Loan success,but trading order failure
+                    '59010': InsufficientFunds, // 500, Insufficient loan amount.
+                    '59011': ExchangeError, // 500, The Get Wallet Balance service call fail, please try again later
                     // contract errors
                     '40001': ExchangeError, // 400, Cloud account not found
                     '40002': ExchangeError, // 400, out_trade_no not found
@@ -405,14 +478,22 @@ export default class bitmart extends Exchange {
                     '40032': InvalidOrder, // 400, The plan order's life cycle is too long.
                     '40033': InvalidOrder, // 400, The plan order's life cycle is too short.
                     '40034': BadSymbol, // 400, This contract is not found
-                    '53002': PermissionDenied, // 403, Your account has not yet completed the kyc advanced certification, please complete first
-                    '53003': PermissionDenied, // 403 No permission, please contact the main account
-                    '53005': PermissionDenied, // 403 Don't have permission to access the interface
-                    '53006': PermissionDenied, // 403 Please complete your personal verification(Starter)
-                    '53007': PermissionDenied, // 403 Please complete your personal verification(Advanced)
-                    '53008': PermissionDenied, // 403 Services is not available in your countries and areas
-                    '53009': PermissionDenied, // 403 Your account has not yet completed the qr code certification, please complete first
-                    '53010': PermissionDenied, // 403 This account is restricted from borrowing
+                    '40035': OrderNotFound, // 400, The order is not exist
+                    '40036': InvalidOrder, // 400, The order status is invalid
+                    '40037': OrderNotFound, // 400, The order id is not exist
+                    '40038': BadRequest, // 400, The k-line step is invalid
+                    '40039': BadRequest, // 400, The timestamp is invalid
+                    '40040': InvalidOrder, // 400, The order leverage is invalid
+                    '40041': InvalidOrder, // 400, The order side is invalid
+                    '40042': InvalidOrder, // 400, The order type is invalid
+                    '40043': InvalidOrder, // 400, The order precision is invalid
+                    '40044': InvalidOrder, // 400, The order range is invalid
+                    '40045': InvalidOrder, // 400, The order open type is invalid
+                    '40046': PermissionDenied, // 403, The account is not opened futures
+                    '40047': PermissionDenied, // 403, Services is not available in you countries and areas
+                    '40048': BadRequest, // 403, ClientOrderId only allows a combination of numbers and letters
+                    '40049': BadRequest, // 403, The maximum length of clientOrderId cannot exceed 32
+                    '40050': InvalidOrder, // 403, Client OrderId duplicated with existing orders
                 },
                 'broad': {},
             },
@@ -433,6 +514,7 @@ export default class bitmart extends Exchange {
                 },
                 'networks': {
                     'ERC20': 'ERC20',
+                    'SOL': 'SOL',
                     'BTC': 'BTC',
                     'TRC20': 'TRC20',
                     // todo: should be TRX after unification
@@ -455,7 +537,6 @@ export default class bitmart extends Exchange {
                     'FIO': 'FIO',
                     'SCRT': 'SCRT',
                     'IOTX': 'IOTX',
-                    'SOL': 'SOL',
                     'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
                     'DOT': 'DOT',
@@ -1048,12 +1129,12 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = response['data'];
-        return this.parseDepositWithdrawFee (data);
+        return this.parseDepositWithdrawFee (data) as any;
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
         //
-        // spot
+        // spot (REST)
         //
         //      {
         //          "symbol": "SOLAR_USDT",
@@ -1073,6 +1154,17 @@ export default class bitmart extends Exchange {
         //          "timestamp": 1667403439367
         //      }
         //
+        // spot (WS)
+        //      {
+        //          "symbol":"BTC_USDT",
+        //          "last_price":"146.24",
+        //          "open_24h":"147.17",
+        //          "high_24h":"147.48",
+        //          "low_24h":"143.88",
+        //          "base_volume_24h":"117387.58", // NOT base, but quote currency!!!
+        //          "s_t": 1610936002
+        //      }
+        //
         // swap
         //
         //      {
@@ -1088,7 +1180,11 @@ export default class bitmart extends Exchange {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        const timestamp = this.safeInteger (ticker, 'timestamp');
+        let timestamp = this.safeInteger (ticker, 'timestamp');
+        if (timestamp === undefined) {
+            // ticker from WS has a different field (in seconds)
+            timestamp = this.safeIntegerProduct (ticker, 's_t', 1000);
+        }
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -1103,9 +1199,19 @@ export default class bitmart extends Exchange {
                 percentage = '0';
             }
         }
-        const baseVolume = this.safeString (ticker, 'base_volume_24h');
+        let baseVolume = this.safeString (ticker, 'base_volume_24h');
         let quoteVolume = this.safeString (ticker, 'quote_volume_24h');
-        quoteVolume = this.safeString (ticker, 'volume_24h', quoteVolume);
+        if (quoteVolume === undefined) {
+            if (baseVolume === undefined) {
+                // this is swap
+                quoteVolume = this.safeString (ticker, 'volume_24h', quoteVolume);
+            } else {
+                // this is a ticker from websockets
+                // contrary to name and documentation, base_volume_24h is actually the quote volume
+                quoteVolume = baseVolume;
+                baseVolume = undefined;
+            }
+        }
         const average = this.safeString2 (ticker, 'avg_price', 'index_price');
         const high = this.safeString2 (ticker, 'high_24h', 'high_price');
         const low = this.safeString2 (ticker, 'low_24h', 'low_price');
@@ -1859,7 +1965,7 @@ export default class bitmart extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const marginMode = this.safeString (params, 'marginMode');
-        const isMargin = this.safeValue (params, 'margin', false);
+        const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, [ 'margin', 'marginMode' ]);
         if (marginMode !== undefined || isMargin) {
             marketType = 'margin';
@@ -2128,7 +2234,7 @@ export default class bitmart extends Exchange {
         if (priceString === 'market price') {
             priceString = undefined;
         }
-        const trailingStopActivationPrice = this.safeNumber (order, 'activation_price');
+        const trailingActivationPrice = this.safeNumber (order, 'activation_price');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': this.safeString (order, 'client_order_id'),
@@ -2142,8 +2248,8 @@ export default class bitmart extends Exchange {
             'postOnly': postOnly,
             'side': this.parseOrderSide (this.safeString (order, 'side')),
             'price': this.omitZero (priceString),
-            'stopPrice': trailingStopActivationPrice,
-            'triggerPrice': trailingStopActivationPrice,
+            'stopPrice': trailingActivationPrice,
+            'triggerPrice': trailingActivationPrice,
             'amount': this.omitZero (this.safeString (order, 'size')),
             'cost': this.safeString2 (order, 'filled_notional', 'filledNotional'),
             'average': this.safeStringN (order, [ 'price_avg', 'priceAvg', 'deal_avg_price' ]),
@@ -2191,7 +2297,7 @@ export default class bitmart extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
          * @name bitmart#createMarketBuyOrderWithCost
@@ -2211,7 +2317,7 @@ export default class bitmart extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createOrder
@@ -2219,6 +2325,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} side 'buy' or 'sell'
@@ -2230,12 +2337,20 @@ export default class bitmart extends Exchange {
          * @param {string} [params.clientOrderId] client order id of the order
          * @param {boolean} [params.reduceOnly] *swap only* reduce only
          * @param {boolean} [params.postOnly] make sure the order is posted to the order book and not matched immediately
+         * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+         * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+         * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
+         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
+         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const result = this.handleMarginModeAndParams ('createOrder', params);
         const marginMode = this.safeString (result, 0);
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
+        const isTriggerOrder = triggerPrice !== undefined;
         let response = undefined;
         if (market['spot']) {
             const spotRequest = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
@@ -2246,7 +2361,11 @@ export default class bitmart extends Exchange {
             }
         } else {
             const swapRequest = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
-            response = await this.privatePostContractPrivateSubmitOrder (swapRequest);
+            if (isTriggerOrder) {
+                response = await this.privatePostContractPrivateSubmitPlanOrder (swapRequest);
+            } else {
+                response = await this.privatePostContractPrivateSubmitOrder (swapRequest);
+            }
         }
         //
         // spot and margin
@@ -2272,13 +2391,14 @@ export default class bitmart extends Exchange {
         return order;
     }
 
-    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createSwapOrderRequest
          * @ignore
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing'
          * @param {string} side 'buy' or 'sell'
@@ -2289,8 +2409,12 @@ export default class bitmart extends Exchange {
          * @param {boolean} [params.reduceOnly] *swap only* reduce only
          * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
          * @param {string} [params.clientOrderId] client order id of the order
+         * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+         * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+         * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
          * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
-         * @param {string} [params.callback_rate] *swap trailing order only* min 0.1, max 5 where 1 is 1%, default is "1"
+         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market (symbol);
@@ -2303,10 +2427,9 @@ export default class bitmart extends Exchange {
         const mode = this.safeInteger (params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
         let postOnly = undefined;
-        let reduceOnly = this.safeValue (params, 'reduceOnly');
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
         const isExchangeSpecificPo = (mode === 4);
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, isExchangeSpecificPo, params);
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly' ]);
         const ioc = ((timeInForce === 'IOC') || (mode === 3));
         const isLimitOrder = (type === 'limit') || postOnly || ioc;
         if (timeInForce === 'GTC') {
@@ -2319,13 +2442,35 @@ export default class bitmart extends Exchange {
         if (postOnly) {
             request['mode'] = 4;
         }
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
+        const isTriggerOrder = triggerPrice !== undefined;
+        const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activation_price', this.numberToString (price));
+        const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callback_rate');
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         if (isLimitOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
-        } else if (type === 'trailing') {
-            reduceOnly = true;
-            request['activation_price'] = this.priceToPrecision (symbol, price);
+        } else if (type === 'trailing' || isTrailingPercentOrder) {
+            request['callback_rate'] = trailingPercent;
+            request['activation_price'] = this.priceToPrecision (symbol, trailingTriggerPrice);
             request['activation_price_type'] = this.safeInteger (params, 'activation_price_type', 1);
-            request['callback_rate'] = this.safeString (params, 'callback_rate', '1');
+        }
+        if (isTriggerOrder) {
+            request['executive_price'] = this.priceToPrecision (symbol, price);
+            request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            request['price_type'] = this.safeInteger (params, 'price_type', 1);
+            if (side === 'buy') {
+                if (reduceOnly) {
+                    request['price_way'] = 2;
+                } else {
+                    request['price_way'] = 1;
+                }
+            } else if (side === 'sell') {
+                if (reduceOnly) {
+                    request['price_way'] = 1;
+                } else {
+                    request['price_way'] = 2;
+                }
+            }
         }
         if (side === 'buy') {
             if (reduceOnly) {
@@ -2349,12 +2494,12 @@ export default class bitmart extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         const leverage = this.safeInteger (params, 'leverage', 1);
-        params = this.omit (params, 'leverage');
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice' ]);
         request['leverage'] = this.numberToString (leverage);
         return this.extend (request, params);
     }
 
-    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createSpotOrderRequest
@@ -2429,10 +2574,11 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#cancelOrder
+         * @description cancels an open order
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
          * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-         * @description cancels an open order
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2459,8 +2605,8 @@ export default class bitmart extends Exchange {
         if (market['spot']) {
             response = await this.privatePostSpotV3CancelOrder (this.extend (request, params));
         } else {
-            const stop = this.safeValue (params, 'stop');
-            params = this.omit (params, [ 'stop' ]);
+            const stop = this.safeValue2 (params, 'stop', 'trigger');
+            params = this.omit (params, [ 'stop', 'trigger' ]);
             if (!stop) {
                 response = await this.privatePostContractPrivateCancelOrder (this.extend (request, params));
             } else {
@@ -2627,6 +2773,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#fetchOpenOrders
          * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
          * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
+         * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -2637,6 +2784,8 @@ export default class bitmart extends Exchange {
          * @param {string} [params.type] *swap* order type, 'limit' or 'market'
          * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
          * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
+         * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
+         * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2668,12 +2817,22 @@ export default class bitmart extends Exchange {
             }
             response = await this.privatePostSpotV4QueryOpenOrders (this.extend (request, params));
         } else if (type === 'swap') {
-            const orderType = this.safeString (params, 'orderType');
-            params = this.omit (params, 'orderType');
-            if (orderType !== undefined) {
-                request['type'] = orderType;
+            const isStop = this.safeValue2 (params, 'stop', 'trigger');
+            params = this.omit (params, [ 'stop', 'trigger' ]);
+            if (isStop) {
+                response = await this.privateGetContractPrivateCurrentPlanOrder (this.extend (request, params));
+            } else {
+                const trailing = this.safeBool (params, 'trailing', false);
+                let orderType = this.safeString (params, 'orderType');
+                params = this.omit (params, [ 'orderType', 'trailing' ]);
+                if (trailing) {
+                    orderType = 'trailing';
+                }
+                if (orderType !== undefined) {
+                    request['type'] = orderType;
+                }
+                response = await this.privateGetContractPrivateGetOpenOrders (this.extend (request, params));
             }
-            response = await this.privateGetContractPrivateGetOpenOrders (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted');
         }
@@ -2816,6 +2975,7 @@ export default class bitmart extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
          * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
+         * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2841,8 +3001,12 @@ export default class bitmart extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
             }
-            const orderType = this.safeString (params, 'orderType');
-            params = this.omit (params, 'orderType');
+            const trailing = this.safeBool (params, 'trailing', false);
+            let orderType = this.safeString (params, 'orderType');
+            params = this.omit (params, [ 'orderType', 'trailing' ]);
+            if (trailing) {
+                orderType = 'trailing';
+            }
             if (orderType !== undefined) {
                 request['type'] = orderType;
             }
@@ -2909,6 +3073,7 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2931,44 +3096,62 @@ export default class bitmart extends Exchange {
         }
         const response = await this.privateGetAccountV1DepositAddress (this.extend (request, params));
         //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
-        //         "data":{
-        //             "currency":"USDT-TRC20",
-        //             "chain":"USDT-TRC20",
-        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
-        //             "address_memo":""
-        //         }
-        //     }
+        //    {
+        //        "message": "OK",
+        //        "code": 1000,
+        //        "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //        "data": {
+        //            currency: 'ETH',
+        //            chain: 'Ethereum',
+        //            address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //            address_memo: ''
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'address_memo');
-        const chain = this.safeString (data, 'chain');
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //    {
+        //        currency: 'ETH',
+        //        chain: 'Ethereum',
+        //        address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //        address_memo: ''
+        //    }
+        //
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const address = this.safeString (depositAddress, 'address');
+        const chain = this.safeString (depositAddress, 'chain');
         let network = undefined;
+        currency = this.safeCurrency (currencyId, currency);
         if (chain !== undefined) {
             const parts = chain.split ('-');
-            const networkId = this.safeString (parts, 1);
-            network = this.safeNetwork (networkId);
+            const partsLength = parts.length;
+            const networkId = this.safeString (parts, partsLength - 1);
+            network = this.safeNetworkCode (networkId, currency);
         }
         this.checkAddress (address);
         return {
-            'currency': code,
+            'info': depositAddress,
+            'currency': this.safeString (currency, 'code'),
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (depositAddress, 'address_memo'),
             'network': network,
-            'info': response,
         };
     }
 
-    safeNetwork (networkId) {
-        // TODO: parse
-        return networkId;
+    safeNetworkCode (networkId, currency = undefined) {
+        const name = this.safeString (currency, 'name');
+        if (networkId === name) {
+            const code = this.safeString (currency, 'code');
+            return code;
+        }
+        return this.networkIdToCode (networkId);
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#withdraw
@@ -3319,7 +3502,7 @@ export default class bitmart extends Exchange {
         });
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         /**
          * @method
          * @name bitmart#borrowIsolatedMargin
@@ -3372,14 +3555,13 @@ export default class bitmart extends Exchange {
         //         "repay_id": "2afcc16d99bd4707818c5a355dc89bed",
         //     }
         //
-        const timestamp = this.milliseconds ();
         return {
             'id': this.safeString2 (info, 'borrow_id', 'repay_id'),
             'currency': this.safeCurrencyCode (undefined, currency),
             'amount': undefined,
             'symbol': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
@@ -3534,7 +3716,7 @@ export default class bitmart extends Exchange {
         return result;
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name bitmart#transfer
@@ -3880,7 +4062,7 @@ export default class bitmart extends Exchange {
         }, market);
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#setLeverage

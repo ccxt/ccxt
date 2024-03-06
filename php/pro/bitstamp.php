@@ -113,7 +113,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             // usually it takes at least 4-5 deltas to resolve
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 6);
             if ($cacheLength === $snapshotDelay) {
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, null, array());
             }
             $storedOrderBook->cache[] = $delta;
             return;
@@ -518,9 +518,9 @@ class bitstamp extends \ccxt\async\bitstamp {
         //
         $event = $this->safe_string($message, 'event');
         if ($event === 'bts:subscription_succeeded') {
-            return $this->handle_subscription_status($client, $message);
+            $this->handle_subscription_status($client, $message);
         } else {
-            return $this->handle_subject($client, $message);
+            $this->handle_subject($client, $message);
         }
     }
 
@@ -545,7 +545,6 @@ class bitstamp extends \ccxt\async\bitstamp {
                     $this->options['expiresIn'] = $this->sum($time, $validity);
                     $this->options['userId'] = $userId;
                     $this->options['wsSessionToken'] = $sessionToken;
-                    return $response;
                 }
             }
         }) ();

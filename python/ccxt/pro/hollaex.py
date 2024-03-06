@@ -213,7 +213,7 @@ class hollaex(ccxt.async_support.hollaex):
         # when the user does not have any trades yet
         dataLength = len(rawTrades)
         if dataLength == 0:
-            return 0
+            return
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCache(limit)
@@ -319,7 +319,7 @@ class hollaex(ccxt.async_support.hollaex):
         # usually the first message is an empty array
         dataLength = len(data)
         if dataLength == 0:
-            return 0
+            return
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)

@@ -57,6 +57,9 @@ class coinex extends Exchange {
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => true,
+                'createStopLossOrder' => true,
+                'createTakeProfitOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
@@ -214,6 +217,8 @@ class coinex extends Exchange {
                     ),
                     'put' => array(
                         'balance/deposit/address/{coin_type}' => 40,
+                        'sub_account/unfrozen' => 40,
+                        'sub_account/frozen' => 40,
                         'sub_account/auth/api/{user_auth_id}' => 40,
                         'v1/account/settings' => 40,
                     ),
@@ -223,7 +228,10 @@ class coinex extends Exchange {
                         'order/pending' => 13.334,
                         'order/stop/pending' => 40,
                         'order/stop/pending/{id}' => 13.334,
+                        'order/pending/by_client_id' => 40,
+                        'order/stop/pending/by_client_id' => 40,
                         'sub_account/auth/api/{user_auth_id}' => 40,
+                        'sub_account/authorize/{id}' => 40,
                     ),
                 ),
                 'perpetualPublic' => array(
@@ -237,12 +245,12 @@ class coinex extends Exchange {
                         'market/depth' => 1,
                         'market/deals' => 1,
                         'market/funding_history' => 1,
-                        'market/user_deals' => 1,
                         'market/kline' => 1,
                     ),
                 ),
                 'perpetualPrivate' => array(
                     'get' => array(
+                        'market/user_deals' => 1,
                         'asset/query' => 40,
                         'order/pending' => 8,
                         'order/finished' => 40,
@@ -250,8 +258,13 @@ class coinex extends Exchange {
                         'order/stop_pending' => 8,
                         'order/status' => 8,
                         'order/stop_status' => 8,
+                        'position/finished' => 40,
                         'position/pending' => 40,
                         'position/funding' => 40,
+                        'position/adl_history' => 40,
+                        'market/preference' => 40,
+                        'position/margin_history' => 40,
+                        'position/settle_history' => 40,
                     ),
                     'post' => array(
                         'market/adjust_leverage' => 1,
@@ -273,6 +286,9 @@ class coinex extends Exchange {
                         'position/stop_loss' => 20,
                         'position/take_profit' => 20,
                         'position/market_close' => 20,
+                        'order/cancel/by_client_id' => 20,
+                        'order/cancel_stop/by_client_id' => 20,
+                        'market/preference' => 20,
                     ),
                 ),
             ),
@@ -956,7 +972,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, $limit = 20, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = 20, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1106,9 +1122,10 @@ class coinex extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'market');
-        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $marketType = $this->safe_string($trade, 'market_type');
+        $defaultType = ($marketType === null) ? 'spot' : 'swap';
         $market = $this->safe_market($marketId, $market, null, $defaultType);
-        $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
+        $symbol = $market['symbol'];
         $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
         $feeCostString = $this->safe_string_2($trade, 'fee', 'deal_fee');
@@ -1591,8 +1608,9 @@ class coinex extends Exchange {
              */
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            $isMargin = $this->safe_value($params, 'margin', false);
-            $marketType = $isMargin ? 'margin' : $marketType;
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
+            $marketType = ($marginMode !== null) ? 'margin' : $marketType;
             $params = $this->omit($params, 'margin');
             if ($marketType === 'margin') {
                 return Async\await($this->fetch_margin_balance($params));
@@ -1953,7 +1971,7 @@ class coinex extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
@@ -1973,7 +1991,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function create_order_request($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $swap = $market['swap'];
         $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
@@ -2106,8 +2124,9 @@ class coinex extends Exchange {
             }
         }
         $accountId = $this->safe_integer($params, 'account_id');
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        if ($defaultType === 'margin') {
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        if ($marginMode !== null) {
             if ($accountId === null) {
                 throw new BadRequest($this->id . ' createOrder() requires an account_id parameter for margin orders');
             }
@@ -2117,7 +2136,7 @@ class coinex extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2517,7 +2536,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -2592,11 +2611,17 @@ class coinex extends Exchange {
              * cancels an open order
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade018_cancle_stop_pending_order
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade015_cancel_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade024_cancel_order_by_client_id
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade025_cancel_stop_order_by_client_id
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http023_cancel_stop_order
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021_cancel_order
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http042_cancel_order_by_client_id
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http043_cancel_stop_order_by_client_id
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->clientOrderId] client order $id, defaults to $id if not passed
+             * @param {boolean} [$params->stop] if $stop order = true, default = false
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
@@ -2609,29 +2634,48 @@ class coinex extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $idRequest = $swap ? 'order_id' : 'id';
-            $request[$idRequest] = $id;
             $accountId = $this->safe_integer($params, 'account_id');
-            $defaultType = $this->safe_string($this->options, 'defaultType');
-            if ($defaultType === 'margin') {
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
+            $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
+            if ($marginMode !== null) {
                 if ($accountId === null) {
                     throw new BadRequest($this->id . ' cancelOrder() requires an account_id parameter for margin orders');
                 }
                 $request['account_id'] = $accountId;
             }
-            $query = $this->omit($params, array( 'stop', 'account_id' ));
+            $query = $this->omit($params, array( 'stop', 'account_id', 'clientOrderId' ));
             $response = null;
-            if ($stop) {
-                if ($swap) {
-                    $response = Async\await($this->perpetualPrivatePostOrderCancelStop (array_merge($request, $query)));
+            if ($clientOrderId !== null) {
+                $request['client_id'] = $clientOrderId;
+                if ($stop) {
+                    if ($swap) {
+                        $response = Async\await($this->perpetualPrivatePostOrderCancelStopByClientId (array_merge($request, $query)));
+                    } else {
+                        $response = Async\await($this->privateDeleteOrderStopPendingByClientId (array_merge($request, $query)));
+                    }
                 } else {
-                    $response = Async\await($this->privateDeleteOrderStopPendingId (array_merge($request, $query)));
+                    if ($swap) {
+                        $response = Async\await($this->perpetualPrivatePostOrderCancelByClientId (array_merge($request, $query)));
+                    } else {
+                        $response = Async\await($this->privateDeleteOrderPendingByClientId (array_merge($request, $query)));
+                    }
                 }
             } else {
-                if ($swap) {
-                    $response = Async\await($this->perpetualPrivatePostOrderCancel (array_merge($request, $query)));
+                $idRequest = $swap ? 'order_id' : 'id';
+                $request[$idRequest] = $id;
+                if ($stop) {
+                    if ($swap) {
+                        $response = Async\await($this->perpetualPrivatePostOrderCancelStop (array_merge($request, $query)));
+                    } else {
+                        $response = Async\await($this->privateDeleteOrderStopPendingId (array_merge($request, $query)));
+                    }
                 } else {
-                    $response = Async\await($this->privateDeleteOrderPending (array_merge($request, $query)));
+                    if ($swap) {
+                        $response = Async\await($this->perpetualPrivatePostOrderCancel (array_merge($request, $query)));
+                    } else {
+                        $response = Async\await($this->privateDeleteOrderPending (array_merge($request, $query)));
+                    }
                 }
             }
             //
@@ -2959,8 +3003,9 @@ class coinex extends Exchange {
             }
             list($marketType, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
             $accountId = $this->safe_integer($params, 'account_id');
-            $defaultType = $this->safe_string($this->options, 'defaultType');
-            if ($defaultType === 'margin') {
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
+            if ($marginMode !== null) {
                 if ($accountId === null) {
                     throw new BadRequest($this->id . ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
                 }
@@ -3274,7 +3319,7 @@ class coinex extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             $depositAddress = $this->parse_deposit_address($data, $currency);
             $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
-            $fillResponseFromRequest = $this->safe_value($options, 'fillResponseFromRequest', true);
+            $fillResponseFromRequest = $this->safe_bool($options, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $depositAddress['network'] = $this->safe_network_code($network, $currency);
             }
@@ -3363,8 +3408,9 @@ class coinex extends Exchange {
             }
             $swap = ($type === 'swap');
             $accountId = $this->safe_integer($params, 'account_id');
-            $defaultType = $this->safe_string($this->options, 'defaultType');
-            if ($defaultType === 'margin') {
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
+            if ($marginMode !== null) {
                 if ($accountId === null) {
                     throw new BadRequest($this->id . ' fetchMyTrades() requires an account_id parameter for margin trades');
                 }
@@ -3373,16 +3419,11 @@ class coinex extends Exchange {
             }
             $response = null;
             if ($swap) {
-                $side = $this->safe_integer($params, 'side');
-                if ($side === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $side parameter for $swap markets');
-                }
                 if ($since !== null) {
                     $request['start_time'] = $since;
                 }
-                $request['side'] = $side;
-                $params = $this->omit($params, 'side');
-                $response = Async\await($this->perpetualPublicGetMarketUserDeals (array_merge($request, $params)));
+                $request['side'] = 0;
+                $response = Async\await($this->perpetualPrivateGetMarketUserDeals (array_merge($request, $params)));
             } else {
                 $request['page'] = 1;
                 $response = Async\await($this->privateGetOrderUserDeals (array_merge($request, $params)));
@@ -3471,11 +3512,17 @@ class coinex extends Exchange {
             /**
              * fetch all open positions
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-             * @param {string[]|null} $symbols list of unified $market $symbols
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+             * @param {string[]} [$symbols] list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
+             * @param {int} [$params->side] *history endpoint only* 0 => All, 1 => Sell, 2 => Buy, default is 0
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
+            $defaultMethod = null;
+            list($defaultMethod, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', 'perpetualPrivateGetPositionPending');
+            $isHistory = ($defaultMethod === 'perpetualPrivateGetPositionFinished');
             $symbols = $this->market_symbols($symbols);
             $request = array();
             $market = null;
@@ -3492,8 +3539,21 @@ class coinex extends Exchange {
                 }
                 $market = $this->market($symbol);
                 $request['market'] = $market['id'];
+            } else {
+                if ($isHistory) {
+                    throw new ArgumentsRequired($this->id . ' fetchPositions() requires a $symbol argument for closed positions');
+                }
             }
-            $response = Async\await($this->perpetualPrivateGetPositionPending (array_merge($request, $params)));
+            if ($isHistory) {
+                $request['limit'] = 100;
+                $request['side'] = $this->safe_integer($params, 'side', 0); // 0 => All, 1 => Sell, 2 => Buy
+            }
+            $response = null;
+            if ($defaultMethod === 'perpetualPrivateGetPositionPending') {
+                $response = Async\await($this->perpetualPrivateGetPositionPending (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->perpetualPrivateGetPositionFinished (array_merge($request, $params)));
+            }
             //
             //     {
             //         "code" => 0,
@@ -3747,7 +3807,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -3796,7 +3856,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
@@ -4297,7 +4357,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -4322,7 +4382,7 @@ class coinex extends Exchange {
             $request = array(
                 'coin_type' => $currency['id'],
                 'coin_address' => $address, // must be authorized, inter-user transfer by a registered mobile phone number or an email $address is supported
-                'actual_amount' => floatval($amount), // the actual $amount without fees, https://www.coinex.com/fees
+                'actual_amount' => floatval($this->number_to_string($amount)), // the actual $amount without fees, https://www.coinex.com/fees
                 'transfer_method' => 'onchain', // onchain, local
             );
             if ($networkCode !== null) {
@@ -4557,7 +4617,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -4710,9 +4770,10 @@ class coinex extends Exchange {
                 $request['limit'] = 100;
             }
             $params = $this->omit($params, 'page');
-            $defaultType = $this->safe_string($this->options, 'defaultType');
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTransfers', $params);
             $response = null;
-            if ($defaultType === 'margin') {
+            if ($marginMode !== null) {
                 $response = Async\await($this->privateGetMarginTransferHistory (array_merge($request, $params)));
             } else {
                 $response = Async\await($this->privateGetContractTransferHistory (array_merge($request, $params)));
@@ -5109,7 +5170,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
@@ -5307,6 +5368,25 @@ class coinex extends Exchange {
         return $depositWithdrawFees;
     }
 
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
+        /**
+         * @ignore
+         * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {Array} the $marginMode in lowercase
+         */
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $isMargin = $this->safe_bool($params, 'margin', false);
+        $marginMode = null;
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
+        if ($marginMode === null) {
+            if (($defaultType === 'margin') || ($isMargin === true)) {
+                $marginMode = 'isolated';
+            }
+        }
+        return array( $marginMode, $params );
+    }
+
     public function nonce() {
         return $this->milliseconds();
     }
@@ -5342,7 +5422,7 @@ class coinex extends Exchange {
                 }
             }
         }
-        if ($api === 'perpetualPrivate' || $url === 'https://api->coinex.com/perpetual/v1/market/user_deals') {
+        if ($api === 'perpetualPrivate') {
             $this->check_required_credentials();
             $query = array_merge(array(
                 'access_id' => $this->apiKey,

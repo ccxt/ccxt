@@ -759,7 +759,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://docs.cex.io/#place-order
@@ -1181,14 +1181,15 @@ class cex extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $method = 'privatePostOpenOrders';
             $market = null;
+            $orders = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
-                $method .= 'Pair';
+                $orders = Async\await($this->privatePostOpenOrdersPair (array_merge($request, $params)));
+            } else {
+                $orders = Async\await($this->privatePostOpenOrders (array_merge($request, $params)));
             }
-            $orders = Async\await($this->$method (array_merge($request, $params)));
             for ($i = 0; $i < count($orders); $i++) {
                 $orders[$i] = array_merge($orders[$i], array( 'status' => 'open' ));
             }
@@ -1211,10 +1212,9 @@ class cex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $method = 'privatePostArchivedOrdersPair';
             $market = $this->market($symbol);
             $request = array( 'pair' => $market['id'] );
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->privatePostArchivedOrdersPair (array_merge($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -1564,7 +1564,7 @@ class cex extends Exchange {
         return $this->safe_string($this->options['order']['status'], $status, $status);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order

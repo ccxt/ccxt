@@ -31,7 +31,7 @@ class bitget extends \ccxt\async\bitget {
                 'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
-                'watchOHLCVForSymbols' => true,
+                'watchOHLCVForSymbols' => false,
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
@@ -93,12 +93,16 @@ class bitget extends \ccxt\async\bitget {
 
     public function get_inst_type($market, $params = array ()) {
         $instType = null;
-        if (($market['swap']) || ($market['future'])) {
+        if ($market === null) {
+            list($instType, $params) = $this->handleProductTypeAndParams (null, $params);
+        } elseif (($market['swap']) || ($market['future'])) {
             list($instType, $params) = $this->handleProductTypeAndParams ($market, $params);
         } else {
             $instType = 'SPOT';
         }
-        list($instType, $params) = $this->handle_option_and_params($params, 'getInstType', 'instType', $instType);
+        $instypeAux = null;
+        list($instypeAux, $params) = $this->handle_option_and_params($params, 'getInstType', 'instType', $instType);
+        $instType = $instypeAux;
         return array( $instType, $params );
     }
 
@@ -157,7 +161,9 @@ class bitget extends \ccxt\async\bitget {
             }
             $tickers = Async\await($this->watch_public_multiple($messageHashes, $topics, $params));
             if ($this->newUpdates) {
-                return $tickers;
+                $result = array();
+                $result[$tickers['symbol']] = $tickers;
+                return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
@@ -455,7 +461,7 @@ class bitget extends \ccxt\async\bitget {
             $symbols = $this->market_symbols($symbols);
             $channel = 'books';
             $incrementalFeed = true;
-            if (($limit === 5) || ($limit === 15)) {
+            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
                 $channel .= (string) $limit;
                 $incrementalFeed = false;
             }
@@ -526,20 +532,22 @@ class bitget extends \ccxt\async\bitget {
         $rawOrderBook = $this->safe_value($data, 0);
         $timestamp = $this->safe_integer($rawOrderBook, 'ts');
         $incrementalBook = $channel === 'books';
-        $storedOrderBook = null;
         if ($incrementalBook) {
-            $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-            if ($storedOrderBook === null) {
-                $storedOrderBook = $this->counted_order_book(array());
-                $storedOrderBook['symbol'] = $symbol;
+            // $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                // $ob = $this->order_book(array());
+                $ob = $this->counted_order_book(array());
+                $ob['symbol'] = $symbol;
+                $this->orderbooks[$symbol] = $ob;
             }
+            $storedOrderBook = $this->orderbooks[$symbol];
             $asks = $this->safe_value($rawOrderBook, 'asks', array());
             $bids = $this->safe_value($rawOrderBook, 'bids', array());
             $this->handle_deltas($storedOrderBook['asks'], $asks);
             $this->handle_deltas($storedOrderBook['bids'], $bids);
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
-            $checksum = $this->safe_value($this->options, 'checksum', true);
+            $checksum = $this->safe_bool($this->options, 'checksum', true);
             $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a $checksum
             if (!$isSnapshot && $checksum) {
                 $storedAsks = $storedOrderBook['asks'];
@@ -566,10 +574,12 @@ class bitget extends \ccxt\async\bitget {
                 }
             }
         } else {
-            $storedOrderBook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp);
+            $orderbook = $this->order_book(array());
+            $parsedOrderbook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp);
+            $orderbook->reset ($parsedOrderbook);
+            $this->orderbooks[$symbol] = $orderbook;
         }
-        $this->orderbooks[$symbol] = $storedOrderBook;
-        $client->resolve ($storedOrderBook, $messageHash);
+        $client->resolve ($this->orderbooks[$symbol], $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -674,9 +684,12 @@ class bitget extends \ccxt\async\bitget {
             $stored = new ArrayCache ($limit);
             $this->trades[$symbol] = $stored;
         }
-        $data = $this->safe_value($message, 'data', array());
-        for ($j = 0; $j < count($data); $j++) {
-            $rawTrade = $data[$j];
+        $data = $this->safe_list($message, 'data', array());
+        $length = count($data);
+        $maxLength = max ($length - 1, 0);
+        // fix chronological order by reversing
+        for ($i = $maxLength; $i >= 0; $i--) {
+            $rawTrade = $data[$i];
             $parsed = $this->parse_ws_trade($rawTrade, $market);
             $stored->append ($parsed);
         }
@@ -694,22 +707,71 @@ class bitget extends \ccxt\async\bitget {
         //         "tradeId" => "1116461060594286593"
         //     }
         //
-        $market = $this->safe_market(null, $market);
-        $timestamp = $this->safe_integer($trade, 'ts');
+        // order with $trade in it
+        //     {
+        //         accBaseVolume => '0.1',
+        //         baseVolume => '0.1',
+        //         cTime => '1709221342922',
+        //         clientOid => '1147122943507734528',
+        //         enterPointSource => 'API',
+        //         feeDetail => [Array],
+        //         fillFee => '-0.0049578',
+        //         fillFeeCoin => 'USDT',
+        //         fillNotionalUsd => '8.263',
+        //         fillPrice => '82.63',
+        //         fillTime => '1709221342986',
+        //         force => 'gtc',
+        //         $instId => 'LTCUSDT',
+        //         leverage => '10',
+        //         marginCoin => 'USDT',
+        //         marginMode => 'crossed',
+        //         notionalUsd => '8.268',
+        //         orderId => '1147122943499345921',
+        //         orderType => 'market',
+        //         pnl => '0',
+        //         posMode => 'hedge_mode',
+        //         posSide => 'short',
+        //         price => '0',
+        //         priceAvg => '82.63',
+        //         reduceOnly => 'no',
+        //         side => 'sell',
+        //         size => '0.1',
+        //         status => 'filled',
+        //         tradeId => '1147122943772479563',
+        //         tradeScope => 'T',
+        //         tradeSide => 'open',
+        //         uTime => '1709221342986'
+        //     }
+        //
+        $instId = $this->safe_string($trade, 'instId');
+        if ($market === null) {
+            $market = $this->safe_market($instId, null, null, 'contract');
+        }
+        $timestamp = $this->safe_integer_n($trade, array( 'uTime', 'cTime', 'ts' ));
+        $feeCost = $this->safe_string($trade, 'fillFee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'fillFeeCoin');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => Precise::string_abs($feeCost),
+                'currency' => $feeCurrencyCode,
+            );
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'tradeId'),
-            'order' => null,
+            'order' => $this->safe_string($trade, 'orderId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $this->safe_string($trade, 'side'),
             'takerOrMaker' => null,
-            'price' => $this->safe_string($trade, 'price'),
+            'price' => $this->safe_string_2($trade, 'priceAvg', 'price'),
             'amount' => $this->safe_string($trade, 'size'),
-            'cost' => null,
-            'fee' => null,
+            'cost' => $this->safe_string($trade, 'fillNotionalUsd'),
+            'fee' => $fee,
         ), $market);
     }
 
@@ -910,7 +972,7 @@ class bitget extends \ccxt\async\bitget {
             Async\await($this->load_markets());
             $market = null;
             $marketId = null;
-            $isStop = $this->safe_value($params, 'stop', false);
+            $isStop = $this->safe_bool($params, 'stop', false);
             $params = $this->omit($params, 'stop');
             $messageHash = ($isStop) ? 'triggerOrder' : 'order';
             $subscriptionHash = 'order:trades';
@@ -975,6 +1037,7 @@ class bitget extends \ccxt\async\bitget {
         //                 "clientOid" => "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //                 "price" => "35000.00",
         //                 "size" => "7.0000",
+        //                 "newSize" => "500.0000",
         //                 "notional" => "7.000000",
         //                 "orderType" => "limit",
         //                 "force" => "gtc",
@@ -1115,6 +1178,9 @@ class bitget extends \ccxt\async\bitget {
         $marketSymbols = array();
         for ($i = 0; $i < count($data); $i++) {
             $order = $data[$i];
+            if (is_array($order) && array_key_exists('tradeId', $order)) {
+                $this->handle_my_trades($client, $order);
+            }
             $marketId = $this->safe_string($order, 'instId');
             $market = $this->safe_market($marketId, null, null, $marketType);
             $parsed = $this->parse_ws_order($order, $market);
@@ -1141,6 +1207,7 @@ class bitget extends \ccxt\async\bitget {
         //         "clientOid" => "798d1425-d31d-4ada-a51b-ec701e00a1d9",
         //         "price" => "35000.00",
         //         "size" => "7.0000",
+        //         "newSize" => "500.0000",
         //         "notional" => "7.000000",
         //         "orderType" => "limit",
         //         "force" => "gtc",
@@ -1248,6 +1315,25 @@ class bitget extends \ccxt\async\bitget {
             );
         }
         $triggerPrice = $this->safe_number($order, 'triggerPrice');
+        $price = $this->safe_string($order, 'price');
+        $avgPrice = $this->omit_zero($this->safe_string_2($order, 'priceAvg', 'fillPrice'));
+        $cost = $this->safe_string_n($order, array( 'notional', 'notionalUsd', 'quoteSize' ));
+        $side = $this->safe_string($order, 'side');
+        $type = $this->safe_string($order, 'orderType');
+        if ($side === 'buy' && $market['spot'] && ($type === 'market')) {
+            $cost = $this->safe_string($order, 'newSize', $cost);
+        }
+        $filled = $this->safe_string_2($order, 'accBaseVolume', 'baseVolume');
+        if ($market['spot'] && ($rawStatus !== 'live')) {
+            $filled = Precise::string_div($cost, $avgPrice);
+        }
+        $amount = $this->safe_string($order, 'baseVolume');
+        if (!$market['spot'] || !($side === 'buy' && $type === 'market')) {
+            $amount = $this->safe_string($order, 'newSize', $amount);
+        }
+        if ($market['swap'] && ($amount === null)) {
+            $amount = $this->safe_string($order, 'size');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
@@ -1256,17 +1342,17 @@ class bitget extends \ccxt\async\bitget {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $this->safe_integer($order, 'uTime'),
-            'type' => $this->safe_string($order, 'orderType'),
+            'type' => $type,
             'timeInForce' => $this->safe_string_upper($order, 'force'),
             'postOnly' => null,
-            'side' => $this->safe_string($order, 'side'),
-            'price' => $this->safe_string($order, 'price'),
+            'side' => $side,
+            'price' => $price,
             'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
-            'amount' => $this->safe_string_2($order, 'size', 'baseSize'),
-            'cost' => $this->safe_string_n($order, array( 'notional', 'notionalUsd', 'quoteSize' )),
-            'average' => $this->omit_zero($this->safe_string_2($order, 'priceAvg', 'fillPrice')),
-            'filled' => $this->safe_string_2($order, 'accBaseVolume', 'baseVolume'),
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => $avgPrice,
+            'filled' => $filled,
             'remaining' => null,
             'status' => $this->parse_ws_order_status($rawStatus),
             'fee' => $feeObject,
@@ -1364,76 +1450,13 @@ class bitget extends \ccxt\async\bitget {
             $this->myTrades = new ArrayCache ($limit);
         }
         $stored = $this->myTrades;
-        $parsed = $this->parse_ws_my_trade($message);
+        $parsed = $this->parse_ws_trade($message);
         $stored->append ($parsed);
         $symbol = $parsed['symbol'];
         $messageHash = 'myTrades';
         $client->resolve ($stored, $messageHash);
         $symbolSpecificMessageHash = 'myTrades:' . $symbol;
         $client->resolve ($stored, $symbolSpecificMessageHash);
-    }
-
-    public function parse_ws_my_trade($trade, $market = null) {
-        //
-        // order and $trade mixin (contract)
-        //
-        //     {
-        //         "accBaseVolume" => "0",
-        //         "cTime" => "1701920553759",
-        //         "clientOid" => "1116501214318198793",
-        //         "enterPointSource" => "WEB",
-        //         "feeDetail" => [array(
-        //             "feeCoin" => "USDT",
-        //             "fee" => "-0.162003"
-        //         )],
-        //         "force" => "gtc",
-        //         "instId" => "BTCUSDT",
-        //         "leverage" => "20",
-        //         "marginCoin" => "USDT",
-        //         "marginMode" => "isolated",
-        //         "notionalUsd" => "105",
-        //         "orderId" => "1116501214293032964",
-        //         "orderType" => "limit",
-        //         "posMode" => "hedge_mode",
-        //         "posSide" => "long",
-        //         "price" => "35000",
-        //         "reduceOnly" => "no",
-        //         "side" => "buy",
-        //         "size" => "0.003",
-        //         "status" => "canceled",
-        //         "tradeSide" => "open",
-        //         "uTime" => "1701920595866"
-        //     }
-        //
-        $marketId = $this->safe_string($trade, 'instId');
-        $market = $this->safe_market($marketId, $market, null, 'contract');
-        $timestamp = $this->safe_integer_2($trade, 'uTime', 'cTime');
-        $orderFee = $this->safe_value($trade, 'feeDetail', array());
-        $fee = $this->safe_value($orderFee, 0);
-        $feeAmount = $this->safe_string($fee, 'fee');
-        $feeObject = null;
-        if ($feeAmount !== null) {
-            $feeCurrency = $this->safe_string($fee, 'feeCoin');
-            $feeObject = array(
-                'cost' => Precise::string_abs($feeAmount),
-                'currency' => $this->safe_currency_code($feeCurrency),
-            );
-        }
-        return $this->safe_trade(array(
-            'info' => $trade,
-            'id' => null,
-            'order' => $this->safe_string($trade, 'orderId'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => $this->safe_string($trade, 'orderType'),
-            'side' => $this->safe_string($trade, 'side'),
-            'takerOrMaker' => null,
-            'price' => $this->safe_string($trade, 'price'),
-            'amount' => $this->safe_string($trade, 'size'),
-            'cost' => $this->safe_string($trade, 'notionalUsd'),
-            'fee' => $feeObject,
-        ), $market);
     }
 
     public function watch_balance($params = array ()): PromiseInterface {

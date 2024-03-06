@@ -174,7 +174,12 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         name = self.safe_string_2(params, 'method', 'watchTickerMethod', method)
         params = self.omit(params, ['watchTickerMethod', 'method'])
         symbols = self.market_symbols(symbols, None, False)
-        return await self.subscribe_public(name, symbols, params)
+        ticker = await self.subscribe_public(name, symbols, params)
+        if self.newUpdates:
+            tickers = {}
+            tickers[ticker['symbol']] = ticker
+            return tickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def watch_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -1003,12 +1008,14 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             bid = bids[i]
             price = self.safe_number(bid, 'price')
             qty = self.safe_number(bid, 'qty')
-            orderbook['bids'].store(price, qty)
+            bidsSide = orderbook['bids']
+            bidsSide.store(price, qty)
         for i in range(0, len(asks)):
             ask = asks[i]
             price = self.safe_number(ask, 'price')
             qty = self.safe_number(ask, 'qty')
-            orderbook['asks'].store(price, qty)
+            asksSide = orderbook['asks']
+            asksSide.store(price, qty)
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['symbol'] = symbol
@@ -1036,9 +1043,11 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         qty = self.safe_number(message, 'qty')
         timestamp = self.safe_integer(message, 'timestamp')
         if side == 'sell':
-            orderbook['asks'].store(price, qty)
+            asks = orderbook['asks']
+            asks.store(price, qty)
         else:
-            orderbook['bids'].store(price, qty)
+            bids = orderbook['bids']
+            bids.store(price, qty)
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         client.resolve(orderbook, messageHash)
@@ -1361,7 +1370,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         if event == 'challenge':
             self.handle_authenticate(client, message)
         elif event == 'alert':
-            return self.handle_error_message(client, message)
+            self.handle_error_message(client, message)
         elif event == 'pong':
             client.lastPong = self.milliseconds()
         elif event is None:
@@ -1386,7 +1395,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             }
             method = self.safe_value(methods, feed)
             if method is not None:
-                return method(client, message)
+                method(client, message)
 
     def handle_authenticate(self, client: Client, message):
         """

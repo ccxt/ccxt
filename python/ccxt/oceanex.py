@@ -54,6 +54,9 @@ class oceanex(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': False,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchMarkets': True,
@@ -461,7 +464,7 @@ class oceanex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = self.publicGetTrades(self.extend(request, params))
         #
         #      {
@@ -594,7 +597,7 @@ class oceanex(Exchange, ImplicitAPI):
         response = self.privateGetMembersMe(params)
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://api.oceanex.pro/doc/v1/#new-order-post
