@@ -321,6 +321,17 @@
                         "BTC/USD:BTC"
                     ]
                 ]
+            },
+            {
+                "description": "Fetch linear positions using privateGetAccountsPositions",
+                "method": "fetchPositions",
+                "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=USD&method=privateGetAccountsPositions",
+                "input": [
+                  null,
+                  {
+                    "method": "privateGetAccountsPositions"
+                  }
+                ]
             }
         ],
         "fetchDeposits": [

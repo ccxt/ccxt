@@ -419,7 +419,7 @@ class bitrue extends bitrue$1 {
             catch (error) {
                 this.options['listenKey'] = undefined;
                 this.options['listenKeyUrl'] = undefined;
-                return;
+                return undefined;
             }
             //
             //     {

@@ -10,9 +10,11 @@ declare const errorHierarchy: {
             ArgumentsRequired: {};
             BadRequest: {
                 BadSymbol: {};
-                MarginModeAlreadySet: {};
-                NoChange: {};
-                OperationRejected: {};
+            };
+            OperationRejected: {
+                NoChange: {
+                    MarginModeAlreadySet: {};
+                };
             };
             BadResponse: {
                 NullResponse: {};
@@ -35,9 +37,8 @@ declare const errorHierarchy: {
         };
         OperationFailed: {
             NetworkError: {
-                DDoSProtection: {
-                    RateLimitExceeded: {};
-                };
+                DDoSProtection: {};
+                RateLimitExceeded: {};
                 ExchangeNotAvailable: {
                     OnMaintenance: {};
                 };

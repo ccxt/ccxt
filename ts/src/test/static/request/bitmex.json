@@ -616,6 +616,24 @@
           ]
         ]
       }
+    ],
+    "fetchLeverages": [
+      {
+        "description": "Fetch leverages",
+        "method": "fetchLeverages",
+        "url": "https://testnet.bitmex.com/api/v1/position",
+        "input": []
+      }
+    ],
+    "fetchLeverage": [
+      {
+        "description": "Swap fetch leverage",
+        "method": "fetchLeverage",
+        "url": "https://testnet.bitmex.com/api/v1/position",
+        "input": [
+          "BTC/USDT:USDT"
+        ]
+      }
     ]
   }
 }

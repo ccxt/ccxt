@@ -108,7 +108,7 @@ export default class bitvavo extends bitvavoRest {
         //                 "volume": "3587.05020246",
         //                 "volumeQuote": "708030.17",
         //                 "bid": "199.56",
-        //                 "bidSize": "4.14730803",
+        //                 "bidSize": "4.14730802",
         //                 "ask": "199.57",
         //                 "askSize": "6.13642074",
         //                 "timestamp": 1590770885217
@@ -429,7 +429,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const response = this.safeValue (message, 'response');
         if (response === undefined) {
-            return message;
+            return;
         }
         const marketId = this.safeString (response, 'market');
         const symbol = this.safeSymbol (marketId, undefined, '-');
@@ -550,7 +550,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#createOrderWs
@@ -581,7 +581,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateCreateOrder', request);
     }
 
-    async editOrderWs (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitvavo#editOrderWs
@@ -1134,9 +1134,9 @@ export default class bitvavo extends bitvavoRest {
     }
 
     checkMessageHashDoesNotExist (messageHash) {
-        const supressMultipleWsRequestsError = this.safeValue (this.options, 'supressMultipleWsRequestsError', false);
+        const supressMultipleWsRequestsError = this.safeBool (this.options, 'supressMultipleWsRequestsError', false);
         if (!supressMultipleWsRequestsError) {
-            const client = this.safeValue (this.clients, this.urls['api']['ws']);
+            const client = this.safeValue (this.clients, this.urls['api']['ws']) as Client;
             if (client !== undefined) {
                 const future = this.safeValue (client.futures, messageHash);
                 if (future !== undefined) {
@@ -1250,7 +1250,7 @@ export default class bitvavo extends bitvavoRest {
         return message;
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
@@ -1282,7 +1282,7 @@ export default class bitvavo extends bitvavoRest {
         //     }
         //
         const messageHash = 'authenticated';
-        const authenticated = this.safeValue (message, 'authenticated', false);
+        const authenticated = this.safeBool (message, 'authenticated', false);
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
             client.resolve (message, messageHash);
@@ -1396,9 +1396,15 @@ export default class bitvavo extends bitvavoRest {
             'getCandles': this.handleFetchOHLCV,
             'getMarkets': this.handleMarkets,
         };
-        const event = this.safeString2 (message, 'event', 'action');
-        const method = this.safeValue (methods, event);
-        if (method !== undefined) {
+        const event = this.safeString (message, 'event');
+        let method = this.safeValue (methods, event);
+        if (method === undefined) {
+            const action = this.safeString (message, 'action');
+            method = this.safeValue (methods, action);
+            if (method !== undefined) {
+                method.call (this, client, message);
+            }
+        } else {
             method.call (this, client, message);
         }
     }

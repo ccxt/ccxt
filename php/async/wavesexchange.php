@@ -318,7 +318,7 @@ class wavesexchange extends Exchange {
                 ),
             ),
             'currencies' => array(
-                'WX' => $this->safe_currency_structure(array( 'id' => 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId' => null, 'code' => 'WX', 'precision' => $this->parse_number('8') )),
+                'WX' => $this->safe_currency_structure(array( 'id' => 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId' => null, 'code' => 'WX', 'precision' => $this->parse_to_int('8') )),
             ),
             'precisionMode' => DECIMAL_PLACES,
             'options' => array(
@@ -408,7 +408,7 @@ class wavesexchange extends Exchange {
             //        "matcherFee":"4077612"
             //     }
             //  }
-            $isDiscountFee = $this->safe_value($params, 'isDiscountFee', false);
+            $isDiscountFee = $this->safe_bool($params, 'isDiscountFee', false);
             $mode = null;
             if ($isDiscountFee) {
                 $mode = $this->safe_value($response, 'discount');
@@ -1279,7 +1279,8 @@ class wavesexchange extends Exchange {
         // $precise->decimals should be integer
         $precise->decimals = $this->parse_to_int(Precise::string_sub($this->number_to_string($precise->decimals), $this->number_to_string($scale)));
         $precise->reduce ();
-        return $precise;
+        $stringValue = (string) $precise;
+        return $stringValue;
     }
 
     public function currency_from_precision($currency, $amount) {
@@ -1311,7 +1312,7 @@ class wavesexchange extends Exchange {
         return $rates;
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1404,7 +1405,7 @@ class wavesexchange extends Exchange {
                 'amountAsset' => $amountAsset,
                 'priceAsset' => $priceAsset,
             );
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $chainId = ($sandboxMode) ? 84 : 87;
             $body = array(
                 'senderPublicKey' => $this->apiKey,
@@ -2450,7 +2451,7 @@ class wavesexchange extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'error');
-        $success = $this->safe_value($response, 'success', true);
+        $success = $this->safe_bool($response, 'success', true);
         $Exception = $this->safe_value($this->exceptions, $errorCode);
         if ($Exception !== null) {
             $messageInner = $this->safe_string($response, 'message');
@@ -2466,7 +2467,7 @@ class wavesexchange extends Exchange {
         return null;
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

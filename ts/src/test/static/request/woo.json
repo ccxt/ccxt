@@ -320,6 +320,70 @@
                   "USDT"
                 ]
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.woo.org/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000,
+                  200
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.woo.org/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1704067200000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and without since",
+                "method": "fetchOHLCV",
+                "url": "https://api.woo.org/v1/public/kline?limit=200&symbol=SPOT_BTC_USDT&type=1m",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  200
+                ]
+              }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set position mode to hedge mode",
+                "method": "setPositionMode",
+                "url": "https://api.woo.org/v1/client/position_mode",
+                "input": [
+                  true
+                ],
+                "output": "position_mode=HEDGE_MODE"
+            },
+            {
+                "description": "set position mode to one way mode",
+                "method": "setPositionMode",
+                "url": "https://api.woo.org/v1/client/position_mode",
+                "input": [
+                  false
+                ],
+                "output": "position_mode=ONE_WAY"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://api.woo.org/v1/public/market_trades?symbol=SPOT_BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
         ]
     }
 }

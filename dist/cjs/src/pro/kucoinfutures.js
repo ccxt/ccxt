@@ -57,19 +57,20 @@ class kucoinfutures extends kucoinfutures$1 {
             },
         });
     }
-    negotiate(privateChannel, params = {}) {
+    async negotiate(privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue(this.options, 'urls', {});
         const spawaned = this.safeValue(urls, connectId);
         if (spawaned !== undefined) {
-            return spawaned;
+            return await spawaned;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
-        urls[connectId] = this.spawn(this.negotiateHelper, privateChannel, params);
+        urls[connectId] = this.spawn(this.negotiateHelper, privateChannel, params); // we have to wait here otherwsie in c# will not work
         this.options['urls'] = urls;
-        return urls[connectId];
+        const future = urls[connectId];
+        return await future;
     }
     async negotiateHelper(privateChannel, params = {}) {
         let response = undefined;
@@ -237,7 +238,7 @@ class kucoinfutures extends kucoinfutures$1 {
         const client = this.client(url);
         this.setPositionCache(client, symbol);
         const fetchPositionSnapshot = this.handleOption('watchPosition', 'fetchPositionSnapshot', true);
-        const awaitPositionSnapshot = this.safeValue('watchPosition', 'awaitPositionSnapshot', true);
+        const awaitPositionSnapshot = this.safeBool('watchPosition', 'awaitPositionSnapshot', true);
         const currentPosition = this.getCurrentPosition(symbol);
         if (fetchPositionSnapshot && awaitPositionSnapshot && currentPosition === undefined) {
             const snapshot = await client.future('fetchPositionSnapshot:' + symbol);
@@ -582,6 +583,9 @@ class kucoinfutures extends kucoinfutures$1 {
         const messageHash = 'orderbook:' + symbol;
         const storedOrderBook = this.safeValue(this.orderbooks, symbol);
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
+        if (storedOrderBook === undefined) {
+            return; // this shouldn't be needed, but for some reason sometimes this runs before handleOrderBookSubscription in c#
+        }
         const deltaEnd = this.safeInteger(data, 'sequence');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
@@ -600,7 +604,7 @@ class kucoinfutures extends kucoinfutures$1 {
             const limit = this.safeInteger(subscription, 'limit');
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             storedOrderBook.cache.push(data);
             return;
@@ -928,11 +932,8 @@ class kucoinfutures extends kucoinfutures$1 {
             'position.adjustRiskLimit': this.handlePosition,
         };
         const method = this.safeValue(methods, subject);
-        if (method === undefined) {
-            return message;
-        }
-        else {
-            return method.call(this, client, message);
+        if (method !== undefined) {
+            method.call(this, client, message);
         }
     }
     ping(client) {
@@ -981,7 +982,7 @@ class kucoinfutures extends kucoinfutures$1 {
         };
         const method = this.safeValue(methods, type);
         if (method !== undefined) {
-            return method.call(this, client, message);
+            method.call(this, client, message);
         }
     }
 }

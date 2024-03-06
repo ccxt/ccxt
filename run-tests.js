@@ -27,6 +27,7 @@ const langKeys = {
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python 3 tests only
     '--python-async': false, // run Python 3 async tests only
+    '--csharp': false,  // run C# tests only
     '--php-async': false,    // run php async tests only,
 }
 
@@ -66,10 +67,9 @@ for (const arg of args) {
 
 const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 
-// for REST exchange test, because the rate-limit & throttling, the overall timeout
-// might be needed around 200+ seconds for some exchanges
-// for WS, we have watchOHLCV which might need at least 60 seconds to get an update.
-const timeoutSeconds = wsFlag ? 100 : 250;
+// for REST exchange test, we might need to wait for 200+ seconds for some exchanges
+// for WS, watchOHLCV might need 60 seconds for update (so, spot & swap ~ 120sec)
+const timeoutSeconds = wsFlag ? 120 : 250;
 
 
 /*  --------------------------------------------------------------------------- */
@@ -266,11 +266,18 @@ const testExchange = async (exchange) => {
         args.push ('--info')
     }
     const allTestsWithoutTs = [
-            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',              ...args] },
-            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py',   ...args] },
-            { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] }
+            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
+            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
+            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
+            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
+            { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] },
         ]
 
+        if (!skipSettings[exchange] || !skipSettings[exchange].skipCSharp) {
+            allTestsWithoutTs.push (
+                { language: 'C#',             key: '--csharp',        exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',               ...args] },
+            )
+        }
         // if it's not WS tests, then add sync versions to tests queue
         if (!wsFlag) {
             allTestsWithoutTs.push (

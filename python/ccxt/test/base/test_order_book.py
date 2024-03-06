@@ -15,7 +15,7 @@ sys.path.append(root)
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
 
-def test_order_book(exchange, skipped_properties, method, entry, symbol):
+def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
     format = {
         'symbol': 'ETH/BTC',
         'asks': [[exchange.parse_number('1.24'), exchange.parse_number('0.453')], [exchange.parse_number('1.25'), exchange.parse_number('0.157')]],
@@ -25,14 +25,14 @@ def test_order_book(exchange, skipped_properties, method, entry, symbol):
         'nonce': 134234234,
     }
     empty_allowed_for = ['symbol', 'nonce', 'datetime', 'timestamp']  # todo: make timestamp required
-    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
-    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
-    test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
-    log_text = test_shared_methods.log_template(exchange, method, entry)
+    test_shared_methods.assert_structure(exchange, skipped_properties, method, orderbook, format, empty_allowed_for)
+    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, orderbook)
+    test_shared_methods.assert_symbol(exchange, skipped_properties, method, orderbook, 'symbol', symbol)
+    log_text = test_shared_methods.log_template(exchange, method, orderbook)
     #
     if ('bid' in skipped_properties) or ('ask' in skipped_properties):
         return
-    bids = entry['bids']
+    bids = orderbook['bids']
     bids_length = len(bids)
     for i in range(0, bids_length):
         current_bid_string = exchange.safe_string(bids[i], 0)
@@ -43,7 +43,7 @@ def test_order_book(exchange, skipped_properties, method, entry, symbol):
             assert has_correct_order, 'current bid should be > than the next one: ' + current_bid_string + '>' + next_bid_string + log_text
         test_shared_methods.assert_greater(exchange, skipped_properties, method, bids[i], 0, '0')
         test_shared_methods.assert_greater(exchange, skipped_properties, method, bids[i], 1, '0')
-    asks = entry['asks']
+    asks = orderbook['asks']
     asks_length = len(asks)
     for i in range(0, asks_length):
         current_ask_string = exchange.safe_string(asks[i], 0)
@@ -54,10 +54,9 @@ def test_order_book(exchange, skipped_properties, method, entry, symbol):
             assert has_correct_order, 'current ask should be < than the next one: ' + current_ask_string + '<' + next_ask_string + log_text
         test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 0, '0')
         test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 1, '0')
-    if 'spread' in skipped_properties:
-        return
-    if bids_length and asks_length:
-        first_bid = exchange.safe_string(bids[0], 0)
-        first_ask = exchange.safe_string(asks[0], 0)
-        # check bid-ask spread
-        assert Precise.string_lt(first_bid, first_ask), 'bids[0][0] (' + first_ask + ') should be < than asks[0][0] (' + first_ask + ')' + log_text
+    if not ('spread' in skipped_properties):
+        if bids_length and asks_length:
+            first_bid = exchange.safe_string(bids[0], 0)
+            first_ask = exchange.safe_string(asks[0], 0)
+            # check bid-ask spread
+            assert Precise.string_lt(first_bid, first_ask), 'bids[0][0] (' + first_ask + ') should be < than asks[0][0] (' + first_ask + ')' + log_text

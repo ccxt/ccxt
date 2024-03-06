@@ -19,7 +19,7 @@
               "refid": null,
               "userref": "0",
               "status": "open",
-              "opentm": "1705259439.563573",
+              "opentm": "1705259439.563000",
               "starttm": "0",
               "expiretm": "0",
               "descr": {
@@ -53,7 +53,7 @@
             "refid": null,
             "userref": "0",
             "status": "open",
-            "opentm": "1705259439.563573",
+            "opentm": "1705259439.563000",
             "starttm": "0",
             "expiretm": "0",
             "descr": {
@@ -128,7 +128,7 @@
               "refid": null,
               "userref": "0",
               "status": "closed",
-              "opentm": "1705260547.472841",
+              "opentm": "1705260547.472000",
               "starttm": "0",
               "expiretm": "0",
               "descr": {
@@ -166,7 +166,7 @@
             "refid": null,
             "userref": "0",
             "status": "closed",
-            "opentm": "1705260547.472841",
+            "opentm": "1705260547.472000",
             "starttm": "0",
             "expiretm": "0",
             "descr": {
@@ -258,7 +258,7 @@
                 "refid": null,
                 "userref": "0",
                 "status": "open",
-                "opentm": "1705260203.5836048",
+                "opentm": "1705260203.583000",
                 "starttm": "0",
                 "expiretm": "0",
                 "descr": {
@@ -293,7 +293,7 @@
               "refid": null,
               "userref": "0",
               "status": "open",
-              "opentm": "1705260203.5836048",
+              "opentm": "1705260203.583000",
               "starttm": "0",
               "expiretm": "0",
               "descr": {
@@ -458,6 +458,222 @@
             "lastUpdateTimestamp": null,
             "reduceOnly": null
           }
+        ]
+      },
+      {
+        "description": "fetch open trailing stop order",
+        "method": "fetchOpenOrders",
+        "disabled": true,
+        "input": [],
+        "httpResponse": {
+          "error": [],
+          "result": {
+            "open": {
+              "OF7S76-H2IMS-N2ML4U": {
+                "refid": null,
+                "userref": "0",
+                "status": "open",
+                "opentm": "1706895177.1070557",
+                "starttm": "0",
+                "expiretm": "0",
+                "descr": {
+                  "pair": "XRPUSD",
+                  "type": "buy",
+                  "ordertype": "trailing-stop",
+                  "price": "+50.0000%",
+                  "price2": "0",
+                  "leverage": "none",
+                  "order": "buy 10.00000000 XRPUSD @ trailing stop +50.0000%",
+                  "close": ""
+                },
+                "vol": "10.00000000",
+                "vol_exec": "0.00000000",
+                "cost": "0.00000000",
+                "fee": "0.00000000",
+                "price": "0.00000000",
+                "stopprice": "0.75790000",
+                "limitprice": "0.50527000",
+                "misc": "",
+                "oflags": "fciq",
+                "trigger": "index"
+              }
+            }
+          }
+        },
+        "parsedResponse": [
+          {
+            "id": "OF7S76-H2IMS-N2ML4U",
+            "clientOrderId": "0",
+            "info": {
+              "id": "OF7S76-H2IMS-N2ML4U",
+              "refid": null,
+              "userref": "0",
+              "status": "open",
+              "opentm": "1706895177.1070557",
+              "starttm": "0",
+              "expiretm": "0",
+              "descr": {
+                "pair": "XRPUSD",
+                "type": "buy",
+                "ordertype": "trailing-stop",
+                "price": "+50.0000%",
+                "price2": "0",
+                "leverage": "none",
+                "order": "buy 10.00000000 XRPUSD @ trailing stop +50.0000%",
+                "close": ""
+              },
+              "vol": "10.00000000",
+              "vol_exec": "0.00000000",
+              "cost": "0.00000000",
+              "fee": "0.00000000",
+              "price": "0.00000000",
+              "stopprice": "0.75790000",
+              "limitprice": "0.50527000",
+              "misc": "",
+              "oflags": "fciq",
+              "trigger": "index"
+            },
+            "timestamp": 1706895177107,
+            "datetime": "2024-02-02T17:32:57.107Z",
+            "lastTradeTimestamp": null,
+            "status": "open",
+            "symbol": "XRP/USD",
+            "type": "trailing-stop",
+            "timeInForce": null,
+            "postOnly": false,
+            "side": "buy",
+            "price": null,
+            "stopPrice": 0.7579,
+            "triggerPrice": 0.7579,
+            "takeProfitPrice": null,
+            "stopLossPrice": null,
+            "cost": null,
+            "amount": 10,
+            "filled": 0,
+            "average": null,
+            "remaining": 10,
+            "fee": {
+              "cost": "0.00000000",
+              "rate": null,
+              "currency": "USD"
+            },
+            "trades": [],
+            "fees": [
+              {
+                "cost": 0,
+                "rate": null,
+                "currency": "USD"
+              }
+            ],
+            "lastUpdateTimestamp": null,
+            "reduceOnly": null
+          }
+        ]
+      }
+    ],
+    "fetchOHLCV": [
+      {
+        "description": "Spot ohlcv with since in the request and limit filter on ccxt side",
+        "method": "fetchOHLCV",
+        "input": [
+          "BTC/USDT",
+          "1h",
+          1706628191000,
+          3
+        ],
+        "httpResponse": {
+          "error": [],
+          "result": {
+            "XBTUSDT": [
+              [
+                1706626800,
+                "43437.5",
+                "43593.7",
+                "43355.5",
+                "43361.1",
+                "43511.3",
+                "18.75430110",
+                162
+              ],
+              [
+                1706630400,
+                "43366.3",
+                "43529.2",
+                "43234.2",
+                "43485.0",
+                "43435.3",
+                "12.51327406",
+                126
+              ],
+              [
+                1706634000,
+                "43497.5",
+                "43594.6",
+                "43316.4",
+                "43409.5",
+                "43429.8",
+                "5.03074129",
+                127
+              ],
+              [
+                1706637600,
+                "43398.3",
+                "43500.5",
+                "42983.1",
+                "43386.6",
+                "43255.9",
+                "81.88339686",
+                434
+              ],
+              [
+                1706641200,
+                "43375.0",
+                "43539.7",
+                "43357.1",
+                "43539.7",
+                "43438.7",
+                "10.82796308",
+                137
+              ],
+              [
+                1706799600,
+                "42633.7",
+                "42905.4",
+                "42545.2",
+                "42548.5",
+                "42817.6",
+                "75.60416795",
+                612
+              ]
+            ],
+            "last": "1706796000"
+          }
+        },
+        "parsedResponse": [
+          [
+            1706630400000,
+            43366.3,
+            43529.2,
+            43234.2,
+            43485,
+            12.51327406
+          ],
+          [
+            1706634000000,
+            43497.5,
+            43594.6,
+            43316.4,
+            43409.5,
+            5.03074129
+          ],
+          [
+            1706637600000,
+            43398.3,
+            43500.5,
+            42983.1,
+            43386.6,
+            81.88339686
+          ]
         ]
       }
     ]

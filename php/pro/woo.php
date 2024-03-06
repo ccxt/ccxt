@@ -670,7 +670,7 @@ class woo extends \ccxt\async\woo {
             $client = $this->client($url);
             $this->set_positions_cache($client, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_value('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
@@ -865,13 +865,15 @@ class woo extends \ccxt\async\woo {
         $event = $this->safe_string($message, 'event');
         $method = $this->safe_value($methods, $event);
         if ($method !== null) {
-            return $method($client, $message);
+            $method($client, $message);
+            return;
         }
         $topic = $this->safe_string($message, 'topic');
         if ($topic !== null) {
             $method = $this->safe_value($methods, $topic);
             if ($method !== null) {
-                return $method($client, $message);
+                $method($client, $message);
+                return;
             }
             $splitTopic = explode('@', $topic);
             $splitLength = count($splitTopic);
@@ -879,22 +881,22 @@ class woo extends \ccxt\async\woo {
                 $name = $this->safe_string($splitTopic, 1);
                 $method = $this->safe_value($methods, $name);
                 if ($method !== null) {
-                    return $method($client, $message);
+                    $method($client, $message);
+                    return;
                 }
                 $splitName = explode('_', $name);
                 $splitNameLength = count($splitTopic);
                 if ($splitNameLength === 2) {
                     $method = $this->safe_value($methods, $this->safe_string($splitName, 0));
                     if ($method !== null) {
-                        return $method($client, $message);
+                        $method($client, $message);
                     }
                 }
             }
         }
-        return $message;
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array( 'event' => 'ping' );
     }
 

@@ -236,11 +236,21 @@ class CCXTProTranspiler extends Transpiler {
             , tsFolder = './ts/src/pro/'
             , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, jsFolder, exchanges }
 
-        // createFolderRecursively (python2Folder)
-        createFolderRecursively (python3Folder)
-        createFolderRecursively (phpAsyncFolder)
+         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
+        if (transpilingSingleExchange) {
+            force = true; // when transpiling single exchange, we always force
+        }
+            // createFolderRecursively (python2Folder)
+        if (!transpilingSingleExchange) {
+            createFolderRecursively (phpAsyncFolder)
+            createFolderRecursively (python3Folder)
+        }
 
         const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
+
+        if (transpilingSingleExchange) {
+            return;
+        }
 
         this.transpileWsTests ()
 
@@ -276,6 +286,8 @@ class CCXTProTranspiler extends Transpiler {
                     const exchangeName = match[1];
                     const exchangeNameRest = exchangeName + 'Rest';
                     result.python3 = result.python3.replace ('\nclass ', 'import ccxt.async_support.' + exchangeName + ' as ' + exchangeNameRest + '\n\n\nclass ');
+                    // correct `new Xyz()` format
+                    result.python3 = result.python3.replace ('new ' + exchangeNameRest, exchangeNameRest);
                     result.phpAsync = result.phpAsync.replace ('new '+ exchangeNameRest, 'new \\ccxt\\async\\' + exchangeName);
                 }
             }

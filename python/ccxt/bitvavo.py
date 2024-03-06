@@ -575,7 +575,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #         "market":"ETH-BTC",
         #         "open":"0.022578",
         #         "high":"0.023019",
-        #         "low":"0.022573",
+        #         "low":"0.022572",
         #         "last":"0.023019",
         #         "volume":"25.16366324",
         #         "volumeQuote":"0.57333305",
@@ -1025,7 +1025,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -1078,7 +1078,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['postOnly'] = True
         return self.extend(request, params)
 
-    def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
@@ -1170,7 +1170,7 @@ class bitvavo(Exchange, ImplicitAPI):
         request['market'] = market['id']
         return request
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
@@ -1625,7 +1625,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['paymentId'] = tag
         return self.extend(request, params)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

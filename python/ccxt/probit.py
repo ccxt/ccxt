@@ -297,7 +297,7 @@ class probit(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quote_currency_id')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        closed = self.safe_value(market, 'closed', False)
+        closed = self.safe_bool(market, 'closed', False)
         takerFeeRate = self.safe_string(market, 'taker_fee_rate')
         taker = Precise.string_div(takerFeeRate, '100')
         makerFeeRate = self.safe_string(market, 'maker_fee_rate')
@@ -433,8 +433,8 @@ class probit(Exchange, ImplicitAPI):
             networkList = {}
             for j in range(0, len(platformsByPriority)):
                 network = platformsByPriority[j]
-                networkId = self.safe_string(network, 'id')
-                networkCode = self.network_id_to_code(networkId)
+                idInner = self.safe_string(network, 'id')
+                networkCode = self.network_id_to_code(idInner)
                 currentDepositSuspended = self.safe_value(network, 'deposit_suspended')
                 currentWithdrawalSuspended = self.safe_value(network, 'withdrawal_suspended')
                 currentDeposit = not currentDepositSuspended
@@ -452,7 +452,7 @@ class probit(Exchange, ImplicitAPI):
                         networkFee = withdrawPlatform
                         break
                 networkList[networkCode] = {
-                    'id': networkId,
+                    'id': idInner,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,
@@ -1138,7 +1138,7 @@ class probit(Exchange, ImplicitAPI):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://docs-en.probit.com/reference/order-1
@@ -1311,7 +1311,7 @@ class probit(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() returned an empty response')
         return self.parse_deposit_address(firstAddress, currency)
 
-    def fetch_deposit_addresses(self, codes=None, params={}):
+    def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
         """
         :see: https://docs-en.probit.com/reference/deposit_address
         fetch deposit addresses for multiple currencies and chain types
@@ -1331,7 +1331,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_deposit_addresses(data, codes)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         :see: https://docs-en.probit.com/reference/withdrawal
         make a withdrawal
@@ -1461,7 +1461,7 @@ class probit(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
@@ -1497,12 +1497,12 @@ class probit(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'currency_id')
         code = self.safe_currency_code(currencyId)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCostString = self.safe_string(transaction, 'fee')
         fee = None
-        if feeCost is not None and feeCost != 0:
+        if feeCostString is not None and feeCostString != '0':
             fee = {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCostString),
             }
         return {
             'id': id,

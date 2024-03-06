@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ export default class phemex extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -1136,7 +1137,7 @@ export default class phemex extends Exchange {
     }
 
     toEn (n, scale) {
-        const stringN = n.toString ();
+        const stringN = this.numberToString (n);
         const precise = new Precise (stringN);
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
@@ -2427,15 +2428,15 @@ export default class phemex extends Exchange {
     }
 
     parseOrder (order, market: Market = undefined): Order {
-        const isSwap = this.safeValue (market, 'swap', false);
-        const hasPnl = ('closedPnl' in order);
+        const isSwap = this.safeBool (market, 'swap', false);
+        const hasPnl = ('closedPnl' in order) || ('closedPnlRv' in order) || ('totalPnlRv' in order);
         if (isSwap || hasPnl) {
             return this.parseSwapOrder (order, market);
         }
         return this.parseSpotOrder (order, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name phemex#createOrder
@@ -2531,10 +2532,10 @@ export default class phemex extends Exchange {
                     }
                 }
                 cost = (cost === undefined) ? amount : cost;
-                const costString = cost.toString ();
+                const costString = this.numberToString (cost);
                 request['quoteQtyEv'] = this.toEv (costString, market);
             } else {
-                const amountString = amount.toString ();
+                const amountString = this.numberToString (amount);
                 request['baseQtyEv'] = this.toEv (amountString, market);
             }
         } else if (market['swap']) {
@@ -2550,7 +2551,7 @@ export default class phemex extends Exchange {
             if (market['settle'] === 'USDT') {
                 request['orderQtyRq'] = amount;
             } else {
-                request['orderQty'] = parseInt (amount);
+                request['orderQty'] = this.parseToInt (amount);
             }
             if (stopPrice !== undefined) {
                 const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');
@@ -2722,7 +2723,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id: string, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType = undefined, side: OrderSide = undefined, amount: number = undefined, price: number = undefined, params = {}) {
         /**
          * @method
          * @name phemex#editOrder
@@ -3527,8 +3528,10 @@ export default class phemex extends Exchange {
          * @description fetch all open positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [param.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
@@ -3560,7 +3563,13 @@ export default class phemex extends Exchange {
         };
         let response = undefined;
         if (isUSDTSettled) {
-            response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
+            let method = undefined;
+            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
+            if (method === 'privateGetGAccountsAccountPositions') {
+                response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
+            } else {
+                response = await this.privateGetAccountsPositions (this.extend (request, params));
+            }
         } else {
             response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
         }
@@ -3736,7 +3745,7 @@ export default class phemex extends Exchange {
         const contracts = this.safeString (position, 'size');
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
-        const leverage = this.safeNumber2 (position, 'leverage', 'leverageRr');
+        const leverage = this.parseNumber (Precise.stringAbs ((this.safeString2 (position, 'leverage', 'leverageRr'))));
         const entryPriceString = this.safeString2 (position, 'avgEntryPrice', 'avgEntryPriceRp');
         const rawSide = this.safeString (position, 'side');
         let side = undefined;
@@ -3980,7 +3989,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMargin (symbol: string, amount, params = {}) {
+    async setMargin (symbol: string, amount: number, params = {}) {
         /**
          * @method
          * @name phemex#setMargin
@@ -4039,7 +4048,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setMarginMode
@@ -4075,7 +4084,7 @@ export default class phemex extends Exchange {
         return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
-    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setPositionMode
@@ -4282,7 +4291,7 @@ export default class phemex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setLeverage
@@ -4305,7 +4314,7 @@ export default class phemex extends Exchange {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between -100 and 100');
         }
         await this.loadMarkets ();
-        const isHedged = this.safeValue (params, 'hedged', false);
+        const isHedged = this.safeBool (params, 'hedged', false);
         const longLeverageRr = this.safeInteger (params, 'longLeverageRr');
         const shortLeverageRr = this.safeInteger (params, 'shortLeverageRr');
         const market = this.market (symbol);
@@ -4317,10 +4326,10 @@ export default class phemex extends Exchange {
             if (!isHedged && longLeverageRr === undefined && shortLeverageRr === undefined) {
                 request['leverageRr'] = leverage;
             } else {
-                const long = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
-                const short = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
-                request['longLeverageRr'] = long;
-                request['shortLeverageRr'] = short;
+                const longVar = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
+                const shortVar = (shortLeverageRr !== undefined) ? shortLeverageRr : leverage;
+                request['longLeverageRr'] = longVar;
+                request['shortLeverageRr'] = shortVar;
             }
             response = await this.privatePutGPositionsLeverage (this.extend (request, params));
         } else {
@@ -4330,7 +4339,7 @@ export default class phemex extends Exchange {
         return response;
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name phemex#transfer
@@ -4398,7 +4407,7 @@ export default class phemex extends Exchange {
             transfer = this.parseTransfer (response);
         }
         const transferOptions = this.safeValue (this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             if (transfer['fromAccount'] === undefined) {
                 transfer['fromAccount'] = fromAccount;
@@ -4617,7 +4626,7 @@ export default class phemex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name phemex#withdraw
@@ -4637,7 +4646,10 @@ export default class phemex extends Exchange {
         const currency = this.currency (code);
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        let networkId = this.networkCodeToId (networkCode);
+        let networkId = undefined;
+        if (networkCode !== undefined) {
+            networkId = this.networkCodeToId (networkCode);
+        }
         const stableCoins = this.safeValue (this.options, 'stableCoins');
         if (networkId === undefined) {
             if (!(this.inArray (code, stableCoins))) {
