@@ -129,7 +129,7 @@ class hyperliquid extends Exchange {
             ),
             'hostname' => 'hyperliquid.xyz',
             'urls' => array(
-                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/3974aea3-c1a1-40c8-8df1-c2c00c829ca1',
+                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b',
                 'api' => array(
                     'public' => 'https://api.{hostname}',
                     'private' => 'https://api.{hostname}',
