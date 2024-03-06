@@ -948,6 +948,9 @@ export default class wazirx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
         const response = await this.privateGetCoins (params);
         //
         //     [
