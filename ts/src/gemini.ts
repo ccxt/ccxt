@@ -525,6 +525,9 @@ export default class gemini extends Exchange {
             'post_only': true,
             'limit_only': true,
         };
+        if (status === undefined) {
+            return true; // as defaulted below
+        }
         return this.safeBool (statuses, status, true);
     }
 
