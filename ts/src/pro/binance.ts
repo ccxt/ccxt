@@ -4,7 +4,7 @@
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheBySymbol } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
@@ -104,7 +104,7 @@ export default class binance extends binanceRest {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
                 'watchTickers': {
-                    'name': 'ticker', // ticker or miniTicker or bookTicker
+                    'name': 'ticker', // ticker or miniTicker or bookTicker or ticker_<window_size> where window size is 1h,4h,1d
                 },
                 'watchOHLCV': {
                     'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
@@ -948,6 +948,10 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-market-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-tickers-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-tickers-streams
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#24-hour-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.name] stream to use can be ticker or bookTicker
@@ -984,6 +988,10 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchTickers
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-market-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-tickers-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-tickers-streams
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#24-hour-ticker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -991,57 +999,70 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const marketIds = this.marketIds (symbols);
-        let market = undefined;
+        let firstMarket = undefined;
         let type = undefined;
-        if (symbols !== undefined) {
-            market = this.market (symbols[0]);
+        if (!this.isEmpty (symbols)) {
+            firstMarket = this.market (symbols[0]);
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', firstMarket, params);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        const options = this.safeValue (this.options, 'watchTickers', {});
-        let name = this.safeString (options, 'name', 'ticker');
-        name = this.safeString (params, 'name', name);
-        params = this.omit (params, 'name');
-        let wsParams = [];
-        let messageHash = 'tickers';
-        if (symbols !== undefined) {
-            messageHash = 'tickers::' + symbols.join (',');
+        let name = undefined;
+        [ name, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
+        const messageHashes = [];
+        if (this.isEmpty (symbols)) {
+            let markets = undefined;
+            if (type === 'spot') {
+                markets = this.filterBy (this.markets, 'type', type);
+            } else if (type === 'future') {
+                markets = this.filterBy (this.markets, 'subType', 'linear');
+            } else if (type === 'delivery') {
+                markets = this.filterBy (this.markets, 'subType', 'inverse');
+            }
+            symbols = Object.keys (this.indexBy (markets, 'symbol'));
         }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const messageHash = market['lowercaseId'] + '@' + name;
+            messageHashes.push (messageHash);
+        }
+        let subscriptionHashes = [ '!' + name + '@arr' ];
         if (name === 'bookTicker') {
-            if (marketIds === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for bookTicker');
+            if (type === 'spot') {
+                subscriptionHashes = messageHashes;
+            } else if (type === 'future') {
+                subscriptionHashes = [ '!bookTicker' ];
+            } else if (type === 'delivery') {
+                throw new BadRequest (this.id + ' watchTickers with name bookTicker does not support delivery markets');
             }
-            // simulate watchTickers with subscribe multiple individual bookTicker topic
-            for (let i = 0; i < marketIds.length; i++) {
-                wsParams.push (marketIds[i].toLowerCase () + '@bookTicker');
-            }
-        } else {
-            wsParams = [
-                '!' + name + '@arr',
-            ];
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
+        if ((type === 'delivery') && (name.indexOf ('@') >= 0)) {
+            subscriptionHashes = messageHashes;
+        }
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'watchTickers::' + name);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
-            'params': wsParams,
+            'params': subscriptionHashes,
             'id': requestId,
         };
-        const subscribe = {
-            'id': requestId,
+        const subscription = {
+            'id': requestId.toString (),
         };
-        const newTickers = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
+        const tickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscription);
         if (this.newUpdates) {
-            return newTickers;
+            const first = this.safeValue (tickers, 0);
+            const tickerSymbol = this.safeString (first, 'symbol');
+            const limit = tickers.getLimit (tickerSymbol, undefined);
+            return this.filterByArrayTickers (this.filterByLimit (tickers, limit), 'symbol', symbols);
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     parseWsTicker (message, marketType) {
@@ -1158,67 +1179,48 @@ export default class binance extends binanceRest {
         //         "n": 163222,            // total number of trades
         //     }
         //
-        let event = this.safeString (message, 'e', 'bookTicker');
-        if (event === '24hrTicker') {
-            event = 'ticker';
-        } else if (event === '24hrMiniTicker') {
-            event = 'miniTicker';
-        }
-        const wsMarketId = this.safeStringLower (message, 's');
-        const messageHash = wsMarketId + '@' + event;
-        const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
-        const marketType = (isSpot) ? 'spot' : 'contract';
-        const result = this.parseWsTicker (message, marketType);
-        const symbol = result['symbol'];
-        this.tickers[symbol] = result;
-        client.resolve (result, messageHash);
-        if (event === 'bookTicker') {
-            // watch bookTickers
-            client.resolve (result, '!' + 'bookTicker@arr');
-            const messageHashes = this.findMessageHashes (client, 'tickers::');
-            for (let i = 0; i < messageHashes.length; i++) {
-                const currentMessageHash = messageHashes[i];
-                const parts = currentMessageHash.split ('::');
-                const symbolsString = parts[1];
-                const symbols = symbolsString.split (',');
-                if (this.inArray (symbol, symbols)) {
-                    client.resolve (result, currentMessageHash);
-                }
+        let type = undefined;
+        const urls = this.urls['api']['ws'];
+        const urlsKeys = Object.keys (urls);
+        for (let i = 0; i < urlsKeys.length; i++) {
+            const url = urls[urlsKeys[i]];
+            const clientUrl = client.url;
+            if (clientUrl.indexOf (url) >= 0) {
+                type = urlsKeys[i];
+                break;
             }
         }
-    }
-
-    handleTickers (client: Client, message) {
-        const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
-        const marketType = (isSpot) ? 'spot' : 'contract';
+        let tickersCache = this.safeValue (this.tickers, type);
+        if (tickersCache === undefined) {
+            tickersCache = new ArrayCacheBySymbol ();
+        }
         let rawTickers = [];
-        const newTickers = {};
         if (Array.isArray (message)) {
             rawTickers = message;
         } else {
             rawTickers.push (message);
         }
         for (let i = 0; i < rawTickers.length; i++) {
-            const ticker = rawTickers[i];
-            const result = this.parseWsTicker (ticker, marketType);
-            const symbol = result['symbol'];
-            this.tickers[symbol] = result;
-            newTickers[symbol] = result;
-        }
-        const messageHashes = this.findMessageHashes (client, 'tickers::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
-            const tickersSymbols = Object.keys (tickers);
-            const numTickers = tickersSymbols.length;
-            if (numTickers > 0) {
-                client.resolve (tickers, messageHash);
+            const rawTicker = rawTickers[i];
+            let event = this.safeString (rawTicker, 'e', 'bookTicker');
+            if (event.indexOf ('ticker') > -1) {
+                event = 'ticker';
+            } else if (event.indexOf ('MiniTicker') > -1) {
+                event = 'miniTicker';
             }
+            const wsMarketId = this.safeStringLower (rawTicker, 's');
+            let messageHash = wsMarketId + '@' + event;
+            messageHash = messageHash.replace ('24hrTicker', 'ticker');
+            messageHash = messageHash.replace ('1dTicker', 'ticker_1d');
+            messageHash = messageHash.replace ('4hTicker', 'ticker_4h');
+            messageHash = messageHash.replace ('1hTicker', 'ticker_1h');
+            const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
+            const marketType = (isSpot) ? 'spot' : 'contract';
+            const result = this.parseWsTicker (rawTicker, marketType);
+            tickersCache.append (result);
+            this.tickers[type] = tickersCache;
+            client.resolve (tickersCache, messageHash);
         }
-        client.resolve (newTickers, 'tickers');
     }
 
     signParams (params = {}) {
@@ -3029,11 +3031,17 @@ export default class binance extends binanceRest {
             'kline': this.handleOHLCV,
             'markPrice_kline': this.handleOHLCV,
             'indexPrice_kline': this.handleOHLCV,
-            '24hrTicker@arr': this.handleTickers,
-            '24hrMiniTicker@arr': this.handleTickers,
+            '1hTicker@arr': this.handleTicker,
+            '4hTicker@arr': this.handleTicker,
+            '1dTicker@arr': this.handleTicker,
+            '24hrTicker@arr': this.handleTicker,
+            '24hrMiniTicker@arr': this.handleTicker,
             '24hrTicker': this.handleTicker,
             '24hrMiniTicker': this.handleTicker,
             'bookTicker': this.handleTicker,
+            '1hTicker': this.handleTicker,
+            '4hTicker': this.handleTicker,
+            '1dTicker': this.handleTicker,
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,
             'ACCOUNT_UPDATE': this.handleAcountUpdate,
@@ -3065,7 +3073,6 @@ export default class binance extends binanceRest {
             //
             if (event === undefined) {
                 this.handleTicker (client, message);
-                this.handleTickers (client, message);
             }
         } else {
             method.call (this, client, message);

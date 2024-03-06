@@ -164,6 +164,65 @@ class ArrayCacheByTimestamp extends BaseCache {
     }
 }
 
+class ArrayCacheBySymbol extends BaseCache {
+
+    constructor (maxSize = undefined) {
+        super (maxSize)
+        Object.defineProperty (this, 'hashmap', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
+        Object.defineProperty (this, 'sizeTracker', {
+            __proto__: null, // make it invisible
+            value: new Set (),
+            writable: true,
+        })
+        Object.defineProperty (this, 'newUpdates', {
+            __proto__: null, // make it invisible
+            value: 0,
+            writable: true,
+        })
+        Object.defineProperty (this, 'clearUpdates', {
+            __proto__: null, // make it invisible
+            value: false,
+            writable: true,
+        })
+    }
+
+    getLimit (symbol, limit) {
+        this.clearUpdates = true
+        if (limit === undefined) {
+            return this.newUpdates
+        }
+        return Math.min (this.newUpdates, limit)
+    }
+
+    append (item) {
+        if (item['symbol'] in this.hashmap) {
+            const reference = this.hashmap[item['symbol']]
+            if (reference !== item) {
+                for (const prop in item) {
+                    reference[prop] = item[prop]
+                }
+            }
+        } else {
+            this.hashmap[item['symbol']] = item
+            if (this.maxSize && (this.length === this.maxSize)) {
+                const deleteReference = this.shift ()
+                delete this.hashmap[deleteReference['symbol']]
+            }
+            this.push (item)
+        }
+        if (this.clearUpdates) {
+            this.clearUpdates = false
+            this.sizeTracker.clear ()
+        }
+        this.sizeTracker.add (item['symbol'])
+        this.newUpdates = this.sizeTracker.size
+    }
+}
+
 class ArrayCacheBySymbolById extends ArrayCache {
 
     constructor (maxSize = undefined) {
@@ -272,6 +331,7 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
 
 export {
     ArrayCache,
+    ArrayCacheBySymbol,
     ArrayCacheByTimestamp,
     ArrayCacheBySymbolById,
     ArrayCacheBySymbolBySide,

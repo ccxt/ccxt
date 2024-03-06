@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../../../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheBySymbol } from '../../../base/ws/Cache.js';
 
 function equals (a, b) {
     if (a.length !== b.length) {
@@ -323,6 +323,21 @@ limited = timestampCache2.getLimit (undefined, outsideLimit);
 
 assert (outsideLimit === limited);
 
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbol, watch all orders, same symbol gets updated
+
+cache = new ArrayCacheBySymbol ();
+symbol = 'BTC/USDT';
+outsideLimit = 5;
+cache.append ({ 'symbol': symbol, 'i': 3 }); // create first order
+cache.getLimit (undefined, outsideLimit); // watch all orders
+cache.append ({ 'symbol': symbol, 'i': 4 }); // first order is closed
+cache.getLimit (undefined, outsideLimit); // watch all orders
+cache.append ({ 'symbol': symbol, 'i': 5 }); // create second order
+cache.getLimit (undefined, outsideLimit); // watch all orders
+cache.append ({ 'symbol': symbol, 'i': 6 }); // second order is closed
+limited = cache.getLimit (undefined, outsideLimit); // watch all orders
+assert (limited === 1); // one new update
 
 // ----------------------------------------------------------------------------
 // test ArrayCacheBySymbolById, watch all orders, same symbol and order id gets updated

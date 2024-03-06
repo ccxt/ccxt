@@ -639,6 +639,56 @@ assert($outside_limit === $limited);
 
 
 // ----------------------------------------------------------------------------
+// test ArrayCacheBySymbol, watch all orders, same symbol gets updated
+$cache = new ArrayCacheBySymbol();
+
+
+$symbol = 'BTC/USDT';
+
+
+$outside_limit = 5;
+
+
+$cache->append(array(
+    'symbol' => $symbol,
+    'i' => 3,
+)); // create first order
+
+
+$cache->get_limit(null, $outside_limit); // watch all orders
+
+
+$cache->append(array(
+    'symbol' => $symbol,
+    'i' => 4,
+)); // first order is closed
+
+
+$cache->get_limit(null, $outside_limit); // watch all orders
+
+
+$cache->append(array(
+    'symbol' => $symbol,
+    'i' => 5,
+)); // create second order
+
+
+$cache->get_limit(null, $outside_limit); // watch all orders
+
+
+$cache->append(array(
+    'symbol' => $symbol,
+    'i' => 6,
+)); // second order is closed
+
+
+$limited = $cache->get_limit(null, $outside_limit); // watch all orders
+
+
+assert($limited === 1); // one new update
+
+
+// ----------------------------------------------------------------------------
 // test ArrayCacheBySymbolById, watch all orders, same symbol and order id gets updated
 $cache_symbol_id_8 = new ArrayCacheBySymbolById();
 

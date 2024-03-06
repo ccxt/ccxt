@@ -95,6 +95,36 @@ class ArrayCache(BaseCache):
         self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
         self._all_new_updates = (self._all_new_updates or 0) + 1
 
+class ArrayCacheBySymbol(BaseCache):
+    def __init__(self, max_size=None):
+        super(ArrayCacheBySymbol, self).__init__(max_size)
+        self.hashmap = {}
+        self._size_tracker = set()
+        self._new_updates = 0
+        self._clear_updates = False
+
+    def getLimit(self, symbol, limit):
+        self._clear_updates = True
+        if limit is None:
+            return self._new_updates
+        return min(self._new_updates, limit)
+
+    def append(self, item):
+        if item['symbol'] in self.hashmap:
+            reference = self.hashmap[item['symbol']]
+            if reference != item:
+                reference.update(item)
+        else:
+            self.hashmap[item['symbol']] = item
+            if len(self._deque) == self._deque.maxlen:
+                delete_reference = self._deque.popleft()
+                del self.hashmap[delete_reference['symbol']]
+            self._deque.append(item)
+        if self._clear_updates:
+            self._clear_updates = False
+            self._size_tracker.clear()
+        self._size_tracker.add(item['symbol'])
+        self._new_updates = len(self._size_tracker)
 
 class ArrayCacheByTimestamp(BaseCache):
     def __init__(self, max_size=None):
