@@ -538,7 +538,7 @@
       {
         "description": "Fetch funding rate history with symbol and since arguments",
         "method": "fetchFundingRateHistory",
-        "url": "https://testnet.bitmex.com/api/v1/funding?symbol=XBTUSDT&startTime=2024-01-12T12%3A00%3A00.000Z&reverse=true",
+        "url": "https://testnet.bitmex.com/api/v1/funding?symbol=XBTUSDT&startTime=2024-01-12T12%3A00%3A00.000Z",
         "input": [
           "BTC/USDT:USDT",
           1705060800000
