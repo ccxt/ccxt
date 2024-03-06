@@ -1362,6 +1362,23 @@ class bitget(Exchange, ImplicitAPI):
                     'swap': {
                         'method': 'publicMixGetV2MixMarketCandles',  # or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     },
+                    'maxDaysPerTimeframe': {
+                        '1m': 30,
+                        '3m': 30,
+                        '5m': 30,
+                        '10m': 52,
+                        '15m': 52,
+                        '30m': 52,
+                        '1h': 83,
+                        '2h': 120,
+                        '4h': 240,
+                        '6h': 360,
+                        '12h': 360,
+                        '1d': 360,
+                        '3d': 1000,
+                        '1w': 1000,
+                        '1M': 1000,
+                    },
                 },
                 'fetchTrades': {
                     'spot': {
@@ -3175,10 +3192,11 @@ class bitget(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
+        maxLimit = 1000  # max 1000
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         market = None
         if sandboxMode:
@@ -3189,46 +3207,75 @@ class bitget(Exchange, ImplicitAPI):
         marketType = 'spot' if market['spot'] else 'swap'
         timeframes = self.options['timeframes'][marketType]
         selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
+        duration = self.parse_timeframe(timeframe) * 1000
         request = {
             'symbol': market['id'],
             'granularity': selectedTimeframe,
         }
+        defaultLimit = 100  # by default, exchange returns 100 items
+        msInDay = 1000 * 60 * 60 * 24
+        if limit is not None:
+            limit = min(limit, maxLimit)
+            request['limit'] = limit
         until = self.safe_integer_2(params, 'until', 'till')
         params = self.omit(params, ['until', 'till'])
-        if limit is not None:
-            request['limit'] = limit
+        if until is not None:
+            request['endTime'] = until
         if since is not None:
             request['startTime'] = since
-        if since is not None:
-            if limit is None:
-                limit = 100  # exchange default
-            duration = self.parse_timeframe(timeframe) * 1000
-            request['endTime'] = self.sum(since, duration * (limit + 1)) - 1  # limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
-        elif until is not None:
-            request['endTime'] = until
-        else:
-            request['endTime'] = self.milliseconds()
+            if market['spot'] and (until is None):
+                # for spot we need to send "entTime" too
+                limitForEnd = limit if (limit is not None) else defaultLimit
+                calculatedEnd = self.sum(since, duration * limitForEnd)
+                request['endTime'] = calculatedEnd
         response = None
-        thirtyOneDaysAgo = self.milliseconds() - 2678400000
+        now = self.milliseconds()
+        # retrievable periods listed here:
+        # - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
+        # - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
+        ohlcOptions = self.safe_dict(self.options, 'fetchOHLCV', {})
+        retrievableDaysMap = self.safe_dict(ohlcOptions, 'maxDaysPerTimeframe', {})
+        maxRetrievableDaysForNonHistory = self.safe_integer(retrievableDaysMap, timeframe, 30)  # default to safe minimum
+        endpointTsBoundary = now - maxRetrievableDaysForNonHistory * msInDay
+        # checks if we need history endpoint
+        needsHistoryEndpoint = False
+        displaceByLimit = 0 if (limit is None) else limit * duration
+        if since is not None and since < endpointTsBoundary:
+            # if since it earlier than the allowed diapason
+            needsHistoryEndpoint = True
+        elif until is not None and until - displaceByLimit < endpointTsBoundary:
+            # if until is earlier than the allowed diapason
+            needsHistoryEndpoint = True
         if market['spot']:
-            if (since is not None) and (since < thirtyOneDaysAgo):
+            if needsHistoryEndpoint:
                 response = await self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
             else:
                 response = await self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
         else:
+            maxDistanceDaysForContracts = 90  # maximum 90 days allowed between start-end times
+            distanceError = False
+            if limit is not None and limit * duration > maxDistanceDaysForContracts * msInDay:
+                distanceError = True
+            elif since is not None and until is not None and until - since > maxDistanceDaysForContracts * msInDay:
+                distanceError = True
+            if distanceError:
+                raise BadRequest(self.id + ' fetchOHLCV() between start and end must be less than ' + str(maxDistanceDaysForContracts) + ' days')
             priceType = self.safe_string(params, 'price')
             params = self.omit(params, ['price'])
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
+            extended = self.extend(request, params)
+            # todo: mark & index also have their "recent" endpoints, but not priority now.
             if priceType == 'mark':
-                response = await self.publicMixGetV2MixMarketHistoryMarkCandles(self.extend(request, params))
+                response = await self.publicMixGetV2MixMarketHistoryMarkCandles(extended)
             elif priceType == 'index':
-                response = await self.publicMixGetV2MixMarketHistoryIndexCandles(self.extend(request, params))
-            elif (since is not None) and (since < thirtyOneDaysAgo):
-                response = await self.publicMixGetV2MixMarketHistoryCandles(self.extend(request, params))
+                response = await self.publicMixGetV2MixMarketHistoryIndexCandles(extended)
             else:
-                response = await self.publicMixGetV2MixMarketCandles(self.extend(request, params))
+                if needsHistoryEndpoint:
+                    response = await self.publicMixGetV2MixMarketHistoryCandles(extended)
+                else:
+                    response = await self.publicMixGetV2MixMarketCandles(extended)
         if response == '':
             return []  # happens when a new token is listed
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
