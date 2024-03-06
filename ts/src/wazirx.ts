@@ -44,7 +44,7 @@ export default class wazirx extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -178,6 +178,9 @@ export default class wazirx extends Exchange {
             'options': {
                 // 'fetchTradesMethod': 'privateGetHistoricalTrades',
                 'recvWindow': 10000,
+                'networks': {
+                    // You can get network from fetchCurrencies
+                },
             },
         });
     }
@@ -1082,6 +1085,45 @@ export default class wazirx extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name wazirx#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.wazirx.com/#deposit-address-supporting-network-user_data
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] unified network code, you can get network from fetchCurrencies
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const networkCode = this.safeString (params, 'network');
+        params = this.omit (params, 'network');
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a network parameter');
+        }
+        const request = {
+            'coin': currency['id'],
+            'network': this.networkCodeToId (networkCode, code),
+        };
+        const response = await this.privateGetCryptoDepositsAddress (this.extend (request, params));
+        //
+        //     {
+        //         "address": "bc1qrzpyzh69pfclpqy7c3yg8rkjsy49se7642v4q3",
+        //         "coin": "btc",
+        //         "url": "https: //live.blockcypher.com/btc/address/bc1qrzpyzh69pfclpqy7c3yg8rkjsy49se7642v4q3"
+        //     }
+        //
+        return {
+            'currency': code,
+            'address': this.safeString (response, 'address'),
+            'tag': undefined,
+            'network': this.networkCodeToId (networkCode, code),
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
