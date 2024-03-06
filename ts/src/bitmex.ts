@@ -2534,6 +2534,7 @@ export default class bitmex extends Exchange {
          * @param {bool} [params.reverse] if true, will sort results newest first
          * @param {int} [params.start] starting point for results
          * @param {string} [params.columns] array of column names to fetch in info, if omitted, will return all columns
+         * @param {boolean} [params.reverse] if true, will sort results newest first, default is false
          * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
@@ -2567,7 +2568,6 @@ export default class bitmex extends Exchange {
         if (until !== undefined) {
             request['endTime'] = this.iso8601 (until);
         }
-        request['reverse'] = true;
         const response = await this.publicGetFunding (this.extend (request, params));
         //
         //    [
