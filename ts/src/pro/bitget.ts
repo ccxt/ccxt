@@ -1310,7 +1310,7 @@ export default class bitget extends bitgetRest {
         if (feeAmount !== undefined) {
             const feeCurrency = this.safeString (fee, 'feeCoin');
             feeObject = {
-                'cost': Precise.stringAbs (feeAmount),
+                'cost': this.parseNumber (Precise.stringAbs (feeAmount)),
                 'currency': this.safeCurrencyCode (feeCurrency),
             };
         }
