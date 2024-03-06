@@ -254,7 +254,7 @@ export default class gemini extends Exchange {
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchMarketsMethod': 'fetch_markets_from_web', // fetch_markets_from_api, fetch_markets_from_web
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
