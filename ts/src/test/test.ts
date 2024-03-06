@@ -1727,12 +1727,12 @@ export default class testMainClass extends baseMainTestClass {
         const id = '1';
         let request = undefined;
         try {
-            await exchange.createOrder ('SOL/USDC:USDC', 'market', 'buy', 1);
+            await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
         } catch (e) {
             request = jsonParse (exchange.last_request_body);
         }
-        const brokerId = request['action']['brokerCode'];
-        assert (brokerId.startsWith (id.toString ()), 'brokerId does not start with id');
+        const brokerId = (request['action']['brokerCode']).toString ();
+        assert (brokerId === id, 'brokerId does not start with id');
         await close (exchange);
     }
 }
