@@ -21,8 +21,8 @@ export default class hyperliquid extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'hyperliquid',
             'name': 'Hyperliquid',
-            'countries': [ 'US' ], // is this dex in US?
-            'version': 'v!',
+            'countries': [ ],
+            'version': 'v1',
             'rateLimit': 50, // 1200 requests per minute, 20 request per second
             'certified': false,
             'pro': false,
@@ -130,7 +130,7 @@ export default class hyperliquid extends Exchange {
             },
             'hostname': 'hyperliquid.xyz',
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/ce8c2565-33bf-49c4-9675-33171864712b',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
@@ -142,7 +142,7 @@ export default class hyperliquid extends Exchange {
                 'www': 'https://hyperliquid.xyz',
                 'doc': 'https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api',
                 'fees': 'https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees',
-                'referral': '',
+                'referral': 'https://app.hyperliquid.xyz/',
             },
             'api': {
                 'public': {
