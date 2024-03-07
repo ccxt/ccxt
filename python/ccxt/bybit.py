@@ -6732,7 +6732,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot']:
             raise NotSupported(self.id + ' fetchTradingFee() is not supported for spot market')
         request = {
             'symbol': market['id'],
