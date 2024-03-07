@@ -21,7 +21,7 @@ class ImplicitAPI:
     private_post_cancelallordersafter = privatePostCancelAllOrdersAfter = Entry('CancelAllOrdersAfter', 'private', 'POST', {'cost': 3})
     private_post_cancelorder = privatePostCancelOrder = Entry('CancelOrder', 'private', 'POST', {'cost': 0})
     private_post_cancelorderbatch = privatePostCancelOrderBatch = Entry('CancelOrderBatch', 'private', 'POST', {'cost': 0})
-    private_post_closedorders = privatePostClosedOrders = Entry('ClosedOrders', 'private', 'POST', {'cost': 6})
+    private_post_closedorders = privatePostClosedOrders = Entry('ClosedOrders', 'private', 'POST', {'cost': 3})
     private_post_depositaddresses = privatePostDepositAddresses = Entry('DepositAddresses', 'private', 'POST', {'cost': 3})
     private_post_depositmethods = privatePostDepositMethods = Entry('DepositMethods', 'private', 'POST', {'cost': 3})
     private_post_depositstatus = privatePostDepositStatus = Entry('DepositStatus', 'private', 'POST', {'cost': 3})

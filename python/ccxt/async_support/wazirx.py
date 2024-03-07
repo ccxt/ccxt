@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.wazirx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Num, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Num, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -55,8 +55,8 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchClosedOrders': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': False,
-                'fetchDepositAddress': False,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
@@ -96,7 +96,7 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
-                'fetchWithdrawals': False,
+                'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
@@ -121,7 +121,7 @@ class wazirx(Exchange, ImplicitAPI):
                 'public': {
                     'get': {
                         'exchangeInfo': 1,
-                        'depth': 1,
+                        'depth': 0.5,
                         'ping': 1,
                         'systemStatus': 1,
                         'tickers/24hr': 1,
@@ -140,6 +140,11 @@ class wazirx(Exchange, ImplicitAPI):
                         'openOrders': 1,
                         'order': 0.5,
                         'myTrades': 0.5,
+                        'coins': 12,
+                        'crypto/withdraws': 12,
+                        'crypto/deposits/address': 60,
+                        'sub_account/fund_transfer/history': 1,
+                        'sub_account/accounts': 1,
                     },
                     'post': {
                         'order': 0.1,
@@ -185,6 +190,9 @@ class wazirx(Exchange, ImplicitAPI):
             'options': {
                 # 'fetchTradesMethod': 'privateGetHistoricalTrades',
                 'recvWindow': 10000,
+                'networks': {
+                    # You can get network from fetchCurrencies
+                },
             },
         })
 
@@ -774,7 +782,7 @@ class wazirx(Exchange, ImplicitAPI):
         response = await self.privateDeleteOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://docs.wazirx.com/#new-order-trade
         create a trade order
@@ -873,6 +881,289 @@ class wazirx(Exchange, ImplicitAPI):
             'cancel': 'canceled',
         }
         return self.safe_string(statuses, status, status)
+
+    async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :see: https://docs.wazirx.com/#all-coins-39-information-user_data
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        if not self.check_required_credentials(False):
+            return None
+        response = await self.privateGetCoins(params)
+        #
+        #     [
+        #         {
+        #             "currency": "btc",
+        #             "name": "Bitcoin",
+        #             "networkList": [
+        #                 {
+        #                     "addressRegex": "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^(bc1)[0-9A-Za-z]{39,59}$",
+        #                     "confirmations": 4,
+        #                     "depositDesc": {
+        #                         "description": ""
+        #                     },
+        #                     "depositDust": "0.00000001",
+        #                     "depositEnable": True,
+        #                     "disclaimer": "• \u003cb\u003eSend only using the Bitcoin network.\u003c/b\u003e Using any other network will result in loss of funds.\u003cbr/\u003e• \u003cb\u003eDeposit only BTC to self deposit address.\u003c/b\u003e Depositing any other asset will result in a loss of funds.\u003cbr/\u003e",
+        #                     "fullName": null,
+        #                     "hidden": {
+        #                         "deposit": False,
+        #                         "withdraw": False
+        #                     },
+        #                     "isDefault": True,
+        #                     "maxWithdrawAmount": "3",
+        #                     "minConfirm": 4,
+        #                     "minWithdrawAmount": "0.003",
+        #                     "name": "Bitcoin",
+        #                     "network": "btc",
+        #                     "order": 3,
+        #                     "precision": 8,
+        #                     "requestId": "6d67a13d-26f7-4941-9856-94eba4adfe78",
+        #                     "shortName": "BTC",
+        #                     "specialTip": "Please ensure to select \u003cb\u003eBitcoin\u003c/b\u003e network at sender's wallet.",
+        #                     "withdrawConsent": {
+        #                         "helpUrl": null,
+        #                         "message": "I confirm that self withdrawal of crypto assets is being done to my own wallet, above. I authorize you to share travel rule information with the destination wallet service provider wherever applicable."
+        #                     },
+        #                     "withdrawDesc": {
+        #                         "description": ""
+        #                     },
+        #                     "withdrawEnable": True,
+        #                     "withdrawFee": "0.0015"
+        #                 }
+        #             ],
+        #             "rapidListed": False
+        #         }
+        #     ]
+        #
+        result = {}
+        for i in range(0, len(response)):
+            currency = response[i]
+            currencyId = self.safe_string(currency, 'currency')
+            code = self.safe_currency_code(currencyId)
+            name = self.safe_string(currency, 'name')
+            chains = self.safe_list(currency, 'networkList', [])
+            networks = {}
+            minPrecision = None
+            minWithdrawFeeString = None
+            minWithdrawString = None
+            maxWithdrawString = None
+            minDepositString = None
+            deposit = False
+            withdraw = False
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                networkId = self.safe_string(chain, 'network')
+                networkCode = self.network_id_to_code(networkId)
+                precision = self.parse_number(self.parse_precision(self.safe_string(chain, 'precision')))
+                minPrecision = precision if (minPrecision is None) else min(minPrecision, precision)
+                depositAllowed = self.safe_bool(chain, 'depositEnable')
+                deposit = depositAllowed if (depositAllowed) else deposit
+                withdrawAllowed = self.safe_bool(chain, 'withdrawEnable')
+                withdraw = withdrawAllowed if (withdrawAllowed) else withdraw
+                withdrawFeeString = self.safe_string(chain, 'withdrawFee')
+                if withdrawFeeString is not None:
+                    minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
+                minNetworkWithdrawString = self.safe_string(chain, 'minWithdrawAmount')
+                if minNetworkWithdrawString is not None:
+                    minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
+                maxNetworkWithdrawString = self.safe_string(chain, 'maxWithdrawAmount')
+                if maxNetworkWithdrawString is not None:
+                    maxWithdrawString = maxNetworkWithdrawString if (maxWithdrawString is None) else Precise.string_min(maxNetworkWithdrawString, maxWithdrawString)
+                minNetworkDepositString = self.safe_string(chain, 'depositDust')
+                if minNetworkDepositString is not None:
+                    minDepositString = minNetworkDepositString if (minDepositString is None) else Precise.string_min(minNetworkDepositString, minDepositString)
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': depositAllowed and withdrawAllowed,
+                    'deposit': depositAllowed,
+                    'withdraw': withdrawAllowed,
+                    'fee': self.parse_number(withdrawFeeString),
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.parse_number(minNetworkWithdrawString),
+                            'max': self.parse_number(maxNetworkWithdrawString),
+                        },
+                        'deposit': {
+                            'min': self.parse_number(minNetworkDepositString),
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = {
+                'info': currency,
+                'code': code,
+                'id': currencyId,
+                'name': name,
+                'active': deposit and withdraw,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': self.parse_number(minWithdrawFeeString),
+                'precision': minPrecision,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.parse_number(minWithdrawString),
+                        'max': self.parse_number(maxWithdrawString),
+                    },
+                    'deposit': {
+                        'min': self.parse_number(minDepositString),
+                        'max': None,
+                    },
+                },
+                'networks': networks,
+            }
+        return result
+
+    async def fetch_deposit_address(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :see: https://docs.wazirx.com/#deposit-address-supporting-network-user_data
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: unified network code, you can get network from fetchCurrencies
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        networkCode = self.safe_string(params, 'network')
+        params = self.omit(params, 'network')
+        if networkCode is None:
+            raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter')
+        request = {
+            'coin': currency['id'],
+            'network': self.network_code_to_id(networkCode, code),
+        }
+        response = await self.privateGetCryptoDepositsAddress(self.extend(request, params))
+        #
+        #     {
+        #         "address": "bc1qrzpyzh69pfclpqy7c3yg8rkjsy49se7642v4q3",
+        #         "coin": "btc",
+        #         "url": "https:  #live.blockcypher.com/btc/address/bc1qrzpyzh69pfclpqy7c3yg8rkjsy49se7642v4q3"
+        #     }
+        #
+        return {
+            'currency': code,
+            'address': self.safe_string(response, 'address'),
+            'tag': None,
+            'network': self.network_code_to_id(networkCode, code),
+            'info': response,
+        }
+
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch all withdrawals made from an account
+        :see: https://docs.wazirx.com/#withdraw-history-supporting-network-user_data
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['coin'] = currency['id']
+        if limit is not None:
+            request['limit'] = limit
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
+        if since is not None:
+            request['startTime'] = since
+        if until is not None:
+            request['endTime'] = until
+        response = await self.privateGetCryptoWithdraws(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "address": "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        #             "amount": "8.91000000",
+        #             "createdAt": "2019-10-12 09:12:02",
+        #             "lastUpdated": "2019-10-12 11:12:02",
+        #             "coin": "USDT",
+        #             "id": "b6ae22b3aa844210a7041aee7589627c",
+        #             "withdrawOrderId": "WITHDRAWtest123",
+        #             "network": "ETH",
+        #             "status": 1,
+        #             "transactionFee": "0.004",
+        #             "failureInfo":"The address is not valid. Please confirm with the recipient",
+        #             "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        #         }
+        #     ]
+        #
+        return self.parse_transactions(response, currency, since, limit)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            '0': 'ok',
+            '1': 'fail',
+            '2': 'pending',
+            '3': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+        #
+        #     {
+        #         "address": "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        #         "amount": "8.91000000",
+        #         "createdAt": "2019-10-12 09:12:02",
+        #         "lastUpdated": "2019-10-12 11:12:02",
+        #         "coin": "USDT",
+        #         "id": "b6ae22b3aa844210a7041aee7589627c",
+        #         "withdrawOrderId": "WITHDRAWtest123",
+        #         "network": "ETH",
+        #         "status": 1,
+        #         "transactionFee": "0.004",
+        #         "failureInfo": "The address is not valid. Please confirm with the recipient",
+        #         "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        #     }
+        #
+        currencyId = self.safe_string(transaction, 'coin')
+        code = self.safe_currency_code(currencyId, currency)
+        timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
+        updated = self.parse8601(self.safe_string(transaction, 'lastUpdated'))
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        feeCost = self.safe_number(transaction, 'transactionFee')
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            }
+        return {
+            'info': transaction,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'txId'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network')),
+            'address': self.safe_string(transaction, 'address'),
+            'addressTo': self.safe_string(transaction, 'address'),
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'type': 'withdrawal',
+            'amount': self.safe_number(transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+            'internal': None,
+            'comment': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['rest'] + '/' + path

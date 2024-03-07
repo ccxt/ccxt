@@ -19,6 +19,6 @@ export default class bitstamp extends bitstampRest {
     handleSubject(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
-    authenticate(params?: {}): Promise<any>;
+    authenticate(params?: {}): Promise<void>;
     subscribePrivate(subscription: any, messageHash: any, params?: {}): Promise<any>;
 }

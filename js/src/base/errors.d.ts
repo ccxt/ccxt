@@ -4,6 +4,9 @@ declare class BaseError extends Error {
 declare class ExchangeError extends Error {
     constructor(message: any);
 }
+declare class ExchangeClosedByUser extends Error {
+    constructor(message: any);
+}
 declare class AuthenticationError extends ExchangeError {
     constructor(message: any);
 }
@@ -22,13 +25,13 @@ declare class ArgumentsRequired extends ExchangeError {
 declare class BadRequest extends ExchangeError {
     constructor(message: any);
 }
-declare class OperationRejected extends BadRequest {
+declare class OperationRejected extends ExchangeError {
     constructor(message: any);
 }
 declare class BadSymbol extends BadRequest {
     constructor(message: any);
 }
-declare class NoChange extends BadRequest {
+declare class NoChange extends OperationRejected {
     constructor(message: any);
 }
 declare class MarginModeAlreadySet extends NoChange {
@@ -88,7 +91,7 @@ declare class NetworkError extends OperationFailed {
 declare class DDoSProtection extends NetworkError {
     constructor(message: any);
 }
-declare class RateLimitExceeded extends DDoSProtection {
+declare class RateLimitExceeded extends NetworkError {
     constructor(message: any);
 }
 declare class ExchangeNotAvailable extends NetworkError {
@@ -105,6 +108,7 @@ declare class RequestTimeout extends NetworkError {
 }
 declare const errors: {
     BaseError: typeof BaseError;
+    ExchangeClosedByUser: typeof ExchangeClosedByUser;
     ExchangeError: typeof ExchangeError;
     PermissionDenied: typeof PermissionDenied;
     AccountNotEnabled: typeof AccountNotEnabled;
@@ -140,5 +144,5 @@ declare const errors: {
     OperationFailed: typeof OperationFailed;
     ProxyError: typeof ProxyError;
 };
-export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed, ProxyError };
+export { BaseError, ExchangeClosedByUser, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed, ProxyError };
 export default errors;

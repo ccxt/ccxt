@@ -42,9 +42,13 @@ class krakenfutures extends Exchange {
                 'fetchBalance' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchClosedOrders' => null, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
+                'fetchCanceledOrders' => true,
+                'fetchClosedOrders' => true, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => null,
                 'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => true,
@@ -54,6 +58,7 @@ class krakenfutures extends Exchange {
                 'fetchIsolatedBorrowRates' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => true,
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
@@ -151,10 +156,32 @@ class krakenfutures extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => false,
+                    'tierBased' => true,
                     'percentage' => true,
-                    'maker' => $this->parse_number('-0.0002'),
-                    'taker' => $this->parse_number('0.00075'),
+                    'taker' => $this->parse_number('0.0005'),
+                    'maker' => $this->parse_number('0.0002'),
+                    'tiers' => array(
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0003') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.00025') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('20000000'), $this->parse_number('0.00015') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0.000125') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0.0001') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.000125') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0001') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.000075') ),
+                            array( $this->parse_number('20000000'), $this->parse_number('0.00005') ),
+                            array( $this->parse_number('50000000'), $this->parse_number('0.000025') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0') ),
+                        ),
+                    ),
                 ),
             ),
             'exceptions' => array(
@@ -550,7 +577,7 @@ class krakenfutures extends Exchange {
         $volume = $this->safe_string($ticker, 'vol24h');
         $baseVolume = null;
         $quoteVolume = null;
-        $isIndex = $this->safe_value($market, 'index', false);
+        $isIndex = $this->safe_bool($market, 'index', false);
         if (!$isIndex) {
             if ($market['linear']) {
                 $baseVolume = $volume;
@@ -780,36 +807,29 @@ class krakenfutures extends Exchange {
             $id = $this->safe_string($trade, 'executionId');
         }
         $order = $this->safe_string($trade, 'order_id');
-        $symbolId = $this->safe_string($trade, 'symbol');
+        $marketId = $this->safe_string($trade, 'symbol');
         $side = $this->safe_string($trade, 'side');
         $type = null;
         $priorEdit = $this->safe_value($trade, 'orderPriorEdit');
         $priorExecution = $this->safe_value($trade, 'orderPriorExecution');
         if ($priorExecution !== null) {
             $order = $this->safe_string($priorExecution, 'orderId');
-            $symbolId = $this->safe_string($priorExecution, 'symbol');
+            $marketId = $this->safe_string($priorExecution, 'symbol');
             $side = $this->safe_string($priorExecution, 'side');
             $type = $this->safe_string($priorExecution, 'type');
         } elseif ($priorEdit !== null) {
             $order = $this->safe_string($priorEdit, 'orderId');
-            $symbolId = $this->safe_string($priorEdit, 'symbol');
+            $marketId = $this->safe_string($priorEdit, 'symbol');
             $side = $this->safe_string($priorEdit, 'type');
             $type = $this->safe_string($priorEdit, 'type');
         }
         if ($type !== null) {
             $type = $this->parse_order_type($type);
         }
-        $symbol = null;
-        if ($symbolId !== null) {
-            $market = $this->safe_value($this->markets_by_id, $symbolId);
-            if ($market === null) {
-                $symbol = $symbolId;
-            }
-        }
-        $symbol = $this->safe_string($market, 'symbol', $symbol);
+        $market = $this->safe_market($marketId, $market);
         $cost = null;
+        $linear = $this->safe_bool($market, 'linear');
         if (($amount !== null) && ($price !== null) && ($market !== null)) {
-            $linear = $this->safe_value($market, 'linear');
             if ($linear) {
                 $cost = Precise::string_mul($amount, $price); // in quote
             } else {
@@ -830,22 +850,23 @@ class krakenfutures extends Exchange {
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
+            'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
             'order' => $order,
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
-            'amount' => $amount,
+            'amount' => $linear ? $amount : null,
             'cost' => $cost,
             'fee' => null,
         ));
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $type = $this->safe_string($params, 'orderType', $type);
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnly = false;
@@ -862,7 +883,7 @@ class krakenfutures extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'side' => $side,
-            'size' => $amount,
+            'size' => $this->amount_to_precision($symbol, $amount),
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'cliOrdId');
         if ($clientOrderId !== null) {
@@ -898,13 +919,13 @@ class krakenfutures extends Exchange {
         }
         $request['orderType'] = $type;
         if ($price !== null) {
-            $request['limitPrice'] = $price;
+            $request['limitPrice'] = $this->price_to_precision($symbol, $price);
         }
         $params = $this->omit($params, array( 'clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
         return array_merge($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange
@@ -1015,7 +1036,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$order-management-edit-$order
@@ -1171,6 +1192,104 @@ class krakenfutures extends Exchange {
             $response = Async\await($this->privateGetOpenorders ($params));
             $orders = $this->safe_value($response, 'openOrders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-$order-events
+             * Gets all closed orders, including trigger orders, for an account from the exchange api
+             * @param {string} $symbol Unified $market $symbol
+             * @param {int} [$since] Timestamp (ms) of earliest $order->
+             * @param {int} [$limit] How many orders to return.
+             * @param {array} [$params] Exchange specific parameters
+             * @return An array of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array();
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            }
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            $response = Async\await($this->historyGetOrders (array_merge($request, $params)));
+            $allOrders = $this->safe_list($response, 'elements', array());
+            $closedOrders = array();
+            for ($i = 0; $i < count($allOrders); $i++) {
+                $order = $allOrders[$i];
+                $event = $this->safe_dict($order, 'event', array());
+                $orderPlaced = $this->safe_dict($event, 'OrderPlaced');
+                if ($orderPlaced !== null) {
+                    $innerOrder = $this->safe_dict($orderPlaced, 'order', array());
+                    $filled = $this->safe_string($innerOrder, 'filled');
+                    if ($filled !== '0') {
+                        $innerOrder['status'] = 'closed'; // status not available in the $response
+                        $closedOrders[] = $innerOrder;
+                    }
+                }
+            }
+            return $this->parse_orders($closedOrders, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-$order-events
+             * Gets all canceled orders, including trigger orders, for an account from the exchange api
+             * @param {string} $symbol Unified $market $symbol
+             * @param {int} [$since] Timestamp (ms) of earliest $order->
+             * @param {int} [$limit] How many orders to return.
+             * @param {array} [$params] Exchange specific parameters
+             * @return An array of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array();
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            }
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            $response = Async\await($this->historyGetOrders (array_merge($request, $params)));
+            $allOrders = $this->safe_list($response, 'elements', array());
+            $canceledAndRejected = array();
+            for ($i = 0; $i < count($allOrders); $i++) {
+                $order = $allOrders[$i];
+                $event = $this->safe_dict($order, 'event', array());
+                $orderPlaced = $this->safe_dict($event, 'OrderPlaced');
+                if ($orderPlaced !== null) {
+                    $innerOrder = $this->safe_dict($orderPlaced, 'order', array());
+                    $filled = $this->safe_string($innerOrder, 'filled');
+                    if ($filled === '0') {
+                        $innerOrder['status'] = 'canceled'; // status not available in the $response
+                        $canceledAndRejected[] = $innerOrder;
+                    }
+                }
+                $orderCanceled = $this->safe_dict($event, 'OrderCancelled');
+                if ($orderCanceled !== null) {
+                    $innerOrder = $this->safe_dict($orderCanceled, 'order', array());
+                    $innerOrder['status'] = 'canceled'; // status not available in the $response
+                    $canceledAndRejected[] = $innerOrder;
+                }
+                $orderRejected = $this->safe_dict($event, 'OrderRejected');
+                if ($orderRejected !== null) {
+                    $innerOrder = $this->safe_dict($orderRejected, 'order', array());
+                    $innerOrder['status'] = 'rejected'; // status not available in the $response
+                    $canceledAndRejected[] = $innerOrder;
+                }
+            }
+            return $this->parse_orders($canceledAndRejected, $market, $since, $limit);
         }) ();
     }
 
@@ -1420,6 +1539,32 @@ class krakenfutures extends Exchange {
         //       "status" => "requiredArgumentMissing",
         //       "orderEvents" => array()
         //    }
+        // closed orders
+        //    {
+        //        uid => '2f00cd63-e61d-44f8-8569-adabde885941',
+        //        $timestamp => '1707258274849',
+        //        event => {
+        //          OrderPlaced => {
+        //            $order => array(
+        //              uid => '85805e01-9eed-4395-8360-ed1a228237c9',
+        //              accountUid => '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //              tradeable => 'PF_LTCUSD',
+        //              direction => 'Buy',
+        //              quantity => '0',
+        //              $filled => '0.1',
+        //              $timestamp => '1707258274849',
+        //              limitPrice => '69.2200000000',
+        //              orderType => 'IoC',
+        //              clientId => '',
+        //              reduceOnly => false,
+        //              $lastUpdateTimestamp => '1707258274849'
+        //            ),
+        //            reason => 'new_user_order',
+        //            reducedQuantity => '',
+        //            algoId => ''
+        //          }
+        //        }
+        //    }
         //
         $orderEvents = $this->safe_value($order, 'orderEvents', array());
         $errorStatus = $this->safe_string($order, 'status');
@@ -1481,7 +1626,8 @@ class krakenfutures extends Exchange {
         $remaining = $this->safe_string($details, 'unfilledSize');
         $average = null;
         $filled2 = '0.0';
-        if (strlen($trades)) {
+        $tradesLength = count($trades);
+        if ($tradesLength > 0) {
             $vwapSum = '0.0';
             for ($i = 0; $i < count($trades); $i++) {
                 $trade = $trades[$i];
@@ -2256,7 +2402,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-$transfer
@@ -2305,7 +2451,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a market
@@ -2330,12 +2476,40 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage(?string $symbol = null, $params = array ()) {
+    public function fetch_leverages(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch the set leverage for all contract and margin markets
+             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+             * @param {string[]} [$symbols] a list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetLeveragepreferences ($params));
+            //
+            //     {
+            //         "result" => "success",
+            //         "serverTime" => "2024-03-06T02:35:46.336Z",
+            //         "leveragePreferences" => array(
+            //             array(
+            //                 "symbol" => "PF_ETHUSD",
+            //                 "maxLeverage" => 30.00
+            //             ),
+            //         )
+            //     }
+            //
+            $leveragePreferences = $this->safe_list($response, 'leveragePreferences', array());
+            return $this->parse_leverages($leveragePreferences, $symbols, 'symbol');
+        }) ();
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * fetch the set leverage for a market
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
-             * @param {string} $symbol unified market $symbol
+             * fetch the set leverage for a $market
+             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-$market
+             * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
              */
@@ -2343,18 +2517,34 @@ class krakenfutures extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchLeverage() requires a $symbol argument');
             }
             Async\await($this->load_markets());
+            $market = $this->market($symbol);
             $request = array(
                 'symbol' => strtoupper($this->market_id($symbol)),
             );
+            $response = Async\await($this->privateGetLeveragepreferences (array_merge($request, $params)));
             //
-            //   {
-            //       "result" => "success",
-            //       "serverTime" => "2023-08-01T09:54:08.900Z",
-            //       "leveragePreferences" => array( array( $symbol => "PF_LTCUSD", maxLeverage => "5.00" ) )
-            //   }
+            //     {
+            //         "result" => "success",
+            //         "serverTime" => "2023-08-01T09:54:08.900Z",
+            //         "leveragePreferences" => array( array( $symbol => "PF_LTCUSD", maxLeverage => "5.00" ) )
+            //     }
             //
-            return Async\await($this->privateGetLeveragepreferences (array_merge($request, $params)));
+            $leveragePreferences = $this->safe_list($response, 'leveragePreferences', array());
+            $data = $this->safe_dict($leveragePreferences, 0, array());
+            return $this->parse_leverage($data, $market);
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $leverageValue = $this->safe_integer($leverage, 'maxLeverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

@@ -56,6 +56,7 @@ interface Exchange {
     privateGetApiDataGFuturesTrades (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataFuturesTradingFees (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataGFuturesTradingFees (params?: {}): Promise<implicitReturnType>;
+    privateGetApiDataFuturesV2TradeAccountDetail (params?: {}): Promise<implicitReturnType>;
     privateGetGOrdersActiveList (params?: {}): Promise<implicitReturnType>;
     privateGetOrdersActiveList (params?: {}): Promise<implicitReturnType>;
     privateGetExchangeOrderList (params?: {}): Promise<implicitReturnType>;

@@ -17,11 +17,13 @@ interface Exchange {
     spotV1PrivateGetTradeQuery (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeOpenOrders (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeHistoryOrders (params?: {}): Promise<implicitReturnType>;
+    spotV1PrivateGetTradeMyTrades (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetUserCommissionRate (params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancel (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
+    spotV1PrivatePostTradeOrderCancelReplace (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancelOrders (params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancelOpenOrders (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
@@ -29,7 +31,11 @@ interface Exchange {
     spotV3PrivateGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
     spotV3PrivatePostPostAssetTransfer (params?: {}): Promise<implicitReturnType>;
+    swapV1PublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetPositionSideDual (params?: {}): Promise<implicitReturnType>;
+    swapV1PrivateGetMarketMarkPriceKlines (params?: {}): Promise<implicitReturnType>;
+    swapV1PrivateGetTradeBatchCancelReplace (params?: {}): Promise<implicitReturnType>;
+    swapV1PrivatePostTradeCancelReplace (params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetServerTime (params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetQuoteContracts (params?: {}): Promise<implicitReturnType>;
@@ -46,6 +52,7 @@ interface Exchange {
     swapV2PrivateGetUserPositions (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetUserIncome (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetTradeOpenOrders (params?: {}): Promise<implicitReturnType>;
+    swapV2PrivateGetTradeOpenOrder (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetTradeOrder (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetTradeMarginType (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetTradeLeverage (params?: {}): Promise<implicitReturnType>;
