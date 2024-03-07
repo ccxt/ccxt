@@ -1310,7 +1310,7 @@ export default class bitget extends bitgetRest {
         if (feeAmount !== undefined) {
             const feeCurrency = this.safeString (fee, 'feeCoin');
             feeObject = {
-                'cost': Precise.stringAbs (feeAmount),
+                'cost': this.parseNumber (Precise.stringAbs (feeAmount)),
                 'currency': this.safeCurrencyCode (feeCurrency),
             };
         }
@@ -1323,10 +1323,10 @@ export default class bitget extends bitgetRest {
         if (side === 'buy' && market['spot'] && (type === 'market')) {
             cost = this.safeString (order, 'newSize', cost);
         }
-        let filled = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
-        if (market['spot'] && (rawStatus !== 'live')) {
-            filled = Precise.stringDiv (cost, avgPrice);
-        }
+        const filled = this.safeString2 (order, 'accBaseVolume', 'baseVolume');
+        // if (market['spot'] && (rawStatus !== 'live')) {
+        //     filled = Precise.stringDiv (cost, avgPrice);
+        // }
         let amount = this.safeString (order, 'baseVolume');
         if (!market['spot'] || !(side === 'buy' && type === 'market')) {
             amount = this.safeString (order, 'newSize', amount);
