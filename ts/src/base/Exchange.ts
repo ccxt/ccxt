@@ -3275,7 +3275,6 @@ export default class Exchange {
         return result;
     }
 
-<<<<<<< HEAD
     nts (value: any, existingStringValue = undefined) {
         // abbreviation for "number-to-string" (if needed)
         if (typeof value === 'string') {
@@ -3285,33 +3284,19 @@ export default class Exchange {
         }
     }
 
-    safeTicker (ticker: object, market = undefined): Ticker {
-        let open = this.safeString (ticker, 'open');
-        let close = this.safeString (ticker, 'close');
-        let last = this.safeString (ticker, 'last');
-        let change = this.safeValue (ticker, 'change');
-        let changeString = undefined;
-        let percentage = this.safeString (ticker, 'percentage');
-        let average = this.safeValue (ticker, 'average');
-        let vwap = this.safeValue (ticker, 'vwap');
-        const baseVolume = this.safeValue (ticker, 'baseVolume');
-        const quoteVolume = this.safeValue (ticker, 'quoteVolume');
-        if (vwap === undefined) {
-            vwap = Precise.stringDiv (this.nts (quoteVolume), this.nts (baseVolume));
-=======
     safeTicker (ticker: object, market: Market = undefined): Ticker {
         let open = this.omitZero (this.safeString (ticker, 'open'));
         let close = this.omitZero (this.safeString (ticker, 'close'));
         let last = this.omitZero (this.safeString (ticker, 'last'));
         let change = this.omitZero (this.safeString (ticker, 'change'));
+        let changeString = undefined;
         let percentage = this.omitZero (this.safeString (ticker, 'percentage'));
         let average = this.omitZero (this.safeString (ticker, 'average'));
         let vwap = this.omitZero (this.safeString (ticker, 'vwap'));
-        const baseVolume = this.safeString (ticker, 'baseVolume');
-        const quoteVolume = this.safeString (ticker, 'quoteVolume');
+        const baseVolume = this.safeValue (ticker, 'baseVolume');
+        const quoteVolume = this.safeValue (ticker, 'quoteVolume');
         if (vwap === undefined) {
-            vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
->>>>>>> 6507f2e7fd0f361b80cc091a0918b5fd8e9b682e
+            vwap = Precise.stringDiv (this.nts (quoteVolume), this.nts (baseVolume));
         }
         if ((last !== undefined) && (close === undefined)) {
             close = last;
