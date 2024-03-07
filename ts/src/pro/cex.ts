@@ -384,7 +384,9 @@ export default class cex extends cexRest {
         client.resolve (ticker, messageHash);
         client.resolve (ticker, 'tickers');
         messageHash = this.safeString (message, 'oid');
-        client.resolve (ticker, messageHash);
+        if (messageHash !== undefined) {
+            client.resolve (ticker, messageHash);
+        }
     }
 
     parseWsTicker (ticker, market = undefined) {
