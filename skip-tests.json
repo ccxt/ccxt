@@ -320,15 +320,17 @@
             },
             "fetchTickers": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3615",
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269331129#L3609"
             },
             "fetchTicker": {
-                "spread": "same",
-                "quoteVolume": "same"
+                "spread": "same", "quoteVolume": "same", "ask": "same"
             },
             "watchTickers": {
-                "spread": "same",
-                "quoteVolume": "same"
+                "spread": "same", "quoteVolume": "same", "ask": "same"
+            },
+            "watchTicker": {
+                "spread": "same", "quoteVolume": "same", "ask": "same"
             },
             "fetchOrderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3946"
