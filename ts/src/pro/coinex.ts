@@ -1092,7 +1092,7 @@ export default class coinex extends coinexRest {
             };
             future = this.watch (url, messageHash, request, requestId, subscribe);
             client.subscriptions[messageHash] = future;
-            return future;
+            return await future;
         } else {
             const messageHash = 'authenticated:swap';
             let future = this.safeValue (client.subscriptions, messageHash);
@@ -1117,7 +1117,7 @@ export default class coinex extends coinexRest {
             };
             future = this.watch (url, messageHash, request, requestId, subscribe);
             client.subscriptions[messageHash] = future;
-            return future;
+            return await future;
         }
     }
 }
