@@ -436,7 +436,6 @@ class Exchange(object):
         self.bidsasks = dict() if self.bidsasks is None else self.bidsasks
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
-        self.positions = dict() if self.positions is None else self.positions
         self.futuresOldSymbolsMap = dict() if self.futuresOldSymbolsMap is None else self.futuresOldSymbolsMap
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.currencies = dict() if self.currencies is None else self.currencies
