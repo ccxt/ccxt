@@ -2784,14 +2784,12 @@ export default class binance extends Exchange {
             }
         }
         const promises = await Promise.all (promisesRaw);
-        const spotMarkets = this.safeValue (this.safeValue (promises, 0), 'symbols', []);
-        const futureMarkets = this.safeValue (this.safeValue (promises, 1), 'symbols', []);
-        const deliveryMarkets = this.safeValue (this.safeValue (promises, 2), 'symbols', []);
-        const optionMarkets = this.safeValue (this.safeValue (promises, 3), 'optionSymbols', []);
-        let markets = spotMarkets;
-        markets = this.arrayConcat (markets, futureMarkets);
-        markets = this.arrayConcat (markets, deliveryMarkets);
-        markets = this.arrayConcat (markets, optionMarkets);
+        let markets = [];
+        for (let i = 0; i < fetchMarkets.length; i++) {
+            const promise = this.safeDict (promises, i);
+            const promiseMarkets = this.safeList2 (promise, 'symbols', 'optionSymbols', []);
+            markets = this.arrayConcat (markets, promiseMarkets);
+        }
         //
         // spot / margin
         //
