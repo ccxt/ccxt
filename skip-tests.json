@@ -1152,7 +1152,6 @@
         }
     },
     "lbank": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "settle must be defined when contract is true",
             "fetchTickers": {
@@ -1162,6 +1161,12 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "watchTrades": {
+                "timestamp": "ts several hours ahead in in future :)"
+            },
+            "watchOHLCV": {
+                "0": "ts several hours ahead in in future :)"
             }
         }
     },
