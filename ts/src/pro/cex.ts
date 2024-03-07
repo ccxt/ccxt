@@ -196,7 +196,10 @@ export default class cex extends cexRest {
             return;
         }
         const market = this.market (symbol);
-        for (let i = 0; i < data.length; i++) {
+        // fix chronological order
+        const dataLength = data.length;
+        const maxLength = Math.max (0, dataLength - 1);
+        for (let i = maxLength; i >= 0; i--) {
             const rawTrade = data[i];
             const parsed = this.parseWsOldTrade (rawTrade, market);
             stored.append (parsed);
