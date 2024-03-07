@@ -10,6 +10,10 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 // ---------------------------------------------------------------------------
+/**
+ * @class bl3p
+ * @augments Exchange
+ */
 export default class bl3p extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -19,6 +23,7 @@ export default class bl3p extends Exchange {
             'rateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -28,19 +33,29 @@ export default class bl3p extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
@@ -62,6 +77,7 @@ export default class bl3p extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
+                'ws': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
@@ -101,7 +117,7 @@ export default class bl3p extends Exchange {
                 },
             },
             'markets': {
-                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true },
+                'BTC/EUR': this.safeMarketStructure({ 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true }),
             },
             'precisionMode': TICK_SIZE,
         });
@@ -130,14 +146,15 @@ export default class bl3p extends Exchange {
          * @method
          * @name bl3p#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostGENMKTMoneyInfo(params);
         return this.parseBalance(response);
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeString(bidask, priceKey);
         const size = this.safeString(bidask, amountKey);
         return [
@@ -150,9 +167,10 @@ export default class bl3p extends Exchange {
          * @method
          * @name bl3p#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#22---orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bl3p api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const market = this.market(symbol);
@@ -211,8 +229,9 @@ export default class bl3p extends Exchange {
          * @method
          * @name bl3p#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#21---ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bl3p api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const market = this.market(symbol);
@@ -238,6 +257,16 @@ export default class bl3p extends Exchange {
         return this.parseTicker(ticker, market);
     }
     parseTrade(trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //     {
+        //         "trade_id": "2518789",
+        //         "date": "1694348697745",
+        //         "amount_int": "2959153",
+        //         "price_int": "2416231440"
+        //     }
+        //
         const id = this.safeString(trade, 'trade_id');
         const timestamp = this.safeInteger(trade, 'date');
         const price = this.safeString(trade, 'price_int');
@@ -264,16 +293,31 @@ export default class bl3p extends Exchange {
          * @method
          * @name bl3p#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#23---last-1000-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const market = this.market(symbol);
         const response = await this.publicGetMarketTrades(this.extend({
             'market': market['id'],
         }, params));
+        //
+        //    {
+        //        "result": "success",
+        //        "data": {
+        //            "trades": [
+        //                {
+        //                    "trade_id": "2518789",
+        //                    "date": "1694348697745",
+        //                    "amount_int": "2959153",
+        //                    "price_int": "2416231440"
+        //                },
+        //            ]
+        //        }
+        //     }
         const result = this.parseTrades(response['data']['trades'], market, since, limit);
         return result;
     }
@@ -282,36 +326,37 @@ export default class bl3p extends Exchange {
          * @method
          * @name bl3p#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the bl3p api endpoint
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.privatePostGENMKTMoneyInfo(params);
         //
         //     {
-        //         result: 'success',
-        //         data: {
-        //             user_id: '13396',
-        //             wallets: {
-        //                 BTC: {
-        //                     balance: {
-        //                         value_int: '0',
-        //                         display: '0.00000000 BTC',
-        //                         currency: 'BTC',
-        //                         value: '0.00000000',
-        //                         display_short: '0.00 BTC'
+        //         "result": "success",
+        //         "data": {
+        //             "user_id": "13396",
+        //             "wallets": {
+        //                 "BTC": {
+        //                     "balance": {
+        //                         "value_int": "0",
+        //                         "display": "0.00000000 BTC",
+        //                         "currency": "BTC",
+        //                         "value": "0.00000000",
+        //                         "display_short": "0.00 BTC"
         //                     },
-        //                     available: {
-        //                         value_int: '0',
-        //                         display: '0.00000000 BTC',
-        //                         currency: 'BTC',
-        //                         value: '0.00000000',
-        //                         display_short: '0.00 BTC'
+        //                     "available": {
+        //                         "value_int": "0",
+        //                         "display": "0.00000000 BTC",
+        //                         "currency": "BTC",
+        //                         "value": "0.00000000",
+        //                         "display_short": "0.00 BTC"
         //                     }
         //                 },
         //                 ...
         //             },
-        //             trade_fee: '0.25'
+        //             "trade_fee": "0.25"
         //         }
         //     }
         //
@@ -337,12 +382,17 @@ export default class bl3p extends Exchange {
          * @method
          * @name bl3p#createOrder
          * @description create a trade order
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/examples/nodejs/example.md#21---create-an-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the bl3p api endpoint
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.amount_funds] maximal EUR amount to spend (*1e5)
+         * @param {string} [params.fee_currency] 'EUR' or 'BTC'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market(symbol);
@@ -369,15 +419,59 @@ export default class bl3p extends Exchange {
          * @method
          * @name bl3p#cancelOrder
          * @description cancels an open order
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#22---cancel-an-order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the bl3p api endpoint
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'order_id': id,
         };
         return await this.privatePostMarketMoneyOrderCancel(this.extend(request, params));
+    }
+    async createDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name bl3p#createDepositAddress
+         * @description create a currency deposit address
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#32---create-a-new-deposit-address
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostGENMKTMoneyNewDepositAddress(this.extend(request, params));
+        //
+        //    {
+        //        "result": "success",
+        //        "data": {
+        //            "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data');
+        return this.parseDepositAddress(data, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //    {
+        //        "address": "36Udu9zi1uYicpXcJpoKfv3bewZeok5tpk"
+        //    }
+        //
+        const address = this.safeString(depositAddress, 'address');
+        this.checkAddress(address);
+        return {
+            'info': depositAddress,
+            'currency': this.safeString(currency, 'code'),
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.implodeParams(path, params);

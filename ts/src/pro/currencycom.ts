@@ -5,7 +5,7 @@ import currencycomRest from '../currencycom.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -72,33 +72,33 @@ export default class currencycom extends currencycomRest {
     handleBalance (client: Client, message, subscription) {
         //
         //     {
-        //         status: 'OK',
-        //         correlationId: '1',
-        //         payload: {
-        //             makerCommission: 0.2,
-        //             takerCommission: 0.2,
-        //             buyerCommission: 0.2,
-        //             sellerCommission: 0.2,
-        //             canTrade: true,
-        //             canWithdraw: true,
-        //             canDeposit: true,
-        //             updateTime: 1596742699,
-        //             balances: [
+        //         "status": "OK",
+        //         "correlationId": "1",
+        //         "payload": {
+        //             "makerCommission": 0.2,
+        //             "takerCommission": 0.2,
+        //             "buyerCommission": 0.2,
+        //             "sellerCommission": 0.2,
+        //             "canTrade": true,
+        //             "canWithdraw": true,
+        //             "canDeposit": true,
+        //             "updateTime": 1596742699,
+        //             "balances": [
         //                 {
-        //                     accountId: 5470306579272968,
-        //                     collateralCurrency: true,
-        //                     asset: 'ETH',
-        //                     free: 0,
-        //                     locked: 0,
-        //                     default: false
+        //                     "accountId": 5470306579272968,
+        //                     "collateralCurrency": true,
+        //                     "asset": "ETH",
+        //                     "free": 0,
+        //                     "locked": 0,
+        //                     "default": false
         //                 },
         //                 {
-        //                     accountId: 5470310874305732,
-        //                     collateralCurrency: true,
-        //                     asset: 'USD',
-        //                     free: 47.82576735,
-        //                     locked: 1.187925,
-        //                     default: true
+        //                     "accountId": 5470310874305732,
+        //                     "collateralCurrency": true,
+        //                     "asset": "USD",
+        //                     "free": 47.82576736,
+        //                     "locked": 1.187925,
+        //                     "default": true
         //                 },
         //             ]
         //         }
@@ -117,27 +117,27 @@ export default class currencycom extends currencycomRest {
     handleTicker (client: Client, message, subscription) {
         //
         //     {
-        //         status: 'OK',
-        //         correlationId: '1',
-        //         payload: {
-        //             tickers: [
+        //         "status": "OK",
+        //         "correlationId": "1",
+        //         "payload": {
+        //             "tickers": [
         //                 {
-        //                     symbol: 'BTC/USD_LEVERAGE',
-        //                     priceChange: '484.05',
-        //                     priceChangePercent: '4.14',
-        //                     weightedAvgPrice: '11682.83',
-        //                     prevClosePrice: '11197.70',
-        //                     lastPrice: '11682.80',
-        //                     lastQty: '0.25',
-        //                     bidPrice: '11682.80',
-        //                     askPrice: '11682.85',
-        //                     openPrice: '11197.70',
-        //                     highPrice: '11734.05',
-        //                     lowPrice: '11080.95',
-        //                     volume: '299.133',
-        //                     quoteVolume: '3488040.3465',
-        //                     openTime: 1596585600000,
-        //                     closeTime: 1596654452674
+        //                     "symbol": "BTC/USD_LEVERAGE",
+        //                     "priceChange": "484.05",
+        //                     "priceChangePercent": "4.14",
+        //                     "weightedAvgPrice": "11682.83",
+        //                     "prevClosePrice": "11197.70",
+        //                     "lastPrice": "11682.80",
+        //                     "lastQty": "0.25",
+        //                     "bidPrice": "11682.80",
+        //                     "askPrice": "11682.85",
+        //                     "openPrice": "11197.70",
+        //                     "highPrice": "11734.05",
+        //                     "lowPrice": "11080.95",
+        //                     "volume": "299.133",
+        //                     "quoteVolume": "3488040.3465",
+        //                     "openTime": 1596585600000,
+        //                     "closeTime": 1596654452674
         //                 }
         //             ]
         //         }
@@ -161,14 +161,14 @@ export default class currencycom extends currencycomRest {
     handleTrade (trade, market = undefined) {
         //
         //     {
-        //         price: 11668.55,
-        //         size: 0.001,
-        //         id: 1600300736,
-        //         ts: 1596653426822,
-        //         symbol: 'BTC/USD_LEVERAGE',
-        //         orderId: '00a02503-0079-54c4-0000-00004020163c',
-        //         clientOrderId: '00a02503-0079-54c4-0000-482f0000754f',
-        //         buyer: false
+        //         "price": 11668.55,
+        //         "size": 0.001,
+        //         "id": 1600300736,
+        //         "ts": 1596653426822,
+        //         "symbol": "BTC/USD_LEVERAGE",
+        //         "orderId": "00a02503-0079-54c4-0000-00004020163c",
+        //         "clientOrderId": "00a02503-0079-54c4-0000-482f0000754f",
+        //         "buyer": false
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
@@ -203,17 +203,17 @@ export default class currencycom extends currencycomRest {
     handleTrades (client: Client, message, subscription) {
         //
         //     {
-        //         status: 'OK',
-        //         destination: 'internal.trade',
-        //         payload: {
-        //             price: 11668.55,
-        //             size: 0.001,
-        //             id: 1600300736,
-        //             ts: 1596653426822,
-        //             symbol: 'BTC/USD_LEVERAGE',
-        //             orderId: '00a02503-0079-54c4-0000-00004020163c',
-        //             clientOrderId: '00a02503-0079-54c4-0000-482f0000754f',
-        //             buyer: false
+        //         "status": "OK",
+        //         "destination": "internal.trade",
+        //         "payload": {
+        //             "price": 11668.55,
+        //             "size": 0.001,
+        //             "id": 1600300736,
+        //             "ts": 1596653426822,
+        //             "symbol": "BTC/USD_LEVERAGE",
+        //             "orderId": "00a02503-0079-54c4-0000-00004020163c",
+        //             "clientOrderId": "00a02503-0079-54c4-0000-482f0000754f",
+        //             "buyer": false
         //         }
         //     }
         //
@@ -248,16 +248,16 @@ export default class currencycom extends currencycomRest {
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         status: 'OK',
-        //         destination: 'ohlc.event',
-        //         payload: {
-        //             interval: 'M1',
-        //             symbol: 'BTC/USD_LEVERAGE',
-        //             t: 1596650940000,
-        //             h: 11670.05,
-        //             l: 11658.1,
-        //             o: 11668.55,
-        //             c: 11666.05
+        //         "status": "OK",
+        //         "destination": "ohlc.event",
+        //         "payload": {
+        //             "interval": "M1",
+        //             "symbol": "BTC/USD_LEVERAGE",
+        //             "t": 1596650940000,
+        //             "h": 11670.05,
+        //             "l": 11658.1,
+        //             "o": 11668.55,
+        //             "c": 11666.05
         //         }
         //     }
         //
@@ -338,25 +338,25 @@ export default class currencycom extends currencycomRest {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name currencycom#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         return await this.watchPrivate ('/api/v1/account', params);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name currencycom#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the currencycom api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -380,16 +380,16 @@ export default class currencycom extends currencycomRest {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name currencycom#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -400,14 +400,14 @@ export default class currencycom extends currencycomRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name currencycom#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the currencycom api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -416,17 +416,17 @@ export default class currencycom extends currencycomRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name currencycom#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -460,11 +460,11 @@ export default class currencycom extends currencycomRest {
     handleOrderBook (client: Client, message) {
         //
         //     {
-        //         status: 'OK',
-        //         destination: 'marketdepth.event',
-        //         payload: {
-        //             data: '{"ts":1596235401337,"bid":{"11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000},"ofr":{"11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000}}',
-        //             symbol: 'BTC/USD_LEVERAGE'
+        //         "status": "OK",
+        //         "destination": "marketdepth.event",
+        //         "payload": {
+        //             "data": "{"ts":1596235401337,"bid":{"11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000},"ofr":{"11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000}}",
+        //             "symbol": "BTC/USD_LEVERAGE"
         //         }
         //     }
         //
@@ -481,6 +481,7 @@ export default class currencycom extends currencycomRest {
             orderbook = this.orderBook ();
         }
         orderbook.reset ({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
@@ -495,47 +496,47 @@ export default class currencycom extends currencycomRest {
     handleMessage (client: Client, message) {
         //
         //     {
-        //         status: 'OK',
-        //         correlationId: '1',
-        //         payload: {
-        //             tickers: [
+        //         "status": "OK",
+        //         "correlationId": "1",
+        //         "payload": {
+        //             "tickers": [
         //                 {
-        //                     symbol: '1COV',
-        //                     priceChange: '-0.29',
-        //                     priceChangePercent: '-0.80',
-        //                     prevClosePrice: '36.33',
-        //                     lastPrice: '36.04',
-        //                     openPrice: '36.33',
-        //                     highPrice: '36.46',
-        //                     lowPrice: '35.88',
-        //                     openTime: 1595548800000,
-        //                     closeTime: 1595795305401
+        //                     "symbol": "1COV",
+        //                     "priceChange": "-0.29",
+        //                     "priceChangePercent": "-0.80",
+        //                     "prevClosePrice": "36.33",
+        //                     "lastPrice": "36.04",
+        //                     "openPrice": "36.33",
+        //                     "highPrice": "36.46",
+        //                     "lowPrice": "35.88",
+        //                     "openTime": 1595548800000,
+        //                     "closeTime": 1595795305401
         //                 }
         //             ]
         //         }
         //     }
         //
         //     {
-        //         status: 'OK',
-        //         destination: 'marketdepth.event',
-        //         payload: {
-        //             data: '{"ts":1596235401337,"bid":{"11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000},"ofr":{"11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000}}',
-        //             symbol: 'BTC/USD_LEVERAGE'
+        //         "status": "OK",
+        //         "destination": "marketdepth.event",
+        //         "payload": {
+        //             "data": "{"ts":1596235401337,"bid":{"11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000},"ofr":{"11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000}}",
+        //             "symbol": "BTC/USD_LEVERAGE"
         //         }
         //     }
         //
         //     {
-        //         status: 'OK',
-        //         destination: 'internal.trade',
-        //         payload: {
-        //             price: 11634.75,
-        //             size: 0.001,
-        //             id: 1605492357,
-        //             ts: 1596263802399,
-        //             instrumentId: 45076691096786110,
-        //             orderId: '00a02503-0079-54c4-0000-0000401fff51',
-        //             clientOrderId: '00a02503-0079-54c4-0000-482b00002f17',
-        //             buyer: false
+        //         "status": "OK",
+        //         "destination": "internal.trade",
+        //         "payload": {
+        //             "price": 11634.75,
+        //             "size": 0.001,
+        //             "id": 1605492357,
+        //             "ts": 1596263802399,
+        //             "instrumentId": 45076691096786110,
+        //             "orderId": "00a02503-0079-54c4-0000-0000401fff51",
+        //             "clientOrderId": "00a02503-0079-54c4-0000-482b00002f17",
+        //             "buyer": false
         //         }
         //     }
         //
@@ -546,17 +547,18 @@ export default class currencycom extends currencycomRest {
             const subscription = this.safeValue (subscriptionsById, requestId);
             if (subscription !== undefined) {
                 if (status === 'OK') {
-                    const destination = this.safeString (subscription, 'destination');
-                    if (destination !== undefined) {
+                    const subscriptionDestination = this.safeString (subscription, 'destination');
+                    if (subscriptionDestination !== undefined) {
                         const methods = {
                             '/api/v1/ticker/24hr': this.handleTicker,
                             '/api/v1/account': this.handleBalance,
                         };
-                        const method = this.safeValue (methods, destination);
+                        const method = this.safeValue (methods, subscriptionDestination);
                         if (method === undefined) {
-                            return message;
+                            return;
                         } else {
-                            return method.call (this, client, message, subscription);
+                            method.call (this, client, message, subscription);
+                            return;
                         }
                     }
                 }
@@ -571,10 +573,8 @@ export default class currencycom extends currencycomRest {
                 'ping': this.handlePong,
             };
             const method = this.safeValue (methods, destination);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         }
     }

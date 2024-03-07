@@ -1,0 +1,159 @@
+{
+    "exchange": "latoken",
+    "skipKeys": [
+        "timestamp",
+        "clientOrderId"
+    ],
+    "outputType": "json",
+    "methods": {
+        "fetchOrders": [
+            {
+                "description": "Spot orders",
+                "method": "fetchOrders",
+                "url": "https://api.latoken.com/v2/auth/order/pair/0d02fdfc-9555-4cd9-8398-006003033a9e/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.latoken.com/v2/auth/trade?limit=5",
+                "input": [
+                    null,
+                    1699457638000,
+                    5
+                ]
+            },
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.latoken.com/v2/auth/trade/pair/0d02fdfc-9555-4cd9-8398-006003033a9e/0c3a106d-bde3-4c13-a26e-3fd2394529e5?limit=5",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.latoken.com/v2/auth/order/pair/0d02fdfc-9555-4cd9-8398-006003033a9e/0c3a106d-bde3-4c13-a26e-3fd2394529e5/active",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.latoken.com/v2/auth/order/cancelAll/0d02fdfc-9555-4cd9-8398-006003033a9e/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.latoken.com/v2/auth/account?type=spot",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.latoken.com/v2/auth/account?type=swap",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.latoken.com/v2/auth/order/place",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "{\"baseCurrency\":\"0d02fdfc-9555-4cd9-8398-006003033a9e\",\"quoteCurrency\":\"0c3a106d-bde3-4c13-a26e-3fd2394529e5\",\"side\":\"BUY\",\"condition\":\"GTC\",\"type\":\"LIMIT\",\"clientOrderId\":\"377af565-40d4-4653-af1f-ec9074aaac32\",\"quantity\":\"0.1\",\"timestamp\":1699460636,\"price\":\"50\"}"
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "Fetch Trading Fee - private",
+                "method": "fetchTradingFee",
+                "url": "https://api.latoken.com/v2/auth/trade/fee/0d02fdfc-9555-4cd9-8398-006003033a9e/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch Trading Fee - public",
+                "method": "fetchTradingFee",
+                "url": "https://api.latoken.com/v2/trade/fee/0d02fdfc-9555-4cd9-8398-006003033a9e/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                "input": [
+                    "LTC/USDT",
+                    {
+                        "method": "fetchPublicTradingFee"
+                    }
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer - email",
+                "method": "transfer",
+                "url": "https://api.latoken.com/v2/auth/transfer/email",
+                "input": [
+                    "USDT",
+                    1,
+                    "",
+                    "abc@gmail.com"
+                ],
+                "output": "{\"currency\":\"0c3a106d-bde3-4c13-a26e-3fd2394529e5\",\"recipient\":\"abc@gmail.com\",\"value\":\"1\"}"
+            },
+            {
+                "description": "transfer - email",
+                "method": "transfer",
+                "url": "https://api.latoken.com/v2/auth/transfer/id",
+                "input": [
+                    "USDT",
+                    1,
+                    "",
+                    "e6fc4ace-7750-44e4-b7e9-6af038ac7107"
+                ],
+                "output": "{\"currency\":\"0c3a106d-bde3-4c13-a26e-3fd2394529e5\",\"recipient\":\"e6fc4ace-7750-44e4-b7e9-6af038ac7107\",\"value\":\"1\"}"
+            },
+            {
+                "description": "transfer - phone",
+                "method": "transfer",
+                "url": "https://api.latoken.com/v2/auth/transfer/phone",
+                "input": [
+                    "USDT",
+                    1,
+                    "",
+                    "1234567890"
+                ],
+                "output": "{\"currency\":\"0c3a106d-bde3-4c13-a26e-3fd2394529e5\",\"recipient\":\"1234567890\",\"value\":\"1\"}"
+            }
+        ]
+    }
+}

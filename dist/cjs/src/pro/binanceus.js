@@ -1,12 +1,17 @@
 'use strict';
 
 var binance = require('./binance.js');
+var binanceus$1 = require('../binanceus.js');
 
 //  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class binanceus extends binance {
     describe() {
-        return this.deepExtend(super.describe(), {
+        // eslint-disable-next-line new-cap
+        const restInstance = new binanceus$1();
+        const restDescribe = restInstance.describe();
+        const extended = this.deepExtend(restDescribe, super.describe());
+        return this.deepExtend(extended, {
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': ['US'],
@@ -18,6 +23,7 @@ class binanceus extends binance {
                         'spot': 'wss://stream.binance.us:9443/ws',
                     },
                     'web': 'https://www.binance.us',
+                    'sapi': 'https://api.binance.us/sapi/v1',
                     'wapi': 'https://api.binance.us/wapi/v3',
                     'public': 'https://api.binance.us/api/v1',
                     'private': 'https://api.binance.us/api/v3',

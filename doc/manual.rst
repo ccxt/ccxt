@@ -5594,7 +5594,7 @@ Some exchanges allow you to specify optional parameters for your order. You can 
 
    # Python
    # add a custom order flag
-   kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
+   kraken.create_market_buy_order('BTC/USD', 1, {'validate': true})
 
 .. code-block:: PHP
 

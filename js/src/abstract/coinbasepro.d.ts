@@ -11,6 +11,7 @@ interface Exchange {
     publicGetProductsIdTrades(params?: {}): Promise<implicitReturnType>;
     publicGetTime(params?: {}): Promise<implicitReturnType>;
     publicGetProductsSparkLines(params?: {}): Promise<implicitReturnType>;
+    privateGetAddressBook(params?: {}): Promise<implicitReturnType>;
     privateGetAccounts(params?: {}): Promise<implicitReturnType>;
     privateGetAccountsId(params?: {}): Promise<implicitReturnType>;
     privateGetAccountsIdHolds(params?: {}): Promise<implicitReturnType>;
@@ -45,6 +46,7 @@ interface Exchange {
     privateGetUsersSelfTrailingVolume(params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawalsFeeEstimate(params?: {}): Promise<implicitReturnType>;
     privateGetConversionsConversionId(params?: {}): Promise<implicitReturnType>;
+    privateGetConversionsFees(params?: {}): Promise<implicitReturnType>;
     privatePostConversions(params?: {}): Promise<implicitReturnType>;
     privatePostDepositsCoinbaseAccount(params?: {}): Promise<implicitReturnType>;
     privatePostDepositsPaymentMethod(params?: {}): Promise<implicitReturnType>;

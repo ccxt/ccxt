@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_leverage_tier  # noqa E402
-
 
 async def test_fetch_leverage_tiers(exchange, skipped_properties, symbol):
     method = 'fetchLeverageTiers'
