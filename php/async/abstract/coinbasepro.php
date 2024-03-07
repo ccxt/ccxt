@@ -37,6 +37,9 @@ abstract class coinbasepro extends \ccxt\async\Exchange {
     public function public_get_products_spark_lines($params = array()) {
         return $this->request('products/spark-lines', 'public', 'GET', $params, null, null, array());
     }
+    public function private_get_address_book($params = array()) {
+        return $this->request('address-book', 'private', 'GET', $params, null, null, array());
+    }
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array());
     }
@@ -139,6 +142,9 @@ abstract class coinbasepro extends \ccxt\async\Exchange {
     public function private_get_conversions_conversion_id($params = array()) {
         return $this->request('conversions/{conversion_id}', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_conversions_fees($params = array()) {
+        return $this->request('conversions/fees', 'private', 'GET', $params, null, null, array());
+    }
     public function private_post_conversions($params = array()) {
         return $this->request('conversions', 'private', 'POST', $params, null, null, array());
     }
@@ -219,6 +225,9 @@ abstract class coinbasepro extends \ccxt\async\Exchange {
     }
     public function publicGetProductsSparkLines($params = array()) {
         return $this->request('products/spark-lines', 'public', 'GET', $params, null, null, array());
+    }
+    public function privateGetAddressBook($params = array()) {
+        return $this->request('address-book', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array());
@@ -321,6 +330,9 @@ abstract class coinbasepro extends \ccxt\async\Exchange {
     }
     public function privateGetConversionsConversionId($params = array()) {
         return $this->request('conversions/{conversion_id}', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetConversionsFees($params = array()) {
+        return $this->request('conversions/fees', 'private', 'GET', $params, null, null, array());
     }
     public function privatePostConversions($params = array()) {
         return $this->request('conversions', 'private', 'POST', $params, null, null, array());

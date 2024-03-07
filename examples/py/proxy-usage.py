@@ -11,40 +11,42 @@ sys.path.append(root + '/python')
 
 # ----------------------------------------------------------------------------
 import asyncio
-import ccxt.async_support as ccxt  # noqa: E402
+import ccxt.pro as ccxt  # noqa: E402
 
 
 # AUTO-TRANSPILE #
-async def example_1():
+# ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/#/README?id=proxy
+async def example_proxy_url():
     my_ex = ccxt.kucoin()
-    my_ex.proxy_url = 'https://cors-anywhere.herokuapp.com/'  # It prepends redirect url to requests, so requests leads to call url i.e.: https://cors-anywhere.herokuapp.com/?https://target_url.com . It might be useful for simple redirection or CORS bypassing purposes (Note, this will not work for websocket connections, but only for REST calls).
+    my_ex.proxy_url = 'http://5.75.153.75:8090/proxy_url.php?caller=https://ccxt.com&url='
     print(await my_ex.fetch('https://api.ipify.org/'))
 
     await my_ex.close()
 
-async def example_2():
+async def example_http_proxy():
     my_ex = ccxt.kucoin()
-    # choose "httpProxy" or "httpsProxy" depending on your proxy url protocol
-    my_ex.https_proxy = 'http://51.83.140.52:11230'  # It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
+    my_ex.http_proxy = 'http://5.75.153.75:8002'  # "httpProxy" or "httpsProxy" (depending on your proxy protocol)
     print(await my_ex.fetch('https://api.ipify.org/'))
 
     await my_ex.close()
 
-async def example_3():
+async def example_socks_proxy():
     my_ex = ccxt.kucoin()
-    my_ex.socks_proxy = 'socks5://127.0.0.1:1080'  # It is for socks5 or socks5h proxy (Note, this might work for websocket connections too).
+    my_ex.socks_proxy = 'socks5://127.0.0.1:1080'  # from protocols: socks, socks5, socks5h
     print(await my_ex.fetch('https://api.ipify.org/'))
 
-
-# Note, you can use your callback (instead of string value).
-#
-#     myEx.proxyUrl = mycallback;
-#
-#  or (JS/PHP)
-#
-#     myEx.proxyUrl = function (url, method, headers, body) { return 'xyz'; }
-#
-# Note, in php you can also pass a callback's string with a qualified namespace/class name, i.e. '\yourNamesPace\yourFunction'
     await my_ex.close()
 
-asyncio.run(example_1())
+async def example_web_sockets():
+    my_ex = ccxt.kucoin()
+    my_ex.http_proxy = 'http://5.75.153.75:8002'  # even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
+    my_ex.ws_proxy = 'http://5.75.153.75:8002'  # "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
+    await my_ex.load_markets()
+    while True:
+        ticker = await my_ex.watch_ticker('BTC/USDT')
+        print(ticker)
+
+
+    await my_ex.close()
+
+asyncio.run(example_proxy_url())

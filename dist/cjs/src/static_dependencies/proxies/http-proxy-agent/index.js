@@ -4,11 +4,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var net = require('net');
 var tls = require('tls');
-var createDebug = require('debug');
 var events = require('events');
 var index = require('../agent-base/index.js');
-
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
 function _interopNamespace(e) {
     if (e && e.__esModule) return e;
@@ -30,9 +27,7 @@ function _interopNamespace(e) {
 
 var net__namespace = /*#__PURE__*/_interopNamespace(net);
 var tls__namespace = /*#__PURE__*/_interopNamespace(tls);
-var createDebug__default = /*#__PURE__*/_interopDefaultLegacy(createDebug);
 
-const debug = createDebug__default["default"]('http-proxy-agent');
 function isHTTPS(protocol) {
     return typeof protocol === 'string' ? /^https:?$/i.test(protocol) : false;
 }
@@ -45,7 +40,7 @@ class HttpProxyAgent extends index.Agent {
         super(opts);
         this.proxy = typeof proxy === 'string' ? new URL(proxy) : proxy;
         this.proxyHeaders = opts?.headers ?? {};
-        debug('Creating new HttpProxyAgent instance: %o', this.proxy.href);
+        // debug('Creating new HttpProxyAgent instance: %o', this.proxy.href);
         // Trim off the brackets from IPv6 addresses
         const host = (this.proxy.hostname || this.proxy.host).replace(/^\[|\]$/g, '');
         const port = this.proxy.port
@@ -97,11 +92,11 @@ class HttpProxyAgent extends index.Agent {
         // Create a socket connection to the proxy server.
         let socket;
         if (this.secureProxy) {
-            debug('Creating `tls.Socket`: %o', this.connectOpts);
+            // debug('Creating `tls.Socket`: %o', this.connectOpts);
             socket = tls__namespace.connect(this.connectOpts);
         }
         else {
-            debug('Creating `net.Socket`: %o', this.connectOpts);
+            // debug('Creating `net.Socket`: %o', this.connectOpts);
             socket = net__namespace.connect(this.connectOpts);
         }
         // At this point, the http ClientRequest's internal `_header` field
@@ -109,16 +104,18 @@ class HttpProxyAgent extends index.Agent {
         // to re-generate the string since we just changed the `req.path`.
         let first;
         let endOfHeaders;
-        debug('Regenerating stored HTTP header string for request');
+        // debug('Regenerating stored HTTP header string for request');
         req._implicitHeader();
         if (req.outputData && req.outputData.length > 0) {
             // Node >= 12
-            debug('Patching connection write() output buffer with updated header');
+            // debug(
+            //	'Patching connection write() output buffer with updated header'
+            // );
             first = req.outputData[0].data;
             endOfHeaders = first.indexOf('\r\n\r\n') + 4;
             req.outputData[0].data =
                 req._header + first.substring(endOfHeaders);
-            debug('Output buffer: %o', req.outputData[0].data);
+            // debug('Output buffer: %o', req.outputData[0].data);
         }
         // Wait for the socket's `connect` event, so that this `callback()`
         // function throws instead of the `http` request machinery. This is

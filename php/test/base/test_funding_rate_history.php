@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,7 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_shared_methods.php';
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_funding_rate_history($exchange, $skipped_properties, $method, $entry, $symbol) {
     $format = array(
@@ -20,7 +19,7 @@ function test_funding_rate_history($exchange, $skipped_properties, $method, $ent
     );
     assert_structure($exchange, $skipped_properties, $method, $entry, $format);
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry);
     assert_greater($exchange, $skipped_properties, $method, $entry, 'fundingRate', '-100');
     assert_less($exchange, $skipped_properties, $method, $entry, 'fundingRate', '100');
 }

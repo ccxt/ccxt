@@ -13,6 +13,12 @@ abstract class coinmate extends \ccxt\async\Exchange {
     public function public_get_ticker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_tickerall($params = array()) {
+        return $this->request('tickerAll', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_products($params = array()) {
+        return $this->request('products', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_transactions($params = array()) {
         return $this->request('transactions', 'public', 'GET', $params, null, null, array());
     }
@@ -145,11 +151,47 @@ abstract class coinmate extends \ccxt\async\Exchange {
     public function private_post_unconfirmedrippledeposits($params = array()) {
         return $this->request('unconfirmedRippleDeposits', 'private', 'POST', $params, null, null, array());
     }
+    public function private_post_cancelallopenorders($params = array()) {
+        return $this->request('cancelAllOpenOrders', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_withdrawvirtualcurrency($params = array()) {
+        return $this->request('withdrawVirtualCurrency', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_virtualcurrencydepositaddresses($params = array()) {
+        return $this->request('virtualCurrencyDepositAddresses', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_unconfirmedvirtualcurrencydeposits($params = array()) {
+        return $this->request('unconfirmedVirtualCurrencyDeposits', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_adawithdrawal($params = array()) {
+        return $this->request('adaWithdrawal', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_adadepositaddresses($params = array()) {
+        return $this->request('adaDepositAddresses', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_unconfirmedadadeposits($params = array()) {
+        return $this->request('unconfirmedAdaDeposits', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_solwithdrawal($params = array()) {
+        return $this->request('solWithdrawal', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_soldepositaddresses($params = array()) {
+        return $this->request('solDepositAddresses', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_unconfirmedsoldeposits($params = array()) {
+        return $this->request('unconfirmedSolDeposits', 'private', 'POST', $params, null, null, array());
+    }
     public function publicGetOrderBook($params = array()) {
         return $this->request('orderBook', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetTicker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetTickerAll($params = array()) {
+        return $this->request('tickerAll', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetProducts($params = array()) {
+        return $this->request('products', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetTransactions($params = array()) {
         return $this->request('transactions', 'public', 'GET', $params, null, null, array());
@@ -282,5 +324,35 @@ abstract class coinmate extends \ccxt\async\Exchange {
     }
     public function privatePostUnconfirmedRippleDeposits($params = array()) {
         return $this->request('unconfirmedRippleDeposits', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostCancelAllOpenOrders($params = array()) {
+        return $this->request('cancelAllOpenOrders', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostWithdrawVirtualCurrency($params = array()) {
+        return $this->request('withdrawVirtualCurrency', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostVirtualCurrencyDepositAddresses($params = array()) {
+        return $this->request('virtualCurrencyDepositAddresses', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostUnconfirmedVirtualCurrencyDeposits($params = array()) {
+        return $this->request('unconfirmedVirtualCurrencyDeposits', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostAdaWithdrawal($params = array()) {
+        return $this->request('adaWithdrawal', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostAdaDepositAddresses($params = array()) {
+        return $this->request('adaDepositAddresses', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostUnconfirmedAdaDeposits($params = array()) {
+        return $this->request('unconfirmedAdaDeposits', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostSolWithdrawal($params = array()) {
+        return $this->request('solWithdrawal', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostSolDepositAddresses($params = array()) {
+        return $this->request('solDepositAddresses', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostUnconfirmedSolDeposits($params = array()) {
+        return $this->request('unconfirmedSolDeposits', 'private', 'POST', $params, null, null, array());
     }
 }

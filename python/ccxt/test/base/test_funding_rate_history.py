@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_funding_rate_history(exchange, skipped_properties, method, entry, symbol):
     format = {
@@ -26,6 +24,6 @@ def test_funding_rate_history(exchange, skipped_properties, method, entry, symbo
     }
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
-    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry)
+    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'fundingRate', '-100')
     test_shared_methods.assert_less(exchange, skipped_properties, method, entry, 'fundingRate', '100')

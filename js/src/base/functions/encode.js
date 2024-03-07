@@ -8,6 +8,7 @@
 /*  ------------------------------------------------------------------------ */
 import { base16, base58, base64, utf8 } from "../../static_dependencies/scure-base/index.js";
 import { numberToBytesBE, numberToBytesLE, concatBytes } from '../../static_dependencies/noble-curves/abstract/utils.js';
+import { serialize } from '../../static_dependencies/messagepack/msgpack.js';
 import qs from '../../static_dependencies/qs/index.cjs';
 /*  ------------------------------------------------------------------------ */
 const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedObject = object => ((typeof object === 'string') &&
@@ -19,7 +20,10 @@ const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedOb
 , urlencodeBase64 = base64string => base64string.replace(/[=]+$/, '')
     .replace(/\+/g, '-')
     .replace(/\//g, '_'), numberToLE = (n, padding) => numberToBytesLE(BigInt(n), padding), numberToBE = (n, padding) => numberToBytesBE(BigInt(n), padding);
+function packb(req) {
+    return serialize(req);
+}
 export { json, isJsonEncodedObject, binaryToString, stringToBinary, stringToBase64, base64ToBinary, base64ToString, binaryToBase64, base16ToBinary, binaryToBase16, binaryConcat, binaryConcatArray, urlencode, urlencodeWithArrayRepeat, rawencode, encode, decode
 // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
-, urlencodeBase64, numberToLE, numberToBE, base58ToBinary, binaryToBase58, urlencodeNested };
+, urlencodeBase64, numberToLE, numberToBE, base58ToBinary, binaryToBase58, urlencodeNested, packb };
 /*  ------------------------------------------------------------------------ */
