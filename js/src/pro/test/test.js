@@ -113,6 +113,8 @@ async function testPrivate(exchange, symbol, code) {
         // await tests['watchOpenOrders']   (exchange, symbol)
         // await tests['watchClosedOrders'] (exchange, symbol)
         await tests['watchMyTrades'](exchange, symbol);
+        await tests['watchPosition'](exchange, symbol);
+        await tests['watchPositions'](exchange, symbol);
         // const code = exchange.markets[symbol]['quote']
         // await tests['watchLedger']       (exchange, code)
         // await tests['watchTransactions'] (exchange, code)

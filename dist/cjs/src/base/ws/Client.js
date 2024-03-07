@@ -44,11 +44,11 @@ class Client {
         };
         Object.assign(this, generic.deepExtend(defaults, config));
         // connection-related Future
-        this.connected = Future.createFuture();
+        this.connected = Future.Future();
     }
     future(messageHash) {
         if (!(messageHash in this.futures)) {
-            this.futures[messageHash] = Future.createFuture();
+            this.futures[messageHash] = Future.Future();
         }
         const future = this.futures[messageHash];
         if (messageHash in this.rejections) {
@@ -144,8 +144,14 @@ class Client {
                 this.onError(new errors.RequestTimeout('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'));
             }
             else {
+                let message;
                 if (this.ping) {
-                    this.send(this.ping(this));
+                    message = this.ping(this);
+                }
+                if (message) {
+                    this.send(message).catch((error) => {
+                        this.onError(error);
+                    });
                 }
                 else if (platform.isNode) {
                     // can't do this inside browser
@@ -200,6 +206,7 @@ class Client {
         this.reset(this.error);
         this.onErrorCallback(this, this.error);
     }
+    /* eslint-disable no-shadow */
     onClose(event) {
         if (this.verbose) {
             this.log(new Date(), 'onClose', event);
@@ -207,6 +214,12 @@ class Client {
         if (!this.error) {
             // todo: exception types for server-side disconnects
             this.reset(new errors.NetworkError('connection closed by remote server, closing code ' + String(event.code)));
+        }
+        if (this.error instanceof errors.ExchangeClosedByUser) {
+            this.reset(this.error);
+        }
+        if (this.disconnected !== undefined) {
+            this.disconnected.resolve(true);
         }
         this.onCloseCallback(this, event);
     }
@@ -222,8 +235,10 @@ class Client {
             this.log(new Date(), 'sending', message);
         }
         message = (typeof message === 'string') ? message : JSON.stringify(message);
-        const future = Future.createFuture();
+        const future = Future.Future();
         if (platform.isNode) {
+            /* eslint-disable no-inner-declarations */
+            /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete(error) {
                 if (error) {
                     future.reject(error);
@@ -248,23 +263,20 @@ class Client {
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
         let message = messageEvent.data;
         let arrayBuffer;
-        if (this.gunzip || this.inflate) {
-            if (typeof message === 'string') {
-                arrayBuffer = index.utf8.decode(message);
+        if (typeof message !== 'string') {
+            if (this.gunzip || this.inflate) {
+                arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
+                if (this.gunzip) {
+                    arrayBuffer = browser.gunzipSync(arrayBuffer);
+                }
+                else if (this.inflate) {
+                    arrayBuffer = browser.inflateSync(arrayBuffer);
+                }
+                message = index.utf8.encode(arrayBuffer);
             }
             else {
-                arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
+                message = message.toString();
             }
-            if (this.gunzip) {
-                arrayBuffer = browser.gunzipSync(arrayBuffer);
-            }
-            else if (this.inflate) {
-                arrayBuffer = browser.inflateSync(arrayBuffer);
-            }
-            message = index.utf8.encode(arrayBuffer);
-        }
-        if (typeof message !== 'string') {
-            message = message.toString();
         }
         try {
             if (encode.isJsonEncodedObject(message)) {

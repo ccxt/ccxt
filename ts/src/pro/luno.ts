@@ -2,7 +2,7 @@
 
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import type { Int, Trade, OrderBook, IndexType } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -35,19 +35,19 @@ export default class luno extends lunoRest {
         });
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name luno#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @see https://www.luno.com/en/developers/api#tag/Streaming-API
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of    trades to fetch
-         * @param {object} params extra parameters specific to the luno api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of    trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.checkRequiredCredentials ();
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -70,17 +70,17 @@ export default class luno extends lunoRest {
     handleTrades (client: Client, message, subscription) {
         //
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: {
-        //             order_id: 'BXHSYXAUMH8C2RW',
-        //             type: 'ASK',
-        //             price: '24081.09000000',
-        //             volume: '0.07780000'
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
         //         },
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
         const rawTrades = this.safeValue (message, 'trade_updates', []);
@@ -106,7 +106,7 @@ export default class luno extends lunoRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // watchTrades (public)
         //
@@ -136,18 +136,18 @@ export default class luno extends lunoRest {
         }, market);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name luno#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {objectConstructor} params extra parameters specific to the luno api endpoint
-         * @param {string|undefined} params.type accepts l2 or l3 for level 2 or level 3 order book
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.checkRequiredCredentials ();
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -184,44 +184,44 @@ export default class luno extends lunoRest {
         //
         //  update
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: {
-        //             order_id: 'BXHSYXAUMH8C2RW',
-        //             type: 'ASK',
-        //             price: '24081.09000000',
-        //             volume: '0.07780000'
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
         //         },
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
         const symbol = subscription['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeString (message, 'timestamp');
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.indexedOrderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.indexedOrderBook ({});
+            this.orderbooks[symbol] = orderbook;
         }
         const asks = this.safeValue (message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            storedOrderBook.reset (snapshot);
+            orderbook.reset (snapshot);
         } else {
-            this.handleDelta (storedOrderBook, message);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = this.iso8601 (timestamp);
+            this.handleDelta (orderbook, message);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
         const nonce = this.safeInteger (message, 'sequence');
-        storedOrderBook['nonce'] = nonce;
-        client.resolve (storedOrderBook, messageHash);
+        orderbook['nonce'] = nonce;
+        client.resolve (orderbook, messageHash);
     }
 
-    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
-        const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, thirdKey);
-        const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, thirdKey);
+    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2) {
+        const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy (bids, 0, true),
@@ -232,7 +232,7 @@ export default class luno extends lunoRest {
         };
     }
 
-    parseBidsAsks (bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
+    parseBidsAsks (bidasks, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -241,7 +241,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    customParseBidAsk (bidask, priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
+    customParseBidAsk (bidask, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const result = [ price, amount ];
@@ -256,33 +256,33 @@ export default class luno extends lunoRest {
         //
         //  create
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: {
-        //             order_id: 'BXHSYXAUMH8C2RW',
-        //             type: 'ASK',
-        //             price: '24081.09000000',
-        //             volume: '0.07780000'
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
         //         },
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //  delete
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: null,
-        //         delete_update: {
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": null,
+        //         "delete_update": {
         //             "order_id": "BXMC2CJ7HNB88U4"
         //         },
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //  trade
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [
+        //         "sequence": "110980825",
+        //         "trade_updates": [
         //             {
         //                 "base": "0.1",
         //                 "counter": "5232.00",
@@ -290,31 +290,30 @@ export default class luno extends lunoRest {
         //                 "taker_order_id": "BXMC2CJ7HNB88U5"
         //             }
         //         ],
-        //         create_update: null,
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "create_update": null,
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
         const createUpdate = this.safeValue (message, 'create_update');
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         if (createUpdate !== undefined) {
-            const array = this.customParseBidAsk (createUpdate, 'price', 'volume', 'order_id');
+            const bidAskArray = this.customParseBidAsk (createUpdate, 'price', 'volume', 'order_id');
             const type = this.safeString (createUpdate, 'type');
             if (type === 'ASK') {
-                asksOrderSide.storeArray (array);
+                asksOrderSide.storeArray (bidAskArray);
             } else if (type === 'BID') {
-                bidsOrderSide.storeArray (array);
+                bidsOrderSide.storeArray (bidAskArray);
             }
         }
         const deleteUpdate = this.safeValue (message, 'delete_update');
         if (deleteUpdate !== undefined) {
             const orderId = this.safeString (deleteUpdate, 'order_id');
-            asksOrderSide.storeArray (0, 0, orderId);
-            bidsOrderSide.storeArray (0, 0, orderId);
+            asksOrderSide.storeArray ([ 0, 0, orderId ]);
+            bidsOrderSide.storeArray ([ 0, 0, orderId ]);
         }
-        return message;
     }
 
     handleMessage (client: Client, message) {
@@ -327,6 +326,5 @@ export default class luno extends lunoRest {
             const handler = handlers[j];
             handler.call (this, client, message, subscriptions[0]);
         }
-        return message;
     }
 }

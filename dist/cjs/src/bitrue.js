@@ -8,6 +8,10 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class bitrue
+ * @augments Exchange
+ */
 class bitrue extends bitrue$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -23,28 +27,34 @@ class bitrue extends bitrue$1 {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
-                'future': undefined,
+                'swap': true,
+                'future': false,
                 'option': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingRate': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -63,9 +73,11 @@ class bitrue extends bitrue$1 {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawals': true,
-                'transfer': false,
+                'setLeverage': true,
+                'setMargin': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -82,66 +94,142 @@ class bitrue extends bitrue$1 {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
                 'api': {
-                    'v1': 'https://www.bitrue.com/api/v1',
-                    'v2': 'https://www.bitrue.com/api/v2',
+                    'spot': 'https://www.bitrue.com/api',
+                    'fapi': 'https://fapi.bitrue.com/fapi',
+                    'dapi': 'https://fapi.bitrue.com/dapi',
                     'kline': 'https://www.bitrue.com/kline-api',
                 },
                 'www': 'https://www.bitrue.com',
-                'referral': 'https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000',
+                'referral': 'https://www.bitrue.com/affiliate/landing?cn=600000&inviteCode=EZWETQE',
                 'doc': [
                     'https://github.com/Bitrue-exchange/bitrue-official-api-docs',
+                    'https://www.bitrue.com/api-docs',
                 ],
                 'fees': 'https://bitrue.zendesk.com/hc/en-001/articles/4405479952537',
             },
             'api': {
-                'kline': {
-                    'public': {
-                        'get': {
-                            'public.json': 1,
-                            'public{currency}.json': 1,
+                'spot': {
+                    'kline': {
+                        'public': {
+                            'get': {
+                                'public.json': 1,
+                                'public{currency}.json': 1,
+                            },
+                        },
+                    },
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'ping': 1,
+                                'time': 1,
+                                'exchangeInfo': 1,
+                                'depth': { 'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10]] },
+                                'trades': 1,
+                                'historicalTrades': 5,
+                                'aggTrades': 1,
+                                'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
+                                'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                                'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                                'market/kline': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                'order': 1,
+                                'openOrders': 1,
+                                'allOrders': 5,
+                                'account': 5,
+                                'myTrades': { 'cost': 5, 'noSymbol': 40 },
+                                'etf/net-value/{symbol}': 1,
+                                'withdraw/history': 1,
+                                'deposit/history': 1,
+                            },
+                            'post': {
+                                'order': 4,
+                                'withdraw/commit': 1,
+                            },
+                            'delete': {
+                                'order': 1,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'private': {
+                            'get': {
+                                'myTrades': 5,
+                            },
                         },
                     },
                 },
-                'v1': {
-                    'public': {
-                        'get': {
-                            'ping': 1,
-                            'time': 1,
-                            'exchangeInfo': 1,
-                            'depth': { 'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10]] },
-                            'trades': 1,
-                            'historicalTrades': 5,
-                            'aggTrades': 1,
-                            'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
-                            'ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                            'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                            'market/kline': 1,
+                'fapi': {
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'ping': 1,
+                                'time': 1,
+                                'contracts': 1,
+                                'depth': 1,
+                                'ticker': 1,
+                                'klines': 1,
+                            },
                         },
                     },
-                    'private': {
-                        'get': {
-                            'order': 1,
-                            'openOrders': 1,
-                            'allOrders': 5,
-                            'account': 5,
-                            'myTrades': { 'cost': 5, 'noSymbol': 40 },
-                            'etf/net-value/{symbol}': 1,
-                            'withdraw/history': 1,
-                            'deposit/history': 1,
-                        },
-                        'post': {
-                            'order': 4,
-                            'withdraw/commit': 1,
-                        },
-                        'delete': {
-                            'order': 1,
+                    'v2': {
+                        'private': {
+                            'get': {
+                                'myTrades': 1,
+                                'openOrders': 1,
+                                'order': 1,
+                                'account': 1,
+                                'leverageBracket': 1,
+                                'commissionRate': 1,
+                                'futures_transfer_history': 1,
+                                'forceOrdersHistory': 1,
+                            },
+                            'post': {
+                                'positionMargin': 1,
+                                'level_edit': 1,
+                                'cancel': 1,
+                                'order': 1,
+                                'allOpenOrders': 1,
+                                'futures_transfer': 1,
+                            },
                         },
                     },
                 },
-                'v2': {
-                    'private': {
-                        'get': {
-                            'myTrades': 5,
+                'dapi': {
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'ping': 1,
+                                'time': 1,
+                                'contracts': 1,
+                                'depth': 1,
+                                'ticker': 1,
+                                'klines': 1,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'private': {
+                            'get': {
+                                'myTrades': 1,
+                                'openOrders': 1,
+                                'order': 1,
+                                'account': 1,
+                                'leverageBracket': 1,
+                                'commissionRate': 1,
+                                'futures_transfer_history': 1,
+                                'forceOrdersHistory': 1,
+                            },
+                            'post': {
+                                'positionMargin': 1,
+                                'level_edit': 1,
+                                'cancel': 1,
+                                'order': 1,
+                                'allOpenOrders': 1,
+                                'futures_transfer': 1,
+                            },
                         },
                     },
                 },
@@ -227,6 +315,12 @@ class bitrue extends bitrue$1 {
             },
             // exchange-specific options
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
+                'fetchMarkets': [
+                    'spot',
+                    'linear',
+                    'inverse',
+                ],
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -241,11 +335,39 @@ class bitrue extends bitrue$1 {
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
-                    'TRON': 'TRX',
                 },
-                'networksById': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
+                'defaultType': 'spot',
+                'timeframes': {
+                    'spot': {
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1H',
+                        '2h': '2H',
+                        '4h': '4H',
+                        '12h': '12H',
+                        '1d': '1D',
+                        '1w': '1W',
+                    },
+                    'future': {
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1h',
+                        '1d': '1day',
+                        '1w': '1week',
+                        '1M': '1month',
+                    },
+                },
+                'accountsByType': {
+                    'spot': 'wallet',
+                    'future': 'contract',
+                    'swap': 'contract',
+                    'funding': 'wallet',
+                    'fund': 'wallet',
+                    'contract': 'contract',
                 },
             },
             'commonCurrencies': {
@@ -290,6 +412,7 @@ class bitrue extends bitrue$1 {
                     '-1115': errors.BadRequest,
                     '-1116': errors.BadRequest,
                     '-1117': errors.BadRequest,
+                    '-1166': errors.InvalidOrder,
                     '-1118': errors.BadRequest,
                     '-1119': errors.BadRequest,
                     '-1120': errors.BadRequest,
@@ -299,12 +422,15 @@ class bitrue extends bitrue$1 {
                     '-1128': errors.BadRequest,
                     '-1130': errors.BadRequest,
                     '-1131': errors.BadRequest,
+                    '-1160': errors.InvalidOrder,
+                    '-1156': errors.InvalidOrder,
                     '-2008': errors.AuthenticationError,
                     '-2010': errors.ExchangeError,
                     '-2011': errors.OrderNotFound,
                     '-2013': errors.OrderNotFound,
                     '-2014': errors.AuthenticationError,
                     '-2015': errors.AuthenticationError,
+                    '-2017': errors.InsufficientFunds,
                     '-2019': errors.InsufficientFunds,
                     '-3005': errors.InsufficientFunds,
                     '-3006': errors.InsufficientFunds,
@@ -326,9 +452,6 @@ class bitrue extends bitrue$1 {
             },
         });
     }
-    costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, number.TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
-    }
     currencyToPrecision(code, fee, networkCode = undefined) {
         // info is available in currencies only if the user has configured his api keys
         if (this.safeValue(this.currencies[code], 'precision') !== undefined) {
@@ -346,10 +469,11 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const response = await this.v1PublicGetPing(params);
+        const response = await this.spotV1PublicGetPing(params);
         //
         // empty means working status.
         //
@@ -371,10 +495,11 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.v1PublicGetTime(params);
+        const response = await this.spotV1PublicGetTime(params);
         //
         //     {
         //         "serverTime":1635467280514
@@ -458,10 +583,10 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.v1PublicGetExchangeInfo(params);
+        const response = await this.spotV1PublicGetExchangeInfo(params);
         //
         //     {
         //         "timezone":"CTT",
@@ -491,17 +616,17 @@ class bitrue extends bitrue$1 {
         //         ],
         //         "coins":[
         //           {
-        //               coin: "near",
-        //               coinFulName: "NEAR Protocol",
-        //               chains: [ "BEP20", ],
-        //               chainDetail: [
+        //               "coin": "near",
+        //               "coinFulName": "NEAR Protocol",
+        //               "chains": [ "BEP20", ],
+        //               "chainDetail": [
         //                 {
-        //                     chain: "BEP20",
-        //                     enableWithdraw: true,
-        //                     enableDeposit: true,
-        //                     withdrawFee: "0.2000",
-        //                     minWithdraw: "5.0000",
-        //                     maxWithdraw: "1000000000000000.0000",
+        //                     "chain": "BEP20",
+        //                     "enableWithdraw": true,
+        //                     "enableDeposit": true,
+        //                     "withdrawFee": "0.2000",
+        //                     "minWithdraw": "5.0000",
+        //                     "maxWithdraw": "1000000000000000.0000",
         //                 },
         //               ],
         //           },
@@ -586,10 +711,38 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchMarkets
          * @description retrieves data on all markets for bitrue
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+         * @see https://www.bitrue.com/api-docs#current-open-contract
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.v1PublicGetExchangeInfo(params);
+        const promisesRaw = [];
+        const fetchMarkets = this.safeValue(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
+        for (let i = 0; i < fetchMarkets.length; i++) {
+            const marketType = fetchMarkets[i];
+            if (marketType === 'spot') {
+                promisesRaw.push(this.spotV1PublicGetExchangeInfo(params));
+            }
+            else if (marketType === 'linear') {
+                promisesRaw.push(this.fapiV1PublicGetContracts(params));
+            }
+            else if (marketType === 'inverse') {
+                promisesRaw.push(this.dapiV1PublicGetContracts(params));
+            }
+            else {
+                throw new errors.ExchangeError(this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
+            }
+        }
+        const promises = await Promise.all(promisesRaw);
+        const spotMarkets = this.safeValue(this.safeValue(promises, 0), 'symbols', []);
+        const futureMarkets = this.safeValue(promises, 1);
+        const deliveryMarkets = this.safeValue(promises, 2);
+        let markets = spotMarkets;
+        markets = this.arrayConcat(markets, futureMarkets);
+        markets = this.arrayConcat(markets, deliveryMarkets);
+        //
+        // spot
         //
         //     {
         //         "timezone":"CTT",
@@ -631,112 +784,142 @@ class bitrue extends bitrue$1 {
         //         ],
         //     }
         //
+        // swap / delivery
+        //
+        //     [
+        //         {
+        //           "symbol": "H-HT-USDT",
+        //           "pricePrecision": 8,
+        //           "side": 1,
+        //           "maxMarketVolume": 100000,
+        //           "multiplier": 6,
+        //           "minOrderVolume": 1,
+        //           "maxMarketMoney": 10000000,
+        //           "type": "H", // E: perpetual contract, S: test contract, others are mixed contract
+        //           "maxLimitVolume": 1000000,
+        //           "maxValidOrder": 20,
+        //           "multiplierCoin": "HT",
+        //           "minOrderMoney": 0.001,
+        //           "maxLimitMoney": 1000000,
+        //           "status": 1
+        //         }
+        //     ]
+        //
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        const markets = this.safeValue(response, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString(market, 'symbol');
-            const lowercaseId = this.safeStringLower(market, 'symbol');
-            const baseId = this.safeString(market, 'baseAsset');
-            const quoteId = this.safeString(market, 'quoteAsset');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const filters = this.safeValue(market, 'filters', []);
-            const filtersByType = this.indexBy(filters, 'filterType');
-            const status = this.safeString(market, 'status');
-            const priceFilter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
-            const amountFilter = this.safeValue(filtersByType, 'LOT_SIZE', {});
-            const defaultPricePrecision = this.safeString(market, 'pricePrecision');
-            const defaultAmountPrecision = this.safeString(market, 'quantityPrecision');
-            const pricePrecision = this.safeString(priceFilter, 'priceScale', defaultPricePrecision);
-            const amountPrecision = this.safeString(amountFilter, 'volumeScale', defaultAmountPrecision);
-            const entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'TRADING'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(amountPrecision)),
-                    'price': this.parseNumber(this.parsePrecision(pricePrecision)),
-                    'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
-                    'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber(amountFilter, 'minQty'),
-                        'max': this.safeNumber(amountFilter, 'maxQty'),
-                    },
-                    'price': {
-                        'min': this.safeNumber(priceFilter, 'minPrice'),
-                        'max': this.safeNumber(priceFilter, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber(amountFilter, 'minVal'),
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            };
-            result.push(entry);
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'symbol');
+        const lowercaseId = this.safeStringLower(market, 'symbol');
+        const side = this.safeInteger(market, 'side'); // 1 linear, 0 inverse, undefined spot
+        let type = undefined;
+        let isLinear = undefined;
+        let isInverse = undefined;
+        if (side === undefined) {
+            type = 'spot';
         }
-        return result;
+        else {
+            type = 'swap';
+            isLinear = (side === 1);
+            isInverse = (side === 0);
+        }
+        const isContract = (type !== 'spot');
+        let baseId = this.safeString(market, 'baseAsset');
+        let quoteId = this.safeString(market, 'quoteAsset');
+        let settleId = undefined;
+        let settle = undefined;
+        if (isContract) {
+            const symbolSplit = id.split('-');
+            baseId = this.safeString(symbolSplit, 1);
+            quoteId = this.safeString(symbolSplit, 2);
+            if (isLinear) {
+                settleId = quoteId;
+            }
+            else {
+                settleId = baseId;
+            }
+            settle = this.safeCurrencyCode(settleId);
+        }
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        let symbol = base + '/' + quote;
+        if (settle !== undefined) {
+            symbol += ':' + settle;
+        }
+        const filters = this.safeValue(market, 'filters', []);
+        const filtersByType = this.indexBy(filters, 'filterType');
+        const status = this.safeString(market, 'status');
+        const priceFilter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
+        const amountFilter = this.safeValue(filtersByType, 'LOT_SIZE', {});
+        const defaultPricePrecision = this.safeString(market, 'pricePrecision');
+        const defaultAmountPrecision = this.safeString(market, 'quantityPrecision');
+        const pricePrecision = this.safeString(priceFilter, 'priceScale', defaultPricePrecision);
+        const amountPrecision = this.safeString(amountFilter, 'volumeScale', defaultAmountPrecision);
+        const multiplier = this.safeString(market, 'multiplier');
+        let maxQuantity = this.safeNumber(amountFilter, 'maxQty');
+        if (maxQuantity === undefined) {
+            maxQuantity = this.safeNumber(market, 'maxValidOrder');
+        }
+        let minCost = this.safeNumber(amountFilter, 'minVal');
+        if (minCost === undefined) {
+            minCost = this.safeNumber(market, 'minOrderMoney');
+        }
+        return {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': (type === 'spot'),
+            'margin': false,
+            'swap': isContract,
+            'future': false,
+            'option': false,
+            'active': (status === 'TRADING'),
+            'contract': isContract,
+            'linear': isLinear,
+            'inverse': isInverse,
+            'contractSize': this.parseNumber(Precise["default"].stringAbs(multiplier)),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(amountPrecision)),
+                'price': this.parseNumber(this.parsePrecision(pricePrecision)),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber(amountFilter, 'minQty'),
+                    'max': maxQuantity,
+                },
+                'price': {
+                    'min': this.safeNumber(priceFilter, 'minPrice'),
+                    'max': this.safeNumber(priceFilter, 'maxPrice'),
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     parseBalance(response) {
-        const result = {
-            'info': response,
-        };
-        const timestamp = this.safeInteger(response, 'updateTime');
-        const balances = this.safeValue(response, 'balances', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString(balance, 'asset');
-            const code = this.safeCurrencyCode(currencyId);
-            const account = this.account();
-            account['free'] = this.safeString(balance, 'free');
-            account['used'] = this.safeString(balance, 'locked');
-            result[code] = account;
-        }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601(timestamp);
-        return this.safeBalance(result);
-    }
-    async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
-        await this.loadMarkets();
-        const response = await this.v1PrivateGetAccount(params);
+        //
+        // spot
         //
         //     {
         //         "makerCommission":0,
@@ -754,27 +937,214 @@ class bitrue extends bitrue$1 {
         //         "canDeposit":false
         //     }
         //
-        return this.parseBalance(response);
+        // swap
+        //
+        //     {
+        //         "account":[
+        //             {
+        //                 "marginCoin":"USDT",
+        //                 "coinPrecious":4,
+        //                 "accountNormal":1010.4043400372839856,
+        //                 "accountLock":2.9827889600000006,
+        //                 "partPositionNormal":0,
+        //                 "totalPositionNormal":0,
+        //                 "achievedAmount":0,
+        //                 "unrealizedAmount":0,
+        //                 "totalMarginRate":0,
+        //                 "totalEquity":1010.4043400372839856,
+        //                 "partEquity":0,
+        //                 "totalCost":0,
+        //                 "sumMarginRate":0,
+        //                 "sumOpenRealizedAmount":0,
+        //                 "canUseTrialFund":0,
+        //                 "sumMaintenanceMargin":null,
+        //                 "futureModel":null,
+        //                 "positionVos":[]
+        //             }
+        //         ]
+        //     }
+        //
+        const result = {
+            'info': response,
+        };
+        const timestamp = this.safeInteger(response, 'updateTime');
+        const balances = this.safeValue2(response, 'balances', 'account', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString2(balance, 'asset', 'marginCoin');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['free'] = this.safeString2(balance, 'free', 'accountNormal');
+            account['used'] = this.safeString2(balance, 'locked', 'accountLock');
+            result[code] = account;
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601(timestamp);
+        return this.safeBalance(result);
+    }
+    async fetchBalance(params = {}) {
+        /**
+         * @method
+         * @name bitrue#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
+         * @see https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'future', 'delivery', 'spot', 'swap'
+         * @param {string} [params.subType] 'linear', 'inverse'
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets();
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchBalance', undefined, params);
+        let response = undefined;
+        let result = undefined;
+        if (type === 'swap') {
+            if (subType !== undefined && subType === 'inverse') {
+                response = await this.dapiV2PrivateGetAccount(params);
+                result = this.safeValue(response, 'data', {});
+                //
+                // {
+                //         "code":"0",
+                //         "msg":"Success",
+                //         "data":{
+                //             "account":[
+                //                 {
+                //                     "marginCoin":"USD",
+                //                     "coinPrecious":4,
+                //                     "accountNormal":1010.4043400372839856,
+                //                     "accountLock":2.9827889600000006,
+                //                     "partPositionNormal":0,
+                //                     "totalPositionNormal":0,
+                //                     "achievedAmount":0,
+                //                     "unrealizedAmount":0,
+                //                     "totalMarginRate":0,
+                //                     "totalEquity":1010.4043400372839856,
+                //                     "partEquity":0,
+                //                     "totalCost":0,
+                //                     "sumMarginRate":0,
+                //                     "sumOpenRealizedAmount":0,
+                //                     "canUseTrialFund":0,
+                //                     "sumMaintenanceMargin":null,
+                //                     "futureModel":null,
+                //                     "positionVos":[]
+                //                 }
+                //             ]
+                //         }
+                //     }
+                //
+            }
+            else {
+                response = await this.fapiV2PrivateGetAccount(params);
+                result = this.safeValue(response, 'data', {});
+                //
+                //     {
+                //         "code":"0",
+                //         "msg":"Success",
+                //         "data":{
+                //             "account":[
+                //                 {
+                //                     "marginCoin":"USDT",
+                //                     "coinPrecious":4,
+                //                     "accountNormal":1010.4043400372839856,
+                //                     "accountLock":2.9827889600000006,
+                //                     "partPositionNormal":0,
+                //                     "totalPositionNormal":0,
+                //                     "achievedAmount":0,
+                //                     "unrealizedAmount":0,
+                //                     "totalMarginRate":0,
+                //                     "totalEquity":1010.4043400372839856,
+                //                     "partEquity":0,
+                //                     "totalCost":0,
+                //                     "sumMarginRate":0,
+                //                     "sumOpenRealizedAmount":0,
+                //                     "canUseTrialFund":0,
+                //                     "sumMaintenanceMargin":null,
+                //                     "futureModel":null,
+                //                     "positionVos":[]
+                //                 }
+                //             ]
+                //         }
+                //     }
+                //
+            }
+        }
+        else {
+            response = await this.spotV1PrivateGetAccount(params);
+            result = response;
+            //
+            //     {
+            //         "makerCommission":0,
+            //         "takerCommission":0,
+            //         "buyerCommission":0,
+            //         "sellerCommission":0,
+            //         "updateTime":null,
+            //         "balances":[
+            //             {"asset":"sbr","free":"0","locked":"0"},
+            //             {"asset":"ksm","free":"0","locked":"0"},
+            //             {"asset":"neo3s","free":"0","locked":"0"},
+            //         ],
+            //         "canTrade":false,
+            //         "canWithdraw":false,
+            //         "canDeposit":false
+            //     }
+            //
+        }
+        return this.parseBalance(result);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
+         * @see https://www.bitrue.com/api-docs#order-book
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+        let response = undefined;
+        if (market['swap']) {
+            const request = {
+                'contractName': market['id'],
+            };
+            if (limit !== undefined) {
+                if (limit > 100) {
+                    limit = 100;
+                }
+                request['limit'] = limit; // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
+            }
+            if (market['linear']) {
+                response = await this.fapiV1PublicGetDepth(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.dapiV1PublicGetDepth(this.extend(request, params));
+            }
         }
-        const response = await this.v1PublicGetDepth(this.extend(request, params));
+        else if (market['spot']) {
+            const request = {
+                'symbol': market['id'],
+            };
+            if (limit !== undefined) {
+                if (limit > 1000) {
+                    limit = 1000;
+                }
+                request['limit'] = limit; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+            }
+            response = await this.spotV1PublicGetDepth(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchOrderBook only support spot & swap markets');
+        }
+        //
+        // spot
         //
         //     {
         //         "lastUpdateId":1635474910177,
@@ -790,48 +1160,84 @@ class bitrue extends bitrue$1 {
         //         ]
         //     }
         //
-        const orderbook = this.parseOrderBook(response, symbol);
+        // swap
+        //
+        //     {
+        //         "asks": [[34916.5, 2582], [34916.6, 2193], [34916.7, 2629], [34916.8, 3478], [34916.9, 2718]],
+        //         "bids": [[34916.4, 92065], [34916.3, 25703], [34916.2, 37259], [34916.1, 26446], [34916, 44456]],
+        //         "time": 1699338305000
+        //     }
+        //
+        const timestamp = this.safeInteger(response, 'time');
+        const orderbook = this.parseOrderBook(response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
         return orderbook;
     }
     parseTicker(ticker, market = undefined) {
         //
+        // fetchBidsAsks
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
+        //     }
+        //
         // fetchTicker
         //
         //     {
-        //         "id":397945892,
-        //         "last":"1.143411",
-        //         "lowestAsk":"1.144223",
-        //         "highestBid":"1.141696",
-        //         "percentChange":"-0.001432",
-        //         "baseVolume":"338287",
-        //         "quoteVolume":"415013.244366",
-        //         "isFrozen":"0",
-        //         "high24hr":"1.370087",
-        //         "low24hr":"1.370087",
+        //         "symbol": "BNBBTC",
+        //         "priceChange": "0.000248",
+        //         "priceChangePercent": "3.5500",
+        //         "weightedAvgPrice": null,
+        //         "prevClosePrice": null,
+        //         "lastPrice": "0.007226",
+        //         "lastQty": null,
+        //         "bidPrice": "0.007208",
+        //         "askPrice": "0.007240",
+        //         "openPrice": "0.006978",
+        //         "highPrice": "0.007295",
+        //         "lowPrice": "0.006935",
+        //         "volume": "11749.86",
+        //         "quoteVolume": "84.1066211",
+        //         "openTime": 0,
+        //         "closeTime": 0,
+        //         "firstId": 0,
+        //         "lastId": 0,
+        //         "count": 0
         //     }
         //
         const symbol = this.safeSymbol(undefined, market);
-        const last = this.safeString(ticker, 'last');
+        const last = this.safeString2(ticker, 'lastPrice', 'last');
+        const timestamp = this.safeInteger(ticker, 'time');
+        let percentage = undefined;
+        if (market['swap']) {
+            percentage = Precise["default"].stringMul(this.safeString(ticker, 'rose'), '100');
+        }
+        else {
+            percentage = this.safeString(ticker, 'priceChangePercent');
+        }
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'high': this.safeString(ticker, 'high24hr'),
-            'low': this.safeString(ticker, 'low24hr'),
-            'bid': this.safeString(ticker, 'highestBid'),
-            'bidVolume': undefined,
-            'ask': this.safeString(ticker, 'lowestAsk'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeString2(ticker, 'highPrice', 'high'),
+            'low': this.safeString2(ticker, 'lowPrice', 'low'),
+            'bid': this.safeString2(ticker, 'bidPrice', 'buy'),
+            'bidVolume': this.safeString(ticker, 'bidQty'),
+            'ask': this.safeString2(ticker, 'askPrice', 'sell'),
+            'askVolume': this.safeString(ticker, 'askQty'),
+            'vwap': this.safeString(ticker, 'weightedAvgPrice'),
+            'open': this.safeString(ticker, 'openPrice'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': this.safeString(ticker, 'percentChange'),
+            'change': this.safeString(ticker, 'priceChange'),
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'baseVolume'),
+            'baseVolume': this.safeString2(ticker, 'volume', 'vol'),
             'quoteVolume': this.safeString(ticker, 'quoteVolume'),
             'info': ticker,
         }, market);
@@ -841,69 +1247,144 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+         * @see https://www.bitrue.com/api-docs#ticker
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const uppercaseBaseId = this.safeStringUpper(market, 'baseId');
-        const uppercaseQuoteId = this.safeStringUpper(market, 'quoteId');
-        const request = {
-            'currency': uppercaseQuoteId,
-            'command': 'returnTicker',
-        };
-        const response = await this.klinePublicGetPublicCurrencyJson(this.extend(request, params));
+        let response = undefined;
+        let data = undefined;
+        if (market['swap']) {
+            const request = {
+                'contractName': market['id'],
+            };
+            if (market['linear']) {
+                response = await this.fapiV1PublicGetTicker(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.dapiV1PublicGetTicker(this.extend(request, params));
+            }
+            data = response;
+        }
+        else if (market['spot']) {
+            const request = {
+                'symbol': market['id'],
+            };
+            response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
+            data = this.safeValue(response, 0, {});
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchTicker only support spot & swap markets');
+        }
+        //
+        // spot
+        //
+        //     [{
+        //         symbol: 'BTCUSDT',
+        //         priceChange: '105.20',
+        //         priceChangePercent: '0.3000',
+        //         weightedAvgPrice: null,
+        //         prevClosePrice: null,
+        //         lastPrice: '34905.21',
+        //         lastQty: null,
+        //         bidPrice: '34905.21',
+        //         askPrice: '34905.22',
+        //         openPrice: '34800.01',
+        //         highPrice: '35276.33',
+        //         lowPrice: '34787.51',
+        //         volume: '12549.6481',
+        //         quoteVolume: '439390492.917',
+        //         openTime: '0',
+        //         closeTime: '0',
+        //         firstId: '0',
+        //         lastId: '0',
+        //         count: '0'
+        //     }]
+        //
+        // swap
         //
         //     {
-        //         "code":"200",
-        //         "msg":"success",
-        //         "data":{
-        //             "DODO3S_USDT":{
-        //                 "id":397945892,
-        //                 "last":"1.143411",
-        //                 "lowestAsk":"1.144223",
-        //                 "highestBid":"1.141696",
-        //                 "percentChange":"-0.001432",
-        //                 "baseVolume":"338287",
-        //                 "quoteVolume":"415013.244366",
-        //                 "isFrozen":"0",
-        //                 "high24hr":"1.370087",
-        //                 "low24hr":"1.370087"
-        //             }
-        //         }
+        //         "high": "35296",
+        //         "vol": "779308354",
+        //         "last": "34884.1",
+        //         "low": "34806.7",
+        //         "buy": 34883.9,
+        //         "sell": 34884,
+        //         "rose": "-0.0027957315",
+        //         "time": 1699348013000
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const id = uppercaseBaseId + '_' + uppercaseQuoteId;
-        const ticker = this.safeValue(data, id);
-        if (ticker === undefined) {
-            throw new errors.ExchangeError(this.id + ' fetchTicker() could not find the ticker for ' + market['symbol']);
-        }
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(data, market);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data
+         * @see https://www.bitrue.com/api-docs#kline-candlestick-data
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-            'scale': this.safeString(this.timeframes, timeframe, timeframe),
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        let response = undefined;
+        let data = undefined;
+        if (market['swap']) {
+            const timeframesFuture = this.safeValue(timeframes, 'future', {});
+            const request = {
+                'contractName': market['id'],
+                // 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
+                'interval': this.safeString(timeframesFuture, timeframe, '1min'),
+            };
+            if (limit !== undefined) {
+                if (limit > 300) {
+                    limit = 300;
+                }
+                request['limit'] = limit;
+            }
+            if (market['linear']) {
+                response = await this.fapiV1PublicGetKlines(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.dapiV1PublicGetKlines(this.extend(request, params));
+            }
+            data = response;
         }
-        const response = await this.v1PublicGetMarketKline(this.extend(request, params));
+        else if (market['spot']) {
+            const timeframesSpot = this.safeValue(timeframes, 'spot', {});
+            const request = {
+                'symbol': market['id'],
+                // 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
+                'scale': this.safeString(timeframesSpot, timeframe, '1m'),
+            };
+            if (limit !== undefined) {
+                if (limit > 1440) {
+                    limit = 1440;
+                }
+                request['limit'] = limit;
+            }
+            if (since !== undefined) {
+                request['fromIdx'] = since;
+            }
+            response = await this.spotV1PublicGetMarketKline(this.extend(request, params));
+            data = this.safeValue(response, 'data', []);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchOHLCV only support spot & swap markets');
+        }
+        //
+        // spot
         //
         //       {
         //           "symbol":"BTCUSDT",
@@ -921,10 +1402,24 @@ class bitrue extends bitrue$1 {
         //           ]
         //       }
         //
-        const data = this.safeValue(response, 'data', []);
+        // swap
+        //
+        //     [
+        //         {
+        //           "high": "35360.7",
+        //           "vol": "110288",
+        //           "low": "35347.9",
+        //           "idx": 1699411680000,
+        //           "close": "35347.9",
+        //           "open": "35349.4"
+        //         }
+        //     ]
+        //
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
+        //
+        // spot
         //
         //      {
         //         "i":"1660825020",
@@ -936,13 +1431,28 @@ class bitrue extends bitrue$1 {
         //         "o":"23508.34"
         //      }
         //
+        // swap
+        //
+        //     {
+        //         "high": "35360.7",
+        //         "vol": "110288",
+        //         "low": "35347.9",
+        //         "idx": 1699411680000,
+        //         "close": "35347.9",
+        //         "open": "35349.4"
+        //     }
+        //
+        let timestamp = this.safeTimestamp(ohlcv, 'i');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger(ohlcv, 'idx');
+        }
         return [
-            this.safeTimestamp(ohlcv, 'i'),
-            this.safeNumber(ohlcv, 'o'),
-            this.safeNumber(ohlcv, 'h'),
-            this.safeNumber(ohlcv, 'l'),
-            this.safeNumber(ohlcv, 'c'),
-            this.safeNumber(ohlcv, 'v'),
+            timestamp,
+            this.safeNumber2(ohlcv, 'o', 'open'),
+            this.safeNumber2(ohlcv, 'h', 'high'),
+            this.safeNumber2(ohlcv, 'l', 'low'),
+            this.safeNumber2(ohlcv, 'c', 'close'),
+            this.safeNumber2(ohlcv, 'v', 'vol'),
         ];
     }
     async fetchBidsAsks(symbols = undefined, params = {}) {
@@ -950,91 +1460,158 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
+         * @see https://www.bitrue.com/api-docs#ticker
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        const defaultType = this.safeString2(this.options, 'fetchBidsAsks', 'defaultType', 'spot');
-        const type = this.safeString(params, 'type', defaultType);
-        const query = this.omit(params, 'type');
-        let method = undefined;
-        if (type === 'future') {
-            method = 'fapiPublicGetTickerBookTicker';
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const first = this.safeString(symbols, 0);
+        const market = this.market(first);
+        let response = undefined;
+        if (market['swap']) {
+            const request = {
+                'contractName': market['id'],
+            };
+            if (market['linear']) {
+                response = await this.fapiV1PublicGetTicker(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.dapiV1PublicGetTicker(this.extend(request, params));
+            }
         }
-        else if (type === 'delivery') {
-            method = 'dapiPublicGetTickerBookTicker';
+        else if (market['spot']) {
+            const request = {
+                'symbol': market['id'],
+            };
+            response = await this.spotV1PublicGetTickerBookTicker(this.extend(request, params));
         }
         else {
-            method = 'publicGetTickerBookTicker';
+            throw new errors.NotSupported(this.id + ' fetchBidsAsks only support spot & swap markets');
         }
-        const response = await this[method](query);
-        return this.parseTickers(response, symbols);
+        //
+        // spot
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "high": "35296",
+        //         "vol": "779308354",
+        //         "last": "34884.1",
+        //         "low": "34806.7",
+        //         "buy": 34883.9,
+        //         "sell": 34884,
+        //         "rose": "-0.0027957315",
+        //         "time": 1699348013000
+        //     }
+        //
+        const data = {};
+        data[market['id']] = response;
+        return this.parseTickers(data, symbols);
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+         * @see https://www.bitrue.com/api-docs#ticker
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        const request = {
-            'command': 'returnTicker',
-        };
-        const response = await this.klinePublicGetPublicJson(this.extend(request, params));
+        symbols = this.marketSymbols(symbols);
+        let response = undefined;
+        let data = undefined;
+        const request = {};
+        let type = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeString(symbols, 0);
+            const market = this.market(first);
+            if (market['swap']) {
+                throw new errors.NotSupported(this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
+            }
+            else if (market['spot']) {
+                response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
+                data = response;
+            }
+            else {
+                throw new errors.NotSupported(this.id + ' fetchTickers only support spot & swap markets');
+            }
+        }
+        else {
+            [type, params] = this.handleMarketTypeAndParams('fetchTickers', undefined, params);
+            if (type !== 'spot') {
+                throw new errors.NotSupported(this.id + ' fetchTickers only support spot when symbols are not proved');
+            }
+            response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
+            data = response;
+        }
+        //
+        // spot
+        //
+        //     [{
+        //         symbol: 'BTCUSDT',
+        //         priceChange: '105.20',
+        //         priceChangePercent: '0.3000',
+        //         weightedAvgPrice: null,
+        //         prevClosePrice: null,
+        //         lastPrice: '34905.21',
+        //         lastQty: null,
+        //         bidPrice: '34905.21',
+        //         askPrice: '34905.22',
+        //         openPrice: '34800.01',
+        //         highPrice: '35276.33',
+        //         lowPrice: '34787.51',
+        //         volume: '12549.6481',
+        //         quoteVolume: '439390492.917',
+        //         openTime: '0',
+        //         closeTime: '0',
+        //         firstId: '0',
+        //         lastId: '0',
+        //         count: '0'
+        //     }]
+        //
+        // swap
         //
         //     {
-        //         "code":"200",
-        //         "msg":"success",
-        //         "data":{
-        //             "DODO3S_USDT":{
-        //                 "id":397945892,
-        //                 "last":"1.143411",
-        //                 "lowestAsk":"1.144223",
-        //                 "highestBid":"1.141696",
-        //                 "percentChange":"-0.001432",
-        //                 "baseVolume":"338287",
-        //                 "quoteVolume":"415013.244366",
-        //                 "isFrozen":"0",
-        //                 "high24hr":"1.370087",
-        //                 "low24hr":"1.370087"
-        //             }
-        //         }
+        //         "high": "35296",
+        //         "vol": "779308354",
+        //         "last": "34884.1",
+        //         "low": "34806.7",
+        //         "buy": 34883.9,
+        //         "sell": 34884,
+        //         "rose": "-0.0027957315",
+        //         "time": 1699348013000
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
         // the exchange returns market ids with an underscore from the tickers endpoint
         // the market ids do not have an underscore, so it has to be removed
         // https://github.com/ccxt/ccxt/issues/13856
         const tickers = {};
-        const marketIds = Object.keys(data);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i].replace('_', '');
-            tickers[marketId] = data[marketIds[i]];
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.safeValue(data, i, {});
+            const market = this.market(this.safeValue(ticker, 'symbol'));
+            tickers[market['id']] = ticker;
         }
         return this.parseTickers(tickers, symbols);
     }
     parseTrade(trade, market = undefined) {
         //
-        // aggregate trades
-        //  - "T" is timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual timestamp of trades matter
-        //  - Trades are aggregated by timestamp, price, and side. But "m" is always True. Use method above if side of trades matter
-        //
-        //     {
-        //         "a": 26129,         // Aggregate tradeId
-        //         "p": "0.01633102",  // Price
-        //         "q": "4.70443515",  // Quantity
-        //         "f": 27781,         // First tradeId
-        //         "l": 27781,         // Last tradeId
-        //         "T": 1498793709153, // Timestamp of *Api-call* not trade!
-        //         "m": true,          // Was the buyer the maker?  // Always True -> ignore it and leave side undefined
-        //         "M": true           // Was the trade the best price match?
-        //     }
-        //
-        // recent public trades and old public trades
+        // fetchTrades
         //
         //     {
         //         "id": 28457,
@@ -1045,7 +1622,7 @@ class bitrue extends bitrue$1 {
         //         "isBestMatch": true
         //     }
         //
-        // private trades
+        // fetchTrades - spot
         //
         //     {
         //         "symbol":"USDCUSDT",
@@ -1062,14 +1639,32 @@ class bitrue extends bitrue$1 {
         //         "isBestMatch":true
         //     }
         //
-        const timestamp = this.safeInteger2(trade, 'T', 'time');
-        const priceString = this.safeString2(trade, 'p', 'price');
-        const amountString = this.safeString2(trade, 'q', 'qty');
-        const marketId = this.safeString(trade, 'symbol');
+        // fetchTrades - future
+        //
+        //     {
+        //         "tradeId":12,
+        //         "price":0.9,
+        //         "qty":1,
+        //         "amount":9,
+        //         "contractName":"E-SAND-USDT",
+        //         "side":"BUY",
+        //         "fee":"0.0018",
+        //         "bidId":1558124009467904992,
+        //         "askId":1558124043827644908,
+        //         "bidUserId":10294,
+        //         "askUserId":10467,
+        //         "isBuyer":true,
+        //         "isMaker":true,
+        //         "ctime":1678426306000
+        //     }
+        //
+        const timestamp = this.safeInteger2(trade, 'ctime', 'time');
+        const priceString = this.safeString(trade, 'price');
+        const amountString = this.safeString(trade, 'qty');
+        const marketId = this.safeString2(trade, 'symbol', 'contractName');
         const symbol = this.safeSymbol(marketId, market);
         const orderId = this.safeString(trade, 'orderId');
-        let id = this.safeString2(trade, 't', 'a');
-        id = this.safeString2(trade, 'id', 'tradeId', id);
+        const id = this.safeString2(trade, 'id', 'tradeId');
         let side = undefined;
         const buyerMaker = this.safeValue(trade, 'isBuyerMaker'); // ignore "m" until Bitrue fixes api
         const isBuyer = this.safeValue(trade, 'isBuyer');
@@ -1082,12 +1677,12 @@ class bitrue extends bitrue$1 {
         let fee = undefined;
         if ('commission' in trade) {
             fee = {
-                'cost': this.safeString(trade, 'commission'),
+                'cost': this.safeString2(trade, 'commission', 'fee'),
                 'currency': this.safeCurrencyCode(this.safeString(trade, 'commissionAssert')),
             };
         }
         let takerOrMaker = undefined;
-        const isMaker = this.safeValue2(trade, 'isMaker', 'maker');
+        const isMaker = this.safeValue(trade, 'isMaker');
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
@@ -1112,49 +1707,31 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-            // 'limit': 100, // default 100, max = 1000
-        };
-        const method = this.safeString(this.options, 'fetchTradesMethod', 'v1PublicGetAggTrades');
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 1000
+        let response = undefined;
+        if (market['spot']) {
+            const request = {
+                'symbol': market['id'],
+                // 'limit': 100, // default 100, max = 1000
+            };
+            if (limit !== undefined) {
+                request['limit'] = limit; // default 100, max 1000
+            }
+            response = await this.spotV1PublicGetTrades(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchTrades only support spot markets');
         }
         //
-        // Caveats:
-        // - default limit (500) applies only if no other parameters set, trades up
-        //   to the maximum limit may be returned to satisfy other parameters
-        // - if both limit and time window is set and time window contains more
-        //   trades than the limit then the last trades from the window are returned
-        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
-        //   which is different from actual trade id
-        // - setting both fromId and time window results in error
-        const response = await this[method](this.extend(request, params));
-        //
-        // aggregate trades
-        //
-        //     [
-        //         {
-        //             "a": 26129,         // Aggregate tradeId
-        //             "p": "0.01633102",  // Price
-        //             "q": "4.70443515",  // Quantity
-        //             "f": 27781,         // First tradeId
-        //             "l": 27781,         // Last tradeId
-        //             "T": 1498793709153, // Timestamp
-        //             "m": true,          // Was the buyer the maker?
-        //             "M": true           // Was the trade the best price match?
-        //         }
-        //     ]
-        //
-        // recent public trades and historical public trades
+        // spot
         //
         //     [
         //         {
@@ -1171,6 +1748,8 @@ class bitrue extends bitrue$1 {
     }
     parseOrderStatus(status) {
         const statuses = {
+            'INIT': 'open',
+            'PENDING_CREATE': 'open',
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -1183,7 +1762,7 @@ class bitrue extends bitrue$1 {
     }
     parseOrder(order, market = undefined) {
         //
-        // createOrder
+        // createOrder - spot
         //
         //     {
         //         "symbol":"USDCUSDT",
@@ -1192,7 +1771,13 @@ class bitrue extends bitrue$1 {
         //         "transactTime":1635551031276
         //     }
         //
-        // fetchOpenOrders
+        // createOrder - future
+        //
+        //     {
+        //         "orderId":1690615676032452985,
+        //     }
+        //
+        // fetchOrders - spot
         //
         //     {
         //         "symbol":"USDCUSDT",
@@ -1213,7 +1798,24 @@ class bitrue extends bitrue$1 {
         //         "isWorking":false
         //     }
         //
-        const status = this.parseOrderStatus(this.safeString(order, 'status'));
+        // fetchOrders - future
+        //
+        //     {
+        //         "orderId":1917641,
+        //         "price":100,
+        //         "origQty":10,
+        //         "origAmount":10,
+        //         "executedQty":1,
+        //         "avgPrice":10000,
+        //         "status":"INIT",
+        //         "type":"LIMIT",
+        //         "side":"BUY",
+        //         "action":"OPEN",
+        //         "transactTime":1686716571425
+        //         "clientOrderId":4949299210
+        //     }
+        //
+        const status = this.parseOrderStatus(this.safeString2(order, 'status', 'orderStatus'));
         const marketId = this.safeString(order, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
         const filled = this.safeString(order, 'executedQty');
@@ -1248,7 +1850,7 @@ class bitrue extends bitrue$1 {
         const fills = this.safeValue(order, 'fills', []);
         const clientOrderId = this.safeString(order, 'clientOrderId');
         const timeInForce = this.safeString(order, 'timeInForce');
-        const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
+        const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX') || (type === 'post_only');
         if (type === 'limit_maker') {
             type = 'limit';
         }
@@ -1279,71 +1881,177 @@ class bitrue extends bitrue$1 {
             'trades': fills,
         }, market);
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name bitrue#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports swap orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#createOrder
          * @description create a trade order
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+         * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
+         * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
+         * @param {decimal} [params.leverage] in future order, the leverage value of the order should consistent with the user contract configuration, default is 1
+         * @param {string} [params.timeInForce] 'fok', 'ioc' or 'po'
+         * @param {bool} [params.postOnly] default false
+         * @param {bool} [params.reduceOnly] default false
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {decimal} [params.icebergQty]
+         * @param {long} [params.recvWindow]
+         * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        let response = undefined;
+        let data = undefined;
         const uppercaseType = type.toUpperCase();
-        const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
-        if (!this.inArray(uppercaseType, validOrderTypes)) {
-            throw new errors.InvalidOrder(this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
-        }
         const request = {
-            'symbol': market['id'],
             'side': side.toUpperCase(),
             'type': uppercaseType,
             // 'timeInForce': '',
-            'quantity': this.amountToPrecision(symbol, amount),
             // 'price': this.priceToPrecision (symbol, price),
             // 'newClientOrderId': clientOrderId, // automatically generated if not sent
             // 'stopPrice': this.priceToPrecision (symbol, 'stopPrice'),
             // 'icebergQty': this.amountToPrecision (symbol, icebergQty),
         };
-        const clientOrderId = this.safeString2(params, 'newClientOrderId', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            params = this.omit(params, ['newClientOrderId', 'clientOrderId']);
-            request['newClientOrderId'] = clientOrderId;
-        }
         if (uppercaseType === 'LIMIT') {
             if (price === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument');
             }
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        if (stopPrice !== undefined) {
-            params = this.omit(params, ['triggerPrice', 'stopPrice']);
-            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+        if (market['swap']) {
+            const isMarket = uppercaseType === 'MARKET';
+            const timeInForce = this.safeStringLower(params, 'timeInForce');
+            const postOnly = this.isPostOnly(isMarket, undefined, params);
+            if (postOnly) {
+                request['type'] = 'POST_ONLY';
+            }
+            else if (timeInForce === 'fok') {
+                request['type'] = 'FOK';
+            }
+            else if (timeInForce === 'ioc') {
+                request['type'] = 'IOC';
+            }
+            request['contractName'] = market['id'];
+            let createMarketBuyOrderRequiresPrice = true;
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            if (isMarket && (side === 'buy') && createMarketBuyOrderRequiresPrice) {
+                const cost = this.safeString(params, 'cost');
+                params = this.omit(params, 'cost');
+                if (price === undefined && cost === undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
+                }
+                else {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const quoteAmount = Precise["default"].stringMul(amountString, priceString);
+                    const requestAmount = (cost !== undefined) ? cost : quoteAmount;
+                    request['amount'] = this.costToPrecision(symbol, requestAmount);
+                    request['volume'] = this.costToPrecision(symbol, requestAmount);
+                }
+            }
+            else {
+                request['amount'] = this.parseToNumeric(amount);
+                request['volume'] = this.parseToNumeric(amount);
+            }
+            request['positionType'] = 1;
+            const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
+            request['open'] = reduceOnly ? 'CLOSE' : 'OPEN';
+            const leverage = this.safeString(params, 'leverage', '1');
+            request['leverage'] = this.parseToNumeric(leverage);
+            params = this.omit(params, ['leverage', 'reduceOnly', 'reduce_only', 'timeInForce']);
+            if (market['linear']) {
+                response = await this.fapiV2PrivatePostOrder(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.dapiV2PrivatePostOrder(this.extend(request, params));
+            }
+            data = this.safeValue(response, 'data', {});
         }
-        const response = await this.v1PrivatePostOrder(this.extend(request, params));
+        else if (market['spot']) {
+            request['symbol'] = market['id'];
+            request['quantity'] = this.amountToPrecision(symbol, amount);
+            const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
+            if (!this.inArray(uppercaseType, validOrderTypes)) {
+                throw new errors.InvalidOrder(this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
+            }
+            const clientOrderId = this.safeString2(params, 'newClientOrderId', 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                params = this.omit(params, ['newClientOrderId', 'clientOrderId']);
+                request['newClientOrderId'] = clientOrderId;
+            }
+            const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+            if (stopPrice !== undefined) {
+                params = this.omit(params, ['triggerPrice', 'stopPrice']);
+                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            }
+            response = await this.spotV1PrivatePostOrder(this.extend(request, params));
+            data = response;
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' createOrder only support spot & swap markets');
+        }
+        //
+        // spot
         //
         //     {
-        //         "symbol":"USDCUSDT",
-        //         "orderId":2878854881,
-        //         "clientOrderId":"",
-        //         "transactTime":1635551031276
+        //         "symbol": "BTCUSDT",
+        //         "orderId": 307650651173648896,
+        //         "orderIdStr": "307650651173648896",
+        //         "clientOrderId": "6gCrw2kRUAF9CvJDGP16IP",
+        //         "transactTime": 1507725176595
         //     }
         //
-        return this.parseOrder(response, market);
+        // swap
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": {
+        //             "orderId": 1690615676032452985
+        //         }
+        //     }
+        //
+        return this.parseOrder(data, market);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
+         * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -1351,36 +2059,106 @@ class bitrue extends bitrue$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const clientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['origClientOrderId'] = clientOrderId;
-        }
-        else {
+        const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
+        params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
+        let response = undefined;
+        let data = undefined;
+        const request = {};
+        if (origClientOrderId === undefined) {
             request['orderId'] = id;
         }
-        const query = this.omit(params, ['type', 'clientOrderId', 'origClientOrderId']);
-        const response = await this.v1PrivateGetOrder(this.extend(request, query));
-        return this.parseOrder(response, market);
+        else {
+            if (market['swap']) {
+                request['clientOrderId'] = origClientOrderId;
+            }
+            else {
+                request['origClientOrderId'] = origClientOrderId;
+            }
+        }
+        if (market['swap']) {
+            request['contractName'] = market['id'];
+            if (market['linear']) {
+                response = await this.fapiV2PrivateGetOrder(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.dapiV2PrivateGetOrder(this.extend(request, params));
+            }
+            data = this.safeValue(response, 'data', {});
+        }
+        else if (market['spot']) {
+            request['orderId'] = id; // spot market id is mandatory
+            request['symbol'] = market['id'];
+            response = await this.spotV1PrivateGetOrder(this.extend(request, params));
+            data = response;
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchOrder only support spot & swap markets');
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "orderId": 1,
+        //         "clientOrderId": "myOrder1",
+        //         "price": "0.1",
+        //         "origQty": "1.0",
+        //         "executedQty": "0.0",
+        //         "cummulativeQuoteQty": "0.0",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": "0.0",
+        //         "icebergQty": "0.0",
+        //         "time": 1499827319559,
+        //         "updateTime": 1499827319559,
+        //         "isWorking": true
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"success",
+        //         "data":{
+        //             "orderId":1917641,
+        //             "price":100,
+        //             "origQty":10,
+        //             "origAmount":10,
+        //             "executedQty":1,
+        //             "avgPrice":10000,
+        //             "status":"INIT",
+        //             "type":"LIMIT",
+        //             "side":"BUY",
+        //             "action":"OPEN",
+        //             "transactTime":1686716571425
+        //             "clientOrderId":4949299210
+        //         }
+        //     }
+        //
+        return this.parseOrder(data, market);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' fetchClosedOrders only support spot markets');
+        }
         const request = {
             'symbol': market['id'],
             // 'orderId': 123445, // long
@@ -1394,7 +2172,7 @@ class bitrue extends bitrue$1 {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        const response = await this.v1PrivateGetAllOrders(this.extend(request, params));
+        const response = await this.spotV1PrivateGetAllOrders(this.extend(request, params));
         //
         //     [
         //         {
@@ -1424,21 +2202,43 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
+         * @see https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.v1PrivateGetOpenOrders(this.extend(request, params));
+        let response = undefined;
+        let data = undefined;
+        const request = {};
+        if (market['swap']) {
+            request['contractName'] = market['id'];
+            if (market['linear']) {
+                response = await this.fapiV2PrivateGetOpenOrders(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.dapiV2PrivateGetOpenOrders(this.extend(request, params));
+            }
+            data = this.safeValue(response, 'data', []);
+        }
+        else if (market['spot']) {
+            request['symbol'] = market['id'];
+            response = await this.spotV1PrivateGetOpenOrders(this.extend(request, params));
+            data = response;
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchOpenOrders only support spot & swap markets');
+        }
+        //
+        // spot
         //
         //     [
         //         {
@@ -1461,16 +2261,41 @@ class bitrue extends bitrue$1 {
         //         }
         //     ]
         //
-        return this.parseOrders(response, market, since, limit);
+        // swap
+        //
+        //      {
+        //          "code": "0",
+        //          "msg": "Success",
+        //          "data": [{
+        //                  "orderId": 1917641,
+        //                  "clientOrderId": "2488514315",
+        //                  "price": 100,
+        //                  "origQty": 10,
+        //                  "origAmount": 10,
+        //                  "executedQty": 1,
+        //                  "avgPrice": 12451,
+        //                  "status": "INIT",
+        //                  "type": "LIMIT",
+        //                  "side": "BUY",
+        //                  "action": "OPEN",
+        //                  "transactTime": 1686717303975
+        //              }
+        //          ]
+        //      }
+        //
+        return this.parseOrders(data, market, since, limit);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#cancelOrder
          * @description cancels an open order
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
+         * @see https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -1479,20 +2304,41 @@ class bitrue extends bitrue$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
-        const request = {
-            'symbol': market['id'],
-            // 'orderId': id,
-            // 'origClientOrderId': id,
-            // 'newClientOrderId': id,
-        };
+        params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
+        let response = undefined;
+        let data = undefined;
+        const request = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
         }
         else {
-            request['origClientOrderId'] = origClientOrderId;
+            if (market['swap']) {
+                request['clientOrderId'] = origClientOrderId;
+            }
+            else {
+                request['origClientOrderId'] = origClientOrderId;
+            }
         }
-        const query = this.omit(params, ['type', 'origClientOrderId', 'clientOrderId']);
-        const response = await this.v1PrivateDeleteOrder(this.extend(request, query));
+        if (market['swap']) {
+            request['contractName'] = market['id'];
+            if (market['linear']) {
+                response = await this.fapiV2PrivatePostCancel(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.dapiV2PrivatePostCancel(this.extend(request, params));
+            }
+            data = this.safeValue(response, 'data', {});
+        }
+        else if (market['spot']) {
+            request['symbol'] = market['id'];
+            response = await this.spotV1PrivateDeleteOrder(this.extend(request, params));
+            data = response;
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' cancelOrder only support spot & swap markets');
+        }
+        //
+        // spot
         //
         //     {
         //         "symbol": "LTCBTC",
@@ -1501,43 +2347,111 @@ class bitrue extends bitrue$1 {
         //         "clientOrderId": "cancelMyOrder1"
         //     }
         //
-        return this.parseOrder(response, market);
+        // swap
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": {
+        //             "orderId": 1690615847831143159
+        //         }
+        //     }
+        //
+        return this.parseOrder(data, market);
+    }
+    async cancelAllOrders(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitrue#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
+         * @param {string} symbol unified market symbol of the market to cancel orders in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let response = undefined;
+        let data = undefined;
+        if (market['swap']) {
+            const request = {
+                'contractName': market['id'],
+            };
+            if (market['linear']) {
+                response = await this.fapiV2PrivatePostAllOpenOrders(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.dapiV2PrivatePostAllOpenOrders(this.extend(request, params));
+            }
+            data = this.safeValue(response, 'data', []);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' cancelAllOrders only support future markets');
+        }
+        //
+        // swap
+        //
+        //      {
+        //          'code': '0',
+        //          'msg': 'Success',
+        //          'data': null
+        //      }
+        //
+        return this.parseOrders(data, market);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
+         * @see https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        const method = this.safeString(this.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades');
-        if ((symbol === undefined) && (method === 'v2PrivateGetMyTrades')) {
-            throw new errors.ArgumentsRequired(this.id + ' v2PrivateGetMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets();
-        const request = {
-        // 'symbol': market['id'],
-        // 'startTime': since,
-        // 'endTime': this.milliseconds (),
-        // 'fromId': 12345, // trade id to fetch from, most recent trades by default
-        // 'limit': limit, // default 100, max 1000
-        };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
+        const market = this.market(symbol);
+        let response = undefined;
+        let data = undefined;
+        const request = {};
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
+            if (limit > 1000) {
+                limit = 1000;
+            }
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, params));
+        if (market['swap']) {
+            request['contractName'] = market['id'];
+            if (market['linear']) {
+                response = await this.fapiV2PrivateGetMyTrades(this.extend(request, params));
+            }
+            else if (market['inverse']) {
+                response = await this.dapiV2PrivateGetMyTrades(this.extend(request, params));
+            }
+            data = this.safeValue(response, 'data', []);
+        }
+        else if (market['spot']) {
+            request['symbol'] = market['id'];
+            response = await this.spotV2PrivateGetMyTrades(this.extend(request, params));
+            data = response;
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMyTrades only support spot & swap markets');
+        }
+        //
+        // spot
         //
         //     [
         //         {
@@ -1556,18 +2470,44 @@ class bitrue extends bitrue$1 {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        // swap
+        //
+        //     {
+        //         "code":"0",
+        //         "msg":"Success",
+        //         "data":[
+        //             {
+        //                 "tradeId":12,
+        //                 "price":0.9,
+        //                 "qty":1,
+        //                 "amount":9,
+        //                 "contractName":"E-SAND-USDT",
+        //                 "side":"BUY",
+        //                 "fee":"0.0018",
+        //                 "bidId":1558124009467904992,
+        //                 "askId":1558124043827644908,
+        //                 "bidUserId":10294,
+        //                 "askUserId":10467,
+        //                 "isBuyer":true,
+        //                 "isMaker":true,
+        //                 "ctime":1678426306000
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseTrades(data, market, since, limit);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
          * @param {string} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires a code argument');
@@ -1589,7 +2529,7 @@ class bitrue extends bitrue$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetDepositHistory(this.extend(request, params));
+        const response = await this.spotV1PrivateGetDepositHistory(this.extend(request, params));
         //
         //     {
         //         "code":200,
@@ -1634,11 +2574,12 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
          * @param {string} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires a code argument');
@@ -1660,22 +2601,31 @@ class bitrue extends bitrue$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetWithdrawHistory(this.extend(request, params));
+        const response = await this.spotV1PrivateGetWithdrawHistory(this.extend(request, params));
         //
-        //     {
-        //         "code": 200,
-        //         "msg": "succ",
-        //         "data": {
-        //             "msg": null,
-        //             "amount": 1000,
-        //             "fee": 1,
-        //             "ctime": null,
-        //             "coin": "usdt_erc20",
-        //             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-        //         }
-        //     }
+        //    {
+        //        "code": 200,
+        //        "msg": "succ",
+        //        "data": [
+        //            {
+        //                "id": 183745,
+        //                "symbol": "usdt_erc20",
+        //                "amount": "8.4000000000000000",
+        //                "fee": "1.6000000000000000",
+        //                "payAmount": "0.0000000000000000",
+        //                "createdAt": 1595336441000,
+        //                "updatedAt": 1595336576000,
+        //                "addressFrom": "",
+        //                "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+        //                "txid": "",
+        //                "confirmations": 0,
+        //                "status": 6,
+        //                "tagType": null
+        //            }
+        //        ]
+        //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency);
     }
     parseTransactionStatusByType(status, type = undefined) {
@@ -1815,6 +2765,7 @@ class bitrue extends bitrue$1 {
             'status': status,
             'updated': updated,
             'internal': false,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -1823,43 +2774,36 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#withdraw
          * @description make a withdrawal
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
-        let chainName = this.safeString(params, 'chainName');
-        if (chainName === undefined) {
-            const networks = this.safeValue(currency, 'networks', {});
-            const optionsNetworks = this.safeValue(this.options, 'networks', {});
-            let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString(optionsNetworks, network, network);
-            const networkEntry = this.safeValue(networks, network, {});
-            chainName = this.safeString(networkEntry, 'id'); // handle ERC20>ETH alias
-            if (chainName === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a network parameter or a chainName parameter');
-            }
-            params = this.omit(params, 'network');
-        }
         const request = {
-            'coin': currency['id'].toUpperCase(),
+            'coin': currency['id'],
             'amount': amount,
             'addressTo': address,
-            'chainName': chainName, // 'ERC20', 'TRC20', 'SOL'
+            // 'chainName': chainName, // 'ERC20', 'TRC20', 'SOL'
             // 'addressMark': '', // mark of address
             // 'addrType': '', // type of address
             // 'tag': tag,
         };
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode !== undefined) {
+            request['chainName'] = this.networkCodeToId(networkCode);
+        }
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await this.v1PrivatePostWithdrawCommit(this.extend(request, params));
+        const response = await this.spotV1PrivatePostWithdrawCommit(this.extend(request, params));
         //
         //     {
         //         "code": 200,
@@ -1875,16 +2819,16 @@ class bitrue extends bitrue$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeValue(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
         //   {
-        //       coin: 'adx',
-        //       coinFulName: 'Ambire AdEx',
-        //       chains: [ 'BSC' ],
-        //       chainDetail: [ [Object] ]
+        //       "coin": "adx",
+        //       "coinFulName": "Ambire AdEx",
+        //       "chains": [ "BSC" ],
+        //       "chainDetail": [ [Object] ]
         //   }
         //
         const chainDetails = this.safeValue(fee, 'chainDetail', []);
@@ -1925,38 +2869,294 @@ class bitrue extends bitrue$1 {
          * @name bitrue#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
-         * @param {[string]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
-        const response = await this.v1PublicGetExchangeInfo(params);
+        const response = await this.spotV1PublicGetExchangeInfo(params);
         const coins = this.safeValue(response, 'coins');
         return this.parseDepositWithdrawFees(coins, codes, 'coin');
     }
+    parseTransfer(transfer, currency = undefined) {
+        //
+        //     fetchTransfers
+        //
+        //     {
+        //         'transferType': 'wallet_to_contract',
+        //         'symbol': 'USDT',
+        //         'amount': 1.0,
+        //         'status': 1,
+        //         'ctime': 1685404575000
+        //     }
+        //
+        //     transfer
+        //
+        //     {}
+        //
+        const transferType = this.safeString(transfer, 'transferType');
+        let fromAccount = undefined;
+        let toAccount = undefined;
+        if (transferType !== undefined) {
+            const accountSplit = transferType.split('_to_');
+            fromAccount = this.safeString(accountSplit, 0);
+            toAccount = this.safeString(accountSplit, 1);
+        }
+        const timestamp = this.safeInteger(transfer, 'ctime');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'currency': this.safeString(currency, 'code'),
+            'amount': this.safeNumber(transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': 'ok',
+        };
+    }
+    async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitrue#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @see https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of transfers structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch transfers for
+         * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
+         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         */
+        await this.loadMarkets();
+        const type = this.safeString2(params, 'type', 'transferType');
+        const request = {
+            'transferType': type,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['coinSymbol'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['beginTime'] = since;
+        }
+        if (limit !== undefined) {
+            if (limit > 200) {
+                limit = 200;
+            }
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['endTime'] = until;
+        }
+        const response = await this.fapiV2PrivateGetFuturesTransferHistory(this.extend(request, params));
+        //
+        //     {
+        //         'code': '0',
+        //         'msg': 'Success',
+        //         'data': [{
+        //             'transferType': 'wallet_to_contract',
+        //             'symbol': 'USDT',
+        //             'amount': 1.0,
+        //             'status': 1,
+        //             'ctime': 1685404575000
+        //         }]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseTransfers(data, currency, since, limit);
+    }
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name bitrue#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const accountTypes = this.safeValue(this.options, 'accountsByType', {});
+        const fromId = this.safeString(accountTypes, fromAccount, fromAccount);
+        const toId = this.safeString(accountTypes, toAccount, toAccount);
+        const request = {
+            'coinSymbol': currency['id'],
+            'amount': this.currencyToPrecision(code, amount),
+            'transferType': fromId + '_to_' + toId,
+        };
+        const response = await this.fapiV2PrivatePostFuturesTransfer(this.extend(request, params));
+        //
+        //     {
+        //         'code': '0',
+        //         'msg': 'Success',
+        //         'data': null
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        return this.parseTransfer(data, currency);
+    }
+    async setLeverage(leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitrue#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new errors.BadRequest(this.id + ' leverage should be between 1 and 125');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let response = undefined;
+        const request = {
+            'contractName': market['id'],
+            'leverage': leverage,
+        };
+        if (!market['swap']) {
+            throw new errors.NotSupported(this.id + ' setLeverage only support swap markets');
+        }
+        if (market['linear']) {
+            response = await this.fapiV2PrivatePostLevelEdit(this.extend(request, params));
+        }
+        else if (market['inverse']) {
+            response = await this.dapiV2PrivatePostLevelEdit(this.extend(request, params));
+        }
+        return response;
+    }
+    parseMarginModification(data, market = undefined) {
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': undefined,
+            'symbol': market['symbol'],
+            'status': undefined,
+        };
+    }
+    async setMargin(symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name bitrue#setMargin
+         * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+         * @see https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+         * @param {string} symbol unified market symbol of the market to set margin in
+         * @param {float} amount the amount to set the margin to
+         * @param {object} [params] parameters specific to the exchange API endpoint
+         * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.NotSupported(this.id + ' setMargin only support swap markets');
+        }
+        let response = undefined;
+        const request = {
+            'contractName': market['id'],
+            'amount': this.parseToNumeric(amount),
+        };
+        if (market['linear']) {
+            response = await this.fapiV2PrivatePostPositionMargin(this.extend(request, params));
+        }
+        else if (market['inverse']) {
+            response = await this.dapiV2PrivatePostPositionMargin(this.extend(request, params));
+        }
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success"
+        //         "data": null
+        //     }
+        //
+        return this.parseMarginModification(response, market);
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const version = this.safeString(api, 0);
-        const access = this.safeString(api, 1);
-        let url = this.urls['api'][version] + '/' + this.implodeParams(path, params);
+        const type = this.safeString(api, 0);
+        const version = this.safeString(api, 1);
+        const access = this.safeString(api, 2);
+        let url = undefined;
+        if (type === 'api' && version === 'kline') {
+            url = this.urls['api'][type];
+        }
+        else {
+            url = this.urls['api'][type] + '/' + version;
+        }
+        url = url + '/' + this.implodeParams(path, params);
         params = this.omit(params, this.extractParams(path));
         if (access === 'private') {
             this.checkRequiredCredentials();
             const recvWindow = this.safeInteger(this.options, 'recvWindow', 5000);
-            let query = this.urlencode(this.extend({
-                'timestamp': this.nonce(),
-                'recvWindow': recvWindow,
-            }, params));
-            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
-            query += '&' + 'signature=' + signature;
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-            };
-            if ((method === 'GET') || (method === 'DELETE')) {
-                url += '?' + query;
+            if (type === 'spot') {
+                let query = this.urlencode(this.extend({
+                    'timestamp': this.nonce(),
+                    'recvWindow': recvWindow,
+                }, params));
+                const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+                query += '&' + 'signature=' + signature;
+                headers = {
+                    'X-MBX-APIKEY': this.apiKey,
+                };
+                if ((method === 'GET') || (method === 'DELETE')) {
+                    url += '?' + query;
+                }
+                else {
+                    body = query;
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                }
             }
             else {
-                body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                const timestamp = this.nonce().toString();
+                let signPath = undefined;
+                if (type === 'fapi') {
+                    signPath = '/fapi';
+                }
+                else if (type === 'dapi') {
+                    signPath = '/dapi';
+                }
+                signPath = signPath + '/' + version + '/' + path;
+                let signMessage = timestamp + method + signPath;
+                if (method === 'GET') {
+                    const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256.sha256);
+                    headers = {
+                        'X-CH-APIKEY': this.apiKey,
+                        'X-CH-SIGN': signature,
+                        'X-CH-TS': timestamp,
+                    };
+                    url += '?' + this.urlencode(params);
+                }
+                else {
+                    const query = this.extend({
+                        'recvWindow': recvWindow,
+                    }, params);
+                    body = this.json(query);
+                    signMessage = signMessage + JSON.stringify(body);
+                    const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256.sha256);
+                    headers = {
+                        'Content-Type': 'application/json',
+                        'X-CH-APIKEY': this.apiKey,
+                        'X-CH-SIGN': signature,
+                        'X-CH-TS': timestamp,
+                    };
+                }
             }
         }
         else {
@@ -1989,7 +3189,7 @@ class bitrue extends bitrue$1 {
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         if (!success) {
             const messageInner = this.safeString(response, 'msg');
             let parsedMessage = undefined;

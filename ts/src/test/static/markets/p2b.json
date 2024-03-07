@@ -1,0 +1,282 @@
+{
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01,
+            "base": "0.00001",
+            "quote": "0.01"
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 9000
+            },
+            "price": {
+                "min": "0.01",
+                "max": 1000000
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "name": "ETH_USDT",
+            "stock": "ETH",
+            "money": "USDT",
+            "precision": {
+                "money": "2",
+                "stock": "5",
+                "fee": "4"
+            },
+            "limits": {
+                "min_amount": "0.0001",
+                "max_amount": "9000",
+                "step_size": "0.0001",
+                "min_price": "0.01",
+                "max_price": "1000000",
+                "tick_size": "0.01",
+                "min_total": "5"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "index": false
+    },
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01,
+            "base": "0.000001",
+            "quote": "0.01"
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001,
+                "max": 9000
+            },
+            "price": {
+                "min": "0.01",
+                "max": 1000000
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "name": "BTC_USDT",
+            "stock": "BTC",
+            "money": "USDT",
+            "precision": {
+                "money": "2",
+                "stock": "6",
+                "fee": "4"
+            },
+            "limits": {
+                "min_amount": "0.00001",
+                "max_amount": "9000",
+                "step_size": "0.00001",
+                "min_price": "0.01",
+                "max_price": "1000000",
+                "tick_size": "0.01",
+                "min_total": "5"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "index": false
+    },
+    "LTC/USDT": {
+        "id": "LTC_USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01,
+            "base": "0.00001",
+            "quote": "0.01"
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001,
+                "max": 90000
+            },
+            "price": {
+                "min": "0.01",
+                "max": 100000
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "name": "LTC_USDT",
+            "stock": "LTC",
+            "money": "USDT",
+            "precision": {
+                "money": "2",
+                "stock": "5",
+                "fee": "4"
+            },
+            "limits": {
+                "min_amount": "0.001",
+                "max_amount": "90000",
+                "step_size": "0.001",
+                "min_price": "0.01",
+                "max_price": "100000",
+                "tick_size": "0.01",
+                "min_total": "5"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "index": false
+    },
+    "ADA/USDT": {
+        "id": "ADA_USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.0001,
+            "base": "0.1",
+            "quote": "0.0001"
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1,
+                "max": 900000
+            },
+            "price": {
+                "min": "0.0001",
+                "max": 1000
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "name": "ADA_USDT",
+            "stock": "ADA",
+            "money": "USDT",
+            "precision": {
+                "money": "4",
+                "stock": "1",
+                "fee": "4"
+            },
+            "limits": {
+                "min_amount": "0.1",
+                "max_amount": "900000",
+                "step_size": "0.1",
+                "min_price": "0.0001",
+                "max_price": "1000",
+                "tick_size": "0.0001",
+                "min_total": "5"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "index": false
+    },
+    "SOL/USDT": {
+        "id": "SOL_USDT",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01,
+            "base": "0.01",
+            "quote": "0.01"
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01,
+                "max": 90000
+            },
+            "price": {
+                "min": "0.01",
+                "max": 10000
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "name": "SOL_USDT",
+            "stock": "SOL",
+            "money": "USDT",
+            "precision": {
+                "money": "2",
+                "stock": "2",
+                "fee": "4"
+            },
+            "limits": {
+                "min_amount": "0.01",
+                "max_amount": "90000",
+                "step_size": "0.01",
+                "min_price": "0.01",
+                "max_price": "10000",
+                "tick_size": "0.01",
+                "min_total": "5"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "index": false
+    }
+}

@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,20 +7,15 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-
+use \ccxt\Precise;
 
 function log_template($exchange, $method, $entry) {
     return ' <<< ' . $exchange->id . ' ' . $method . ' ::: ' . $exchange->json($entry) . ' >>> ';
 }
 
 
-function is_integer($value) {
-    $is_numeric = ((is_int($value) || is_float($value)));
-    if ($is_numeric) {
-        return ($value % 1) === 0;
-    } else {
-        return false;
-    }
+function is_temporary_failure($e) {
+    return ($e instanceof OperationFailed) && (!($e instanceof OnMaintenance));
 }
 
 
@@ -40,7 +34,7 @@ function string_value($value) {
 
 function assert_type($exchange, $skipped_properties, $entry, $key, $format) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
-        return;
+        return null;
     }
     // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
     $entry_key_val = $exchange->safe_value($entry, $key);
@@ -67,6 +61,9 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
         for ($i = 0; $i < count($format); $i++) {
             $empty_allowed_for_this_key = $exchange->in_array($i, $empty_allowed_for);
             $value = $entry[$i];
+            if (is_array($skipped_properties) && array_key_exists($i, $skipped_properties)) {
+                continue;
+            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
@@ -75,7 +72,8 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             }
             assert($value !== null, ((string) $i) . ' index is expected to have a value' . $log_text);
             // because of other langs, this is needed for arrays
-            assert(assert_type($exchange, $skipped_properties, $entry, $i, $format), ((string) $i) . ' index does not have an expected type ' . $log_text);
+            $type_assertion = assert_type($exchange, $skipped_properties, $entry, $i, $format);
+            assert($type_assertion, ((string) $i) . ' index does not have an expected type ' . $log_text);
         }
     } else {
         assert(is_array($entry), 'entry is not an object' . $log_text);
@@ -86,6 +84,9 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
                 continue;
             }
             assert(is_array($entry) && array_key_exists($key, $entry), '\"' . string_value($key) . '\" key is missing from structure' . $log_text);
+            if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
+                continue;
+            }
             $empty_allowed_for_this_key = $exchange->in_array($key, $empty_allowed_for);
             $value = $entry[$key];
             // check when:
@@ -98,7 +99,8 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             assert($value !== null, '\"' . string_value($key) . '\" key is expected to have a value' . $log_text);
             // add exclusion for info key, as it can be any type
             if ($key !== 'info') {
-                assert(assert_type($exchange, $skipped_properties, $entry, $key, $format), '\"' . string_value($key) . '\" key is neither undefined, neither of expected type' . $log_text);
+                $type_assertion = assert_type($exchange, $skipped_properties, $entry, $key, $format);
+                assert($type_assertion, '\"' . string_value($key) . '\" key is neither undefined, neither of expected type' . $log_text);
             }
         }
     }
@@ -121,16 +123,27 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
     $ts = $entry[$key_name_or_index];
     if ($ts !== null) {
         assert((is_int($ts) || is_float($ts)), 'timestamp is not numeric' . $log_text);
-        assert(is_integer($ts), 'timestamp should be an integer' . $log_text);
+        assert(is_int($ts), 'timestamp should be an integer' . $log_text);
         $min_ts = 1230940800000; // 03 Jan 2009 - first block
         $max_ts = 2147483648000; // 03 Jan 2009 - first block
         assert($ts > $min_ts, 'timestamp is impossible to be before ' . ((string) $min_ts) . ' (03.01.2009)' . $log_text); // 03 Jan 2009 - first block
         assert($ts < $max_ts, 'timestamp more than ' . ((string) $max_ts) . ' (19.01.2038)' . $log_text); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if ($now_to_check !== null) {
             $max_ms_offset = 60000; // 1 min
-            assert($ts < $now_to_check + $max_ms_offset, 'returned trade timestamp (' . $exchange->iso8601($ts) . ') is ahead of the current time (' . $exchange->iso8601($now_to_check) . ')' . $log_text);
+            assert($ts < $now_to_check + $max_ms_offset, 'returned item timestamp (' . $exchange->iso8601($ts) . ') is ahead of the current time (' . $exchange->iso8601($now_to_check) . ')' . $log_text);
         }
     }
+}
+
+
+function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now_to_check = null, $key_name_or_index = 'timestamp') {
+    $log_text = log_template($exchange, $method, $entry);
+    $skip_value = $exchange->safe_value($skipped_properties, $key_name_or_index);
+    if ($skip_value !== null) {
+        return;
+    }
+    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_to_check, $key_name_or_index);
+    $is_date_time_object = is_string($key_name_or_index);
     // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
     if ($is_date_time_object) {
         // we also test 'datetime' here because it's certain sibling of 'timestamp'
@@ -138,17 +151,24 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
         $dt = $entry['datetime'];
         if ($dt !== null) {
             assert(is_string($dt), '\"datetime\" key does not have a string value' . $log_text);
-            assert($dt === $exchange->iso8601($entry['timestamp']), 'datetime is not iso8601 of timestamp' . $log_text);
+            // there are exceptional cases, like getting microsecond-targeted string '2022-08-08T22:03:19.014680Z', so parsed unified timestamp, which carries only 13 digits (millisecond precision) can not be stringified back to microsecond accuracy, causing the bellow assertion to fail
+            //    assert (dt === exchange.iso8601 (entry['timestamp']))
+            // so, we have to compare with millisecond accururacy
+            $dt_parsed = $exchange->parse8601($dt);
+            assert($exchange->iso8601($dt_parsed) === $exchange->iso8601($entry['timestamp']), 'datetime is not iso8601 of timestamp' . $log_text);
         }
     }
 }
 
 
 function assert_currency_code($exchange, $skipped_properties, $method, $entry, $actual_code, $expected_code = null) {
+    if (is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) {
+        return;
+    }
     $log_text = log_template($exchange, $method, $entry);
     if ($actual_code !== null) {
         assert(is_string($actual_code), 'currency code should be either undefined or a string' . $log_text);
-        assert((is_array($exchange->currencies) && array_key_exists($actual_code, $exchange->currencies)), 'currency code should be present in exchange.currencies' . $log_text);
+        assert((is_array($exchange->currencies) && array_key_exists($actual_code, $exchange->currencies)), 'currency code (\"' . $actual_code . '\") should be present in exchange.currencies' . $log_text);
         if ($expected_code !== null) {
             assert($actual_code === $expected_code, 'currency code in response (\"' . string_value($actual_code) . '\") should be equal to expected code (\"' . string_value($expected_code) . '\")' . $log_text);
         }
@@ -184,11 +204,16 @@ function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $e
     $actual_symbol = $exchange->safe_string($entry, $key);
     if ($actual_symbol !== null) {
         assert(is_string($actual_symbol), 'symbol should be either undefined or a string' . $log_text);
-        assert((is_array($exchange->markets) && array_key_exists($actual_symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
     }
     if ($expected_symbol !== null) {
         assert($actual_symbol === $expected_symbol, 'symbol in response (\"' . string_value($actual_symbol) . '\") should be equal to expected symbol (\"' . string_value($expected_symbol) . '\")' . $log_text);
     }
+}
+
+
+function assert_symbol_in_markets($exchange, $skipped_properties, $method, $symbol) {
+    $log_text = log_template($exchange, $method, array());
+    assert((is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
 }
 
 
@@ -210,7 +235,7 @@ function assert_greater_or_equal($exchange, $skipped_properties, $method, $entry
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_ge($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be >= ' . string_value($compare_to) . $log_text);
     }
 }
@@ -222,7 +247,7 @@ function assert_less($exchange, $skipped_properties, $method, $entry, $key, $com
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_lt($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be < ' . string_value($compare_to) . $log_text);
     }
 }
@@ -234,7 +259,7 @@ function assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_le($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be <= ' . string_value($compare_to) . $log_text);
     }
 }
@@ -246,7 +271,7 @@ function assert_equal($exchange, $skipped_properties, $method, $entry, $key, $co
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_eq($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be equal to ' . string_value($compare_to) . $log_text);
     }
 }
@@ -281,7 +306,7 @@ function assert_in_array($exchange, $skipped_properties, $method, $entry, $key, 
 function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $key) {
     $log_text = log_template($exchange, $method, $entry);
     $key_string = string_value($key);
-    if (is_integer($key)) {
+    if (is_int($key)) {
         assert(gettype($entry) === 'array' && array_keys($entry) === array_keys(array_keys($entry)), 'fee container is expected to be an array' . $log_text);
         assert($key < count($entry), 'fee key ' . $key_string . ' was expected to be present in entry' . $log_text);
     } else {
@@ -292,20 +317,23 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
     // todo: remove undefined check to make stricter
     if ($fee_object !== null) {
         assert(is_array($fee_object) && array_key_exists('cost', $fee_object), $key_string . ' fee object should contain \"cost\" key' . $log_text);
-        assert_greater_or_equal($exchange, $skipped_properties, $method, $fee_object, 'cost', '0');
+        // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
         assert(is_array($fee_object) && array_key_exists('currency', $fee_object), '\"' . $key_string . '\" fee object should contain \"currency\" key' . $log_text);
         assert_currency_code($exchange, $skipped_properties, $method, $entry, $fee_object['currency']);
     }
 }
 
 
-function assert_timestamp_order($exchange, $method, $code_or_symbol, $items, $ascending = false) {
+function assert_timestamp_order($exchange, $method, $code_or_symbol, $items, $ascending = true) {
     for ($i = 0; $i < count($items); $i++) {
         if ($i > 0) {
-            $ascending_or_descending = $ascending ? 'ascending' : 'descending';
-            $first_index = $ascending ? $i - 1 : $i;
-            $second_index = $ascending ? $i : $i - 1;
-            assert($items[$first_index]['timestamp'] >= $items[$second_index]['timestamp'], $exchange->id . ' ' . $method . ' ' . string_value($code_or_symbol) . ' must return a ' . $ascending_or_descending . ' sorted array of items by timestamp. ' . $exchange->json($items));
+            $current_ts = $items[$i - 1]['timestamp'];
+            $next_ts = $items[$i]['timestamp'];
+            if ($current_ts !== null && $next_ts !== null) {
+                $ascending_or_descending = $ascending ? 'ascending' : 'descending';
+                $comparison = $ascending ? ($current_ts <= $next_ts) : ($current_ts >= $next_ts);
+                assert($comparison, $exchange->id . ' ' . $method . ' ' . string_value($code_or_symbol) . ' must return a ' . $ascending_or_descending . ' sorted array of items by timestamp, but ' . ((string) $current_ts) . ' is opposite with its next ' . ((string) $next_ts) . ' ' . $exchange->json($items));
+            }
         }
     }
 }
@@ -317,9 +345,10 @@ function assert_integer($exchange, $skipped_properties, $method, $entry, $key) {
     }
     $log_text = log_template($exchange, $method, $entry);
     if ($entry !== null) {
-        $value = $exchange->safe_number($entry, $key);
+        $value = $exchange->safe_value($entry, $key);
         if ($value !== null) {
-            assert(is_integer($value), '\"' . string_value($key) . '\" key (value \"' . string_value($value) . '\") is not an integer' . $log_text);
+            $is_integer = is_int($value);
+            assert($is_integer, '\"' . string_value($key) . '\" key (value \"' . string_value($value) . '\") is not an integer' . $log_text);
         }
     }
 }
@@ -329,8 +358,7 @@ function check_precision_accuracy($exchange, $skipped_properties, $method, $entr
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;
     }
-    $is_tick_size_precisionMode = $exchange->precisionMode === \ccxt\TICK_SIZE;
-    if ($is_tick_size_precisionMode) {
+    if ($exchange->is_tick_precision()) {
         // \ccxt\TICK_SIZE should be above zero
         assert_greater($exchange, $skipped_properties, $method, $entry, $key, '0');
         // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
@@ -345,4 +373,28 @@ function check_precision_accuracy($exchange, $skipped_properties, $method, $entr
         assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $key, '18'); // should be under 18 decimals
         assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, $key, '-8'); // in real-world cases, there would not be less than that
     }
+}
+
+
+function remove_proxy_options($exchange, $skipped_properties) {
+    $proxy_url = $exchange->check_proxy_url_settings();
+    [$http_proxy, $https_proxy, $socks_proxy] = $exchange->check_proxy_settings();
+    // because of bug in transpiled, about `.proxyUrl` being transpiled into `.proxy_url`, we have to use this workaround
+    $exchange->set_property($exchange, 'proxyUrl', null);
+    $exchange->set_property($exchange, 'proxy_url', null);
+    $exchange->set_property($exchange, 'httpProxy', null);
+    $exchange->set_property($exchange, 'http_proxy', null);
+    $exchange->set_property($exchange, 'httpsProxy', null);
+    $exchange->set_property($exchange, 'https_proxy', null);
+    $exchange->set_property($exchange, 'socksProxy', null);
+    $exchange->set_property($exchange, 'socks_proxy', null);
+    return [$proxy_url, $http_proxy, $https_proxy, $socks_proxy];
+}
+
+
+function set_proxy_options($exchange, $skipped_properties, $proxy_url, $http_proxy, $https_proxy, $socks_proxy) {
+    $exchange->proxy_url = $proxy_url;
+    $exchange->http_proxy = $http_proxy;
+    $exchange->https_proxy = $https_proxy;
+    $exchange->socks_proxy = $socks_proxy;
 }
