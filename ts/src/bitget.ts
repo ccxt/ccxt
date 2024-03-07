@@ -8239,7 +8239,7 @@ export default class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
          * @param {string} symbol unified symbol of the market to fetch the margin mode for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} Struct of MarginMode
+         * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
          */
         await this.loadMarkets ();
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
