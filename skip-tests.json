@@ -639,7 +639,11 @@
                 "deposit": "not provided",
                 "networks": "missing"
             },
+<<<<<<< HEAD
             "fetchOHLCV": "unexpected issue"
+=======
+            "watchTrades": "temp skip before other PR is merged"
+>>>>>>> 1af92ee33b (skip wt)
         }
     },
     "coinex": {
