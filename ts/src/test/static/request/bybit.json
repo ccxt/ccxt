@@ -369,6 +369,30 @@
         ],
         "createOrders": [
             {
+                "description": "Spot create orders",
+                "method": "createOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/create-batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "LTC/USDT",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 50
+                        },
+                        {
+                            "symbol": "LTC/USDT",
+                            "amount": 0.11,
+                            "side": "sell",
+                            "type": "limit",
+                            "price": 70
+                        }
+                    ]
+                ],
+                "output": "{\"category\":\"spot\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.1\",\"price\":\"50\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.11\",\"price\":\"70\"}]}"
+            },
+            {
                 "description": "Swap create orders",
                 "method": "createOrders",
                 "url": "https://api-testnet.bybit.com/v5/order/create-batch",

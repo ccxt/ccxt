@@ -3752,8 +3752,8 @@ export default class bybit extends Exchange {
         const market = this.market (symbols[0]);
         let category = undefined;
         [ category, params ] = this.getBybitType ('createOrders', market, params);
-        if ((category === 'spot') || (category === 'inverse')) {
-            throw new NotSupported (this.id + ' createOrders does not allow spot or inverse orders');
+        if (category === 'inverse') {
+            throw new NotSupported (this.id + ' createOrders does not allow inverse orders');
         }
         const request = {
             'category': category,
