@@ -70,7 +70,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 94 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 95 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                                          | id                 | name                                                                                                  | ver                                                                                                                                              | certified                                                                                                                   | pro                                                                          |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -132,6 +132,7 @@ The CCXT library currently supports the following 94 cryptocurrency exchange mar
 | [![hollaex](https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg)](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                                     | hollaex            | [HollaEx](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://apidocs.hollaex.com)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![htx](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223) | htx                | [HTX](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223) | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://huobiapi.github.io/docs/spot/v1/en/)                                        | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![huobijp](https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg)](https://www.huobi.co.jp/register/?invite_code=znnq3)                                        | huobijp            | [Huobi Japan](https://www.huobi.co.jp/register/?invite_code=znnq3)                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api-doc.huobi.co.jp)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![hyperliquid](https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b)](https://app.hyperliquid.xyz/)                                                                             | hyperliquid        | [Hyperliquid](https://app.hyperliquid.xyz/)                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api)                 |                                                                                                                             |                                                                              |
 | [![idex](https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg)](https://idex.io)                                                                              | idex               | [IDEX](https://idex.io)                                                                               | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api-docs-v3.idex.io/)                                                       |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![independentreserve](https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg)](https://www.independentreserve.com)                                             | independentreserve | [Independent Reserve](https://www.independentreserve.com)                                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.independentreserve.com/API)                                             |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![indodax](https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg)](https://indodax.com/ref/testbitcoincoid/1)                                                 | indodax            | [INDODAX](https://indodax.com/ref/testbitcoincoid/1)                                                  | [![API Version 2.0](https://img.shields.io/badge/2.0-lightgray)](https://github.com/btcid/indodax-official-api-docs)                             |                                                                                                                             |                                                                              |
@@ -5822,7 +5823,7 @@ Returns
 }
 ```
 
-## Margin Mode
+## Set Margin Mode
 
 *margin and contract only*
 
@@ -5904,7 +5905,55 @@ $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $param
 ```
 <!-- tabs:end -->
 
-## Leverage
+## Fetch Margin Mode
+
+*margin and contract only*
+
+The `fetchMarginMode()` method can be used to obtain the set margin mode for a market. The `fetchMarginModes()` method can be used to obtain the set margin mode for multiple markets at once.
+
+You can access the set margin mode by using:
+
+- `fetchMarginMode()` (single symbol)
+- `fetchMarginModes([symbol1, symbol2, ...])` (multiple symbols)
+- `fetchMarginModes()` (all market symbols)
+
+```javascript
+fetchMarginMode(symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* A unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"subType": "linear"}`)
+
+Returns
+
+- a [margin-mode-structure](#margin-mode-structure)
+
+```javascript
+fetchMarginModes(symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) A list of unified CCXT symbols (e.g. `[ "BTC/USDT:USDT" ]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"subType": "linear"}`)
+
+Returns
+
+- an array of [margin-mode-structures](#margin-mode-structure)
+
+### Margin Mode Structure
+
+```javascript
+{
+    "info": { ... }             // response from the exchange
+    "symbol": "BTC/USDT:USDT",  // unified market symbol
+    "marginMode": "cross",      // the margin mode either cross or isolated
+}
+```
+
+## Set Leverage
 
 *margin and contract only*
 
@@ -5921,6 +5970,56 @@ Parameters
 Returns
 
 - response from the exchange
+
+## Leverage
+
+*margin and contract only*
+
+The `fetchLeverage()` method can be used to obtain the set leverage for a market. The `fetchLeverages()` method can be used to obtain the set leverage for multiple markets at once.
+
+You can access the set leverage by using:
+
+- `fetchLeverage()` (single symbol)
+- `fetchLeverages([symbol1, symbol2, ...])` (multiple symbols)
+- `fetchLeverages()` (all market symbols)
+
+```javascript
+fetchLeverage(symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* A unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- a [leverage-structure](#leverage-structure)
+
+```javascript
+fetchLeverages(symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) A list of unified CCXT symbols (e.g. `[ "BTC/USDT:USDT" ]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+
+Returns
+
+- an array of [leverage-structures](#leverage-structure)
+
+### Leverage Structure
+
+```javascript
+{
+    "info": { ... }             // response from the exchange
+    "symbol": "BTC/USDT:USDT",  // unified market symbol
+    "marginMode": "cross",      // the margin mode either cross or isolated
+    "longLeverage": 100,        // the set leverage for a long position
+    "shortLeverage": 75,        // the set leverage for a short position
+}
+```
 
 ## Contract Trading
 

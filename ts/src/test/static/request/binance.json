@@ -2740,6 +2740,40 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "Linear swap fetch all set leverages",
+                "method": "fetchLeverages",
+                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709365967532&recvWindow=10000&signature=0ba690bc39cc0f098fc8adfab9a10e991a239b02b59e92c7cc88281c74b7ec1e",
+                "input": []
+            }
+        ],
+        "fetchMarginModes": [
+            {
+                "description": "Fetch Margin Modes with linear subType and symbol list",
+                "method": "fetchMarginModes",
+                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709152197362&recvWindow=10000&signature=e03e51e9eaf6ccadbe8171e52d588d13e389861804104ee7948d768609713aaf",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ],
+                  {
+                    "subType": "linear"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch Margin Modes with inverse subType",
+                "method": "fetchMarginModes",
+                "url": "https://testnet.binancefuture.com/dapi/v1/account?timestamp=1709152094640&recvWindow=10000&signature=3e5f0e80eddbfc30770b5bc9e9981900696de5e3236b0f9c27fe59255769c489",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            }
         ]
     }
 }

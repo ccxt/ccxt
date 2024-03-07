@@ -114,6 +114,8 @@ class Transpiler {
             [ /\.parseDepositAddress\s/g, '.parse_deposit_address'],
             [ /\.parseMarketLeverageTiers\s/g, '.parse_market_leverage_tiers'],
             [ /\.parseLeverageTiers\s/g, '.parse_leverage_tiers'],
+            [ /\.parseLeverage\s/g, '.parse_leverage' ],
+            [ /\.parseLeverages\s/g, '.parse_leverages' ],
             [ /\.parseLedgerEntry\s/g, '.parse_ledger_entry'],
             [ /\.parseLedger\s/g, '.parse_ledger'],
             [ /\.parseTickers\s/g, '.parse_tickers'],
@@ -156,6 +158,8 @@ class Transpiler {
             [ /\.parseFundingRates\s/g, '.parse_funding_rates' ],
             [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],
             [ /\.parseMarginModification\s/g, '.parse_margin_modification' ],
+            [ /\.parseMarginMode\s/g, '.parse_margin_mode' ],
+            [ /\.parseMarginModes\s/g, '.parse_margin_modes' ],
             [ /\.filterByArray\s/g, '.filter_by_array'],
             [ /\.filterByValueSinceLimit\s/g, '.filter_by_value_since_limit'],
             [ /\.filterBySymbolSinceLimit\s/g, '.filter_by_symbol_since_limit'],
@@ -337,6 +341,7 @@ class Transpiler {
             [ /\.isRoundNumber\s/g, '.is_round_number'],
             [ /\.getDescribeForExtendedWsExchange\s/g, '.get_describe_for_extended_ws_exchange'],
             [ /\.watchMultiple\s/g, '.watch_multiple'],
+            [ /\.intToBase16\s/g, '.int_to_base16'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -975,7 +980,10 @@ class Transpiler {
             'Greeks': /-> Greeks:/,
             'Int': /: Int =/,
             'Liquidation': /-> (?:List\[)?Liquidation/,
+            'Leverage': /-> Leverage:/,
+            'Leverages': /-> Leverages:/,
             'MarginMode': /-> MarginMode:/,
+            'MarginModes': /-> MarginModes:/,
             'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
             'Order': /-> Order:/,

@@ -2486,7 +2486,7 @@ class binance extends \ccxt\async\binance {
             $this->set_balance_cache($client, $type, $isPortfolioMargin);
             $this->set_positions_cache($client, $type, $symbols, $isPortfolioMargin);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_value('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
             $cache = $this->safe_value($this->positions, $type);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
                 $snapshot = Async\await($client->future ($type . ':fetchPositionsSnapshot'));
@@ -2626,8 +2626,20 @@ class binance extends \ccxt\async\binance {
         //     }
         //
         $marketId = $this->safe_string($position, 's');
+        $contracts = $this->safe_string($position, 'pa');
+        $contractsAbs = Precise::string_abs($this->safe_string($position, 'pa'));
         $positionSide = $this->safe_string_lower($position, 'ps');
-        $hedged = $positionSide !== 'both';
+        $hedged = true;
+        if ($positionSide === 'both') {
+            $hedged = false;
+            if (!Precise::string_eq($contracts, '0')) {
+                if (Precise::string_lt($contracts, '0')) {
+                    $positionSide = 'short';
+                } else {
+                    $positionSide = 'long';
+                }
+            }
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2638,7 +2650,7 @@ class binance extends \ccxt\async\binance {
             'entryPrice' => $this->safe_number($position, 'ep'),
             'unrealizedPnl' => $this->safe_number($position, 'up'),
             'percentage' => null,
-            'contracts' => $this->safe_number($position, 'pa'),
+            'contracts' => $this->parse_number($contractsAbs),
             'contractSize' => null,
             'markPrice' => null,
             'side' => $positionSide,

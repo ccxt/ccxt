@@ -85,11 +85,47 @@
         ],
         "fetchClosedOrders": [
             {
-                "description": "Spot open orders",
+                "description": "Spot closed orders",
                 "method": "fetchClosedOrders",
                 "url": "https://api.alpaca.markets/v2/orders?status=closed&symbols=LTC%2FUSDT",
                 "input": [
                     "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/trades?symbols=BTC%2FUSDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades with method: marketPublicGetV1beta3CryptoLocLatestTrades",
+                "method": "fetchTrades",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/latest/trades?symbols=BTC%2FUSDT",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "method": "marketPublicGetV1beta3CryptoLocLatestTrades"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch trades with method: marketPublicGetV1beta3CryptoLocTrades",
+                "method": "fetchTrades",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/trades?symbols=BTC%2FUSD",
+                "input": [
+                  "BTC/USD",
+                  null,
+                  null,
+                  {
+                    "method": "marketPublicGetV1beta3CryptoLocTrades"
+                  }
                 ]
             }
         ]

@@ -12,7 +12,7 @@ public partial class coinbase : Exchange
             { "name", "Coinbase" },
             { "countries", new List<object>() {"US"} },
             { "pro", true },
-            { "rateLimit", 400 },
+            { "rateLimit", 34 },
             { "version", "v2" },
             { "userAgent", getValue(this.userAgents, "chrome") },
             { "headers", new Dictionary<string, object>() {
@@ -119,24 +119,116 @@ public partial class coinbase : Exchange
             { "api", new Dictionary<string, object>() {
                 { "v2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"currencies", "currencies/crypto", "time", "exchange-rates", "users/{user_id}", "prices/{symbol}/buy", "prices/{symbol}/sell", "prices/{symbol}/spot"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "currencies", 10.6 },
+                            { "currencies/crypto", 10.6 },
+                            { "time", 10.6 },
+                            { "exchange-rates", 10.6 },
+                            { "users/{user_id}", 10.6 },
+                            { "prices/{symbol}/buy", 10.6 },
+                            { "prices/{symbol}/sell", 10.6 },
+                            { "prices/{symbol}/spot", 10.6 },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"accounts", "accounts/{account_id}", "accounts/{account_id}/addresses", "accounts/{account_id}/addresses/{address_id}", "accounts/{account_id}/addresses/{address_id}/transactions", "accounts/{account_id}/transactions", "accounts/{account_id}/transactions/{transaction_id}", "accounts/{account_id}/buys", "accounts/{account_id}/buys/{buy_id}", "accounts/{account_id}/sells", "accounts/{account_id}/sells/{sell_id}", "accounts/{account_id}/deposits", "accounts/{account_id}/deposits/{deposit_id}", "accounts/{account_id}/withdrawals", "accounts/{account_id}/withdrawals/{withdrawal_id}", "payment-methods", "payment-methods/{payment_method_id}", "user", "user/auth"} },
-                        { "post", new List<object>() {"accounts", "accounts/{account_id}/primary", "accounts/{account_id}/addresses", "accounts/{account_id}/transactions", "accounts/{account_id}/transactions/{transaction_id}/complete", "accounts/{account_id}/transactions/{transaction_id}/resend", "accounts/{account_id}/buys", "accounts/{account_id}/buys/{buy_id}/commit", "accounts/{account_id}/sells", "accounts/{account_id}/sells/{sell_id}/commit", "accounts/{account_id}/deposits", "accounts/{account_id}/deposits/{deposit_id}/commit", "accounts/{account_id}/withdrawals", "accounts/{account_id}/withdrawals/{withdrawal_id}/commit"} },
-                        { "put", new List<object>() {"accounts/{account_id}", "user"} },
-                        { "delete", new List<object>() {"accounts/{id}", "accounts/{account_id}/transactions/{transaction_id}"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "accounts", 10.6 },
+                            { "accounts/{account_id}", 10.6 },
+                            { "accounts/{account_id}/addresses", 10.6 },
+                            { "accounts/{account_id}/addresses/{address_id}", 10.6 },
+                            { "accounts/{account_id}/addresses/{address_id}/transactions", 10.6 },
+                            { "accounts/{account_id}/transactions", 10.6 },
+                            { "accounts/{account_id}/transactions/{transaction_id}", 10.6 },
+                            { "accounts/{account_id}/buys", 10.6 },
+                            { "accounts/{account_id}/buys/{buy_id}", 10.6 },
+                            { "accounts/{account_id}/sells", 10.6 },
+                            { "accounts/{account_id}/sells/{sell_id}", 10.6 },
+                            { "accounts/{account_id}/deposits", 10.6 },
+                            { "accounts/{account_id}/deposits/{deposit_id}", 10.6 },
+                            { "accounts/{account_id}/withdrawals", 10.6 },
+                            { "accounts/{account_id}/withdrawals/{withdrawal_id}", 10.6 },
+                            { "payment-methods", 10.6 },
+                            { "payment-methods/{payment_method_id}", 10.6 },
+                            { "user", 10.6 },
+                            { "user/auth", 10.6 },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "accounts", 10.6 },
+                            { "accounts/{account_id}/primary", 10.6 },
+                            { "accounts/{account_id}/addresses", 10.6 },
+                            { "accounts/{account_id}/transactions", 10.6 },
+                            { "accounts/{account_id}/transactions/{transaction_id}/complete", 10.6 },
+                            { "accounts/{account_id}/transactions/{transaction_id}/resend", 10.6 },
+                            { "accounts/{account_id}/buys", 10.6 },
+                            { "accounts/{account_id}/buys/{buy_id}/commit", 10.6 },
+                            { "accounts/{account_id}/sells", 10.6 },
+                            { "accounts/{account_id}/sells/{sell_id}/commit", 10.6 },
+                            { "accounts/{account_id}/deposits", 10.6 },
+                            { "accounts/{account_id}/deposits/{deposit_id}/commit", 10.6 },
+                            { "accounts/{account_id}/withdrawals", 10.6 },
+                            { "accounts/{account_id}/withdrawals/{withdrawal_id}/commit", 10.6 },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "accounts/{account_id}", 10.6 },
+                            { "user", 10.6 },
+                        } },
+                        { "delete", new Dictionary<string, object>() {
+                            { "accounts/{id}", 10.6 },
+                            { "accounts/{account_id}/transactions/{transaction_id}", 10.6 },
+                        } },
                     } },
                 } },
                 { "v3", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"brokerage/time"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "brokerage/time", 3 },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"brokerage/accounts", "brokerage/accounts/{account_uuid}", "brokerage/orders/historical/batch", "brokerage/orders/historical/fills", "brokerage/orders/historical/{order_id}", "brokerage/products", "brokerage/products/{product_id}", "brokerage/products/{product_id}/candles", "brokerage/products/{product_id}/ticker", "brokerage/portfolios", "brokerage/portfolios/{portfolio_uuid}", "brokerage/transaction_summary", "brokerage/product_book", "brokerage/best_bid_ask", "brokerage/convert/trade/{trade_id}", "brokerage/cfm/balance_summary", "brokerage/cfm/positions", "brokerage/cfm/positions/{product_id}", "brokerage/cfm/sweeps", "brokerage/intx/portfolio/{portfolio_uuid}", "brokerage/intx/positions/{portfolio_uuid}", "brokerage/intx/positions/{portfolio_uuid}/{symbol}"} },
-                        { "post", new List<object>() {"brokerage/orders", "brokerage/orders/batch_cancel", "brokerage/orders/edit", "brokerage/orders/edit_preview", "brokerage/orders/preview", "brokerage/portfolios", "brokerage/portfolios/move_funds", "brokerage/convert/quote", "brokerage/convert/trade/{trade_id}", "brokerage/cfm/sweeps/schedule", "brokerage/intx/allocate"} },
-                        { "put", new List<object>() {"brokerage/portfolios/{portfolio_uuid}"} },
-                        { "delete", new List<object>() {"brokerage/portfolios/{portfolio_uuid}", "brokerage/cfm/sweeps"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "brokerage/accounts", 1 },
+                            { "brokerage/accounts/{account_uuid}", 1 },
+                            { "brokerage/orders/historical/batch", 1 },
+                            { "brokerage/orders/historical/fills", 1 },
+                            { "brokerage/orders/historical/{order_id}", 1 },
+                            { "brokerage/products", 3 },
+                            { "brokerage/products/{product_id}", 3 },
+                            { "brokerage/products/{product_id}/candles", 3 },
+                            { "brokerage/products/{product_id}/ticker", 3 },
+                            { "brokerage/best_bid_ask", 3 },
+                            { "brokerage/product_book", 3 },
+                            { "brokerage/transaction_summary", 3 },
+                            { "brokerage/portfolios", 1 },
+                            { "brokerage/portfolios/{portfolio_uuid}", 1 },
+                            { "brokerage/convert/trade/{trade_id}", 1 },
+                            { "brokerage/cfm/balance_summary", 1 },
+                            { "brokerage/cfm/positions", 1 },
+                            { "brokerage/cfm/positions/{product_id}", 1 },
+                            { "brokerage/cfm/sweeps", 1 },
+                            { "brokerage/intx/portfolio/{portfolio_uuid}", 1 },
+                            { "brokerage/intx/positions/{portfolio_uuid}", 1 },
+                            { "brokerage/intx/positions/{portfolio_uuid}/{symbol}", 1 },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "brokerage/orders", 1 },
+                            { "brokerage/orders/batch_cancel", 1 },
+                            { "brokerage/orders/edit", 1 },
+                            { "brokerage/orders/edit_preview", 1 },
+                            { "brokerage/orders/preview", 1 },
+                            { "brokerage/portfolios", 1 },
+                            { "brokerage/portfolios/move_funds", 1 },
+                            { "brokerage/convert/quote", 1 },
+                            { "brokerage/convert/trade/{trade_id}", 1 },
+                            { "brokerage/cfm/sweeps/schedule", 1 },
+                            { "brokerage/intx/allocate", 1 },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "brokerage/portfolios/{portfolio_uuid}", 1 },
+                        } },
+                        { "delete", new Dictionary<string, object>() {
+                            { "brokerage/portfolios/{portfolio_uuid}", 1 },
+                            { "brokerage/cfm/sweeps", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -3176,13 +3268,15 @@ public partial class coinbase : Exchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object maxLimit = 300;
+        limit = ((bool) isTrue((isEqual(limit, null)))) ? maxLimit : mathMin(limit, maxLimit);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 299);
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, subtract(maxLimit, 1));
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -3192,7 +3286,7 @@ public partial class coinbase : Exchange
         object until = this.safeValueN(parameters, new List<object>() {"until", "till", "end"});
         parameters = this.omit(parameters, new List<object>() {"until", "till"});
         object duration = this.parseTimeframe(timeframe);
-        object candles300 = multiply(300, duration);
+        object requestedDuration = multiply(limit, duration);
         object sinceString = null;
         if (isTrue(!isEqual(since, null)))
         {
@@ -3200,14 +3294,14 @@ public partial class coinbase : Exchange
         } else
         {
             object now = ((object)this.seconds()).ToString();
-            sinceString = Precise.stringSub(now, ((object)candles300).ToString());
+            sinceString = Precise.stringSub(now, ((object)requestedDuration).ToString());
         }
         ((IDictionary<string,object>)request)["start"] = sinceString;
         object endString = this.numberToString(until);
         if (isTrue(isEqual(until, null)))
         {
             // 300 candles max
-            endString = Precise.stringAdd(sinceString, ((object)candles300).ToString());
+            endString = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
         }
         ((IDictionary<string,object>)request)["end"] = endString;
         object response = await this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, parameters));
@@ -3265,9 +3359,24 @@ public partial class coinbase : Exchange
         object request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "id") },
         };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start"] = this.numberToString(this.parseToInt(divide(since, 1000)));
+        }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
+        }
+        object until = null;
+        var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "until");
+        until = ((IList<object>)untilparametersVariable)[0];
+        parameters = ((IList<object>)untilparametersVariable)[1];
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
+        } else if (isTrue(!isEqual(since, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTrades() requires a `until` parameter when you use `since` argument")) ;
         }
         object response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters));
         //
@@ -3417,7 +3526,7 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "pricebook", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "pricebook", new Dictionary<string, object>() {});
         object time = this.safeString(data, "time");
         object timestamp = this.parse8601(time);
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
@@ -3915,7 +4024,7 @@ public partial class coinbase : Exchange
             } else
             {
                 this.checkRequiredCredentials();
-                object nonce = ((object)this.nonce()).ToString();
+                object timestampString = ((object)this.seconds()).ToString();
                 object payload = "";
                 if (isTrue(!isEqual(method, "GET")))
                 {
@@ -3924,19 +4033,15 @@ public partial class coinbase : Exchange
                         body = this.json(query);
                         payload = body;
                     }
-                } else
-                {
-                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
-                    {
-                        payload = add(payload, add("?", this.urlencode(query)));
-                    }
                 }
-                object auth = add(add(add(nonce, method), savedPath), payload);
+                // 'GET' doesn't need payload in the signature. inside url is enough
+                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                object auth = add(add(add(timestampString, method), savedPath), payload);
                 object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "CB-ACCESS-KEY", this.apiKey },
                     { "CB-ACCESS-SIGN", signature },
-                    { "CB-ACCESS-TIMESTAMP", nonce },
+                    { "CB-ACCESS-TIMESTAMP", timestampString },
                     { "Content-Type", "application/json" },
                 };
             }

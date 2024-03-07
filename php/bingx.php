@@ -56,6 +56,7 @@ class bingx extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchLeverage' => true,
                 'fetchLiquidations' => false,
+                'fetchMarginMode' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyLiquidations' => true,
@@ -444,7 +445,7 @@ class bingx extends Exchange {
         if (!$this->check_required_credentials(false)) {
             return null;
         }
-        $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+        $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($isSandbox) {
             return null;
         }
@@ -690,7 +691,7 @@ class bingx extends Exchange {
          * @return {array[]} an array of objects representing market data
          */
         $requests = array( $this->fetch_swap_markets($params) );
-        $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+        $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         if (!$isSandbox) {
             $requests[] = $this->fetch_spot_markets($params); // sandbox is swap only
         }
@@ -3412,7 +3413,7 @@ class bingx extends Exchange {
         return $response;
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
         /**
          * fetch the set leverage for a $market
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
@@ -3436,7 +3437,19 @@ class bingx extends Exchange {
         //        }
         //    }
         //
-        return $response;
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_leverage($data, $market);
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => null,
+            'longLeverage' => $this->safe_integer($leverage, 'longLeverage'),
+            'shortLeverage' => $this->safe_integer($leverage, 'shortLeverage'),
+        );
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
@@ -4084,11 +4097,48 @@ class bingx extends Exchange {
         return $this->parse_order($data, $market);
     }
 
+    public function fetch_margin_mode(string $symbol, $params = array ()): MarginMode {
+        /**
+         * fetches the margin mode of the trading pair
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode
+         * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} Struct of MarginMode
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->swapV2PrivateGetTradeMarginType (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "data" => {
+        //             "marginType" => "CROSSED"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_margin_mode($data, $market);
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+        $marginType = $this->safe_string_lower($marginMode, 'marginType');
+        $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
+        return array(
+            'info' => $marginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $marginType,
+        );
+    }
+
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
-        $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+        $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($isSandbox && ($type !== 'swap')) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
         }

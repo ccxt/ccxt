@@ -911,6 +911,7 @@ class testMainClass extends baseMainTestClass {
                 'fetchBorrowInterest' => [$code, $symbol],
                 'cancelAllOrders' => [$symbol],
                 'fetchCanceledOrders' => [$symbol],
+                'fetchMarginModes' => [$symbol],
                 'fetchPosition' => [$symbol],
                 'fetchDeposit' => [$code],
                 'createDepositAddress' => [$code],
@@ -1311,6 +1312,7 @@ class testMainClass extends baseMainTestClass {
             'secret' => 'secretsecret',
             'password' => 'password',
             'walletAddress' => 'wallet',
+            'privateKey' => '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid' => 'uid',
             'token' => 'token',
             'accounts' => [array(
@@ -1350,7 +1352,7 @@ class testMainClass extends baseMainTestClass {
                     if (($test_name !== null) && ($test_name !== $description)) {
                         continue;
                     }
-                    $is_disabled = $exchange->safe_value($result, 'disabled', false);
+                    $is_disabled = $exchange->safe_bool($result, 'disabled', false);
                     if ($is_disabled) {
                         continue;
                     }
@@ -1382,15 +1384,15 @@ class testMainClass extends baseMainTestClass {
                     $old_exchange_options = $exchange->options; // snapshot options;
                     $test_exchange_options = $exchange->safe_value($result, 'options', array());
                     $exchange->options = $exchange->deep_extend($old_exchange_options, $test_exchange_options); // custom options to be used in the tests
-                    $is_disabled = $exchange->safe_value($result, 'disabled', false);
+                    $is_disabled = $exchange->safe_bool($result, 'disabled', false);
                     if ($is_disabled) {
                         continue;
                     }
-                    $is_disabled_c_sharp = $exchange->safe_value($result, 'disabledCS', false);
+                    $is_disabled_c_sharp = $exchange->safe_bool($result, 'disabledCS', false);
                     if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
                         continue;
                     }
-                    $is_disabled_php = $exchange->safe_value($result, 'disabledPHP', false);
+                    $is_disabled_php = $exchange->safe_bool($result, 'disabledPHP', false);
                     if ($is_disabled_php && ($this->lang === 'PHP')) {
                         continue;
                     }

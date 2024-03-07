@@ -98,6 +98,7 @@ const {
     , ymd
     , base64ToString
     , crc32
+    , packb
     , TRUNCATE
     , ROUND
     , DECIMAL_PLACES
@@ -145,10 +146,10 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks,  Str, Num, MarketInterface, CurrencyInterface, Account} from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks,  Str, Num, MarketInterface, CurrencyInterface, Account, MarginModes, MarketType, Leverage, Leverages } from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js'
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks, Leverage, Leverages } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -156,7 +157,8 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBy
 import {OrderBook as Ob} from './ws/OrderBook.js';
 
 import totp from './functions/totp.js';
-
+import ethers from '../static_dependencies/ethers/index.js';
+import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -248,7 +250,7 @@ export default class Exchange {
     triggerOrders: ArrayCache = undefined
     trades: Dictionary<ArrayCache>
     transactions = {}
-    ohlcvs: any
+    ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>
     myTrades: ArrayCache;
     positions: any;
     urls: {
@@ -453,6 +455,7 @@ export default class Exchange {
     ymd = ymd
     base64ToString = base64ToString
     crc32 = crc32
+    packb = packb
 
     describe () {
         return {
@@ -555,9 +558,11 @@ export default class Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverages': undefined,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': undefined,
                 'fetchMarginMode': undefined,
+                'fetchMarginModes': undefined,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarketsWs': undefined,
@@ -1699,6 +1704,18 @@ export default class Exchange {
         return modifiedContent;
     }
 
+    ethAbiEncode (types, args) {
+        return this.base16ToBinary (ethers.encode (types, args).slice (2));
+    }
+
+    ethEncodeStructuredData (domain, messageTypes, messageData) {
+        return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
+    }
+
+    intToBase16(elem): string {
+        return elem.toString(16);
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -2185,8 +2202,17 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
-    async fetchMarginMode (symbol: string = undefined, params = {}): Promise<MarginMode> {
-        throw new NotSupported (this.id + ' fetchMarginMode() is not supported yet');
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        if (this.has['fetchMarginModes']) {
+            const marginModes = await this.fetchMarginModes ([ symbol ], params);
+            return this.safeDict (marginModes, symbol) as MarginMode;
+        } else {
+            throw new NotSupported (this.id + ' fetchMarginMode() is not supported yet');
+        }
+    }
+
+    async fetchMarginModes (symbols: string[] = undefined, params = {}): Promise<MarginModes> {
+        throw new NotSupported (this.id + ' fetchMarginModes () is not supported yet');
     }
 
     async fetchRestOrderBookSafe (symbol, limit = undefined, params = {}) {
@@ -2336,8 +2362,17 @@ export default class Exchange {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
-    async fetchLeverage (symbol: string, params = {}): Promise<{}> {
-        throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        if (this.has['fetchLeverages']) {
+            const leverages = await this.fetchLeverages ([ symbol ], params);
+            return this.safeDict (leverages, symbol) as Leverage;
+        } else {
+            throw new NotSupported (this.id + ' fetchLeverage() is not supported yet');
+        }
+    }
+
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+        throw new NotSupported (this.id + ' fetchLeverages() is not supported yet');
     }
 
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<{}> {
@@ -4314,6 +4349,8 @@ export default class Exchange {
         if (value !== undefined) {
             params = this.omit (params, [ optionName, defaultOptionName ]);
         } else {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            [ methodName, params ] = this.handleParamString (params, 'callerMethodName', methodName);
             // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {
@@ -6107,6 +6144,40 @@ export default class Exchange {
 
     parseGreeks (greeks, market: Market = undefined): Greeks {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
+    }
+
+    parseMarginModes (response: object[], symbols: string[] = undefined, symbolKey: string = undefined, marketType: MarketType = undefined): MarginModes {
+        const marginModeStructures = {};
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const marketId = this.safeString (info, symbolKey);
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
+                marginModeStructures[market['symbol']] = this.parseMarginMode (info, market);
+            }
+        }
+        return marginModeStructures;
+    }
+
+    parseMarginMode (marginMode, market: Market = undefined): MarginMode {
+        throw new NotSupported (this.id + ' parseMarginMode () is not supported yet');
+    }
+
+    parseLeverages (response: object[], symbols: string[] = undefined, symbolKey: string = undefined, marketType: MarketType = undefined): Leverages {
+        const leverageStructures = {};
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const marketId = this.safeString (info, symbolKey);
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
+                leverageStructures[market['symbol']] = this.parseLeverage (info, market);
+            }
+        }
+        return leverageStructures;
+    }
+
+    parseLeverage (leverage, market: Market = undefined): Leverage {
+        throw new NotSupported (this.id + ' parseLeverage() is not supported yet');
     }
 }
 

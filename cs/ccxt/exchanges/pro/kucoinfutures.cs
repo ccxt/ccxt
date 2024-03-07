@@ -238,7 +238,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         var client = this.client(url);
         this.setPositionCache(client as WebSocketClient, symbol);
         object fetchPositionSnapshot = this.handleOption("watchPosition", "fetchPositionSnapshot", true);
-        object awaitPositionSnapshot = this.safeValue("watchPosition", "awaitPositionSnapshot", true);
+        object awaitPositionSnapshot = this.safeBool("watchPosition", "awaitPositionSnapshot", true);
         object currentPosition = this.getCurrentPosition(symbol);
         if (isTrue(isTrue(isTrue(fetchPositionSnapshot) && isTrue(awaitPositionSnapshot)) && isTrue(isEqual(currentPosition, null))))
         {

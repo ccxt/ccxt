@@ -716,6 +716,7 @@ public partial class testMainClass : BaseTest
             { "fetchBorrowInterest", new List<object>() {code, symbol} },
             { "cancelAllOrders", new List<object>() {symbol} },
             { "fetchCanceledOrders", new List<object>() {symbol} },
+            { "fetchMarginModes", new List<object>() {symbol} },
             { "fetchPosition", new List<object>() {symbol} },
             { "fetchDeposit", new List<object>() {code} },
             { "createDepositAddress", new List<object>() {code} },
@@ -1192,6 +1193,7 @@ public partial class testMainClass : BaseTest
             { "secret", "secretsecret" },
             { "password", "password" },
             { "walletAddress", "wallet" },
+            { "privateKey", "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771" },
             { "uid", "uid" },
             { "token", "token" },
             { "accounts", new List<object>() {new Dictionary<string, object>() {
@@ -1234,7 +1236,7 @@ public partial class testMainClass : BaseTest
                 {
                     continue;
                 }
-                object isDisabled = exchange.safeValue(result, "disabled", false);
+                object isDisabled = exchange.safeBool(result, "disabled", false);
                 if (isTrue(isDisabled))
                 {
                     continue;
@@ -1268,17 +1270,17 @@ public partial class testMainClass : BaseTest
                 object oldExchangeOptions = exchange.options; // snapshot options;
                 object testExchangeOptions = exchange.safeValue(result, "options", new Dictionary<string, object>() {});
                 exchange.options = exchange.deepExtend(oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
-                object isDisabled = exchange.safeValue(result, "disabled", false);
+                object isDisabled = exchange.safeBool(result, "disabled", false);
                 if (isTrue(isDisabled))
                 {
                     continue;
                 }
-                object isDisabledCSharp = exchange.safeValue(result, "disabledCS", false);
+                object isDisabledCSharp = exchange.safeBool(result, "disabledCS", false);
                 if (isTrue(isTrue(isDisabledCSharp) && isTrue((isEqual(this.lang, "C#")))))
                 {
                     continue;
                 }
-                object isDisabledPHP = exchange.safeValue(result, "disabledPHP", false);
+                object isDisabledPHP = exchange.safeBool(result, "disabledPHP", false);
                 if (isTrue(isTrue(isDisabledPHP) && isTrue((isEqual(this.lang, "PHP")))))
                 {
                     continue;

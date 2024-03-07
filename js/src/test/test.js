@@ -842,6 +842,7 @@ export default class testMainClass extends baseMainTestClass {
             // 'cancelOrder': [ ],
             // 'cancelOrders': [ ],
             'fetchCanceledOrders': [symbol],
+            'fetchMarginModes': [symbol],
             // 'fetchClosedOrder': [ ],
             // 'fetchOpenOrder': [ ],
             // 'fetchOrder': [ ],
@@ -1241,7 +1242,7 @@ export default class testMainClass extends baseMainTestClass {
     initOfflineExchange(exchangeName) {
         const markets = this.loadMarketsFromFile(exchangeName);
         const currencies = this.loadCurrenciesFromFile(exchangeName);
-        const exchange = initExchange(exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'uid': 'uid', 'token': 'token', 'accounts': [{ 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {} } });
+        const exchange = initExchange(exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'accounts': [{ 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {} } });
         exchange.currencies = currencies; // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1262,7 +1263,7 @@ export default class testMainClass extends baseMainTestClass {
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }
-                const isDisabled = exchange.safeValue(result, 'disabled', false);
+                const isDisabled = exchange.safeBool(result, 'disabled', false);
                 if (isDisabled) {
                     continue;
                 }
@@ -1291,15 +1292,15 @@ export default class testMainClass extends baseMainTestClass {
                 const oldExchangeOptions = exchange.options; // snapshot options;
                 const testExchangeOptions = exchange.safeValue(result, 'options', {});
                 exchange.options = exchange.deepExtend(oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
-                const isDisabled = exchange.safeValue(result, 'disabled', false);
+                const isDisabled = exchange.safeBool(result, 'disabled', false);
                 if (isDisabled) {
                     continue;
                 }
-                const isDisabledCSharp = exchange.safeValue(result, 'disabledCS', false);
+                const isDisabledCSharp = exchange.safeBool(result, 'disabledCS', false);
                 if (isDisabledCSharp && (this.lang === 'C#')) {
                     continue;
                 }
-                const isDisabledPHP = exchange.safeValue(result, 'disabledPHP', false);
+                const isDisabledPHP = exchange.safeBool(result, 'disabledPHP', false);
                 if (isDisabledPHP && (this.lang === 'PHP')) {
                     continue;
                 }

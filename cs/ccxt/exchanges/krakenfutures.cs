@@ -47,6 +47,7 @@ public partial class krakenfutures : Exchange
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchIsolatedPositions", false },
                 { "fetchLeverage", true },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
@@ -2603,7 +2604,37 @@ public partial class krakenfutures : Exchange
         return await this.privatePutLeveragepreferences(this.extend(request, parameters));
     }
 
-    public async override Task<object> fetchLeverage(object symbol = null, object parameters = null)
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name krakenfutures#fetchLeverages
+        * @description fetch the set leverage for all contract and margin markets
+        * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+        * @param {string[]} [symbols] a list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.privateGetLeveragepreferences(parameters);
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2024-03-06T02:35:46.336Z",
+        //         "leveragePreferences": [
+        //             {
+        //                 "symbol": "PF_ETHUSD",
+        //                 "maxLeverage": 30.00
+        //             },
+        //         ]
+        //     }
+        //
+        object leveragePreferences = this.safeList(response, "leveragePreferences", new List<object>() {});
+        return this.parseLeverages(leveragePreferences, symbols, "symbol");
+    }
+
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -2620,17 +2651,34 @@ public partial class krakenfutures : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchLeverage() requires a symbol argument")) ;
         }
         await this.loadMarkets();
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", ((string)this.marketId(symbol)).ToUpper() },
         };
+        object response = await this.privateGetLeveragepreferences(this.extend(request, parameters));
         //
-        //   {
-        //       "result": "success",
-        //       "serverTime": "2023-08-01T09:54:08.900Z",
-        //       "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
-        //   }
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2023-08-01T09:54:08.900Z",
+        //         "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
+        //     }
         //
-        return await this.privateGetLeveragepreferences(this.extend(request, parameters));
+        object leveragePreferences = this.safeList(response, "leveragePreferences", new List<object>() {});
+        object data = this.safeDict(leveragePreferences, 0, new Dictionary<string, object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        object leverageValue = this.safeInteger(leverage, "maxLeverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", null },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
