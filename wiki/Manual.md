@@ -5823,7 +5823,7 @@ Returns
 }
 ```
 
-## Margin Mode
+## Set Margin Mode
 
 *margin and contract only*
 
@@ -5904,6 +5904,54 @@ $params = {
 $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params);
 ```
 <!-- tabs:end -->
+
+## Fetch Margin Mode
+
+*margin and contract only*
+
+The `fetchMarginMode()` method can be used to obtain the set margin mode for a market. The `fetchMarginModes()` method can be used to obtain the set margin mode for multiple markets at once.
+
+You can access the set margin mode by using:
+
+- `fetchMarginMode()` (single symbol)
+- `fetchMarginModes([symbol1, symbol2, ...])` (multiple symbols)
+- `fetchMarginModes()` (all market symbols)
+
+```javascript
+fetchMarginMode(symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* A unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"subType": "linear"}`)
+
+Returns
+
+- a [margin-mode-structure](#margin-mode-structure)
+
+```javascript
+fetchMarginModes(symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) A list of unified CCXT symbols (e.g. `[ "BTC/USDT:USDT" ]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"subType": "linear"}`)
+
+Returns
+
+- an array of [margin-mode-structures](#margin-mode-structure)
+
+### Margin Mode Structure
+
+```javascript
+{
+    "info": { ... }             // response from the exchange
+    "symbol": "BTC/USDT:USDT",  // unified market symbol
+    "marginMode": "cross",      // the margin mode either cross or isolated
+}
+```
 
 ## Set Leverage
 
