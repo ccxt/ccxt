@@ -7290,7 +7290,8 @@ export default class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
+        const defaultType = (market !== undefined) ? market['type'] : 'contract';
+        const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         return {
             'info': fee,
             'symbol': symbol,
@@ -7311,12 +7312,20 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot']) {
-            throw new NotSupported (this.id + ' fetchTradingFee() is not supported for spot market');
-        }
         const request = {
             'symbol': market['id'],
         };
+        let category = undefined;
+        if (market['linear']) {
+            category = 'linear';
+        } else if (market['inverse']) {
+            category = 'inverse';
+        } else if (market['spot']) {
+            category = 'spot';
+        } else {
+            category = 'option';
+        }
+        request['category'] = category;
         const response = await this.privateGetV5AccountFeeRate (this.extend (request, params));
         //
         //     {
@@ -7338,7 +7347,7 @@ export default class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const fees = this.safeValue (result, 'list', []);
         const first = this.safeValue (fees, 0, {});
-        return this.parseTradingFee (first);
+        return this.parseTradingFee (first, market);
     }
 
     async fetchTradingFees (params = {}) {
