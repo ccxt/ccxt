@@ -1929,10 +1929,10 @@ export default class bingx extends Exchange {
                 }
             }
             if (market['contract']) {
+                const stringifiedAmount = this.numberToString (amount);
                 if (isStopLoss) {
                     const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                     const slWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
-                    const slType = this.safeString (stopLoss, 'type', 'STOP_MARKET');
                     const slRequest = {
                         'type': this.setEmbeddeOrderType (stopLoss, true),
                     };
