@@ -184,8 +184,17 @@ export default class cex extends cexRest {
         if (!subs.length) {
             return;
         }
-        const firstSub = subs[0];
-        const symbol = firstSub.replace ('old:', '');
+        let symbol = undefined;
+        for (let i = 0; i < subs.length; i++) {
+            const sub = subs[i];
+            if (sub.indexOf ('old:') >= 0) {
+                symbol = sub.replace ('old:', '');
+                break;
+            }
+        }
+        if (symbol === undefined) {
+            return;
+        }
         const market = this.market (symbol);
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
