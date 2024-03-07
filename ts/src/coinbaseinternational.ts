@@ -245,6 +245,29 @@ export default class coinbaseinternational extends Exchange {
         });
     }
 
+    async handlePortfolioAndParams (methodName: string, params = {}) {
+        let portfolio = undefined;
+        [ portfolio, params ] = this.handleOptionAndParams (params, methodName, 'portfolio');
+        if (portfolio !== undefined) {
+            return [ portfolio, params ];
+        }
+        const defaultPortfolio = this.safeString (this.options, 'portfolio');
+        if (defaultPortfolio !== undefined) {
+            return [ defaultPortfolio, params ];
+        }
+        const accounts = await this.fetchAccounts ();
+        for (let i = 0; i < accounts.length; i++) {
+            const account = accounts[i];
+            const info = this.safeDict (account, 'info', {});
+            if (this.safeBool (info, 'is_default')) {
+                const portfolioId = this.safeString (info, 'portfolio_id');
+                this.options['portfolio'] = portfolioId;
+                return [ portfolioId, params ];
+            }
+        }
+        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with this.options["portfolio"]');
+    }
+
     async fetchAccounts (params = {}) {
         /**
          * @method
@@ -405,12 +428,7 @@ export default class coinbaseinternational extends Exchange {
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
         let portfolio = undefined;
-        if (portfolio === undefined) {
-            [ portfolio, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'portfolio');
-        }
-        if (portfolio === undefined) {
-            throw new ExchangeError (this.id + ' createDepositAddress() requires a portfolio parameter');
-        }
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('createDepositAddress', params);
         const request = {
             'portfolio': portfolio,
         };
@@ -450,10 +468,7 @@ export default class coinbaseinternational extends Exchange {
          * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
          */
         let portfolio = undefined;
-        [ portfolio, params ] = this.handleOptionAndParams (params, 'setMargin', 'portfolio');
-        if (portfolio === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMargin() requires a portfolio parameter');
-        }
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('setMargin', params);
         if (symbol !== undefined) {
             throw new BadRequest (this.id + ' setMargin() only allows setting margin to full portfolio');
         }
@@ -531,10 +546,7 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         let portfolio = undefined;
-        [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchPosition', 'portfolio');
-        if (portfolio === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPosition() requires a portfolio parameter');
-        }
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchPosition', params);
         const request = {
             'portfolio': portfolio,
             'instrument': this.marketId (symbol),
@@ -622,10 +634,7 @@ export default class coinbaseinternational extends Exchange {
          */
         await this.loadMarkets ();
         let portfolio = undefined;
-        [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'portfolio');
-        if (portfolio === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a portfolio parameter');
-        }
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchPositions', params);
         const request = {
             'portfolio': portfolio,
         };
@@ -1129,10 +1138,7 @@ export default class coinbaseinternational extends Exchange {
          */
         await this.loadMarkets ();
         let portfolio = undefined;
-        [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'portfolio');
-        if (portfolio === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a portfolioId parameter');
-        }
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchBalance', params);
         const request = {
             'portfolio': portfolio,
         };
@@ -1248,7 +1254,7 @@ export default class coinbaseinternational extends Exchange {
         const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId', 'ccxt');
         let clientOrderId = clientOrderIdprefix + this.uuid ();
-        clientOrderId = clientOrderId.slice (0, 18);
+        clientOrderId = clientOrderId.slice (0, 17);
         const request = {
             'client_order_id': clientOrderId,
             'side': side.toUpperCase (),
@@ -1271,7 +1277,7 @@ export default class coinbaseinternational extends Exchange {
             request['price'] = price;
         }
         let portfolio = undefined;
-        [ portfolio, params ] = this.handleOptionAndParams (params, 'createOrder', 'portfolio');
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('createOrder', params);
         if (portfolio !== undefined) {
             request['portfolio'] = portfolio;
         }
@@ -1423,10 +1429,7 @@ export default class coinbaseinternational extends Exchange {
          */
         await this.loadMarkets ();
         let portfolio = undefined;
-        [ portfolio, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'portfolio');
-        if (portfolio === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a portfolio parameter');
-        }
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('cancelOrder', params);
         const request = {
             'portfolio': portfolio,
             'id': id,
@@ -1463,12 +1466,17 @@ export default class coinbaseinternational extends Exchange {
     }
 
     async cancelAllOrders (symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbaseinternational#cancelAllOrders
+         * @description cancel all open orders
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         let portfolio = undefined;
-        [ portfolio, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'portfolio');
-        if (portfolio === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a portfolioId parameter');
-        }
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('cancelAllOrders', params);
         const request = {
             'portfolio': portfolio,
         };
@@ -1503,7 +1511,7 @@ export default class coinbaseinternational extends Exchange {
             'id': id,
         };
         let portfolio = undefined;
-        [ portfolio, params ] = this.handleOptionAndParams (params, 'editOrder', 'portfolio');
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('editOrder', params);
         if (portfolio !== undefined) {
             request['portfolio'] = portfolio;
         }
@@ -1543,10 +1551,7 @@ export default class coinbaseinternational extends Exchange {
             market = this.market (symbol);
         }
         let portfolio = undefined;
-        [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'portfolio');
-        if (portfolio === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a portfolio parameter');
-        }
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchOrder', params);
         const request = {
             'id': id,
             'portfolio': portfolio,
@@ -1597,10 +1602,7 @@ export default class coinbaseinternational extends Exchange {
          */
         await this.loadMarkets ();
         let portfolio = undefined;
-        [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'portfolio');
-        if (portfolio === undefined) {
-            throw new BadRequest (this.id + ' fetchOpenOrders() requires a portfolio parameter');
-        }
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchOpenOrders', params);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         let maxEntriesPerRequest = undefined;

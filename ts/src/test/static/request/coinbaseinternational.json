@@ -2,6 +2,9 @@
     "exchange": "coinbase",
     "skipKeys": ["client_order_id"],
     "outputType": "both",
+    "options": {
+      "portfolio": "1wp37qsc-1-0"
+    },
     "methods": {
        "fetchAccounts": [
         {
