@@ -76,7 +76,8 @@ class coinex extends coinex$1 {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': true,
                 'fetchIsolatedBorrowRates': true,
-                'fetchLeverage': false,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -1577,8 +1578,9 @@ class coinex extends coinex$1 {
          */
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        const isMargin = this.safeValue(params, 'margin', false);
-        marketType = isMargin ? 'margin' : marketType;
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
+        marketType = (marginMode !== undefined) ? 'margin' : marketType;
         params = this.omit(params, 'margin');
         if (marketType === 'margin') {
             return await this.fetchMarginBalance(params);
@@ -2108,8 +2110,9 @@ class coinex extends coinex$1 {
             }
         }
         const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new errors.BadRequest(this.id + ' createOrder() requires an account_id parameter for margin orders');
             }
@@ -2628,9 +2631,10 @@ class coinex extends coinex$1 {
             'market': market['id'],
         };
         const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
         const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
-        if (defaultType === 'margin') {
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new errors.BadRequest(this.id + ' cancelOrder() requires an account_id parameter for margin orders');
             }
@@ -3002,8 +3006,9 @@ class coinex extends coinex$1 {
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
         const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchOrdersByStatus', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new errors.BadRequest(this.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
             }
@@ -3320,7 +3325,7 @@ class coinex extends coinex$1 {
         const data = this.safeValue(response, 'data', {});
         const depositAddress = this.parseDepositAddress(data, currency);
         const options = this.safeValue(this.options, 'fetchDepositAddress', {});
-        const fillResponseFromRequest = this.safeValue(options, 'fillResponseFromRequest', true);
+        const fillResponseFromRequest = this.safeBool(options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             depositAddress['network'] = this.safeNetworkCode(network, currency);
         }
@@ -3406,8 +3411,9 @@ class coinex extends coinex$1 {
         }
         const swap = (type === 'swap');
         const accountId = this.safeInteger(params, 'account_id');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new errors.BadRequest(this.id + ' fetchMyTrades() requires an account_id parameter for margin trades');
             }
@@ -3509,11 +3515,17 @@ class coinex extends coinex$1 {
          * @name coinex#fetchPositions
          * @description fetch all open positions
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
+         * @param {int} [params.side] *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
+        let defaultMethod = undefined;
+        [defaultMethod, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method', 'perpetualPrivateGetPositionPending');
+        const isHistory = (defaultMethod === 'perpetualPrivateGetPositionFinished');
         symbols = this.marketSymbols(symbols);
         const request = {};
         let market = undefined;
@@ -3532,7 +3544,22 @@ class coinex extends coinex$1 {
             market = this.market(symbol);
             request['market'] = market['id'];
         }
-        const response = await this.perpetualPrivateGetPositionPending(this.extend(request, params));
+        else {
+            if (isHistory) {
+                throw new errors.ArgumentsRequired(this.id + ' fetchPositions() requires a symbol argument for closed positions');
+            }
+        }
+        if (isHistory) {
+            request['limit'] = 100;
+            request['side'] = this.safeInteger(params, 'side', 0); // 0: All, 1: Sell, 2: Buy
+        }
+        let response = undefined;
+        if (defaultMethod === 'perpetualPrivateGetPositionPending') {
+            response = await this.perpetualPrivateGetPositionPending(this.extend(request, params));
+        }
+        else {
+            response = await this.perpetualPrivateGetPositionFinished(this.extend(request, params));
+        }
         //
         //     {
         //         "code": 0,
@@ -4344,7 +4371,7 @@ class coinex extends coinex$1 {
         const request = {
             'coin_type': currency['id'],
             'coin_address': address,
-            'actual_amount': parseFloat(amount),
+            'actual_amount': parseFloat(this.numberToString(amount)),
             'transfer_method': 'onchain', // onchain, local
         };
         if (networkCode !== undefined) {
@@ -4732,9 +4759,10 @@ class coinex extends coinex$1 {
             request['limit'] = 100;
         }
         params = this.omit(params, 'page');
-        const defaultType = this.safeString(this.options, 'defaultType');
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchTransfers', params);
         let response = undefined;
-        if (defaultType === 'margin') {
+        if (marginMode !== undefined) {
             response = await this.privateGetMarginTransferHistory(this.extend(request, params));
         }
         else {
@@ -5314,6 +5342,84 @@ class coinex extends coinex$1 {
             depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency);
         }
         return depositWithdrawFees;
+    }
+    async fetchLeverages(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchLeverages
+         * @description fetch the set leverage for all contract and margin markets
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue(symbols, 0);
+            market = this.market(symbol);
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchLeverages', market, params);
+        if (marketType !== 'spot') {
+            throw new errors.NotSupported(this.id + ' fetchLeverages() supports spot margin markets only');
+        }
+        const response = await this.privateGetMarginConfig(params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "market": "BTCUSDT",
+        //                 "leverage": 10,
+        //                 "BTC": {
+        //                     "min_amount": "0.0008",
+        //                     "max_amount": "200",
+        //                     "day_rate": "0.0015"
+        //                 },
+        //                 "USDT": {
+        //                     "min_amount": "50",
+        //                     "max_amount": "500000",
+        //                     "day_rate": "0.001"
+        //                 }
+        //             },
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        const leverages = this.safeList(response, 'data', []);
+        return this.parseLeverages(leverages, symbols, 'market', marketType);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'market');
+        const leverageValue = this.safeInteger(leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'spot'),
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        };
+    }
+    handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {Array} the marginMode in lowercase
+         */
+        const defaultType = this.safeString(this.options, 'defaultType');
+        const isMargin = this.safeBool(params, 'margin', false);
+        let marginMode = undefined;
+        [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
+        if (marginMode === undefined) {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'isolated';
+            }
+        }
+        return [marginMode, params];
     }
     nonce() {
         return this.milliseconds();

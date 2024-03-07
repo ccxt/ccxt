@@ -410,7 +410,7 @@ class woo extends woo$1 {
         }
         return true;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const url = this.urls['api']['ws']['private'] + '/' + this.uid;
         const client = this.client(url);
@@ -629,7 +629,7 @@ class woo extends woo$1 {
         const client = this.client(url);
         this.setPositionsCache(client, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -816,13 +816,15 @@ class woo extends woo$1 {
         const event = this.safeString(message, 'event');
         let method = this.safeValue(methods, event);
         if (method !== undefined) {
-            return method.call(this, client, message);
+            method.call(this, client, message);
+            return;
         }
         const topic = this.safeString(message, 'topic');
         if (topic !== undefined) {
             method = this.safeValue(methods, topic);
             if (method !== undefined) {
-                return method.call(this, client, message);
+                method.call(this, client, message);
+                return;
             }
             const splitTopic = topic.split('@');
             const splitLength = splitTopic.length;
@@ -830,19 +832,19 @@ class woo extends woo$1 {
                 const name = this.safeString(splitTopic, 1);
                 method = this.safeValue(methods, name);
                 if (method !== undefined) {
-                    return method.call(this, client, message);
+                    method.call(this, client, message);
+                    return;
                 }
                 const splitName = name.split('_');
                 const splitNameLength = splitTopic.length;
                 if (splitNameLength === 2) {
                     method = this.safeValue(methods, this.safeString(splitName, 0));
                     if (method !== undefined) {
-                        return method.call(this, client, message);
+                        method.call(this, client, message);
                     }
                 }
             }
         }
-        return message;
     }
     ping(client) {
         return { 'event': 'ping' };

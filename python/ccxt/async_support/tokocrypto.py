@@ -706,7 +706,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 if permissions[j] == 'TRD_GRP_003':
                     active = False
                     break
-            isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed', False)
+            isMarginTradingAllowed = self.safe_bool(market, 'isMarginTradingAllowed', False)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1013,8 +1013,28 @@ class tokocrypto(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             responseInner = self.publicGetOpenV1MarketTrades(self.extend(request, params))
-            data = self.safe_value(responseInner, 'data', {})
-            return self.parse_trades(data, market, since, limit)
+            #
+            #    {
+            #       "code": 0,
+            #       "msg": "success",
+            #       "data": {
+            #           "list": [
+            #                {
+            #                    "id": 28457,
+            #                    "price": "4.00000100",
+            #                    "qty": "12.00000000",
+            #                    "time": 1499865549590,
+            #                    "isBuyerMaker": True,
+            #                    "isBestMatch": True
+            #                }
+            #            ]
+            #        },
+            #        "timestamp": 1571921637091
+            #    }
+            #
+            data = self.safe_dict(responseInner, 'data', {})
+            list = self.safe_list(data, 'list', [])
+            return self.parse_trades(list, market, since, limit)
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
         defaultMethod = 'binanceGetTrades'
@@ -1335,9 +1355,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp":1659666786943
         #     }
         #
-        return self.parse_balance(response, type, marginMode)
+        return self.parse_balance_custom(response, type, marginMode)
 
-    def parse_balance(self, response, type=None, marginMode=None):
+    def parse_balance_custom(self, response, type=None, marginMode=None):
         timestamp = self.safe_integer(response, 'updateTime')
         result = {
             'info': response,
@@ -1537,7 +1557,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :see: https://www.tokocrypto.com/apidocs/#new-order--signed
@@ -1555,7 +1575,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = self.safe_bool(params, 'postOnly', False)
         # only supported for spot/margin api
         if postOnly:
             type = 'LIMIT_MAKER'
@@ -2217,7 +2237,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#withdraw-signed
         make a withdrawal
@@ -2328,7 +2348,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-        success = self.safe_value(response, 'success', True)
+        success = self.safe_bool(response, 'success', True)
         if not success:
             messageInner = self.safe_string(response, 'msg')
             parsedMessage = None

@@ -379,24 +379,24 @@ class onetrading extends \ccxt\async\onetrading {
         $dateTime = $this->safe_string($message, 'time');
         $timestamp = $this->parse8601($dateTime);
         $channel = 'book:' . $symbol;
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->order_book(array());
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->order_book(array());
         }
         if ($type === 'ORDER_BOOK_SNAPSHOT') {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks');
-            $storedOrderBook->reset ($snapshot);
+            $orderbook->reset ($snapshot);
         } elseif ($type === 'ORDER_BOOK_UPDATE') {
             $changes = $this->safe_value($message, 'changes', array());
-            $this->handle_deltas($storedOrderBook, $changes);
+            $this->handle_deltas($orderbook, $changes);
         } else {
             throw new NotSupported($this->id . ' watchOrderBook() did not recognize $message $type ' . $type);
         }
-        $storedOrderBook['nonce'] = $timestamp;
-        $storedOrderBook['timestamp'] = $timestamp;
-        $storedOrderBook['datetime'] = $this->iso8601($timestamp);
-        $this->orderbooks[$symbol] = $storedOrderBook;
-        $client->resolve ($storedOrderBook, $channel);
+        $orderbook['nonce'] = $timestamp;
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $this->iso8601($timestamp);
+        $this->orderbooks[$symbol] = $orderbook;
+        $client->resolve ($orderbook, $channel);
     }
 
     public function handle_delta($orderbook, $delta) {
@@ -988,13 +988,14 @@ class onetrading extends \ccxt\async\onetrading {
             if ($updateType === 'ORDER_CLOSED' && $filled === 0) {
                 $status = 'canceled';
             }
-            $orders->append (array(
+            $orderObject = array(
                 'id' => $orderId,
                 'symbol' => $symbol,
                 'status' => $status,
                 'timestamp' => $this->parse8601($datetime),
                 'datetime' => $datetime,
-            ));
+            );
+            $orders->append ($orderObject);
         } else {
             $parsed = $this->parse_order($update);
             $symbol = $this->safe_string($parsed, 'symbol', '');
@@ -1079,7 +1080,7 @@ class onetrading extends \ccxt\async\onetrading {
                 $subscription = $this->safe_value($client->subscriptions, $subscriptionHash);
                 if ($subscription !== null) {
                     $ohlcvMarket = $this->safe_value($subscription, $marketId, array());
-                    $marketSubscribed = $this->safe_value($ohlcvMarket, $timeframe, false);
+                    $marketSubscribed = $this->safe_bool($ohlcvMarket, $timeframe, false);
                     if (!$marketSubscribed) {
                         $type = 'UPDATE_SUBSCRIPTION';
                         $client->subscriptions[$subscriptionHash] = null;
@@ -1238,7 +1239,8 @@ class onetrading extends \ccxt\async\onetrading {
     public function handle_message(Client $client, $message) {
         $error = $this->safe_value($message, 'error');
         if ($error !== null) {
-            return $this->handle_error_message($client, $message);
+            $this->handle_error_message($client, $message);
+            return;
         }
         $type = $this->safe_value($message, 'type');
         $handlers = array(
@@ -1269,9 +1271,8 @@ class onetrading extends \ccxt\async\onetrading {
         );
         $handler = $this->safe_value($handlers, $type);
         if ($handler !== null) {
-            return $handler($client, $message);
+            $handler($client, $message);
         }
-        throw new NotSupported($this->id . ' no $handler found for this $message ' . $this->json($message));
     }
 
     public function handle_price_point_updates(Client $client, $message) {
@@ -1329,7 +1330,7 @@ class onetrading extends \ccxt\async\onetrading {
                 if ($subscription !== null) {
                     for ($i = 0; $i < count($marketIds); $i++) {
                         $marketId = $marketIds[$i];
-                        $marketSubscribed = $this->safe_value($subscription, $marketId, false);
+                        $marketSubscribed = $this->safe_bool($subscription, $marketId, false);
                         if (!$marketSubscribed) {
                             $type = 'UPDATE_SUBSCRIPTION';
                             $client->subscriptions[$subscriptionHash] = null;

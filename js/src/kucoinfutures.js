@@ -10,6 +10,10 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class kucoinfutures
+ * @augments Exchange
+ */
 export default class kucoinfutures extends kucoin {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -32,6 +36,7 @@ export default class kucoinfutures extends kucoin {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
                 'closePosition': true,
                 'closePositions': false,
                 'createDepositAddress': true,
@@ -1120,7 +1125,7 @@ export default class kucoinfutures extends kucoin {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const testOrder = this.safeValue(params, 'test', false);
+        const testOrder = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
         const orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
@@ -1783,7 +1788,7 @@ export default class kucoinfutures extends kucoin {
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
         const isActive = this.safeValue(order, 'isActive');
-        const cancelExist = this.safeValue(order, 'cancelExist', false);
+        const cancelExist = this.safeBool(order, 'cancelExist', false);
         let status = undefined;
         if (isActive !== undefined) {
             status = isActive ? 'open' : 'closed';
@@ -1834,7 +1839,7 @@ export default class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchFundingRate
          * @description fetch the current funding rate
-         * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-funding-rate
+         * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1858,7 +1863,7 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const fundingTimestamp = this.safeNumber(data, 'timePoint');
+        const fundingTimestamp = this.safeInteger(data, 'timePoint');
         // the website displayes the previous funding rate as "funding rate"
         return {
             'info': data,
@@ -1869,15 +1874,15 @@ export default class kucoinfutures extends kucoin {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber(data, 'predictedValue'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': undefined,
+            'fundingRate': this.safeNumber(data, 'value'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': this.safeNumber(data, 'predictedValue'),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber(data, 'value'),
-            'previousFundingTimestamp': fundingTimestamp,
-            'previousFundingDatetime': this.iso8601(fundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
     parseBalance(response) {
@@ -2069,8 +2074,8 @@ export default class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
-        const trades = this.safeValue(data, 'items', {});
+        const data = this.safeDict(response, 'data', {});
+        const trades = this.safeList(data, 'items', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -2507,7 +2512,7 @@ export default class kucoinfutures extends kucoin {
         await this.loadMarkets();
         const market = this.market(symbol);
         let clientOrderId = this.safeString(params, 'clientOrderId');
-        const testOrder = this.safeValue(params, 'test', false);
+        const testOrder = this.safeBool(params, 'test', false);
         params = this.omit(params, ['test', 'clientOrderId']);
         if (clientOrderId === undefined) {
             clientOrderId = this.numberToString(this.nonce());

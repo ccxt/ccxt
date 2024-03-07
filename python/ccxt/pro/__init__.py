@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.2.19'
+__version__ = '4.2.63'
 
 # ----------------------------------------------------------------------------
 
@@ -64,6 +64,7 @@ from ccxt.pro.ndax import ndax                                            # noqa
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.onetrading import onetrading                                # noqa: F401
+from ccxt.pro.p2b import p2b                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
 from ccxt.pro.poloniexfutures import poloniexfutures                      # noqa: F401
@@ -126,6 +127,7 @@ exchanges = [
     'okcoin',
     'okx',
     'onetrading',
+    'p2b',
     'phemex',
     'poloniex',
     'poloniexfutures',

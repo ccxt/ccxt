@@ -25,7 +25,7 @@ export default class kraken extends krakenRest {
     handleHeartbeat(client: Client, message: any): void;
     handleOrderBook(client: Client, message: any, subscription: any): void;
     formatNumber(n: any, length: any): string;
-    handleDeltas(bookside: any, deltas: any, timestamp?: any): any;
+    customHandleDeltas(bookside: any, deltas: any, timestamp?: any): any;
     handleSystemStatus(client: Client, message: any): any;
     authenticate(params?: {}): Promise<string>;
     watchPrivate(name: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -51,5 +51,5 @@ export default class kraken extends krakenRest {
     parseWsOrder(order: any, market?: any): Order;
     handleSubscriptionStatus(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
 }

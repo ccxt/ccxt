@@ -339,6 +339,16 @@
                   }
                 ]
             }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "linear funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api-futures.kucoin.com/api/v1/funding-rate/XBTUSDTM/current",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
