@@ -13,6 +13,9 @@ abstract class bitstamp extends \ccxt\Exchange {
     public function public_get_order_book_pair($params = array()) {
         return $this->request('order_book/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_ticker($params = array()) {
+        return $this->request('ticker/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_ticker_hour_pair($params = array()) {
         return $this->request('ticker_hour/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -24,6 +27,33 @@ abstract class bitstamp extends \ccxt\Exchange {
     }
     public function public_get_trading_pairs_info($params = array()) {
         return $this->request('trading-pairs-info/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_currencies($params = array()) {
+        return $this->request('currencies/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_eur_usd($params = array()) {
+        return $this->request('eur_usd/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_travel_rule_vasps($params = array()) {
+        return $this->request('travel_rule/vasps/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_travel_rule_contacts($params = array()) {
+        return $this->request('travel_rule/contacts/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_contacts_contact_uuid($params = array()) {
+        return $this->request('contacts/{contact_uuid}/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_earn_subscriptions($params = array()) {
+        return $this->request('earn/subscriptions/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_earn_transactions($params = array()) {
+        return $this->request('earn/transactions/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_account_balances($params = array()) {
+        return $this->request('account_balances/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_account_balances_currency($params = array()) {
+        return $this->request('account_balances/{currency}/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_balance($params = array()) {
         return $this->request('balance/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -42,6 +72,9 @@ abstract class bitstamp extends \ccxt\Exchange {
     }
     public function private_post_user_transactions_pair($params = array()) {
         return $this->request('user_transactions/{pair}/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_crypto_transactions($params = array()) {
+        return $this->request('crypto-transactions/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_open_orders_all($params = array()) {
         return $this->request('open_orders/all/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -84,6 +117,21 @@ abstract class bitstamp extends \ccxt\Exchange {
     }
     public function private_post_transfer_from_main($params = array()) {
         return $this->request('transfer-from-main/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_my_trading_pairs($params = array()) {
+        return $this->request('my_trading_pairs/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_fees_trading($params = array()) {
+        return $this->request('fees/trading/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_fees_trading_pair($params = array()) {
+        return $this->request('fees/trading/{pair}', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_fees_withdrawal($params = array()) {
+        return $this->request('fees/withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_fees_withdrawal_currency($params = array()) {
+        return $this->request('fees/withdrawal/{currency}/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_withdrawal_requests($params = array()) {
         return $this->request('withdrawal-requests/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -583,11 +631,86 @@ abstract class bitstamp extends \ccxt\Exchange {
     public function private_post_flr_address($params = array()) {
         return $this->request('flr_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_dgld_withdrawal($params = array()) {
+        return $this->request('dgld_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_dgld_address($params = array()) {
+        return $this->request('dgld_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_ldo_withdrawal($params = array()) {
+        return $this->request('ldo_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_ldo_address($params = array()) {
+        return $this->request('ldo_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_travel_rule_contacts($params = array()) {
+        return $this->request('travel_rule/contacts/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_earn_subscribe($params = array()) {
+        return $this->request('earn/subscribe/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_earn_subscriptions_setting($params = array()) {
+        return $this->request('earn/subscriptions/setting/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_earn_unsubscribe($params = array()) {
+        return $this->request('earn/unsubscribe', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_wecan_withdrawal($params = array()) {
+        return $this->request('wecan_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_wecan_address($params = array()) {
+        return $this->request('wecan_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_trac_withdrawal($params = array()) {
+        return $this->request('trac_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_trac_address($params = array()) {
+        return $this->request('trac_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_eurcv_withdrawal($params = array()) {
+        return $this->request('eurcv_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_eurcv_address($params = array()) {
+        return $this->request('eurcv_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_pyusd_withdrawal($params = array()) {
+        return $this->request('pyusd_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_pyusd_address($params = array()) {
+        return $this->request('pyusd_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lmwr_withdrawal($params = array()) {
+        return $this->request('lmwr_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_lmwr_address($params = array()) {
+        return $this->request('lmwr_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_pepe_withdrawal($params = array()) {
+        return $this->request('pepe_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_pepe_address($params = array()) {
+        return $this->request('pepe_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_blur_withdrawal($params = array()) {
+        return $this->request('blur_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_blur_address($params = array()) {
+        return $this->request('blur_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_vext_withdrawal($params = array()) {
+        return $this->request('vext_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_vext_address($params = array()) {
+        return $this->request('vext_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function publicGetOhlcPair($params = array()) {
         return $this->request('ohlc/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetOrderBookPair($params = array()) {
         return $this->request('order_book/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetTickerHourPair($params = array()) {
         return $this->request('ticker_hour/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -600,6 +723,33 @@ abstract class bitstamp extends \ccxt\Exchange {
     }
     public function publicGetTradingPairsInfo($params = array()) {
         return $this->request('trading-pairs-info/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetCurrencies($params = array()) {
+        return $this->request('currencies/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetEurUsd($params = array()) {
+        return $this->request('eur_usd/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetTravelRuleVasps($params = array()) {
+        return $this->request('travel_rule/vasps/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTravelRuleContacts($params = array()) {
+        return $this->request('travel_rule/contacts/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetContactsContactUuid($params = array()) {
+        return $this->request('contacts/{contact_uuid}/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetEarnSubscriptions($params = array()) {
+        return $this->request('earn/subscriptions/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetEarnTransactions($params = array()) {
+        return $this->request('earn/transactions/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAccountBalances($params = array()) {
+        return $this->request('account_balances/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAccountBalancesCurrency($params = array()) {
+        return $this->request('account_balances/{currency}/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostBalance($params = array()) {
         return $this->request('balance/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -618,6 +768,9 @@ abstract class bitstamp extends \ccxt\Exchange {
     }
     public function privatePostUserTransactionsPair($params = array()) {
         return $this->request('user_transactions/{pair}/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCryptoTransactions($params = array()) {
+        return $this->request('crypto-transactions/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostOpenOrdersAll($params = array()) {
         return $this->request('open_orders/all/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -660,6 +813,21 @@ abstract class bitstamp extends \ccxt\Exchange {
     }
     public function privatePostTransferFromMain($params = array()) {
         return $this->request('transfer-from-main/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostMyTradingPairs($params = array()) {
+        return $this->request('my_trading_pairs/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostFeesTrading($params = array()) {
+        return $this->request('fees/trading/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostFeesTradingPair($params = array()) {
+        return $this->request('fees/trading/{pair}', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostFeesWithdrawal($params = array()) {
+        return $this->request('fees/withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostFeesWithdrawalCurrency($params = array()) {
+        return $this->request('fees/withdrawal/{currency}/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostWithdrawalRequests($params = array()) {
         return $this->request('withdrawal-requests/', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -1158,5 +1326,77 @@ abstract class bitstamp extends \ccxt\Exchange {
     }
     public function privatePostFlrAddress($params = array()) {
         return $this->request('flr_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostDgldWithdrawal($params = array()) {
+        return $this->request('dgld_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostDgldAddress($params = array()) {
+        return $this->request('dgld_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLdoWithdrawal($params = array()) {
+        return $this->request('ldo_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLdoAddress($params = array()) {
+        return $this->request('ldo_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTravelRuleContacts($params = array()) {
+        return $this->request('travel_rule/contacts/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostEarnSubscribe($params = array()) {
+        return $this->request('earn/subscribe/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostEarnSubscriptionsSetting($params = array()) {
+        return $this->request('earn/subscriptions/setting/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostEarnUnsubscribe($params = array()) {
+        return $this->request('earn/unsubscribe', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostWecanWithdrawal($params = array()) {
+        return $this->request('wecan_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostWecanAddress($params = array()) {
+        return $this->request('wecan_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTracWithdrawal($params = array()) {
+        return $this->request('trac_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTracAddress($params = array()) {
+        return $this->request('trac_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostEurcvWithdrawal($params = array()) {
+        return $this->request('eurcv_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostEurcvAddress($params = array()) {
+        return $this->request('eurcv_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostPyusdWithdrawal($params = array()) {
+        return $this->request('pyusd_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostPyusdAddress($params = array()) {
+        return $this->request('pyusd_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLmwrWithdrawal($params = array()) {
+        return $this->request('lmwr_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLmwrAddress($params = array()) {
+        return $this->request('lmwr_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostPepeWithdrawal($params = array()) {
+        return $this->request('pepe_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostPepeAddress($params = array()) {
+        return $this->request('pepe_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostBlurWithdrawal($params = array()) {
+        return $this->request('blur_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostBlurAddress($params = array()) {
+        return $this->request('blur_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostVextWithdrawal($params = array()) {
+        return $this->request('vext_withdrawal/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostVextAddress($params = array()) {
+        return $this->request('vext_address/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

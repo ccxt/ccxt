@@ -4,10 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -20,7 +20,7 @@ class woo(ccxt.async_support.woo):
         return self.deep_extend(super(woo, self).describe(), {
             'has': {
                 'ws': True,
-                'watchBalance': False,
+                'watchBalance': True,
                 'watchMyTrades': False,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
@@ -28,6 +28,7 @@ class woo(ccxt.async_support.woo):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchPositions': True,
             },
             'urls': {
                 'api': {
@@ -52,6 +53,10 @@ class woo(ccxt.async_support.woo):
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'requestId': {},
+                'watchPositions': {
+                    'fetchPositionsSnapshot': True,  # or False
+                    'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
+                },
             },
             'streaming': {
                 'ping': self.ping,
@@ -76,7 +81,7 @@ class woo(ccxt.async_support.woo):
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         await self.load_markets()
         name = 'orderbook'
         market = self.market(symbol)
@@ -92,17 +97,17 @@ class woo(ccxt.async_support.woo):
     def handle_order_book(self, client: Client, message):
         #
         #     {
-        #         topic: 'PERP_BTC_USDT@orderbook',
-        #         ts: 1650121915308,
-        #         data: {
-        #             symbol: 'PERP_BTC_USDT',
-        #             bids: [
+        #         "topic": "PERP_BTC_USDT@orderbook",
+        #         "ts": 1650121915308,
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDT",
+        #             "bids": [
         #                 [
         #                     0.30891,
         #                     2469.98
         #                 ]
         #             ],
-        #             asks: [
+        #             "asks": [
         #                 [
         #                     0.31075,
         #                     2379.63
@@ -124,7 +129,7 @@ class woo(ccxt.async_support.woo):
         orderbook.reset(snapshot)
         client.resolve(orderbook, topic)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         await self.load_markets()
         name = 'ticker'
         market = self.market(symbol)
@@ -139,21 +144,20 @@ class woo(ccxt.async_support.woo):
     def parse_ws_ticker(self, ticker, market=None):
         #
         #     {
-        #         symbol: 'PERP_BTC_USDT',
-        #         open: 19441.5,
-        #         close: 20147.07,
-        #         high: 20761.87,
-        #         low: 19320.54,
-        #         volume: 2481.103,
-        #         amount: 50037935.0286,
-        #         count: 3689
+        #         "symbol": "PERP_BTC_USDT",
+        #         "open": 19441.5,
+        #         "close": 20147.07,
+        #         "high": 20761.87,
+        #         "low": 19320.54,
+        #         "volume": 2481.103,
+        #         "amount": 50037935.0286,
+        #         "count": 3689
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'date', self.milliseconds())
         return self.safe_ticker({
             'symbol': self.safe_symbol(None, market),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
             'bid': None,
@@ -176,17 +180,17 @@ class woo(ccxt.async_support.woo):
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         topic: 'PERP_BTC_USDT@ticker',
-        #         ts: 1657120017000,
-        #         data: {
-        #             symbol: 'PERP_BTC_USDT',
-        #             open: 19441.5,
-        #             close: 20147.07,
-        #             high: 20761.87,
-        #             low: 19320.54,
-        #             volume: 2481.103,
-        #             amount: 50037935.0286,
-        #             count: 3689
+        #         "topic": "PERP_BTC_USDT@ticker",
+        #         "ts": 1657120017000,
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDT",
+        #             "open": 19441.5,
+        #             "close": 20147.07,
+        #             "high": 20761.87,
+        #             "low": 19320.54,
+        #             "volume": 2481.103,
+        #             "amount": 50037935.0286,
+        #             "count": 3689
         #         }
         #     }
         #
@@ -202,7 +206,7 @@ class woo(ccxt.async_support.woo):
         client.resolve(ticker, topic)
         return message
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         await self.load_markets()
         name = 'tickers'
         topic = name
@@ -256,7 +260,7 @@ class woo(ccxt.async_support.woo):
             result.append(ticker)
         client.resolve(result, topic)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         await self.load_markets()
         if (timeframe != '1m') and (timeframe != '5m') and (timeframe != '15m') and (timeframe != '30m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
             raise ExchangeError(self.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M')
@@ -272,7 +276,7 @@ class woo(ccxt.async_support.woo):
         ohlcv = await self.watch_public(topic, message)
         if self.newUpdates:
             limit = ohlcv.getLimit(market['symbol'], limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -317,7 +321,7 @@ class woo(ccxt.async_support.woo):
         stored.append(parsed)
         client.resolve(stored, topic)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         await self.load_markets()
         market = self.market(symbol)
         topic = market['id'] + '@trade'
@@ -329,7 +333,7 @@ class woo(ccxt.async_support.woo):
         trades = await self.watch_public(topic, message)
         if self.newUpdates:
             limit = trades.getLimit(market['symbol'], limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_trade(self, client: Client, message):
         #
@@ -403,7 +407,7 @@ class woo(ccxt.async_support.woo):
                 return False
         return True
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']['private'] + '/' + self.uid
         client = self.client(url)
@@ -437,7 +441,7 @@ class woo(ccxt.async_support.woo):
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         await self.load_markets()
         topic = 'executionreport'
         messageHash = topic
@@ -453,32 +457,32 @@ class woo(ccxt.async_support.woo):
         orders = await self.watch_private(messageHash, message)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def parse_ws_order(self, order, market=None):
         #
         #     {
-        #         symbol: 'PERP_BTC_USDT',
-        #         clientOrderId: 0,
-        #         orderId: 52952826,
-        #         type: 'LIMIT',
-        #         side: 'SELL',
-        #         quantity: 0.01,
-        #         price: 22000,
-        #         tradeId: 0,
-        #         executedPrice: 0,
-        #         executedQuantity: 0,
-        #         fee: 0,
-        #         feeAsset: 'USDT',
-        #         totalExecutedQuantity: 0,
-        #         status: 'NEW',
-        #         reason: '',
-        #         orderTag: 'default',
-        #         totalFee: 0,
-        #         visible: 0.01,
-        #         timestamp: 1657515556799,
-        #         reduceOnly: False,
-        #         maker: False
+        #         "symbol": "PERP_BTC_USDT",
+        #         "clientOrderId": 0,
+        #         "orderId": 52952826,
+        #         "type": "LIMIT",
+        #         "side": "SELL",
+        #         "quantity": 0.01,
+        #         "price": 22000,
+        #         "tradeId": 0,
+        #         "executedPrice": 0,
+        #         "executedQuantity": 0,
+        #         "fee": 0,
+        #         "feeAsset": "USDT",
+        #         "totalExecutedQuantity": 0,
+        #         "status": "NEW",
+        #         "reason": '',
+        #         "orderTag": "default",
+        #         "totalFee": 0,
+        #         "visible": 0.01,
+        #         "timestamp": 1657515556799,
+        #         "reduceOnly": False,
+        #         "maker": False
         #     }
         #
         orderId = self.safe_string(order, 'orderId')
@@ -486,9 +490,8 @@ class woo(ccxt.async_support.woo):
         market = self.market(marketId)
         symbol = market['symbol']
         timestamp = self.safe_integer(order, 'timestamp')
-        cost = self.safe_string(order, 'totalFee')
         fee = {
-            'cost': cost,
+            'cost': self.safe_string(order, 'totalFee'),
             'currency': self.safe_string(order, 'feeAsset'),
         }
         price = self.safe_number(order, 'price')
@@ -523,7 +526,7 @@ class woo(ccxt.async_support.woo):
             'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': None,
             'filled': filled,
             'remaining': remaining,
@@ -535,30 +538,30 @@ class woo(ccxt.async_support.woo):
     def handle_order_update(self, client: Client, message):
         #
         #     {
-        #         topic: 'executionreport',
-        #         ts: 1657515556799,
-        #         data: {
-        #             symbol: 'PERP_BTC_USDT',
-        #             clientOrderId: 0,
-        #             orderId: 52952826,
-        #             type: 'LIMIT',
-        #             side: 'SELL',
-        #             quantity: 0.01,
-        #             price: 22000,
-        #             tradeId: 0,
-        #             executedPrice: 0,
-        #             executedQuantity: 0,
-        #             fee: 0,
-        #             feeAsset: 'USDT',
-        #             totalExecutedQuantity: 0,
-        #             status: 'NEW',
-        #             reason: '',
-        #             orderTag: 'default',
-        #             totalFee: 0,
-        #             visible: 0.01,
-        #             timestamp: 1657515556799,
-        #             reduceOnly: False,
-        #             maker: False
+        #         "topic": "executionreport",
+        #         "ts": 1657515556799,
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDT",
+        #             "clientOrderId": 0,
+        #             "orderId": 52952826,
+        #             "type": "LIMIT",
+        #             "side": "SELL",
+        #             "quantity": 0.01,
+        #             "price": 22000,
+        #             "tradeId": 0,
+        #             "executedPrice": 0,
+        #             "executedQuantity": 0,
+        #             "fee": 0,
+        #             "feeAsset": "USDT",
+        #             "totalExecutedQuantity": 0,
+        #             "status": "NEW",
+        #             "reason": '',
+        #             "orderTag": "default",
+        #             "totalFee": 0,
+        #             "visible": 0.01,
+        #             "timestamp": 1657515556799,
+        #             "reduceOnly": False,
+        #             "maker": False
         #         }
         #     }
         #
@@ -592,6 +595,179 @@ class woo(ccxt.async_support.woo):
             messageHashSymbol = topic + ':' + symbol
             client.resolve(self.orders, messageHashSymbol)
 
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        :see: https://docs.woo.org/#position-push
+        watch all open positions
+        :param str[]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        messageHash = ''
+        symbols = self.market_symbols(symbols)
+        if not self.is_empty(symbols):
+            messageHash = '::' + ','.join(symbols)
+        messageHash = 'positions' + messageHash
+        url = self.urls['api']['ws']['private'] + '/' + self.uid
+        client = self.client(url)
+        self.set_positions_cache(client, symbols)
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
+            snapshot = await client.future('fetchPositionsSnapshot')
+            return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
+        request = {
+            'event': 'subscribe',
+            'topic': 'position',
+        }
+        newPositions = await self.watch_private(messageHash, request, params)
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+
+    def set_positions_cache(self, client: Client, type, symbols: Strings = None):
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
+        if fetchPositionsSnapshot:
+            messageHash = 'fetchPositionsSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_positions_snapshot, client, messageHash)
+        else:
+            self.positions = ArrayCacheBySymbolBySide()
+
+    async def load_positions_snapshot(self, client, messageHash):
+        positions = await self.fetch_positions()
+        self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        for i in range(0, len(positions)):
+            position = positions[i]
+            contracts = self.safe_number(position, 'contracts', 0)
+            if contracts > 0:
+                cache.append(position)
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve(cache)
+        client.resolve(cache, 'positions')
+
+    def handle_positions(self, client, message):
+        #
+        #    {
+        #        "topic":"position",
+        #        "ts":1705292345255,
+        #        "data":{
+        #           "positions":{
+        #              "PERP_LTC_USDT":{
+        #                 "holding":1,
+        #                 "pendingLongQty":0,
+        #                 "pendingShortQty":0,
+        #                 "averageOpenPrice":71.53,
+        #                 "pnl24H":0,
+        #                 "fee24H":0.07153,
+        #                 "settlePrice":71.53,
+        #                 "markPrice":71.32098452065145,
+        #                 "version":7886,
+        #                 "openingTime":1705292304267,
+        #                 "pnl24HPercentage":0,
+        #                 "adlQuantile":1,
+        #                 "positionSide":"BOTH"
+        #              }
+        #           }
+        #        }
+        #    }
+        #
+        data = self.safe_value(message, 'data', {})
+        rawPositions = self.safe_value(data, 'positions', {})
+        postitionsIds = list(rawPositions.keys())
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        newPositions = []
+        for i in range(0, len(postitionsIds)):
+            marketId = postitionsIds[i]
+            market = self.safe_market(marketId)
+            rawPosition = rawPositions[marketId]
+            position = self.parse_position(rawPosition, market)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, 'positions::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, 'positions')
+
+    async def watch_balance(self, params={}) -> Balances:
+        """
+        :see: https://docs.woo.org/#balance
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
+        await self.load_markets()
+        topic = 'balance'
+        messageHash = topic
+        request = {
+            'event': 'subscribe',
+            'topic': topic,
+        }
+        message = self.extend(request, params)
+        return await self.watch_private(messageHash, message)
+
+    def handle_balance(self, client, message):
+        #
+        #   {
+        #       "topic": "balance",
+        #       "ts": 1695716888789,
+        #       "data": {
+        #          "balances": {
+        #             "USDT": {
+        #                "holding": 266.56059176,
+        #                "frozen": 0,
+        #                "interest": 0,
+        #                "pendingShortQty": 0,
+        #                "pendingExposure": 0,
+        #                "pendingLongQty": 0,
+        #                "pendingLongExposure": 0,
+        #                "version": 37,
+        #                "staked": 0,
+        #                "unbonding": 0,
+        #                "vault": 0,
+        #                "averageOpenPrice": 0,
+        #                "pnl24H": 0,
+        #                "fee24H": 0,
+        #                "markPrice": 1,
+        #                "pnl24HPercentage": 0
+        #             }
+        #          }
+        #
+        #    }
+        #
+        data = self.safe_value(message, 'data')
+        balances = self.safe_value(data, 'balances')
+        keys = list(balances.keys())
+        ts = self.safe_integer(message, 'ts')
+        self.balance['info'] = data
+        self.balance['timestamp'] = ts
+        self.balance['datetime'] = self.iso8601(ts)
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = balances[key]
+            code = self.safe_currency_code(key)
+            account = self.balance[code] if (code in self.balance) else self.account()
+            total = self.safe_string(value, 'holding')
+            used = self.safe_string(value, 'frozen')
+            account['total'] = total
+            account['used'] = used
+            account['free'] = Precise.string_sub(total, used)
+            self.balance[code] = account
+        self.balance = self.safe_balance(self.balance)
+        client.resolve(self.balance, 'balance')
+
     def handle_message(self, client: Client, message):
         methods = {
             'ping': self.handle_ping,
@@ -604,32 +780,36 @@ class woo(ccxt.async_support.woo):
             'auth': self.handle_auth,
             'executionreport': self.handle_order_update,
             'trade': self.handle_trade,
+            'balance': self.handle_balance,
+            'position': self.handle_positions,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)
         if method is not None:
-            return method(client, message)
+            method(client, message)
+            return
         topic = self.safe_string(message, 'topic')
         if topic is not None:
             method = self.safe_value(methods, topic)
             if method is not None:
-                return method(client, message)
+                method(client, message)
+                return
             splitTopic = topic.split('@')
             splitLength = len(splitTopic)
             if splitLength == 2:
                 name = self.safe_string(splitTopic, 1)
                 method = self.safe_value(methods, name)
                 if method is not None:
-                    return method(client, message)
+                    method(client, message)
+                    return
                 splitName = name.split('_')
                 splitNameLength = len(splitTopic)
                 if splitNameLength == 2:
                     method = self.safe_value(methods, self.safe_string(splitName, 0))
                     if method is not None:
-                        return method(client, message)
-        return message
+                        method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {'event': 'ping'}
 
     def handle_ping(self, client: Client, message):
@@ -637,7 +817,7 @@ class woo(ccxt.async_support.woo):
 
     def handle_pong(self, client: Client, message):
         #
-        # {event: 'pong', ts: 1657117026090}
+        # {event: "pong", ts: 1657117026090}
         #
         client.lastPong = self.milliseconds()
         return message
@@ -645,10 +825,10 @@ class woo(ccxt.async_support.woo):
     def handle_subscribe(self, client: Client, message):
         #
         #     {
-        #         id: '666888',
-        #         event: 'subscribe',
-        #         success: True,
-        #         ts: 1657117712212
+        #         "id": "666888",
+        #         "event": "subscribe",
+        #         "success": True,
+        #         "ts": 1657117712212
         #     }
         #
         return message
@@ -656,9 +836,9 @@ class woo(ccxt.async_support.woo):
     def handle_auth(self, client: Client, message):
         #
         #     {
-        #         event: 'auth',
-        #         success: True,
-        #         ts: 1657463158812
+        #         "event": "auth",
+        #         "success": True,
+        #         "ts": 1657463158812
         #     }
         #
         messageHash = 'authenticated'

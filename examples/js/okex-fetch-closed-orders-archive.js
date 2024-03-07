@@ -1,6 +1,6 @@
 
 
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
 
 console.log ('CCXT Version:', ccxt.version)
 

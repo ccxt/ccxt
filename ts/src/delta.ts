@@ -2,14 +2,18 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/delta.js';
-import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } from './base/errors.js';
+import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class delta
+ * @augments Exchange
+ */
 export default class delta extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -22,13 +26,17 @@ export default class delta extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': true,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': true,
+                'closePosition': false,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -36,18 +44,30 @@ export default class delta extends Exchange {
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': true,
+                'fetchGreeks': true,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': true,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -55,8 +75,15 @@ export default class delta extends Exchange {
                 'fetchTrades': true,
                 'fetchTransfer': undefined,
                 'fetchTransfers': undefined,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
+                'reduceMargin': true,
+                'setLeverage': true,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -97,40 +124,56 @@ export default class delta extends Exchange {
                 'public': {
                     'get': [
                         'assets',
-                        'settings',
                         'indices',
                         'products',
+                        'products/{symbol}',
                         'tickers',
                         'tickers/{symbol}',
                         'l2orderbook/{symbol}',
                         'trades/{symbol}',
+                        'stats',
                         'history/candles',
                         'history/sparklines',
+                        'settings',
                     ],
                 },
                 'private': {
                     'get': [
                         'orders',
-                        'orders/leverage',
-                        'positions',
+                        'products/{product_id}/orders/leverage',
                         'positions/margined',
+                        'positions',
                         'orders/history',
                         'fills',
                         'fills/history/download/csv',
                         'wallet/balances',
                         'wallet/transactions',
                         'wallet/transactions/download',
+                        'wallets/sub_accounts_transfer_history',
+                        'users/trading_preferences',
+                        'sub_accounts',
+                        'profile',
                         'deposits/address',
+                        'orders/leverage',
                     ],
                     'post': [
                         'orders',
+                        'orders/bracket',
                         'orders/batch',
-                        'orders/leverage',
+                        'products/{product_id}/orders/leverage',
                         'positions/change_margin',
+                        'positions/close_all',
+                        'wallets/sub_account_balance_transfer',
+                        'orders/cancel_after',
+                        'orders/leverage',
                     ],
                     'put': [
                         'orders',
+                        'orders/bracket',
                         'orders/batch',
+                        'positions/auto_topup',
+                        'users/update_mmp',
+                        'users/reset_mmp',
                     ],
                     'delete': [
                         'orders',
@@ -170,13 +213,7 @@ export default class delta extends Exchange {
             'options': {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',
-                    'TRX': 'TRC20(TRON)',
                     'BEP20': 'BEP20(BSC)',
-                    'BSC': 'BEP20(BSC)',
-                },
-                'networksById': {
-                    'BEP20(BSC)': 'BSC',
-                    'TRC20(TRON)': 'TRC20',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -207,12 +244,97 @@ export default class delta extends Exchange {
         });
     }
 
+    convertExpireDate (date) {
+        // parse YYMMDD to timestamp
+        const year = date.slice (0, 2);
+        const month = date.slice (2, 4);
+        const day = date.slice (4, 6);
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        return reconstructedDate;
+    }
+
+    createExpiredOptionMarket (symbol: string) {
+        // support expired option contracts
+        const quote = 'USDT';
+        const optionParts = symbol.split ('-');
+        const symbolBase = symbol.split ('/');
+        let base = undefined;
+        let expiry = undefined;
+        let optionType = undefined;
+        if (symbol.indexOf ('/') > -1) {
+            base = this.safeString (symbolBase, 0);
+            expiry = this.safeString (optionParts, 1);
+            optionType = this.safeString (optionParts, 3);
+        } else {
+            base = this.safeString (optionParts, 1);
+            expiry = this.safeString (optionParts, 3);
+            optionType = this.safeString (optionParts, 0);
+        }
+        const settle = quote;
+        const strike = this.safeString (optionParts, 2);
+        const datetime = this.convertExpireDate (expiry);
+        const timestamp = this.parse8601 (datetime);
+        return {
+            'id': optionType + '-' + base + '-' + strike + '-' + expiry,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': false,
+            'type': 'option',
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': this.parseNumber ('1'),
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'strike': this.parseNumber (strike),
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        } as MarketInterface;
+    }
+
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')) || (marketId.startsWith ('C-')) || (marketId.startsWith ('P-')));
+        if (isOption && !(marketId in this.markets_by_id)) {
+            // handle expired option contracts
+            return this.createExpiredOptionMarket (marketId);
+        }
+        return super.safeMarket (marketId, market, delimiter, marketType);
+    }
+
     async fetchTime (params = {}) {
         /**
          * @method
          * @name delta#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetSettings (params);
@@ -226,7 +348,7 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const response = await this.publicGetSettings (params);
@@ -301,7 +423,8 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @see https://docs.delta.exchange/#get-list-of-all-assets
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetAssets (params);
@@ -389,8 +512,9 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchMarkets
          * @description retrieves data on all markets for delta
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @see https://docs.delta.exchange/#get-list-of-products
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetProducts (params);
         //
@@ -576,6 +700,9 @@ export default class delta extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             let type = this.safeString (market, 'contract_type');
+            if (type === 'options_combos') {
+                continue;
+            }
             // const settlingAsset = this.safeValue (market, 'settling_asset', {});
             const quotingAsset = this.safeValue (market, 'quoting_asset', {});
             const underlyingAsset = this.safeValue (market, 'underlying_asset', {});
@@ -625,15 +752,13 @@ export default class delta extends Exchange {
                             letter = 'M';
                             optionType = 'move';
                         }
-                        symbol = symbol + ':' + strike + ':' + letter;
+                        symbol = symbol + '-' + strike + '-' + letter;
                     } else {
                         type = 'future';
                     }
                 } else {
                     type = 'swap';
                 }
-            } else {
-                symbol = id;
             }
             const state = this.safeString (market, 'state');
             result.push ({
@@ -685,71 +810,166 @@ export default class delta extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601 (this.safeString (market, 'launch_time')),
                 'info': market,
             });
         }
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
-        // fetchTicker, fetchTickers
+        // spot: fetchTicker, fetchTickers
         //
         //     {
-        //         "close":15837.5,
-        //         "high":16354,
-        //         "low":15751.5,
-        //         "mark_price":"15820.100867",
-        //         "open":16140.5,
-        //         "product_id":139,
-        //         "size":640552,
-        //         "spot_price":"15827.050000000001",
-        //         "symbol":"BTCUSDT",
-        //         "timestamp":1605373550208262,
-        //         "turnover":10298630.3735,
-        //         "turnover_symbol":"USDT",
-        //         "turnover_usd":10298630.3735,
-        //         "volume":640.5520000000001
+        //         "close": 30634.0,
+        //         "contract_type": "spot",
+        //         "greeks": null,
+        //         "high": 30780.0,
+        //         "low": 30340.5,
+        //         "mark_price": "48000",
+        //         "oi": "0.0000",
+        //         "oi_change_usd_6h": "0.0000",
+        //         "oi_contracts": "0",
+        //         "oi_value": "0.0000",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "0.0000",
+        //         "open": 30464.0,
+        //         "price_band": null,
+        //         "product_id": 8320,
+        //         "quotes": {},
+        //         "size": 2.6816639999999996,
+        //         "spot_price": "30637.91465121",
+        //         "symbol": "BTC_USDT",
+        //         "timestamp": 1689139767621299,
+        //         "turnover": 2.6816639999999996,
+        //         "turnover_symbol": "BTC",
+        //         "turnover_usd": 81896.45613400004,
+        //         "volume": 2.6816639999999996
+        //     }
+        //
+        // swap: fetchTicker, fetchTickers
+        //
+        //     {
+        //         "close": 30600.5,
+        //         "contract_type": "perpetual_futures",
+        //         "funding_rate": "0.00602961",
+        //         "greeks": null,
+        //         "high": 30803.0,
+        //         "low": 30265.5,
+        //         "mark_basis": "-0.45601594",
+        //         "mark_price": "30600.10481568",
+        //         "oi": "469.9190",
+        //         "oi_change_usd_6h": "2226314.9900",
+        //         "oi_contracts": "469919",
+        //         "oi_value": "469.9190",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "14385640.6802",
+        //         "open": 30458.5,
+        //         "price_band": {
+        //             "lower_limit": "29067.08312627",
+        //             "upper_limit": "32126.77608693"
+        //         },
+        //         "product_id": 139,
+        //         "quotes": {
+        //             "ask_iv": null,
+        //             "ask_size": "965",
+        //             "best_ask": "30600.5",
+        //             "best_bid": "30599.5",
+        //             "bid_iv": null,
+        //             "bid_size": "196",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "-0.44931641"
+        //         },
+        //         "size": 1226303,
+        //         "spot_price": "30612.85362773",
+        //         "symbol": "BTCUSDT",
+        //         "timestamp": 1689136597460456,
+        //         "turnover": 37392218.45999999,
+        //         "turnover_symbol": "USDT",
+        //         "turnover_usd": 37392218.45999999,
+        //         "volume": 1226.3029999999485
+        //     }
+        //
+        // option: fetchTicker, fetchTickers
+        //
+        //     {
+        //         "contract_type": "call_options",
+        //         "greeks": {
+        //             "delta": "0.60873994",
+        //             "gamma": "0.00014854",
+        //             "rho": "7.71808010",
+        //             "spot": "30598.49040622",
+        //             "theta": "-30.44743017",
+        //             "vega": "24.83508248"
+        //         },
+        //         "mark_price": "1347.74819696",
+        //         "mark_vol": "0.39966303",
+        //         "oi": "2.7810",
+        //         "oi_change_usd_6h": "0.0000",
+        //         "oi_contracts": "2781",
+        //         "oi_value": "2.7810",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "85127.4337",
+        //         "price_band": {
+        //             "lower_limit": "91.27423497",
+        //             "upper_limit": "7846.19454697"
+        //         },
+        //         "product_id": 107150,
+        //         "quotes": {
+        //             "ask_iv": "0.41023239",
+        //             "ask_size": "2397",
+        //             "best_ask": "1374",
+        //             "best_bid": "1322",
+        //             "bid_iv": "0.38929375",
+        //             "bid_size": "3995",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "0.39965618"
+        //         },
+        //         "spot_price": "30598.43379314",
+        //         "strike_price": "30000",
+        //         "symbol": "C-BTC-30000-280723",
+        //         "timestamp": 1689136932893181,
+        //         "turnover_symbol": "USDT"
         //     }
         //
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.001);
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'close');
-        const open = this.safeString (ticker, 'open');
-        const baseVolume = this.safeString (ticker, 'volume');
-        const quoteVolume = this.safeString (ticker, 'turnover');
+        const quotes = this.safeValue (ticker, 'quotes', {});
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (quotes, 'best_bid'),
+            'bidVolume': this.safeNumber (quotes, 'bid_size'),
+            'ask': this.safeNumber (quotes, 'best_ask'),
+            'askVolume': this.safeNumber (quotes, 'ask_size'),
             'vwap': undefined,
-            'open': open,
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'quoteVolume': this.safeNumber (ticker, 'turnover'),
             'info': ticker,
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name delta#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -759,60 +979,271 @@ export default class delta extends Exchange {
         };
         const response = await this.publicGetTickersSymbol (this.extend (request, params));
         //
+        // spot
+        //
         //     {
-        //         "result":{
-        //             "close":15837.5,
-        //             "high":16354,
-        //             "low":15751.5,
-        //             "mark_price":"15820.100867",
-        //             "open":16140.5,
-        //             "product_id":139,
-        //             "size":640552,
-        //             "spot_price":"15827.050000000001",
-        //             "symbol":"BTCUSDT",
-        //             "timestamp":1605373550208262,
-        //             "turnover":10298630.3735,
-        //             "turnover_symbol":"USDT",
-        //             "turnover_usd":10298630.3735,
-        //             "volume":640.5520000000001
+        //         "result": {
+        //             "close": 30634.0,
+        //             "contract_type": "spot",
+        //             "greeks": null,
+        //             "high": 30780.0,
+        //             "low": 30340.5,
+        //             "mark_price": "48000",
+        //             "oi": "0.0000",
+        //             "oi_change_usd_6h": "0.0000",
+        //             "oi_contracts": "0",
+        //             "oi_value": "0.0000",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "0.0000",
+        //             "open": 30464.0,
+        //             "price_band": null,
+        //             "product_id": 8320,
+        //             "quotes": {},
+        //             "size": 2.6816639999999996,
+        //             "spot_price": "30637.91465121",
+        //             "symbol": "BTC_USDT",
+        //             "timestamp": 1689139767621299,
+        //             "turnover": 2.6816639999999996,
+        //             "turnover_symbol": "BTC",
+        //             "turnover_usd": 81896.45613400004,
+        //             "volume": 2.6816639999999996
         //         },
-        //         "success":true
+        //         "success": true
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "result": {
+        //             "close": 30600.5,
+        //             "contract_type": "perpetual_futures",
+        //             "funding_rate": "0.00602961",
+        //             "greeks": null,
+        //             "high": 30803.0,
+        //             "low": 30265.5,
+        //             "mark_basis": "-0.45601594",
+        //             "mark_price": "30600.10481568",
+        //             "oi": "469.9190",
+        //             "oi_change_usd_6h": "2226314.9900",
+        //             "oi_contracts": "469919",
+        //             "oi_value": "469.9190",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "14385640.6802",
+        //             "open": 30458.5,
+        //             "price_band": {
+        //                 "lower_limit": "29067.08312627",
+        //                 "upper_limit": "32126.77608693"
+        //             },
+        //             "product_id": 139,
+        //             "quotes": {
+        //                 "ask_iv": null,
+        //                 "ask_size": "965",
+        //                 "best_ask": "30600.5",
+        //                 "best_bid": "30599.5",
+        //                 "bid_iv": null,
+        //                 "bid_size": "196",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "-0.44931641"
+        //             },
+        //             "size": 1226303,
+        //             "spot_price": "30612.85362773",
+        //             "symbol": "BTCUSDT",
+        //             "timestamp": 1689136597460456,
+        //             "turnover": 37392218.45999999,
+        //             "turnover_symbol": "USDT",
+        //             "turnover_usd": 37392218.45999999,
+        //             "volume": 1226.3029999999485
+        //         },
+        //         "success": true
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "result": {
+        //             "contract_type": "call_options",
+        //             "greeks": {
+        //                 "delta": "0.60873994",
+        //                 "gamma": "0.00014854",
+        //                 "rho": "7.71808010",
+        //                 "spot": "30598.49040622",
+        //                 "theta": "-30.44743017",
+        //                 "vega": "24.83508248"
+        //             },
+        //             "mark_price": "1347.74819696",
+        //             "mark_vol": "0.39966303",
+        //             "oi": "2.7810",
+        //             "oi_change_usd_6h": "0.0000",
+        //             "oi_contracts": "2781",
+        //             "oi_value": "2.7810",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "85127.4337",
+        //             "price_band": {
+        //                 "lower_limit": "91.27423497",
+        //                 "upper_limit": "7846.19454697"
+        //             },
+        //             "product_id": 107150,
+        //             "quotes": {
+        //                 "ask_iv": "0.41023239",
+        //                 "ask_size": "2397",
+        //                 "best_ask": "1374",
+        //                 "best_bid": "1322",
+        //                 "bid_iv": "0.38929375",
+        //                 "bid_size": "3995",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "0.39965618"
+        //             },
+        //             "spot_price": "30598.43379314",
+        //             "strike_price": "30000",
+        //             "symbol": "C-BTC-30000-280723",
+        //             "timestamp": 1689136932893181,
+        //             "turnover_symbol": "USDT"
+        //         },
+        //         "success": true
         //     }
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseTicker (result, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name delta#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.delta.exchange/#get-tickers-for-products
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
         //
+        // spot
+        //
         //     {
-        //         "result":[
+        //         "result": [
         //             {
-        //                 "close":0.003966,
-        //                 "high":0.004032,
-        //                 "low":0.003606,
-        //                 "mark_price":"0.00396328",
-        //                 "open":0.003996,
-        //                 "product_id":1327,
-        //                 "size":6242,
-        //                 "spot_price":"0.0039555",
-        //                 "symbol":"AAVEBTC",
-        //                 "timestamp":1605374143864107,
-        //                 "turnover":23.997904999999996,
-        //                 "turnover_symbol":"BTC",
-        //                 "turnover_usd":387957.4544782897,
-        //                 "volume":6242
+        //                 "close": 30634.0,
+        //                 "contract_type": "spot",
+        //                 "greeks": null,
+        //                 "high": 30780.0,
+        //                 "low": 30340.5,
+        //                 "mark_price": "48000",
+        //                 "oi": "0.0000",
+        //                 "oi_change_usd_6h": "0.0000",
+        //                 "oi_contracts": "0",
+        //                 "oi_value": "0.0000",
+        //                 "oi_value_symbol": "BTC",
+        //                 "oi_value_usd": "0.0000",
+        //                 "open": 30464.0,
+        //                 "price_band": null,
+        //                 "product_id": 8320,
+        //                 "quotes": {},
+        //                 "size": 2.6816639999999996,
+        //                 "spot_price": "30637.91465121",
+        //                 "symbol": "BTC_USDT",
+        //                 "timestamp": 1689139767621299,
+        //                 "turnover": 2.6816639999999996,
+        //                 "turnover_symbol": "BTC",
+        //                 "turnover_usd": 81896.45613400004,
+        //                 "volume": 2.6816639999999996
+        //             },
+        //         ],
+        //         "success":true
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "result": [
+        //             {
+        //                 "close": 30600.5,
+        //                 "contract_type": "perpetual_futures",
+        //                 "funding_rate": "0.00602961",
+        //                 "greeks": null,
+        //                 "high": 30803.0,
+        //                 "low": 30265.5,
+        //                 "mark_basis": "-0.45601594",
+        //                 "mark_price": "30600.10481568",
+        //                 "oi": "469.9190",
+        //                 "oi_change_usd_6h": "2226314.9900",
+        //                 "oi_contracts": "469919",
+        //                 "oi_value": "469.9190",
+        //                 "oi_value_symbol": "BTC",
+        //                 "oi_value_usd": "14385640.6802",
+        //                 "open": 30458.5,
+        //                 "price_band": {
+        //                     "lower_limit": "29067.08312627",
+        //                     "upper_limit": "32126.77608693"
+        //                 },
+        //                 "product_id": 139,
+        //                 "quotes": {
+        //                     "ask_iv": null,
+        //                     "ask_size": "965",
+        //                     "best_ask": "30600.5",
+        //                     "best_bid": "30599.5",
+        //                     "bid_iv": null,
+        //                     "bid_size": "196",
+        //                     "impact_mid_price": null,
+        //                     "mark_iv": "-0.44931641"
+        //                 },
+        //                 "size": 1226303,
+        //                 "spot_price": "30612.85362773",
+        //                 "symbol": "BTCUSDT",
+        //                 "timestamp": 1689136597460456,
+        //                 "turnover": 37392218.45999999,
+        //                 "turnover_symbol": "USDT",
+        //                 "turnover_usd": 37392218.45999999,
+        //                 "volume": 1226.3029999999485
+        //             },
+        //         ],
+        //         "success":true
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "result": [
+        //             {
+        //                 "contract_type": "call_options",
+        //                 "greeks": {
+        //                     "delta": "0.60873994",
+        //                     "gamma": "0.00014854",
+        //                     "rho": "7.71808010",
+        //                     "spot": "30598.49040622",
+        //                     "theta": "-30.44743017",
+        //                     "vega": "24.83508248"
+        //                 },
+        //                 "mark_price": "1347.74819696",
+        //                 "mark_vol": "0.39966303",
+        //                 "oi": "2.7810",
+        //                 "oi_change_usd_6h": "0.0000",
+        //                 "oi_contracts": "2781",
+        //                 "oi_value": "2.7810",
+        //                 "oi_value_symbol": "BTC",
+        //                 "oi_value_usd": "85127.4337",
+        //                 "price_band": {
+        //                     "lower_limit": "91.27423497",
+        //                     "upper_limit": "7846.19454697"
+        //                 },
+        //                 "product_id": 107150,
+        //                 "quotes": {
+        //                     "ask_iv": "0.41023239",
+        //                     "ask_size": "2397",
+        //                     "best_ask": "1374",
+        //                     "best_bid": "1322",
+        //                     "bid_iv": "0.38929375",
+        //                     "bid_size": "3995",
+        //                     "impact_mid_price": null,
+        //                     "mark_iv": "0.39965618"
+        //                 },
+        //                 "spot_price": "30598.43379314",
+        //                 "strike_price": "30000",
+        //                 "symbol": "C-BTC-30000-280723",
+        //                 "timestamp": 1689136932893181,
+        //                 "turnover_symbol": "USDT"
         //             },
         //         ],
         //         "success":true
@@ -825,17 +1256,18 @@ export default class delta extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name delta#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.delta.exchange/#get-l2-orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -869,7 +1301,7 @@ export default class delta extends Exchange {
         return this.parseOrderBook (result, market['symbol'], undefined, 'buy', 'sell', 'price', 'size');
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -969,16 +1401,17 @@ export default class delta extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name delta#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.delta.exchange/#get-public-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1005,7 +1438,7 @@ export default class delta extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "time":1605393120,
@@ -1026,22 +1459,22 @@ export default class delta extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name delta#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.delta.exchange/#get-ohlc-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
@@ -1055,6 +1488,15 @@ export default class delta extends Exchange {
             request['start'] = start;
             request['end'] = this.sum (start, limit * duration);
         }
+        const price = this.safeString (params, 'price');
+        if (price === 'mark') {
+            request['symbol'] = 'MARK:' + market['id'];
+        } else if (price === 'index') {
+            request['symbol'] = market['info']['spot_index']['symbol'];
+        } else {
+            request['symbol'] = market['id'];
+        }
+        params = this.omit (params, 'price');
         const response = await this.publicGetHistoryCandles (this.extend (request, params));
         //
         //     {
@@ -1070,7 +1512,7 @@ export default class delta extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'result', []);
         const result = { 'info': response };
         const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId', {});
@@ -1087,13 +1529,14 @@ export default class delta extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name delta#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @see https://docs.delta.exchange/#get-wallet-balances
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
@@ -1126,8 +1569,9 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchPosition
          * @description fetch data on a single open contract trade position
+         * @see https://docs.delta.exchange/#get-position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
@@ -1150,14 +1594,15 @@ export default class delta extends Exchange {
         return this.parsePosition (result, market);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchPositions
          * @description fetch all open positions
-         * @param {[string]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @see https://docs.delta.exchange/#get-margined-positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetPositionsMargined (params);
@@ -1186,7 +1631,7 @@ export default class delta extends Exchange {
         return this.parsePositions (result, symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         // fetchPosition
         //
@@ -1227,7 +1672,7 @@ export default class delta extends Exchange {
                 side = 'sell';
             }
         }
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -1251,7 +1696,9 @@ export default class delta extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': undefined,
             'marginRatio': undefined,
-        };
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     parseOrderStatus (status) {
@@ -1264,7 +1711,7 @@ export default class delta extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -1351,17 +1798,19 @@ export default class delta extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name delta#createOrder
          * @description create a trade order
+         * @see https://docs.delta.exchange/#place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1385,6 +1834,11 @@ export default class delta extends Exchange {
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
+        }
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly) {
+            request['reduce_only'] = reduceOnly;
+            params = this.omit (params, 'reduceOnly');
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
@@ -1427,14 +1881,28 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+        /**
+         * @method
+         * @name delta#editOrder
+         * @description edit a trade order
+         * @see https://docs.delta.exchange/#edit-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'id': parseInt (id),
             'product_id': market['numericId'],
-            // 'limit_price': this.priceToPrecision (symbol, price),
-            // 'size': this.amountToPrecision (symbol, amount),
+            // "limit_price": this.priceToPrecision (symbol, price),
+            // "size": this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
             request['size'] = parseInt (this.amountToPrecision (symbol, amount));
@@ -1464,14 +1932,15 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name delta#cancelOrder
          * @description cancels an open order
+         * @see https://docs.delta.exchange/#cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -1524,14 +1993,15 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name delta#cancelAllOrders
          * @description cancel all open orders in a market
+         * @see https://docs.delta.exchange/#cancel-all-open-orders
          * @param {string} symbol unified market symbol of the market to cancel orders in
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -1553,35 +2023,37 @@ export default class delta extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name delta#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @see https://docs.delta.exchange/#get-active-orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersWithMethod ('privateGetOrders', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name delta#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @see https://docs.delta.exchange/#get-order-history-cancelled-and-closed
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
     }
 
-    async fetchOrdersWithMethod (method, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersWithMethod (method, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'product_ids': market['id'], // comma-separated
@@ -1604,7 +2076,12 @@ export default class delta extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetOrders') {
+            response = await this.privateGetOrders (this.extend (request, params));
+        } else if (method === 'privateGetOrdersHistory') {
+            response = await this.privateGetOrdersHistory (this.extend (request, params));
+        }
         //
         //     {
         //         "success": true,
@@ -1632,16 +2109,17 @@ export default class delta extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @see https://docs.delta.exchange/#get-user-fills-by-filters
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1714,15 +2192,16 @@ export default class delta extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|undefined} code unified currency code, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @see https://docs.delta.exchange/#get-wallet-transactions
+         * @param {string} code unified currency code, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
@@ -1783,7 +2262,7 @@ export default class delta extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //         "amount":"29.889184",
@@ -1846,8 +2325,8 @@ export default class delta extends Exchange {
          * @name delta#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @param {string} params.network unified network code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] unified network code
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
@@ -1882,7 +2361,7 @@ export default class delta extends Exchange {
         return this.parseDepositAddress (result, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //    {
         //        "id": 1915615,
@@ -1908,6 +2387,864 @@ export default class delta extends Exchange {
             'network': this.networkIdToCode (networkId),
             'info': depositAddress,
         };
+    }
+
+    async fetchFundingRate (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name delta#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTickersSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "result": {
+        //             "close": 30600.5,
+        //             "contract_type": "perpetual_futures",
+        //             "funding_rate": "0.00602961",
+        //             "greeks": null,
+        //             "high": 30803.0,
+        //             "low": 30265.5,
+        //             "mark_basis": "-0.45601594",
+        //             "mark_price": "30600.10481568",
+        //             "oi": "469.9190",
+        //             "oi_change_usd_6h": "2226314.9900",
+        //             "oi_contracts": "469919",
+        //             "oi_value": "469.9190",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "14385640.6802",
+        //             "open": 30458.5,
+        //             "price_band": {
+        //                 "lower_limit": "29067.08312627",
+        //                 "upper_limit": "32126.77608693"
+        //             },
+        //             "product_id": 139,
+        //             "quotes": {
+        //                 "ask_iv": null,
+        //                 "ask_size": "965",
+        //                 "best_ask": "30600.5",
+        //                 "best_bid": "30599.5",
+        //                 "bid_iv": null,
+        //                 "bid_size": "196",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "-0.44931641"
+        //             },
+        //             "size": 1226303,
+        //             "spot_price": "30612.85362773",
+        //             "symbol": "BTCUSDT",
+        //             "timestamp": 1689136597460456,
+        //             "turnover": 37392218.45999999,
+        //             "turnover_symbol": "USDT",
+        //             "turnover_usd": 37392218.45999999,
+        //             "volume": 1226.3029999999485
+        //         },
+        //         "success": true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseFundingRate (result, market);
+    }
+
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name delta#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @see https://docs.delta.exchange/#get-tickers-for-products
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request = {
+            'contract_types': 'perpetual_futures',
+        };
+        const response = await this.publicGetTickers (this.extend (request, params));
+        //
+        //     {
+        //         "result": [
+        //             {
+        //                 "close": 30600.5,
+        //                 "contract_type": "perpetual_futures",
+        //                 "funding_rate": "0.00602961",
+        //                 "greeks": null,
+        //                 "high": 30803.0,
+        //                 "low": 30265.5,
+        //                 "mark_basis": "-0.45601594",
+        //                 "mark_price": "30600.10481568",
+        //                 "oi": "469.9190",
+        //                 "oi_change_usd_6h": "2226314.9900",
+        //                 "oi_contracts": "469919",
+        //                 "oi_value": "469.9190",
+        //                 "oi_value_symbol": "BTC",
+        //                 "oi_value_usd": "14385640.6802",
+        //                 "open": 30458.5,
+        //                 "price_band": {
+        //                     "lower_limit": "29067.08312627",
+        //                     "upper_limit": "32126.77608693"
+        //                 },
+        //                 "product_id": 139,
+        //                 "quotes": {
+        //                     "ask_iv": null,
+        //                     "ask_size": "965",
+        //                     "best_ask": "30600.5",
+        //                     "best_bid": "30599.5",
+        //                     "bid_iv": null,
+        //                     "bid_size": "196",
+        //                     "impact_mid_price": null,
+        //                     "mark_iv": "-0.44931641"
+        //                 },
+        //                 "size": 1226303,
+        //                 "spot_price": "30612.85362773",
+        //                 "symbol": "BTCUSDT",
+        //                 "timestamp": 1689136597460456,
+        //                 "turnover": 37392218.45999999,
+        //                 "turnover_symbol": "USDT",
+        //                 "turnover_usd": 37392218.45999999,
+        //                 "volume": 1226.3029999999485
+        //             },
+        //         ],
+        //         "success":true
+        //     }
+        //
+        const rates = this.safeValue (response, 'result', []);
+        const result = this.parseFundingRates (rates);
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    parseFundingRate (contract, market: Market = undefined) {
+        //
+        //     {
+        //         "close": 30600.5,
+        //         "contract_type": "perpetual_futures",
+        //         "funding_rate": "0.00602961",
+        //         "greeks": null,
+        //         "high": 30803.0,
+        //         "low": 30265.5,
+        //         "mark_basis": "-0.45601594",
+        //         "mark_price": "30600.10481568",
+        //         "oi": "469.9190",
+        //         "oi_change_usd_6h": "2226314.9900",
+        //         "oi_contracts": "469919",
+        //         "oi_value": "469.9190",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "14385640.6802",
+        //         "open": 30458.5,
+        //         "price_band": {
+        //             "lower_limit": "29067.08312627",
+        //             "upper_limit": "32126.77608693"
+        //         },
+        //         "product_id": 139,
+        //         "quotes": {
+        //             "ask_iv": null,
+        //             "ask_size": "965",
+        //             "best_ask": "30600.5",
+        //             "best_bid": "30599.5",
+        //             "bid_iv": null,
+        //             "bid_size": "196",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "-0.44931641"
+        //         },
+        //         "size": 1226303,
+        //         "spot_price": "30612.85362773",
+        //         "symbol": "BTCUSDT",
+        //         "timestamp": 1689136597460456,
+        //         "turnover": 37392218.45999999,
+        //         "turnover_symbol": "USDT",
+        //         "turnover_usd": 37392218.45999999,
+        //         "volume": 1226.3029999999485
+        //     }
+        //
+        const timestamp = this.safeIntegerProduct (contract, 'timestamp', 0.001);
+        const marketId = this.safeString (contract, 'symbol');
+        const fundingRateString = this.safeString (contract, 'funding_rate');
+        const fundingRate = Precise.stringDiv (fundingRateString, '100');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'markPrice': this.safeNumber (contract, 'mark_price'),
+            'indexPrice': this.safeNumber (contract, 'spot_price'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.parseNumber (fundingRate),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+
+    async addMargin (symbol: string, amount, params = {}) {
+        /**
+         * @method
+         * @name delta#addMargin
+         * @description add margin
+         * @see https://docs.delta.exchange/#add-remove-position-margin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async reduceMargin (symbol: string, amount, params = {}) {
+        /**
+         * @method
+         * @name delta#reduceMargin
+         * @description remove margin from a position
+         * @see https://docs.delta.exchange/#add-remove-position-margin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        amount = amount.toString ();
+        if (type === 'reduce') {
+            amount = Precise.stringMul (amount, '-1');
+        }
+        const request = {
+            'product_id': market['numericId'],
+            'delta_margin': amount,
+        };
+        const response = await this.privatePostPositionsChangeMargin (this.extend (request, params));
+        //
+        //     {
+        //         "result": {
+        //             "auto_topup": false,
+        //             "bankruptcy_price": "24934.12",
+        //             "commission": "0.01197072",
+        //             "created_at": "2023-07-20T03:49:09.159401Z",
+        //             "entry_price": "29926.8",
+        //             "liquidation_price": "25083.754",
+        //             "margin": "4.99268",
+        //             "margin_mode": "isolated",
+        //             "product_id": 84,
+        //             "product_symbol": "BTCUSDT",
+        //             "realized_cashflow": "0",
+        //             "realized_funding": "0",
+        //             "realized_pnl": "0",
+        //             "size": 1,
+        //             "updated_at": "2023-07-20T03:49:09.159401Z",
+        //             "user_id": 30084879
+        //         },
+        //         "success": true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseMarginModification (result, market);
+    }
+
+    parseMarginModification (data, market: Market = undefined) {
+        //
+        //     {
+        //         "auto_topup": false,
+        //         "bankruptcy_price": "24934.12",
+        //         "commission": "0.01197072",
+        //         "created_at": "2023-07-20T03:49:09.159401Z",
+        //         "entry_price": "29926.8",
+        //         "liquidation_price": "25083.754",
+        //         "margin": "4.99268",
+        //         "margin_mode": "isolated",
+        //         "product_id": 84,
+        //         "product_symbol": "BTCUSDT",
+        //         "realized_cashflow": "0",
+        //         "realized_funding": "0",
+        //         "realized_pnl": "0",
+        //         "size": 1,
+        //         "updated_at": "2023-07-20T03:49:09.159401Z",
+        //         "user_id": 30084879
+        //     }
+        //
+        const marketId = this.safeString (data, 'product_symbol');
+        market = this.safeMarket (marketId, market);
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'total': this.safeNumber (data, 'margin'),
+            'code': undefined,
+            'symbol': market['symbol'],
+            'status': undefined,
+        };
+    }
+
+    async fetchOpenInterest (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name delta#fetchOpenInterest
+         * @description retrieves the open interest of a derivative market
+         * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTickersSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "result": {
+        //             "close": 894.0,
+        //             "contract_type": "call_options",
+        //             "greeks": {
+        //                 "delta": "0.67324861",
+        //                 "gamma": "0.00022178",
+        //                 "rho": "4.34638266",
+        //                 "spot": "30178.53195697",
+        //                 "theta": "-35.64972577",
+        //                 "vega": "16.34381277"
+        //             },
+        //             "high": 946.0,
+        //             "low": 893.0,
+        //             "mark_price": "1037.07582681",
+        //             "mark_vol": "0.35899491",
+        //             "oi": "0.0910",
+        //             "oi_change_usd_6h": "-90.5500",
+        //             "oi_contracts": "91",
+        //             "oi_value": "0.0910",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "2746.3549",
+        //             "open": 946.0,
+        //             "price_band": {
+        //                 "lower_limit": "133.37794509",
+        //                 "upper_limit": "5663.66930164"
+        //             },
+        //             "product_id": 116171,
+        //             "quotes": {
+        //                 "ask_iv": "0.36932389",
+        //                 "ask_size": "1321",
+        //                 "best_ask": "1054",
+        //                 "best_bid": "1020",
+        //                 "bid_iv": "0.34851914",
+        //                 "bid_size": "2202",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "0.35896335"
+        //             },
+        //             "size": 152,
+        //             "spot_price": "30178.53195697",
+        //             "strike_price": "29500",
+        //             "symbol": "C-BTC-29500-280723",
+        //             "timestamp": 1689834695286094,
+        //             "turnover": 4546.601744940001,
+        //             "turnover_symbol": "USDT",
+        //             "turnover_usd": 4546.601744940001,
+        //             "volume": 0.15200000000000002
+        //         },
+        //         "success": true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOpenInterest (result, market);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        //     {
+        //         "close": 894.0,
+        //         "contract_type": "call_options",
+        //         "greeks": {
+        //             "delta": "0.67324861",
+        //             "gamma": "0.00022178",
+        //             "rho": "4.34638266",
+        //             "spot": "30178.53195697",
+        //             "theta": "-35.64972577",
+        //             "vega": "16.34381277"
+        //         },
+        //         "high": 946.0,
+        //         "low": 893.0,
+        //         "mark_price": "1037.07582681",
+        //         "mark_vol": "0.35899491",
+        //         "oi": "0.0910",
+        //         "oi_change_usd_6h": "-90.5500",
+        //         "oi_contracts": "91",
+        //         "oi_value": "0.0910",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "2746.3549",
+        //         "open": 946.0,
+        //         "price_band": {
+        //             "lower_limit": "133.37794509",
+        //             "upper_limit": "5663.66930164"
+        //         },
+        //         "product_id": 116171,
+        //         "quotes": {
+        //             "ask_iv": "0.36932389",
+        //             "ask_size": "1321",
+        //             "best_ask": "1054",
+        //             "best_bid": "1020",
+        //             "bid_iv": "0.34851914",
+        //             "bid_size": "2202",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "0.35896335"
+        //         },
+        //         "size": 152,
+        //         "spot_price": "30178.53195697",
+        //         "strike_price": "29500",
+        //         "symbol": "C-BTC-29500-280723",
+        //         "timestamp": 1689834695286094,
+        //         "turnover": 4546.601744940001,
+        //         "turnover_symbol": "USDT",
+        //         "turnover_usd": 4546.601744940001,
+        //         "volume": 0.15200000000000002
+        //     }
+        //
+        const timestamp = this.safeIntegerProduct (interest, 'timestamp', 0.001);
+        const marketId = this.safeString (interest, 'symbol');
+        return this.safeOpenInterest ({
+            'symbol': this.safeSymbol (marketId, market),
+            'baseVolume': this.safeNumber (interest, 'oi_value'),
+            'quoteVolume': this.safeNumber (interest, 'oi_value_usd'),
+            'openInterestAmount': this.safeNumber (interest, 'oi_contracts'),
+            'openInterestValue': this.safeNumber (interest, 'oi'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
+    }
+
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        /**
+         * @method
+         * @name delta#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.delta.exchange/#get-order-leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_id': market['numericId'],
+        };
+        const response = await this.privateGetProductsProductIdOrdersLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "result": {
+        //             "index_symbol": null,
+        //             "leverage": "10",
+        //             "margin_mode": "isolated",
+        //             "order_margin": "0",
+        //             "product_id": 84,
+        //             "user_id": 30084879
+        //         },
+        //         "success": true
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseLeverage (result, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'index_symbol');
+        const leverageValue = this.safeInteger (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverage, 'margin_mode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
+    }
+
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name delta#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://docs.delta.exchange/#change-order-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_id': market['numericId'],
+            'leverage': leverage,
+        };
+        //
+        //     {
+        //         "result": {
+        //             "leverage": "20",
+        //             "margin_mode": "isolated",
+        //             "order_margin": "0",
+        //             "product_id": 84
+        //         },
+        //         "success": true
+        //     }
+        //
+        return await this.privatePostProductsProductIdOrdersLeverage (this.extend (request, params));
+    }
+
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name delta#fetchSettlementHistory
+         * @description fetches historical settlement records
+         * @see https://docs.delta.exchange/#get-product-settlement-prices
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int} [since] timestamp in ms
+         * @param {int} [limit] number of records
+         * @param {object} [params] exchange specific params
+         * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'states': 'expired',
+        };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.publicGetProducts (this.extend (request, params));
+        //
+        //     {
+        //         "result": [
+        //             {
+        //                 "contract_value": "0.001",
+        //                 "basis_factor_max_limit": "10.95",
+        //                 "maker_commission_rate": "0.0003",
+        //                 "launch_time": "2023-07-19T04:30:03Z",
+        //                 "trading_status": "operational",
+        //                 "product_specs": {
+        //                     "backup_vol_expiry_time": 31536000,
+        //                     "max_deviation_from_external_vol": 0.75,
+        //                     "max_lower_deviation_from_external_vol": 0.75,
+        //                     "max_upper_deviation_from_external_vol": 0.5,
+        //                     "max_volatility": 3,
+        //                     "min_volatility": 0.1,
+        //                     "premium_commission_rate": 0.1,
+        //                     "settlement_index_price": "29993.536675710806",
+        //                     "vol_calculation_method": "orderbook",
+        //                     "vol_expiry_time": 31536000
+        //                 },
+        //                 "description": "BTC call option expiring on 19-7-2023",
+        //                 "settlement_price": "0",
+        //                 "disruption_reason": null,
+        //                 "settling_asset": {},
+        //                 "initial_margin": "1",
+        //                 "tick_size": "0.1",
+        //                 "maintenance_margin": "0.5",
+        //                 "id": 117542,
+        //                 "notional_type": "vanilla",
+        //                 "ui_config": {},
+        //                 "contract_unit_currency": "BTC",
+        //                 "symbol": "C-BTC-30900-190723",
+        //                 "insurance_fund_margin_contribution": "1",
+        //                 "price_band": "2",
+        //                 "annualized_funding": "10.95",
+        //                 "impact_size": 200,
+        //                 "contract_type": "call_options",
+        //                 "position_size_limit": 255633,
+        //                 "max_leverage_notional": "200000",
+        //                 "initial_margin_scaling_factor": "0.000002",
+        //                 "strike_price": "30900",
+        //                 "is_quanto": false,
+        //                 "settlement_time": "2023-07-19T12:00:00Z",
+        //                 "liquidation_penalty_factor": "0.5",
+        //                 "funding_method": "mark_price",
+        //                 "taker_commission_rate": "0.0003",
+        //                 "default_leverage": "100.000000000000000000",
+        //                 "state": "expired",
+        //                 "auction_start_time": null,
+        //                 "short_description": "BTC  Call",
+        //                 "quoting_asset": {},
+        //                 "maintenance_margin_scaling_factor":"0.000002"
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const settlements = this.parseSettlements (result, market);
+        const sorted = this.sortBy (settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+    }
+
+    parseSettlement (settlement, market) {
+        //
+        //     {
+        //         "contract_value": "0.001",
+        //         "basis_factor_max_limit": "10.95",
+        //         "maker_commission_rate": "0.0003",
+        //         "launch_time": "2023-07-19T04:30:03Z",
+        //         "trading_status": "operational",
+        //         "product_specs": {
+        //             "backup_vol_expiry_time": 31536000,
+        //             "max_deviation_from_external_vol": 0.75,
+        //             "max_lower_deviation_from_external_vol": 0.75,
+        //             "max_upper_deviation_from_external_vol": 0.5,
+        //             "max_volatility": 3,
+        //             "min_volatility": 0.1,
+        //             "premium_commission_rate": 0.1,
+        //             "settlement_index_price": "29993.536675710806",
+        //             "vol_calculation_method": "orderbook",
+        //             "vol_expiry_time": 31536000
+        //         },
+        //         "description": "BTC call option expiring on 19-7-2023",
+        //         "settlement_price": "0",
+        //         "disruption_reason": null,
+        //         "settling_asset": {},
+        //         "initial_margin": "1",
+        //         "tick_size": "0.1",
+        //         "maintenance_margin": "0.5",
+        //         "id": 117542,
+        //         "notional_type": "vanilla",
+        //         "ui_config": {},
+        //         "contract_unit_currency": "BTC",
+        //         "symbol": "C-BTC-30900-190723",
+        //         "insurance_fund_margin_contribution": "1",
+        //         "price_band": "2",
+        //         "annualized_funding": "10.95",
+        //         "impact_size": 200,
+        //         "contract_type": "call_options",
+        //         "position_size_limit": 255633,
+        //         "max_leverage_notional": "200000",
+        //         "initial_margin_scaling_factor": "0.000002",
+        //         "strike_price": "30900",
+        //         "is_quanto": false,
+        //         "settlement_time": "2023-07-19T12:00:00Z",
+        //         "liquidation_penalty_factor": "0.5",
+        //         "funding_method": "mark_price",
+        //         "taker_commission_rate": "0.0003",
+        //         "default_leverage": "100.000000000000000000",
+        //         "state": "expired",
+        //         "auction_start_time": null,
+        //         "short_description": "BTC  Call",
+        //         "quoting_asset": {},
+        //         "maintenance_margin_scaling_factor":"0.000002"
+        //     }
+        //
+        const datetime = this.safeString (settlement, 'settlement_time');
+        const marketId = this.safeString (settlement, 'symbol');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId, market),
+            'price': this.safeNumber (settlement, 'settlement_price'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+        };
+    }
+
+    parseSettlements (settlements, market) {
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push (this.parseSettlement (settlements[i], market));
+        }
+        return result;
+    }
+
+    async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
+        /**
+         * @method
+         * @name delta#fetchGreeks
+         * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+         * @param {string} symbol unified symbol of the market to fetch greeks for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTickersSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "result": {
+        //             "close": 6793.0,
+        //             "contract_type": "call_options",
+        //             "greeks": {
+        //                 "delta": "0.94739174",
+        //                 "gamma": "0.00002206",
+        //                 "rho": "11.00890725",
+        //                 "spot": "36839.58124652",
+        //                 "theta": "-18.18365310",
+        //                 "vega": "7.85209698"
+        //             },
+        //             "high": 7556.0,
+        //             "low": 6793.0,
+        //             "mark_price": "6955.70698909",
+        //             "mark_vol": "0.66916863",
+        //             "oi": "1.8980",
+        //             "oi_change_usd_6h": "110.4600",
+        //             "oi_contracts": "1898",
+        //             "oi_value": "1.8980",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "69940.7319",
+        //             "open": 7.2e3,
+        //             "price_band": {
+        //                 "lower_limit": "5533.89814767",
+        //                 "upper_limit": "11691.37688371"
+        //             },
+        //             "product_id": 129508,
+        //             "quotes": {
+        //                 "ask_iv": "0.90180438",
+        //                 "ask_size": "1898",
+        //                 "best_ask": "7210",
+        //                 "best_bid": "6913",
+        //                 "bid_iv": "0.60881706",
+        //                 "bid_size": "3163",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "0.66973549"
+        //             },
+        //             "size": 5,
+        //             "spot_price": "36839.58153868",
+        //             "strike_price": "30000",
+        //             "symbol": "C-BTC-30000-241123",
+        //             "timestamp": 1699584998504530,
+        //             "turnover": 184.41206804,
+        //             "turnover_symbol": "USDT",
+        //             "turnover_usd": 184.41206804,
+        //             "volume": 0.005
+        //         },
+        //         "success": true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseGreeks (result, market);
+    }
+
+    parseGreeks (greeks, market: Market = undefined) {
+        //
+        //     {
+        //         "close": 6793.0,
+        //         "contract_type": "call_options",
+        //         "greeks": {
+        //             "delta": "0.94739174",
+        //             "gamma": "0.00002206",
+        //             "rho": "11.00890725",
+        //             "spot": "36839.58124652",
+        //             "theta": "-18.18365310",
+        //             "vega": "7.85209698"
+        //         },
+        //         "high": 7556.0,
+        //         "low": 6793.0,
+        //         "mark_price": "6955.70698909",
+        //         "mark_vol": "0.66916863",
+        //         "oi": "1.8980",
+        //         "oi_change_usd_6h": "110.4600",
+        //         "oi_contracts": "1898",
+        //         "oi_value": "1.8980",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "69940.7319",
+        //         "open": 7.2e3,
+        //         "price_band": {
+        //             "lower_limit": "5533.89814767",
+        //             "upper_limit": "11691.37688371"
+        //         },
+        //         "product_id": 129508,
+        //         "quotes": {
+        //             "ask_iv": "0.90180438",
+        //             "ask_size": "1898",
+        //             "best_ask": "7210",
+        //             "best_bid": "6913",
+        //             "bid_iv": "0.60881706",
+        //             "bid_size": "3163",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "0.66973549"
+        //         },
+        //         "size": 5,
+        //         "spot_price": "36839.58153868",
+        //         "strike_price": "30000",
+        //         "symbol": "C-BTC-30000-241123",
+        //         "timestamp": 1699584998504530,
+        //         "turnover": 184.41206804,
+        //         "turnover_symbol": "USDT",
+        //         "turnover_usd": 184.41206804,
+        //         "volume": 0.005
+        //     }
+        //
+        const timestamp = this.safeIntegerProduct (greeks, 'timestamp', 0.001);
+        const marketId = this.safeString (greeks, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const stats = this.safeValue (greeks, 'greeks', {});
+        const quotes = this.safeValue (greeks, 'quotes', {});
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'delta': this.safeNumber (stats, 'delta'),
+            'gamma': this.safeNumber (stats, 'gamma'),
+            'theta': this.safeNumber (stats, 'theta'),
+            'vega': this.safeNumber (stats, 'vega'),
+            'rho': this.safeNumber (stats, 'rho'),
+            'bidSize': this.safeNumber (quotes, 'bid_size'),
+            'askSize': this.safeNumber (quotes, 'ask_size'),
+            'bidImpliedVolatility': this.safeNumber (quotes, 'bid_iv'),
+            'askImpliedVolatility': this.safeNumber (quotes, 'ask_iv'),
+            'markImpliedVolatility': this.safeNumber (quotes, 'mark_iv'),
+            'bidPrice': this.safeNumber (quotes, 'best_bid'),
+            'askPrice': this.safeNumber (quotes, 'best_ask'),
+            'markPrice': this.safeNumber (greeks, 'mark_price'),
+            'lastPrice': undefined,
+            'underlyingPrice': this.safeNumber (greeks, 'spot_price'),
+            'info': greeks,
+        };
+    }
+
+    async closeAllPositions (params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name delta#closeAllPositions
+         * @description closes all open positions for a market type
+         * @see https://docs.delta.exchange/#close-all-positions
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.user_id] the users id
+         * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'close_all_portfolio': true,
+            'close_all_isolated': true,
+            // 'user_id': 12345,
+        };
+        const response = await this.privatePostPositionsCloseAll (this.extend (request, params));
+        //
+        // {"result":{},"success":true}
+        //
+        const position = this.parsePosition (this.safeValue (response, 'result', {}));
+        return [ position ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

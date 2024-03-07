@@ -61,10 +61,10 @@ export default class bitfinex extends bitfinexRest {
          * @name bitfinex#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -72,7 +72,7 @@ export default class bitfinex extends bitfinexRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchTicker(symbol, params = {}) {
         /**
@@ -80,7 +80,7 @@ export default class bitfinex extends bitfinexRest {
          * @name bitfinex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bitfinex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.subscribe('ticker', symbol, params);
@@ -101,12 +101,12 @@ export default class bitfinex extends bitfinexRest {
         // when a trade does not have an id yet
         //
         //     // channel id, update type, seq, time, price, amount
-        //     [ 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ],
+        //     [ 2, "te", "28462857-BTCUSD", 1580565041, 9374.9, 0.005 ],
         //
         // when a trade already has an id
         //
         //     // channel id, update type, seq, trade id, time, price, amount
-        //     [ 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 ]
+        //     [ 2, "tu", "28462857-BTCUSD", 413357662, 1580565041, 9374.9, 0.005 ]
         //
         const channel = this.safeValue(subscription, 'channel');
         const marketId = this.safeString(subscription, 'pair');
@@ -135,7 +135,6 @@ export default class bitfinex extends bitfinexRest {
             stored.append(trade);
         }
         client.resolve(stored, messageHash);
-        return message;
     }
     parseTrade(trade, market = undefined) {
         //
@@ -147,12 +146,12 @@ export default class bitfinex extends bitfinexRest {
         // when a trade does not have an id yet
         //
         //     // channel id, update type, seq, time, price, amount
-        //     [ 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ],
+        //     [ 2, "te", "28462857-BTCUSD", 1580565041, 9374.9, 0.005 ],
         //
         // when a trade already has an id
         //
         //     // channel id, update type, seq, trade id, time, price, amount
-        //     [ 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 ]
+        //     [ 2, "tu", "28462857-BTCUSD", 413357662, 1580565041, 9374.9, 0.005 ]
         //
         if (!Array.isArray(trade)) {
             return super.parseTrade(trade, market);
@@ -164,16 +163,12 @@ export default class bitfinex extends bitfinexRest {
             id = this.safeString(trade, tradeLength - 4);
         }
         const timestamp = this.safeTimestamp(trade, tradeLength - 3);
-        const price = this.safeFloat(trade, tradeLength - 2);
-        let amount = this.safeFloat(trade, tradeLength - 1);
+        const price = this.safeString(trade, tradeLength - 2);
+        let amount = this.safeString(trade, tradeLength - 1);
         let side = undefined;
         if (amount !== undefined) {
-            side = (amount > 0) ? 'buy' : 'sell';
-            amount = Math.abs(amount);
-        }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
+            side = Precise.stringGt(amount, '0') ? 'buy' : 'sell';
+            amount = Precise.stringAbs(amount);
         }
         const seq = this.safeString(trade, 2);
         const parts = seq.split('-');
@@ -184,7 +179,7 @@ export default class bitfinex extends bitfinexRest {
         const symbol = this.safeSymbol(marketId, market);
         const takerOrMaker = undefined;
         const orderId = undefined;
-        return {
+        return this.safeTrade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -196,9 +191,9 @@ export default class bitfinex extends bitfinexRest {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
-        };
+        });
     }
     handleTicker(client, message, subscription) {
         //
@@ -216,7 +211,6 @@ export default class bitfinex extends bitfinexRest {
         //         220.05,        // 10 LOW float Daily low
         //     ]
         //
-        const timestamp = this.milliseconds();
         const marketId = this.safeString(subscription, 'pair');
         const symbol = this.safeSymbol(marketId);
         const channel = 'ticker';
@@ -229,8 +223,8 @@ export default class bitfinex extends bitfinexRest {
         }
         const result = {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeFloat(message, 9),
             'low': this.safeFloat(message, 10),
             'bid': this.safeFloat(message, 1),
@@ -258,8 +252,8 @@ export default class bitfinex extends bitfinexRest {
          * @name bitfinex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bitfinex api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if (limit !== undefined) {
@@ -271,9 +265,9 @@ export default class bitfinex extends bitfinexRest {
         const prec = this.safeString(options, 'prec', 'P0');
         const freq = this.safeString(options, 'freq', 'F0');
         const request = {
-            // 'event': 'subscribe', // added in subscribe()
-            // 'channel': channel, // added in subscribe()
-            // 'symbol': marketId, // added in subscribe()
+            // "event": "subscribe", // added in subscribe()
+            // "channel": channel, // added in subscribe()
+            // "symbol": marketId, // added in subscribe()
             'prec': prec,
             'freq': freq,
             'len': limit, // string, number of price points, '25', '100', default = '25'
@@ -330,8 +324,9 @@ export default class bitfinex extends bitfinexRest {
                     const delta = deltas[i];
                     const id = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
+                    const delta2Value = delta[2];
+                    const size = (delta2Value < 0) ? -delta2Value : delta2Value;
+                    const side = (delta2Value < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
                     bookside.store(price, size, id);
                 }
@@ -340,10 +335,11 @@ export default class bitfinex extends bitfinexRest {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
-                    const size = (delta[2] < 0) ? -delta[2] : delta[2];
-                    const side = (delta[2] < 0) ? 'asks' : 'bids';
-                    const bookside = orderbook[side];
-                    bookside.store(delta[0], size, delta[1]);
+                    const delta2 = delta[2];
+                    const size = (delta2 < 0) ? -delta2 : delta2;
+                    const side = (delta2 < 0) ? 'asks' : 'bids';
+                    const countedBookSide = orderbook[side];
+                    countedBookSide.store(delta[0], size, delta[1]);
                 }
             }
             client.resolve(orderbook, messageHash);
@@ -352,19 +348,21 @@ export default class bitfinex extends bitfinexRest {
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
                 const id = this.safeString(message, 1);
-                const price = this.safeFloat(message, 2);
-                const size = (message[3] < 0) ? -message[3] : message[3];
-                const side = (message[3] < 0) ? 'asks' : 'bids';
+                const price = this.safeString(message, 2);
+                const message3 = message[3];
+                const size = (message3 < 0) ? -message3 : message3;
+                const side = (message3 < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
-                const amount = (price > 0) ? size : 0;
-                bookside.store(price, amount, id);
+                const amount = Precise.stringGt(price, '0') ? size : '0';
+                bookside.store(this.parseNumber(price), this.parseNumber(amount), id);
             }
             else {
-                const size = (message[3] < 0) ? -message[3] : message[3];
-                const side = (message[3] < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
-                bookside.store(message[1], size, message[2]);
+                const message3Value = message[3];
+                const size = (message3Value < 0) ? -message3Value : message3Value;
+                const side = (message3Value < 0) ? 'asks' : 'bids';
+                const countedBookSide = orderbook[side];
+                countedBookSide.store(message[1], size, message[2]);
             }
             client.resolve(orderbook, messageHash);
         }
@@ -385,10 +383,10 @@ export default class bitfinex extends bitfinexRest {
         // involves system status and maintenance updates
         //
         //     {
-        //         event: 'info',
-        //         version: 2,
-        //         serverId: 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-        //         platform: { status: 1 }, // 1 for operative, 0 for maintenance
+        //         "event": "info",
+        //         "version": 2,
+        //         "serverId": "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+        //         "platform": { status: 1 }, // 1 for operative, 0 for maintenance
         //     }
         //
         return message;
@@ -396,14 +394,14 @@ export default class bitfinex extends bitfinexRest {
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         event: 'subscribed',
-        //         channel: 'book',
-        //         chanId: 67473,
-        //         symbol: 'tBTCUSD',
-        //         prec: 'P0',
-        //         freq: 'F0',
-        //         len: '25',
-        //         pair: 'BTCUSD'
+        //         "event": "subscribed",
+        //         "channel": "book",
+        //         "chanId": 67473,
+        //         "symbol": "tBTCUSD",
+        //         "prec": "P0",
+        //         "freq": "F0",
+        //         "len": "25",
+        //         "pair": "BTCUSD"
         //     }
         //
         const channelId = this.safeString(message, 'chanId');
@@ -463,11 +461,11 @@ export default class bitfinex extends bitfinexRest {
          * @method
          * @name bitfinex#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -479,7 +477,7 @@ export default class bitfinex extends bitfinexRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message, subscription) {
         //
@@ -487,18 +485,18 @@ export default class bitfinex extends bitfinexRest {
         //
         //     [
         //         0,
-        //         'os',
+        //         "os",
         //         [
         //             [
         //                 45287766631,
-        //                 'ETHUST',
+        //                 "ETHUST",
         //                 -0.07,
         //                 -0.07,
-        //                 'EXCHANGE LIMIT',
-        //                 'ACTIVE',
+        //                 "EXCHANGE LIMIT",
+        //                 "ACTIVE",
         //                 210,
         //                 0,
-        //                 '2020-05-16T13:17:46Z',
+        //                 "2020-05-16T13:17:46Z",
         //                 0,
         //                 0,
         //                 0
@@ -510,17 +508,17 @@ export default class bitfinex extends bitfinexRest {
         //
         //     [
         //         0,
-        //         'oc',
+        //         "oc",
         //         [
         //             45287766631,
-        //             'ETHUST',
+        //             "ETHUST",
         //             -0.07,
         //             -0.07,
-        //             'EXCHANGE LIMIT',
-        //             'CANCELED',
+        //             "EXCHANGE LIMIT",
+        //             "CANCELED",
         //             210,
         //             0,
-        //             '2020-05-16T13:17:46Z',
+        //             "2020-05-16T13:17:46Z",
         //             0,
         //             0,
         //             0,
@@ -551,14 +549,14 @@ export default class bitfinex extends bitfinexRest {
     }
     handleOrder(client, order) {
         // [ 45287766631,
-        //     'ETHUST',
+        //     "ETHUST",
         //     -0.07,
         //     -0.07,
-        //     'EXCHANGE LIMIT',
-        //     'CANCELED',
+        //     "EXCHANGE LIMIT",
+        //     "CANCELED",
         //     210,
         //     0,
-        //     '2020-05-16T13:17:46Z',
+        //     "2020-05-16T13:17:46Z",
         //     0,
         //     0,
         //     0 ]
@@ -621,11 +619,11 @@ export default class bitfinex extends bitfinexRest {
             //
             //     [
             //         1231,
-            //         'hb',
+            //         "hb",
             //     ]
             //
             if (message[1] === 'hb') {
-                return message; // skip heartbeats within subscription channels for now
+                return; // skip heartbeats within subscription channels for now
             }
             const subscription = this.safeValue(client.subscriptions, channelId, {});
             const channel = this.safeString(subscription, 'channel');
@@ -640,21 +638,18 @@ export default class bitfinex extends bitfinexRest {
                 'oc': this.handleOrders,
             };
             const method = this.safeValue2(methods, channel, name);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message, subscription);
+            if (method !== undefined) {
+                method.call(this, client, message, subscription);
             }
         }
         else {
             // todo add bitfinex handleErrorMessage
             //
             //     {
-            //         event: 'info',
-            //         version: 2,
-            //         serverId: 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-            //         platform: { status: 1 }, // 1 for operative, 0 for maintenance
+            //         "event": "info",
+            //         "version": 2,
+            //         "serverId": "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+            //         "platform": { status: 1 }, // 1 for operative, 0 for maintenance
             //     }
             //
             const event = this.safeString(message, 'event');
@@ -666,11 +661,8 @@ export default class bitfinex extends bitfinexRest {
                     'auth': this.handleAuthenticationMessage,
                 };
                 const method = this.safeValue(methods, event);
-                if (method === undefined) {
-                    return message;
-                }
-                else {
-                    return method.call(this, client, message);
+                if (method !== undefined) {
+                    method.call(this, client, message);
                 }
             }
         }

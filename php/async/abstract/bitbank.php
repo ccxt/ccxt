@@ -10,6 +10,12 @@ abstract class bitbank extends \ccxt\async\Exchange {
     public function public_get_pair_ticker($params = array()) {
         return $this->request('{pair}/ticker', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_tickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_tickers_jpy($params = array()) {
+        return $this->request('tickers_jpy', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_pair_depth($params = array()) {
         return $this->request('{pair}/depth', 'public', 'GET', $params, null, null, array());
     }
@@ -21,6 +27,9 @@ abstract class bitbank extends \ccxt\async\Exchange {
     }
     public function public_get_pair_candlestick_candletype_yyyymmdd($params = array()) {
         return $this->request('{pair}/candlestick/{candletype}/{yyyymmdd}', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_pair_circuit_break_info($params = array()) {
+        return $this->request('{pair}/circuit_break_info', 'public', 'GET', $params, null, null, array());
     }
     public function private_get_user_assets($params = array()) {
         return $this->request('user/assets', 'private', 'GET', $params, null, null, array());
@@ -34,8 +43,20 @@ abstract class bitbank extends \ccxt\async\Exchange {
     public function private_get_user_spot_trade_history($params = array()) {
         return $this->request('user/spot/trade_history', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_user_deposit_history($params = array()) {
+        return $this->request('user/deposit_history', 'private', 'GET', $params, null, null, array());
+    }
     public function private_get_user_withdrawal_account($params = array()) {
         return $this->request('user/withdrawal_account', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_user_withdrawal_history($params = array()) {
+        return $this->request('user/withdrawal_history', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_spot_status($params = array()) {
+        return $this->request('spot/status', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_spot_pairs($params = array()) {
+        return $this->request('spot/pairs', 'private', 'GET', $params, null, null, array());
     }
     public function private_post_user_spot_order($params = array()) {
         return $this->request('user/spot/order', 'private', 'POST', $params, null, null, array());
@@ -58,6 +79,12 @@ abstract class bitbank extends \ccxt\async\Exchange {
     public function publicGetPairTicker($params = array()) {
         return $this->request('{pair}/ticker', 'public', 'GET', $params, null, null, array());
     }
+    public function publicGetTickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetTickersJpy($params = array()) {
+        return $this->request('tickers_jpy', 'public', 'GET', $params, null, null, array());
+    }
     public function publicGetPairDepth($params = array()) {
         return $this->request('{pair}/depth', 'public', 'GET', $params, null, null, array());
     }
@@ -69,6 +96,9 @@ abstract class bitbank extends \ccxt\async\Exchange {
     }
     public function publicGetPairCandlestickCandletypeYyyymmdd($params = array()) {
         return $this->request('{pair}/candlestick/{candletype}/{yyyymmdd}', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetPairCircuitBreakInfo($params = array()) {
+        return $this->request('{pair}/circuit_break_info', 'public', 'GET', $params, null, null, array());
     }
     public function privateGetUserAssets($params = array()) {
         return $this->request('user/assets', 'private', 'GET', $params, null, null, array());
@@ -82,8 +112,20 @@ abstract class bitbank extends \ccxt\async\Exchange {
     public function privateGetUserSpotTradeHistory($params = array()) {
         return $this->request('user/spot/trade_history', 'private', 'GET', $params, null, null, array());
     }
+    public function privateGetUserDepositHistory($params = array()) {
+        return $this->request('user/deposit_history', 'private', 'GET', $params, null, null, array());
+    }
     public function privateGetUserWithdrawalAccount($params = array()) {
         return $this->request('user/withdrawal_account', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetUserWithdrawalHistory($params = array()) {
+        return $this->request('user/withdrawal_history', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetSpotStatus($params = array()) {
+        return $this->request('spot/status', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetSpotPairs($params = array()) {
+        return $this->request('spot/pairs', 'private', 'GET', $params, null, null, array());
     }
     public function privatePostUserSpotOrder($params = array()) {
         return $this->request('user/spot/order', 'private', 'POST', $params, null, null, array());

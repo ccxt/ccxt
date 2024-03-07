@@ -1,4 +1,4 @@
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
 import { writeFileSync } from 'fs';
 import path from 'path';
 

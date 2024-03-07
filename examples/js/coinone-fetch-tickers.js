@@ -1,10 +1,13 @@
 
 
 import { nice as ansi } from 'ansicolor';
-import { noLocate as log } from 'ololog';
+import ololog from 'ololog';
 import asTable from 'as-table';
 
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
+
+const { noLocate } = ololog;
+const log = noLocate;
 
 const table = asTable.configure ({
         delimiter: ' | '.dim,

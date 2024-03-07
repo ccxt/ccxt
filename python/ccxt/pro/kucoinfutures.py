@@ -5,9 +5,11 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class kucoinfutures(ccxt.async_support.kucoinfutures):
@@ -21,6 +23,11 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchBalance': True,
+                'watchPosition': True,
+                'watchPositions': False,
+                'watchPositionForSymbols': False,
+                'watchTradesForSymbols': True,
+                'watchOrderBookForSymbols': True,
             },
             'options': {
                 'accountsByType': {
@@ -39,10 +46,14 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 'tradesLimit': 1000,
                 'watchOrderBook': {
                     'snapshotDelay': 20,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'watchTicker': {
                     'name': 'contractMarket/tickerV2',  # market/ticker
+                },
+                'watchPosition': {
+                    'fetchPositionSnapshot': True,  # or False
+                    'awaitPositionSnapshot': True,  # whether to wait for the position snapshot before providing updates
                 },
             },
             'streaming': {
@@ -53,56 +64,64 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             },
         })
 
-    def negotiate(self, privateChannel, params={}):
+    async def negotiate(self, privateChannel, params={}):
         connectId = 'private' if privateChannel else 'public'
         urls = self.safe_value(self.options, 'urls', {})
-        if connectId in urls:
-            return urls[connectId]
+        spawaned = self.safe_value(urls, connectId)
+        if spawaned is not None:
+            return await spawaned
         # we store an awaitable to the url
         # so that multiple calls don't asynchronously
         # fetch different urls and overwrite each other
-        urls[connectId] = self.spawn(self.negotiate_helper, privateChannel, params)
+        urls[connectId] = self.spawn(self.negotiate_helper, privateChannel, params)  # we have to wait here otherwsie in c# will not work
         self.options['urls'] = urls
-        return urls[connectId]
+        future = urls[connectId]
+        return await future
 
     async def negotiate_helper(self, privateChannel, params={}):
         response = None
         connectId = 'private' if privateChannel else 'public'
-        if privateChannel:
-            response = await self.futuresPrivatePostBulletPrivate(params)
-            #
-            #     {
-            #         code: "200000",
-            #         data: {
-            #             instanceServers: [
-            #                 {
-            #                     pingInterval:  50000,
-            #                     endpoint: "wss://push-private.kucoin.com/endpoint",
-            #                     protocol: "websocket",
-            #                     encrypt: True,
-            #                     pingTimeout: 10000
-            #                 }
-            #             ],
-            #             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-            #         }
-            #     }
-            #
-        else:
-            response = await self.futuresPublicPostBulletPublic(params)
-        data = self.safe_value(response, 'data', {})
-        instanceServers = self.safe_value(data, 'instanceServers', [])
-        firstInstanceServer = self.safe_value(instanceServers, 0)
-        pingInterval = self.safe_integer(firstInstanceServer, 'pingInterval')
-        endpoint = self.safe_string(firstInstanceServer, 'endpoint')
-        token = self.safe_string(data, 'token')
-        result = endpoint + '?' + self.urlencode({
-            'token': token,
-            'privateChannel': privateChannel,
-            'connectId': connectId,
-        })
-        client = self.client(result)
-        client.keepAlive = pingInterval
-        return result
+        try:
+            if privateChannel:
+                response = await self.futuresPrivatePostBulletPrivate(params)
+                #
+                #     {
+                #         "code": "200000",
+                #         "data": {
+                #             "instanceServers": [
+                #                 {
+                #                     "pingInterval":  50000,
+                #                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+                #                     "protocol": "websocket",
+                #                     "encrypt": True,
+                #                     "pingTimeout": 10000
+                #                 }
+                #             ],
+                #             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                #         }
+                #     }
+                #
+            else:
+                response = await self.futuresPublicPostBulletPublic(params)
+            data = self.safe_value(response, 'data', {})
+            instanceServers = self.safe_value(data, 'instanceServers', [])
+            firstInstanceServer = self.safe_value(instanceServers, 0)
+            pingInterval = self.safe_integer(firstInstanceServer, 'pingInterval')
+            endpoint = self.safe_string(firstInstanceServer, 'endpoint')
+            token = self.safe_string(data, 'token')
+            result = endpoint + '?' + self.urlencode({
+                'token': token,
+                'privateChannel': privateChannel,
+                'connectId': connectId,
+            })
+            client = self.client(result)
+            client.keepAlive = pingInterval
+            return result
+        except Exception as e:
+            future = self.safe_value(self.options['urls'], connectId)
+            future.reject(e)
+            del self.options['urls'][connectId]
+        return None
 
     def request_id(self):
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
@@ -127,12 +146,30 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             subscription = self.extend(subscriptionRequest, subscription)
         return await self.watch(url, messageHash, message, subscriptionHash, subscription)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, subscription, params={}):
+        requestId = str(self.request_id())
+        request = {
+            'id': requestId,
+            'type': 'subscribe',
+            'topic': topic,
+            'response': True,
+        }
+        message = self.extend(request, params)
+        subscriptionRequest = {
+            'id': requestId,
+        }
+        if subscription is None:
+            subscription = subscriptionRequest
+        else:
+            subscription = self.extend(subscriptionRequest, subscription)
+        return await self.watch_multiple(url, messageHashes, message, subscriptionHashes, subscription)
+
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
+        :see: https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -150,17 +187,17 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         # market/tickerV2
         #
         #    {
-        #        type: 'message',
-        #        topic: '/contractMarket/tickerV2:ADAUSDTM',
-        #        subject: 'tickerV2',
-        #        data: {
-        #            symbol: 'ADAUSDTM',
-        #            sequence: 1668007800439,
-        #            bestBidSize: 178,
-        #            bestBidPrice: '0.35959',
-        #            bestAskPrice: '0.35981',
-        #            ts: '1668141430037124460',
-        #            bestAskSize: 134
+        #        "type": "message",
+        #        "topic": "/contractMarket/tickerV2:ADAUSDTM",
+        #        "subject": "tickerV2",
+        #        "data": {
+        #            "symbol": "ADAUSDTM",
+        #            "sequence": 1668007800439,
+        #            "bestBidSize": 178,
+        #            "bestBidPrice": "0.35959",
+        #            "bestAskPrice": "0.35981",
+        #            "ts": "1668141430037124460",
+        #            "bestAskSize": 134
         #        }
         #    }
         #
@@ -173,45 +210,233 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client.resolve(ticker, messageHash)
         return message
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_position(self, symbol: Str = None, params={}) -> Position:
+        """
+        watch open positions for a specific symbol
+        :see: https://docs.kucoin.com/futures/#position-change-events
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' watchPosition() requires a symbol argument')
+        await self.load_markets()
+        url = await self.negotiate(True)
+        market = self.market(symbol)
+        topic = '/contract/position:' + market['id']
+        request = {
+            'privateChannel': True,
+        }
+        messageHash = 'position:' + market['symbol']
+        client = self.client(url)
+        self.set_position_cache(client, symbol)
+        fetchPositionSnapshot = self.handle_option('watchPosition', 'fetchPositionSnapshot', True)
+        awaitPositionSnapshot = self.safe_bool('watchPosition', 'awaitPositionSnapshot', True)
+        currentPosition = self.get_current_position(symbol)
+        if fetchPositionSnapshot and awaitPositionSnapshot and currentPosition is None:
+            snapshot = await client.future('fetchPositionSnapshot:' + symbol)
+            return snapshot
+        return await self.subscribe(url, messageHash, topic, None, self.extend(request, params))
+
+    def get_current_position(self, symbol):
+        if self.positions is None:
+            return None
+        cache = self.positions.hashmap
+        symbolCache = self.safe_value(cache, symbol, {})
+        values = list(symbolCache.values())
+        return self.safe_value(values, 0)
+
+    def set_position_cache(self, client: Client, symbol: str):
+        fetchPositionSnapshot = self.handle_option('watchPosition', 'fetchPositionSnapshot', False)
+        if fetchPositionSnapshot:
+            messageHash = 'fetchPositionSnapshot:' + symbol
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_position_snapshot, client, messageHash, symbol)
+
+    async def load_position_snapshot(self, client, messageHash, symbol):
+        position = await self.fetch_position(symbol)
+        self.positions = ArrayCacheBySymbolById()
+        cache = self.positions
+        cache.append(position)
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve(cache)
+        client.resolve(position, 'position:' + symbol)
+
+    def handle_position(self, client: Client, message):
+        #
+        # Position Changes Caused Operations
+        #    {
+        #        "type": "message",
+        #        "userId": "5c32d69203aa676ce4b543c7",  # Deprecated, will detele later
+        #        "channelType": "private",
+        #        "topic": "/contract/position:XBTUSDM",
+        #        "subject": "position.change",
+        #        "data": {
+        #            "realisedGrossPnl": 0E-8,  #Accumulated realised profit and loss
+        #            "symbol": "XBTUSDM",  #Symbol
+        #            "crossMode": False,  #Cross mode or not
+        #            "liquidationPrice": 1000000.0,  #Liquidation price
+        #            "posLoss": 0E-8,  #Manually added margin amount
+        #            "avgEntryPrice": 7508.22,  #Average entry price
+        #            "unrealisedPnl": -0.00014735,  #Unrealised profit and loss
+        #            "markPrice": 7947.83,  #Mark price
+        #            "posMargin": 0.00266779,  #Position margin
+        #            "autoDeposit": False,  #Auto deposit margin or not
+        #            "riskLimit": 100000,  #Risk limit
+        #            "unrealisedCost": 0.00266375,  #Unrealised value
+        #            "posComm": 0.00000392,  #Bankruptcy cost
+        #            "posMaint": 0.00001724,  #Maintenance margin
+        #            "posCost": 0.00266375,  #Position value
+        #            "maintMarginReq": 0.005,  #Maintenance margin rate
+        #            "bankruptPrice": 1000000.0,  #Bankruptcy price
+        #            "realisedCost": 0.00000271,  #Currently accumulated realised position value
+        #            "markValue": 0.00251640,  #Mark value
+        #            "posInit": 0.00266375,  #Position margin
+        #            "realisedPnl": -0.00000253,  #Realised profit and losts
+        #            "maintMargin": 0.00252044,  #Position margin
+        #            "realLeverage": 1.06,  #Leverage of the order
+        #            "changeReason": "positionChange",  #changeReason:marginChange、positionChange、liquidation、autoAppendMarginStatusChange、adl
+        #            "currentCost": 0.00266375,  #Current position value
+        #            "openingTimestamp": 1558433191000,  #Open time
+        #            "currentQty": -20,  #Current position
+        #            "delevPercentage": 0.52,  #ADL ranking percentile
+        #            "currentComm": 0.00000271,  #Current commission
+        #            "realisedGrossCost": 0E-8,  #Accumulated reliased gross profit value
+        #            "isOpen": True,  #Opened position or not
+        #            "posCross": 1.2E-7,  #Manually added margin
+        #            "currentTimestamp": 1558506060394,  #Current timestamp
+        #            "unrealisedRoePcnt": -0.0553,  #Rate of return on investment
+        #            "unrealisedPnlPcnt": -0.0553,  #Position profit and loss ratio
+        #            "settleCurrency": "XBT"  #Currency used to clear and settle the trades
+        #        }
+        #    }
+        # Position Changes Caused by Mark Price
+        #    {
+        #        "userId": "5cd3f1a7b7ebc19ae9558591",  # Deprecated, will detele later
+        #        "topic": "/contract/position:XBTUSDM",
+        #        "subject": "position.change",
+        #          "data": {
+        #              "markPrice": 7947.83,                   #Mark price
+        #              "markValue": 0.00251640,                 #Mark value
+        #              "maintMargin": 0.00252044,              #Position margin
+        #              "realLeverage": 10.06,                   #Leverage of the order
+        #              "unrealisedPnl": -0.00014735,           #Unrealised profit and lost
+        #              "unrealisedRoePcnt": -0.0553,           #Rate of return on investment
+        #              "unrealisedPnlPcnt": -0.0553,            #Position profit and loss ratio
+        #              "delevPercentage": 0.52,             #ADL ranking percentile
+        #              "currentTimestamp": 1558087175068,      #Current timestamp
+        #              "settleCurrency": "XBT"                 #Currency used to clear and settle the trades
+        #          }
+        #    }
+        #  Funding Settlement
+        #    {
+        #        "userId": "xbc453tg732eba53a88ggyt8c",  # Deprecated, will detele later
+        #        "topic": "/contract/position:XBTUSDM",
+        #        "subject": "position.settlement",
+        #        "data": {
+        #            "fundingTime": 1551770400000,          #Funding time
+        #            "qty": 100,                            #Position siz
+        #            "markPrice": 3610.85,                 #Settlement price
+        #            "fundingRate": -0.002966,             #Funding rate
+        #            "fundingFee": -296,                   #Funding fees
+        #            "ts": 1547697294838004923,             #Current time(nanosecond)
+        #            "settleCurrency": "XBT"                #Currency used to clear and settle the trades
+        #        }
+        #    }
+        # Adjustmet result of risk limit level
+        #     {
+        #         "userId": "xbc453tg732eba53a88ggyt8c",
+        #         "topic": "/contract/position:ADAUSDTM",
+        #         "subject": "position.adjustRiskLimit",
+        #         "data": {
+        #           "success": True,  # Successful or not
+        #           "riskLimitLevel": 1,  # Current risk limit level
+        #           "msg": ""  # Failure reason
+        #         }
+        #     }
+        #
+        topic = self.safe_string(message, 'topic', '')
+        parts = topic.split(':')
+        marketId = self.safe_string(parts, 1)
+        symbol = self.safe_symbol(marketId, None, '')
+        cache = self.positions
+        currentPosition = self.get_current_position(symbol)
+        messageHash = 'position:' + symbol
+        data = self.safe_value(message, 'data', {})
+        newPosition = self.parse_position(data)
+        keys = list(newPosition.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if newPosition[key] is None:
+                del newPosition[key]
+        position = self.extend(currentPosition, newPosition)
+        cache.append(position)
+        client.resolve(position, messageHash)
+
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        see https://docs.kucoin.com/futures/#execution-data
+        :see: https://docs.kucoin.com/futures/#execution-data
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        symbolsLength = len(symbols)
+        if symbolsLength == 0:
+            raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         url = await self.negotiate(False)
-        market = self.market(symbol)
-        symbol = market['symbol']
-        topic = '/contractMarket/execution:' + market['id']
-        messageHash = 'trades:' + symbol
-        trades = await self.subscribe(url, messageHash, topic, None, params)
+        symbols = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbols)
+        topic = '/contractMarket/execution:' + ','.join(marketIds)
+        subscriptionHashes = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            marketId = marketIds[i]
+            messageHashes.append('trades:' + symbol)
+            subscriptionHashes.append('/contractMarket/execution:' + marketId)
+        trades = await self.subscribe_multiple(url, messageHashes, topic, subscriptionHashes, params)
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trade(self, client: Client, message):
         #
         #    {
-        #        type: 'message',
-        #        topic: '/contractMarket/execution:ADAUSDTM',
-        #        subject: 'match',
-        #        data: {
-        #            makerUserId: '62286a4d720edf0001e81961',
-        #            symbol: 'ADAUSDTM',
-        #            sequence: 41320766,
-        #            side: 'sell',
-        #            size: 2,
-        #            price: 0.35904,
-        #            takerOrderId: '636dd9da9857ba00010cfa44',
-        #            makerOrderId: '636dd9c8df149d0001e62bc8',
-        #            takerUserId: '6180be22b6ab210001fa3371',
-        #            tradeId: '636dd9da0000d400d477eca7',
-        #            ts: 1668143578987357700
+        #        "type": "message",
+        #        "topic": "/contractMarket/execution:ADAUSDTM",
+        #        "subject": "match",
+        #        "data": {
+        #            "makerUserId": "62286a4d720edf0001e81961",
+        #            "symbol": "ADAUSDTM",
+        #            "sequence": 41320766,
+        #            "side": "sell",
+        #            "size": 2,
+        #            "price": 0.35904,
+        #            "takerOrderId": "636dd9da9857ba00010cfa44",
+        #            "makerOrderId": "636dd9c8df149d0001e62bc8",
+        #            "takerUserId": "6180be22b6ab210001fa3371",
+        #            "tradeId": "636dd9da0000d400d477eca7",
+        #            "ts": 1668143578987357700
         #        }
         #    }
         #
@@ -228,7 +453,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client.resolve(trades, messageHash)
         return message
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
          *   1. After receiving the websocket Level 2 data flow, cache the data.
@@ -237,27 +462,46 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
          *   4. Apply the new Level 2 data flow to the local snapshot to ensure that the sequence of the new Level 2 update lines up with the sequence of the previous Level 2 data. Discard all the message prior to that sequence, and then playback the change to snapshot.
          *   5. Update the level2 full data based on sequence according to the size. If the price is 0, ignore the messages and update the sequence. If the size=0, update the sequence and remove the price of which the size is 0 out of level 2. For other cases, please update the price.
          *   6. If the sequence of the newly pushed message does not line up to the sequence of the last message, you could pull through REST Level 2 message request to get the updated messages. Please note that the difference between the start and end parameters cannot exceed 500.
-        see https://docs.kucoin.com/futures/#level-2-market-data
+        :see: https://docs.kucoin.com/futures/#level-2-market-data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
+
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        symbolsLength = len(symbols)
+        if symbolsLength == 0:
+            raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         if limit is not None:
             if (limit != 20) and (limit != 100):
                 raise ExchangeError(self.id + " watchOrderBook 'limit' argument must be None, 20 or 100")
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbols)
         url = await self.negotiate(False)
-        market = self.market(symbol)
-        symbol = market['symbol']
-        topic = '/contractMarket/level2:' + market['id']
-        messageHash = 'orderbook:' + symbol
+        topic = '/contractMarket/level2:' + ','.join(marketIds)
         subscription = {
             'method': self.handle_order_book_subscription,
-            'symbol': symbol,
+            'symbols': symbols,
             'limit': limit,
         }
-        orderbook = await self.subscribe(url, messageHash, topic, subscription, params)
+        subscriptionHashes = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            marketId = marketIds[i]
+            messageHashes.append('orderbook:' + symbol)
+            subscriptionHashes.append('/contractMarket/level2:' + marketId)
+        orderbook = await self.subscribe_multiple(url, messageHashes, topic, subscriptionHashes, subscription, params)
         return orderbook.limit()
 
     def handle_delta(self, orderbook, delta):
@@ -289,13 +533,13 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         # the feed does not include a snapshot, just the deltas
         #
         #    {
-        #        type: 'message',
-        #        topic: '/contractMarket/level2:ADAUSDTM',
-        #        subject: 'level2',
-        #        data: {
-        #            sequence: 1668059586457,
-        #            change: '0.34172,sell,456',  # type, side, quantity
-        #            timestamp: 1668573023223
+        #        "type": "message",
+        #        "topic": "/contractMarket/level2:ADAUSDTM",
+        #        "subject": "level2",
+        #        "data": {
+        #            "sequence": 1668059586457,
+        #            "change": "0.34172,sell,456",  # type, side, quantity
+        #            "timestamp": 1668573023223
         #        }
         #    }
         #
@@ -305,17 +549,27 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         marketId = self.safe_string(topicParts, 1)
         symbol = self.safe_symbol(marketId, None, '-')
         messageHash = 'orderbook:' + symbol
-        storedOrderBook = self.orderbooks[symbol]
+        storedOrderBook = self.safe_value(self.orderbooks, symbol)
         nonce = self.safe_integer(storedOrderBook, 'nonce')
+        if storedOrderBook is None:
+            return  # self shouldn't be needed, but for some reason sometimes self runs before handleOrderBookSubscription in c#
         deltaEnd = self.safe_integer(data, 'sequence')
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
-            topic = self.safe_string(message, 'topic')
-            subscription = client.subscriptions[topic]
+            topicPartsNew = topic.split(':')
+            topicSymbol = self.safe_string(topicPartsNew, 1)
+            topicChannel = self.safe_string(topicPartsNew, 0)
+            subscriptions = list(client.subscriptions.keys())
+            subscription = None
+            for i in range(0, len(subscriptions)):
+                key = subscriptions[i]
+                if (key.find(topicSymbol) >= 0) and (key.find(topicChannel) >= 0):
+                    subscription = client.subscriptions[key]
+                    break
             limit = self.safe_integer(subscription, 'limit')
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
+                self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
             storedOrderBook.cache.append(data)
             return
         elif nonce >= deltaEnd:
@@ -337,9 +591,15 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         return len(cache)
 
     def handle_order_book_subscription(self, client: Client, message, subscription):
-        symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
-        self.orderbooks[symbol] = self.order_book({}, limit)
+        symbols = self.safe_value(subscription, 'symbols')
+        if symbols is None:
+            symbol = self.safe_string(subscription, 'symbol')
+            self.orderbooks[symbol] = self.order_book({}, limit)
+        else:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                self.orderbooks[symbol] = self.order_book({}, limit)
         # moved snapshot initialization to handleOrderBook to fix
         # https://github.com/ccxt/ccxt/issues/6820
         # the general idea is to fetch the snapshot after the first delta
@@ -348,8 +608,8 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
-        #         id: '1578090438322',
-        #         type: 'ack'
+        #         "id": "1578090438322",
+        #         "type": "ack"
         #     }
         #
         id = self.safe_string(message, 'id')
@@ -358,7 +618,6 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         method = self.safe_value(subscription, 'method')
         if method is not None:
             method(client, message, subscription)
-        return message
 
     def handle_system_status(self, client: Client, message):
         #
@@ -367,21 +626,21 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         # involves system status and maintenance updates
         #
         #     {
-        #         id: '1578090234088',  # connectId
-        #         type: 'welcome',
+        #         "id": "1578090234088",  # connectId
+        #         "type": "welcome",
         #     }
         #
         return message
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        see https://docs.kucoin.com/futures/#trade-orders-according-to-the-market
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :see: https://docs.kucoin.com/futures/#trade-orders-according-to-the-market
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         url = await self.negotiate(True)
@@ -397,7 +656,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         orders = await self.subscribe(url, messageHash, topic, None, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def parse_ws_order_status(self, status):
         statuses = {
@@ -411,20 +670,20 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     def parse_ws_order(self, order, market=None):
         #
+        #         "symbol": "XCAD-USDT",
         #     {
-        #         'symbol': 'XCAD-USDT',
-        #         'orderType': 'limit',
-        #         'side': 'buy',
-        #         'orderId': '6249167327218b000135e749',
-        #         'type': 'canceled',
-        #         'orderTime': 1648957043065280224,
-        #         'size': '100.452',
-        #         'filledSize': '0',
-        #         'price': '2.9635',
-        #         'clientOid': 'buy-XCAD-USDT-1648957043010159',
-        #         'remainSize': '0',
-        #         'status': 'done',
-        #         'ts': 1648957054031001037
+        #         "orderType": "limit",
+        #         "side": "buy",
+        #         "orderId": "6249167327218b000135e749",
+        #         "type": "canceled",
+        #         "orderTime": 1648957043065280224,
+        #         "size": "100.452",
+        #         "filledSize": "0",
+        #         "price": "2.9635",
+        #         "clientOid": "buy-XCAD-USDT-1648957043010159",
+        #         "remainSize": "0",
+        #         "status": "done",
+        #         "ts": 1648957054031001037
         #     }
         #
         id = self.safe_string(order, 'orderId')
@@ -489,13 +748,14 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             symbolSpecificMessageHash = messageHash + ':' + symbol
             client.resolve(self.orders, symbolSpecificMessageHash)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://docs.kucoin.com/futures/#account-balance-events
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://docs.kucoin.com/futures/#account-balance-events
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
+        await self.load_markets()
         url = await self.negotiate(True)
         topic = '/contractAccount/wallet'
         request = {
@@ -510,17 +770,17 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     def handle_balance(self, client: Client, message):
         #
         #    {
-        #        id: '6375553193027a0001f6566f',
-        #        type: 'message',
-        #        topic: '/contractAccount/wallet',
-        #        userId: '613a896885d8660006151f01',
-        #        channelType: 'private',
-        #        subject: 'availableBalance.change',
-        #        data: {
-        #            currency: 'USDT',
-        #            holdBalance: '0.0000000000',
-        #            availableBalance: '14.0350281903',
-        #            timestamp: '1668633905657'
+        #        "id": "6375553193027a0001f6566f",
+        #        "type": "message",
+        #        "topic": "/contractAccount/wallet",
+        #        "userId": "613a896885d8660006151f01",
+        #        "channelType": "private",
+        #        "subject": "availableBalance.change",
+        #        "data": {
+        #            "currency": "USDT",
+        #            "holdBalance": "0.0000000000",
+        #            "availableBalance": "14.0350281903",
+        #            "timestamp": "1668633905657"
         #        }
         #    }
         #
@@ -549,34 +809,34 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         snapshot = await self.fetch_balance(params)
         #
         #    {
-        #        info: {
-        #            code: '200000',
-        #            data: {
-        #                accountEquity: 0.0350281903,
-        #                unrealisedPNL: 0,
-        #                marginBalance: 0.0350281903,
-        #                positionMargin: 0,
-        #                orderMargin: 0,
-        #                frozenFunds: 0,
-        #                availableBalance: 0.0350281903,
-        #                currency: 'USDT'
+        #        "info": {
+        #            "code": "200000",
+        #            "data": {
+        #                "accountEquity": 0.0350281903,
+        #                "unrealisedPNL": 0,
+        #                "marginBalance": 0.0350281903,
+        #                "positionMargin": 0,
+        #                "orderMargin": 0,
+        #                "frozenFunds": 0,
+        #                "availableBalance": 0.0350281903,
+        #                "currency": "USDT"
         #            }
         #        },
-        #        timestamp: None,
-        #        datetime: None,
-        #        USDT: {
-        #            free: 0.0350281903,
-        #            used: 0,
-        #            total: 0.0350281903
+        #        "timestamp": None,
+        #        "datetime": None,
+        #        "USDT": {
+        #            "free": 0.0350281903,
+        #            "used": 0,
+        #            "total": 0.0350281903
         #        },
-        #        free: {
-        #            USDT: 0.0350281903
+        #        "free": {
+        #            "USDT": 0.0350281903
         #        },
-        #        used: {
-        #            USDT: 0
+        #        "used": {
+        #            "USDT": 0
         #        },
-        #        total: {
-        #            USDT: 0.0350281903
+        #        "total": {
+        #            "USDT": 0.0350281903
         #        }
         #    }
         #
@@ -591,13 +851,13 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     def handle_subject(self, client: Client, message):
         #
         #    {
-        #        type: 'message',
-        #        topic: '/contractMarket/level2:ADAUSDTM',
-        #        subject: 'level2',
-        #        data: {
-        #            sequence: 1668059586457,
-        #            change: '0.34172,sell,456',  # type, side, quantity
-        #            timestamp: 1668573023223
+        #        "type": "message",
+        #        "topic": "/contractMarket/level2:ADAUSDTM",
+        #        "subject": "level2",
+        #        "data": {
+        #            "sequence": 1668059586457,
+        #            "change": "0.34172,sell,456",  # type, side, quantity
+        #            "timestamp": 1668573023223
         #        }
         #    }
         #
@@ -609,12 +869,13 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             'match': self.handle_trade,
             'orderChange': self.handle_order,
             'orderUpdated': self.handle_order,
+            'position.change': self.handle_position,
+            'position.settlement': self.handle_position,
+            'position.adjustRiskLimit': self.handle_position,
         }
         method = self.safe_value(methods, subject)
-        if method is None:
-            return message
-        else:
-            return method(client, message)
+        if method is not None:
+            method(client, message)
 
     def ping(self, client):
         # kucoin does not support built-in ws protocol-level ping-pong
@@ -632,20 +893,32 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         return message
 
     def handle_error_message(self, client: Client, message):
-        return message
+        #
+        #    {
+        #        "id": "64d8732c856851144bded10d",
+        #        "type": "error",
+        #        "code": 401,
+        #        "data": "token is expired"
+        #    }
+        #
+        data = self.safe_string(message, 'data', '')
+        if data == 'token is expired':
+            type = 'public'
+            if client.url.find('connectId=private') >= 0:
+                type = 'private'
+            self.options['urls'][type] = None
+        self.handle_errors(None, None, client.url, None, None, data, message, None, None)
 
     def handle_message(self, client: Client, message):
-        if self.handle_error_message(client, message):
-            type = self.safe_string(message, 'type')
-            methods = {
-                # 'heartbeat': self.handleHeartbeat,
-                'welcome': self.handle_system_status,
-                'ack': self.handle_subscription_status,
-                'message': self.handle_subject,
-                'pong': self.handle_pong,
-            }
-            method = self.safe_value(methods, type)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+        type = self.safe_string(message, 'type')
+        methods = {
+            # 'heartbeat': self.handleHeartbeat,
+            'welcome': self.handle_system_status,
+            'ack': self.handle_subscription_status,
+            'message': self.handle_subject,
+            'pong': self.handle_pong,
+            'error': self.handle_error_message,
+        }
+        method = self.safe_value(methods, type)
+        if method is not None:
+            method(client, message)

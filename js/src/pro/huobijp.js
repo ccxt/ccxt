@@ -52,7 +52,7 @@ export default class huobijp extends huobijpRest {
          * @name huobijp#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -79,18 +79,18 @@ export default class huobijp extends huobijpRest {
     handleTicker(client, message) {
         //
         //     {
-        //         ch: 'market.btcusdt.detail',
-        //         ts: 1583494163784,
-        //         tick: {
-        //             id: 209988464418,
-        //             low: 8988,
-        //             high: 9155.41,
-        //             open: 9078.91,
-        //             close: 9136.46,
-        //             vol: 237813910.5928412,
-        //             amount: 26184.202558551195,
-        //             version: 209988464418,
-        //             count: 265673
+        //         "ch": "market.btcusdt.detail",
+        //         "ts": 1583494163784,
+        //         "tick": {
+        //             "id": 209988464418,
+        //             "low": 8988,
+        //             "high": 9155.41,
+        //             "open": 9078.91,
+        //             "close": 9136.46,
+        //             "vol": 237813910.5928412,
+        //             "amount": 26184.202558551195,
+        //             "version": 209988464418,
+        //             "count": 265673
         //         }
         //     }
         //
@@ -114,10 +114,10 @@ export default class huobijp extends huobijpRest {
          * @name huobijp#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -142,24 +142,24 @@ export default class huobijp extends huobijpRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
         //     {
-        //         ch: "market.btcusdt.trade.detail",
-        //         ts: 1583495834011,
-        //         tick: {
-        //             id: 105004645372,
-        //             ts: 1583495833751,
-        //             data: [
+        //         "ch": "market.btcusdt.trade.detail",
+        //         "ts": 1583495834011,
+        //         "tick": {
+        //             "id": 105004645372,
+        //             "ts": 1583495833751,
+        //             "data": [
         //                 {
-        //                     id: 1.050046453727319e+22,
-        //                     ts: 1583495833751,
-        //                     tradeId: 102090727790,
-        //                     amount: 0.003893,
-        //                     price: 9150.01,
-        //                     direction: "sell"
+        //                     "id": 1.050046453727319e+22,
+        //                     "ts": 1583495833751,
+        //                     "tradeId": 102090727790,
+        //                     "amount": 0.003893,
+        //                     "price": 9150.01,
+        //                     "direction": "sell"
         //                 }
         //             ]
         //         }
@@ -192,10 +192,10 @@ export default class huobijp extends huobijpRest {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the huobijp api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -221,22 +221,22 @@ export default class huobijp extends huobijpRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
         //     {
-        //         ch: 'market.btcusdt.kline.1min',
-        //         ts: 1583501786794,
-        //         tick: {
-        //             id: 1583501760,
-        //             open: 9094.5,
-        //             close: 9094.51,
-        //             low: 9094.5,
-        //             high: 9094.51,
-        //             amount: 0.44639786263800907,
-        //             vol: 4059.76919054,
-        //             count: 16
+        //         "ch": "market.btcusdt.kline.1min",
+        //         "ts": 1583501786794,
+        //         "tick": {
+        //             "id": 1583501760,
+        //             "open": 9094.5,
+        //             "close": 9094.51,
+        //             "low": 9094.5,
+        //             "high": 9094.51,
+        //             "amount": 0.44639786263800907,
+        //             "vol": 4059.76919054,
+        //             "count": 16
         //         }
         //     }
         //
@@ -265,8 +265,8 @@ export default class huobijp extends huobijpRest {
          * @name huobijp#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the huobijp api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if ((limit !== undefined) && (limit !== 150)) {
@@ -300,17 +300,17 @@ export default class huobijp extends huobijpRest {
     handleOrderBookSnapshot(client, message, subscription) {
         //
         //     {
-        //         id: 1583473663565,
-        //         rep: 'market.btcusdt.mbp.150',
-        //         status: 'ok',
-        //         data: {
-        //             seqNum: 104999417756,
-        //             bids: [
+        //         "id": 1583473663565,
+        //         "rep": "market.btcusdt.mbp.150",
+        //         "status": "ok",
+        //         "data": {
+        //             "seqNum": 104999417756,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -328,8 +328,7 @@ export default class huobijp extends huobijpRest {
         // unroll the accumulated deltas
         const messages = orderbook.cache;
         for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            this.handleOrderBookMessage(client, message, orderbook);
+            this.handleOrderBookMessage(client, messages[i], orderbook);
         }
         this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
@@ -365,6 +364,7 @@ export default class huobijp extends huobijpRest {
             delete client.subscriptions[messageHash];
             client.reject(e, messageHash);
         }
+        return undefined;
     }
     handleDelta(bookside, delta) {
         const price = this.safeFloat(delta, 0);
@@ -379,17 +379,17 @@ export default class huobijp extends huobijpRest {
     handleOrderBookMessage(client, message, orderbook) {
         //
         //     {
-        //         ch: "market.btcusdt.mbp.150",
-        //         ts: 1583472025885,
-        //         tick: {
-        //             seqNum: 104998984994,
-        //             prevSeqNum: 104998984977,
-        //             bids: [
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -417,17 +417,17 @@ export default class huobijp extends huobijpRest {
         // deltas
         //
         //     {
-        //         ch: "market.btcusdt.mbp.150",
-        //         ts: 1583472025885,
-        //         tick: {
-        //             seqNum: 104998984994,
-        //             prevSeqNum: 104998984977,
-        //             bids: [
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -490,8 +490,8 @@ export default class huobijp extends huobijpRest {
         // involves system status and maintenance updates
         //
         //     {
-        //         id: '1578090234088', // connectId
-        //         type: 'welcome',
+        //         "id": "1578090234088", // connectId
+        //         "type": "welcome",
         //     }
         //
         return message;
@@ -499,17 +499,17 @@ export default class huobijp extends huobijpRest {
     handleSubject(client, message) {
         //
         //     {
-        //         ch: "market.btcusdt.mbp.150",
-        //         ts: 1583472025885,
-        //         tick: {
-        //             seqNum: 104998984994,
-        //             prevSeqNum: 104998984977,
-        //             bids: [
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -530,11 +530,8 @@ export default class huobijp extends huobijpRest {
                 // ...
             };
             const method = this.safeValue(methods, methodName);
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message);
+            if (method !== undefined) {
+                method.call(this, client, message);
             }
         }
     }
@@ -550,11 +547,11 @@ export default class huobijp extends huobijpRest {
     handleErrorMessage(client, message) {
         //
         //     {
-        //         ts: 1586323747018,
-        //         status: 'error',
-        //         'err-code': 'bad-request',
-        //         'err-msg': 'invalid mbp.150.symbol linkusdt',
-        //         id: '2'
+        //         "ts": 1586323747018,
+        //         "status": "error",
+        //         'err-code': "bad-request",
+        //         'err-msg': "invalid mbp.150.symbol linkusdt",
+        //         "id": "2"
         //     }
         //
         const status = this.safeString(message, 'status');
@@ -589,7 +586,7 @@ export default class huobijp extends huobijpRest {
             //
             // sometimes huobijp responds with half of a JSON response like
             //
-            //     ' {"ch":"market.ethbtc.m '
+            //     " {"ch":"market.ethbtc.m "
             //
             // this is passed to handleMessage as a string since it failed to be decoded as JSON
             //

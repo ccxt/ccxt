@@ -34,7 +34,6 @@ class blockchaincom extends blockchaincom$1 {
                     },
                     'noOriginHeader': false,
                 },
-                'sequenceNumbers': {},
             },
             'streaming': {},
             'exceptions': {},
@@ -52,10 +51,10 @@ class blockchaincom extends blockchaincom$1 {
         /**
          * @method
          * @name blockchaincom#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange.blockchain.com/api/#balances
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.authenticate(params);
         const messageHash = 'balance';
@@ -71,11 +70,11 @@ class blockchaincom extends blockchaincom$1 {
         //
         //  subscribed
         //     {
-        //         seqnum: 1,
-        //         event: 'subscribed',
-        //         channel: 'balances',
-        //         local_currency: 'USD',
-        //         batching: false
+        //         "seqnum": 1,
+        //         "event": "subscribed",
+        //         "channel": "balances",
+        //         "local_currency": "USD",
+        //         "batching": false
         //     }
         //  snapshot
         //     {
@@ -99,7 +98,7 @@ class blockchaincom extends blockchaincom$1 {
         //
         const event = this.safeString(message, 'event');
         if (event === 'subscribed') {
-            return message;
+            return;
         }
         const result = { 'info': message };
         const balances = this.safeValue(message, 'balances', []);
@@ -108,12 +107,12 @@ class blockchaincom extends blockchaincom$1 {
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            account['free'] = this.safeNumber(entry, 'available');
-            account['total'] = this.safeNumber(entry, 'balance');
+            account['free'] = this.safeString(entry, 'available');
+            account['total'] = this.safeString(entry, 'balance');
             result[code] = account;
         }
         const messageHash = 'balance';
-        this.balance = result;
+        this.balance = this.safeBalance(result);
         client.resolve(this.balance, messageHash);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -124,10 +123,10 @@ class blockchaincom extends blockchaincom$1 {
          * @see https://exchange.blockchain.com/api/#prices
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents. Allows '1m', '5m', '15m', '1h', '6h' '1d'. Can only watch one timeframe per symbol.
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -146,34 +145,32 @@ class blockchaincom extends blockchaincom$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
         //  subscribed
         //     {
-        //         seqnum: 0,
-        //         event: 'subscribed',
-        //         channel: 'prices',
-        //         symbol: 'BTC-USDT',
-        //         granularity: 60
+        //         "seqnum": 0,
+        //         "event": "subscribed",
+        //         "channel": "prices",
+        //         "symbol": "BTC-USDT",
+        //         "granularity": 60
         //     }
         //
         //  updated
         //     {
-        //         seqnum: 1,
-        //         event: 'updated',
-        //         channel: 'prices',
-        //         symbol: 'BTC-USD',
-        //         price: [ 1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0 ]
+        //         "seqnum": 1,
+        //         "event": "updated",
+        //         "channel": "prices",
+        //         "symbol": "BTC-USD",
+        //         "price": [ 1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0 ]
         //     }
         //
         const event = this.safeString(message, 'event');
-        if (event === 'subscribed') {
-            return message;
-        }
-        else if (event === 'rejected') {
-            throw new errors.ExchangeError(this.id + ' ' + this.json(message));
+        if (event === 'rejected') {
+            const jsonMessage = this.json(message);
+            throw new errors.ExchangeError(this.id + ' ' + jsonMessage);
         }
         else if (event === 'updated') {
             const marketId = this.safeString(message, 'symbol');
@@ -193,7 +190,7 @@ class blockchaincom extends blockchaincom$1 {
             stored.append(ohlcv);
             client.resolve(stored, messageHash);
         }
-        else {
+        else if (event !== 'subscribed') {
             throw new errors.NotSupported(this.id + ' ' + this.json(message));
         }
     }
@@ -204,8 +201,8 @@ class blockchaincom extends blockchaincom$1 {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://exchange.blockchain.com/api/#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -224,29 +221,29 @@ class blockchaincom extends blockchaincom$1 {
         //
         //  subscribed
         //     {
-        //         seqnum: 0,
-        //         event: 'subscribed',
-        //         channel: 'ticker',
-        //         symbol: 'BTC-USD'
+        //         "seqnum": 0,
+        //         "event": "subscribed",
+        //         "channel": "ticker",
+        //         "symbol": "BTC-USD"
         //     }
         //  snapshot
         //     {
-        //         seqnum: 1,
-        //         event: 'snapshot',
-        //         channel: 'ticker',
-        //         symbol: 'BTC-USD',
-        //         price_24h: 23071.4,
-        //         volume_24h: 236.28398636,
-        //         last_trade_price: 23936.4,
-        //         mark_price: 23935.335240262
+        //         "seqnum": 1,
+        //         "event": "snapshot",
+        //         "channel": "ticker",
+        //         "symbol": "BTC-USD",
+        //         "price_24h": 23071.4,
+        //         "volume_24h": 236.28398636,
+        //         "last_trade_price": 23936.4,
+        //         "mark_price": 23935.335240262
         //     }
         // update
         //     {
-        //         seqnum: 2,
-        //         event: 'updated',
-        //         channel: 'ticker',
-        //         symbol: 'BTC-USD',
-        //         mark_price: 23935.242443617
+        //         "seqnum": 2,
+        //         "event": "updated",
+        //         "channel": "ticker",
+        //         "symbol": "BTC-USD",
+        //         "mark_price": 23935.242443617
         //     }
         //
         const event = this.safeString(message, 'event');
@@ -255,7 +252,7 @@ class blockchaincom extends blockchaincom$1 {
         const symbol = market['symbol'];
         let ticker = undefined;
         if (event === 'subscribed') {
-            return message;
+            return;
         }
         else if (event === 'snapshot') {
             ticker = this.parseTicker(message, market);
@@ -271,11 +268,11 @@ class blockchaincom extends blockchaincom$1 {
     parseWsUpdatedTicker(ticker, lastTicker = undefined, market = undefined) {
         //
         //     {
-        //         seqnum: 2,
-        //         event: 'updated',
-        //         channel: 'ticker',
-        //         symbol: 'BTC-USD',
-        //         mark_price: 23935.242443617
+        //         "seqnum": 2,
+        //         "event": "updated",
+        //         "channel": "ticker",
+        //         "symbol": "BTC-USD",
+        //         "mark_price": 23935.242443617
         //     }
         //
         const marketId = this.safeString(ticker, 'symbol');
@@ -311,10 +308,10 @@ class blockchaincom extends blockchaincom$1 {
          * @description get the list of most recent trades for a particular symbol
          * @see https://exchange.blockchain.com/api/#trades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of    trades to fetch
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of    trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -328,33 +325,33 @@ class blockchaincom extends blockchaincom$1 {
         };
         request = this.deepExtend(request, params);
         const trades = await this.watch(url, messageHash, request, messageHash, request);
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
         //  subscribed
         //     {
-        //         seqnum: 0,
-        //         event: 'subscribed',
-        //         channel: 'trades',
-        //         symbol: 'BTC-USDT'
+        //         "seqnum": 0,
+        //         "event": "subscribed",
+        //         "channel": "trades",
+        //         "symbol": "BTC-USDT"
         //     }
         //  updates
         //     {
-        //         seqnum: 1,
-        //         event: 'updated',
-        //         channel: 'trades',
-        //         symbol: 'BTC-USDT',
-        //         timestamp: '2022-08-08T17:23:48.163096Z',
-        //         side: 'sell',
-        //         qty: 0.083523,
-        //         price: 23940.67,
-        //         trade_id: '563078810223444'
+        //         "seqnum": 1,
+        //         "event": "updated",
+        //         "channel": "trades",
+        //         "symbol": "BTC-USDT",
+        //         "timestamp": "2022-08-08T17:23:48.163096Z",
+        //         "side": "sell",
+        //         "qty": 0.083523,
+        //         "price": 23940.67,
+        //         "trade_id": "563078810223444"
         //     }
         //
         const event = this.safeString(message, 'event');
         if (event !== 'updated') {
-            return message;
+            return;
         }
         const marketId = this.safeString(message, 'symbol');
         const symbol = this.safeSymbol(marketId);
@@ -374,15 +371,15 @@ class blockchaincom extends blockchaincom$1 {
     parseWsTrade(trade, market = undefined) {
         //
         //     {
-        //         seqnum: 1,
-        //         event: 'updated',
-        //         channel: 'trades',
-        //         symbol: 'BTC-USDT',
-        //         timestamp: '2022-08-08T17:23:48.163096Z',
-        //         side: 'sell',
-        //         qty: 0.083523,
-        //         price: 23940.67,
-        //         trade_id: '563078810223444'
+        //         "seqnum": 1,
+        //         "event": "updated",
+        //         "channel": "trades",
+        //         "symbol": "BTC-USDT",
+        //         "timestamp": "2022-08-08T17:23:48.163096Z",
+        //         "side": "sell",
+        //         "qty": 0.083523,
+        //         "price": 23940.67,
+        //         "trade_id": "563078810223444"
         //     }
         //
         const marketId = this.safeString(trade, 'symbol');
@@ -409,11 +406,11 @@ class blockchaincom extends blockchaincom$1 {
          * @name blockchaincom#fetchOrders
          * @description watches information on multiple orders made by the user
          * @see https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -432,80 +429,80 @@ class blockchaincom extends blockchaincom$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         //
         //     {
-        //         seqnum: 1,
-        //         event: 'rejected',
-        //         channel: 'trading',
-        //         text: 'Not subscribed to channel'
+        //         "seqnum": 1,
+        //         "event": "rejected",
+        //         "channel": "trading",
+        //         "text": "Not subscribed to channel"
         //     }
         //  snapshot
         //     {
-        //         seqnum: 2,
-        //         event: 'snapshot',
-        //         channel: 'trading',
-        //         orders: [
+        //         "seqnum": 2,
+        //         "event": "snapshot",
+        //         "channel": "trading",
+        //         "orders": [
         //           {
-        //             orderID: '562965341621940',
-        //             gwOrderId: 181011136260,
-        //             clOrdID: '016caf67f7a94508webd',
-        //             symbol: 'BTC-USD',
-        //             side: 'sell',
-        //             ordType: 'limit',
-        //             orderQty: 0.000675,
-        //             leavesQty: 0.000675,
-        //             cumQty: 0,
-        //             avgPx: 0,
-        //             ordStatus: 'open',
-        //             timeInForce: 'GTC',
-        //             text: 'New order',
-        //             execType: '0',
-        //             execID: '21415965325',
-        //             transactTime: '2022-08-08T23:31:00.550795Z',
-        //             msgType: 8,
-        //             lastPx: 0,
-        //             lastShares: 0,
-        //             tradeId: '0',
-        //             fee: 0,
-        //             price: 30000,
-        //             marginOrder: false,
-        //             closePositionOrder: false
+        //             "orderID": "562965341621940",
+        //             "gwOrderId": 181011136260,
+        //             "clOrdID": "016caf67f7a94508webd",
+        //             "symbol": "BTC-USD",
+        //             "side": "sell",
+        //             "ordType": "limit",
+        //             "orderQty": 0.000675,
+        //             "leavesQty": 0.000675,
+        //             "cumQty": 0,
+        //             "avgPx": 0,
+        //             "ordStatus": "open",
+        //             "timeInForce": "GTC",
+        //             "text": "New order",
+        //             "execType": "0",
+        //             "execID": "21415965325",
+        //             "transactTime": "2022-08-08T23:31:00.550795Z",
+        //             "msgType": 8,
+        //             "lastPx": 0,
+        //             "lastShares": 0,
+        //             "tradeId": "0",
+        //             "fee": 0,
+        //             "price": 30000,
+        //             "marginOrder": false,
+        //             "closePositionOrder": false
         //           }
         //         ],
-        //         positions: []
+        //         "positions": []
         //     }
         //  update
         //     {
-        //         seqnum: 3,
-        //         event: 'updated',
-        //         channel: 'trading',
-        //         orderID: '562965341621940',
-        //         gwOrderId: 181011136260,
-        //         clOrdID: '016caf67f7a94508webd',
-        //         symbol: 'BTC-USD',
-        //         side: 'sell',
-        //         ordType: 'limit',
-        //         orderQty: 0.000675,
-        //         leavesQty: 0.000675,
-        //         cumQty: 0,
-        //         avgPx: 0,
-        //         ordStatus: 'cancelled',
-        //         timeInForce: 'GTC',
-        //         text: 'Canceled by User',
-        //         execType: '4',
-        //         execID: '21416034921',
-        //         transactTime: '2022-08-08T23:33:25.727785Z',
-        //         msgType: 8,
-        //         lastPx: 0,
-        //         lastShares: 0,
-        //         tradeId: '0',
-        //         fee: 0,
-        //         price: 30000,
-        //         marginOrder: false,
-        //         closePositionOrder: false
+        //         "seqnum": 3,
+        //         "event": "updated",
+        //         "channel": "trading",
+        //         "orderID": "562965341621940",
+        //         "gwOrderId": 181011136260,
+        //         "clOrdID": "016caf67f7a94508webd",
+        //         "symbol": "BTC-USD",
+        //         "side": "sell",
+        //         "ordType": "limit",
+        //         "orderQty": 0.000675,
+        //         "leavesQty": 0.000675,
+        //         "cumQty": 0,
+        //         "avgPx": 0,
+        //         "ordStatus": "cancelled",
+        //         "timeInForce": "GTC",
+        //         "text": "Canceled by User",
+        //         "execType": "4",
+        //         "execID": "21416034921",
+        //         "transactTime": "2022-08-08T23:33:25.727785Z",
+        //         "msgType": 8,
+        //         "lastPx": 0,
+        //         "lastShares": 0,
+        //         "tradeId": "0",
+        //         "fee": 0,
+        //         "price": 30000,
+        //         "marginOrder": false,
+        //         "closePositionOrder": false
         //     }
         //
         const event = this.safeString(message, 'event');
@@ -516,7 +513,7 @@ class blockchaincom extends blockchaincom$1 {
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
         if (event === 'subscribed') {
-            return message;
+            return;
         }
         else if (event === 'rejected') {
             throw new errors.ExchangeError(this.id + ' ' + this.json(message));
@@ -539,33 +536,33 @@ class blockchaincom extends blockchaincom$1 {
     parseWsOrder(order, market = undefined) {
         //
         //     {
-        //         seqnum: 3,
-        //         event: 'updated',
-        //         channel: 'trading',
-        //         orderID: '562965341621940',
-        //         gwOrderId: 181011136260,
-        //         clOrdID: '016caf67f7a94508webd',
-        //         symbol: 'BTC-USD',
-        //         side: 'sell',
-        //         ordType: 'limit',
-        //         orderQty: 0.000675,
-        //         leavesQty: 0.000675,
-        //         cumQty: 0,
-        //         avgPx: 0,
-        //         ordStatus: 'cancelled',
-        //         timeInForce: 'GTC',
-        //         text: 'Canceled by User',
-        //         execType: '4',
-        //         execID: '21416034921',
-        //         transactTime: '2022-08-08T23:33:25.727785Z',
-        //         msgType: 8,
-        //         lastPx: 0,
-        //         lastShares: 0,
-        //         tradeId: '0',
-        //         fee: 0,
-        //         price: 30000,
-        //         marginOrder: false,
-        //         closePositionOrder: false
+        //         "seqnum": 3,
+        //         "event": "updated",
+        //         "channel": "trading",
+        //         "orderID": "562965341621940",
+        //         "gwOrderId": 181011136260,
+        //         "clOrdID": "016caf67f7a94508webd",
+        //         "symbol": "BTC-USD",
+        //         "side": "sell",
+        //         "ordType": "limit",
+        //         "orderQty": 0.000675,
+        //         "leavesQty": 0.000675,
+        //         "cumQty": 0,
+        //         "avgPx": 0,
+        //         "ordStatus": "cancelled",
+        //         "timeInForce": "GTC",
+        //         "text": "Canceled by User",
+        //         "execType": "4",
+        //         "execID": "21416034921",
+        //         "transactTime": "2022-08-08T23:33:25.727785Z",
+        //         "msgType": 8,
+        //         "lastPx": 0,
+        //         "lastShares": 0,
+        //         "tradeId": "0",
+        //         "fee": 0,
+        //         "price": 30000,
+        //         "marginOrder": false,
+        //         "closePositionOrder": false
         //     }
         //
         const datetime = this.safeString(order, 'transactTime');
@@ -624,10 +621,10 @@ class blockchaincom extends blockchaincom$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://exchange.blockchain.com/api/#l2-order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {objectConstructor} params extra parameters specific to the blockchaincom api endpoint
-         * @param {string|undefined} params.type accepts l2 or l3 for level 2 or level 3 order book
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -648,121 +645,78 @@ class blockchaincom extends blockchaincom$1 {
         //
         //  subscribe
         //     {
-        //         seqnum: 0,
-        //         event: 'subscribed',
-        //         channel: 'l2',
-        //         symbol: 'BTC-USDT',
-        //         batching: false
+        //         "seqnum": 0,
+        //         "event": "subscribed",
+        //         "channel": "l2",
+        //         "symbol": "BTC-USDT",
+        //         "batching": false
         //     }
         //  snapshot
         //     {
-        //         seqnum: 1,
-        //         event: 'snapshot',
-        //         channel: 'l2',
-        //         symbol: 'BTC-USDT',
-        //         bids: [
+        //         "seqnum": 1,
+        //         "event": "snapshot",
+        //         "channel": "l2",
+        //         "symbol": "BTC-USDT",
+        //         "bids": [
         //           { num: 1, px: 0.01, qty: 22 },
         //         ],
-        //         asks: [
+        //         "asks": [
         //           { num: 1, px: 23840.26, qty: 0.25 },
         //         ],
-        //         timestamp: '2022-08-08T22:03:19.071870Z'
+        //         "timestamp": "2022-08-08T22:03:19.071870Z"
         //     }
         //  update
         //     {
-        //         seqnum: 2,
-        //         event: 'updated',
-        //         channel: 'l2',
-        //         symbol: 'BTC-USDT',
-        //         bids: [],
-        //         asks: [ { num: 1, px: 23855.06, qty: 1.04786347 } ],
-        //         timestamp: '2022-08-08T22:03:19.014680Z'
+        //         "seqnum": 2,
+        //         "event": "updated",
+        //         "channel": "l2",
+        //         "symbol": "BTC-USDT",
+        //         "bids": [],
+        //         "asks": [ { num: 1, px: 23855.06, qty: 1.04786347 } ],
+        //         "timestamp": "2022-08-08T22:03:19.014680Z"
         //     }
         //
         const event = this.safeString(message, 'event');
+        if (event === 'subscribed') {
+            return;
+        }
         const type = this.safeString(message, 'channel');
         const marketId = this.safeString(message, 'symbol');
         const symbol = this.safeSymbol(marketId);
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const datetime = this.safeString(message, 'timestamp');
         const timestamp = this.parse8601(datetime);
-        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.countedOrderBook({});
-            this.orderbooks[symbol] = storedOrderBook;
+        if (this.safeValue(this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.countedOrderBook();
         }
-        if (event === 'subscribed') {
-            return message;
-        }
-        else if (event === 'snapshot') {
-            const snapshot = this.parseCountedOrderBook(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
-            storedOrderBook.reset(snapshot);
+        const orderbook = this.orderbooks[symbol];
+        if (event === 'snapshot') {
+            const snapshot = this.parseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
+            orderbook.reset(snapshot);
         }
         else if (event === 'updated') {
             const asks = this.safeValue(message, 'asks', []);
             const bids = this.safeValue(message, 'bids', []);
-            this.handleDeltas(storedOrderBook['asks'], asks);
-            this.handleDeltas(storedOrderBook['bids'], bids);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = datetime;
+            this.handleDeltas(orderbook['asks'], asks);
+            this.handleDeltas(orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = datetime;
         }
         else {
             throw new errors.NotSupported(this.id + ' watchOrderBook() does not support ' + event + ' yet');
         }
-        client.resolve(storedOrderBook, messageHash);
-    }
-    parseCountedBidAsk(bidAsk, priceKey = 0, amountKey = 1, countKey = 2) {
-        const price = this.safeNumber(bidAsk, priceKey);
-        const amount = this.safeNumber(bidAsk, amountKey);
-        const count = this.safeNumber(bidAsk, countKey);
-        return [price, amount, count];
-    }
-    parseCountedBidsAsks(bidasks, priceKey = 0, amountKey = 1, countKey = 2) {
-        bidasks = this.toArray(bidasks);
-        const result = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.parseCountedBidAsk(bidasks[i], priceKey, amountKey, countKey));
-        }
-        return result;
-    }
-    parseCountedOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countKey = 2) {
-        const bids = this.parseCountedBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countKey);
-        const asks = this.parseCountedBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countKey);
-        return {
-            'symbol': symbol,
-            'bids': this.sortBy(bids, 0, true),
-            'asks': this.sortBy(asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'nonce': undefined,
-        };
+        client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const array = this.parseCountedBidAsk(delta, 'px', 'qty', 'num');
-        bookside.storeArray(array);
+        const bookArray = this.parseBidAsk(delta, 'px', 'qty', 'num');
+        bookside.storeArray(bookArray);
     }
     handleDeltas(bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta(bookside, deltas[i]);
         }
     }
-    checkSequenceNumber(client, message) {
-        const seqnum = this.safeInteger(message, 'seqnum', 0);
-        const channel = this.safeString(message, 'channel', '');
-        const sequenceNumbersByChannel = this.safeValue(this.options, 'sequenceNumbers', {});
-        const lastSeqnum = this.safeInteger(sequenceNumbersByChannel, channel);
-        if (lastSeqnum === undefined) {
-            this.options['sequenceNumbers'][channel] = seqnum;
-        }
-        else {
-            if (seqnum !== lastSeqnum + 1) {
-                throw new errors.ExchangeError(this.id + ' ' + channel + ' seqnum ' + seqnum + ' is not the expected ' + (lastSeqnum + 1));
-            }
-            this.options['sequenceNumbers'][channel] = seqnum;
-        }
-    }
     handleMessage(client, message) {
-        this.checkSequenceNumber(client, message);
         const channel = this.safeString(message, 'channel');
         const handlers = {
             'ticker': this.handleTicker,
@@ -776,17 +730,18 @@ class blockchaincom extends blockchaincom$1 {
         };
         const handler = this.safeValue(handlers, channel);
         if (handler !== undefined) {
-            return handler.call(this, client, message);
+            handler.call(this, client, message);
+            return;
         }
         throw new errors.NotSupported(this.id + ' received an unsupported message: ' + this.json(message));
     }
     handleAuthenticationMessage(client, message) {
         //
         //     {
-        //         seqnum: 0,
-        //         event: 'subscribed',
-        //         channel: 'auth',
-        //         readOnly: false
+        //         "seqnum": 0,
+        //         "event": "subscribed",
+        //         "channel": "auth",
+        //         "readOnly": false
         //     }
         //
         const event = this.safeString(message, 'event');
@@ -798,7 +753,7 @@ class blockchaincom extends blockchaincom$1 {
             future.resolve(true);
         }
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';

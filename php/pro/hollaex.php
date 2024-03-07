@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class hollaex extends \ccxt\async\hollaex {
 
@@ -54,13 +55,13 @@ class hollaex extends \ccxt\async\hollaex {
         ));
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the hollaex api endpoint
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
@@ -113,15 +114,15 @@ class hollaex extends \ccxt\async\hollaex {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the hollaex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -131,22 +132,22 @@ class hollaex extends \ccxt\async\hollaex {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
     }
 
     public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         topic => 'trade',
-        //         action => 'partial',
-        //         $symbol => 'btc-usdt',
-        //         $data => array(
+        //         "topic" => "trade",
+        //         "action" => "partial",
+        //         "symbol" => "btc-usdt",
+        //         "data" => array(
         //             array(
-        //                 size => 0.05145,
-        //                 price => 41977.9,
-        //                 side => 'buy',
-        //                 timestamp => '2022-04-11T09:40:10.881Z'
+        //                 "size" => 0.05145,
+        //                 "price" => 41977.9,
+        //                 "side" => "buy",
+        //                 "timestamp" => "2022-04-11T09:40:10.881Z"
         //             ),
         //         )
         //     }
@@ -171,15 +172,15 @@ class hollaex extends \ccxt\async\hollaex {
         $client->resolve ($stored, $channel);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the hollaex api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
             $messageHash = 'usertrade';
@@ -193,7 +194,7 @@ class hollaex extends \ccxt\async\hollaex {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -226,7 +227,7 @@ class hollaex extends \ccxt\async\hollaex {
         // when the user does not have any trades yet
         $dataLength = count($rawTrades);
         if ($dataLength === 0) {
-            return 0;
+            return;
         }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -253,15 +254,15 @@ class hollaex extends \ccxt\async\hollaex {
         }
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the hollaex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'order';
@@ -275,34 +276,34 @@ class hollaex extends \ccxt\async\hollaex {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
         }) ();
     }
 
     public function handle_order(Client $client, $message, $subscription = null) {
         //
         //     {
-        //         topic => 'order',
-        //         action => 'insert',
-        //         user_id => 155328,
-        //         $symbol => 'ltc-usdt',
-        //         $data => array(
-        //             $symbol => 'ltc-usdt',
-        //             side => 'buy',
-        //             size => 0.05,
-        //             type => 'market',
-        //             price => 0,
-        //             fee_structure => array( maker => 0.1, taker => 0.1 ),
-        //             fee_coin => 'ltc',
-        //             id => 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by => 155328,
-        //             filled => 0.05,
-        //             method => 'market',
-        //             created_at => '2022-04-11T14:09:00.760Z',
-        //             updated_at => '2022-04-11T14:09:00.760Z',
-        //             status => 'filled'
+        //         "topic" => "order",
+        //         "action" => "insert",
+        //         "user_id" => 155328,
+        //         "symbol" => "ltc-usdt",
+        //         "data" => array(
+        //             "symbol" => "ltc-usdt",
+        //             "side" => "buy",
+        //             "size" => 0.05,
+        //             "type" => "market",
+        //             "price" => 0,
+        //             "fee_structure" => array( maker => 0.1, taker => 0.1 ),
+        //             "fee_coin" => "ltc",
+        //             "id" => "ce38fd48-b336-400b-812b-60c636454231",
+        //             "created_by" => 155328,
+        //             "filled" => 0.05,
+        //             "method" => "market",
+        //             "created_at" => "2022-04-11T14:09:00.760Z",
+        //             "updated_at" => "2022-04-11T14:09:00.760Z",
+        //             "status" => "filled"
         //         ),
-        //         time => 1649686140
+        //         "time" => 1649686140
         //     }
         //
         //    {
@@ -342,7 +343,7 @@ class hollaex extends \ccxt\async\hollaex {
         // usually the first $message is an empty array
         $dataLength = count($data);
         if ($dataLength === 0) {
-            return 0;
+            return;
         }
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -375,12 +376,12 @@ class hollaex extends \ccxt\async\hollaex {
         }
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the hollaex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             $messageHash = 'wallet';
             return Async\await($this->watch_private($messageHash, $params));
@@ -390,24 +391,24 @@ class hollaex extends \ccxt\async\hollaex {
     public function handle_balance(Client $client, $message) {
         //
         //     {
-        //         topic => 'wallet',
-        //         action => 'partial',
-        //         user_id => 155328,
-        //         $data => array(
-        //             eth_balance => 0,
-        //             eth_available => 0,
-        //             usdt_balance => 18.94344188,
-        //             usdt_available => 18.94344188,
-        //             ltc_balance => 0.00005,
-        //             ltc_available => 0.00005,
+        //         "topic" => "wallet",
+        //         "action" => "partial",
+        //         "user_id" => 155328,
+        //         "data" => array(
+        //             "eth_balance" => 0,
+        //             "eth_available" => 0,
+        //             "usdt_balance" => 18.94344188,
+        //             "usdt_available" => 18.94344188,
+        //             "ltc_balance" => 0.00005,
+        //             "ltc_available" => 0.00005,
         //         ),
-        //         time => 1649687396
+        //         "time" => 1649687396
         //     }
         //
         $messageHash = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data');
         $keys = is_array($data) ? array_keys($data) : array();
-        $timestamp = $this->safe_integer_product($message, 'time', 1000);
+        $timestamp = $this->safe_timestamp($message, 'time');
         $this->balance['info'] = $data;
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
@@ -470,8 +471,8 @@ class hollaex extends \ccxt\async\hollaex {
 
     public function handle_error_message(Client $client, $message) {
         //
-        //     array( $error => 'Bearer or HMAC authentication required' )
-        //     array( $error => 'Error => wrong input' )
+        //     array( $error => "Bearer or HMAC authentication required" )
+        //     array( $error => "Error => wrong input" )
         //
         $error = $this->safe_integer($message, 'error');
         try {
@@ -491,20 +492,20 @@ class hollaex extends \ccxt\async\hollaex {
         //
         // pong
         //
-        //     array( $message => 'pong' )
+        //     array( $message => "pong" )
         //
         // trade
         //
         //     {
-        //         $topic => 'trade',
-        //         action => 'partial',
-        //         symbol => 'btc-usdt',
-        //         data => array(
+        //         "topic" => "trade",
+        //         "action" => "partial",
+        //         "symbol" => "btc-usdt",
+        //         "data" => array(
         //             array(
-        //                 size => 0.05145,
-        //                 price => 41977.9,
-        //                 side => 'buy',
-        //                 timestamp => '2022-04-11T09:40:10.881Z'
+        //                 "size" => 0.05145,
+        //                 "price" => 41977.9,
+        //                 "side" => "buy",
+        //                 "timestamp" => "2022-04-11T09:40:10.881Z"
         //             ),
         //         )
         //     }
@@ -512,64 +513,64 @@ class hollaex extends \ccxt\async\hollaex {
         // orderbook
         //
         //     {
-        //         $topic => 'orderbook',
-        //         action => 'partial',
-        //         symbol => 'ltc-usdt',
-        //         data => array(
-        //             bids => [
+        //         "topic" => "orderbook",
+        //         "action" => "partial",
+        //         "symbol" => "ltc-usdt",
+        //         "data" => array(
+        //             "bids" => [
         //                 [104.29, 5.2264],
         //                 [103.86,1.3629],
         //                 [101.82,0.5942]
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [104.81,9.5531],
         //                 [105.54,0.6416],
         //                 [106.18,1.4141],
         //             ],
-        //             timestamp => '2022-04-11T10:37:01.227Z'
+        //             "timestamp" => "2022-04-11T10:37:01.227Z"
         //         ),
-        //         time => 1649673421
+        //         "time" => 1649673421
         //     }
         //
         // order
         //
         //     {
-        //         $topic => 'order',
-        //         action => 'insert',
-        //         user_id => 155328,
-        //         symbol => 'ltc-usdt',
-        //         data => array(
-        //             symbol => 'ltc-usdt',
-        //             side => 'buy',
-        //             size => 0.05,
-        //             type => 'market',
-        //             price => 0,
-        //             fee_structure => array( maker => 0.1, taker => 0.1 ),
-        //             fee_coin => 'ltc',
-        //             id => 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by => 155328,
-        //             filled => 0.05,
-        //             $method => 'market',
-        //             created_at => '2022-04-11T14:09:00.760Z',
-        //             updated_at => '2022-04-11T14:09:00.760Z',
-        //             status => 'filled'
+        //         "topic" => "order",
+        //         "action" => "insert",
+        //         "user_id" => 155328,
+        //         "symbol" => "ltc-usdt",
+        //         "data" => array(
+        //             "symbol" => "ltc-usdt",
+        //             "side" => "buy",
+        //             "size" => 0.05,
+        //             "type" => "market",
+        //             "price" => 0,
+        //             "fee_structure" => array( maker => 0.1, taker => 0.1 ),
+        //             "fee_coin" => "ltc",
+        //             "id" => "ce38fd48-b336-400b-812b-60c636454231",
+        //             "created_by" => 155328,
+        //             "filled" => 0.05,
+        //             "method" => "market",
+        //             "created_at" => "2022-04-11T14:09:00.760Z",
+        //             "updated_at" => "2022-04-11T14:09:00.760Z",
+        //             "status" => "filled"
         //         ),
-        //         time => 1649686140
+        //         "time" => 1649686140
         //     }
         //
         // balance
         //
         //     {
-        //         $topic => 'wallet',
-        //         action => 'partial',
-        //         user_id => 155328,
-        //         data => {
-        //             eth_balance => 0,
-        //             eth_available => 0,
-        //             usdt_balance => 18.94344188,
-        //             usdt_available => 18.94344188,
-        //             ltc_balance => 0.00005,
-        //             ltc_available => 0.00005,
+        //         "topic" => "wallet",
+        //         "action" => "partial",
+        //         "user_id" => 155328,
+        //         "data" => {
+        //             "eth_balance" => 0,
+        //             "eth_available" => 0,
+        //             "usdt_balance" => 18.94344188,
+        //             "usdt_available" => 18.94344188,
+        //             "ltc_balance" => 0.00005,
+        //             "ltc_available" => 0.00005,
         //         }
         //     }
         //

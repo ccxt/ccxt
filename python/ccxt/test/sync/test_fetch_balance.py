@@ -12,11 +12,9 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_balance  # noqa E402
 
-
-def test_fetch_balance(exchange, skipped_properties, code, symbol):
+def test_fetch_balance(exchange, skipped_properties):
     method = 'fetchBalance'
     response = exchange.fetch_balance()
     test_balance(exchange, skipped_properties, method, response)

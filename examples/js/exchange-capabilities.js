@@ -1,12 +1,20 @@
 
 
-import ccxt from '../../ccxt.js';
-import { noLocate as log } from 'ololog';
+import ccxt from '../../js/ccxt.js';
+import ololog from 'ololog';
 import ansicolor from 'ansicolor';
+import asTable from 'as-table';
+
+const { noLocate } = ololog;
+const log = noLocate;
 
 ansicolor.nice
 
-const csv = process.argv.includes ('--csv'), delimiter = csv ? ',' : '|', asTableConfig = { delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ }, asTable = require ('as-table').configure (asTableConfig);
+
+
+const csv = process.argv.includes ('--csv'), delimiter = csv ? ',' : '|', asTableConfig = { delimiter: ' ' + delimiter + ' ', /* print: require ('string.ify').noPretty  */ }
+
+asTable.configure (asTableConfig);
 
 const sortCertified = process.argv.includes ('--sort-certified') || process.argv.includes ('--certified')
 const exchangesArgument = process.argv.find (arg => arg.startsWith ('--exchanges='))
@@ -24,25 +32,20 @@ async function main () {
     let implemented = 0
     let emulated = 0
 
-    const certified = [
-        'ascendex',
-        'binance',
-        'binancecoinm',
-        'binanceusdm',
-        'bitmart',
-        'bitvavo',
-        'currencycom',
-        'ftx',
-        'gateio',
-        'huobi',
-        'idex',
-        'mexc',
-        'okx',
-        'wavesexchange',
-        'zb',
-    ]
-    const exchangeNames = ccxt.unique (sortCertified ? certified.concat (ccxt.exchanges) : ccxt.exchanges);
+    const exchangeNames = ccxt.exchanges
     let exchanges = exchangeNames.map (id => new ccxt[id] ())
+    exchanges = exchanges.map (exchange => exchange.pro ? new ccxt.pro[exchange.id] () : exchange)
+    if (sortCertified) {
+        exchanges.sort((a, b) => {
+            if (a.certified && !b.certified) {
+                return -1;
+            } else if (!a.certified && b.certified) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+    }
     const metainfo = ccxt.flatten (exchanges.map (exchange => Object.keys (exchange.has)))
     const reduced = metainfo.reduce ((previous, current) => {
         previous[current] = (previous[current] || 0) + 1
