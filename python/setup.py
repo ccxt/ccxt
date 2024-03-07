@@ -43,6 +43,7 @@ setup(
     description=package['description'],
     long_description=long_description,
     long_description_content_type='text/markdown',
+    include_package_data=True,
 
     # will switch from rst to md shortly
     # long_description_content_type='text/markdown',
