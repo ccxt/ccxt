@@ -376,7 +376,7 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
-        if (symbol !== undefined) {
+        if (symbol === undefined) {
             return;
         }
         this.tickers[symbol] = ticker;
