@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -86,7 +86,7 @@ export default class bitget extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -8229,6 +8229,75 @@ export default class bitget extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const orderInfo = this.safeValue (data, 'successList', []);
         return this.parsePositions (orderInfo, undefined, params);
+    }
+
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        /**
+         * @method
+         * @name bitget#fetchMarginMode
+         * @description fetches the margin mode of a trading pair
+         * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+         * @param {string} symbol unified symbol of the market to fetch the margin mode for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+         */
+        await this.loadMarkets ();
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        let market = undefined;
+        if (sandboxMode) {
+            const sandboxSymbol = this.convertSymbolForSandbox (symbol);
+            market = this.market (sandboxSymbol);
+        } else {
+            market = this.market (symbol);
+        }
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const request = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+            'productType': productType,
+        };
+        const response = await this.privateMixGetV2MixAccountAccount (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1709791216652,
+        //         "data": {
+        //             "marginCoin": "USDT",
+        //             "locked": "0",
+        //             "available": "19.88811074",
+        //             "crossedMaxAvailable": "19.88811074",
+        //             "isolatedMaxAvailable": "19.88811074",
+        //             "maxTransferOut": "19.88811074",
+        //             "accountEquity": "19.88811074",
+        //             "usdtEquity": "19.888110749166",
+        //             "btcEquity": "0.000302183391",
+        //             "crossedRiskRate": "0",
+        //             "crossedMarginLeverage": 20,
+        //             "isolatedLongLever": 20,
+        //             "isolatedShortLever": 20,
+        //             "marginMode": "crossed",
+        //             "posMode": "hedge_mode",
+        //             "unrealizedPL": "0",
+        //             "coupon": "0",
+        //             "crossedUnrealizedPL": "0",
+        //             "isolatedUnrealizedPL": ""
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseMarginMode (data, market);
+    }
+
+    parseMarginMode (marginMode, market = undefined): MarginMode {
+        let marginType = this.safeString (marginMode, 'marginMode');
+        marginType = (marginType === 'crossed') ? 'cross' : marginType;
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginType,
+        } as MarginMode;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
