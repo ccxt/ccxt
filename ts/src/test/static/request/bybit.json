@@ -369,6 +369,30 @@
         ],
         "createOrders": [
             {
+                "description": "Spot create orders",
+                "method": "createOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/create-batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "LTC/USDT",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 50
+                        },
+                        {
+                            "symbol": "LTC/USDT",
+                            "amount": 0.11,
+                            "side": "sell",
+                            "type": "limit",
+                            "price": 70
+                        }
+                    ]
+                ],
+                "output": "{\"category\":\"spot\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.1\",\"price\":\"50\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.11\",\"price\":\"70\"}]}"
+            },
+            {
                 "description": "Swap create orders",
                 "method": "createOrders",
                 "url": "https://api-testnet.bybit.com/v5/order/create-batch",
@@ -426,6 +450,41 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderFilter\":\"StopOrder\",\"orderId\":\"1599966662050972416\",\"category\":\"spot\"}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "Swap cancelOrders",
+                "method": "cancelOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel-batch",
+                "input": [
+                    ["8caeea8c-cf80-4b06-83e8-bb7df45fc122"],
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"orderId\":\"8caeea8c-cf80-4b06-83e8-bb7df45fc122\"}]}"
+            },
+            {
+                "description": "Spot cancelOrders",
+                "method": "cancelOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel-batch",
+                "input": [
+                    ["1513125485218108928"],
+                    "LTC/USDT"
+                ],
+                "output": "{\"category\":\"spot\",\"request\":[{\"symbol\":\"LTCUSDT\",\"orderId\":\"1513125485218108928\"}]}"
+            },
+            {
+                "description": "cancelOrders by clientOrderId",
+                "method": "cancelOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/cancel-batch",
+                "input": [
+                    [],
+                    "LTC/USDT:USDT",
+                    {
+                        "clientOrderIds": ["test123"]
+                    }
+                ],
+                "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"orderLinkId\":\"test123\"}]}"
             }
         ],
         "cancelAllOrders": [
