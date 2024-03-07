@@ -105,6 +105,9 @@ const {
     , NO_PADDING
     , TICK_SIZE
     , SIGNIFICANT_DIGITS
+    , convertExpireDate
+    , convertExpireDateToMarketIdDate
+    , convertMarketIdExpireDate
 } = functions
 
 import {
@@ -456,6 +459,9 @@ export default class Exchange {
     base64ToString = base64ToString
     crc32 = crc32
     packb = packb
+    convertExpireDate = convertExpireDate
+    convertExpireDateToMarketIdDate = convertExpireDateToMarketIdDate
+    convertMarketIdExpireDate = convertMarketIdExpireDate
 
     describe () {
         return {

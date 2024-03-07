@@ -183,4 +183,87 @@ public partial class Exchange
         }
         return timestamp;
     }
+
+    public string convertExpireDate(string date)
+    {
+        // parse YYMMDD to timestamp
+        object year = slice(date, 0, 2);
+        object month = slice(date, 2, 4);
+        object day = slice(date, 4, 6);
+        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
+        return reconstructedDate;
+    }
+
+    public virtual string convertExpireDateToMarketIdDate(string date)
+    {
+        // parse 231229 to 29DEC23
+        object year = slice(date, 0, 2);
+        object monthRaw = slice(date, 2, 4);
+        object month = null;
+        object day = slice(date, 4, 6);
+        if (isTrue(isEqual(monthRaw, "01")))
+        {
+            month = "JAN";
+        } else if (isTrue(isEqual(monthRaw, "02")))
+        {
+            month = "FEB";
+        } else if (isTrue(isEqual(monthRaw, "03")))
+        {
+            month = "MAR";
+        } else if (isTrue(isEqual(monthRaw, "04")))
+        {
+            month = "APR";
+        } else if (isTrue(isEqual(monthRaw, "05")))
+        {
+            month = "MAY";
+        } else if (isTrue(isEqual(monthRaw, "06")))
+        {
+            month = "JUN";
+        } else if (isTrue(isEqual(monthRaw, "07")))
+        {
+            month = "JUL";
+        } else if (isTrue(isEqual(monthRaw, "08")))
+        {
+            month = "AUG";
+        } else if (isTrue(isEqual(monthRaw, "09")))
+        {
+            month = "SEP";
+        } else if (isTrue(isEqual(monthRaw, "10")))
+        {
+            month = "OCT";
+        } else if (isTrue(isEqual(monthRaw, "11")))
+        {
+            month = "NOV";
+        } else if (isTrue(isEqual(monthRaw, "12")))
+        {
+            month = "DEC";
+        }
+        object reconstructedDate = add(add(day, month), year);
+        return reconstructedDate;
+    }
+
+    public virtual string convertMarketIdExpireDate(string date)
+    {
+        // parse 22JAN23 to 230122
+        object monthMappping = new Dictionary<string, object>() {
+            { "JAN", "01" },
+            { "FEB", "02" },
+            { "MAR", "03" },
+            { "APR", "04" },
+            { "MAY", "05" },
+            { "JUN", "06" },
+            { "JUL", "07" },
+            { "AUG", "08" },
+            { "SEP", "09" },
+            { "OCT", "10" },
+            { "NOV", "11" },
+            { "DEC", "12" },
+        };
+        object year = slice(date, 0, 2);
+        object monthName = slice(date, 2, 5);
+        object month = this.safeString(monthMappping, monthName);
+        object day = slice(date, 5, 7);
+        object reconstructedDate = add(add(day, month), year);
+        return reconstructedDate;
+    }
 }
