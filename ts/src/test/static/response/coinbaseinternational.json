@@ -1,6 +1,8 @@
 {
     "exchange": "coinbase",
-    "options": {},
+    "options": {
+      "portfolio": "1wp37qsc-1-0"
+    },
     "methods": {
       "fetchAccounts": [
         {
