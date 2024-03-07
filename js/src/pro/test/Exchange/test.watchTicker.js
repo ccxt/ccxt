@@ -4,46 +4,28 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-'use strict';
-// ----------------------------------------------------------------------------
+import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
-import errors from '../../../base/errors.js';
-/*  ------------------------------------------------------------------------ */
-export default async (exchange, symbol) => {
-    // log (symbol.green, 'watching ticker...')
+import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+async function testWatchTicker(exchange, skippedProperties, symbol) {
     const method = 'watchTicker';
-    const skippedProperties = {};
-    // we have to skip some exchanges here due to the frequency of trading
-    const skippedExchanges = [
-        'cex',
-        'ripio',
-        'mexc',
-        'woo',
-        'alpaca', // requires auth
-    ];
-    if (skippedExchanges.includes(exchange.id)) {
-        console.log(exchange.id, method + '() test skipped');
-        return;
-    }
-    if (!exchange.has[method]) {
-        console.log(exchange.id, method + '() is not supported');
-        return;
-    }
-    let response = undefined;
-    let now = Date.now();
-    const ends = now + 10000;
+    let now = exchange.milliseconds();
+    const ends = now + 15000;
     while (now < ends) {
+        let response = undefined;
         try {
-            response = await exchange[method](symbol);
-            testTicker(exchange, skippedProperties, method, response, symbol);
-            now = Date.now();
+            response = await exchange.watchTicker(symbol);
         }
         catch (e) {
-            if (!(e instanceof errors.NetworkError)) {
+            if (!testSharedMethods.isTemporaryFailure(e)) {
                 throw e;
             }
-            now = Date.now();
+            now = exchange.milliseconds();
+            continue;
         }
+        assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response));
+        now = exchange.milliseconds();
+        testTicker(exchange, skippedProperties, method, response, symbol);
     }
-    return response;
-};
+}
+export default testWatchTicker;

@@ -4,7 +4,7 @@ for current_tag in $(git tag --sort=-creatordate)
 do
     major_version=$(echo ${current_tag} | cut -d '.' -f 1)
     major_version=$(echo "$major_version" | sed -e "s/v//")
-    if [ "$major_version" -ge 3 ] ;then
+    if [ "$major_version" -ge 4 ] ;then
         if [ "$previous_tag" != 0 ]; then
             tag_date=$(git log -1 --pretty=format:'%ad' --date=short ${previous_tag})
             printf "## ${previous_tag} (${tag_date})\n\n"

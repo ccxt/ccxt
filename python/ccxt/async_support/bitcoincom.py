@@ -12,5 +12,6 @@ class bitcoincom(fmfwio, ImplicitAPI):
     def describe(self):
         return self.deep_extend(super(bitcoincom, self).describe(), {
             'id': 'bitcoincom',
+            'name': 'Bitcoin.com',
             'alias': True,
         })

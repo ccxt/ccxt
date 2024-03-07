@@ -1,0 +1,12 @@
+{{#if returns}}
+{{#if returns.[0].description~}}
+**Returns**: {{#each returns~}}
+  {{#if type~}}
+  {{#if type.names}}{{>linked-type-list types=(cleanNames type.names) delimiter=" \| " ~}}{{/if}}
+  {{~#if description}} - {{{inlineLinks description}}}{{/if~}}
+  {{else~}}
+  {{{inlineLinks description}~}}
+  {{/if~}}
+{{~/each}}
+
+{{/if}}{{/if}}

@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -30,7 +30,8 @@ class coinex(ccxt.async_support.coinex):
                 'watchMyTrades': False,  # can query but can't subscribe
                 'watchOrders': True,
                 'watchOrderBook': True,
-                'watchOHLCV': False,  # only for swap markets
+                'watchOHLCV': True,  # only for swap markets
+                'fetchOHLCVWs': True,
             },
             'urls': {
                 'api': {
@@ -89,19 +90,19 @@ class coinex(ccxt.async_support.coinex):
         #  spot
         #
         #     {
-        #         method: 'state.update',
-        #         params: [{
-        #             BTCUSDT: {
-        #                 last: '31577.89',
-        #                 open: '29318.36',
-        #                 close: '31577.89',
-        #                 high: '32222.19',
-        #                 low: '29317.21',
-        #                 volume: '630.43024965',
-        #                 sell_total: '13.66143951',
-        #                 buy_total: '2.76410939',
-        #                 period: 86400,
-        #                 deal: '19457487.84611409070000000000'
+        #         "method": "state.update",
+        #         "params": [{
+        #             "BTCUSDT": {
+        #                 "last": "31577.89",
+        #                 "open": "29318.36",
+        #                 "close": "31577.89",
+        #                 "high": "32222.19",
+        #                 "low": "29317.21",
+        #                 "volume": "630.43024965",
+        #                 "sell_total": "13.66143951",
+        #                 "buy_total": "2.76410939",
+        #                 "period": 86400,
+        #                 "deal": "19457487.84611409070000000000"
         #             }
         #         }]
         #     }
@@ -109,27 +110,27 @@ class coinex(ccxt.async_support.coinex):
         #  swap
         #
         #     {
-        #         method: 'state.update',
-        #         params: [{
-        #             BTCUSDT: {
-        #                 period: 86400,
-        #                 funding_time: 422,
-        #                 position_amount: '285.6246',
-        #                 funding_rate_last: '-0.00097933',
-        #                 funding_rate_next: '0.00022519',
-        #                 funding_rate_predict: '0.00075190',
-        #                 insurance: '17474289.49925859030905338270',
-        #                 last: '31570.08',
-        #                 sign_price: '31568.09',
-        #                 index_price: '31561.85000000',
-        #                 open: '29296.11',
-        #                 close: '31570.08',
-        #                 high: '32463.40',
-        #                 low: '29296.11',
-        #                 volume: '8774.7318',
-        #                 deal: '270675177.827928219109030017258398',
-        #                 sell_total: '19.2230',
-        #                 buy_total: '25.7814'
+        #         "method": "state.update",
+        #         "params": [{
+        #             "BTCUSDT": {
+        #                 "period": 86400,
+        #                 "funding_time": 422,
+        #                 "position_amount": "285.6246",
+        #                 "funding_rate_last": "-0.00097933",
+        #                 "funding_rate_next": "0.00022519",
+        #                 "funding_rate_predict": "0.00075190",
+        #                 "insurance": "17474289.49925859030905338270",
+        #                 "last": "31570.08",
+        #                 "sign_price": "31568.09",
+        #                 "index_price": "31561.85000000",
+        #                 "open": "29296.11",
+        #                 "close": "31570.08",
+        #                 "high": "32463.40",
+        #                 "low": "29296.11",
+        #                 "volume": "8774.7318",
+        #                 "deal": "270675177.827928219109030017258398",
+        #                 "sell_total": "19.2230",
+        #                 "buy_total": "25.7814"
         #             }
         #         }]
         #     }
@@ -165,39 +166,39 @@ class coinex(ccxt.async_support.coinex):
         #  spot
         #
         #     {
-        #         last: '31577.89',
-        #         open: '29318.36',
-        #         close: '31577.89',
-        #         high: '32222.19',
-        #         low: '29317.21',
-        #         volume: '630.43024965',
-        #         sell_total: '13.66143951',
-        #         buy_total: '2.76410939',
-        #         period: 86400,
-        #         deal: '19457487.84611409070000000000'
+        #         "last": "31577.89",
+        #         "open": "29318.36",
+        #         "close": "31577.89",
+        #         "high": "32222.19",
+        #         "low": "29317.21",
+        #         "volume": "630.43024965",
+        #         "sell_total": "13.66143951",
+        #         "buy_total": "2.76410939",
+        #         "period": 86400,
+        #         "deal": "19457487.84611409070000000000"
         #     }
         #
         #  swap
         #
         #     {
-        #         period: 86400,
-        #         funding_time: 422,
-        #         position_amount: '285.6246',
-        #         funding_rate_last: '-0.00097933',
-        #         funding_rate_next: '0.00022519',
-        #         funding_rate_predict: '0.00075190',
-        #         insurance: '17474289.49925859030905338270',
-        #         last: '31570.08',
-        #         sign_price: '31568.09',
-        #         index_price: '31561.85000000',
-        #         open: '29296.11',
-        #         close: '31570.08',
-        #         high: '32463.40',
-        #         low: '29296.11',
-        #         volume: '8774.7318',
-        #         deal: '270675177.827928219109030017258398',
-        #         sell_total: '19.2230',
-        #         buy_total: '25.7814'
+        #         "period": 86400,
+        #         "funding_time": 422,
+        #         "position_amount": "285.6246",
+        #         "funding_rate_last": "-0.00097933",
+        #         "funding_rate_next": "0.00022519",
+        #         "funding_rate_predict": "0.00075190",
+        #         "insurance": "17474289.49925859030905338270",
+        #         "last": "31570.08",
+        #         "sign_price": "31568.09",
+        #         "index_price": "31561.85000000",
+        #         "open": "29296.11",
+        #         "close": "31570.08",
+        #         "high": "32463.40",
+        #         "low": "29296.11",
+        #         "volume": "8774.7318",
+        #         "deal": "270675177.827928219109030017258398",
+        #         "sell_total": "19.2230",
+        #         "buy_total": "25.7814"
         #     }
         #
         defaultType = self.safe_string(self.options, 'defaultType')
@@ -224,11 +225,11 @@ class coinex(ccxt.async_support.coinex):
             'info': ticker,
         }, market)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         await self.authenticate(params)
@@ -269,11 +270,9 @@ class coinex(ccxt.async_support.coinex):
             code = self.safe_currency_code(currencyId)
             available = self.safe_string(first[currencyId], 'available')
             frozen = self.safe_string(first[currencyId], 'frozen')
-            total = Precise.string_add(available, frozen)
             account = self.account()
-            account['free'] = self.parse_number(available)
-            account['used'] = self.parse_number(frozen)
-            account['total'] = self.parse_number(total)
+            account['free'] = available
+            account['used'] = frozen
             self.balance[code] = account
             self.balance = self.safe_balance(self.balance)
         messageHash = 'balance'
@@ -345,50 +344,77 @@ class coinex(ccxt.async_support.coinex):
 
     def handle_ohlcv(self, client: Client, message):
         #
+        #  spot
         #     {
-        #         method: 'kline.update',
-        #         params: [
+        #         "error": null,
+        #         "result": [
+        #           [
+        #             1673846940,
+        #             "21148.74",
+        #             "21148.38",
+        #             "21148.75",
+        #             "21138.66",
+        #             "1.57060173",
+        #             "33214.9138778914"
+        #           ],
+        #         ]
+        #         "id": 1,
+        #     }
+        #  swap
+        #     {
+        #         "method": "kline.update",
+        #         "params": [
         #             [
         #                 1654019640,   # timestamp
-        #                 '32061.99',   # open
-        #                 '32061.28',   # close
-        #                 '32061.99',   # high
-        #                 '32061.28',   # low
-        #                 '0.1285',     # amount base
-        #                 '4119.943736'  # amount quote
+        #                 "32061.99",   # open
+        #                 "32061.28",   # close
+        #                 "32061.99",   # high
+        #                 "32061.28",   # low
+        #                 "0.1285",     # amount base
+        #                 "4119.943736"  # amount quote
         #             ]
         #         ],
-        #         id: null
+        #         "id": null
         #     }
         #
-        candles = self.safe_value(message, 'params', [])
+        candles = self.safe_value_2(message, 'params', 'result', [])
         messageHash = 'ohlcv'
+        id = self.safe_string(message, 'id')
         ohlcvs = self.parse_ohlcvs(candles)
-        keysLength = self.ohlcvs
+        if id is not None:
+            # spot subscription response
+            client.resolve(ohlcvs, messageHash)
+            return
+        keys = list(self.ohlcvs.keys())
+        keysLength = len(keys)
         if keysLength == 0:
+            self.ohlcvs['unknown'] = {}
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            self.ohlcvs = ArrayCacheByTimestamp(limit)
+            stored = ArrayCacheByTimestamp(limit)
+            self.ohlcvs['unknown']['unknown'] = stored
+        ohlcv = self.ohlcvs['unknown']['unknown']
         for i in range(0, len(ohlcvs)):
             candle = ohlcvs[i]
-            self.ohlcvs.append(candle)
-        client.resolve(self.ohlcvs, messageHash)
+            ohlcv.append(candle)
+        client.resolve(ohlcv, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
-        return await self.watch_tickers([symbol], params)
+        tickers = await self.watch_tickers([symbol], params)
+        return self.safe_value(tickers, symbol)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :param [str] symbols: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -410,16 +436,16 @@ class coinex(ccxt.async_support.coinex):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -440,14 +466,14 @@ class coinex(ccxt.async_support.coinex):
         trades = await self.watch(url, messageHash, request, subscriptionHash)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -483,15 +509,16 @@ class coinex(ccxt.async_support.coinex):
         orderbook = await self.watch(url, messageHash, request, subscriptionHash, request)
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -499,14 +526,17 @@ class coinex(ccxt.async_support.coinex):
         type = None
         type, params = self.handle_market_type_and_params('watchOHLCV', market, params)
         if type != 'swap':
-            raise NotSupported(self.id + ' watchOHLCV() is only supported for swap markets')
+            raise NotSupported(self.id + ' watchOHLCV() is only supported for swap markets. Try using fetchOHLCV() instead')
         url = self.urls['api']['ws'][type]
         messageHash = 'ohlcv'
-        watchOHLCVWarning = self.safe_value(self.options, 'watchOHLCVWarning', True)
+        watchOHLCVWarning = self.safe_bool(self.options, 'watchOHLCVWarning', True)
         client = self.safe_value(self.clients, url, {})
-        existingSubscription = self.safe_value(client.subscriptions, messageHash)
+        clientSub = self.safe_value(client, 'subscriptions', {})
+        existingSubscription = self.safe_value(clientSub, messageHash)
+        subSymbol = self.safe_string(existingSubscription, 'symbol')
+        subTimeframe = self.safe_string(existingSubscription, 'timeframe')
         # due to nature of coinex response can only watch one symbol at a time
-        if watchOHLCVWarning and existingSubscription is not None and (existingSubscription['symbol'] != symbol or existingSubscription['timeframe'] != timeframe):
+        if watchOHLCVWarning and existingSubscription is not None and (subSymbol != symbol or subTimeframe != timeframe):
             raise ExchangeError(self.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress self warning set watchOHLCVWarning to False in options')
         timeframes = self.safe_value(self.options, 'timeframes', {})
         subscribe = {
@@ -514,7 +544,7 @@ class coinex(ccxt.async_support.coinex):
             'id': self.request_id(),
             'params': [
                 market['id'],
-                self.safe_string(timeframes, timeframe, timeframe),
+                self.safe_integer(timeframes, timeframe),
             ],
         }
         subscription = {
@@ -525,6 +555,48 @@ class coinex(ccxt.async_support.coinex):
         ohlcvs = await self.watch(url, messageHash, request, messageHash, subscription)
         if self.newUpdates:
             limit = ohlcvs.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcvs, since, limit, 0)
+
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+        """
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
+        query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to query OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :param int|None params['end']: the end time for spot markets, self.seconds() is set
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        type, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
+        url = self.urls['api']['ws'][type]
+        symbol = market['symbol']
+        messageHash = 'ohlcv'
+        timeframes = self.safe_value(self.options, 'timeframes', {})
+        timeframe = self.safe_string(timeframes, timeframe, timeframe)
+        if since is None:
+            since = 1640995200  # January 1, 2022
+        id = self.request_id()
+        subscribe = {
+            'method': 'kline.query',
+            'params': [
+                market['id'],
+                self.parse_to_int(since / 1000),
+                self.safe_integer(params, 'end', self.seconds()),
+                self.parse_to_int(timeframe),
+            ],
+            'id': id,
+        }
+        subscription = {
+            'id': id,
+            'future': messageHash,
+        }
+        subscriptionHash = id
+        request = self.deep_extend(subscribe, query)
+        ohlcvs = await self.watch(url, messageHash, request, subscriptionHash, subscription)
         return self.filter_by_since_limit(ohlcvs, since, limit, 0)
 
     def handle_delta(self, bookside, delta):
@@ -561,26 +633,26 @@ class coinex(ccxt.async_support.coinex):
         #
         params = self.safe_value(message, 'params', [])
         fullOrderBook = self.safe_value(params, 0)
-        orderBook = self.safe_value(params, 1)
+        orderbook = self.safe_value(params, 1)
         marketId = self.safe_string(params, 2)
         defaultType = self.safe_string(self.options, 'defaultType')
         market = self.safe_market(marketId, None, None, defaultType)
         symbol = market['symbol']
         name = 'orderbook'
         messageHash = name + ':' + symbol
-        timestamp = self.safe_number(orderBook, 'time')
+        timestamp = self.safe_integer(orderbook, 'time')
         currentOrderBook = self.safe_value(self.orderbooks, symbol)
         if fullOrderBook:
-            snapshot = self.parse_order_book(orderBook, symbol, timestamp)
+            snapshot = self.parse_order_book(orderbook, symbol, timestamp)
             if currentOrderBook is None:
-                orderBook = self.order_book(snapshot)
-                self.orderbooks[symbol] = orderBook
+                orderbook = self.order_book(snapshot)
+                self.orderbooks[symbol] = orderbook
             else:
-                orderBook = self.orderbooks[symbol]
-                orderBook.reset(snapshot)
+                orderbook = self.orderbooks[symbol]
+                orderbook.reset(snapshot)
         else:
-            asks = self.safe_value(orderBook, 'asks', [])
-            bids = self.safe_value(orderBook, 'bids', [])
+            asks = self.safe_value(orderbook, 'asks', [])
+            bids = self.safe_value(orderbook, 'bids', [])
             self.handle_deltas(currentOrderBook['asks'], asks)
             self.handle_deltas(currentOrderBook['bids'], bids)
             currentOrderBook['nonce'] = timestamp
@@ -590,7 +662,7 @@ class coinex(ccxt.async_support.coinex):
         # self.checkOrderBookChecksum(self.orderbooks[symbol])
         client.resolve(self.orderbooks[symbol], messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         await self.load_markets()
         await self.authenticate(params)
         messageHash = 'orders'
@@ -612,93 +684,93 @@ class coinex(ccxt.async_support.coinex):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_orders(self, client: Client, message):
         #
         #  spot
         #
         #      {
-        #          method: 'order.update',
-        #          params: [
+        #          "method": "order.update",
+        #          "params": [
         #              1,
         #              {
-        #                  id: 77782469357,
-        #                  type: 1,
-        #                  side: 2,
-        #                  user: 1849116,
-        #                  account: 0,
-        #                  option: 2,
-        #                  ctime: 1653961043.048967,
-        #                  mtime: 1653961043.048967,
-        #                  market: 'BTCUSDT',
-        #                  source: 'web',
-        #                  client_id: '',
-        #                  price: '1.00',
-        #                  amount: '1.00000000',
-        #                  taker_fee: '0.0020',
-        #                  maker_fee: '0.0020',
-        #                  left: '1.00000000',
-        #                  deal_stock: '0',
-        #                  deal_money: '0',
-        #                  money_fee: '0',
-        #                  stock_fee: '0',
-        #                  asset_fee: '0',
-        #                  fee_discount: '1',
-        #                  last_deal_amount: '0',
-        #                  last_deal_price: '0',
-        #                  last_deal_time: 0,
-        #                  last_deal_id: 0,
-        #                  last_role: 0,
-        #                  fee_asset: null,
-        #                  stop_id: 0
+        #                  "id": 77782469357,
+        #                  "type": 1,
+        #                  "side": 2,
+        #                  "user": 1849116,
+        #                  "account": 0,
+        #                  "option": 2,
+        #                  "ctime": 1653961043.048967,
+        #                  "mtime": 1653961043.048967,
+        #                  "market": "BTCUSDT",
+        #                  "source": "web",
+        #                  "client_id": '',
+        #                  "price": "1.00",
+        #                  "amount": "1.00000000",
+        #                  "taker_fee": "0.0020",
+        #                  "maker_fee": "0.0020",
+        #                  "left": "1.00000000",
+        #                  "deal_stock": "0",
+        #                  "deal_money": "0",
+        #                  "money_fee": "0",
+        #                  "stock_fee": "0",
+        #                  "asset_fee": "0",
+        #                  "fee_discount": "1",
+        #                  "last_deal_amount": "0",
+        #                  "last_deal_price": "0",
+        #                  "last_deal_time": 0,
+        #                  "last_deal_id": 0,
+        #                  "last_role": 0,
+        #                  "fee_asset": null,
+        #                  "stop_id": 0
         #              }
         #          ],
-        #          id: null
+        #          "id": null
         #      }
         #
         #  swap
         #
         #      {
-        #          method: 'order.update',
-        #          params: [
+        #          "method": "order.update",
+        #          "params": [
         #              1,
         #              {
-        #                  order_id: 23423462821,
-        #                  position_id: 0,
-        #                  stop_id: 0,
-        #                  market: 'BTCUSDT',
-        #                  type: 1,
-        #                  side: 2,
-        #                  target: 0,
-        #                  effect_type: 1,
-        #                  user_id: 1849116,
-        #                  create_time: 1653961509.25049,
-        #                  update_time: 1653961509.25049,
-        #                  source: 'web',
-        #                  price: '1.00',
-        #                  amount: '1.0000',
-        #                  taker_fee: '0.00050',
-        #                  maker_fee: '0.00030',
-        #                  left: '1.0000',
-        #                  deal_stock: '0.00000000000000000000',
-        #                  deal_fee: '0.00000000000000000000',
-        #                  deal_profit: '0.00000000000000000000',
-        #                  last_deal_amount: '0.00000000000000000000',
-        #                  last_deal_price: '0.00000000000000000000',
-        #                  last_deal_time: 0,
-        #                  last_deal_id: 0,
-        #                  last_deal_type: 0,
-        #                  last_deal_role: 0,
-        #                  client_id: '',
-        #                  fee_asset: '',
-        #                  fee_discount: '0.00000000000000000000',
-        #                  deal_asset_fee: '0.00000000000000000000',
-        #                  leverage: '3',
-        #                  position_type: 2
+        #                  "order_id": 23423462821,
+        #                  "position_id": 0,
+        #                  "stop_id": 0,
+        #                  "market": "BTCUSDT",
+        #                  "type": 1,
+        #                  "side": 2,
+        #                  "target": 0,
+        #                  "effect_type": 1,
+        #                  "user_id": 1849116,
+        #                  "create_time": 1653961509.25049,
+        #                  "update_time": 1653961509.25049,
+        #                  "source": "web",
+        #                  "price": "1.00",
+        #                  "amount": "1.0000",
+        #                  "taker_fee": "0.00050",
+        #                  "maker_fee": "0.00030",
+        #                  "left": "1.0000",
+        #                  "deal_stock": "0.00000000000000000000",
+        #                  "deal_fee": "0.00000000000000000000",
+        #                  "deal_profit": "0.00000000000000000000",
+        #                  "last_deal_amount": "0.00000000000000000000",
+        #                  "last_deal_price": "0.00000000000000000000",
+        #                  "last_deal_time": 0,
+        #                  "last_deal_id": 0,
+        #                  "last_deal_type": 0,
+        #                  "last_deal_role": 0,
+        #                  "client_id": '',
+        #                  "fee_asset": '',
+        #                  "fee_discount": "0.00000000000000000000",
+        #                  "deal_asset_fee": "0.00000000000000000000",
+        #                  "leverage": "3",
+        #                  "position_type": 2
         #              }
         #          ],
-        #          id: null
+        #          "id": null
         #      }
         #
         params = self.safe_value(message, 'params', [])
@@ -707,7 +779,8 @@ class coinex(ccxt.async_support.coinex):
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
-        self.orders.append(parsedOrder)
+        orders = self.orders
+        orders.append(parsedOrder)
         messageHash = 'orders'
         client.resolve(self.orders, messageHash)
         messageHash += ':' + parsedOrder['symbol']
@@ -718,97 +791,97 @@ class coinex(ccxt.async_support.coinex):
         #  spot
         #
         #       {
-        #           id: 77782469357,
-        #           type: 1,
-        #           side: 2,
-        #           user: 1849116,
-        #           account: 0,
-        #           option: 2,
-        #           ctime: 1653961043.048967,
-        #           mtime: 1653961043.048967,
-        #           market: 'BTCUSDT',
-        #           source: 'web',
-        #           client_id: '',
-        #           price: '1.00',
-        #           amount: '1.00000000',
-        #           taker_fee: '0.0020',
-        #           maker_fee: '0.0020',
-        #           left: '1.00000000',
-        #           deal_stock: '0',
-        #           deal_money: '0',
-        #           money_fee: '0',
-        #           stock_fee: '0',
-        #           asset_fee: '0',
-        #           fee_discount: '1',
-        #           last_deal_amount: '0',
-        #           last_deal_price: '0',
-        #           last_deal_time: 0,
-        #           last_deal_id: 0,
-        #           last_role: 0,
-        #           fee_asset: null,
-        #           stop_id: 0
+        #           "id": 77782469357,
+        #           "type": 1,
+        #           "side": 2,
+        #           "user": 1849116,
+        #           "account": 0,
+        #           "option": 2,
+        #           "ctime": 1653961043.048967,
+        #           "mtime": 1653961043.048967,
+        #           "market": "BTCUSDT",
+        #           "source": "web",
+        #           "client_id": '',
+        #           "price": "1.00",
+        #           "amount": "1.00000000",
+        #           "taker_fee": "0.0020",
+        #           "maker_fee": "0.0020",
+        #           "left": "1.00000000",
+        #           "deal_stock": "0",
+        #           "deal_money": "0",
+        #           "money_fee": "0",
+        #           "stock_fee": "0",
+        #           "asset_fee": "0",
+        #           "fee_discount": "1",
+        #           "last_deal_amount": "0",
+        #           "last_deal_price": "0",
+        #           "last_deal_time": 0,
+        #           "last_deal_id": 0,
+        #           "last_role": 0,
+        #           "fee_asset": null,
+        #           "stop_id": 0
         #       }
         #
         #  swap
         #
         #      {
-        #          order_id: 23423462821,
-        #          position_id: 0,
-        #          stop_id: 0,
-        #          market: 'BTCUSDT',
-        #          type: 1,
-        #          side: 2,
-        #          target: 0,
-        #          effect_type: 1,
-        #          user_id: 1849116,
-        #          create_time: 1653961509.25049,
-        #          update_time: 1653961509.25049,
-        #          source: 'web',
-        #          price: '1.00',
-        #          amount: '1.0000',
-        #          taker_fee: '0.00050',
-        #          maker_fee: '0.00030',
-        #          left: '1.0000',
-        #          deal_stock: '0.00000000000000000000',
-        #          deal_fee: '0.00000000000000000000',
-        #          deal_profit: '0.00000000000000000000',
-        #          last_deal_amount: '0.00000000000000000000',
-        #          last_deal_price: '0.00000000000000000000',
-        #          last_deal_time: 0,
-        #          last_deal_id: 0,
-        #          last_deal_type: 0,
-        #          last_deal_role: 0,
-        #          client_id: '',
-        #          fee_asset: '',
-        #          fee_discount: '0.00000000000000000000',
-        #          deal_asset_fee: '0.00000000000000000000',
-        #          leverage: '3',
-        #          position_type: 2
+        #          "order_id": 23423462821,
+        #          "position_id": 0,
+        #          "stop_id": 0,
+        #          "market": "BTCUSDT",
+        #          "type": 1,
+        #          "side": 2,
+        #          "target": 0,
+        #          "effect_type": 1,
+        #          "user_id": 1849116,
+        #          "create_time": 1653961509.25049,
+        #          "update_time": 1653961509.25049,
+        #          "source": "web",
+        #          "price": "1.00",
+        #          "amount": "1.0000",
+        #          "taker_fee": "0.00050",
+        #          "maker_fee": "0.00030",
+        #          "left": "1.0000",
+        #          "deal_stock": "0.00000000000000000000",
+        #          "deal_fee": "0.00000000000000000000",
+        #          "deal_profit": "0.00000000000000000000",
+        #          "last_deal_amount": "0.00000000000000000000",
+        #          "last_deal_price": "0.00000000000000000000",
+        #          "last_deal_time": 0,
+        #          "last_deal_id": 0,
+        #          "last_deal_type": 0,
+        #          "last_deal_role": 0,
+        #          "client_id": '',
+        #          "fee_asset": '',
+        #          "fee_discount": "0.00000000000000000000",
+        #          "deal_asset_fee": "0.00000000000000000000",
+        #          "leverage": "3",
+        #          "position_type": 2
         #      }
         #
         #  order.update_stop
         #
         #       {
-        #           id: 78006745870,
-        #           type: 1,
-        #           side: 2,
-        #           user: 1849116,
-        #           account: 1,
-        #           option: 70,
-        #           direction: 1,
-        #           ctime: 1654171725.131976,
-        #           mtime: 1654171725.131976,
-        #           market: 'BTCUSDT',
-        #           source: 'web',
-        #           client_id: '',
-        #           stop_price: '1.00',
-        #           price: '1.00',
-        #           amount: '1.00000000',
-        #           taker_fee: '0.0020',
-        #           maker_fee: '0.0020',
-        #           fee_discount: '1',
-        #           fee_asset: null,
-        #           status: 0
+        #           "id": 78006745870,
+        #           "type": 1,
+        #           "side": 2,
+        #           "user": 1849116,
+        #           "account": 1,
+        #           "option": 70,
+        #           "direction": 1,
+        #           "ctime": 1654171725.131976,
+        #           "mtime": 1654171725.131976,
+        #           "market": "BTCUSDT",
+        #           "source": "web",
+        #           "client_id": '',
+        #           "stop_price": "1.00",
+        #           "price": "1.00",
+        #           "amount": "1.00000000",
+        #           "taker_fee": "0.0020",
+        #           "maker_fee": "0.0020",
+        #           "fee_discount": "1",
+        #           "fee_asset": null,
+        #           "status": 0
         #       }
         #
         timestamp = self.safe_timestamp_2(order, 'update_time', 'mtime')
@@ -892,17 +965,18 @@ class coinex(ccxt.async_support.coinex):
         }
         handler = self.safe_value(handlers, method)
         if handler is not None:
-            return handler(client, message)
-        return self.handle_subscription_status(client, message)
+            handler(client, message)
+            return
+        self.handle_subscription_status(client, message)
 
     def handle_authentication_message(self, client: Client, message):
         #
         #     {
-        #         error: null,
-        #         result: {
-        #             status: 'success'
+        #         "error": null,
+        #         "result": {
+        #             "status": "success"
         #         },
-        #         id: 1
+        #         "id": 1
         #     }
         #
         messageHashSpot = 'authenticated:spot'
@@ -916,12 +990,15 @@ class coinex(ccxt.async_support.coinex):
         subscription = self.safe_value(client.subscriptions, id)
         if subscription is not None:
             futureIndex = self.safe_string(subscription, 'future')
+            if futureIndex == 'ohlcv':
+                self.handle_ohlcv(client, message)
+                return
             future = self.safe_value(client.futures, futureIndex)
             if future is not None:
                 future.resolve(True)
             del client.subscriptions[id]
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         type = None
         type, params = self.handle_market_type_and_params('authenticate', None, params)
         url = self.urls['api']['ws'][type]

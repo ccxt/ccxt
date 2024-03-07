@@ -1,19 +1,24 @@
 import Exchange from './abstract/zonda.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+/**
+ * @class zonda
+ * @augments Exchange
+ */
 export default class zonda extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseLedgerEntry(item: any, currency?: any): {
+    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    parseMarket(item: any): Market;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    parseOrder(order: any, market?: Market): Order;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseTicker(ticker: any, market?: Market): Ticker;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseLedgerEntry(item: any, currency?: Currency): {
         info: any;
         id: string;
         direction: string;
@@ -21,7 +26,7 @@ export default class zonda extends Exchange {
         referenceId: string;
         referenceAccount: any;
         type: string;
-        currency: any;
+        currency: string;
         amount: number;
         before: number;
         after: number;
@@ -31,93 +36,43 @@ export default class zonda extends Exchange {
         fee: any;
     };
     parseLedgerEntryType(type: any): string;
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    isFiat(currency: any): any;
-    parseDepositAddress(depositAddress: any, currency?: any): {
-        currency: any;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    parseTrade(trade: any, market?: Market): Trade;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    isFiat(currency: any): boolean;
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
+        currency: string;
         address: string;
         tag: string;
         network: any;
         info: any;
     };
     fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
+        currency: string;
         address: string;
         tag: string;
         network: any;
         info: any;
     }>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: any;
         timestamp: any;
         datetime: any;
-        currency: any;
-        amount: any;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
-    }>;
-    parseTransfer(transfer: any, currency?: any): {
-        info: any;
-        id: any;
-        timestamp: any;
-        datetime: any;
-        currency: any;
+        currency: string;
         amount: any;
         fromAccount: string;
         toAccount: string;
         status: string;
     };
     parseTransferStatus(status: any): string;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        id: string;
-        txid: any;
-        timestamp: any;
-        datetime: any;
-        network: any;
-        addressFrom: any;
-        address: any;
-        addressTo: any;
-        amount: any;
-        type: any;
-        currency: any;
-        status: any;
-        updated: any;
-        tagFrom: any;
-        tag: any;
-        tagTo: any;
-        comment: any;
-        fee: any;
-        info: any;
-    }>;
-    parseTransaction(transaction: any, currency?: any): {
-        id: string;
-        txid: any;
-        timestamp: any;
-        datetime: any;
-        network: any;
-        addressFrom: any;
-        address: any;
-        addressTo: any;
-        amount: any;
-        type: any;
-        currency: any;
-        status: any;
-        updated: any;
-        tagFrom: any;
-        tag: any;
-        tagTo: any;
-        comment: any;
-        fee: any;
-        info: any;
-    };
+    withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

@@ -22,6 +22,8 @@ body:
         - You have already searched for [existing issues](https://github.com/ccxt/ccxt/issues) and confirmed that this issue is not a duplicate
         - This question is directly related to ccxt
         - You have read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions
+        - You have read the [How to submit a good issue](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue)
+        - Make sure your local version of CCXT is up to date. Check by comparing the output of `ccxt.version` to https://github.com/ccxt/ccxt/blob/master/package.json#L3
         - You have read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps
 
         ---
@@ -40,9 +42,9 @@ body:
       label: Programming Languages
       description: Which language are you using?
       options:
-        - JS
-        - python
-        - php
+        - JavaScript
+        - Python
+        - PHP
     validations:
       required: false
 

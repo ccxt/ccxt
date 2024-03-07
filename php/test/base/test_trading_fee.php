@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,7 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_shared_methods.php';
+include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
 
 function test_trading_fee($exchange, $skipped_properties, $method, $symbol, $entry) {
     $format = array(
@@ -16,8 +15,6 @@ function test_trading_fee($exchange, $skipped_properties, $method, $symbol, $ent
         'symbol' => 'ETH/BTC',
         'maker' => $exchange->parse_number('0.002'),
         'taker' => $exchange->parse_number('0.003'),
-        'percentage' => false,
-        'tierBased' => false,
     );
     $empty_allowed_for = ['tierBased', 'percentage', 'symbol'];
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
