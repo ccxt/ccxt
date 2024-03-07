@@ -40,14 +40,14 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@3.1.28/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@3.1.28/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.2.63/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@4.2.63/dist/ccxt.browser.js
 * ccxt: https://cdn.ccxt.com/latest/ccxt.min.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) or the /latest/ on our cdn — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@3.1.28/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.2.63/dist/ccxt.browser.js"></script>
 ```
 
 We also provide webpack minified and tree-shaken versions of the library starting from version 3.0.35 - Visit https://cdn.ccxt.com to browse the prebundled versions we distribute.
@@ -202,7 +202,15 @@ include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
-The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.2+. Read the [Manual](https://docs.ccxt.com) for more details.
+The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.2+. Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+
+### .net/C#
+
+[ccxt in C# with **Nugget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0 and netstandard 2.1)
+```c#
+using ccxt;
+Console.WriteLine(ccxt.Exchanges) // check this later
+```
 
 ### Docker
 
@@ -224,226 +232,4 @@ docker run -it ccxt
 ```
 
 ## Proxy
-
-In some specific cases you may want a proxy, if you experience issues with [DDoS protection by Cloudflare](https://docs.ccxt.com/#/?id=ddos-protection-by-cloudflare-incapsula) or your network / country / IP is rejected by their filters.
-
-**Bear in mind that each added intermediary contributes to the overall latency and roundtrip time. Longer delays can result in price slippage.**
-
-### JavaScript Proxies
-
-In order to use proxies with JavaScript, one needs to pass the proxying `agent` option to the exchange class instance constructor (or set the `exchange.agent` property later after instantiation in runtime):
-
-```javascript
-const ccxt = require ('ccxt')
-    , HttpsProxyAgent = require ('https-proxy-agent')
-
-const proxy = process.env.http_proxy || 'http://168.63.76.32:3128' // HTTP/HTTPS proxy to connect to
-const agent = new HttpsProxyAgent (proxy)
-
-const kraken = new ccxt.kraken ({ agent })
-```
-
-### Python Proxies
-
-The python version of the library uses the [python-requests](python-requests.org) package for underlying HTTP and supports all means of customization available in the `requests` package, including proxies.
-
-You can configure proxies by setting `trust_env` to `True`(default to `False`) and setting the environment variables HTTP_PROXY and HTTPS_PROXY.
-
-```python
-import ccxt
-exchange = ccxt.binance({
-    'trust_env': True
-})
-```
-
-```shell
-$ export HTTP_PROXY="http://10.10.1.10:3128"  # these proxies won't work for you, they are here for example
-$ export HTTPS_PROXY="http://10.10.1.10:1080"
-```
-
-After exporting the above variables with your proxy settings, all reqeusts from within ccxt will be routed through those proxies.
-
-You can also set them programmatically:
-
-```python
-import ccxt
-exchange = ccxt.poloniex({
-    'proxies': {
-        'http': 'http://10.10.1.10:3128',  # these proxies won't work for you, they are here for example
-        'https': 'https://10.10.1.10:1080',
-    },
-})
-```
-
-Or
-
-```python
-import ccxt
-exchange = ccxt.poloniex()
-exchange.proxies = {
-  'http': 'http://10.10.1.10:3128', # these proxies won't work for you, they are here for example
-  'https': 'https://10.10.1.10:1080',
-}
-```
-
-#### Python 3 sync proxies
-
-- https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py
-
-```python
-# -*- coding: utf-8 -*-
-
-import os
-import sys
-import ccxt
-from pprint import pprint
-
-
-exchange = ccxt.poloniex({
-    #
-    # ↓ The "proxy" property setting below is for CORS-proxying only!
-    # Do not use it if you don't know what a CORS proxy is.
-    # https://docs.ccxt.com/en/latest/install.html#cors-access-control-allow-origin
-    # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
-    # In Python you rarely need to use it, if ever at all.
-    #
-    # 'proxy': 'https://cors-anywhere.herokuapp.com/',
-    #
-    # ↓ On the other hand, the "proxies" setting is for HTTP(S)-proxying (SOCKS, etc...)
-    # It is a standard method of sending your requests through your proxies
-    # This gets passed to the `python-requests` implementation directly
-    # You can also enable this with environment variables, as described here:
-    # http://docs.python-requests.org/en/master/user/advanced/#proxies
-    # This is the setting you should be using with synchronous version of ccxt in Python 3
-    #
-    'proxies': {
-        # change the following for your own proxy addresses
-        'http': 'http://10.10.1.10:3128',  # these are examples values that will not work for you
-        'https': 'http://10.10.1.10:1080',  # these are examples values that will not work for you
-    },
-})
-
-# your code goes here...
-
-pprint(exchange.fetch_ticker('ETH/BTC'))
-```
-
-#### Python 3.5+ asyncio/aiohttp proxy
-
-- https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-asyncio-aiohttp-python-3.py
-
-```python
-# -*- coding: utf-8 -*-
-
-import asyncio
-import os
-import sys
-import ccxt.async_support as ccxt
-from pprint import pprint
-
-
-async def test_gdax():
-
-    exchange = ccxt.poloniex({
-        #
-        # The "proxy" property setting below is for CORS-proxying only!
-        # Do not use it if you don't know what a CORS proxy is.
-        # https://docs.ccxt.com/en/latest/install.html#cors-access-control-allow-origin
-        # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
-        # In Python you rarely need to use it, if ever at all.
-        #
-        # 'proxy': 'https://cors-anywhere.herokuapp.com/',
-        #
-        # The "aiohttp_proxy" setting is for HTTP(S)-proxying (SOCKS, etc...)
-        # It is a standard method of sending your requests through your proxies
-        # This gets passed to the `asyncio` and `aiohttp` implementation directly
-        # You can use this setting as documented here:
-        # https://docs.aiohttp.org/en/stable/client_advanced.html#proxy-support
-        # This is the setting you should be using with async version of ccxt in Python 3.5+
-        #
-        'aiohttp_proxy': 'http://proxy.com',
-        # 'aiohttp_proxy': 'http://user:pass@some.proxy.com',
-        # 'aiohttp_proxy': 'http://10.10.1.10:3128',
-    })
-
-    # your code goes here...
-
-    ticker = await exchange.fetch_ticker('ETH/BTC')
-
-    # don't forget to free the used resources, when you don't need them anymore
-    await exchange.close()
-
-    return ticker
-
-if __name__ == '__main__':
-    pprint(asyncio.run(test_gdax()))
-```
-
-A more detailed documentation on using proxies with the sync python version of the ccxt library can be found here:
-
-- [Proxies](http://docs.python-requests.org/en/master/user/advanced/#proxies)
-- [SOCKS](http://docs.python-requests.org/en/master/user/advanced/#socks)
-
-#### Python aiohttp SOCKS proxy
-
-```
-pip install aiohttp_socks
-```
-
-```python
-import ccxt.async_support as ccxt
-import aiohttp
-import aiohttp_socks
-
-async def test():
-
-    connector = aiohttp_socks.ProxyConnector.from_url('socks5://user:password@127.0.0.1:1080')
-    session = aiohttp.ClientSession(connector=connector)
-
-    exchange = ccxt.binance({
-        'session': session,
-        # ...
-    })
-
-    # ...
-
-    await session.close()  # don't forget to close the session
-
-    # ...
-```
-
-## CORS (Access-Control-Allow-Origin)
-
-If you need a CORS proxy, use the `proxy` property (a string literal) containing base URL of http(s) proxy. It is for use with web browsers and from blocked locations.
-
-CORS is [Cross-Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing). When accessing the HTTP REST API of an exchange from browser with ccxt library you may get a warning or an exception, saying `No 'Access-Control-Allow-Origin' header is present on the requested resource`. That means that the exchange admins haven't enabled access to their API from arbitrary web browser pages.
-
-You can still use the ccxt library from your browser via a CORS-proxy, which is very easy to set up or install. There are also public CORS proxies on the internet.
-
-The absolute exchange endpoint URL is appended to `proxy` string before HTTP request is sent to exchange. The `proxy` setting is an empty string `''` by default. Below are examples of a non-empty `proxy` string (last slash is mandatory!):
-
-- `kraken.proxy = 'https://cors-anywhere.herokuapp.com/'`
-
-To run your own CORS proxy locally you can either set up one of the existing ones or make a quick script of your own, like shown below.
-
-### Node.js CORS Proxy
-
-```javascript
-// JavaScript CORS Proxy
-// Save this in a file like cors.js and run with `node cors [port]`
-// It will listen for your requests on the port you pass in command line or port 8080 by default
-let port = (process.argv.length > 2) ? parseInt (process.argv[2]) : 8080; // default
-require ('cors-anywhere').createServer ().listen (port, 'localhost')
-```
-
-### Testing CORS
-
-After you set it up and run it, you can test it by querying the target URL of exchange endpoint through the proxy (like https://localhost:8080/https://exchange.com/path/to/endpoint).
-
-To test the CORS you can do either of the following:
-
-- set up proxy somewhere in your browser settings, then go to endpoint URL `https://exchange.com/path/to/endpoint`
-- type that URL directly in the address bar as `https://localhost:8080/https://exchange.com/path/to/endpoint`
-- cURL it from command like `curl https://localhost:8080/https://exchange.com/path/to/endpoint`
-
-To let ccxt know of the proxy, you can set the `proxy` property on your exchange instance.
+If you are unable to obtain data from CCXT due to some location restrictions, you can make read [proxy](https://github.com/ccxt/ccxt/wiki/Manual#proxy) section.

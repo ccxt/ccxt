@@ -2,9 +2,11 @@
 
 namespace ccxt\pro;
 
-use ccxt\async\Throttle;
+use ccxt\async\Throttler;
 use ccxt\BaseError;
+use ccxt\ExchangeClosedByUser;
 use ccxt\ExchangeError;
+use Exception;
 use React\Async;
 use React\EventLoop\Loop;
 
@@ -56,9 +58,10 @@ trait ClientTrait {
             $options = array_replace_recursive(array(
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
-                'throttle' => new Throttle($this->tokenBucket),
+                'throttle' => new Throttler($this->tokenBucket),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
+            $this->configure_proxy_client($this->clients[$url]);
         }
         return $this->clients[$url];
     }
@@ -83,22 +86,36 @@ trait ClientTrait {
         });
     }
 
-    public function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null) {
+    private function configure_proxy_client($client) {
+        [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_ws_proxy_settings();
+        $selected_proxy_address = $httpProxy ? $httpProxy : ($httpsProxy ? $httpsProxy : $socksProxy );
+        $proxy_connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+        $client->set_ws_connector($selected_proxy_address, $proxy_connector);
+    }
+
+    public function watch_multiple($url, $message_hashes, $message = null, $subscribe_hashes = null, $subscription = null) {
         $client = $this->client($url);
+
         // todo: calculate the backoff delay in php
         $backoff_delay = 0; // milliseconds
-        if (($subscribe_hash == null) && array_key_exists($message_hash, $client->futures)) {
-            return $client->futures[$message_hash];
+
+        $future = Future::race(array_map(array($client, 'future'), $message_hashes));
+
+        $missing_subscriptions = array();
+        if ($subscribe_hashes !== null) {
+            for ($i = 0; $i < count($subscribe_hashes); $i++) {
+                $subscribe_hash = $subscribe_hashes[$i];
+                if (!array_key_exists($subscribe_hash, $client->subscriptions)) {
+                    $missing_subscriptions[] = $subscribe_hash;
+                    $client->subscriptions[$subscribe_hash] = $subscription ?? true;
+                }
+            }
         }
-        $future = $client->future($message_hash);
-        $subscribed = isset($client->subscriptions[$subscribe_hash]);
-        if (!$subscribed) {
-            $client->subscriptions[$subscribe_hash] = isset($subscription) ? $subscription : true;
-        }
+
         $connected = $client->connect($backoff_delay);
-        if (!$subscribed) {
+        if ($missing_subscriptions) {
             $connected->then(
-                function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription, $subscribed) {
+                function($result) use ($client, $message, $message_hashes, $subscribe_hashes, $future) {
                     // todo: add PHP async rate-limiting
                     // todo: decouple signing from subscriptions
                     $options = $this->safe_value($this->options, 'ws');
@@ -108,17 +125,78 @@ trait ClientTrait {
                             // add cost here |
                             //               |
                             //               V
-                            \call_user_func($client->throttle, $cost)->then(function ($result) use ($client, $message) {
-                                Async\await($client->send($message));
+                            \call_user_func($client->throttle, $cost)->then(function ($result) use ($client, $message, $message_hashes, $subscribe_hashes, $future) {
+                                try {
+                                    Async\await($client->send($message));
+                                } catch (Exception $error) {
+                                    $client->on_error($error);
+                                }
                             });
                         } else {
-                            Async\await($client->send($message));
+                            try {
+                                Async\await($client->send($message));
+                            } catch (Exception $error) {
+                                $client->on_error($error);
+                            }
                         }
                     }
                 },
-                function($error) use ($client, $subscribe_hash) {
+                function($error) use ($client, $message_hashes, $subscribe_hashes, $future) {
+                    $future->reject($error);
+                    foreach ($subscribe_hashes as $subscribe_hash) {
+                        unset($client->subscriptions[$subscribe_hash]);
+                    }
+                }
+            );
+        }
+        return $future;
+    }
+
+    public function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null) {
+        $client = $this->client($url);
+
+        // todo: calculate the backoff delay in php
+        $backoff_delay = 0; // milliseconds
+        if (($subscribe_hash == null) && array_key_exists($message_hash, $client->futures)) {
+            return $client->futures[$message_hash];
+        }
+        $future = $client->future($message_hash);
+        $subscribed = isset($client->subscriptions[$subscribe_hash]);
+        if (!$subscribed) {
+            $client->subscriptions[$subscribe_hash] = $subscription ?? true;
+        }
+        $connected = $client->connect($backoff_delay);
+        if (!$subscribed) {
+            $connected->then(
+                function($result) use ($client, $message, $message_hash, $subscribe_hash) {
+                    // todo: add PHP async rate-limiting
+                    // todo: decouple signing from subscriptions
+                    $options = $this->safe_value($this->options, 'ws');
+                    $cost = $this->safe_value ($options, 'cost', 1);
+                    if ($message) {
+                        if ($this->enableRateLimit) {
+                            // add cost here |
+                            //               |
+                            //               V
+                            \call_user_func($client->throttle, $cost)->then(function ($result) use ($client, $message, $message_hash, $subscribe_hash) {
+                                try {
+                                    Async\await($client->send($message));
+                                } catch (Exception $error) {
+                                    $client->on_error($error);
+                                }
+                            });
+                        } else {
+                            try {
+                                Async\await($client->send($message));
+                            } catch (Exception $error) {
+                                $client->on_error($error);
+                            }
+                        }
+                    }
+                },
+                function($error) use ($client, $subscribe_hash, $message_hash) {
+                    $client->reject($error, $message_hash);
                     unset($client->subscriptions[$subscribe_hash]);
-                    throw new ExchangeError($error);
                 }
             );
         }
@@ -138,7 +216,7 @@ trait ClientTrait {
 
     public function on_close(Client $client, $message) {
         if ($client->error) {
-            // connection closed due to an error, do nothing
+            // connection closed by the user or due to an error, do nothing
         } else {
             // server disconnected a working connection
             if (array_key_exists($client->url, $this->clients)) {
@@ -151,25 +229,16 @@ trait ClientTrait {
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {
+            $client->error = new ExchangeClosedByUser ($this->id . ' closed by user');
             $client->close();
+            $url = $client->url;
+            unset($this->clients[$url]);
         }
     }
 
     public function __destruct() {
         parent::__destruct();
         $this->close();
-    }
-
-    public function find_timeframe($timeframe, $timeframes = null) {
-        $timeframes = $timeframes ? $timeframes : $this->timeframes;
-        $keys = array_keys($timeframes);
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($timeframes[$key] === $timeframe) {
-                return $key;
-            }
-        }
-        return null;
     }
 
     public function load_order_book($client, $messageHash, $symbol, $limit = null, $params = array()) {
@@ -201,11 +270,5 @@ trait ClientTrait {
                 Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
             }
         }) ();
-    }
-
-    public function handle_deltas($orderbook, $deltas) {
-        foreach ($deltas as $delta) {
-            $this->handle_delta($orderbook, $delta);
-        }
     }
 }

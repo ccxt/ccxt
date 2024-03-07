@@ -67,6 +67,18 @@ abstract class poloniexfutures extends \ccxt\Exchange {
     public function private_get_transaction_history($params = array()) {
         return $this->request('transaction-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_maxactiveorders($params = array()) {
+        return $this->request('maxActiveOrders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_maxrisklimit($params = array()) {
+        return $this->request('maxRiskLimit', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_userfeerate($params = array()) {
+        return $this->request('userFeeRate', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_margintype_query($params = array()) {
+        return $this->request('marginType/query', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_orders($params = array()) {
         return $this->request('orders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -78,6 +90,9 @@ abstract class poloniexfutures extends \ccxt\Exchange {
     }
     public function private_get_orders_order_id($params = array()) {
         return $this->request('orders/{order-id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_clientorderid_clientoid($params = array()) {
+        return $this->request('clientOrderId/{clientOid}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_fills($params = array()) {
         return $this->request('fills', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -94,9 +109,6 @@ abstract class poloniexfutures extends \ccxt\Exchange {
     public function private_get_funding_history($params = array()) {
         return $this->request('funding-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_margintype_query($params = array()) {
-        return $this->request('marginType/query', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function private_post_orders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 1.5));
     }
@@ -108,6 +120,9 @@ abstract class poloniexfutures extends \ccxt\Exchange {
     }
     public function private_post_position_margin_deposit_margin($params = array()) {
         return $this->request('position/margin/deposit-margin', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_post_position_margin_withdraw_margin($params = array()) {
+        return $this->request('position/margin/withdraw-margin', 'private', 'POST', $params, null, null, array("cost" => 1.5));
     }
     public function private_post_bullet_private($params = array()) {
         return $this->request('bullet-private', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -184,6 +199,18 @@ abstract class poloniexfutures extends \ccxt\Exchange {
     public function privateGetTransactionHistory($params = array()) {
         return $this->request('transaction-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetMaxActiveOrders($params = array()) {
+        return $this->request('maxActiveOrders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetMaxRiskLimit($params = array()) {
+        return $this->request('maxRiskLimit', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetUserFeeRate($params = array()) {
+        return $this->request('userFeeRate', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetMarginTypeQuery($params = array()) {
+        return $this->request('marginType/query', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetOrders($params = array()) {
         return $this->request('orders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -195,6 +222,9 @@ abstract class poloniexfutures extends \ccxt\Exchange {
     }
     public function privateGetOrdersOrderId($params = array()) {
         return $this->request('orders/{order-id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetClientOrderIdClientOid($params = array()) {
+        return $this->request('clientOrderId/{clientOid}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetFills($params = array()) {
         return $this->request('fills', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -211,9 +241,6 @@ abstract class poloniexfutures extends \ccxt\Exchange {
     public function privateGetFundingHistory($params = array()) {
         return $this->request('funding-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetMarginTypeQuery($params = array()) {
-        return $this->request('marginType/query', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function privatePostOrders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 1.5));
     }
@@ -225,6 +252,9 @@ abstract class poloniexfutures extends \ccxt\Exchange {
     }
     public function privatePostPositionMarginDepositMargin($params = array()) {
         return $this->request('position/margin/deposit-margin', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privatePostPositionMarginWithdrawMargin($params = array()) {
+        return $this->request('position/margin/withdraw-margin', 'private', 'POST', $params, null, null, array("cost" => 1.5));
     }
     public function privatePostBulletPrivate($params = array()) {
         return $this->request('bullet-private', 'private', 'POST', $params, null, null, array("cost" => 1));

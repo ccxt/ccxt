@@ -1,0 +1,254 @@
+{
+    "BTC": {
+        "id": "1",
+        "name": "Bitcoin",
+        "code": "BTC",
+        "type": "crypto",
+        "precision": 1e-8,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "1",
+            "Product": "BTC",
+            "ProductFullName": "Bitcoin",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "CryptoCurrency",
+            "DecimalPlaces": "8",
+            "TickSize": "0.0000000100000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USDT": {
+        "id": "16",
+        "name": "Tether",
+        "code": "USDT",
+        "type": "crypto",
+        "precision": 0.01,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "16",
+            "Product": "USDT",
+            "ProductFullName": "Tether",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "CryptoCurrency",
+            "DecimalPlaces": "2",
+            "TickSize": "0.0100000000000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "EUR": {
+        "id": "44",
+        "name": "EUR",
+        "code": "EUR",
+        "type": "fiat",
+        "precision": 0.01,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "44",
+            "Product": "EUR",
+            "ProductFullName": "EUR",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "NationalCurrency",
+            "DecimalPlaces": "2",
+            "TickSize": "0.0100000000000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USD": {
+        "id": "6",
+        "name": "United States Dollar",
+        "code": "USD",
+        "type": "fiat",
+        "precision": 0.0001,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "6",
+            "Product": "USD",
+            "ProductFullName": "United States Dollar",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "NationalCurrency",
+            "DecimalPlaces": "4",
+            "TickSize": "0.0001000000000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "LTC": {
+        "id": "2",
+        "name": "Litecoin",
+        "code": "LTC",
+        "type": "crypto",
+        "precision": 1e-8,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "2",
+            "Product": "LTC",
+            "ProductFullName": "Litecoin",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "CryptoCurrency",
+            "DecimalPlaces": "8",
+            "TickSize": "0.0000000100000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "ETH": {
+        "id": "3",
+        "name": "Ether",
+        "code": "ETH",
+        "type": "crypto",
+        "precision": 1e-8,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "3",
+            "Product": "ETH",
+            "ProductFullName": "Ether",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "CryptoCurrency",
+            "DecimalPlaces": "8",
+            "TickSize": "0.0000000100000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "ADA": {
+        "id": "14",
+        "name": "Cardano",
+        "code": "ADA",
+        "type": "crypto",
+        "precision": 0.00001,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "14",
+            "Product": "ADA",
+            "ProductFullName": "Cardano",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "CryptoCurrency",
+            "DecimalPlaces": "5",
+            "TickSize": "0.0000100000000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "XRP": {
+        "id": "4",
+        "name": "XRP",
+        "code": "XRP",
+        "type": "crypto",
+        "precision": 0.0001,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "4",
+            "Product": "XRP",
+            "ProductFullName": "XRP",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "CryptoCurrency",
+            "DecimalPlaces": "4",
+            "TickSize": "0.0001000000000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USDC": {
+        "id": "24",
+        "name": "USDC",
+        "code": "USDC",
+        "type": "crypto",
+        "precision": 0.01,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "24",
+            "Product": "USDC",
+            "ProductFullName": "USDC",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "CryptoCurrency",
+            "DecimalPlaces": "2",
+            "TickSize": "0.0100000000000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    }
+}

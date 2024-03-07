@@ -12,9 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_status  # noqa E402
-
 
 async def test_fetch_status(exchange, skipped_properties):
     method = 'fetchStatus'

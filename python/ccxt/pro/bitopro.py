@@ -4,10 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
+from ccxt.base.types import Balances, Int, Market, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 
 
@@ -18,7 +19,7 @@ class bitopro(ccxt.async_support.bitopro):
             'has': {
                 'ws': True,
                 'watchBalance': True,
-                'watchMyTrades': False,
+                'watchMyTrades': True,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
                 'watchOrders': False,
@@ -28,8 +29,8 @@ class bitopro(ccxt.async_support.bitopro):
             },
             'urls': {
                 'ws': {
-                    'public': 'wss://stream.bitopro.com:9443/ws/v1/pub',
-                    'private': 'wss://stream.bitopro.com:9443/ws/v1/pub/auth',
+                    'public': 'wss://stream.bitopro.com:443/ws/v1/pub',
+                    'private': 'wss://stream.bitopro.com:443/ws/v1/pub/auth',
                 },
             },
             'requiredCredentials': {
@@ -53,12 +54,13 @@ class bitopro(ccxt.async_support.bitopro):
         url = self.urls['ws']['public'] + '/' + path + '/' + marketId
         return await self.watch(url, messageHash, None, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/order_book_stream.md
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the bitopro api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         if limit is not None:
@@ -79,21 +81,21 @@ class bitopro(ccxt.async_support.bitopro):
     def handle_order_book(self, client: Client, message):
         #
         #     {
-        #         event: 'ORDER_BOOK',
-        #         timestamp: 1650121915308,
-        #         datetime: '2022-04-16T15:11:55.308Z',
-        #         pair: 'BTC_TWD',
-        #         limit: 5,
-        #         scale: 0,
-        #         bids: [
-        #             {price: '1188178', amount: '0.0425', count: 1, total: '0.0425'},
+        #         "event": "ORDER_BOOK",
+        #         "timestamp": 1650121915308,
+        #         "datetime": "2022-04-16T15:11:55.308Z",
+        #         "pair": "BTC_TWD",
+        #         "limit": 5,
+        #         "scale": 0,
+        #         "bids": [
+        #             {price: "1188178", amount: '0.0425', count: 1, total: "0.0425"},
         #         ],
-        #         asks: [
+        #         "asks": [
         #             {
-        #                 price: '1190740',
-        #                 amount: '0.40943964',
-        #                 count: 1,
-        #                 total: '0.40943964'
+        #                 "price": "1190740",
+        #                 "amount": "0.40943964",
+        #                 "count": 1,
+        #                 "total": "0.40943964"
         #             },
         #         ]
         #     }
@@ -111,14 +113,15 @@ class bitopro(ccxt.async_support.bitopro):
         orderbook.reset(snapshot)
         client.resolve(orderbook, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/trade_stream.md
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -132,19 +135,19 @@ class bitopro(ccxt.async_support.bitopro):
     def handle_trade(self, client: Client, message):
         #
         #     {
-        #         event: 'TRADE',
-        #         timestamp: 1650116346665,
-        #         datetime: '2022-04-16T13:39:06.665Z',
-        #         pair: 'BTC_TWD',
-        #         data: [
+        #         "event": "TRADE",
+        #         "timestamp": 1650116346665,
+        #         "datetime": "2022-04-16T13:39:06.665Z",
+        #         "pair": "BTC_TWD",
+        #         "data": [
         #             {
-        #                 event: '',
-        #                 datetime: '',
-        #                 pair: '',
-        #                 timestamp: 1650116227,
-        #                 price: '1189429',
-        #                 amount: '0.0153127',
-        #                 isBuyer: True
+        #                 "event": '',
+        #                 "datetime": '',
+        #                 "pair": '',
+        #                 "timestamp": 1650116227,
+        #                 "price": "1189429",
+        #                 "amount": "0.0153127",
+        #                 "isBuyer": True
         #             },
         #         ]
         #     }
@@ -165,11 +168,144 @@ class bitopro(ccxt.async_support.bitopro):
         self.trades[symbol] = tradesCache
         client.resolve(tradesCache, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        watches information on multiple trades made by the user
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/matches_stream.md
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        """
+        self.check_required_credentials()
+        await self.load_markets()
+        messageHash = 'USER_TRADE'
+        if symbol is not None:
+            market = self.market(symbol)
+            messageHash = messageHash + ':' + market['symbol']
+        url = self.urls['ws']['private'] + '/' + 'user-trades'
+        self.authenticate(url)
+        trades = await self.watch(url, messageHash, None, messageHash)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    def handle_my_trade(self, client: Client, message):
+        #
+        #     {
+        #         "event": "USER_TRADE",
+        #         "timestamp": 1694667358782,
+        #         "datetime": "2023-09-14T12:55:58.782Z",
+        #         "data": {
+        #             "base": "usdt",
+        #             "quote": "twd",
+        #             "side": "ask",
+        #             "price": "32.039",
+        #             "volume": "1",
+        #             "fee": "6407800",
+        #             "feeCurrency": "twd",
+        #             "transactionTimestamp": 1694667358,
+        #             "eventTimestamp": 1694667358,
+        #             "orderID": 390733918,
+        #             "orderType": "LIMIT",
+        #             "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
+        #             "isMarket": False,
+        #             "isMaker": False
+        #         }
+        #     }
+        #
+        data = self.safe_value(message, 'data', {})
+        baseId = self.safe_string(data, 'base')
+        quoteId = self.safe_string(data, 'quote')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = self.symbol(base + '/' + quote)
+        messageHash = self.safe_string(message, 'event')
+        if self.myTrades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        trades = self.myTrades
+        parsed = self.parse_ws_trade(data)
+        trades.append(parsed)
+        client.resolve(trades, messageHash)
+        client.resolve(trades, messageHash + ':' + symbol)
+
+    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+        #
+        #     {
+        #         "base": "usdt",
+        #         "quote": "twd",
+        #         "side": "ask",
+        #         "price": "32.039",
+        #         "volume": "1",
+        #         "fee": "6407800",
+        #         "feeCurrency": "twd",
+        #         "transactionTimestamp": 1694667358,
+        #         "eventTimestamp": 1694667358,
+        #         "orderID": 390733918,
+        #         "orderType": "LIMIT",
+        #         "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
+        #         "isMarket": False,
+        #         "isMaker": False
+        #     }
+        #
+        id = self.safe_string(trade, 'matchID')
+        orderId = self.safe_string(trade, 'orderID')
+        timestamp = self.safe_timestamp(trade, 'transactionTimestamp')
+        baseId = self.safe_string(trade, 'base')
+        quoteId = self.safe_string(trade, 'quote')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = self.symbol(base + '/' + quote)
+        market = self.safe_market(symbol, market)
+        price = self.safe_string(trade, 'price')
+        type = self.safe_string_lower(trade, 'orderType')
+        side = self.safe_string(trade, 'side')
+        if side is not None:
+            if side == 'ask':
+                side = 'sell'
+            elif side == 'bid':
+                side = 'buy'
+        amount = self.safe_string(trade, 'volume')
+        fee = None
+        feeAmount = self.safe_string(trade, 'fee')
+        feeSymbol = self.safe_currency_code(self.safe_string(trade, 'feeCurrency'))
+        if feeAmount is not None:
+            fee = {
+                'cost': feeAmount,
+                'currency': feeSymbol,
+                'rate': None,
+            }
+        isMaker = self.safe_value(trade, 'isMaker')
+        takerOrMaker = None
+        if isMaker is not None:
+            if isMaker:
+                takerOrMaker = 'maker'
+            else:
+                takerOrMaker = 'taker'
+        return self.safe_trade({
+            'id': id,
+            'info': trade,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'takerOrMaker': takerOrMaker,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': None,
+            'fee': fee,
+        }, market)
+
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/ticker_stream.md
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the bitopro api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -181,20 +317,20 @@ class bitopro(ccxt.async_support.bitopro):
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         event: 'TICKER',
-        #         timestamp: 1650119165710,
-        #         datetime: '2022-04-16T14:26:05.710Z',
-        #         pair: 'BTC_TWD',
-        #         lastPrice: '1189110',
-        #         lastPriceUSD: '40919.1328',
-        #         lastPriceTWD: '1189110',
-        #         isBuyer: True,
-        #         priceChange24hr: '1.23',
-        #         volume24hr: '7.2090',
-        #         volume24hrUSD: '294985.5375',
-        #         volume24hrTWD: '8572279',
-        #         high24hr: '1193656',
-        #         low24hr: '1179321'
+        #         "event": "TICKER",
+        #         "timestamp": 1650119165710,
+        #         "datetime": "2022-04-16T14:26:05.710Z",
+        #         "pair": "BTC_TWD",
+        #         "lastPrice": "1189110",
+        #         "lastPriceUSD": "40919.1328",
+        #         "lastPriceTWD": "1189110",
+        #         "isBuyer": True,
+        #         "priceChange24hr": "1.23",
+        #         "volume24hr": "7.2090",
+        #         "volume24hrUSD": "294985.5375",
+        #         "volume24hrTWD": "8572279",
+        #         "high24hr": "1193656",
+        #         "low24hr": "1179321"
         #     }
         #
         marketId = self.safe_string(message, 'pair')
@@ -220,7 +356,7 @@ class bitopro(ccxt.async_support.bitopro):
             'identity': self.login,
         })
         payload = self.string_to_base64(rawData)
-        signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
+        signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
         defaultOptions = {
             'ws': {
                 'options': {
@@ -241,11 +377,12 @@ class bitopro(ccxt.async_support.bitopro):
         self.client(url)
         self.options['ws']['options']['headers'] = originalHeaders
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/user_balance_stream.md
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -257,16 +394,16 @@ class bitopro(ccxt.async_support.bitopro):
     def handle_balance(self, client: Client, message):
         #
         #     {
-        #         event: 'ACCOUNT_BALANCE',
-        #         timestamp: 1650450505715,
-        #         datetime: '2022-04-20T10:28:25.715Z',
-        #         data: {
-        #           ADA: {
-        #             currency: 'ADA',
-        #             amount: '0',
-        #             available: '0',
-        #             stake: '0',
-        #             tradable: True
+        #         "event": "ACCOUNT_BALANCE",
+        #         "timestamp": 1650450505715,
+        #         "datetime": "2022-04-20T10:28:25.715Z",
+        #         "data": {
+        #           "ADA": {
+        #             "currency": "ADA",
+        #             "amount": "0",
+        #             "available": "0",
+        #             "stake": "0",
+        #             "tradable": True
         #           },
         #         }
         #     }
@@ -299,10 +436,9 @@ class bitopro(ccxt.async_support.bitopro):
             'TICKER': self.handle_ticker,
             'ORDER_BOOK': self.handle_order_book,
             'ACCOUNT_BALANCE': self.handle_balance,
+            'USER_TRADE': self.handle_my_trade,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)
-        if method is None:
-            return message
-        else:
-            return method(client, message)
+        if method is not None:
+            method(client, message)

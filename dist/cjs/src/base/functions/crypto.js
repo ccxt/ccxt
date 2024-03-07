@@ -4,6 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var hmac$1 = require('../../static_dependencies/noble-hashes/hmac.js');
 var index = require('../../static_dependencies/scure-base/index.js');
+var base64 = require('../../static_dependencies/jsencrypt/lib/asn1js/base64.js');
 
 /*  ------------------------------------------------------------------------ */
 /*  ------------------------------------------------------------------------ */
@@ -34,10 +35,17 @@ function ecdsa(request, secret, curve, prehash = null) {
         'v': signature.recovery,
     };
 }
-function eddsa(request, secret, curve) {
+function axolotl(request, secret, curve) {
     // used for waves.exchange (that's why the output is base58)
-    const signature = curve.sign(request, secret);
+    const signature = curve.signModified(request, secret);
     return index.base58.encode(signature);
+}
+function eddsa(request, secret, curve) {
+    // secret is the base64 pem encoded key
+    // we get the last 32 bytes
+    const privateKey = new Uint8Array(base64.Base64.unarmor(secret).slice(16));
+    const signature = curve.sign(request, privateKey);
+    return index.base64.encode(signature);
 }
 /*  ------------------------------------------------------------------------ */
 // source: https://stackoverflow.com/a/18639975/1067003
@@ -62,6 +70,7 @@ function crc32(str, signed = false) {
 }
 /*  ------------------------------------------------------------------------ */
 
+exports.axolotl = axolotl;
 exports.crc32 = crc32;
 exports.ecdsa = ecdsa;
 exports.eddsa = eddsa;
