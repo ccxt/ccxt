@@ -1770,6 +1770,12 @@ export default class Exchange {
         if (typeof value === 'boolean') {
             return value;
         }
+        if (typeof value === 'string') {
+            return (value === '1') || (value.toLowerCase () === 'true');
+        }
+        if (typeof value === 'number') {
+            return value === 1;
+        }
         return defaultValue;
     }
 
