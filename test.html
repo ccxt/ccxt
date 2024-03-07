@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>CCXT browser test</title>
+  </head>
+  <body>
+    <div id="log"></div>
+  </body>
+  <script src="./dist/ccxt.browser.min.js"></script>
+  <script>(async () => {
+    const log = document.querySelector('#log')
+    const createElement = (tag) => {
+      return document.createElement(tag)
+    }
+    const appendLog = (type, text) => {
+       const p = document.createElement('p')
+       p.textContent = `[${type}][${(new Date()).toISOString()}] ${text}`
+       log.appendChild(p)
+    }
+    if (window['ccxt'] !== undefined) {
+      appendLog('info', 'ccxt loaded')
+      appendLog('info', 'please remember request access on https://cors-anywhere.herokuapp.com/')
+      const symbol = 'BTC/USDT:USDT'
+      const exchange = new ccxt.gate({
+        proxyUrl: 'https://cors-anywhere.herokuapp.com/'
+      })
+      appendLog('info', 'test fetchTicker from gate')
+      try {
+        const ticker = await exchange.fetchTicker(symbol)
+        if (ticker === undefined) {
+            appendLog('error', 'failed to fetchTicker from gate, ticker is undefined')
+            return
+        }
+        if (ticker['symbol'] !== symbol) {
+            appendLog('error', 'failed to fetchTicker from gate, symbol is not the same')
+            return
+        }
+        appendLog('info', 'OK')
+      } catch (e) {
+        console.log(exchange.url)
+        appendLog('error', 'failed to fetchTicker from gate, ' + e.message)
+      }
+    } else {
+      appendLog('error', 'failed to load ccxt')
+    }
+  })()</script>
+</html>
