@@ -185,7 +185,7 @@ export default class cex extends cexRest {
             return;
         }
         const firstSub = subs[0];
-        const symbol = firstSub.slice (4);
+        const symbol = firstSub.replace ('old:', '');
         const market = this.market (symbol);
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
