@@ -1227,7 +1227,7 @@ class bitget(ccxt.async_support.bitget):
         if feeAmount is not None:
             feeCurrency = self.safe_string(fee, 'feeCoin')
             feeObject = {
-                'cost': Precise.string_abs(feeAmount),
+                'cost': self.parse_number(Precise.string_abs(feeAmount)),
                 'currency': self.safe_currency_code(feeCurrency),
             }
         triggerPrice = self.safe_number(order, 'triggerPrice')
@@ -1239,8 +1239,9 @@ class bitget(ccxt.async_support.bitget):
         if side == 'buy' and market['spot'] and (type == 'market'):
             cost = self.safe_string(order, 'newSize', cost)
         filled = self.safe_string_2(order, 'accBaseVolume', 'baseVolume')
-        if market['spot'] and (rawStatus != 'live'):
-            filled = Precise.string_div(cost, avgPrice)
+        # if market['spot'] and (rawStatus != 'live'):
+        #     filled = Precise.string_div(cost, avgPrice)
+        # }
         amount = self.safe_string(order, 'baseVolume')
         if not market['spot'] or not (side == 'buy' and type == 'market'):
             amount = self.safe_string(order, 'newSize', amount)

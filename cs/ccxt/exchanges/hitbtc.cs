@@ -2548,7 +2548,7 @@ public partial class hitbtc : Exchange
         * @see https://api.hitbtc.com/#get-futures-position-parameters
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} Struct of MarginMode
+        * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

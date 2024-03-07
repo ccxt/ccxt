@@ -209,6 +209,7 @@ public partial class kucoin : Exchange
                         { "project/marketInterestRate", 7.5 },
                         { "redeem/orders", 10 },
                         { "purchase/orders", 10 },
+                        { "broker/api/rebase/download", 3 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "sub/user/created", 22.5 },

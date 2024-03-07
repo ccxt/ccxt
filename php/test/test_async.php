@@ -1486,7 +1486,7 @@ class testMainClass extends baseMainTestClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1807,6 +1807,22 @@ class testMainClass extends baseMainTestClass {
             }
             $broker_id = $request['brokerId'];
             assert(str_starts_with($broker_id, ((string) $id)), 'brokerId does not start with id');
+            Async\await(close($exchange));
+        }) ();
+    }
+
+    public function test_hyperliquid() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('hyperliquid');
+            $id = '1';
+            $request = null;
+            try {
+                Async\await($exchange->create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $broker_id = ((string) ($request['action']['brokerCode']));
+            assert($broker_id === $id, 'brokerId does not start with id');
             Async\await(close($exchange));
         }) ();
     }

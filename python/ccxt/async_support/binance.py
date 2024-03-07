@@ -2759,14 +2759,11 @@ class binance(Exchange, ImplicitAPI):
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = await asyncio.gather(*promisesRaw)
-        spotMarkets = self.safe_value(self.safe_value(promises, 0), 'symbols', [])
-        futureMarkets = self.safe_value(self.safe_value(promises, 1), 'symbols', [])
-        deliveryMarkets = self.safe_value(self.safe_value(promises, 2), 'symbols', [])
-        optionMarkets = self.safe_value(self.safe_value(promises, 3), 'optionSymbols', [])
-        markets = spotMarkets
-        markets = self.array_concat(markets, futureMarkets)
-        markets = self.array_concat(markets, deliveryMarkets)
-        markets = self.array_concat(markets, optionMarkets)
+        markets = []
+        for i in range(0, len(fetchMarkets)):
+            promise = self.safe_dict(promises, i)
+            promiseMarkets = self.safe_list_2(promise, 'symbols', 'optionSymbols', [])
+            markets = self.array_concat(markets, promiseMarkets)
         #
         # spot / margin
         #
@@ -11191,7 +11188,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: struct of marginMode
+        :returns dict: a list of `margin mode structures <https://docs.ccxt.com/#/?id=margin-mode-structure>`
         """
         await self.load_markets()
         market = None

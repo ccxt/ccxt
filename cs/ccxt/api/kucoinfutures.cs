@@ -416,6 +416,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("privateGetPurchaseOrders",parameters);
     }
 
+    public async Task<object> privateGetBrokerApiRebaseDownload (object parameters = null)
+    {
+        return await this.callAsync ("privateGetBrokerApiRebaseDownload",parameters);
+    }
+
     public async Task<object> privatePostSubUserCreated (object parameters = null)
     {
         return await this.callAsync ("privatePostSubUserCreated",parameters);

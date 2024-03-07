@@ -383,7 +383,7 @@ class blofin extends Exchange {
         $strikePrice = null;
         $optionType = null;
         $tickSize = $this->safe_string($market, 'tickSize');
-        $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
+        $fees = $this->safe_dict_2($this->fees, $type, 'trading', array());
         $taker = $this->safe_number($fees, 'taker');
         $maker = $this->safe_number($fees, 'maker');
         $maxLeverage = $this->safe_string($market, 'maxLeverage', '100');
@@ -484,7 +484,7 @@ class blofin extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
-            $first = $this->safe_value($data, 0, array());
+            $first = $this->safe_dict($data, 0, array());
             $timestamp = $this->safe_integer($first, 'ts');
             return $this->parse_order_book($first, $symbol, $timestamp);
         }) ();
@@ -542,7 +542,7 @@ class blofin extends Exchange {
             );
             $response = Async\await($this->publicGetMarketTickers (array_merge($request, $params)));
             $data = $this->safe_list($response, 'data', array());
-            $first = $this->safe_value($data, 0, array());
+            $first = $this->safe_dict($data, 0, array());
             return $this->parse_ticker($first, $market);
         }) ();
     }
@@ -1014,8 +1014,8 @@ class blofin extends Exchange {
         if ($postOnly) {
             $request['type'] = 'post_only';
         }
-        $stopLoss = $this->safe_value($params, 'stopLoss');
-        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
         $params = $this->omit($params, array( 'stopLoss', 'takeProfit' ));
         $isStopLoss = $stopLoss !== null;
         $isTakeProfit = $takeProfit !== null;
@@ -1306,7 +1306,7 @@ class blofin extends Exchange {
                 $side = $this->safe_string($rawOrder, 'side');
                 $amount = $this->safe_value($rawOrder, 'amount');
                 $price = $this->safe_value($rawOrder, 'price');
-                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $orderParams = $this->safe_dict($rawOrder, 'params', array());
                 $extendedParams = array_merge($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
                 $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
                 $ordersRequests[] = $orderRequest;
@@ -1347,7 +1347,7 @@ class blofin extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 100
             }
-            $isStop = $this->safe_value_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
+            $isStop = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
             $method = null;
             list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
             $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
@@ -1684,7 +1684,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array();
-            $options = $this->safe_value($this->options, 'cancelOrders', array());
+            $options = $this->safe_dict($this->options, 'cancelOrders', array());
             $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $clientOrderIds = $this->parse_ids($this->safe_value($params, 'clientOrderId'));
@@ -1749,7 +1749,7 @@ class blofin extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
             $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
             $request = array(
@@ -2086,7 +2086,7 @@ class blofin extends Exchange {
                 $request['clientOrderId'] = $clientOrderId;
             }
             $response = Async\await($this->privatePostTradeClosePosition (array_merge($request, $params)));
-            return $this->safe_value($response, 'data');
+            return $this->safe_dict($response, 'data');
         }) ();
     }
 
@@ -2123,7 +2123,7 @@ class blofin extends Exchange {
             if ($since !== null) {
                 $request['begin'] = $since;
             }
-            $isStop = $this->safe_value_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
+            $isStop = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
             $method = null;
             list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
             $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));

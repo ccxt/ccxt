@@ -1405,7 +1405,7 @@ public partial class bitget : ccxt.bitget
         {
             object feeCurrency = this.safeString(fee, "feeCoin");
             feeObject = new Dictionary<string, object>() {
-                { "cost", Precise.stringAbs(feeAmount) },
+                { "cost", this.parseNumber(Precise.stringAbs(feeAmount)) },
                 { "currency", this.safeCurrencyCode(feeCurrency) },
             };
         }
@@ -1420,10 +1420,9 @@ public partial class bitget : ccxt.bitget
             cost = this.safeString(order, "newSize", cost);
         }
         object filled = this.safeString2(order, "accBaseVolume", "baseVolume");
-        if (isTrue(isTrue(getValue(market, "spot")) && isTrue((!isEqual(rawStatus, "live")))))
-        {
-            filled = Precise.stringDiv(cost, avgPrice);
-        }
+        // if (market['spot'] && (rawStatus !== 'live')) {
+        //     filled = Precise.stringDiv (cost, avgPrice);
+        // }
         object amount = this.safeString(order, "baseVolume");
         if (isTrue(!isTrue(getValue(market, "spot")) || !isTrue((isTrue(isEqual(side, "buy")) && isTrue(isEqual(type, "market"))))))
         {

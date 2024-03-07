@@ -2788,14 +2788,12 @@ class binance extends Exchange {
                 }
             }
             $promises = Async\await(Promise\all($promisesRaw));
-            $spotMarkets = $this->safe_value($this->safe_value($promises, 0), 'symbols', array());
-            $futureMarkets = $this->safe_value($this->safe_value($promises, 1), 'symbols', array());
-            $deliveryMarkets = $this->safe_value($this->safe_value($promises, 2), 'symbols', array());
-            $optionMarkets = $this->safe_value($this->safe_value($promises, 3), 'optionSymbols', array());
-            $markets = $spotMarkets;
-            $markets = $this->array_concat($markets, $futureMarkets);
-            $markets = $this->array_concat($markets, $deliveryMarkets);
-            $markets = $this->array_concat($markets, $optionMarkets);
+            $markets = array();
+            for ($i = 0; $i < count($fetchMarkets); $i++) {
+                $promise = $this->safe_dict($promises, $i);
+                $promiseMarkets = $this->safe_list_2($promise, 'symbols', 'optionSymbols', array());
+                $markets = $this->array_concat($markets, $promiseMarkets);
+            }
             //
             // spot / margin
             //
@@ -12023,7 +12021,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
              * @param {string} symbol unified symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} struct of marginMode
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
              */
             Async\await($this->load_markets());
             $market = null;

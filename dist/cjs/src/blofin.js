@@ -378,7 +378,7 @@ class blofin extends blofin$1 {
         const strikePrice = undefined;
         const optionType = undefined;
         const tickSize = this.safeString(market, 'tickSize');
-        const fees = this.safeValue2(this.fees, type, 'trading', {});
+        const fees = this.safeDict2(this.fees, type, 'trading', {});
         const taker = this.safeNumber(fees, 'taker');
         const maker = this.safeNumber(fees, 'maker');
         let maxLeverage = this.safeString(market, 'maxLeverage', '100');
@@ -479,7 +479,7 @@ class blofin extends blofin$1 {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const first = this.safeDict(data, 0, {});
         const timestamp = this.safeInteger(first, 'ts');
         return this.parseOrderBook(first, symbol, timestamp);
     }
@@ -535,7 +535,7 @@ class blofin extends blofin$1 {
         };
         const response = await this.publicGetMarketTickers(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
-        const first = this.safeValue(data, 0, {});
+        const first = this.safeDict(data, 0, {});
         return this.parseTicker(first, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -995,8 +995,8 @@ class blofin extends blofin$1 {
         if (postOnly) {
             request['type'] = 'post_only';
         }
-        const stopLoss = this.safeValue(params, 'stopLoss');
-        const takeProfit = this.safeValue(params, 'takeProfit');
+        const stopLoss = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
         params = this.omit(params, ['stopLoss', 'takeProfit']);
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
@@ -1289,7 +1289,7 @@ class blofin extends blofin$1 {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ordersRequests.push(orderRequest);
@@ -1328,7 +1328,7 @@ class blofin extends blofin$1 {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const isStop = this.safeValueN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
+        const isStop = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
@@ -1656,7 +1656,7 @@ class blofin extends blofin$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = [];
-        const options = this.safeValue(this.options, 'cancelOrders', {});
+        const options = this.safeDict(this.options, 'cancelOrders', {});
         const defaultMethod = this.safeString(options, 'method', 'privatePostTradeCancelBatchOrders');
         let method = this.safeString(params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds(this.safeValue(params, 'clientOrderId'));
@@ -1723,7 +1723,7 @@ class blofin extends blofin$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         const request = {
@@ -2056,7 +2056,7 @@ class blofin extends blofin$1 {
             request['clientOrderId'] = clientOrderId;
         }
         const response = await this.privatePostTradeClosePosition(this.extend(request, params));
-        return this.safeValue(response, 'data');
+        return this.safeDict(response, 'data');
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -2091,7 +2091,7 @@ class blofin extends blofin$1 {
         if (since !== undefined) {
             request['begin'] = since;
         }
-        const isStop = this.safeValueN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
+        const isStop = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);

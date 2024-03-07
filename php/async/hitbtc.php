@@ -2513,7 +2513,7 @@ class hitbtc extends Exchange {
              * @see https://api.hitbtc.com/#get-futures-position-parameters
              * @param {string} symbol unified symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} Struct of MarginMode
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
              */
             Async\await($this->load_markets());
             $market = null;
