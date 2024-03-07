@@ -1,6 +1,6 @@
 {
   "name": "@cedelabs/ccxt",
-  "version": "4.2.46",
+  "version": "4.2.47",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -258,7 +258,9 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
+    "http-proxy-agent": "^7.0.2",
     "process": "^0.11.10",
+    "socks-proxy-agent": "^8.0.2",
     "ws": "^8.8.1"
   },
   "volta": {
