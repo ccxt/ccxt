@@ -179,9 +179,17 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', []);
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache (limit);
+        // as described in watchTrades, only one symbol can be watched at a time
+        const subs = Object.keys (client.subscriptions);
+        if (!subs.length) {
+            return;
+        }
+        const firstSub = subs[0];
+        const symbol = firstSub.slice (4);
+        const market = this.market (symbol);
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
-            const parsed = this.parseWsOldTrade (rawTrade);
+            const parsed = this.parseWsOldTrade (rawTrade, market);
             stored.append (parsed);
         }
         const messageHash = 'trades';
@@ -209,7 +217,7 @@ export default class cex extends cexRest {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': undefined,
+            'symbol': this.safeString (market, 'symbol'),
             'type': undefined,
             'side': side,
             'order': undefined,
