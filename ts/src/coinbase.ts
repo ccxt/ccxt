@@ -1318,6 +1318,9 @@ export default class coinbase extends Exchange {
             const id = this.safeString (currency, 'id', key);
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
+            const lastCurrencyInformations = this.safeValue (this.currencies ?? {}, code, {});
+            // Precision is not provided by this endpoint but when we fetch balances - if we fetched it once, we use it since it won't change
+            const precision = this.safeValue (lastCurrencyInformations, 'precision', undefined);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -1328,7 +1331,7 @@ export default class coinbase extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': undefined,
+                'precision': precision,
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (currency, 'min_size'),
@@ -1703,6 +1706,18 @@ export default class coinbase extends Exchange {
                         account['total'] = Precise.stringAdd (account['total'], total);
                     }
                     result[code] = account;
+                }
+            }
+            {
+                const currency = this.safeValue (balance, 'currency', {});
+                const currencyId = this.safeValue (currency, 'code');
+                const code = this.safeCurrencyCode (currencyId);
+                const exponent = this.safeInteger (currency, 'exponent');
+                const currencyInfo = this.safeValue (this.currencies, code);
+                if (currencyInfo && exponent) {
+                    // Exponent corresponds to DECIMAL precision mode, the exchande precision mode is TICK_SIZE so we convert it
+                    currencyInfo.precision = Math.pow (10, -exponent).toString ();
+                    this.currencies[code] = currencyInfo;
                 }
             }
         }

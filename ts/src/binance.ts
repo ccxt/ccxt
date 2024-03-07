@@ -5745,16 +5745,15 @@ export default class binance extends Exchange {
                 const quoteOrderQty = this.safeBool (this.options, 'quoteOrderQty', true);
                 if (quoteOrderQty) {
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
-                    const precision = market['precision']['price'];
                     if (quoteOrderQtyNew !== undefined) {
                         // We shouldn't truncate as it will break the min amount logic
-                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, ROUND, precision, this.precisionMode);
+                        request['quoteOrderQty'] = this.costToPrecision (symbol, quoteOrderQtyNew);
                     } else if (price !== undefined) {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
                         const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
                         // We shouldn't truncate as it will break the min amount logic
-                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, ROUND, precision, this.precisionMode);
+                        request['quoteOrderQty'] = this.costToPrecision (symbol, quoteOrderQuantity);
                     } else {
                         quantityIsRequired = true;
                     }

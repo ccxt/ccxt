@@ -106,13 +106,18 @@ const decimalToPrecisionWrapper = (
     countingMode = DECIMAL_PLACES,
     paddingMode = NO_PADDING
 ) => {
+    // Turn precision value to and integer
     let precision = numPrecisionDigits;
-    if (countingMode === TICK_SIZE) {
-        precision = decimalToPrecision (numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
-        precision = precisionFromString (precision);
+    if (typeof precision === 'string') {
+        precision = parseFloat(precision)
     }
-    x = decimalToPrecision (x, ROUND, precision+1, DECIMAL_PLACES, NO_PADDING);
-
+    if (countingMode === TICK_SIZE) {
+        const precisionDigitsString = decimalToPrecision (precision, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
+        precision = precisionFromString (precisionDigitsString);
+    }
+    // Eliminate rounding errors
+    x = decimalToPrecision (x, ROUND, precision+2, DECIMAL_PLACES, NO_PADDING);
+    // Round the number
     return decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
 };
 

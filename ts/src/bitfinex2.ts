@@ -605,7 +605,7 @@ export default class bitfinex2 extends Exchange {
                         'max': this.parseNumber (maxOrderSizeString),
                     },
                     'price': {
-                        'min': this.parseNumber ('1e-8'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {

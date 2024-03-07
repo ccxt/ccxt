@@ -5232,7 +5232,7 @@ export default class htx extends Exchange {
                 } else {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
-                    quoteAmount = this.priceToPrecision (symbol, Precise.stringMul (amountString, priceString));
+                    quoteAmount = this.costToPrecision (symbol, Precise.stringMul (amountString, priceString));
                 }
             } else {
                 quoteAmount = this.amountToPrecision (symbol, amount);
