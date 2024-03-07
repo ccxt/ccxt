@@ -1146,7 +1146,7 @@ public partial class coinex : ccxt.coinex
             var future = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
             if (isTrue(!isEqual(future, null)))
             {
-                return await (future as Exchange.Future);
+                return future;
             }
             object requestId = this.requestId();
             object subscribe = new Dictionary<string, object>() {
@@ -1162,14 +1162,14 @@ public partial class coinex : ccxt.coinex
             };
             future = this.watch(url, messageHash, request, requestId, subscribe);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
-            return await (future as Exchange.Future);
+            return future;
         } else
         {
             object messageHash = "authenticated:swap";
             var future = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
             if (isTrue(!isEqual(future, null)))
             {
-                return await (future as Exchange.Future);
+                return future;
             }
             object requestId = this.requestId();
             object subscribe = new Dictionary<string, object>() {
@@ -1185,7 +1185,7 @@ public partial class coinex : ccxt.coinex
             };
             future = this.watch(url, messageHash, request, requestId, subscribe);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
-            return await (future as Exchange.Future);
+            return future;
         }
     }
 }
