@@ -1277,6 +1277,8 @@ export default class testMainClass extends baseMainTestClass {
     async testExchangeRequestStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange (exchangeName);
+        const globalOptions = exchange.safeDict (exchangeData, 'options', {});
+        exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         const methods = exchange.safeValue (exchangeData, 'methods', {});
         const methodsNames = Object.keys (methods);
         for (let i = 0; i < methodsNames.length; i++) {
