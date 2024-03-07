@@ -5021,16 +5021,15 @@ export default class Exchange {
                 if (market[defaultType]) {
                     return market;
                 }
-            } else {
-                // temporary support for old futures
-                if (symbol.indexOf ('-') >= 0) {
-                    for (let i = 0; i < this.futureTypes.length; i++) {
-                        const fType = this.futureTypes[i];
-                        const newPrefix = '-' + fType;
-                        const checkSymbol = symbol.replace ('-', newPrefix);
-                        if ((symbol.indexOf (newPrefix) < 0) && (checkSymbol in this.markets)) {
-                            return this.markets[checkSymbol];
-                        }
+            }
+            // temporary support for old futures
+            if (symbol.indexOf ('-') >= 0) {
+                for (let i = 0; i < this.futureTypes.length; i++) {
+                    const futureType = this.futureTypes[i];
+                    const newPrefix = '-' + futureType;
+                    const checkSymbol = symbol.replace ('-', newPrefix);
+                    if ((symbol.indexOf (newPrefix) < 0) && (checkSymbol in this.markets)) {
+                        return this.markets[checkSymbol];
                     }
                 }
             }
