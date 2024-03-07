@@ -881,6 +881,24 @@
                   "LTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "linear trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api-testnet.bybit.com/v5/account/fee-rate?symbol=BTCUSDT&category=linear",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api-testnet.bybit.com/v5/account/fee-rate?symbol=BTCUSDT&category=spot",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
         ]
     },
     "disabled": []
