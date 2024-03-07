@@ -220,22 +220,20 @@
                 "deposit": "not provided"
             },
             "fetchTicker": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3651"
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3651",
+                "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269327874#L3234",
+                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177570#L3624",
+                "bidVolume": "sometimes negative",
+                "askVolume": "sometimes negative"
             },
             "fetchTickers": {
-                "spread": "same as above",
-                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177570#L3624",
-                "bidVolume": "same",
-                "askVolume": "same"
+                "spread": "same", "ask": "same", "open": "same", "bidVolume": "same", "askVolume": "same"
             },
             "watchTicker": {
-                "spread": "same as above"
+                "spread": "same", "ask": "same", "open": "same", "bidVolume": "same", "askVolume": "same"
             },
             "watchTickers": {
-                "spread": "same as above",
-                "open": "same",
-                "bidVolume": "same",
-                "askVolume": "same"
+                "spread": "same", "ask": "same", "open": "same", "bidVolume": "same", "askVolume": "same"
             },
             "fetchOrderBook": {
                 "bid": "multiple bids might have same value"
