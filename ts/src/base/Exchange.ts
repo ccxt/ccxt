@@ -5023,15 +5023,8 @@ export default class Exchange {
                 }
             }
             if (symbol in this.futuresOldSymbolsMap) {
-                const newSymbols = this.futuresOldSymbolsMap[symbol];
-                const length = newSymbols.length;
-                if (length === 1) {
-                    if (newSymbols[0] in this.markets) {
-                        return this.markets[newSymbols[0]];
-                    }
-                } else {
-                    throw new BadRequest (this.id + ' found ' + length.toString () + ' markets for old symbol ' + symbol + ', use the new one instead from ' + this.json (newSymbols));
-                }
+                const newSymbol = this.futuresOldSymbolsMap[symbol];
+                return this.markets[newSymbol];
             }
             return markets[0];
         } else if ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')) || (symbol.startsWith ('C-')) || (symbol.startsWith ('P-'))) {
