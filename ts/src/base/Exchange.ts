@@ -783,7 +783,7 @@ export default class Exchange {
         this.transactions = {}
         this.ohlcvs       = {}
         this.myTrades     = undefined
-        this.positions    = {}
+        this.positions    = undefined
         this.futureTypes  = [ 'W', 'BW', 'M', 'BM', 'Q', 'BQ' ]
         // web3 and cryptography flags
         this.requiresWeb3 = false
