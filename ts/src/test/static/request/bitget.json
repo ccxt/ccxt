@@ -1335,6 +1335,16 @@
               "BTC/USDT:USDT"
             ]
           }
+        ],
+        "fetchMarginMode": [
+          {
+            "description": "Swap fetch the set margin mode for a trading pair",
+            "method": "fetchMarginMode",
+            "url": "https://api.bitget.com/api/v2/mix/account/account?marginCoin=USDT&productType=USDT-FUTURES&symbol=BTCUSDT",
+            "input": [
+              "BTC/USDT:USDT"
+            ]
+          }
         ]
     }
 }
