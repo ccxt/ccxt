@@ -4,6 +4,9 @@ declare class BaseError extends Error {
 declare class ExchangeError extends Error {
     constructor(message: any);
 }
+declare class ExchangeClosedByUser extends Error {
+    constructor(message: any);
+}
 declare class AuthenticationError extends ExchangeError {
     constructor(message: any);
 }
@@ -22,10 +25,16 @@ declare class ArgumentsRequired extends ExchangeError {
 declare class BadRequest extends ExchangeError {
     constructor(message: any);
 }
+declare class OperationRejected extends ExchangeError {
+    constructor(message: any);
+}
 declare class BadSymbol extends BadRequest {
     constructor(message: any);
 }
-declare class MarginModeAlreadySet extends BadRequest {
+declare class NoChange extends OperationRejected {
+    constructor(message: any);
+}
+declare class MarginModeAlreadySet extends NoChange {
     constructor(message: any);
 }
 declare class BadResponse extends ExchangeError {
@@ -44,6 +53,9 @@ declare class AddressPending extends InvalidAddress {
     constructor(message: any);
 }
 declare class InvalidOrder extends ExchangeError {
+    constructor(message: any);
+}
+declare class ContractUnavailable extends InvalidOrder {
     constructor(message: any);
 }
 declare class OrderNotFound extends InvalidOrder {
@@ -67,13 +79,19 @@ declare class DuplicateOrderId extends InvalidOrder {
 declare class NotSupported extends ExchangeError {
     constructor(message: any);
 }
-declare class NetworkError extends BaseError {
+declare class OperationFailed extends BaseError {
+    constructor(message: any);
+}
+declare class ProxyError extends ExchangeError {
+    constructor(message: any);
+}
+declare class NetworkError extends OperationFailed {
     constructor(message: any);
 }
 declare class DDoSProtection extends NetworkError {
     constructor(message: any);
 }
-declare class RateLimitExceeded extends DDoSProtection {
+declare class RateLimitExceeded extends NetworkError {
     constructor(message: any);
 }
 declare class ExchangeNotAvailable extends NetworkError {
@@ -90,6 +108,7 @@ declare class RequestTimeout extends NetworkError {
 }
 declare const errors: {
     BaseError: typeof BaseError;
+    ExchangeClosedByUser: typeof ExchangeClosedByUser;
     ExchangeError: typeof ExchangeError;
     PermissionDenied: typeof PermissionDenied;
     AccountNotEnabled: typeof AccountNotEnabled;
@@ -119,6 +138,11 @@ declare const errors: {
     RequestTimeout: typeof RequestTimeout;
     AuthenticationError: typeof AuthenticationError;
     AddressPending: typeof AddressPending;
+    ContractUnavailable: typeof ContractUnavailable;
+    NoChange: typeof NoChange;
+    OperationRejected: typeof OperationRejected;
+    OperationFailed: typeof OperationFailed;
+    ProxyError: typeof ProxyError;
 };
-export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending };
+export { BaseError, ExchangeClosedByUser, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed, ProxyError };
 export default errors;

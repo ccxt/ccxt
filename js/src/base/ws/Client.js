@@ -4,9 +4,9 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { RequestTimeout, NetworkError, NotSupported, BaseError } from '../../base/errors.js';
+import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
-import { createFuture } from './Future.js';
+import { Future } from './Future.js';
 import { isNode, isJsonEncodedObject, deepExtend, milliseconds, } from '../../base/functions.js';
 import { utf8 } from '../../static_dependencies/scure-base/index.js';
 export default class Client {
@@ -43,11 +43,11 @@ export default class Client {
         };
         Object.assign(this, deepExtend(defaults, config));
         // connection-related Future
-        this.connected = createFuture();
+        this.connected = Future();
     }
     future(messageHash) {
         if (!(messageHash in this.futures)) {
-            this.futures[messageHash] = createFuture();
+            this.futures[messageHash] = Future();
         }
         const future = this.futures[messageHash];
         if (messageHash in this.rejections) {
@@ -143,8 +143,14 @@ export default class Client {
                 this.onError(new RequestTimeout('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'));
             }
             else {
+                let message;
                 if (this.ping) {
-                    this.send(this.ping(this));
+                    message = this.ping(this);
+                }
+                if (message) {
+                    this.send(message).catch((error) => {
+                        this.onError(error);
+                    });
                 }
                 else if (isNode) {
                     // can't do this inside browser
@@ -199,6 +205,7 @@ export default class Client {
         this.reset(this.error);
         this.onErrorCallback(this, this.error);
     }
+    /* eslint-disable no-shadow */
     onClose(event) {
         if (this.verbose) {
             this.log(new Date(), 'onClose', event);
@@ -206,6 +213,12 @@ export default class Client {
         if (!this.error) {
             // todo: exception types for server-side disconnects
             this.reset(new NetworkError('connection closed by remote server, closing code ' + String(event.code)));
+        }
+        if (this.error instanceof ExchangeClosedByUser) {
+            this.reset(this.error);
+        }
+        if (this.disconnected !== undefined) {
+            this.disconnected.resolve(true);
         }
         this.onCloseCallback(this, event);
     }
@@ -221,8 +234,10 @@ export default class Client {
             this.log(new Date(), 'sending', message);
         }
         message = (typeof message === 'string') ? message : JSON.stringify(message);
-        const future = createFuture();
+        const future = Future();
         if (isNode) {
+            /* eslint-disable no-inner-declarations */
+            /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete(error) {
                 if (error) {
                     future.reject(error);
@@ -247,23 +262,20 @@ export default class Client {
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
         let message = messageEvent.data;
         let arrayBuffer;
-        if (this.gunzip || this.inflate) {
-            if (typeof message === 'string') {
-                arrayBuffer = utf8.decode(message);
+        if (typeof message !== 'string') {
+            if (this.gunzip || this.inflate) {
+                arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
+                if (this.gunzip) {
+                    arrayBuffer = gunzipSync(arrayBuffer);
+                }
+                else if (this.inflate) {
+                    arrayBuffer = inflateSync(arrayBuffer);
+                }
+                message = utf8.encode(arrayBuffer);
             }
             else {
-                arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
+                message = message.toString();
             }
-            if (this.gunzip) {
-                arrayBuffer = gunzipSync(arrayBuffer);
-            }
-            else if (this.inflate) {
-                arrayBuffer = inflateSync(arrayBuffer);
-            }
-            message = utf8.encode(arrayBuffer);
-        }
-        if (typeof message !== 'string') {
-            message = message.toString();
         }
         try {
             if (isJsonEncodedObject(message)) {

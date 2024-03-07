@@ -6,9 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.zonda import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -46,15 +44,16 @@ class zonda(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
@@ -64,6 +63,8 @@ class zonda(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
@@ -117,7 +118,7 @@ class zonda(Exchange, ImplicitAPI):
                 '3d': '259200',
                 '1w': '604800',
             },
-            'hostname': 'zonda.exchange',
+            'hostname': 'zondacrypto.exchange',
             'urls': {
                 'referral': 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
@@ -129,7 +130,7 @@ class zonda(Exchange, ImplicitAPI):
                     'v1_01Private': 'https://api.{hostname}/rest',
                 },
                 'doc': [
-                    'https://docs.zonda.exchange/',
+                    'https://docs.zondacrypto.exchange/',
                     'https://github.com/BitBayNet/API',
                 ],
                 'support': 'https://zondaglobal.com/en/helpdesk/zonda-exchange',
@@ -190,6 +191,8 @@ class zonda(Exchange, ImplicitAPI):
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
                         'fiat_cantor/exchange',
+                        'api_payments/withdrawals/crypto',
+                        'api_payments/withdrawals/fiat',
                     ],
                     'delete': [
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -298,6 +301,10 @@ class zonda(Exchange, ImplicitAPI):
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
                 'INVALID_STOP_RATE': InvalidOrder,
+                'TIMEOUT': ExchangeError,
+                'RESPONSE_TIMEOUT': ExchangeError,
+                'ACTION_BLOCKED': PermissionDenied,
+                'INVALID_HASH_SIGNATURE': AuthenticationError,
             },
             'commonCurrencies': {
                 'GGC': 'Global Game Coin',
@@ -306,111 +313,110 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}):
         """
-        see https://docs.zonda.exchange/reference/ticker-1
+        :see: https://docs.zondacrypto.exchange/reference/ticker-1
         retrieves data on all markets for zonda
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
         """
         response = self.v1_01PublicGetTradingTicker(params)
-        fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         #
         #     {
-        #         status: 'Ok',
-        #         items: {
-        #             'BSV-USD': {
-        #                 market: {
-        #                     code: 'BSV-USD',
-        #                     first: {currency: 'BSV', minOffer: '0.00035', scale: 8},
-        #                     second: {currency: 'USD', minOffer: '5', scale: 2}
+        #         "status": "Ok",
+        #         "items": {
+        #             "BSV-USD": {
+        #                 "market": {
+        #                     "code": "BSV-USD",
+        #                     "first": {currency: "BSV", minOffer: "0.00035", scale: 8},
+        #                     "second": {currency: "USD", minOffer: "5", scale: 2}
         #                 },
-        #                 time: '1557569762154',
-        #                 highestBid: '52.31',
-        #                 lowestAsk: '62.99',
-        #                 rate: '63',
-        #                 previousRate: '51.21',
+        #                 "time": "1557569762154",
+        #                 "highestBid": "52.31",
+        #                 "lowestAsk": "62.99",
+        #                 "rate": "63",
+        #                 "previousRate": "51.21",
         #             },
         #         },
         #     }
         #
-        result = []
         items = self.safe_value(response, 'items', {})
-        keys = list(items.keys())
-        for i in range(0, len(keys)):
-            id = keys[i]
-            item = items[id]
-            market = self.safe_value(item, 'market', {})
-            first = self.safe_value(market, 'first', {})
-            second = self.safe_value(market, 'second', {})
-            baseId = self.safe_string(first, 'currency')
-            quoteId = self.safe_string(second, 'currency')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            fees = self.safe_value(self.fees, 'trading', {})
-            if self.in_array(base, fiatCurrencies) or self.in_array(quote, fiatCurrencies):
-                fees = self.safe_value(self.fees, 'fiat', {})
-            # todo: check that the limits have ben interpreted correctly
-            # todo: parse the fees page
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': None,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'taker': self.safe_number(fees, 'taker'),
-                'maker': self.safe_number(fees, 'maker'),
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'optionType': None,
-                'strike': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(first, 'scale'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(second, 'scale'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(first, 'minOffer'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.safe_number(second, 'minOffer'),
-                        'max': None,
-                    },
-                },
-                'info': item,
-            })
-        return result
+        markets = list(items.values())
+        return self.parse_markets(markets)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_market(self, item) -> Market:
+        market = self.safe_value(item, 'market', {})
+        id = self.safe_string(market, 'code')
+        first = self.safe_value(market, 'first', {})
+        second = self.safe_value(market, 'second', {})
+        baseId = self.safe_string(first, 'currency')
+        quoteId = self.safe_string(second, 'currency')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        fees = self.safe_value(self.fees, 'trading', {})
+        fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
+        if self.in_array(base, fiatCurrencies) or self.in_array(quote, fiatCurrencies):
+            fees = self.safe_value(self.fees, 'fiat', {})
+        # todo: check that the limits have ben interpreted correctly
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': None,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': self.safe_number(fees, 'taker'),
+            'maker': self.safe_number(fees, 'maker'),
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'optionType': None,
+            'strike': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(first, 'scale'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(second, 'scale'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.safe_number(first, 'minOffer'),
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': item,
+        }
+
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        see https://docs.zonda.exchange/reference/active-orders
+        :see: https://docs.zondacrypto.exchange/reference/active-orders
         fetch all unfilled currently open orders
-        :param str|None symbol: not used by zonda fetchOpenOrders
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: not used by zonda fetchOpenOrders
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -418,23 +424,23 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_value(response, 'items', [])
         return self.parse_orders(items, None, since, limit, {'status': 'open'})
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #     {
-        #         market: 'ETH-EUR',
-        #         offerType: 'Sell',
-        #         id: '93d3657b-d616-11e9-9248-0242ac110005',
-        #         currentAmount: '0.04',
-        #         lockedAmount: '0.04',
-        #         rate: '280',
-        #         startAmount: '0.04',
-        #         time: '1568372806924',
-        #         postOnly: False,
-        #         hidden: False,
-        #         mode: 'limit',
-        #         receivedAmount: '0.0',
-        #         firstBalanceId: '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
-        #         secondBalanceId: 'ab43023b-4079-414c-b340-056e3430a3af'
+        #         "market": "ETH-EUR",
+        #         "offerType": "Sell",
+        #         "id": "93d3657b-d616-11e9-9248-0242ac110005",
+        #         "currentAmount": "0.04",
+        #         "lockedAmount": "0.04",
+        #         "rate": "280",
+        #         "startAmount": "0.04",
+        #         "time": "1568372806924",
+        #         "postOnly": False,
+        #         "hidden": False,
+        #         "mode": "limit",
+        #         "receivedAmount": "0.0",
+        #         "firstBalanceId": "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
+        #         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         #     }
         #
         marketId = self.safe_string(order, 'market')
@@ -468,15 +474,15 @@ class zonda(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/transactions-history
+        :see: https://docs.zondacrypto.exchange/reference/transactions-history
         fetch all trades made by the user
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         request = {}
@@ -488,20 +494,20 @@ class zonda(Exchange, ImplicitAPI):
         response = self.v1_01PrivateGetTradingHistoryTransactions(query)
         #
         #     {
-        #         status: 'Ok',
-        #         totalRows: '67',
-        #         items: [
+        #         "status": "Ok",
+        #         "totalRows": "67",
+        #         "items": [
         #             {
-        #                 id: 'b54659a0-51b5-42a0-80eb-2ac5357ccee2',
-        #                 market: 'BTC-EUR',
-        #                 time: '1541697096247',
-        #                 amount: '0.00003',
-        #                 rate: '4341.44',
-        #                 initializedBy: 'Sell',
-        #                 wasTaker: False,
-        #                 userAction: 'Buy',
-        #                 offerId: 'bd19804a-6f89-4a69-adb8-eb078900d006',
-        #                 commissionValue: null
+        #                 "id": "b54659a0-51b5-42a0-80eb-2ac5357ccee2",
+        #                 "market": "BTC-EUR",
+        #                 "time": "1541697096247",
+        #                 "amount": "0.00003",
+        #                 "rate": "4341.44",
+        #                 "initializedBy": "Sell",
+        #                 "wasTaker": False,
+        #                 "userAction": "Buy",
+        #                 "offerId": "bd19804a-6f89-4a69-adb8-eb078900d006",
+        #                 "commissionValue": null
         #             },
         #         ]
         #     }
@@ -512,7 +518,7 @@ class zonda(Exchange, ImplicitAPI):
             return result
         return self.filter_by_symbol(result, symbol)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'balances')
         if balances is None:
             raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
@@ -527,24 +533,24 @@ class zonda(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
-        see https://docs.zonda.exchange/reference/list-of-wallets
+        :see: https://docs.zondacrypto.exchange/reference/list-of-wallets
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
         response = self.v1_01PrivateGetBalancesBITBAYBalance(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        see https://docs.zonda.exchange/reference/orderbook-2
+        :see: https://docs.zondacrypto.exchange/reference/orderbook-2
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
@@ -582,42 +588,42 @@ class zonda(Exchange, ImplicitAPI):
             'nonce': self.safe_integer(response, 'seqNo'),
         }
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # version 1
         #
         #    {
-        #        m: 'ETH-PLN',
-        #        h: '13485.13',
-        #        l: '13100.01',
-        #        v: '126.10710939',
-        #        r24h: '13332.72'
+        #        "m": "ETH-PLN",
+        #        "h": "13485.13",
+        #        "l": "13100.01",
+        #        "v": "126.10710939",
+        #        "r24h": "13332.72"
         #    }
         #
         # version 2
         #
         #    {
-        #        market: {
-        #            code: 'ADA-USDT',
-        #            first: {
-        #                currency: 'ADA',
-        #                minOffer: '0.2',
-        #                scale: '6'
+        #        "market": {
+        #            "code": "ADA-USDT",
+        #            "first": {
+        #                "currency": "ADA",
+        #                "minOffer": "0.2",
+        #                "scale": "6"
         #            },
-        #            second: {
-        #                currency: 'USDT',
-        #                minOffer: '0.099',
-        #                scale: '6'
+        #            "second": {
+        #                "currency": "USDT",
+        #                "minOffer": "0.099",
+        #                "scale": "6"
         #            },
-        #            amountPrecision: '6',
-        #            pricePrecision: '6',
-        #            ratePrecision: '6'
+        #            "amountPrecision": "6",
+        #            "pricePrecision": "6",
+        #            "ratePrecision": "6"
         #        },
-        #        time: '1655812661202',
-        #        highestBid: '0.492',
-        #        lowestAsk: '0.499389',
-        #        rate: '0.50588',
-        #        previousRate: '0.504981'
+        #        "time": "1655812661202",
+        #        "highestBid": "0.492",
+        #        "lowestAsk": "0.499389",
+        #        "rate": "0.50588",
+        #        "previousRate": "0.504981"
         #    }
         #
         tickerMarket = self.safe_value(ticker, 'market')
@@ -648,13 +654,13 @@ class zonda(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
-        see https://docs.zonda.exchange/reference/market-statistics
+        :see: https://docs.zondacrypto.exchange/reference/market-statistics
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :param str params['method']: v1_01PublicGetTradingTickerSymbol(default) or v1_01PublicGetTradingStatsSymbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: v1_01PublicGetTradingTickerSymbol(default) or v1_01PublicGetTradingStatsSymbol
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -715,14 +721,14 @@ class zonda(Exchange, ImplicitAPI):
         stats = self.safe_value_2(response, 'ticker', 'stats')
         return self.parse_ticker(stats, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
          * @ignore
         v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
-        see https://docs.zonda.exchange/reference/market-statistics
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :param str params['method']: v1_01PublicGetTradingTicker(default) or v1_01PublicGetTradingStats
+        :see: https://docs.zondacrypto.exchange/reference/market-statistics
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: v1_01PublicGetTradingTicker(default) or v1_01PublicGetTradingStats
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -767,14 +773,14 @@ class zonda(Exchange, ImplicitAPI):
             response = self.v1_01PublicGetTradingStats(params)
             #
             #     {
-            #         status: 'Ok',
-            #         items: {
-            #             'DAI-PLN': {
-            #                 m: 'DAI-PLN',
-            #                 h: '4.41',
-            #                 l: '4.37',
-            #                 v: '8.71068087',
-            #                 r24h: '4.36'
+            #         "status": "Ok",
+            #         "items": {
+            #             "DAI-PLN": {
+            #                 "m": "DAI-PLN",
+            #                 "h": "4.41",
+            #                 "l": "4.37",
+            #                 "v": "8.71068087",
+            #                 "r24h": "4.36"
             #             },
             #             ...
             #         }
@@ -785,14 +791,14 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_value(response, 'items')
         return self.parse_tickers(items, symbols)
 
-    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/operations-history
+        :see: https://docs.zondacrypto.exchange/reference/operations-history
         fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :param str|None code: unified currency code, default is None
-        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
-        :param int|None limit: max number of ledger entrys to return, default is None
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param str code: unified currency code, default is None
+        :param int [since]: timestamp in ms of the earliest ledger entry, default is None
+        :param int [limit]: max number of ledger entrys to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         balanceCurrencies = []
@@ -811,7 +817,7 @@ class zonda(Exchange, ImplicitAPI):
         items = response['items']
         return self.parse_ledger(items, None, since, limit)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         #    FUNDS_MIGRATION
         #    {
@@ -1129,17 +1135,17 @@ class zonda(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
-        #         '1582399800000',
+        #         "1582399800000",
         #         {
-        #             o: '0.0001428',
-        #             c: '0.0001428',
-        #             h: '0.0001428',
-        #             l: '0.0001428',
-        #             v: '4',
-        #             co: '1'
+        #             "o": "0.0001428",
+        #             "c": "0.0001428",
+        #             "h": "0.0001428",
+        #             "l": "0.0001428",
+        #             "v": "4",
+        #             "co": "1"
         #         }
         #     ]
         #
@@ -1153,16 +1159,16 @@ class zonda(Exchange, ImplicitAPI):
             self.safe_number(first, 'v'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        see https://docs.zonda.exchange/reference/candles-chart
+        :see: https://docs.zondacrypto.exchange/reference/candles-chart
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1197,7 +1203,7 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_value(response, 'items', [])
         return self.parse_ohlcvs(items, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # createOrder trades
         #
@@ -1209,32 +1215,32 @@ class zonda(Exchange, ImplicitAPI):
         # fetchMyTrades(private)
         #
         #     {
-        #         amount: "0.29285199",
-        #         commissionValue: "0.00125927",
-        #         id: "11c8203a-a267-11e9-b698-0242ac110007",
-        #         initializedBy: "Buy",
-        #         market: "ETH-EUR",
-        #         offerId: "11c82038-a267-11e9-b698-0242ac110007",
-        #         rate: "277",
-        #         time: "1562689917517",
-        #         userAction: "Buy",
-        #         wasTaker: True,
+        #         "amount": "0.29285199",
+        #         "commissionValue": "0.00125927",
+        #         "id": "11c8203a-a267-11e9-b698-0242ac110007",
+        #         "initializedBy": "Buy",
+        #         "market": "ETH-EUR",
+        #         "offerId": "11c82038-a267-11e9-b698-0242ac110007",
+        #         "rate": "277",
+        #         "time": "1562689917517",
+        #         "userAction": "Buy",
+        #         "wasTaker": True,
         #     }
         #
         # fetchTrades(public)
         #
         #     {
-        #          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
-        #          t: '1570108958831',
-        #          a: '0.04776653',
-        #          r: '0.02145854',
-        #          ty: 'Sell'
+        #          "id": "df00b0da-e5e0-11e9-8c19-0242ac11000a",
+        #          "t": "1570108958831",
+        #          "a": "0.04776653",
+        #          "r": "0.02145854",
+        #          "ty": "Sell"
         #     }
         #
         timestamp = self.safe_integer_2(trade, 'time', 't')
         side = self.safe_string_lower_2(trade, 'userAction', 'ty')
         wasTaker = self.safe_value(trade, 'wasTaker')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if wasTaker is not None:
             takerOrMaker = 'taker' if wasTaker else 'maker'
         priceString = self.safe_string_2(trade, 'rate', 'r')
@@ -1252,7 +1258,7 @@ class zonda(Exchange, ImplicitAPI):
             }
         order = self.safe_string(trade, 'offerId')
         # todo: check self logic
-        type = None
+        type: Str = None
         if order is not None:
             type = 'limit' if order else 'market'
         return self.safe_trade({
@@ -1271,15 +1277,15 @@ class zonda(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        see https://docs.zonda.exchange/reference/last-transactions
+        :see: https://docs.zondacrypto.exchange/reference/last-transactions
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1295,15 +1301,15 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_value(response, 'items')
         return self.parse_trades(items, market, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1322,7 +1328,6 @@ class zonda(Exchange, ImplicitAPI):
         isStopLimit = (type == 'stop-limit') or (isLimitOrder and isStopLossPrice)
         isStopMarket = type == 'stop-market' or (isMarketOrder and isStopLossPrice)
         isStopOrder = isStopLimit or isStopMarket
-        method = 'v1_01PrivatePostTradingStopOfferSymbol' if isStopOrder else 'v1_01PrivatePostTradingOfferSymbol'
         if isLimitOrder or isStopLimit:
             request['rate'] = self.price_to_precision(symbol, price)
             request['mode'] = 'stop-limit' if isStopLimit else 'limit'
@@ -1330,20 +1335,23 @@ class zonda(Exchange, ImplicitAPI):
             request['mode'] = 'stop-market' if isStopMarket else 'market'
         else:
             raise ExchangeError(self.id + ' createOrder() invalid type')
+        params = self.omit(params, ['stopPrice', 'stopLossPrice'])
+        response = None
         if isStopOrder:
             if not isStopLossPrice:
                 raise ExchangeError(self.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders')
             request['stopRate'] = self.price_to_precision(symbol, stopLossPrice)
-        params = self.omit(params, ['stopPrice', 'stopLossPrice'])
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.v1_01PrivatePostTradingStopOfferSymbol(self.extend(request, params))
+        else:
+            response = self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
         #
         # unfilled(open order)
         #
         #     {
-        #         status: 'Ok',
-        #         completed: False,  # can deduce status from here
-        #         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
-        #         transactions: [],  # can deduce order info from here
+        #         "status": "Ok",
+        #         "completed": False,  # can deduce status from here
+        #         "offerId": "ce9cc72e-d61c-11e9-9248-0242ac110005",
+        #         "transactions": [],  # can deduce order info from here
         #     }
         #
         # filled(closed order)
@@ -1391,7 +1399,7 @@ class zonda(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string_2(response, 'offerId', 'stopOfferId')
-        completed = self.safe_value(response, 'completed', False)
+        completed = self.safe_bool(response, 'completed', False)
         status = 'closed' if completed else 'open'
         transactions = self.safe_value(response, 'transactions')
         return self.safe_order({
@@ -1415,13 +1423,13 @@ class zonda(Exchange, ImplicitAPI):
             'clientOrderId': None,
         })
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/cancel-order
+        :see: https://docs.zondacrypto.exchange/reference/cancel-order
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         side = self.safe_string(params, 'side')
@@ -1439,8 +1447,8 @@ class zonda(Exchange, ImplicitAPI):
             'side': side,
             'price': price,
         }
-        # {status: 'Fail', errors: ['NOT_RECOGNIZED_OFFER_TYPE']}  -- if required params are missing
-        # {status: 'Ok', errors: []}
+        # {status: "Fail", errors: ["NOT_RECOGNIZED_OFFER_TYPE"]}  -- if required params are missing
+        # {status: "Ok", errors: []}
         return self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
 
     def is_fiat(self, currency):
@@ -1449,9 +1457,9 @@ class zonda(Exchange, ImplicitAPI):
             'EUR': True,
             'PLN': True,
         }
-        return self.safe_value(fiatCurrencies, currency, False)
+        return self.safe_bool(fiatCurrencies, currency, False)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
         #         "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
@@ -1474,11 +1482,11 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_deposit_address(self, code: str, params={}):
         """
-        see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
+        :see: https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the zonda api endpoint
-        :param str|None params['walletId']: Wallet id to filter deposit adresses.
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.walletId]: Wallet id to filter deposit adresses.
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
@@ -1504,12 +1512,12 @@ class zonda(Exchange, ImplicitAPI):
         first = self.safe_value(data, 0)
         return self.parse_deposit_address(first, currency)
 
-    def fetch_deposit_addresses(self, codes=None, params={}):
+    def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
+        :see: https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
         fetch deposit addresses for multiple currencies and chain types
-        :param [str]|None codes: zonda does not support filtering filtering by multiple codes and will ignore self parameter.
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param str[]|None codes: zonda does not support filtering filtering by multiple codes and will ignore self parameter.
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
@@ -1530,15 +1538,15 @@ class zonda(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_deposit_addresses(data, codes)
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
-        see https://docs.zonda.exchange/reference/internal-transfer
+        :see: https://docs.zondacrypto.exchange/reference/internal-transfer
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
@@ -1580,12 +1588,12 @@ class zonda(Exchange, ImplicitAPI):
         #
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transfer['amount'] = amount
         return transfer
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         #     {
         #         "status": "Ok",
@@ -1639,37 +1647,35 @@ class zonda(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """
-        see https://docs.zonda.exchange/reference/crypto-withdrawal-1
+        :see: https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the zonda api endpoint
+        :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
-        method = None
+        response = None
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
-            'quantity': amount,
+            'amount': amount,
+            'address': address,
+            # request['balanceId'] = params['balanceId']  # Wallet id used for withdrawal. If not provided, any BITBAY wallet with sufficient funds is used. If BITBAYPAY wallet should be used parameter must be explicitly specified.
         }
         if self.is_fiat(code):
-            method = 'privatePostWithdraw'
-            # request['account'] = params['account']  # they demand an account number
-            # request['express'] = params['express']  # whatever it means, they don't explain
-            # request['bic'] = ''
+            # request['swift'] = params['swift']  # Bank identifier, if required.
+            response = self.v1_01PrivatePostApiPaymentsWithdrawalsFiat(self.extend(request, params))
         else:
-            method = 'privatePostTransfer'
             if tag is not None:
-                address += '?dt=' + str(tag)
-            request['address'] = address
-        response = getattr(self, method)(self.extend(request, params))
+                request['tag'] = tag
+            response = self.v1_01PrivatePostApiPaymentsWithdrawalsCrypto(self.extend(request, params))
         #
         #     {
         #         "status": "Ok",
@@ -1681,7 +1687,7 @@ class zonda(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -1708,6 +1714,7 @@ class zonda(Exchange, ImplicitAPI):
             'tag': None,
             'tagTo': None,
             'comment': None,
+            'internal': None,
             'fee': None,
             'info': transaction,
         }
@@ -1729,7 +1736,7 @@ class zonda(Exchange, ImplicitAPI):
             query = self.omit(params, self.extract_params(path))
             url += '/' + self.implode_params(path, params)
             nonce = str(self.milliseconds())
-            payload = None
+            payload: Str = None
             if method != 'POST':
                 if query:
                     url += '?' + self.urlencode(query)
@@ -1762,12 +1769,12 @@ class zonda(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         if 'code' in response:
             #
-            # bitbay returns the integer 'success': 1 key from their private API
-            # or an integer 'code' value from 0 to 510 and an error message
+            # bitbay returns the integer "success": 1 key from their private API
+            # or an integer "code" value from 0 to 510 and an error message
             #
-            #      {'success': 1, ...}
-            #      {'code': 502, 'message': 'Invalid sign'}
-            #      {'code': 0, 'message': 'offer funds not exceeding minimums'}
+            #      {"success": 1, ...}
+            #      {'code': 502, "message": "Invalid sign"}
+            #      {'code': 0, "message": "offer funds not exceeding minimums"}
             #
             #      400 At least one parameter wasn't set
             #      401 Invalid order type

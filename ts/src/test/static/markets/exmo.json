@@ -1,0 +1,452 @@
+{
+    "BTC/USD": {
+        "id": "BTC_USD",
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00002,
+                "max": 1000
+            },
+            "price": {
+                "min": 1,
+                "max": 150000
+            },
+            "cost": {
+                "min": 1,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "min_quantity": "0.00002",
+            "max_quantity": "1000",
+            "min_price": "1",
+            "max_price": "150000",
+            "max_amount": "500000",
+            "min_amount": "1",
+            "price_precision": "2",
+            "commission_taker_percent": "0.3",
+            "commission_maker_percent": "0.1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.003,
+        "maker": 0.001,
+        "feeSide": "get"
+    },
+    "BTC/EUR": {
+        "id": "BTC_EUR",
+        "symbol": "BTC/EUR",
+        "base": "BTC",
+        "quote": "EUR",
+        "baseId": "BTC",
+        "quoteId": "EUR",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00002
+            },
+            "price": {
+                "min": 1,
+                "max": 150000
+            },
+            "cost": {
+                "min": 1,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "min_quantity": "0.00002",
+            "max_quantity": "1000",
+            "min_price": "1",
+            "max_price": "150000",
+            "max_amount": "500000",
+            "min_amount": "1",
+            "price_precision": "2",
+            "commission_taker_percent": "0.3",
+            "commission_maker_percent": "0.1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.003,
+        "maker": 0.001,
+        "feeSide": "get"
+    },
+    "LTC/USD": {
+        "id": "LTC_USD",
+        "symbol": "LTC/USD",
+        "base": "LTC",
+        "quote": "USD",
+        "baseId": "LTC",
+        "quoteId": "USD",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.005,
+                "max": 10000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 10000
+            },
+            "cost": {
+                "min": 1,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "min_quantity": "0.005",
+            "max_quantity": "10000",
+            "min_price": "0.01",
+            "max_price": "10000",
+            "max_amount": "500000",
+            "min_amount": "1",
+            "price_precision": "6",
+            "commission_taker_percent": "0.3",
+            "commission_maker_percent": "0.3"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.003,
+        "maker": 0.003,
+        "feeSide": "get"
+    },
+    "ETH/USD": {
+        "id": "ETH_USD",
+        "symbol": "ETH/USD",
+        "base": "ETH",
+        "quote": "USD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0005,
+                "max": 5000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 100000
+            },
+            "cost": {
+                "min": 1,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "min_quantity": "0.0005",
+            "max_quantity": "5000",
+            "min_price": "0.01",
+            "max_price": "100000",
+            "max_amount": "500000",
+            "min_amount": "1",
+            "price_precision": "4",
+            "commission_taker_percent": "0.3",
+            "commission_maker_percent": "0.3"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.003,
+        "maker": 0.003,
+        "feeSide": "get"
+    },
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00002,
+                "max": 1000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 150000
+            },
+            "cost": {
+                "min": 1,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "min_quantity": "0.00002",
+            "max_quantity": "1000",
+            "min_price": "0.01",
+            "max_price": "150000",
+            "max_amount": "500000",
+            "min_amount": "1",
+            "price_precision": "2",
+            "commission_taker_percent": "0.2",
+            "commission_maker_percent": "0.2"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002,
+        "feeSide": "get"
+    },
+    "ADA/USDT": {
+        "id": "ADA_USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 1e-8
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 10000000
+            },
+            "price": {
+                "min": 0.0001,
+                "max": 1000
+            },
+            "cost": {
+                "min": 0.01,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "min_quantity": "1",
+            "max_quantity": "10000000",
+            "min_price": "0.0001",
+            "max_price": "1000",
+            "max_amount": "500000",
+            "min_amount": "0.01",
+            "price_precision": "8",
+            "commission_taker_percent": "0.2",
+            "commission_maker_percent": "0.2"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002,
+        "feeSide": "get"
+    },
+    "XRP/USDT": {
+        "id": "XRP_USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 1e-8
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 5000000
+            },
+            "price": {
+                "min": 0.001,
+                "max": 1000
+            },
+            "cost": {
+                "min": 0.001,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "min_quantity": "1",
+            "max_quantity": "5000000",
+            "min_price": "0.001",
+            "max_price": "1000",
+            "max_amount": "500000",
+            "min_amount": "0.001",
+            "price_precision": "8",
+            "commission_taker_percent": "0.2",
+            "commission_maker_percent": "0.2"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002,
+        "feeSide": "get"
+    },
+    "SOL/USDT": {
+        "id": "SOL_USDT",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.005,
+                "max": 10000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 10000
+            },
+            "cost": {
+                "min": 1,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "min_quantity": "0.005",
+            "max_quantity": "10000",
+            "min_price": "0.01",
+            "max_price": "10000",
+            "max_amount": "500000",
+            "min_amount": "1",
+            "price_precision": "6",
+            "commission_taker_percent": "0.2",
+            "commission_maker_percent": "0.2"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002,
+        "feeSide": "get"
+    },
+    "LTC/USDT": {
+        "id":"LTC_USDT",
+        "symbol":"LTC/USDT",
+        "base":"LTC",
+        "quote":"USDT",
+        "baseId":"LTC",
+        "quoteId":"USDT",
+        "type":"spot",
+        "spot":true,
+        "margin":false,
+        "swap":false,
+        "future":false,
+        "option":false,
+        "contract":false,
+        "taker":0.002,
+        "maker":0.002,
+        "precision":{
+           "amount":1e-8,
+           "price":0.000001
+        },
+        "limits":{
+           "leverage":{
+              
+           },
+           "amount":{
+              "min":0.005
+           },
+           "price":{
+              "min":0.01,
+              "max":10000
+           },
+           "cost":{
+              "min":1,
+              "max":500000
+           }
+        },
+        "info":{
+           "min_quantity":"0.005",
+           "max_quantity":"10000",
+           "min_price":"0.01",
+           "max_price":"10000",
+           "max_amount":"500000",
+           "min_amount":"1",
+           "price_precision":"6",
+           "commission_taker_percent":"0.2",
+           "commission_maker_percent":"0.2"
+        },
+        "tierBased":true,
+        "percentage":true,
+        "feeSide":"get"
+     }
+}

@@ -59,6 +59,7 @@ class ImplicitAPI:
     v2_private_accountgroup_get_futures_position = v2PrivateAccountGroupGetFuturesPosition = Entry('futures/position', ['v2', 'private', 'accountGroup'], 'GET', {'cost': 1})
     v2_private_accountgroup_get_futures_free_margin = v2PrivateAccountGroupGetFuturesFreeMargin = Entry('futures/free-margin', ['v2', 'private', 'accountGroup'], 'GET', {'cost': 1})
     v2_private_accountgroup_get_futures_order_hist_current = v2PrivateAccountGroupGetFuturesOrderHistCurrent = Entry('futures/order/hist/current', ['v2', 'private', 'accountGroup'], 'GET', {'cost': 1})
+    v2_private_accountgroup_get_futures_funding_payments = v2PrivateAccountGroupGetFuturesFundingPayments = Entry('futures/funding-payments', ['v2', 'private', 'accountGroup'], 'GET', {'cost': 1})
     v2_private_accountgroup_get_futures_order_open = v2PrivateAccountGroupGetFuturesOrderOpen = Entry('futures/order/open', ['v2', 'private', 'accountGroup'], 'GET', {'cost': 1})
     v2_private_accountgroup_get_futures_order_status = v2PrivateAccountGroupGetFuturesOrderStatus = Entry('futures/order/status', ['v2', 'private', 'accountGroup'], 'GET', {'cost': 1})
     v2_private_accountgroup_post_futures_isolated_position_margin = v2PrivateAccountGroupPostFuturesIsolatedPositionMargin = Entry('futures/isolated-position-margin', ['v2', 'private', 'accountGroup'], 'POST', {'cost': 1})

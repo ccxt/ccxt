@@ -70,6 +70,66 @@ abstract class bigone extends \ccxt\async\Exchange {
     public function private_post_transfer($params = array()) {
         return $this->request('transfer', 'private', 'POST', $params, null, null, array());
     }
+    public function contractpublic_get_symbols($params = array()) {
+        return $this->request('symbols', 'contractPublic', 'GET', $params, null, null, array());
+    }
+    public function contractpublic_get_instruments($params = array()) {
+        return $this->request('instruments', 'contractPublic', 'GET', $params, null, null, array());
+    }
+    public function contractpublic_get_depth_symbol_snapshot($params = array()) {
+        return $this->request('depth@{symbol}/snapshot', 'contractPublic', 'GET', $params, null, null, array());
+    }
+    public function contractpublic_get_instruments_difference($params = array()) {
+        return $this->request('instruments/difference', 'contractPublic', 'GET', $params, null, null, array());
+    }
+    public function contractpublic_get_instruments_prices($params = array()) {
+        return $this->request('instruments/prices', 'contractPublic', 'GET', $params, null, null, array());
+    }
+    public function contractprivate_get_accounts($params = array()) {
+        return $this->request('accounts', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractprivate_get_orders_id($params = array()) {
+        return $this->request('orders/{id}', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractprivate_get_orders($params = array()) {
+        return $this->request('orders', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractprivate_get_orders_opening($params = array()) {
+        return $this->request('orders/opening', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractprivate_get_orders_count($params = array()) {
+        return $this->request('orders/count', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractprivate_get_orders_opening_count($params = array()) {
+        return $this->request('orders/opening/count', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractprivate_get_trades($params = array()) {
+        return $this->request('trades', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractprivate_get_trades_count($params = array()) {
+        return $this->request('trades/count', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractprivate_post_orders($params = array()) {
+        return $this->request('orders', 'contractPrivate', 'POST', $params, null, null, array());
+    }
+    public function contractprivate_post_orders_batch($params = array()) {
+        return $this->request('orders/batch', 'contractPrivate', 'POST', $params, null, null, array());
+    }
+    public function contractprivate_put_positions_symbol_margin($params = array()) {
+        return $this->request('positions/{symbol}/margin', 'contractPrivate', 'PUT', $params, null, null, array());
+    }
+    public function contractprivate_put_positions_symbol_risk_limit($params = array()) {
+        return $this->request('positions/{symbol}/risk-limit', 'contractPrivate', 'PUT', $params, null, null, array());
+    }
+    public function contractprivate_delete_orders_id($params = array()) {
+        return $this->request('orders/{id}', 'contractPrivate', 'DELETE', $params, null, null, array());
+    }
+    public function contractprivate_delete_orders_batch($params = array()) {
+        return $this->request('orders/batch', 'contractPrivate', 'DELETE', $params, null, null, array());
+    }
+    public function webexchange_get_uc_v2_assets($params = array()) {
+        return $this->request('uc/v2/assets', 'webExchange', 'GET', $params, null, null, array());
+    }
     public function publicGetPing($params = array()) {
         return $this->request('ping', 'public', 'GET', $params, null, null, array());
     }
@@ -132,5 +192,65 @@ abstract class bigone extends \ccxt\async\Exchange {
     }
     public function privatePostTransfer($params = array()) {
         return $this->request('transfer', 'private', 'POST', $params, null, null, array());
+    }
+    public function contractPublicGetSymbols($params = array()) {
+        return $this->request('symbols', 'contractPublic', 'GET', $params, null, null, array());
+    }
+    public function contractPublicGetInstruments($params = array()) {
+        return $this->request('instruments', 'contractPublic', 'GET', $params, null, null, array());
+    }
+    public function contractPublicGetDepthSymbolSnapshot($params = array()) {
+        return $this->request('depth@{symbol}/snapshot', 'contractPublic', 'GET', $params, null, null, array());
+    }
+    public function contractPublicGetInstrumentsDifference($params = array()) {
+        return $this->request('instruments/difference', 'contractPublic', 'GET', $params, null, null, array());
+    }
+    public function contractPublicGetInstrumentsPrices($params = array()) {
+        return $this->request('instruments/prices', 'contractPublic', 'GET', $params, null, null, array());
+    }
+    public function contractPrivateGetAccounts($params = array()) {
+        return $this->request('accounts', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractPrivateGetOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractPrivateGetOrders($params = array()) {
+        return $this->request('orders', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractPrivateGetOrdersOpening($params = array()) {
+        return $this->request('orders/opening', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractPrivateGetOrdersCount($params = array()) {
+        return $this->request('orders/count', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractPrivateGetOrdersOpeningCount($params = array()) {
+        return $this->request('orders/opening/count', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractPrivateGetTrades($params = array()) {
+        return $this->request('trades', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractPrivateGetTradesCount($params = array()) {
+        return $this->request('trades/count', 'contractPrivate', 'GET', $params, null, null, array());
+    }
+    public function contractPrivatePostOrders($params = array()) {
+        return $this->request('orders', 'contractPrivate', 'POST', $params, null, null, array());
+    }
+    public function contractPrivatePostOrdersBatch($params = array()) {
+        return $this->request('orders/batch', 'contractPrivate', 'POST', $params, null, null, array());
+    }
+    public function contractPrivatePutPositionsSymbolMargin($params = array()) {
+        return $this->request('positions/{symbol}/margin', 'contractPrivate', 'PUT', $params, null, null, array());
+    }
+    public function contractPrivatePutPositionsSymbolRiskLimit($params = array()) {
+        return $this->request('positions/{symbol}/risk-limit', 'contractPrivate', 'PUT', $params, null, null, array());
+    }
+    public function contractPrivateDeleteOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'contractPrivate', 'DELETE', $params, null, null, array());
+    }
+    public function contractPrivateDeleteOrdersBatch($params = array()) {
+        return $this->request('orders/batch', 'contractPrivate', 'DELETE', $params, null, null, array());
+    }
+    public function webExchangeGetUcV2Assets($params = array()) {
+        return $this->request('uc/v2/assets', 'webExchange', 'GET', $params, null, null, array());
     }
 }

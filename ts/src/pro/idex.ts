@@ -5,7 +5,7 @@ import idexRest from '../idex.js';
 import { InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { Int } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -36,6 +36,9 @@ export default class idex extends idexRest {
                 'watchOrderBookLimit': 1000, // default limit
                 'orderBookSubscriptions': {},
                 'token': undefined,
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
                 'fetchOrderBookSnapshotMaxAttempts': 10,
                 'fetchOrderBookSnapshotMaxDelay': 10000, // throw if there are no orders in 10 seconds
             },
@@ -66,13 +69,13 @@ export default class idex extends idexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name idex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the idex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -87,22 +90,22 @@ export default class idex extends idexRest {
     }
 
     handleTicker (client: Client, message) {
-        // { type: 'tickers',
-        //   data:
-        //    { m: 'DIL-ETH',
-        //      t: 1599213946045,
-        //      o: '0.09699020',
-        //      h: '0.10301548',
-        //      l: '0.09577222',
-        //      c: '0.09907311',
-        //      Q: '1.32723120',
-        //      v: '297.80667468',
-        //      q: '29.52142669',
-        //      P: '2.14',
-        //      n: 197,
-        //      a: '0.09912245',
-        //      b: '0.09686980',
-        //      u: 5870 } }
+        // { type: "tickers",
+        //   "data":
+        //    { m: "DIL-ETH",
+        //      "t": 1599213946045,
+        //      "o": "0.09699020",
+        //      "h": "0.10301548",
+        //      "l": "0.09577222",
+        //      "c": "0.09907311",
+        //      "Q": "1.32723120",
+        //      "v": "297.80667468",
+        //      "q": "29.52142669",
+        //      "P": "2.14",
+        //      "n": 197,
+        //      "a": "0.09912245",
+        //      "b": "0.09686980",
+        //      "u": 5870 } }
         const type = this.safeString (message, 'type');
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'm');
@@ -140,16 +143,16 @@ export default class idex extends idexRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name idex#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -177,50 +180,50 @@ export default class idex extends idexRest {
         const length = keys.length;
         if (length === 0) {
             const limit = this.safeInteger (this.options, 'tradesLimit');
-            this.trades = new ArrayCacheBySymbolById (limit);
+            this.trades = new ArrayCacheBySymbolById (limit) as any;
         }
-        const trades = this.trades;
+        const trades = this.trades as any;
         trades.append (trade);
         client.resolve (trades, messageHash);
     }
 
     parseWsTrade (trade, market = undefined) {
         // public trades
-        // { m: 'DIL-ETH',
-        //   i: '897ecae6-4b75-368a-ac00-be555e6ad65f',
-        //   p: '0.09696995',
-        //   q: '2.00000000',
-        //   Q: '0.19393990',
-        //   t: 1599504616247,
-        //   s: 'buy',
-        //   u: 6620 }
+        // { m: "DIL-ETH",
+        //   "i": "897ecae6-4b75-368a-ac00-be555e6ad65f",
+        //   "p": "0.09696995",
+        //   "q": "2.00000000",
+        //   "Q": "0.19393990",
+        //   "t": 1599504616247,
+        //   "s": "buy",
+        //   "u": 6620 }
         // private trades
-        // { i: 'ee253d78-88be-37ed-a61c-a36395c2ce48',
-        //   p: '0.09925382',
-        //   q: '0.15000000',
-        //   Q: '0.01488807',
-        //   t: 1599499129369,
-        //   s: 'sell',
-        //   u: 6603,
-        //   f: '0.00030000',
-        //   a: 'DIL',
-        //   g: '0.00856110',
-        //   l: 'maker',
-        //   S: 'pending' }
+        // { i: "ee253d78-88be-37ed-a61c-a36395c2ce48",
+        //   "p": "0.09925382",
+        //   "q": "0.15000000",
+        //   "Q": "0.01488807",
+        //   "t": 1599499129369,
+        //   "s": "sell",
+        //   "u": 6603,
+        //   "f": "0.00030000",
+        //   "a": "DIL",
+        //   "g": "0.00856110",
+        //   "l": "maker",
+        //   "S": "pending" }
         const marketId = this.safeString (trade, 'm');
         const symbol = this.safeSymbol (marketId);
         const id = this.safeString (trade, 'i');
-        const price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'q');
-        const cost = this.safeFloat (trade, 'Q');
+        const price = this.safeString (trade, 'p');
+        const amount = this.safeString (trade, 'q');
+        const cost = this.safeString (trade, 'Q');
         const timestamp = this.safeInteger (trade, 't');
         const side = this.safeString (trade, 's');
         const fee = {
             'currency': this.safeString (trade, 'a'),
-            'cost': this.safeFloat (trade, 'f'),
+            'cost': this.safeString (trade, 'f'),
         };
         const takerOrMarker = this.safeString (trade, 'l');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -234,20 +237,20 @@ export default class idex extends idexRest {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
+        });
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name idex#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -268,20 +271,20 @@ export default class idex extends idexRest {
     }
 
     handleOHLCV (client: Client, message) {
-        // { type: 'candles',
-        //   data:
-        //    { m: 'DIL-ETH',
-        //      t: 1599477340109,
-        //      i: '1m',
-        //      s: 1599477300000,
-        //      e: 1599477360000,
-        //      o: '0.09911040',
-        //      h: '0.09911040',
-        //      l: '0.09911040',
-        //      c: '0.09911040',
-        //      v: '0.15000000',
-        //      n: 1,
-        //      u: 6531 } }
+        // { type: "candles",
+        //   "data":
+        //    { m: "DIL-ETH",
+        //      "t": 1599477340109,
+        //      "i": "1m",
+        //      "s": 1599477300000,
+        //      "e": 1599477360000,
+        //      "o": "0.09911040",
+        //      "h": "0.09911040",
+        //      "l": "0.09911040",
+        //      "c": "0.09911040",
+        //      "v": "0.15000000",
+        //      "n": 1,
+        //      "u": 6531 } }
         const type = this.safeString (message, 'type');
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'm');
@@ -334,7 +337,7 @@ export default class idex extends idexRest {
                         const symbol = this.safeSymbol (marketId);
                         if (!(symbol in this.orderbooks)) {
                             const orderbook = this.countedOrderBook ({});
-                            (orderbook as any).cache = [];
+                            // orderbook.cache = []; // cache is never used?
                             this.orderbooks[symbol] = orderbook;
                         }
                         this.spawn (this.fetchOrderBookSnapshot, client, symbol);
@@ -359,7 +362,7 @@ export default class idex extends idexRest {
         try {
             const limit = this.safeInteger (subscription, 'limit', 0);
             // 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
-            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit);
             const firstBuffered = this.safeValue (orderbook.cache, 0);
             const firstData = this.safeValue (firstBuffered, 'data');
             const firstNonce = this.safeInteger (firstData, 'u');
@@ -408,14 +411,14 @@ export default class idex extends idexRest {
         }
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name idex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the idex api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -515,16 +518,16 @@ export default class idex extends idexRest {
         return this.options['token'];
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name idex#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the idex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const name = 'orders';
@@ -589,7 +592,7 @@ export default class idex extends idexRest {
         const marketId = this.safeString (order, 'm');
         const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeInteger (order, 't');
-        const fills = this.safeValue (order, 'F');
+        const fills = this.safeValue (order, 'F', []);
         const trades = [];
         for (let i = 0; i < fills.length; i++) {
             trades.push (this.parseWsTrade (fills[i]));
@@ -597,18 +600,10 @@ export default class idex extends idexRest {
         const id = this.safeString (order, 'i');
         const side = this.safeString (order, 's');
         const orderType = this.safeString (order, 'o');
-        const amount = this.safeFloat (order, 'q');
-        const filled = this.safeFloat (order, 'z');
-        let remaining = undefined;
-        if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = amount - filled;
-        }
-        const average = this.safeFloat (order, 'v');
-        const price = this.safeFloat (order, 'price', average);  // for market orders
-        let cost = undefined;
-        if ((amount !== undefined) && (price !== undefined)) {
-            cost = amount * price;
-        }
+        const amount = this.safeString (order, 'q');
+        const filled = this.safeString (order, 'z');
+        const average = this.safeString (order, 'v');
+        const price = this.safeString (order, 'price', average);  // for market orders
         const rawStatus = this.safeString (order, 'X');
         const status = this.parseOrderStatus (rawStatus);
         const fee = {
@@ -619,10 +614,11 @@ export default class idex extends idexRest {
         for (let i = 0; i < trades.length; i++) {
             lastTrade = trades[i];
             fee['currency'] = lastTrade['fee']['currency'];
-            fee['cost'] = this.sum (fee['cost'], lastTrade['fee']['cost']);
+            const stringLastTradeFee = lastTrade['fee']['cost'];
+            fee['cost'] = Precise.stringAdd (fee['cost'], stringLastTradeFee);
         }
         const lastTradeTimestamp = this.safeInteger (lastTrade, 'timestamp');
-        const parsedOrder = {
+        const parsedOrder = this.safeOrder ({
             'info': message,
             'id': id,
             'clientOrderId': undefined,
@@ -632,18 +628,18 @@ export default class idex extends idexRest {
             'symbol': symbol,
             'type': orderType,
             'side': side,
-            'price': price,
+            'price': this.parseNumber (price),
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
+            'amount': this.parseNumber (amount),
+            'cost': undefined,
+            'average': this.parseNumber (average),
+            'filled': this.parseNumber (filled),
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -655,7 +651,7 @@ export default class idex extends idexRest {
         client.resolve (orders, type);
     }
 
-    async watchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'balances';
         const subscribeObject = {
@@ -674,14 +670,14 @@ export default class idex extends idexRest {
 
     handleTransaction (client: Client, message) {
         // Update Speed: Real time, updates on any deposit or withdrawal of the wallet
-        // { type: 'balances',
-        //   data:
-        //    { w: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //      a: 'ETH',
-        //      q: '0.11198667',
-        //      f: '0.11198667',
-        //      l: '0.00000000',
-        //      d: '0.00' } }
+        // { type: "balances",
+        //   "data":
+        //    { w: "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //      "a": "ETH",
+        //      "q": "0.11198667",
+        //      "f": "0.11198667",
+        //      "l": "0.00000000",
+        //      "d": "0.00" } }
         const type = this.safeString (message, 'type');
         const data = this.safeValue (message, 'data');
         const currencyId = this.safeString (data, 'a');

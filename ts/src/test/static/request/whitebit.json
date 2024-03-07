@@ -1,0 +1,167 @@
+{
+    "exchange": "whitebit",
+    "skipKeys": [
+        "nonce",
+        "clientOrderId"
+    ],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/new",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.09
+                ],
+                "output": "{\"request\":\"/api/v4/order/new\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"price\":\"0.09\"}"
+            },
+            {
+                "description": "Spot market buy",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/stock_market",
+                "input": [
+                    "DOGE/USDT",
+                    "market",
+                    "buy",
+                    100
+                ],
+                "output": "{\"request\":\"/api/v4/order/stock_market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\"}"
+            },
+            {
+                "description": "Swap limit buy",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/collateral/limit",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.09
+                ],
+                "output": "{\"request\":\"/api/v4/order/collateral/limit\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"price\":\"0.09\"}"
+            },
+            {
+                "description": "Swap market buy",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/collateral/market",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100
+                ],
+                "output": "{\"request\":\"/api/v4/order/collateral/market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\"}"
+            },
+            {
+                "description": "Spot market buy spot order",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/stop_market",
+                "input": [
+                    "DOGE/USDT",
+                    "market",
+                    "buy",
+                    100,
+                    null,
+                    {
+                        "triggerPrice": "0.08"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/order/stop_market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"activation_price\":\"0.08\"}"
+            },
+            {
+                "description": "Spot limit buy spot order",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/stop_limit",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.07,
+                    {
+                        "triggerPrice": "0.08"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/order/stop_limit\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"activation_price\":\"0.08\",\"price\":\"0.07\"}"
+            },
+            {
+                "description": "Swap market buy spot order",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/collateral/trigger_market",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100,
+                    null,
+                    {
+                        "triggerPrice": "0.08"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/order/collateral/trigger_market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"activation_price\":\"0.08\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch Balance - trade",
+                "method": "fetchBalance",
+                "url": "https://whitebit.com/api/v4/trade-account/balance",
+                "input": [
+                ],
+                "output": "{\"request\":\"/api/v4/trade-account/balance\",\"nonce\":\"1701937579352\"}"
+            },
+            {
+                "description": "Fetch Balance - main",
+                "method": "fetchBalance",
+                "url": "https://whitebit.com/api/v4/main-account/balance",
+                "input": [
+                    {
+                        "account": "main"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/balance\",\"nonce\":\"1701937579352\"}"
+            },
+            {
+                "description": "Fetch Balance - trade",
+                "method": "fetchBalance",
+                "url": "https://whitebit.com/api/v4/collateral-account/balance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/collateral-account/balance\",\"nonce\":\"1701937579352\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch Deposit Address",
+                "method": "fetchDepositAddress",
+                "url": "https://whitebit.com/api/v4/main-account/fiat-deposit-url",
+                "input": [
+                    "USD",
+                    {
+                        "provider": "provider",
+                        "amount": 10,
+                        "uniqueId": "uniqueId"
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/fiat-deposit-url\",\"nonce\":\"1701937579352\",\"ticker\":\"USD\",\"provider\":\"provider\",\"amount\":10,\"uniqueId\":\"uniqueId\"}"
+            },
+            {
+                "description": "Fetch Deposit Address",
+                "method": "fetchDepositAddress",
+                "url": "https://whitebit.com/api/v4/main-account/address",
+                "input": [
+                    "BTC"
+                ],
+                "output": "{\"request\":\"/api/v4/main-account/address\",\"nonce\":\"1701937579352\",\"ticker\":\"BTC\"}"
+            }
+        ]
+    }
+}

@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-'use strict';
 //  ---------------------------------------------------------------------------
 import probitRest from '../probit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
@@ -55,10 +54,10 @@ export default class probit extends probitRest {
         /**
          * @method
          * @name probit#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs-en.probit.com/reference/balance-1
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.authenticate(params);
         const messageHash = 'balance';
@@ -73,12 +72,12 @@ export default class probit extends probitRest {
     handleBalance(client, message) {
         //
         //     {
-        //         channel: 'balance',
-        //         reset: false,
-        //         data: {
-        //             USDT: {
-        //                 available: '15',
-        //                 total: '15'
+        //         "channel": "balance",
+        //         "reset": false,
+        //         "data": {
+        //             "USDT": {
+        //                 "available": "15",
+        //                 "total": "15"
         //             }
         //         }
         //     }
@@ -90,17 +89,17 @@ export default class probit extends probitRest {
     parseWSBalance(message) {
         //
         //     {
-        //         channel: 'balance',
-        //         reset: false,
-        //         data: {
-        //             USDT: {
-        //                 available: '15',
-        //                 total: '15'
+        //         "channel": "balance",
+        //         "reset": false,
+        //         "data": {
+        //             "USDT": {
+        //                 "available": "15",
+        //                 "total": "15"
         //             }
         //         }
         //     }
         //
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         const data = this.safeValue(message, 'data', {});
         const currencyIds = Object.keys(data);
         if (reset) {
@@ -124,9 +123,9 @@ export default class probit extends probitRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs-en.probit.com/reference/marketdata
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @param {int|undefined} params.interval Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTicker', 'filter', 'ticker');
@@ -135,20 +134,20 @@ export default class probit extends probitRest {
     handleTicker(client, message) {
         //
         //     {
-        //         channel: 'marketdata',
-        //         market_id: 'BTC-USDT',
-        //         status: 'ok',
-        //         lag: 0,
-        //         ticker: {
-        //             time: '2022-07-21T14:18:04.000Z',
-        //             last: '22591.3',
-        //             low: '22500.1',
-        //             high: '39790.7',
-        //             change: '-1224',
-        //             base_volume: '1002.32005445',
-        //             quote_volume: '23304489.385351021'
+        //         "channel": "marketdata",
+        //         "market_id": "BTC-USDT",
+        //         "status": "ok",
+        //         "lag": 0,
+        //         "ticker": {
+        //             "time": "2022-07-21T14:18:04.000Z",
+        //             "last": "22591.3",
+        //             "low": "22500.1",
+        //             "high": "39790.7",
+        //             "change": "-1224",
+        //             "base_volume": "1002.32005445",
+        //             "quote_volume": "23304489.385351021"
         //         },
-        //         reset: true
+        //         "reset": true
         //     }
         //
         const marketId = this.safeString(message, 'market_id');
@@ -167,11 +166,11 @@ export default class probit extends probitRest {
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs-en.probit.com/reference/trade_history
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @param {int|undefined} params.interval Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTrades', 'filter', 'recent_trades');
@@ -184,29 +183,29 @@ export default class probit extends probitRest {
     handleTrades(client, message) {
         //
         //     {
-        //         channel: 'marketdata',
-        //         market_id: 'BTC-USDT',
-        //         status: 'ok',
-        //         lag: 0,
-        //         recent_trades: [
+        //         "channel": "marketdata",
+        //         "market_id": "BTC-USDT",
+        //         "status": "ok",
+        //         "lag": 0,
+        //         "recent_trades": [
         //             {
-        //                 id: 'BTC-USDT:8010233',
-        //                 price: '22701.4',
-        //                 quantity: '0.011011',
-        //                 time: '2022-07-21T13:40:40.983Z',
-        //                 side: 'buy',
-        //                 tick_direction: 'up'
+        //                 "id": "BTC-USDT:8010233",
+        //                 "price": "22701.4",
+        //                 "quantity": "0.011011",
+        //                 "time": "2022-07-21T13:40:40.983Z",
+        //                 "side": "buy",
+        //                 "tick_direction": "up"
         //             }
         //             ...
         //         ]
-        //         reset: true
+        //         "reset": true
         //     }
         //
         const marketId = this.safeString(message, 'market_id');
         const symbol = this.safeSymbol(marketId);
         const market = this.safeMarket(marketId);
         const trades = this.safeValue(message, 'recent_trades', []);
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined || reset) {
@@ -228,10 +227,10 @@ export default class probit extends probitRest {
          * @name probit#watchMyTrades
          * @description get the list of trades associated with the user
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         await this.authenticate(params);
@@ -257,28 +256,29 @@ export default class probit extends probitRest {
     handleMyTrades(client, message) {
         //
         //     {
-        //         channel: 'trade_history',
-        //         reset: false,
-        //         data: [{
-        //             id: 'BTC-USDT:8010722',
-        //             order_id: '4124999207',
-        //             side: 'buy',
-        //             fee_amount: '0.0134999868096',
-        //             fee_currency_id: 'USDT',
-        //             status: 'settled',
-        //             price: '23136.7',
-        //             quantity: '0.00032416',
-        //             cost: '7.499992672',
-        //             time: '2022-07-21T17:09:33.056Z',
-        //             market_id: 'BTC-USDT'
+        //         "channel": "trade_history",
+        //         "reset": false,
+        //         "data": [{
+        //             "id": "BTC-USDT:8010722",
+        //             "order_id": "4124999207",
+        //             "side": "buy",
+        //             "fee_amount": "0.0134999868096",
+        //             "fee_currency_id": "USDT",
+        //             "status": "settled",
+        //             "price": "23136.7",
+        //             "quantity": "0.00032416",
+        //             "cost": "7.499992672",
+        //             "time": "2022-07-21T17:09:33.056Z",
+        //             "market_id": "BTC-USDT"
         //         }]
         //     }
         //
         const rawTrades = this.safeValue(message, 'data', []);
-        if (rawTrades.length === 0) {
+        const length = rawTrades.length;
+        if (length === 0) {
             return;
         }
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         const messageHash = 'myTrades';
         let stored = this.myTrades;
         if ((stored === undefined) || reset) {
@@ -307,12 +307,12 @@ export default class probit extends probitRest {
          * @name probit#watchOrders
          * @description watches information on an order made by the user
          * @see https://docs-en.probit.com/reference/open_order
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {int|undefined} since timestamp in ms of the earliest order to watch
-         * @param {int|undefined} limit the maximum amount of orders to watch
-         * @param {object} params extra parameters specific to the aax api endpoint
-         * @param {string|undefined} params.channel choose what channel to use. Can open_order or order_history.
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {int} [since] timestamp in ms of the earliest order to watch
+         * @param {int} [limit] the maximum amount of orders to watch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.channel] choose what channel to use. Can open_order or order_history.
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.authenticate(params);
         const url = this.urls['api']['ws'];
@@ -333,39 +333,40 @@ export default class probit extends probitRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         //
         //     {
-        //         channel: 'order_history',
-        //         reset: true,
-        //         data: [{
-        //                 id: '4124999207',
-        //                 user_id: '633dc56a-621b-4680-8a4e-85a823499b6d',
-        //                 market_id: 'BTC-USDT',
-        //                 type: 'market',
-        //                 side: 'buy',
-        //                 limit_price: '0',
-        //                 time_in_force: 'ioc',
-        //                 filled_cost: '7.499992672',
-        //                 filled_quantity: '0.00032416',
-        //                 open_quantity: '0',
-        //                 status: 'filled',
-        //                 time: '2022-07-21T17:09:33.056Z',
-        //                 client_order_id: '',
-        //                 cost: '7.5'
+        //         "channel": "order_history",
+        //         "reset": true,
+        //         "data": [{
+        //                 "id": "4124999207",
+        //                 "user_id": "633dc56a-621b-4680-8a4e-85a823499b6d",
+        //                 "market_id": "BTC-USDT",
+        //                 "type": "market",
+        //                 "side": "buy",
+        //                 "limit_price": "0",
+        //                 "time_in_force": "ioc",
+        //                 "filled_cost": "7.499992672",
+        //                 "filled_quantity": "0.00032416",
+        //                 "open_quantity": "0",
+        //                 "status": "filled",
+        //                 "time": "2022-07-21T17:09:33.056Z",
+        //                 "client_order_id": '',
+        //                 "cost": "7.5"
         //             },
         //             ...
         //         ]
         //     }
         //
         const rawOrders = this.safeValue(message, 'data', []);
-        if (rawOrders.length === 0) {
+        const length = rawOrders.length;
+        if (length === 0) {
             return;
         }
         const messageHash = 'orders';
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         let stored = this.orders;
         if (stored === undefined || reset) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
@@ -394,9 +395,9 @@ export default class probit extends probitRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs-en.probit.com/reference/marketdata
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'filter', 'order_books');
@@ -437,35 +438,35 @@ export default class probit extends probitRest {
     handleOrderBook(client, message, orderBook) {
         //
         //     {
-        //         channel: 'marketdata',
-        //         market_id: 'BTC-USDT',
-        //         status: 'ok',
-        //         lag: 0,
-        //         order_books: [
-        //           { side: 'buy', price: '1420.7', quantity: '0.057' },
+        //         "channel": "marketdata",
+        //         "market_id": "BTC-USDT",
+        //         "status": "ok",
+        //         "lag": 0,
+        //         "order_books": [
+        //           { side: "buy", price: '1420.7', quantity: "0.057" },
         //           ...
         //         ],
-        //         reset: true
+        //         "reset": true
         //     }
         //
         const marketId = this.safeString(message, 'market_id');
         const symbol = this.safeSymbol(marketId);
         const dataBySide = this.groupBy(orderBook, 'side');
         const messageHash = 'orderbook:' + symbol;
-        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook({});
+            this.orderbooks[symbol] = orderbook;
         }
-        const reset = this.safeValue(message, 'reset', false);
+        const reset = this.safeBool(message, 'reset', false);
         if (reset) {
             const snapshot = this.parseOrderBook(dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
-            storedOrderBook.reset(snapshot);
+            orderbook.reset(snapshot);
         }
         else {
-            this.handleDelta(storedOrderBook, dataBySide);
+            this.handleDelta(orderbook, dataBySide);
         }
-        client.resolve(storedOrderBook, messageHash);
+        client.resolve(orderbook, messageHash);
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
@@ -485,10 +486,10 @@ export default class probit extends probitRest {
     handleErrorMessage(client, message) {
         //
         //     {
-        //         errorCode: 'INVALID_ARGUMENT',
-        //         message: '',
-        //         details: {
-        //             interval: 'invalid'
+        //         "errorCode": "INVALID_ARGUMENT",
+        //         "message": '',
+        //         "details": {
+        //             "interval": "invalid"
         //         }
         //     }
         //
@@ -500,7 +501,7 @@ export default class probit extends probitRest {
     }
     handleAuthenticate(client, message) {
         //
-        //     { type: 'authorization', result: 'ok' }
+        //     { type: "authorization", result: "ok" }
         //
         const result = this.safeString(message, 'result');
         const future = client.subscriptions['authenticated'];
@@ -518,31 +519,33 @@ export default class probit extends probitRest {
             this.handleTicker(client, message);
         }
         const trades = this.safeValue(message, 'recent_trades', []);
-        if (trades.length > 0) {
+        if (trades.length) {
             this.handleTrades(client, message);
         }
         const orderBook = this.safeValueN(message, ['order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4'], []);
-        if (orderBook.length > 0) {
+        if (orderBook.length) {
             this.handleOrderBook(client, message, orderBook);
         }
     }
     handleMessage(client, message) {
         //
         //     {
-        //         errorCode: 'INVALID_ARGUMENT',
-        //         message: '',
-        //         details: {
-        //             interval: 'invalid'
+        //         "errorCode": "INVALID_ARGUMENT",
+        //         "message": '',
+        //         "details": {
+        //             "interval": "invalid"
         //         }
         //     }
         //
         const errorCode = this.safeString(message, 'errorCode');
         if (errorCode !== undefined) {
-            return this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, message);
+            return;
         }
         const type = this.safeString(message, 'type');
         if (type === 'authorization') {
-            return this.handleAuthenticate(client, message);
+            this.handleAuthenticate(client, message);
+            return;
         }
         const handlers = {
             'marketdata': this.handleMarketData,
@@ -554,7 +557,8 @@ export default class probit extends probitRest {
         const channel = this.safeString(message, 'channel');
         const handler = this.safeValue(handlers, channel);
         if (handler !== undefined) {
-            return handler.call(this, client, message);
+            handler.call(this, client, message);
+            return;
         }
         const error = new NotSupported(this.id + ' handleMessage: unknown message: ' + this.json(message));
         client.reject(error);
@@ -569,9 +573,9 @@ export default class probit extends probitRest {
             const response = await this.signIn();
             //
             //     {
-            //         access_token: '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
-            //         token_type: 'bearer',
-            //         expires_in: 900
+            //         "access_token": "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
+            //         "token_type": "bearer",
+            //         "expires_in": 900
             //     }
             //
             const accessToken = this.safeString(response, 'access_token');
@@ -582,6 +586,6 @@ export default class probit extends probitRest {
             future = this.watch(url, messageHash, this.extend(request, params));
             client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }
