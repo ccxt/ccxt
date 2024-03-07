@@ -4301,8 +4301,8 @@ export default class bybit extends Exchange {
         //         "time": "1709796158501"
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const row = this.safeValue (result, 'list', []);
+        const result = this.safeDict (response, 'result', {});
+        const row = this.safeList (result, 'list', []);
         return this.parseOrders (row, market);
     }
 
