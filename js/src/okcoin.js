@@ -49,6 +49,9 @@ export default class okcoin extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -857,7 +860,7 @@ export default class okcoin extends Exchange {
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
-        const spot = this.safeValue(market, 'spot', false);
+        const spot = this.safeBool(market, 'spot', false);
         const quoteVolume = spot ? this.safeString(ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
@@ -1401,7 +1404,7 @@ export default class okcoin extends Exchange {
         }
         else {
             marginMode = defaultMarginMode;
-            margin = this.safeValue(params, 'margin', false);
+            margin = this.safeBool(params, 'margin', false);
         }
         if (margin) {
             const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];

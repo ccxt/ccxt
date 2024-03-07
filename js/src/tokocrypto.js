@@ -692,7 +692,7 @@ export default class tokocrypto extends Exchange {
                     break;
                 }
             }
-            const isMarginTradingAllowed = this.safeValue(market, 'isMarginTradingAllowed', false);
+            const isMarginTradingAllowed = this.safeBool(market, 'isMarginTradingAllowed', false);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1019,8 +1019,28 @@ export default class tokocrypto extends Exchange {
                 request['limit'] = limit;
             }
             const responseInner = this.publicGetOpenV1MarketTrades(this.extend(request, params));
-            const data = this.safeValue(responseInner, 'data', {});
-            return this.parseTrades(data, market, since, limit);
+            //
+            //    {
+            //       "code": 0,
+            //       "msg": "success",
+            //       "data": {
+            //           "list": [
+            //                {
+            //                    "id": 28457,
+            //                    "price": "4.00000100",
+            //                    "qty": "12.00000000",
+            //                    "time": 1499865549590,
+            //                    "isBuyerMaker": true,
+            //                    "isBestMatch": true
+            //                }
+            //            ]
+            //        },
+            //        "timestamp": 1571921637091
+            //    }
+            //
+            const data = this.safeDict(responseInner, 'data', {});
+            const list = this.safeList(data, 'list', []);
+            return this.parseTrades(list, market, since, limit);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
@@ -1365,9 +1385,9 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1659666786943
         //     }
         //
-        return this.parseBalance(response, type, marginMode);
+        return this.parseBalanceCustom(response, type, marginMode);
     }
-    parseBalance(response, type = undefined, marginMode = undefined) {
+    parseBalanceCustom(response, type = undefined, marginMode = undefined) {
         const timestamp = this.safeInteger(response, 'updateTime');
         const result = {
             'info': response,
@@ -1591,7 +1611,7 @@ export default class tokocrypto extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId');
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        const postOnly = this.safeBool(params, 'postOnly', false);
         // only supported for spot/margin api
         if (postOnly) {
             type = 'LIMIT_MAKER';
@@ -2465,7 +2485,7 @@ export default class tokocrypto extends Exchange {
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         if (!success) {
             const messageInner = this.safeString(response, 'msg');
             let parsedMessage = undefined;

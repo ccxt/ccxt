@@ -31,6 +31,7 @@ class bitflyer extends Exchange {
                 'swap' => null, // has but not fully implemented
                 'future' => null, // has but not fully implemented
                 'option' => false,
+                'cancelAllOrders' => null,  // https://lightning.bitflyer.com/docs?lang=en#cancel-all-orders
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -548,7 +549,7 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -659,7 +660,7 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -688,7 +689,7 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -706,7 +707,7 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -825,7 +826,7 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

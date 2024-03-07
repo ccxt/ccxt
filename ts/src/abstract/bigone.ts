@@ -30,6 +30,7 @@ interface Exchange {
     privatePostOrdersCancel (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
     privatePostTransfer (params?: {}): Promise<implicitReturnType>;
+    contractPublicGetSymbols (params?: {}): Promise<implicitReturnType>;
     contractPublicGetInstruments (params?: {}): Promise<implicitReturnType>;
     contractPublicGetDepthSymbolSnapshot (params?: {}): Promise<implicitReturnType>;
     contractPublicGetInstrumentsDifference (params?: {}): Promise<implicitReturnType>;

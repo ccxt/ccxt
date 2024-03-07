@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-// @ts-nocheck 
+// @ts-nocheck
 
 import { iso8601 } from '../../base/functions/time.js';
 import { extend, deepExtend } from '../../base/functions/generic.js';
@@ -20,7 +20,13 @@ import {
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
 
-class OrderBook {
+interface CustomOrderBookProp  {
+    cache: any[];
+}
+
+class OrderBook implements CustomOrderBookProp {
+
+    cache = [] // make prop visible so we use typed OrderBooks
 
     constructor (snapshot = {}, depth = undefined) {
 
@@ -28,6 +34,7 @@ class OrderBook {
             __proto__: null, // make it invisible
             value: [],
             writable: true,
+            enumerable: false,
         })
 
         depth = depth || Number.MAX_SAFE_INTEGER

@@ -175,7 +175,7 @@ export default class poloniex extends poloniexRest {
          * @returns {object} data from the websocket stream
          */
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce();
+        const messageHash = this.nonce().toString();
         const subscribe = {
             'id': messageHash,
             'event': name,
@@ -943,7 +943,7 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeValue(message, 'data', []);
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString(item, 'symbol');
@@ -951,7 +951,7 @@ export default class poloniex extends poloniexRest {
                 const ticker = this.parseTicker(item);
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
-                newTickers.push(ticker);
+                newTickers[symbol] = ticker;
             }
         }
         const messageHashes = this.findMessageHashes(client, 'ticker::');
@@ -1042,7 +1042,8 @@ export default class poloniex extends poloniexRest {
                         const bid = this.safeValue(bids, j);
                         const price = this.safeNumber(bid, 0);
                         const amount = this.safeNumber(bid, 1);
-                        orderbook['bids'].store(price, amount);
+                        const bidsSide = orderbook['bids'];
+                        bidsSide.store(price, amount);
                     }
                 }
                 if (asks !== undefined) {
@@ -1050,7 +1051,8 @@ export default class poloniex extends poloniexRest {
                         const ask = this.safeValue(asks, j);
                         const price = this.safeNumber(ask, 0);
                         const amount = this.safeNumber(ask, 1);
-                        orderbook['asks'].store(price, amount);
+                        const asksSide = orderbook['asks'];
+                        asksSide.store(price, amount);
                     }
                 }
                 orderbook['symbol'] = symbol;
@@ -1184,14 +1186,14 @@ export default class poloniex extends poloniexRest {
                 this.handleErrorMessage(client, item);
             }
             else {
-                return this.handleOrderRequest(client, message);
+                this.handleOrderRequest(client, message);
             }
         }
         else {
             const data = this.safeValue(message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
-                return method.call(this, client, message);
+                method.call(this, client, message);
             }
         }
     }

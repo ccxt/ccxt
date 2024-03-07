@@ -65,7 +65,7 @@ abstract class kraken extends \ccxt\async\Exchange {
         return $this->request('CancelOrderBatch', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function private_post_closedorders($params = array()) {
-        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 6));
+        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_depositaddresses($params = array()) {
         return $this->request('DepositAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));
@@ -224,7 +224,7 @@ abstract class kraken extends \ccxt\async\Exchange {
         return $this->request('CancelOrderBatch', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function privatePostClosedOrders($params = array()) {
-        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 6));
+        return $this->request('ClosedOrders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostDepositAddresses($params = array()) {
         return $this->request('DepositAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));

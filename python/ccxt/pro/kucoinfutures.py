@@ -64,57 +64,64 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             },
         })
 
-    def negotiate(self, privateChannel, params={}):
+    async def negotiate(self, privateChannel, params={}):
         connectId = 'private' if privateChannel else 'public'
         urls = self.safe_value(self.options, 'urls', {})
         spawaned = self.safe_value(urls, connectId)
         if spawaned is not None:
-            return spawaned
+            return await spawaned
         # we store an awaitable to the url
         # so that multiple calls don't asynchronously
         # fetch different urls and overwrite each other
-        urls[connectId] = self.spawn(self.negotiate_helper, privateChannel, params)
+        urls[connectId] = self.spawn(self.negotiate_helper, privateChannel, params)  # we have to wait here otherwsie in c# will not work
         self.options['urls'] = urls
-        return urls[connectId]
+        future = urls[connectId]
+        return await future
 
     async def negotiate_helper(self, privateChannel, params={}):
         response = None
         connectId = 'private' if privateChannel else 'public'
-        if privateChannel:
-            response = await self.futuresPrivatePostBulletPrivate(params)
-            #
-            #     {
-            #         "code": "200000",
-            #         "data": {
-            #             "instanceServers": [
-            #                 {
-            #                     "pingInterval":  50000,
-            #                     "endpoint": "wss://push-private.kucoin.com/endpoint",
-            #                     "protocol": "websocket",
-            #                     "encrypt": True,
-            #                     "pingTimeout": 10000
-            #                 }
-            #             ],
-            #             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-            #         }
-            #     }
-            #
-        else:
-            response = await self.futuresPublicPostBulletPublic(params)
-        data = self.safe_value(response, 'data', {})
-        instanceServers = self.safe_value(data, 'instanceServers', [])
-        firstInstanceServer = self.safe_value(instanceServers, 0)
-        pingInterval = self.safe_integer(firstInstanceServer, 'pingInterval')
-        endpoint = self.safe_string(firstInstanceServer, 'endpoint')
-        token = self.safe_string(data, 'token')
-        result = endpoint + '?' + self.urlencode({
-            'token': token,
-            'privateChannel': privateChannel,
-            'connectId': connectId,
-        })
-        client = self.client(result)
-        client.keepAlive = pingInterval
-        return result
+        try:
+            if privateChannel:
+                response = await self.futuresPrivatePostBulletPrivate(params)
+                #
+                #     {
+                #         "code": "200000",
+                #         "data": {
+                #             "instanceServers": [
+                #                 {
+                #                     "pingInterval":  50000,
+                #                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+                #                     "protocol": "websocket",
+                #                     "encrypt": True,
+                #                     "pingTimeout": 10000
+                #                 }
+                #             ],
+                #             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                #         }
+                #     }
+                #
+            else:
+                response = await self.futuresPublicPostBulletPublic(params)
+            data = self.safe_value(response, 'data', {})
+            instanceServers = self.safe_value(data, 'instanceServers', [])
+            firstInstanceServer = self.safe_value(instanceServers, 0)
+            pingInterval = self.safe_integer(firstInstanceServer, 'pingInterval')
+            endpoint = self.safe_string(firstInstanceServer, 'endpoint')
+            token = self.safe_string(data, 'token')
+            result = endpoint + '?' + self.urlencode({
+                'token': token,
+                'privateChannel': privateChannel,
+                'connectId': connectId,
+            })
+            client = self.client(result)
+            client.keepAlive = pingInterval
+            return result
+        except Exception as e:
+            future = self.safe_value(self.options['urls'], connectId)
+            future.reject(e)
+            del self.options['urls'][connectId]
+        return None
 
     def request_id(self):
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
@@ -224,7 +231,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client = self.client(url)
         self.set_position_cache(client, symbol)
         fetchPositionSnapshot = self.handle_option('watchPosition', 'fetchPositionSnapshot', True)
-        awaitPositionSnapshot = self.safe_value('watchPosition', 'awaitPositionSnapshot', True)
+        awaitPositionSnapshot = self.safe_bool('watchPosition', 'awaitPositionSnapshot', True)
         currentPosition = self.get_current_position(symbol)
         if fetchPositionSnapshot and awaitPositionSnapshot and currentPosition is None:
             snapshot = await client.future('fetchPositionSnapshot:' + symbol)
@@ -544,6 +551,8 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         messageHash = 'orderbook:' + symbol
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         nonce = self.safe_integer(storedOrderBook, 'nonce')
+        if storedOrderBook is None:
+            return  # self shouldn't be needed, but for some reason sometimes self runs before handleOrderBookSubscription in c#
         deltaEnd = self.safe_integer(data, 'sequence')
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
@@ -560,7 +569,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             limit = self.safe_integer(subscription, 'limit')
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
+                self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
             storedOrderBook.cache.append(data)
             return
         elif nonce >= deltaEnd:
@@ -865,10 +874,8 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             'position.adjustRiskLimit': self.handle_position,
         }
         method = self.safe_value(methods, subject)
-        if method is None:
-            return message
-        else:
-            return method(client, message)
+        if method is not None:
+            method(client, message)
 
     def ping(self, client):
         # kucoin does not support built-in ws protocol-level ping-pong
@@ -914,4 +921,4 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         }
         method = self.safe_value(methods, type)
         if method is not None:
-            return method(client, message)
+            method(client, message)

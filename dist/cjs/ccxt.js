@@ -30,7 +30,6 @@ var bitcoincom = require('./src/bitcoincom.js');
 var bitfinex = require('./src/bitfinex.js');
 var bitfinex2 = require('./src/bitfinex2.js');
 var bitflyer = require('./src/bitflyer.js');
-var bitforex = require('./src/bitforex.js');
 var bitget = require('./src/bitget.js');
 var bithumb = require('./src/bithumb.js');
 var bitmart = require('./src/bitmart.js');
@@ -44,6 +43,7 @@ var bitteam = require('./src/bitteam.js');
 var bitvavo = require('./src/bitvavo.js');
 var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
+var blofin = require('./src/blofin.js');
 var btcalpha = require('./src/btcalpha.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
@@ -56,6 +56,7 @@ var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinlist = require('./src/coinlist.js');
 var coinmate = require('./src/coinmate.js');
+var coinmetro = require('./src/coinmetro.js');
 var coinone = require('./src/coinone.js');
 var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
@@ -75,6 +76,7 @@ var hollaex = require('./src/hollaex.js');
 var htx = require('./src/htx.js');
 var huobi = require('./src/huobi.js');
 var huobijp = require('./src/huobijp.js');
+var hyperliquid = require('./src/hyperliquid.js');
 var idex = require('./src/idex.js');
 var independentreserve = require('./src/independentreserve.js');
 var indodax = require('./src/indodax.js');
@@ -94,6 +96,7 @@ var novadax = require('./src/novadax.js');
 var oceanex = require('./src/oceanex.js');
 var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
+var onetrading = require('./src/onetrading.js');
 var p2b = require('./src/p2b.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
@@ -134,7 +137,9 @@ var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbasepro$1 = require('./src/pro/coinbasepro.js');
+var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
+var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
 var currencycom$1 = require('./src/pro/currencycom.js');
 var deribit$1 = require('./src/pro/deribit.js');
@@ -153,11 +158,14 @@ var kraken$1 = require('./src/pro/kraken.js');
 var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
+var lbank$1 = require('./src/pro/lbank.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
+var onetrading$1 = require('./src/pro/onetrading.js');
+var p2b$1 = require('./src/pro/p2b.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
@@ -169,7 +177,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.11';
+const version = '4.2.63';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -190,7 +198,6 @@ const exchanges = {
     'bitfinex': bitfinex,
     'bitfinex2': bitfinex2,
     'bitflyer': bitflyer,
-    'bitforex': bitforex,
     'bitget': bitget,
     'bithumb': bithumb,
     'bitmart': bitmart,
@@ -204,6 +211,7 @@ const exchanges = {
     'bitvavo': bitvavo,
     'bl3p': bl3p,
     'blockchaincom': blockchaincom,
+    'blofin': blofin,
     'btcalpha': btcalpha,
     'btcbox': btcbox,
     'btcmarkets': btcmarkets,
@@ -216,6 +224,7 @@ const exchanges = {
     'coinex': coinex,
     'coinlist': coinlist,
     'coinmate': coinmate,
+    'coinmetro': coinmetro,
     'coinone': coinone,
     'coinsph': coinsph,
     'coinspot': coinspot,
@@ -235,6 +244,7 @@ const exchanges = {
     'htx': htx,
     'huobi': huobi,
     'huobijp': huobijp,
+    'hyperliquid': hyperliquid,
     'idex': idex,
     'independentreserve': independentreserve,
     'indodax': indodax,
@@ -254,6 +264,7 @@ const exchanges = {
     'oceanex': oceanex,
     'okcoin': okcoin,
     'okx': okx,
+    'onetrading': onetrading,
     'p2b': p2b,
     'paymium': paymium,
     'phemex': phemex,
@@ -296,7 +307,9 @@ const pro = {
     'cex': cex$1,
     'coinbase': coinbase$1,
     'coinbasepro': coinbasepro$1,
+    'coincheck': coincheck$1,
     'coinex': coinex$1,
+    'coinone': coinone$1,
     'cryptocom': cryptocom$1,
     'currencycom': currencycom$1,
     'deribit': deribit$1,
@@ -315,11 +328,14 @@ const pro = {
     'krakenfutures': krakenfutures$1,
     'kucoin': kucoin$1,
     'kucoinfutures': kucoinfutures$1,
+    'lbank': lbank$1,
     'luno': luno$1,
     'mexc': mexc$1,
     'ndax': ndax$1,
     'okcoin': okcoin$1,
     'okx': okx$1,
+    'onetrading': onetrading$1,
+    'p2b': p2b$1,
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'poloniexfutures': poloniexfutures$1,
@@ -388,7 +404,6 @@ exports.bitcoincom = bitcoincom;
 exports.bitfinex = bitfinex;
 exports.bitfinex2 = bitfinex2;
 exports.bitflyer = bitflyer;
-exports.bitforex = bitforex;
 exports.bitget = bitget;
 exports.bithumb = bithumb;
 exports.bitmart = bitmart;
@@ -402,6 +417,7 @@ exports.bitteam = bitteam;
 exports.bitvavo = bitvavo;
 exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;
+exports.blofin = blofin;
 exports.btcalpha = btcalpha;
 exports.btcbox = btcbox;
 exports.btcmarkets = btcmarkets;
@@ -414,6 +430,7 @@ exports.coincheck = coincheck;
 exports.coinex = coinex;
 exports.coinlist = coinlist;
 exports.coinmate = coinmate;
+exports.coinmetro = coinmetro;
 exports.coinone = coinone;
 exports.coinsph = coinsph;
 exports.coinspot = coinspot;
@@ -433,6 +450,7 @@ exports.hollaex = hollaex;
 exports.htx = htx;
 exports.huobi = huobi;
 exports.huobijp = huobijp;
+exports.hyperliquid = hyperliquid;
 exports.idex = idex;
 exports.independentreserve = independentreserve;
 exports.indodax = indodax;
@@ -452,6 +470,7 @@ exports.novadax = novadax;
 exports.oceanex = oceanex;
 exports.okcoin = okcoin;
 exports.okx = okx;
+exports.onetrading = onetrading;
 exports.p2b = p2b;
 exports.paymium = paymium;
 exports.phemex = phemex;

@@ -25,13 +25,13 @@ declare class ArgumentsRequired extends ExchangeError {
 declare class BadRequest extends ExchangeError {
     constructor(message: any);
 }
-declare class OperationRejected extends BadRequest {
+declare class OperationRejected extends ExchangeError {
     constructor(message: any);
 }
 declare class BadSymbol extends BadRequest {
     constructor(message: any);
 }
-declare class NoChange extends BadRequest {
+declare class NoChange extends OperationRejected {
     constructor(message: any);
 }
 declare class MarginModeAlreadySet extends NoChange {
@@ -91,7 +91,7 @@ declare class NetworkError extends OperationFailed {
 declare class DDoSProtection extends NetworkError {
     constructor(message: any);
 }
-declare class RateLimitExceeded extends DDoSProtection {
+declare class RateLimitExceeded extends NetworkError {
     constructor(message: any);
 }
 declare class ExchangeNotAvailable extends NetworkError {

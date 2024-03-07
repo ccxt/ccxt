@@ -4,9 +4,9 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -28,6 +28,7 @@ class woo(ccxt.async_support.woo):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchPositions': True,
             },
             'urls': {
                 'api': {
@@ -52,6 +53,10 @@ class woo(ccxt.async_support.woo):
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'requestId': {},
+                'watchPositions': {
+                    'fetchPositionsSnapshot': True,  # or False
+                    'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
+                },
             },
             'streaming': {
                 'ping': self.ping,
@@ -402,7 +407,7 @@ class woo(ccxt.async_support.woo):
                 return False
         return True
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']['private'] + '/' + self.uid
         client = self.client(url)
@@ -590,6 +595,112 @@ class woo(ccxt.async_support.woo):
             messageHashSymbol = topic + ':' + symbol
             client.resolve(self.orders, messageHashSymbol)
 
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        :see: https://docs.woo.org/#position-push
+        watch all open positions
+        :param str[]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        messageHash = ''
+        symbols = self.market_symbols(symbols)
+        if not self.is_empty(symbols):
+            messageHash = '::' + ','.join(symbols)
+        messageHash = 'positions' + messageHash
+        url = self.urls['api']['ws']['private'] + '/' + self.uid
+        client = self.client(url)
+        self.set_positions_cache(client, symbols)
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
+            snapshot = await client.future('fetchPositionsSnapshot')
+            return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
+        request = {
+            'event': 'subscribe',
+            'topic': 'position',
+        }
+        newPositions = await self.watch_private(messageHash, request, params)
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+
+    def set_positions_cache(self, client: Client, type, symbols: Strings = None):
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
+        if fetchPositionsSnapshot:
+            messageHash = 'fetchPositionsSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_positions_snapshot, client, messageHash)
+        else:
+            self.positions = ArrayCacheBySymbolBySide()
+
+    async def load_positions_snapshot(self, client, messageHash):
+        positions = await self.fetch_positions()
+        self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        for i in range(0, len(positions)):
+            position = positions[i]
+            contracts = self.safe_number(position, 'contracts', 0)
+            if contracts > 0:
+                cache.append(position)
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve(cache)
+        client.resolve(cache, 'positions')
+
+    def handle_positions(self, client, message):
+        #
+        #    {
+        #        "topic":"position",
+        #        "ts":1705292345255,
+        #        "data":{
+        #           "positions":{
+        #              "PERP_LTC_USDT":{
+        #                 "holding":1,
+        #                 "pendingLongQty":0,
+        #                 "pendingShortQty":0,
+        #                 "averageOpenPrice":71.53,
+        #                 "pnl24H":0,
+        #                 "fee24H":0.07153,
+        #                 "settlePrice":71.53,
+        #                 "markPrice":71.32098452065145,
+        #                 "version":7886,
+        #                 "openingTime":1705292304267,
+        #                 "pnl24HPercentage":0,
+        #                 "adlQuantile":1,
+        #                 "positionSide":"BOTH"
+        #              }
+        #           }
+        #        }
+        #    }
+        #
+        data = self.safe_value(message, 'data', {})
+        rawPositions = self.safe_value(data, 'positions', {})
+        postitionsIds = list(rawPositions.keys())
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        newPositions = []
+        for i in range(0, len(postitionsIds)):
+            marketId = postitionsIds[i]
+            market = self.safe_market(marketId)
+            rawPosition = rawPositions[marketId]
+            position = self.parse_position(rawPosition, market)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, 'positions::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, 'positions')
+
     async def watch_balance(self, params={}) -> Balances:
         """
         :see: https://docs.woo.org/#balance
@@ -670,32 +781,35 @@ class woo(ccxt.async_support.woo):
             'executionreport': self.handle_order_update,
             'trade': self.handle_trade,
             'balance': self.handle_balance,
+            'position': self.handle_positions,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)
         if method is not None:
-            return method(client, message)
+            method(client, message)
+            return
         topic = self.safe_string(message, 'topic')
         if topic is not None:
             method = self.safe_value(methods, topic)
             if method is not None:
-                return method(client, message)
+                method(client, message)
+                return
             splitTopic = topic.split('@')
             splitLength = len(splitTopic)
             if splitLength == 2:
                 name = self.safe_string(splitTopic, 1)
                 method = self.safe_value(methods, name)
                 if method is not None:
-                    return method(client, message)
+                    method(client, message)
+                    return
                 splitName = name.split('_')
                 splitNameLength = len(splitTopic)
                 if splitNameLength == 2:
                     method = self.safe_value(methods, self.safe_string(splitName, 0))
                     if method is not None:
-                        return method(client, message)
-        return message
+                        method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {'event': 'ping'}
 
     def handle_ping(self, client: Client, message):

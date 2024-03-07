@@ -31,6 +31,7 @@ export default class bitbns extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': undefined, // coming soon
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -585,7 +586,7 @@ export default class bitbns extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitbns#createOrder

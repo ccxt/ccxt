@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -28,7 +28,7 @@ class bitmex(ccxt.async_support.bitmex):
                 'watchOrders': True,
                 'watchPostions': True,
                 'watchTicker': True,
-                'watchTickers': False,
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
             },
@@ -67,17 +67,44 @@ class bitmex(ccxt.async_support.bitmex):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        market = self.market(symbol)
+        symbol = self.symbol(symbol)
+        tickers = await self.watch_tickers([symbol], params)
+        return tickers[symbol]
+
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True)
         name = 'instrument'
-        messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
+        messageHashes = []
+        rawSubscriptions = []
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.market(symbol)
+                subscription = name + ':' + market['id']
+                rawSubscriptions.append(subscription)
+                messageHash = 'ticker:' + symbol
+                messageHashes.append(messageHash)
+        else:
+            rawSubscriptions.append(name)
+            messageHashes.append('alltickers')
         request = {
             'op': 'subscribe',
-            'args': [
-                messageHash,
-            ],
+            'args': rawSubscriptions,
         }
-        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), rawSubscriptions)
+        if self.newUpdates:
+            result = {}
+            result[ticker['symbol']] = ticker
+            return result
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
         #
@@ -306,19 +333,21 @@ class bitmex(ccxt.async_support.bitmex):
         #         ]
         #     }
         #
-        table = self.safe_string(message, 'table')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
+        tickers = {}
         for i in range(0, len(data)):
             update = data[i]
-            marketId = self.safe_value(update, 'symbol')
-            market = self.safe_market(marketId)
-            symbol = market['symbol']
-            messageHash = table + ':' + marketId
-            ticker = self.safe_value(self.tickers, symbol, {})
-            info = self.safe_value(ticker, 'info', {})
-            ticker = self.parse_ticker(self.extend(info, update), market)
-            self.tickers[symbol] = ticker
-            client.resolve(ticker, messageHash)
+            marketId = self.safe_string(update, 'symbol')
+            symbol = self.safe_symbol(marketId)
+            if not (symbol in self.tickers):
+                self.tickers[symbol] = self.parse_ticker({})
+            updatedTicker = self.parse_ticker(update)
+            fullParsedTicker = self.deep_extend(self.tickers[symbol], updatedTicker)
+            tickers[symbol] = fullParsedTicker
+            self.tickers[symbol] = fullParsedTicker
+            messageHash = 'ticker:' + symbol
+            client.resolve(fullParsedTicker, messageHash)
+            client.resolve(fullParsedTicker, 'alltickers')
         return message
 
     async def watch_balance(self, params={}) -> Balances:
@@ -573,7 +602,7 @@ class bitmex(ccxt.async_support.bitmex):
         return future
 
     def handle_authentication_message(self, client: Client, message):
-        authenticated = self.safe_value(message, 'success', False)
+        authenticated = self.safe_bool(message, 'success', False)
         messageHash = 'authenticated'
         if authenticated:
             # we resolve the future here permanently so authentication only happens once
@@ -1249,7 +1278,7 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = table + ':' + market['id']
             result = [
                 self.parse8601(self.safe_string(candle, 'timestamp')) - duration * 1000,
-                self.safe_float(candle, 'open'),
+                None,  # set open price to None, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 self.safe_float(candle, 'high'),
                 self.safe_float(candle, 'low'),
                 self.safe_float(candle, 'close'),
@@ -1426,7 +1455,7 @@ class bitmex(ccxt.async_support.bitmex):
         #
         #     {"error": "Rate limit exceeded, retry in 29 seconds."}
         #
-        error = self.safe_value(message, 'error')
+        error = self.safe_string(message, 'error')
         if error is not None:
             request = self.safe_value(message, 'request', {})
             args = self.safe_value(request, 'args', [])
@@ -1437,7 +1466,7 @@ class bitmex(ccxt.async_support.bitmex):
                 broadKey = self.find_broadly_matched_key(broad, error)
                 exception = None
                 if broadKey is None:
-                    exception = ExchangeError(error)
+                    exception = ExchangeError(error)  # c# requirement for now
                 else:
                     exception = broad[broadKey](error)
                 client.reject(exception, messageHash)
@@ -1501,8 +1530,6 @@ class bitmex(ccxt.async_support.bitmex):
                 request = self.safe_value(message, 'request', {})
                 op = self.safe_value(request, 'op')
                 if op == 'authKeyExpires':
-                    return self.handle_authentication_message(client, message)
-                else:
-                    return message
+                    self.handle_authentication_message(client, message)
             else:
-                return method(client, message)
+                method(client, message)
