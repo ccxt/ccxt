@@ -357,18 +357,23 @@
         }
     },
     "blockchaincom": {
-        "skip":"temporary outage",
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode": "inexistent ones",
                 "taker":"not provided",
                 "maker":"not provided"
             },
             "fetchCurrencies": {
+                "currencyIdAndCode": "inexistent ones",
                 "deposit":"not provided",
                 "withdraw":"not provided"
             },
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same"
+            "fetchOrderBook": {
+                "bid": "bid should be greater than next bid"
+            },
+            "fetchOL2rderBook": {
+                "bid": "same"
+            }
         }
     },
     "bkex": {
