@@ -5021,7 +5021,6 @@ export default class Exchange {
                 if (market[defaultType]) {
                     return market;
                 }
-                return markets[0];
             } else {
                 // temporary support for old futures
                 if (symbol.indexOf ('-') >= 0) {
