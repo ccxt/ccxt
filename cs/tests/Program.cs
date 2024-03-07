@@ -26,6 +26,7 @@ public class Tests
 
     public static string exchangeId = null;
     public static string symbol = null;
+    public static string methodName = null;
     public static bool verbose = false;
     public static bool sandbox = false;
     public static bool privateTests = false;
@@ -59,7 +60,12 @@ public class Tests
         }
         if (argsWithoutOptions.Count > 1)
         {
-            symbol = argsWithoutOptions[1];
+            string value = argsWithoutOptions[1];
+            if (value.Contains("/")) {
+                symbol = value;
+            } else {
+                methodName = value;
+            }
         }
     }
 
@@ -117,7 +123,7 @@ public class Tests
         }
 
         var testClass = new testMainClass();
-        testClass.init(exchangeId, symbol).Wait();
+        testClass.init(exchangeId, symbol, methodName).Wait();
     }
 
     static void RunBaseTests()
