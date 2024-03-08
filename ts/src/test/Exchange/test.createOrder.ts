@@ -43,26 +43,34 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     // get best bid & ask
     const [ bestBid, bestAsk ] = await testSharedMethods.tryFetchBestBidAsk (exchange, 'createOrder', symbol);
 
-    // ****************************************** //
-    // ************** [Scenario 1] ************** //
-    // ****************************************** //
+    // ****************************************************** //
+    // **************** [Scenario 1 - START] **************** //
+    // ****************************************************** //
     // - create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
     await testCreateOrderCreateUnfillableOrder (exchange, market, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
-    // *********** [Scenario 1 - END ] *********** //
+    // ****************************************************** //
+    // **************** [Scenario 1 - END ] ***************** //
+    // ****************************************************** //
 
 
-    // ******************************************* //
-    // ************** [Scenario 2] *************** //
-    // ******************************************* //
+    // ****************************************************** //
+    // **************** [Scenario 2 - START] **************** //
+    // ****************************************************** //
     // - create a "limit order" / "market order" which IS GUARANTEED to have a fill (full or partial)
     // - then sell the bought amount
     await testCreateOrderCreateFillableOrder (exchange, market, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
-    // *********** [Scenario 2 - END ] *********** //
+    // ****************************************************** //
+    // ***************** [Scenario 2 - END] ***************** //
+    // ****************************************************** //
 
 
-    // ***********
+    // ****************************************************** //
+    // **************** [Scenario 3 - START] **************** //
+    // ****************************************************** //
     // above, we already tested 'limit' and 'market' orders. next, 'todo' is to create tests for other unified scenarios (spot, swap, trigger, positions, stoploss, takeprofit, etc)
-    // ***********
+    // ****************************************************** //
+    // ***************** [Scenario 3 - END] ***************** //
+    // ****************************************************** //
 }
 
 // ----------------------------------------------------------------------------
