@@ -10227,12 +10227,14 @@ export default class binance extends Exchange {
             } else {
                 response = await this.dapiPrivatePostPositionSideDual (this.extend (request, params));
             }
-        } else {
+        } else if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
                 response = await this.papiPostUmPositionSideDual (this.extend (request, params));
             } else {
                 response = await this.fapiPrivatePostPositionSideDual (this.extend (request, params));
             }
+        } else {
+            throw new BadRequest (this.id + ' setPositionMode() supports linear and inverse contracts only');
         }
         //
         //     {
