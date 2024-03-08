@@ -991,6 +991,7 @@ class Transpiler {
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
             'Int': /: Int =/,
+            'Liquidation': /-> (?:List\[)?Liquidation/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
             'Leverage': /-> Leverage:/,
