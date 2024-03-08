@@ -91,13 +91,12 @@ async function testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix
         if (maximumPrice !== undefined && limitSellPrice_nonFillable > maximumPrice) {
             limitSellPrice_nonFillable = maximumPrice;
         }
+        const orderAmount = getMinimumAmountForLimitPrice (exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
         let nonFillableOrder = undefined;
         if (buyOrSell === 'buy') {
-            const finalAmountToBuy = getMinimumAmountForLimitPrice (exchange, market, limitBuyPrice_nonFillable);
-            nonFillableOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_nonFillable, {}, skippedProperties);
+            nonFillableOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'buy', orderAmount, limitBuyPrice_nonFillable, {}, skippedProperties);
         } else {
-            const finalAmountToSell = predefinedAmount; // must be provided for sell, depending already purchased amount
-            nonFillableOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'sell', finalAmountToSell, limitSellPrice_nonFillable, {}, skippedProperties);
+            nonFillableOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'sell', orderAmount, limitSellPrice_nonFillable, {}, skippedProperties);
         }
         const nonFillableOrder_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, nonFillableOrder['id'], skippedProperties);
         // ensure that order is not filled
@@ -131,7 +130,7 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
         const params = {
             'reduceOnly': true,
         };
-        const minimumCostForBuy = getMinimumCostForBuy (exchange, market);
+        const minimumCostForBuy = getMinimumCostForSymbol (exchange, market);
         const priceForMarketSellOrder = (minimumCostForBuy / amountToSell) * limitPriceSafetyMultiplierFromMedian;
         const sellOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'market', 'sell', amountToSell, priceForMarketSellOrder, params, skippedProperties);
         const sellOrder_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, sellOrder['id'], skippedProperties);
@@ -198,7 +197,7 @@ async function testCreateOrderSubmitSafeOrder (exchange, symbol, orderType, side
     return order;
 }
 
-function getMinimumAmountForBuy (exchange, market) {
+function getMinimumAmountForSymbol (exchange, market) {
     // todo: In future, intentionally add a tiny increment to the minimum amount/cost, to test & ensure that it will not cause precision issues (thus we ensure that implementation handles them)
     const amountValues = exchange.safeValue (market['limits'], 'amount', {});
     const amountMin = exchange.safeNumber (amountValues, 'min');
@@ -206,38 +205,39 @@ function getMinimumAmountForBuy (exchange, market) {
     return amountMin;
 }
 
-function getMinimumCostForBuy (exchange, market) {
+function getMinimumCostForSymbol (exchange, market) {
     const costValues = exchange.safeValue (market['limits'], 'cost', {});
     const costMin = exchange.safeNumber (costValues, 'min');
     assert (costMin !== undefined, exchange.id + ' ' +  market['symbol'] + ' can not determine minimum cost for order');
     return costMin;
 }
 
-
-function getMinimumAmountForLimitPrice (exchange, market, price) {
-    const minimumAmount = getMinimumAmountForBuy (exchange, market);
-    const minimumCost = getMinimumCostForBuy (exchange, market);
+function getMinimumAmountForLimitPrice (exchange, market, price, predefinedAmount = undefined) {
+    const minimumAmount = getMinimumAmountForSymbol (exchange, market);
+    const minimumCost = getMinimumCostForSymbol (exchange, market);
     // as prices volatile constantly, "minimum limits" also change constantly, so we'd better add some tiny diapason to be sure that order will successfully accepted
-    let finalAmountToBuy = minimumAmount;
+    let finalAmount = minimumAmount;
+    // the current value might be too long (i.e. 0.12345678) and inside 'createOrder' it's being truncated down. It might cause our automatic cost calcuation accidentaly to be less than "market->limits->cost>min", so, before it, we should round it up to nearest precision, thus we ensure the overal cost will be above minimum requirements
+    finalAmount = parseFloat (exchange.decimalToPrecision (finalAmount, 2, market['precision']['amount'], exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for truncate
     if (minimumCost !== undefined) {
         // minimum amount is not enough for order (because it's almost permanent minimum amount defined once by exchange), instead it's important that order met minimum cost(notional) requirement
-        finalAmountToBuy = (minimumCost / price);
-    }
-    // the current value might be too long (i.e. 0.12345678) and inside 'createOrder' it's being truncated down. It might cause our automatic cost calcuation accidentaly to be less than "market->limits->cost>min", so, before it, we should round it up to nearest precision, thus we ensure the overal cost will be above minimum requirements
-    finalAmountToBuy = parseFloat (exchange.decimalToPrecision (finalAmountToBuy, 2, market['precision']['amount'], exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for truncate
-    if (minimumCost !== undefined && finalAmountToBuy * price < minimumCost) {
-        // again, because it's still possible that above decimalToPrecision truncates down (idk bug or not, i.e. 0.49 amount might get truncated down to 0.4), we should ensure that final amount*price would bypass minimum cost requirements
-        const precisions = market['precision'];
-        const amountPrecision = exchange.safeNumber (precisions, 'amount');
-        // if TICKSIZE then it's amount as-is, if DECIMALPLACES, then convert it to amount
-        if (amountPrecision && exchange.precisionMode === 4) {
-            finalAmountToBuy = finalAmountToBuy + amountPrecision;
-        } else {
-            const digitsOfPrecision = amountPrecision ? amountPrecision : parseInt (exchange.precisionFromString (exchange.numberToString (finalAmountToBuy)));
-            finalAmountToBuy = finalAmountToBuy + 1 / Math.pow (10, digitsOfPrecision);
+        if (finalAmount * price < minimumCost) {
+            finalAmount = minimumCost / price;
         }
     }
-    return finalAmountToBuy;
+    // again, because it's still possible that above decimalToPrecision truncates down (idk bug or not, i.e. 0.49 amount might get truncated down to 0.4), we should ensure that final amount*price would bypass minimum cost requirements
+    const precisions = market['precision'];
+    let amountPrecision = exchange.safeNumber (precisions, 'amount');
+    // if precision is not defined, then calculate it from amount value
+    if (amountPrecision === undefined) {
+        // if DECIMALPLACES, then convert it to amount
+        if (exchange.precisionMode === 2) {
+            const digitsOfPrecision = parseInt (exchange.precisionFromString (exchange.numberToString (finalAmount)));
+            amountPrecision = 1 / Math.pow (10, digitsOfPrecision);
+        }
+    }
+    finalAmount = finalAmount + amountPrecision;
+    return finalAmount;
 }
 
 async function testCreateOrderTryCancelOrder (exchange, symbol, order, skippedProperties) {
