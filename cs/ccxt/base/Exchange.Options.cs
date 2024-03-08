@@ -164,6 +164,7 @@ public partial class Exchange
     public bool newUpdates;
 
     public object positions;
+    public object futuresOldSymbolsMap = new dict();
     public object trades = new ccxt.pro.CustomConcurrentDictionary<string, object>();
     public object orderbooks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
