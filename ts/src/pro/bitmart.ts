@@ -1497,7 +1497,17 @@ export default class bitmart extends bitmartRest {
         }
         //
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
-        //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
+        //
+        // subscribe events on spot:
+        //
+        //     {"event":"subscribe", "topic":"spot/kline1m:BTC_USDT" }
+        //
+        // subscribe on contracts:
+        //
+        //     {"action":"subscribe", "group":"futures/klineBin1m:BTCUSDT", "success":true, "request":{"action":"subscribe", "args":[ "futures/klineBin1m:BTCUSDT" ] } }
+        //
+        // regular updates
+        //
         //     {
         //         "table": "spot/depth",
         //         "action": "partial",
@@ -1521,9 +1531,10 @@ export default class bitmart extends bitmartRest {
         //     { data: '', table: "spot/user/order" }
         //
         const channel = this.safeString2 (message, 'table', 'group');
-        if (channel === undefined) {
-            const event = this.safeString2 (message, 'event', 'action');
-            if (event !== undefined) {
+        const event = this.safeString2 (message, 'event', 'action');
+        const isEvent = (event !== undefined);
+        if (isEvent || channel === undefined) {
+            if (isEvent) {
                 const methods = {
                     // 'info': this.handleSystemStatus,
                     'login': this.handleAuthenticate,
