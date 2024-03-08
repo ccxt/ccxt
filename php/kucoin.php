@@ -227,6 +227,7 @@ class kucoin extends Exchange {
                         'project/marketInterestRate' => 7.5, // 5PW
                         'redeem/orders' => 10, // 10SW
                         'purchase/orders' => 10, // 10SW
+                        'broker/api/rebase/download' => 3,
                     ),
                     'post' => array(
                         // account

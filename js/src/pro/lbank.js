@@ -175,7 +175,7 @@ export default class lbank extends lbankRest {
         //          },
         //          type: 'kbar',
         //          pair: 'btc_usdt',
-        //          TS: '2022-10-02T12:44:15.864'
+        //          TS: '2022-10-02T12:44:15.865'
         //      }
         //
         const marketId = this.safeString(message, 'pair');

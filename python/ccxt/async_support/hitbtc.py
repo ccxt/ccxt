@@ -2339,7 +2339,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :see: https://api.hitbtc.com/#get-futures-position-parameters
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: Struct of MarginMode
+        :returns dict: a list of `margin mode structures <https://docs.ccxt.com/#/?id=margin-mode-structure>`
         """
         await self.load_markets()
         market = None

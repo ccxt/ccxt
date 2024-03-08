@@ -2822,14 +2822,13 @@ public partial class binance : Exchange
             }
         }
         object promises = await promiseAll(promisesRaw);
-        object spotMarkets = this.safeValue(this.safeValue(promises, 0), "symbols", new List<object>() {});
-        object futureMarkets = this.safeValue(this.safeValue(promises, 1), "symbols", new List<object>() {});
-        object deliveryMarkets = this.safeValue(this.safeValue(promises, 2), "symbols", new List<object>() {});
-        object optionMarkets = this.safeValue(this.safeValue(promises, 3), "optionSymbols", new List<object>() {});
-        object markets = spotMarkets;
-        markets = this.arrayConcat(markets, futureMarkets);
-        markets = this.arrayConcat(markets, deliveryMarkets);
-        markets = this.arrayConcat(markets, optionMarkets);
+        object markets = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(fetchMarkets)); postFixIncrement(ref i))
+        {
+            object promise = this.safeDict(promises, i);
+            object promiseMarkets = this.safeList2(promise, "symbols", "optionSymbols", new List<object>() {});
+            markets = this.arrayConcat(markets, promiseMarkets);
+        }
         //
         // spot / margin
         //
@@ -13089,7 +13088,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} struct of marginMode
+        * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

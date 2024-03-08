@@ -99,7 +99,7 @@ public partial class krakenfutures : Exchange
                     { "get", new List<object>() {"{price_type}/{symbol}/{interval}"} },
                 } },
                 { "history", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orders", "executions", "triggers", "accountlogcsv", "market/{symbol}/orders", "market/{symbol}/executions"} },
+                    { "get", new List<object>() {"orders", "executions", "triggers", "accountlogcsv", "account-log", "market/{symbol}/orders", "market/{symbol}/executions"} },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
