@@ -936,7 +936,7 @@ export default class btcmarkets extends Exchange {
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         /**
          * @method
-         * @description
+         * @description calculates the presumptive fee that would be charged for an order
          * @param {string} symbol unified market symbol
          * @param {string} type not used by btcmarkets.calculateFee
          * @param {string} side not used by btcmarkets.calculateFee
