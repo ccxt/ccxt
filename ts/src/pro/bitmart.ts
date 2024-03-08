@@ -845,9 +845,9 @@ export default class bitmart extends bitmartRest {
         const isSwap = ('group' in message);
         if (isSwap) {
             // in swap, chronologically decreasing: 1709536849322, 1709536848954,
-            const maxLen = Math.max (length - 1, 0);
-            for (let i = maxLen; i >= 0; i--) {
-                symbol = this.handleTradeLoop (data[i]);
+            for (let i = 0; i < length; i++) {
+                const index = length - i - 1;
+                symbol = this.handleTradeLoop (data[index]);
             }
         } else {
             // in spot, chronologically increasing: 1709536771200, 1709536771226,
@@ -855,7 +855,9 @@ export default class bitmart extends bitmartRest {
                 symbol = this.handleTradeLoop (data[i]);
             }
         }
-        client.resolve (this.trades[symbol], 'trade:' + symbol);
+        if (symbol !== undefined) {
+            client.resolve (this.trades[symbol], 'trade:' + symbol);
+        }
     }
 
     handleTradeLoop (entry) {
