@@ -95,6 +95,32 @@
                     }
                 ]
             }
+        ],
+        "transfer": [
+            {
+                "description": "Transfer from trading to funding",
+                "method": "transfer",
+                "url": "https://trade-api.coinlist.co/v1/transfers/to-wallet",
+                "input": [
+                  "USDT",
+                  1,
+                  "trading",
+                  "funding"
+                ],
+                "output": "{\"asset\":\"USDT\",\"amount\":\"1\"}"
+            },
+            {
+                "description": "Transfer from funding to trading",
+                "method": "transfer",
+                "url": "https://trade-api.coinlist.co/v1/transfers/from-wallet",
+                "input": [
+                  "USDT",
+                  1,
+                  "funding",
+                  "trading"
+                ],
+                "output": "{\"asset\":\"USDT\",\"amount\":\"1\"}"
+            }
         ]
     }
 }
