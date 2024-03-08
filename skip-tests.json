@@ -1374,12 +1374,16 @@
                 "deposit":"not provided"
             },
             "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3690"
             },
             "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "quoteVolume": "same"
+            },
+            "watchTickers": {
+                "quoteVolume": "same"
+            },
+            "watchTicker": {
+                "quoteVolume": "same"
             },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4807"
