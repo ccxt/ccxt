@@ -2362,13 +2362,13 @@ class binance(Exchange, ImplicitAPI):
             },
         })
 
-    def is_inverse(self, type, subType=None) -> bool:
+    def is_inverse(self, type: str, subType: SubType = None) -> bool:
         if subType is None:
-            return type == 'delivery'
+            return(type == 'delivery')
         else:
             return subType == 'inverse'
 
-    def is_linear(self, type, subType=None) -> bool:
+    def is_linear(self, type: str, subType: SubType = None) -> bool:
         if subType is None:
             return(type == 'future') or (type == 'swap')
         else:
