@@ -217,17 +217,19 @@ function getMinimumAmountForLimitPrice (exchange, market, price, predefinedAmoun
     const minimumCost = getMinimumCostForSymbol (exchange, market);
     // as prices volatile constantly, "minimum limits" also change constantly, so we'd better add some tiny diapason to be sure that order will successfully accepted
     let finalAmount = minimumAmount;
-    // the current value might be too long (i.e. 0.12345678) and inside 'createOrder' it's being truncated down. It might cause our automatic cost calcuation accidentaly to be less than "market->limits->cost>min", so, before it, we should round it up to nearest precision, thus we ensure the overal cost will be above minimum requirements
-    finalAmount = parseFloat (exchange.decimalToPrecision (finalAmount, 2, market['precision']['amount'], exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for truncate
     if (minimumCost !== undefined) {
         // minimum amount is not enough for order (because it's almost permanent minimum amount defined once by exchange), instead it's important that order met minimum cost(notional) requirement
         if (finalAmount * price < minimumCost) {
             finalAmount = minimumCost / price;
         }
     }
-    // again, because it's still possible that above decimalToPrecision truncates down (idk bug or not, i.e. 0.49 amount might get truncated down to 0.4), we should ensure that final amount*price would bypass minimum cost requirements
-    const precisions = market['precision'];
-    let amountPrecision = exchange.safeNumber (precisions, 'amount');
+    if (predefinedAmount !== undefined) {
+        finalAmount = Math.max (finalAmount, predefinedAmount);
+    }
+    // the current value might be too long (i.e. 0.12345678) and inside 'createOrder' it's being truncated down. It might cause our automatic cost calcuation accidentaly to be less than "market->limits->cost>min", so, before it, we should round it up to nearest precision, thus we ensure the overal cost will be above minimum requirements
+    finalAmount = parseFloat (exchange.decimalToPrecision (finalAmount, 2, market['precision']['amount'], exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for truncate
+    // again, because it's still possible that above decimalToPrecision truncates down (idk bug or not, i.e. 0.49 amount might get truncated down to 0.4), we should ensure that final amount * price would bypass minimum cost requirements, by adding the "minimum precision"
+    let amountPrecision = exchange.safeNumber (market['precision'], 'amount');
     // if precision is not defined, then calculate it from amount value
     if (amountPrecision === undefined) {
         // if DECIMALPLACES, then convert it to amount
