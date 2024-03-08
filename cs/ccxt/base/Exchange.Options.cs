@@ -156,6 +156,7 @@ public partial class Exchange
     public object bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
     public object transactions = new dict();
+    public List<string> futureTypes { get; set; } = new list();
     public object myTrades;
     public object orders;
     public object triggerOrders;
