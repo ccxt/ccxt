@@ -3160,6 +3160,7 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://ascendex.github.io/ascendex-pro-api/#balance-transfer
          * @param {string} code unified currency codeåå
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -3169,11 +3170,11 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const account = this.safeValue (this.accounts, 0, {});
+        const account = this.safeDict (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const currency = this.currency (code);
-        amount = this.currencyToPrecision (code, amount);
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const preciseAmount = this.currencyToPrecision (code, amount);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         if (fromId !== 'cash' && toId !== 'cash') {
@@ -3181,7 +3182,7 @@ export default class ascendex extends Exchange {
         }
         const request = {
             'account-group': accountGroup,
-            'amount': amount,
+            'amount': preciseAmount,
             'asset': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -3190,13 +3191,13 @@ export default class ascendex extends Exchange {
         //
         //    { "code": "0" }
         //
-        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer (response, currency);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
-            transfer['amount'] = amount;
+            transfer['amount'] = this.number (preciseAmount);
             transfer['currency'] = code;
         }
         return transfer;

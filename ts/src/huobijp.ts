@@ -1610,7 +1610,7 @@ export default class huobijp extends Exchange {
         return response;
     }
 
-    currencyToPrecision (code, fee, networkCode = undefined) {
+    currencyToPrecision (code: string, fee: number, networkCode: Str = undefined): string {
         return this.decimalToPrecision (fee, 0, this.currencies[code]['precision'], this.precisionMode);
     }
 
