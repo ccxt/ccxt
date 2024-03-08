@@ -358,14 +358,14 @@
                   "BTC/USDT:USDT",
                   "limit",
                   "buy",
-                  0.01,
-                  10000,
+                  0.002,
+                  70000,
                   {
                     "reduceOnly": true
                   }
                 ],
-                "output": "timestamp=1709895616844&symbol=BTCUSDT&side=BUY&newOrderRespType=RESULT&newClientOrderId=x-xcKtGhcu2aaaefebcaf6437e8084bb&type=LIMIT&quantity=0.01&price=10000&timeInForce=GTC&recvWindow=10000&signature=49c86041752655f5f60308396297ad9b62db1d6480f8c28a74d45f3811071744"
-            }
+                "output": "timestamp=1709910852474&symbol=BTCUSDT&side=BUY&newOrderRespType=RESULT&newClientOrderId=x-xcKtGhcu7a25743993824949b7875d&type=LIMIT&quantity=0.002&price=70000&timeInForce=GTC&reduceOnly=true&recvWindow=10000&signature=5f7dc14eeadbf0064c12426335ba5296a35baa65a8e80a60d46d96c3a82559d7"
+              }
         ],
         "createOrders": [
             {
