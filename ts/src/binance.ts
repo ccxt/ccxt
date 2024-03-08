@@ -5722,11 +5722,11 @@ export default class binance extends Exchange {
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
         let marginMode = undefined;
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        params = this.omit (params, 'reduceOnly');
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         if ((marketType === 'margin') || (marginMode !== undefined) || market['option']) {
             // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
+            const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+            params = this.omit (params, 'reduceOnly');
             if (market['option']) {
                 request['reduceOnly'] = reduceOnly;
             } else {
@@ -5734,6 +5734,9 @@ export default class binance extends Exchange {
                     request['sideEffectType'] = 'AUTO_REPAY';
                 }
             }
+        } else if (market['spot']) {
+            // see: https://github.com/ccxt/ccxt/pull/21608
+            params = this.omit (params, 'reduceOnly');
         }
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
