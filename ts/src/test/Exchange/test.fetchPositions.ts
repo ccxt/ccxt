@@ -1,9 +1,8 @@
-
 import assert from 'assert';
-import testSharedMethods from './base/test.sharedMethods.js';
+import { Exchange } from "../../../ccxt";
 import testPosition from './base/test.position.js';
 
-async function testFetchPositions (exchange, skippedProperties, symbol) {
+async function testFetchPositions (exchange: Exchange, skippedProperties: string[], symbol: string) {
     const method = 'fetchPositions';
     const now = exchange.milliseconds ();
     // without symbol

@@ -464,7 +464,7 @@ export interface Leverages extends Dictionary<Leverage> {
 export interface LastPrices extends Dictionary<LastPrice> {
 }
 
-export interface MarginModes extends Dictionary<MarginMode> {
+export interface MarginModes extends Dictionary<MarginMode[]> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

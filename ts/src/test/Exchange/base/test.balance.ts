@@ -1,9 +1,9 @@
-
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
+import { Exchange } from "../../../../ccxt";
 import Precise from '../../../base/Precise.js';
+import testSharedMethods from './test.sharedMethods.js';
 
-function testBalance (exchange, skippedProperties, method, entry) {
+function testBalance (exchange: Exchange, skippedProperties: string[], method: string, entry: object) {
     const format = {
         'free': {},
         'used': {},
