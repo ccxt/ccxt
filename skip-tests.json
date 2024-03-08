@@ -615,7 +615,13 @@
             "fetchOpenInterestHistory": {
                 "openInterestAmount": "openInterestAmount is not provided"
             },
-            "fetchBorrowRate": "does not work with unified account"
+            "fetchBorrowRate": "does not work with unified account",
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3669"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
+            }
         }
     },
     "bigone": {
