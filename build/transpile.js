@@ -410,7 +410,7 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
-            // drop support for .reverse() atm, because opposed to JS, python's does in-place,
+            // drop support for .reverse() atm, because opposed to JS, python does in-place,
             // so we can't correctly transpile `const x = y.reverse()` in py for now
             // [ /(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$1.reverse(' ], 
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
