@@ -91,11 +91,12 @@ async function testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix
         if (maximumPrice !== undefined && limitSellPrice_nonFillable > maximumPrice) {
             limitSellPrice_nonFillable = maximumPrice;
         }
-        const orderAmount = getMinimumAmountForLimitPrice (exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
         let nonFillableOrder = undefined;
         if (buyOrSell === 'buy') {
+            const orderAmount = getMinimumAmountForLimitPrice (exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
             nonFillableOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'buy', orderAmount, limitBuyPrice_nonFillable, {}, skippedProperties);
         } else {
+            const orderAmount = getMinimumAmountForLimitPrice (exchange, market, limitSellPrice_nonFillable, predefinedAmount);
             nonFillableOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'sell', orderAmount, limitSellPrice_nonFillable, {}, skippedProperties);
         }
         const nonFillableOrder_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, nonFillableOrder['id'], skippedProperties);
@@ -226,18 +227,21 @@ function getMinimumAmountForLimitPrice (exchange, market, price, predefinedAmoun
     if (predefinedAmount !== undefined) {
         finalAmount = Math.max (finalAmount, predefinedAmount);
     }
-    // the current value might be too long (i.e. 0.12345678) and inside 'createOrder' it's being truncated down. It might cause our automatic cost calcuation accidentaly to be less than "market->limits->cost>min", so, before it, we should round it up to nearest precision, thus we ensure the overal cost will be above minimum requirements
-    finalAmount = parseFloat (exchange.decimalToPrecision (finalAmount, 2, market['precision']['amount'], exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for truncate
-    // again, because it's still possible that above decimalToPrecision truncates down (idk bug or not, i.e. 0.49 amount might get truncated down to 0.4), we should ensure that final amount * price would bypass minimum cost requirements, by adding the "minimum precision"
+    // because it's possible that calculated value might get truncated down in "createOrder" (i.e. 0.129 -> 0.12), we should ensure that final amount * price would bypass minimum cost requirements, by adding the "minimum precision"
     let amountPrecision = exchange.safeNumber (market['precision'], 'amount');
     // if precision is not defined, then calculate it from amount value
     if (amountPrecision === undefined) {
-        // if DECIMALPLACES, then convert it to amount
-        if (exchange.precisionMode === 2) {
-            const digitsOfPrecision = parseInt (exchange.precisionFromString (exchange.numberToString (finalAmount)));
-            amountPrecision = 1 / Math.pow (10, digitsOfPrecision);
+        let digitsOfPrecision = undefined;
+        // if it is not TICK-SIZE, then convert it to amount
+        if (exchange.precisionMode !== 2) {
+            digitsOfPrecision = parseInt (exchange.precisionFromString (exchange.numberToString (finalAmount)));
+        } else {
+            digitsOfPrecision = getTickSizeFromString (exchange.numberToString (finalAmount));
         }
+        amountPrecision = 1 / Math.pow (10, digitsOfPrecision);
     }
+    // the current value might be too long (i.e. 0.12345678) and inside 'createOrder' it's being truncated down. It might cause our automatic cost calcuation accidentaly to be less than "market->limits->cost>min", so, before it, we should round it up to nearest precision, thus we ensure the overal cost will be above minimum requirements
+    finalAmount = parseFloat (exchange.decimalToPrecision (finalAmount, 2, market['precision']['amount'], exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for truncate
     finalAmount = finalAmount + amountPrecision;
     return finalAmount;
 }
@@ -260,6 +264,12 @@ async function testCreateOrderTryCancelOrder (exchange, symbol, order, skippedPr
     } else {
         verboseOutput (exchange, symbol, 'order is already closed/filled, no need to cancel it');
     }
+}
+
+function getTickSizeFromString (str) {
+    const parts = str.split ('.');
+    const afterDot = parts[1];
+    return afterDot.length + ''; // transpiler trick
 }
 
 export default testCreateOrder;
