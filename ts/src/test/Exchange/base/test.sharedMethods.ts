@@ -51,6 +51,9 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
         for (let i = 0; i < format.length; i++) {
             const emptyAllowedForThisKey = exchange.inArray (i, emptyAllowedFor);
             const value = entry[i];
+            if (i in skippedProperties) {
+                continue;
+            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
@@ -59,7 +62,8 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
             }
             assert (value !== undefined, i.toString () + ' index is expected to have a value' + logText);
             // because of other langs, this is needed for arrays
-            assert (assertType (exchange, skippedProperties, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
+            const typeAssertion = assertType (exchange, skippedProperties, entry, i, format);
+            assert (typeAssertion, i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
         assert (typeof entry === 'object', 'entry is not an object' + logText);
@@ -70,6 +74,9 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
                 continue;
             }
             assert (key in entry, '"' + stringValue (key) + '" key is missing from structure' + logText);
+            if (key in skippedProperties) {
+                continue;
+            }
             const emptyAllowedForThisKey = exchange.inArray (key, emptyAllowedFor);
             const value = entry[key];
             // check when:
@@ -82,7 +89,8 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
             assert (value !== undefined, '"' + stringValue (key) + '" key is expected to have a value' + logText);
             // add exclusion for info key, as it can be any type
             if (key !== 'info') {
-                assert (assertType (exchange, skippedProperties, entry, key, format), '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
+                const typeAssertion = assertType (exchange, skippedProperties, entry, key, format);
+                assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
             }
         }
     }
@@ -106,7 +114,7 @@ function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck
         assert (typeof ts === 'number', 'timestamp is not numeric' + logText);
         assert (Number.isInteger (ts), 'timestamp should be an integer' + logText);
         const minTs = 1230940800000; // 03 Jan 2009 - first block
-        const maxTs = 2147483648000; // 03 Jan 2009 - first block
+        const maxTs = 2147483648000; // 19 Jan 2038 - max int
         assert (ts > minTs, 'timestamp is impossible to be before ' + minTs.toString () + ' (03.01.2009)' + logText); // 03 Jan 2009 - first block
         assert (ts < maxTs, 'timestamp more than ' + maxTs.toString () + ' (19.01.2038)' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if (nowToCheck !== undefined) {

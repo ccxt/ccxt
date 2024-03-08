@@ -30,13 +30,15 @@ SOFTWARE.
 
 namespace ccxt;
 
+use MessagePack\MessagePack;
 use kornrunner\Keccak;
+use Web3\Contracts\TypedDataEncoder;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.51';
+$version = '4.2.65';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +57,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.51';
+    const VERSION = '4.2.65';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -389,7 +391,6 @@ class Exchange {
         'bitfinex',
         'bitfinex2',
         'bitflyer',
-        'bitforex',
         'bitget',
         'bithumb',
         'bitmart',
@@ -436,6 +437,7 @@ class Exchange {
         'htx',
         'huobi',
         'huobijp',
+        'hyperliquid',
         'idex',
         'independentreserve',
         'indodax',
@@ -1094,6 +1096,10 @@ class Exchange {
         return hex2bin($data);
     }
 
+    public static function int_to_base16($integer) {
+        return dechex($integer);
+    }
+
     public static function json($data, $params = array()) {
         $options = array(
             'convertArraysToObjects' => JSON_FORCE_OBJECT,
@@ -1300,6 +1306,27 @@ class Exchange {
         $hex_secret = substr(bin2hex(base64_decode($match[1])), 32);
         $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
         return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
+    }
+
+    public function eth_abi_encode($types, $args) {
+        $typedDataEncoder = new TypedDataEncoder();
+        $abiEncoder = $typedDataEncoder->ethabi;
+        // workaround to replace array() with []
+        $types = preg_replace('/array\(\)/', '[]', $types);
+        return hex2bin(str_replace('0x', '', $abiEncoder->encodeParameters($types, $args)));
+    }
+
+    public function eth_encode_structured_data($domainData, $messageTypes, $messageData) {
+        $typedDataEncoder = new TypedDataEncoder();
+        return $this->binary_concat(
+            hex2bin('1901'),
+            hex2bin(str_replace('0x', '', $typedDataEncoder->hashDomain($domainData))),
+            hex2bin(str_replace('0x', '', $typedDataEncoder->hashEIP712Message($messageTypes, $messageData)))
+        );
+    }
+
+    public function packb($data) {
+        return MessagePack::pack($data);
     }
 
     public function throttle($cost = null) {
@@ -2534,7 +2561,7 @@ class Exchange {
         return $this->filter_by_limit($result, $limit, $key, $sinceIsDefined);
     }
 
-    public function set_sandbox_mode($enabled) {
+    public function set_sandbox_mode(bool $enabled) {
         if ($enabled) {
             if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
                 if (gettype($this->urls['api']) === 'string') {
@@ -2606,8 +2633,17 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
     }
 
-    public function fetch_margin_mode(?string $symbol = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchMarginMode() is not supported yet');
+    public function fetch_margin_mode(string $symbol, $params = array ()) {
+        if ($this->has['fetchMarginModes']) {
+            $marginModes = $this->fetchMarginModes (array( $symbol ), $params);
+            return $this->safe_dict($marginModes, $symbol);
+        } else {
+            throw new NotSupported($this->id . ' fetchMarginMode() is not supported yet');
+        }
+    }
+
+    public function fetch_margin_modes(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMarginModes () is not supported yet');
     }
 
     public function fetch_rest_order_book_safe($symbol, $limit = null, $params = array ()) {
@@ -2746,7 +2782,16 @@ class Exchange {
     }
 
     public function fetch_leverage(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchLeverage() is not supported yet');
+        if ($this->has['fetchLeverages']) {
+            $leverages = $this->fetchLeverages (array( $symbol ), $params);
+            return $this->safe_dict($leverages, $symbol);
+        } else {
+            throw new NotSupported($this->id . ' fetchLeverage() is not supported yet');
+        }
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchLeverages() is not supported yet');
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
@@ -3441,6 +3486,17 @@ class Exchange {
     }
 
     public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
+        /**
+         * calculates the presumptive fee that would be charged for an order
+         * @param {string} $symbol unified $market $symbol
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} $price the $price for the order to be filled at, in units of the quote currency
+         * @param {string} $takerOrMaker 'taker' or 'maker'
+         * @param {array} $params
+         * @return {array} contains the $rate, the percentage multiplied to the order $amount to obtain the fee $amount, and $cost, the total value of the fee in units of the quote currency, for the order
+         */
         if ($type === 'market' && $takerOrMaker === 'maker') {
             throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -4701,7 +4757,7 @@ class Exchange {
         if (!$this->has['fetchBorrowRates']) {
             throw new NotSupported($this->id . ' fetchIsolatedBorrowRate() is not supported yet');
         }
-        $borrowRates = $this->fetchIsolatedBorrowRates ($params);
+        $borrowRates = $this->fetch_isolated_borrow_rates($params);
         $rate = $this->safe_dict($borrowRates, $symbol);
         if ($rate === null) {
             throw new ExchangeError($this->id . ' fetchIsolatedBorrowRate() could not find the borrow $rate for market $symbol ' . $symbol);
@@ -4717,6 +4773,8 @@ class Exchange {
         if ($value !== null) {
             $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
         } else {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', $methodName);
             // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
@@ -6468,5 +6526,39 @@ class Exchange {
 
     public function parse_greeks($greeks, ?array $market = null) {
         throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
+    }
+
+    public function parse_margin_modes(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {
+        $marginModeStructures = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $info = $response[$i];
+            $marketId = $this->safe_string($info, $symbolKey);
+            $market = $this->safe_market($marketId, null, null, $marketType);
+            if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
+                $marginModeStructures[$market['symbol']] = $this->parse_margin_mode($info, $market);
+            }
+        }
+        return $marginModeStructures;
+    }
+
+    public function parse_margin_mode($marginMode, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseMarginMode () is not supported yet');
+    }
+
+    public function parse_leverages(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {
+        $leverageStructures = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $info = $response[$i];
+            $marketId = $this->safe_string($info, $symbolKey);
+            $market = $this->safe_market($marketId, null, null, $marketType);
+            if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
+                $leverageStructures[$market['symbol']] = $this->parse_leverage($info, $market);
+            }
+        }
+        return $leverageStructures;
+    }
+
+    public function parse_leverage($leverage, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseLeverage() is not supported yet');
     }
 }

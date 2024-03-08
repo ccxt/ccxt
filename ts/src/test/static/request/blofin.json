@@ -168,6 +168,19 @@
                 ]
             }
         ],
+        "fetchLeverages": [
+          {
+            "description": "fetch multiple leverages at once",
+            "method": "fetchLeverages",
+            "url": "https://openapi.blofin.com/api/v1/account/batch-leverage-info?instId=BTC-USDT%2CETH-USDT&marginMode=cross",
+            "input": [
+              [
+                "BTC/USDT:USDT",
+                "ETH/USDT:USDT"
+              ]
+            ]
+          }
+        ],
         "closePosition": [
             {
                 "description": "close short position",
@@ -325,6 +338,16 @@
             "method": "fetchBalance",
             "url": "https://openapi.blofin.com/api/v1/account/balance",
             "input": []
+          }
+        ],
+        "fetchMarginMode": [
+          {
+            "description": "Fetch the accounts set margin mode",
+            "method": "fetchMarginMode",
+            "url": "https://openapi.blofin.com/api/v1/account/margin-mode",
+            "input": [
+              "BTC/USDT:USDT"
+            ]
           }
         ]
     }

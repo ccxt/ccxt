@@ -126,13 +126,13 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert(!$market['spot'], '\"spot\" must be false when \"contract\" is true' . $log_text);
     } else {
         // linear & inverse needs to be undefined
-        assert(($market['linear'] === null) && ($market['inverse'] === null), 'market linear and inverse must be undefined when \"contract\" is true' . $log_text);
+        assert(($market['linear'] === null) && ($market['inverse'] === null), 'market linear and inverse must be undefined when \"contract\" is false' . $log_text);
         // contract size should be undefined
         if (!(is_array($skipped_properties) && array_key_exists('contractSize', $skipped_properties))) {
             assert($contract_size === null, '\"contractSize\" must be undefined when \"contract\" is false' . $log_text);
         }
         // settle should be undefined
-        assert(($market['settle'] === null) && ($market['settleId'] === null), '\"settle\" must be undefined when \"contract\" is true' . $log_text);
+        assert(($market['settle'] === null) && ($market['settleId'] === null), '\"settle\" must be undefined when \"contract\" is false' . $log_text);
         // spot should be true
         assert($market['spot'], '\"spot\" must be true when \"contract\" is false' . $log_text);
     }

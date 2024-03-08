@@ -114,6 +114,8 @@ class Transpiler {
             [ /\.parseDepositAddress\s/g, '.parse_deposit_address'],
             [ /\.parseMarketLeverageTiers\s/g, '.parse_market_leverage_tiers'],
             [ /\.parseLeverageTiers\s/g, '.parse_leverage_tiers'],
+            [ /\.parseLeverage\s/g, '.parse_leverage' ],
+            [ /\.parseLeverages\s/g, '.parse_leverages' ],
             [ /\.parseLedgerEntry\s/g, '.parse_ledger_entry'],
             [ /\.parseLedger\s/g, '.parse_ledger'],
             [ /\.parseTickers\s/g, '.parse_tickers'],
@@ -156,6 +158,8 @@ class Transpiler {
             [ /\.parseFundingRates\s/g, '.parse_funding_rates' ],
             [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],
             [ /\.parseMarginModification\s/g, '.parse_margin_modification' ],
+            [ /\.parseMarginMode\s/g, '.parse_margin_mode' ],
+            [ /\.parseMarginModes\s/g, '.parse_margin_modes' ],
             [ /\.filterByArray\s/g, '.filter_by_array'],
             [ /\.filterByValueSinceLimit\s/g, '.filter_by_value_since_limit'],
             [ /\.filterBySymbolSinceLimit\s/g, '.filter_by_symbol_since_limit'],
@@ -337,6 +341,9 @@ class Transpiler {
             [ /\.isRoundNumber\s/g, '.is_round_number'],
             [ /\.getDescribeForExtendedWsExchange\s/g, '.get_describe_for_extended_ws_exchange'],
             [ /\.watchMultiple\s/g, '.watch_multiple'],
+            [ /\.intToBase16\s/g, '.int_to_base16'],
+            [ /\.handleParamString\s/g, '.handle_param_string'],
+            [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -353,6 +360,10 @@ class Transpiler {
 
             // convert javascript primitive types to python ones
             [ /(^\s+(?:let|const|var)\s+\w+:\s+)string/mg, '$1str' ],
+            [ /(^\s+(?:let|const|var)\s+\w+:\s+)Dict/mg, '$1dict' ], // remove from now
+            // [ /(^\s+(?:let|const|var)\s+\w+:\s+)Int/mg, '$1int' ], // remove from now
+            // [ /(^\s+(?:let|const|var)\s+\w+:\s+)Number/mg, '$1float' ], // remove from now
+            [ /(^\s+(?:let|const|var)\s+\w+:\s+)any/mg, '$1Any' ], // remove from now
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] is None' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
@@ -584,8 +595,8 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number);\n/mg, '' ],
-            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number)(\s+=\s+\w+)/g, '$1$2$3$4' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number|Dict|any);\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -971,7 +982,10 @@ class Transpiler {
             'Greeks': /-> Greeks:/,
             'Int': /: Int =/,
             'Liquidation': /-> (?:List\[)?Liquidation/,
+            'Leverage': /-> Leverage:/,
+            'Leverages': /-> Leverages:/,
             'MarginMode': /-> MarginMode:/,
+            'MarginModes': /-> MarginModes:/,
             'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
             'Order': /-> Order:/,
@@ -984,6 +998,7 @@ class Transpiler {
             'IndexType': /: IndexType/,
             'FundingHistory': /\[FundingHistory/,
             'Num': /: Num =/,
+            'Any': /: Any =/,
             'Str': /: Str =/,
             'Bool': /: Bool =/,
             'Strings': /: Strings =/,
@@ -1639,6 +1654,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
                 'Dictionary<any>': 'array',
+                'Dict': 'array',
             }
             const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
@@ -1700,7 +1716,8 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
-                'Dictionary<any>': 'dict'
+                'Dictionary<any>': 'dict',
+                'Dict': 'dict'
             }
             const unwrapLists = (type) => {
                 const output = []

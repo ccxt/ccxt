@@ -400,14 +400,17 @@ class coinex extends \ccxt\async\coinex {
         $keys = is_array($this->ohlcvs) ? array_keys($this->ohlcvs) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
+            $this->ohlcvs['unknown'] = array();
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $this->ohlcvs = new ArrayCacheByTimestamp ($limit);
+            $stored = new ArrayCacheByTimestamp ($limit);
+            $this->ohlcvs['unknown']['unknown'] = $stored;
         }
+        $ohlcv = $this->ohlcvs['unknown']['unknown'];
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $candle = $ohlcvs[$i];
-            $this->ohlcvs.append ($candle);
+            $ohlcv->append ($candle);
         }
-        $client->resolve ($this->ohlcvs, $messageHash);
+        $client->resolve ($ohlcv, $messageHash);
     }
 
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
@@ -560,7 +563,7 @@ class coinex extends \ccxt\async\coinex {
             }
             $url = $this->urls['api']['ws'][$type];
             $messageHash = 'ohlcv';
-            $watchOHLCVWarning = $this->safe_value($this->options, 'watchOHLCVWarning', true);
+            $watchOHLCVWarning = $this->safe_bool($this->options, 'watchOHLCVWarning', true);
             $client = $this->safe_value($this->clients, $url, array());
             $clientSub = $this->safe_value($client, 'subscriptions', array());
             $existingSubscription = $this->safe_value($clientSub, $messageHash);
@@ -1063,61 +1066,63 @@ class coinex extends \ccxt\async\coinex {
     }
 
     public function authenticate($params = array ()) {
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('authenticate', null, $params);
-        $url = $this->urls['api']['ws'][$type];
-        $client = $this->client($url);
-        $time = $this->milliseconds();
-        if ($type === 'spot') {
-            $messageHash = 'authenticated:spot';
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future !== null) {
-                return $future;
+        return Async\async(function () use ($params) {
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('authenticate', null, $params);
+            $url = $this->urls['api']['ws'][$type];
+            $client = $this->client($url);
+            $time = $this->milliseconds();
+            if ($type === 'spot') {
+                $messageHash = 'authenticated:spot';
+                $future = $this->safe_value($client->subscriptions, $messageHash);
+                if ($future !== null) {
+                    return Async\await($future);
+                }
+                $requestId = $this->request_id();
+                $subscribe = array(
+                    'id' => $requestId,
+                    'future' => 'authenticated:spot',
+                );
+                $signData = 'access_id=' . $this->apiKey . '&tonce=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
+                $hash = $this->hash($this->encode($signData), 'md5');
+                $request = array(
+                    'method' => 'server.sign',
+                    'params' => array(
+                        $this->apiKey,
+                        strtoupper($hash),
+                        $time,
+                    ),
+                    'id' => $requestId,
+                );
+                $future = $this->watch($url, $messageHash, $request, $requestId, $subscribe);
+                $client->subscriptions[$messageHash] = $future;
+                return Async\await($future);
+            } else {
+                $messageHash = 'authenticated:swap';
+                $future = $this->safe_value($client->subscriptions, $messageHash);
+                if ($future !== null) {
+                    return Async\await($future);
+                }
+                $requestId = $this->request_id();
+                $subscribe = array(
+                    'id' => $requestId,
+                    'future' => 'authenticated:swap',
+                );
+                $signData = 'access_id=' . $this->apiKey . '&timestamp=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
+                $hash = $this->hash($this->encode($signData), 'sha256', 'hex');
+                $request = array(
+                    'method' => 'server.sign',
+                    'params' => array(
+                        $this->apiKey,
+                        strtolower($hash),
+                        $time,
+                    ),
+                    'id' => $requestId,
+                );
+                $future = $this->watch($url, $messageHash, $request, $requestId, $subscribe);
+                $client->subscriptions[$messageHash] = $future;
+                return Async\await($future);
             }
-            $requestId = $this->request_id();
-            $subscribe = array(
-                'id' => $requestId,
-                'future' => 'authenticated:spot',
-            );
-            $signData = 'access_id=' . $this->apiKey . '&tonce=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
-            $hash = $this->hash($this->encode($signData), 'md5');
-            $request = array(
-                'method' => 'server.sign',
-                'params' => array(
-                    $this->apiKey,
-                    strtoupper($hash),
-                    $time,
-                ),
-                'id' => $requestId,
-            );
-            $future = $this->watch($url, $messageHash, $request, $requestId, $subscribe);
-            $client->subscriptions[$messageHash] = $future;
-            return $future;
-        } else {
-            $messageHash = 'authenticated:swap';
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future !== null) {
-                return $future;
-            }
-            $requestId = $this->request_id();
-            $subscribe = array(
-                'id' => $requestId,
-                'future' => 'authenticated:swap',
-            );
-            $signData = 'access_id=' . $this->apiKey . '&timestamp=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
-            $hash = $this->hash($this->encode($signData), 'sha256', 'hex');
-            $request = array(
-                'method' => 'server.sign',
-                'params' => array(
-                    $this->apiKey,
-                    strtolower($hash),
-                    $time,
-                ),
-                'id' => $requestId,
-            );
-            $future = $this->watch($url, $messageHash, $request, $requestId, $subscribe);
-            $client->subscriptions[$messageHash] = $future;
-            return $future;
-        }
+        }) ();
     }
 }

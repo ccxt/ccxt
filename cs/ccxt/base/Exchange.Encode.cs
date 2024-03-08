@@ -2,6 +2,7 @@ namespace ccxt;
 using System.Security.Cryptography;
 using System.Text;
 
+using MiniMessagePack;
 
 using dict = Dictionary<string, object>;
 using list = List<object>;
@@ -9,14 +10,39 @@ using list = List<object>;
 public partial class Exchange
 {
 
-    public object base16ToBinary(object str)
+    public object base16ToBinary(object str2)
     {
-        return (string)str; // stub
+        // return (string)str; // stub
+        // return Convert.FromHexString((string)str);
+        var str = (string)str2;
+        return ConvertHexStringToByteArray(str);
     }
 
-    public virtual object remove0xPrefix(object str)
+    public static byte[] ConvertHexStringToByteArray(string hexString)
     {
-        return (string)str; // stub
+        if (hexString.Length % 2 != 0)
+        {
+            throw new ArgumentException("The hex string must have an even number of characters.", nameof(hexString));
+        }
+
+        byte[] bytes = new byte[hexString.Length / 2];
+        for (int i = 0; i < hexString.Length; i += 2)
+        {
+            string hexSubstring = hexString.Substring(i, 2);
+            bytes[i / 2] = Convert.ToByte(hexSubstring, 16);
+        }
+
+        return bytes;
+    }
+
+    public virtual object remove0xPrefix(object str2)
+    {
+        var str = (string)str2;
+        if (str.StartsWith("0x"))
+        {
+            return str.Substring(2);
+        }
+        return str;
     }
 
     public string stringToBase64(object pt) => StringToBase64(pt);
@@ -42,7 +68,29 @@ public partial class Exchange
 
     public object binaryConcat(object a, object b)
     {
-        return (string)a + (string)b; // stub
+        byte[] first;
+        byte[] second;
+        if (a is string)
+        {
+            first = Encoding.ASCII.GetBytes(a as string);
+        }
+        else
+        {
+            first = (byte[])a;
+        }
+        if (b is string)
+        {
+            second = Encoding.ASCII.GetBytes(b as string);
+        }
+        else
+        {
+            second = (byte[])b;
+        }
+        var result = new byte[first.Length + second.Length];
+        first.CopyTo(result, 0);
+        second.CopyTo(result, first.Length);
+        return result;
+        // return (string)a + (string)b; // stub
     }
 
     public object binaryConcatArray(object a)
@@ -95,6 +143,18 @@ public partial class Exchange
     public string decode(object data)
     {
         return (string)data; // stub for python
+    }
+
+    public string intToBase16(object number)
+    {
+        var n = Convert.ToInt64(number);
+        return n.ToString("x");
+    }
+
+    public object packb(object data)
+    {
+        var packer = new MiniMessagePacker();
+        return packer.Pack(data);
     }
 
     public string rawencode(object paramaters1)

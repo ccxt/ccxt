@@ -63,6 +63,32 @@
                 "output": "{\"clientOid\":\"5d7a8110-1ea6-46e7-8d8f-1ba53267f20c\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\",\"hf\":true}"
             }
         ],
+        "createOrders": [
+            {
+                "description": "create limit orders",
+                "method": "createOrders",
+                "url": "https://api.kucoin.com/api/v1/orders/multi",
+                "input": [
+                  [
+                    {
+                      "symbol": "LTC/USDT",
+                      "amount": 0.1,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 60
+                    },
+                    {
+                      "symbol": "LTC/USDT",
+                      "amount": 0.11,
+                      "side": "buy",
+                      "type": "limit",
+                      "price": 61
+                    }
+                  ]
+                ],
+                "output": "{\"symbol\":\"LTC-USDT\",\"orderList\":[{\"clientOid\":\"fb7b2388-a744-4c4f-a78b-712b24023843\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"60\"},{\"clientOid\":\"ebc583e1-1c04-45b8-bc9e-fa46f76d1208\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.11\",\"price\":\"61\"}]}"
+              }
+        ],
         "createMarketBuyOrderWithCost": [
             {
                 "method": "market buy with cost",
@@ -269,6 +295,104 @@
                     "hf": true
                   }
                 ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api.kucoin.com/api/v1/market/allTickers",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.kucoin.com/api/v1/market/stats?symbol=BTC-USDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.kucoin.com/api/v1/market/histories?symbol=BTC-USDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.kucoin.com/api/v1/market/orderbook/level2_20?symbol=BTC-USDT",
+                "input": [
+                  "BTC/USDT",
+                  20
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.kucoin.com/api/v1/market/candles?symbol=BTC-USDT&type=1hour&startAt=1706628191&endAt=1706638991",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1706628191000,
+                  3
+                ]
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api.kucoin.com/api/v1/trade-fees?symbols=BTC-USDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order",
+                "method": "fetchOrder",
+                "url": "https://api.kucoin.com/api/v1/orders/65e371dd0ddaa40007cb437b",
+                "input": [
+                  "65e371dd0ddaa40007cb437b",
+                  "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "fetchDepositWithdrawFees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://api.kucoin.com/api/v3/currencies",
+                "input": [
+                  [
+                    "BTC"
+                  ]
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.kucoin.com/api/v1/accounts",
+                "input": []
             }
         ]
     }

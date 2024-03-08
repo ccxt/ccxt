@@ -139,14 +139,14 @@ public partial class testMainClass : BaseTest
         } else
         {
             // linear & inverse needs to be undefined
-            assert(isTrue((isEqual(getValue(market, "linear"), null))) && isTrue((isEqual(getValue(market, "inverse"), null))), add("market linear and inverse must be undefined when \"contract\" is true", logText));
+            assert(isTrue((isEqual(getValue(market, "linear"), null))) && isTrue((isEqual(getValue(market, "inverse"), null))), add("market linear and inverse must be undefined when \"contract\" is false", logText));
             // contract size should be undefined
             if (!isTrue((inOp(skippedProperties, "contractSize"))))
             {
                 assert(isEqual(contractSize, null), add("\"contractSize\" must be undefined when \"contract\" is false", logText));
             }
             // settle should be undefined
-            assert(isTrue((isEqual(getValue(market, "settle"), null))) && isTrue((isEqual(getValue(market, "settleId"), null))), add("\"settle\" must be undefined when \"contract\" is true", logText));
+            assert(isTrue((isEqual(getValue(market, "settle"), null))) && isTrue((isEqual(getValue(market, "settleId"), null))), add("\"settle\" must be undefined when \"contract\" is false", logText));
             // spot should be true
             assert(getValue(market, "spot"), add("\"spot\" must be true when \"contract\" is false", logText));
         }

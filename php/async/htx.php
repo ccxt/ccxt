@@ -1241,9 +1241,10 @@ class htx extends Exchange {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
             $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', null, $params);
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchStatus', null, $params);
+            $enabledForContracts = $this->handle_option('fetchStatus', 'enableForContracts', false); // temp fix for => https://status-linear-swap.huobigroup.com/api/v2/summary.json
             $response = null;
-            if ($marketType !== 'spot') {
+            if ($marketType !== 'spot' && $enabledForContracts) {
                 $subType = $this->safe_string($params, 'subType', $this->options['defaultSubType']);
                 if ($marketType === 'swap') {
                     if ($subType === 'linear') {
@@ -1260,7 +1261,7 @@ class htx extends Exchange {
                 } elseif ($marketType === 'contract') {
                     $response = Async\await($this->contractPublicGetHeartbeat ());
                 }
-            } else {
+            } elseif ($marketType === 'spot') {
                 $response = Async\await($this->statusPublicSpotGetApiV2SummaryJson ());
             }
             //
@@ -1429,7 +1430,11 @@ class htx extends Exchange {
             $url = null;
             if ($marketType === 'contract') {
                 $statusRaw = $this->safe_string($response, 'status');
-                $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+                if ($statusRaw === null) {
+                    $status = null;
+                } else {
+                    $status = ($statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+                }
                 $updated = $this->safe_string($response, 'ts');
             } else {
                 $statusData = $this->safe_value($response, 'status', array());
@@ -2584,7 +2589,10 @@ class htx extends Exchange {
         $amountString = $this->safe_string($trade, 'trade_volume', $amountString);
         $costString = $this->safe_string($trade, 'trade_turnover');
         $fee = null;
-        $feeCost = $this->safe_string_2($trade, 'filled-fees', 'trade_fee');
+        $feeCost = $this->safe_string($trade, 'filled-fees');
+        if ($feeCost === null) {
+            $feeCost = Precise::string_neg($this->safe_string($trade, 'trade_fee'));
+        }
         $feeCurrencyId = $this->safe_string_2($trade, 'fee-currency', 'fee_asset');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $filledPoints = $this->safe_string($trade, 'filled-points');

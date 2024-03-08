@@ -42,8 +42,8 @@ public partial class testMainClass : BaseTest
 
     public bool isSynchronous = false;
 
-    public object onlySpecificTests = null;
-    public object proxyTestFileName = null;
+    public List<object> onlySpecificTests = new List<object>();
+    public string proxyTestFileName = "proxies";
 
     public string lang = "C#";
 
@@ -241,12 +241,16 @@ public partial class testMainClass : BaseTest
     {
         try
         {
-            var value = exchange.GetType().GetProperty(prop as string).GetValue(exchange);
-            if (value == null)
+            var propertyInfo = exchange.GetType().GetProperty(prop as string);
+            if (propertyInfo != null) 
+            {
+                var value = propertyInfo.GetValue(exchange);
+                return value != null ? value : defaultValue;
+            }
+            else 
             {
                 return defaultValue;
             }
-            return value;
         }
         catch (Exception)
         {

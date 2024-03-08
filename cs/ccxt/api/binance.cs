@@ -361,16 +361,6 @@ public partial class binance : Exchange
         return await this.callAsync ("sapiGetLoanFlexibleLtvAdjustmentHistory",parameters);
     }
 
-    public async Task<object> sapiGetLoanFlexibleLoanableData (object parameters = null)
-    {
-        return await this.callAsync ("sapiGetLoanFlexibleLoanableData",parameters);
-    }
-
-    public async Task<object> sapiGetLoanFlexibleCollateralData (object parameters = null)
-    {
-        return await this.callAsync ("sapiGetLoanFlexibleCollateralData",parameters);
-    }
-
     public async Task<object> sapiGetLoanVipOngoingOrders (object parameters = null)
     {
         return await this.callAsync ("sapiGetLoanVipOngoingOrders",parameters);
@@ -1686,11 +1676,6 @@ public partial class binance : Exchange
         return await this.callAsync ("sapiPostLoanCustomizeMarginCall",parameters);
     }
 
-    public async Task<object> sapiPostLoanFlexibleBorrow (object parameters = null)
-    {
-        return await this.callAsync ("sapiPostLoanFlexibleBorrow",parameters);
-    }
-
     public async Task<object> sapiPostLoanFlexibleRepay (object parameters = null)
     {
         return await this.callAsync ("sapiPostLoanFlexibleRepay",parameters);
@@ -1901,6 +1886,36 @@ public partial class binance : Exchange
         return await this.callAsync ("sapiV2GetSubAccountFuturesPositionRisk",parameters);
     }
 
+    public async Task<object> sapiV2GetLoanFlexibleOngoingOrders (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleOngoingOrders",parameters);
+    }
+
+    public async Task<object> sapiV2GetLoanFlexibleBorrowHistory (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleBorrowHistory",parameters);
+    }
+
+    public async Task<object> sapiV2GetLoanFlexibleRepayHistory (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleRepayHistory",parameters);
+    }
+
+    public async Task<object> sapiV2GetLoanFlexibleLtvAdjustmentHistory (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleLtvAdjustmentHistory",parameters);
+    }
+
+    public async Task<object> sapiV2GetLoanFlexibleLoanableData (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleLoanableData",parameters);
+    }
+
+    public async Task<object> sapiV2GetLoanFlexibleCollateralData (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleCollateralData",parameters);
+    }
+
     public async Task<object> sapiV2PostEthStakingEthStake (object parameters = null)
     {
         return await this.callAsync ("sapiV2PostEthStakingEthStake",parameters);
@@ -1909,6 +1924,21 @@ public partial class binance : Exchange
     public async Task<object> sapiV2PostSubAccountSubAccountApiIpRestriction (object parameters = null)
     {
         return await this.callAsync ("sapiV2PostSubAccountSubAccountApiIpRestriction",parameters);
+    }
+
+    public async Task<object> sapiV2PostLoanFlexibleBorrow (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2PostLoanFlexibleBorrow",parameters);
+    }
+
+    public async Task<object> sapiV2PostLoanFlexibleRepay (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2PostLoanFlexibleRepay",parameters);
+    }
+
+    public async Task<object> sapiV2PostLoanFlexibleAdjustLtv (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2PostLoanFlexibleAdjustLtv",parameters);
     }
 
     public async Task<object> sapiV3GetSubAccountAssets (object parameters = null)

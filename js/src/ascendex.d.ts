@@ -107,8 +107,8 @@ export default class ascendex extends Exchange {
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: any;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
         currency: string;
         amount: any;
         fromAccount: any;

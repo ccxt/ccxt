@@ -117,6 +117,7 @@ exports.isJsonEncodedObject = encode.isJsonEncodedObject;
 exports.json = encode.json;
 exports.numberToBE = encode.numberToBE;
 exports.numberToLE = encode.numberToLE;
+exports.packb = encode.packb;
 exports.rawencode = encode.rawencode;
 exports.stringToBase64 = encode.stringToBase64;
 exports.stringToBinary = encode.stringToBinary;
