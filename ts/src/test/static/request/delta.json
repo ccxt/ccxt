@@ -22,6 +22,16 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "Fetch the set margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://testnet-api.delta.exchange/v2/profile",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
