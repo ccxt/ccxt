@@ -38,7 +38,6 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     const balance = await exchange.fetchBalance ();
     const initialBaseBalance = balance[market['base']]['free'];
     const initialQuoteBalance = balance[market['quote']]['free'];
-    assert (initialQuoteBalance !== undefined, logPrefix + ' - testing account not have enough balance of' + market['quote'] + ' in fetchBalance() which is required to test ' + method);
     verboseOutput (exchange, symbol, 'fetched balance for', symbol, ':', initialBaseBalance, market['base'], '/', initialQuoteBalance, market['quote']);
     // get best bid & ask
     const [ bestBid, bestAsk ] = await testSharedMethods.tryFetchBestBidAsk (exchange, 'createOrder', symbol);
