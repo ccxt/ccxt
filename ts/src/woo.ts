@@ -2960,7 +2960,7 @@ export default class woo extends Exchange {
         return this.safeValue (networkKeys, 0);
     }
 
-    setSandboxMode (enable) {
+    setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }

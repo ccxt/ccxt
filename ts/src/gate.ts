@@ -862,7 +862,7 @@ export default class gate extends Exchange {
         });
     }
 
-    setSandboxMode (enable) {
+    setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }
