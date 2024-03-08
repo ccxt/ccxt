@@ -283,21 +283,41 @@
                 ]
             },
             {
-                "description": "Swap order with attached tp and sl",
+                "description": "Swap market buy with attached tp and sl",
                 "method": "createOrder",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&quantity=1&side=BUY&stopLoss=%7B%22stopPrice%22%3A50%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A1%7D&symbol=LTC-USDT&takeProfit=%7B%22stopPrice%22%3A150%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A1%7D&timestamp=1704026482160&type=MARKET&signature=cbc5f76613bb456d642bd90f556a58d674cafab85559804ddd19c28a4daadddc",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&quantity=0.001&side=BUY&stopLoss=%7B%22type%22%3A%22STOP_MARKET%22%2C%22stopPrice%22%3A35000%2C%22quantity%22%3A0.001%7D&symbol=BTC-USDT&takeProfit=%7B%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22stopPrice%22%3A45000%2C%22quantity%22%3A0.001%7D&timestamp=1706023452014&type=MARKET&signature=9a1748e272177d3645ebe0b403a6e38af3af235edab92f9e2781fa56f825a83b",
                 "input": [
-                  "LTC/USDT:USDT",
+                  "BTC/USDT:USDT",
                   "market",
                   "buy",
-                  1,
+                  0.001,
                   null,
                   {
                     "takeProfit": {
-                      "stopPrice": 150
+                      "stopPrice": 45000
                     },
                     "stopLoss": {
-                      "stopPrice": 50
+                      "stopPrice": 35000
+                    }
+                  }
+                ]
+            },
+            {
+                "description": "Swap market sell with attached tp and sl",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=SHORT&quantity=0.001&side=SELL&stopLoss=%7B%22type%22%3A%22STOP_MARKET%22%2C%22stopPrice%22%3A45000%2C%22quantity%22%3A0.001%7D&symbol=BTC-USDT&takeProfit=%7B%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22stopPrice%22%3A35000%2C%22quantity%22%3A0.001%7D&timestamp=1706023623475&type=MARKET&signature=f825342c7ca08c68269f25edbeb508fa98736daf3595ac3bb189b14fa9e18a91",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "takeProfit": {
+                      "triggerPrice": 35000
+                    },
+                    "stopLoss": {
+                      "triggerPrice": 45000
                     }
                   }
                 ]
@@ -590,6 +610,26 @@
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancelOpenOrders?symbol=LTC-USDT&timestamp=1703847561251&signature=e2c804484ea920957823019aed0ab49073125407426079dea637eef341ab0dc8",
                 "input": [
                   "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "swap regular order",
+                "method": "fetchOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?orderId=1749821585366409216&symbol=BTC-USDT&timestamp=1706025010037&signature=4b458843844af55589041681c20a6eb42bbef7df7fd3e1d40e2cba87709530cf",
+                "input": [
+                  "1749821585366409216",
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap trigger order",
+                "method": "fetchOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?orderId=1749820977469153280&symbol=BTC-USDT&timestamp=1706024901991&signature=547fb0bb6a8cd1d39f49ba7d2c9753a78bfe5b3b806c5e21b659a0e28438bf3e",
+                "input": [
+                  "1749820977469153280",
+                  "BTC/USDT:USDT"
                 ]
             }
         ],
