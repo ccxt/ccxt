@@ -522,7 +522,8 @@
             "fetchCurrencies": {
                 "currencyIdAndCode": "inexistent ones",
                 "deposit":"not provided",
-                "withdraw":"not provided"
+                "withdraw":"not provided",
+                "precision":"not provided"
             },
             "fetchOrderBook": {
                 "bid": "bid should be greater than next bid"
