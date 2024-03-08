@@ -184,7 +184,7 @@ public partial class Exchange
         return timestamp;
     }
 
-    public string convertExpireDate(string date)
+    public object convertExpireDate(object date)
     {
         // parse YYMMDD to timestamp
         object year = slice(date, 0, 2);
@@ -194,7 +194,7 @@ public partial class Exchange
         return reconstructedDate;
     }
 
-    public virtual string convertExpireDateToMarketIdDate(string date)
+    public virtual object convertExpireDateToMarketIdDate(object date)
     {
         // parse 231229 to 29DEC23
         object year = slice(date, 0, 2);
@@ -242,7 +242,7 @@ public partial class Exchange
         return reconstructedDate;
     }
 
-    public virtual string convertMarketIdExpireDate(string date)
+    public virtual object convertMarketIdExpireDate(object date)
     {
         // parse 22JAN23 to 230122
         object monthMappping = new Dictionary<string, object>() {
