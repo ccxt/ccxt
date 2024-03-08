@@ -410,7 +410,9 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
-            [ /(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$1.reverse(' ], // opposed to JS, python's 'reverse()' does in-place
+            // drop support for .reverse() atm, because opposed to JS, python's does in-place,
+            // so we can't correctly transpile `const x = y.reverse()` in py for now
+            // [ /(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$1.reverse(' ], 
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
@@ -645,7 +647,7 @@ class Transpiler {
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
             // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
-            [ /(\w+)\.reverse\s*\(\)/g, 'array_reverse($1)' ],
+            // [ /(\w+)\.reverse\s*\(\)/g, 'array_reverse($1)' ], // see comment in python .reverse()
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
             [ /Precise\.stringAdd\s/g, 'Precise::string_add' ],
