@@ -339,6 +339,16 @@
             "url": "https://openapi.blofin.com/api/v1/account/balance",
             "input": []
           }
+        ],
+        "fetchMarginMode": [
+          {
+            "description": "Fetch the accounts set margin mode",
+            "method": "fetchMarginMode",
+            "url": "https://openapi.blofin.com/api/v1/account/margin-mode",
+            "input": [
+              "BTC/USDT:USDT"
+            ]
+          }
         ]
     }
 }
