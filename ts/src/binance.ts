@@ -2359,7 +2359,7 @@ export default class binance extends Exchange {
         }
     }
 
-    setSandboxMode (enable) {
+    setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }
