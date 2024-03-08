@@ -410,6 +410,7 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
+            [ /(.*?)\s\=\s(.*?)\.reverse\s\(/g, '.reverse(' ], // opposed to JS, python's 'reverse()' does in-place
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
