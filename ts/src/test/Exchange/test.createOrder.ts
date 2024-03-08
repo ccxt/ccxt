@@ -229,16 +229,22 @@ function getMinimumAmountForLimitPrice (exchange, market, price, predefinedAmoun
     }
     // because it's possible that calculated value might get truncated down in "createOrder" (i.e. 0.129 -> 0.12), we should ensure that final amount * price would bypass minimum cost requirements, by adding the "minimum precision"
     let amountPrecision = exchange.safeNumber (market['precision'], 'amount');
+    const isTickSizePrecision = exchange.precisionMode === 2;
     // if precision is not defined, then calculate it from amount value
     if (amountPrecision === undefined) {
         let digitsOfPrecision = undefined;
         // if it is not TICK-SIZE, then convert it to amount
-        if (exchange.precisionMode !== 2) {
+        if (!isTickSizePrecision) {
             digitsOfPrecision = parseInt (exchange.precisionFromString (exchange.numberToString (finalAmount)));
         } else {
             digitsOfPrecision = getTickSizeFromString (exchange.numberToString (finalAmount));
         }
         amountPrecision = 1 / Math.pow (10, digitsOfPrecision);
+    } else {
+        // if not TICK-SIZE, then convert into value
+        if (!isTickSizePrecision) {
+            amountPrecision = 1 / Math.pow (10, amountPrecision);
+        }
     }
     // the current value might be too long (i.e. 0.12345678) and inside 'createOrder' it's being truncated down. It might cause our automatic cost calcuation accidentaly to be less than "market->limits->cost>min", so, before it, we should round it up to nearest precision, thus we ensure the overal cost will be above minimum requirements
     finalAmount = parseFloat (exchange.decimalToPrecision (finalAmount, 2, market['precision']['amount'], exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for truncate
