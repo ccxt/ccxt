@@ -886,7 +886,7 @@ export default class testMainClass extends baseMainTestClass {
             // 'fetchWithdrawal': [ ],
             // 'transfer': [ ],
             // 'withdraw': [ ],
-            'createOrder' = [ symbol ],
+            'createOrder': [ symbol ],
         };
         if (this.wsTests) {
             tests = {
