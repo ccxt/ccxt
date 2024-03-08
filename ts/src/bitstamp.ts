@@ -2163,7 +2163,7 @@ export default class bitstamp extends Exchange {
         amount = this.parseToNumeric (amount);
         const request = {
             'amount': amount,
-            'currency': currency['id'],
+            'currency': currency['id'].toUpperCase (),
         };
         let response = undefined;
         if (fromAccount === 'main') {
