@@ -5722,11 +5722,11 @@ export default class binance extends Exchange {
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
         let marginMode = undefined;
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        params = this.omit (params, 'reduceOnly');
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         if ((marketType === 'margin') || (marginMode !== undefined) || market['option']) {
             // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-            params = this.omit (params, 'reduceOnly');
             if (market['option']) {
                 request['reduceOnly'] = reduceOnly;
             } else {
