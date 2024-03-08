@@ -2436,7 +2436,7 @@ export default class binance extends Exchange {
         } as MarketInterface;
     }
 
-    market (symbol: string): Market {
+    market (symbol: string): MarketInterface {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
