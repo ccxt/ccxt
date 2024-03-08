@@ -47,7 +47,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     // **************** [Scenario 1 - START] **************** //
     // ****************************************************** //
     // - create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
-    await testCreateOrderCreateUnfillableOrder (exchange, market, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
+    await testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
     // ****************************************************** //
     // **************** [Scenario 1 - END ] ***************** //
     // ****************************************************** //
@@ -58,7 +58,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     // ****************************************************** //
     // - create a "limit order" / "market order" which IS GUARANTEED to have a fill (full or partial)
     // - then sell the bought amount
-    await testCreateOrderCreateFillableOrder (exchange, market, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
+    await testCreateOrderCreateFillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
     // ****************************************************** //
     // ***************** [Scenario 2 - END] ***************** //
     // ****************************************************** //
