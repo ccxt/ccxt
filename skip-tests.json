@@ -82,6 +82,18 @@
             }
         }
     },
+    "binanceusdm ": {
+        "httpsProxy": "http://5.75.153.75:8002",
+        "wsProxy": "http://5.75.153.75:8002",
+        "skipMethods": {
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3463"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
+            }
+        }
+    },
     "binanceus": {
         "skipMethods": {
             "loadMarkets": {
