@@ -45,7 +45,7 @@ function testOrder (exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', exchange.safeString (entry, 'remaining'));
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', exchange.safeString (entry, 'filled'));
     if (!('trades' in skippedProperties)) {
-        const skippedNew = exchange.extend (skippedProperties, { 'timestamp': true, 'datetime': true, 'side': true });
+        const skippedNew = exchange.deepExtend (skippedProperties, { 'timestamp': true, 'datetime': true, 'side': true });
         if (entry['trades'] !== undefined) {
             for (let i = 0; i < entry['trades'].length; i++) {
                 testTrade (exchange, skippedNew, method, entry['trades'][i], symbol, now);
