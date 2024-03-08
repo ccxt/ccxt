@@ -687,4 +687,24 @@ public partial class delta
         var res = await this.fetchGreeks(symbol, parameters);
         return new Greeks(res);
     }
+    /// <summary>
+    /// fetches the margin mode of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.delta.exchange/#get-user"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
+    public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginMode(symbol, parameters);
+        return new MarginMode(res);
+    }
 }

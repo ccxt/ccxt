@@ -3522,7 +3522,8 @@ class coinbase(Exchange, ImplicitAPI):
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]
         signed = api[1] == 'private'
-        pathPart = 'api/v3' if (version == 'v3') else 'v2'
+        isV3 = version == 'v3'
+        pathPart = 'api/v3' if (isV3) else 'v2'
         fullPath = '/' + pathPart + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         savedPath = fullPath
@@ -3556,8 +3557,14 @@ class coinbase(Exchange, ImplicitAPI):
                     if query:
                         body = self.json(query)
                         payload = body
-                # 'GET' doesn't need payload in the signature. inside url is enough
+                else:
+                    if not isV3:
+                        if query:
+                            payload += '?' + self.urlencode(query)
+                # v3: 'GET' doesn't need payload in the signature. inside url is enough
                 # https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                # v2: 'GET' require payload in the signature
+                # https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 auth = timestampString + method + savedPath + payload
                 signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 headers = {

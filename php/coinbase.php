@@ -3690,7 +3690,8 @@ class coinbase extends Exchange {
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';
-        $pathPart = ($version === 'v3') ? 'api/v3' : 'v2';
+        $isV3 = $version === 'v3';
+        $pathPart = ($isV3) ? 'api/v3' : 'v2';
         $fullPath = '/' . $pathPart . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $savedPath = $fullPath;
@@ -3731,9 +3732,17 @@ class coinbase extends Exchange {
                         $body = $this->json($query);
                         $payload = $body;
                     }
+                } else {
+                    if (!$isV3) {
+                        if ($query) {
+                            $payload .= '?' . $this->urlencode($query);
+                        }
+                    }
                 }
-                // 'GET' doesn't need $payload in the $signature-> inside $url is enough
+                // v3 => 'GET' doesn't need $payload in the $signature-> inside $url is enough
                 // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                // v2 => 'GET' require $payload in the $signature
+                // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 $auth = $timestampString . $method . $savedPath . $payload;
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $headers = array(

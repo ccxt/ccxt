@@ -75,6 +75,8 @@ public partial class blofin : Exchange
                 { "fetchLeverage", true },
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", false },
+                { "fetchMarginMode", true },
+                { "fetchMarginModes", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -178,6 +180,7 @@ public partial class blofin : Exchange
                         { "account/balance", 1 },
                         { "account/positions", 1 },
                         { "account/leverage-info", 1 },
+                        { "account/margin-mode", 1 },
                         { "account/batch-leverage-info", 1 },
                         { "trade/orders-tpsl-pending", 1 },
                         { "trade/orders-history", 1 },
@@ -2349,6 +2352,43 @@ public partial class blofin : Exchange
         }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
+    }
+
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name blofin#fetchMarginMode
+        * @description fetches the margin mode of a trading pair
+        * @see https://docs.blofin.com/index.html#get-margin-mode
+        * @param {string} symbol unified symbol of the market to fetch the margin mode for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object response = await this.privateGetAccountMarginMode(parameters);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "marginMode": "cross"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseMarginMode(data, market);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", this.safeString(marginMode, "marginMode") },
+        };
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

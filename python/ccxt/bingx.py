@@ -1769,6 +1769,7 @@ class bingx(Exchange, ImplicitAPI):
             takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
             trailingAmount = self.safe_string(params, 'trailingAmount')
             trailingPercent = self.safe_string_2(params, 'trailingPercent', 'priceRate')
+            trailingType = self.safe_string(params, 'trailingType', 'TRAILING_STOP_MARKET')
             isTriggerOrder = triggerPrice is not None
             isStopLossPriceOrder = stopLossPrice is not None
             isTakeProfitPriceOrder = takeProfitPrice is not None
@@ -1804,7 +1805,7 @@ class bingx(Exchange, ImplicitAPI):
                     elif (type == 'LIMIT') or (type == 'TAKE_PROFIT'):
                         request['type'] = 'TAKE_PROFIT'
             elif isTrailing:
-                request['type'] = 'TRAILING_STOP_MARKET'
+                request['type'] = trailingType
                 if isTrailingAmountOrder:
                     request['price'] = self.parse_to_numeric(trailingAmount)
                 elif isTrailingPercentOrder:
@@ -1849,7 +1850,7 @@ class bingx(Exchange, ImplicitAPI):
                 positionSide = 'LONG' if (side == 'buy') else 'SHORT'
             request['positionSide'] = positionSide
             request['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
-            params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss', 'clientOrderId'])
+            params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
@@ -1877,14 +1878,20 @@ class bingx(Exchange, ImplicitAPI):
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param boolean [params.test]: *swap only* whether to use the test endpoint or not, default is False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
+        test = self.safe_bool(params, 'test', False)
+        params = self.omit(params, 'test')
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response = None
         if market['swap']:
-            response = self.swapV2PrivatePostTradeOrder(request)
+            if test:
+                response = self.swapV2PrivatePostTradeOrderTest(request)
+            else:
+                response = self.swapV2PrivatePostTradeOrder(request)
         else:
             response = self.spotV1PrivatePostTradeOrder(request)
         #
@@ -3791,7 +3798,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str [params.newClientOrderId]: custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
         :param str [params.positionSide]: *contract only* position direction, required for single position, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
         :param str [params.reduceOnly]: *contract only* True or False, default=false for single position mode. self parameter is not accepted for both long and short positions mode
-        :param float [params.priceRate]: *contract only* for type TRAILING_STOP_Market, Max = 1
+        :param float [params.priceRate]: *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
         :param str [params.workingType]: *contract only* StopPrice trigger price types, MARK_PRICE(default), CONTRACT_PRICE, or INDEX_PRICE
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

@@ -2732,6 +2732,6 @@ class woo(Exchange, ImplicitAPI):
         # if it was not returned according to above options, then return the first network of currency
         return self.safe_value(networkKeys, 0)
 
-    def set_sandbox_mode(self, enable):
+    def set_sandbox_mode(self, enable: bool):
         super(woo, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
