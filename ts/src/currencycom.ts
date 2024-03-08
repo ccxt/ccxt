@@ -6,7 +6,7 @@ import { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, Insu
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1821,7 +1821,7 @@ export default class currencycom extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchLeverage (symbol: string, params = {}) {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name currencycom#fetchLeverage
@@ -1838,12 +1838,23 @@ export default class currencycom extends Exchange {
         };
         const response = await this.privateGetV2LeverageSettings (this.extend (request, params));
         //
-        // {
-        //     "values": [ 1, 2, 5, 10, ],
-        //     "value": "10",
-        // }
+        //     {
+        //         "values": [ 1, 2, 5, 10, ],
+        //         "value": "10",
+        //     }
         //
-        return this.safeNumber (response, 'value');
+        return this.parseLeverage (response, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const leverageValue = this.safeInteger (leverage, 'value');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     async fetchDepositAddress (code: string, params = {}) {

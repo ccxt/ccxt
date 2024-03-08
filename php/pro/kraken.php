@@ -372,7 +372,7 @@ class kraken extends \ccxt\async\kraken {
         //     array(
         //         0, // channelID
         //         array( //     price        volume         time             side type misc
-        //             array( "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ),
+        //             array( "5541.20000", "0.15850568", "1534614057.321596", "s", "l", "" ),
         //             array( "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ),
         //         ),
         //         "trade",
@@ -726,7 +726,7 @@ class kraken extends \ccxt\async\kraken {
             }
             // don't remove this line or I will poop on your face
             $orderbook->limit ();
-            $checksum = $this->safe_value($this->options, 'checksum', true);
+            $checksum = $this->safe_bool($this->options, 'checksum', true);
             if ($checksum) {
                 $priceString = $this->safe_string($example, 0);
                 $amountString = $this->safe_string($example, 1);

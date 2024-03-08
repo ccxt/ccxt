@@ -388,12 +388,15 @@ class coinex(ccxt.async_support.coinex):
         keys = list(self.ohlcvs.keys())
         keysLength = len(keys)
         if keysLength == 0:
+            self.ohlcvs['unknown'] = {}
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            self.ohlcvs = ArrayCacheByTimestamp(limit)
+            stored = ArrayCacheByTimestamp(limit)
+            self.ohlcvs['unknown']['unknown'] = stored
+        ohlcv = self.ohlcvs['unknown']['unknown']
         for i in range(0, len(ohlcvs)):
             candle = ohlcvs[i]
-            self.ohlcvs.append(candle)
-        client.resolve(self.ohlcvs, messageHash)
+            ohlcv.append(candle)
+        client.resolve(ohlcv, messageHash)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -526,7 +529,7 @@ class coinex(ccxt.async_support.coinex):
             raise NotSupported(self.id + ' watchOHLCV() is only supported for swap markets. Try using fetchOHLCV() instead')
         url = self.urls['api']['ws'][type]
         messageHash = 'ohlcv'
-        watchOHLCVWarning = self.safe_value(self.options, 'watchOHLCVWarning', True)
+        watchOHLCVWarning = self.safe_bool(self.options, 'watchOHLCVWarning', True)
         client = self.safe_value(self.clients, url, {})
         clientSub = self.safe_value(client, 'subscriptions', {})
         existingSubscription = self.safe_value(clientSub, messageHash)
@@ -1005,7 +1008,7 @@ class coinex(ccxt.async_support.coinex):
             messageHash = 'authenticated:spot'
             future = self.safe_value(client.subscriptions, messageHash)
             if future is not None:
-                return future
+                return await future
             requestId = self.request_id()
             subscribe = {
                 'id': requestId,
@@ -1024,12 +1027,12 @@ class coinex(ccxt.async_support.coinex):
             }
             future = self.watch(url, messageHash, request, requestId, subscribe)
             client.subscriptions[messageHash] = future
-            return future
+            return await future
         else:
             messageHash = 'authenticated:swap'
             future = self.safe_value(client.subscriptions, messageHash)
             if future is not None:
-                return future
+                return await future
             requestId = self.request_id()
             subscribe = {
                 'id': requestId,
@@ -1048,4 +1051,4 @@ class coinex(ccxt.async_support.coinex):
             }
             future = self.watch(url, messageHash, request, requestId, subscribe)
             client.subscriptions[messageHash] = future
-            return future
+            return await future

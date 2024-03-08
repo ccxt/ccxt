@@ -638,7 +638,7 @@ class alpaca extends \ccxt\async\alpaca {
         for ($i = 0; $i < count($message); $i++) {
             $data = $message[$i];
             $T = $this->safe_string($data, 'T');
-            $msg = $this->safe_value($data, 'msg', array());
+            $msg = $this->safe_string($data, 'msg');
             if ($T === 'subscription') {
                 $this->handle_subscription($client, $data);
                 return;

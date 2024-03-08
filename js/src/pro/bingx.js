@@ -8,7 +8,7 @@
 import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import Precise from '../base/Precise.js';
+import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class bingx extends bingxRest {
     describe() {
@@ -559,6 +559,7 @@ export default class bingx extends bingxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('watchOHLCV', market, params);
         const url = this.safeValue(this.urls['api']['ws'], marketType);

@@ -464,6 +464,7 @@ public partial class bitmart : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ERC20" },
+                    { "SOL", "SOL" },
                     { "BTC", "BTC" },
                     { "TRC20", "TRC20" },
                     { "OMNI", "OMNI" },
@@ -481,7 +482,6 @@ public partial class bitmart : Exchange
                     { "FIO", "FIO" },
                     { "SCRT", "SCRT" },
                     { "IOTX", "IOTX" },
-                    { "SOL", "SOL" },
                     { "ALGO", "ALGO" },
                     { "ATOM", "ATOM" },
                     { "DOT", "DOT" },
@@ -3236,6 +3236,7 @@ public partial class bitmart : Exchange
         * @method
         * @name bitmart#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
+        * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -3261,43 +3262,63 @@ public partial class bitmart : Exchange
         }
         object response = await this.privateGetAccountV1DepositAddress(this.extend(request, parameters));
         //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
-        //         "data":{
-        //             "currency":"USDT-TRC20",
-        //             "chain":"USDT-TRC20",
-        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
-        //             "address_memo":""
-        //         }
-        //     }
+        //    {
+        //        "message": "OK",
+        //        "code": 1000,
+        //        "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //        "data": {
+        //            currency: 'ETH',
+        //            chain: 'Ethereum',
+        //            address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //            address_memo: ''
+        //        }
+        //    }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object address = this.safeString(data, "address");
-        object tag = this.safeString(data, "address_memo");
-        object chain = this.safeString(data, "chain");
+        return this.parseDepositAddress(data, currency);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //    {
+        //        currency: 'ETH',
+        //        chain: 'Ethereum',
+        //        address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //        address_memo: ''
+        //    }
+        //
+        object currencyId = this.safeString(depositAddress, "currency");
+        object address = this.safeString(depositAddress, "address");
+        object chain = this.safeString(depositAddress, "chain");
         object network = null;
+        currency = this.safeCurrency(currencyId, currency);
         if (isTrue(!isEqual(chain, null)))
         {
             object parts = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            object networkId = this.safeString(parts, 1);
-            network = this.safeNetwork(networkId);
+            object partsLength = getArrayLength(parts);
+            object networkId = this.safeString(parts, subtract(partsLength, 1));
+            network = this.safeNetworkCode(networkId, currency);
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
-            { "currency", code },
+            { "info", depositAddress },
+            { "currency", this.safeString(currency, "code") },
             { "address", address },
-            { "tag", tag },
+            { "tag", this.safeString(depositAddress, "address_memo") },
             { "network", network },
-            { "info", response },
         };
     }
 
-    public virtual object safeNetwork(object networkId)
+    public virtual object safeNetworkCode(object networkId, object currency = null)
     {
-        // TODO: parse
-        return networkId;
+        object name = this.safeString(currency, "name");
+        if (isTrue(isEqual(networkId, name)))
+        {
+            object code = this.safeString(currency, "code");
+            return code;
+        }
+        return this.networkIdToCode(networkId);
     }
 
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)

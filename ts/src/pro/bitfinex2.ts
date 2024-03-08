@@ -57,7 +57,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             'symbol': marketId,
         };
         const result = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, { 'checksum': false });
-        const checksum = this.safeValue (this.options, 'checksum', true);
+        const checksum = this.safeBool (this.options, 'checksum', true);
         if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
             client.subscriptions[messageHash]['checksum'] = true;
             await client.send ({
@@ -331,7 +331,9 @@ export default class bitfinex2 extends bitfinex2Rest {
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
-            const trades = this.safeValue (message, 1, []);
+            let trades = this.safeList (message, 1, []);
+            // needs to be reversed to make chronological order
+            trades = trades.reverse ();
             for (let i = 0; i < trades.length; i++) {
                 const parsed = this.parseWsTrade (trades[i], market);
                 stored.append (parsed);

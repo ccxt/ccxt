@@ -821,6 +821,37 @@
                 "LTC/USDT"
               ]
             }
-          ]
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "fetch position mode",
+                "method": "fetchPositionMode",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/positionSide/dual?timestamp=1709028142925&signature=209d60d4da49e3e26e8e5b5181b0141a0e44d047e342957565cd78ee44e878d2",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Swap set the margin mode",
+                "method": "setMarginMode",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/marginType?marginType=ISOLATED&symbol=BTC-USDT&timestamp=1709612405970&signature=ad4ff86204ba2cb9963a64e13a858215a2a1e31d2f10616ce5b0bbf64558800d",
+                "input": [
+                  "isolated",
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "Swap fetch the margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/marginType?symbol=BTC-USDT&timestamp=1709612311793&signature=a327894546ea7337cc55fa527bc183bba415213c48f0b9dafdc27bb6c38d8df9",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ]
     }
 }

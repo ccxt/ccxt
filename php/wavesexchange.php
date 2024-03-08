@@ -1372,7 +1372,7 @@ class wavesexchange extends Exchange {
             'amountAsset' => $amountAsset,
             'priceAsset' => $priceAsset,
         );
-        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $chainId = ($sandboxMode) ? 84 : 87;
         $body = array(
             'senderPublicKey' => $this->apiKey,

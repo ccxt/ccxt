@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -56,6 +56,7 @@ export default class krakenfutures extends Exchange {
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': true,
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -146,6 +147,7 @@ export default class krakenfutures extends Exchange {
                         'executions',
                         'triggers',
                         'accountlogcsv',
+                        'account-log',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
                     ],
@@ -2472,7 +2474,35 @@ export default class krakenfutures extends Exchange {
         return await this.privatePutLeveragepreferences (this.extend (request, params));
     }
 
-    async fetchLeverage (symbol: Str = undefined, params = {}) {
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+        /**
+         * @method
+         * @name krakenfutures#fetchLeverages
+         * @description fetch the set leverage for all contract and margin markets
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetLeveragepreferences (params);
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2024-03-06T02:35:46.336Z",
+        //         "leveragePreferences": [
+        //             {
+        //                 "symbol": "PF_ETHUSD",
+        //                 "maxLeverage": 30.00
+        //             },
+        //         ]
+        //     }
+        //
+        const leveragePreferences = this.safeList (response, 'leveragePreferences', []);
+        return this.parseLeverages (leveragePreferences, symbols, 'symbol');
+    }
+
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name krakenfutures#fetchLeverage
@@ -2486,17 +2516,33 @@ export default class krakenfutures extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'symbol': this.marketId (symbol).toUpperCase (),
         };
+        const response = await this.privateGetLeveragepreferences (this.extend (request, params));
         //
-        //   {
-        //       "result": "success",
-        //       "serverTime": "2023-08-01T09:54:08.900Z",
-        //       "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
-        //   }
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2023-08-01T09:54:08.900Z",
+        //         "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
+        //     }
         //
-        return await this.privateGetLeveragepreferences (this.extend (request, params));
+        const leveragePreferences = this.safeList (response, 'leveragePreferences', []);
+        const data = this.safeDict (leveragePreferences, 0, {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        const leverageValue = this.safeInteger (leverage, 'maxLeverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

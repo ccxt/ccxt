@@ -2429,7 +2429,7 @@ export default class phemex extends Exchange {
 
     parseOrder (order, market: Market = undefined): Order {
         const isSwap = this.safeBool (market, 'swap', false);
-        const hasPnl = ('closedPnl' in order);
+        const hasPnl = ('closedPnl' in order) || ('closedPnlRv' in order) || ('totalPnlRv' in order);
         if (isSwap || hasPnl) {
             return this.parseSwapOrder (order, market);
         }
@@ -3336,7 +3336,7 @@ export default class phemex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -3377,7 +3377,7 @@ export default class phemex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 

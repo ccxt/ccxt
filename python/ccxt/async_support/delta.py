@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -2697,7 +2697,7 @@ class delta(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_leverage(self, symbol: str, params={}):
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
         :see: https://docs.delta.exchange/#get-order-leverage
@@ -2710,6 +2710,7 @@ class delta(Exchange, ImplicitAPI):
         request = {
             'product_id': market['numericId'],
         }
+        response = await self.privateGetProductsProductIdOrdersLeverage(self.extend(request, params))
         #
         #     {
         #         "result": {
@@ -2723,7 +2724,19 @@ class delta(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        return await self.privateGetProductsProductIdOrdersLeverage(self.extend(request, params))
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_leverage(result, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'index_symbol')
+        leverageValue = self.safe_integer(leverage, 'leverage')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': self.safe_string_lower(leverage, 'margin_mode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
 
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """

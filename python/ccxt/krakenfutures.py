@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -70,6 +70,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRates': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': True,
+                'fetchLeverages': True,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
@@ -160,6 +161,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'executions',
                         'triggers',
                         'accountlogcsv',
+                        'account-log',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
                     ],
@@ -2303,7 +2305,32 @@ class krakenfutures(Exchange, ImplicitAPI):
         #
         return self.privatePutLeveragepreferences(self.extend(request, params))
 
-    def fetch_leverage(self, symbol: Str = None, params={}):
+    def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+        """
+        fetch the set leverage for all contract and margin markets
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        self.load_markets()
+        response = self.privateGetLeveragepreferences(params)
+        #
+        #     {
+        #         "result": "success",
+        #         "serverTime": "2024-03-06T02:35:46.336Z",
+        #         "leveragePreferences": [
+        #             {
+        #                 "symbol": "PF_ETHUSD",
+        #                 "maxLeverage": 30.00
+        #             },
+        #         ]
+        #     }
+        #
+        leveragePreferences = self.safe_list(response, 'leveragePreferences', [])
+        return self.parse_leverages(leveragePreferences, symbols, 'symbol')
+
+    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
@@ -2314,17 +2341,32 @@ class krakenfutures(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchLeverage() requires a symbol argument')
         self.load_markets()
+        market = self.market(symbol)
         request = {
             'symbol': self.market_id(symbol).upper(),
         }
+        response = self.privateGetLeveragepreferences(self.extend(request, params))
         #
-        #   {
-        #       "result": "success",
-        #       "serverTime": "2023-08-01T09:54:08.900Z",
-        #       "leveragePreferences": [{symbol: "PF_LTCUSD", maxLeverage: "5.00"}]
-        #   }
+        #     {
+        #         "result": "success",
+        #         "serverTime": "2023-08-01T09:54:08.900Z",
+        #         "leveragePreferences": [{symbol: "PF_LTCUSD", maxLeverage: "5.00"}]
+        #     }
         #
-        return self.privateGetLeveragepreferences(self.extend(request, params))
+        leveragePreferences = self.safe_list(response, 'leveragePreferences', [])
+        data = self.safe_dict(leveragePreferences, 0, {})
+        return self.parse_leverage(data, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'symbol')
+        leverageValue = self.safe_integer(leverage, 'maxLeverage')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': None,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

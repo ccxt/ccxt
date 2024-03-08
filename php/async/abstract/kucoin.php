@@ -250,6 +250,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function private_get_purchase_orders($params = array()) {
         return $this->request('purchase/orders', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_broker_api_rebase_download($params = array()) {
+        return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
     public function private_post_sub_user_created($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));
     }
@@ -804,6 +807,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function privateGetPurchaseOrders($params = array()) {
         return $this->request('purchase/orders', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetBrokerApiRebaseDownload($params = array()) {
+        return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privatePostSubUserCreated($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));

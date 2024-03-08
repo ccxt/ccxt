@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.50'
+__version__ = '4.2.64'
 
 # -----------------------------------------------------------------------------
 
@@ -77,7 +77,6 @@ from ccxt.async_support.bitcoincom import bitcoincom                            
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
 from ccxt.async_support.bitfinex2 import bitfinex2                              # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
-from ccxt.async_support.bitforex import bitforex                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                                  # noqa: F401
 from ccxt.async_support.bitmart import bitmart                                  # noqa: F401
@@ -124,6 +123,7 @@ from ccxt.async_support.hollaex import hollaex                                  
 from ccxt.async_support.htx import htx                                          # noqa: F401
 from ccxt.async_support.huobi import huobi                                      # noqa: F401
 from ccxt.async_support.huobijp import huobijp                                  # noqa: F401
+from ccxt.async_support.hyperliquid import hyperliquid                          # noqa: F401
 from ccxt.async_support.idex import idex                                        # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve            # noqa: F401
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
@@ -180,7 +180,6 @@ exchanges = [
     'bitfinex',
     'bitfinex2',
     'bitflyer',
-    'bitforex',
     'bitget',
     'bithumb',
     'bitmart',
@@ -227,6 +226,7 @@ exchanges = [
     'htx',
     'huobi',
     'huobijp',
+    'hyperliquid',
     'idex',
     'independentreserve',
     'indodax',

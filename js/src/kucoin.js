@@ -232,7 +232,8 @@ export default class kucoin extends Exchange {
                         'project/list': 10,
                         'project/marketInterestRate': 7.5,
                         'redeem/orders': 10,
-                        'purchase/orders': 10, // 10SW
+                        'purchase/orders': 10,
+                        'broker/api/rebase/download': 3,
                     },
                     'post': {
                         // account

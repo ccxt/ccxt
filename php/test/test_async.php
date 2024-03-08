@@ -911,6 +911,7 @@ class testMainClass extends baseMainTestClass {
                 'fetchBorrowInterest' => [$code, $symbol],
                 'cancelAllOrders' => [$symbol],
                 'fetchCanceledOrders' => [$symbol],
+                'fetchMarginModes' => [$symbol],
                 'fetchPosition' => [$symbol],
                 'fetchDeposit' => [$code],
                 'createDepositAddress' => [$code],
@@ -1311,6 +1312,7 @@ class testMainClass extends baseMainTestClass {
             'secret' => 'secretsecret',
             'password' => 'password',
             'walletAddress' => 'wallet',
+            'privateKey' => '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid' => 'uid',
             'token' => 'token',
             'accounts' => [array(
@@ -1350,7 +1352,7 @@ class testMainClass extends baseMainTestClass {
                     if (($test_name !== null) && ($test_name !== $description)) {
                         continue;
                     }
-                    $is_disabled = $exchange->safe_value($result, 'disabled', false);
+                    $is_disabled = $exchange->safe_bool($result, 'disabled', false);
                     if ($is_disabled) {
                         continue;
                     }
@@ -1382,15 +1384,15 @@ class testMainClass extends baseMainTestClass {
                     $old_exchange_options = $exchange->options; // snapshot options;
                     $test_exchange_options = $exchange->safe_value($result, 'options', array());
                     $exchange->options = $exchange->deep_extend($old_exchange_options, $test_exchange_options); // custom options to be used in the tests
-                    $is_disabled = $exchange->safe_value($result, 'disabled', false);
+                    $is_disabled = $exchange->safe_bool($result, 'disabled', false);
                     if ($is_disabled) {
                         continue;
                     }
-                    $is_disabled_c_sharp = $exchange->safe_value($result, 'disabledCS', false);
+                    $is_disabled_c_sharp = $exchange->safe_bool($result, 'disabledCS', false);
                     if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
                         continue;
                     }
-                    $is_disabled_php = $exchange->safe_value($result, 'disabledPHP', false);
+                    $is_disabled_php = $exchange->safe_bool($result, 'disabledPHP', false);
                     if ($is_disabled_php && ($this->lang === 'PHP')) {
                         continue;
                     }
@@ -1484,7 +1486,7 @@ class testMainClass extends baseMainTestClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1805,6 +1807,22 @@ class testMainClass extends baseMainTestClass {
             }
             $broker_id = $request['brokerId'];
             assert(str_starts_with($broker_id, ((string) $id)), 'brokerId does not start with id');
+            Async\await(close($exchange));
+        }) ();
+    }
+
+    public function test_hyperliquid() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('hyperliquid');
+            $id = '1';
+            $request = null;
+            try {
+                Async\await($exchange->create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $broker_id = ((string) ($request['action']['brokerCode']));
+            assert($broker_id === $id, 'brokerId does not start with id');
             Async\await(close($exchange));
         }) ();
     }

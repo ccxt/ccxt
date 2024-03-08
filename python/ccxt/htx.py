@@ -1249,9 +1249,10 @@ class htx(Exchange, ImplicitAPI):
     def fetch_status(self, params={}):
         self.load_markets()
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchMyTrades', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchStatus', None, params)
+        enabledForContracts = self.handle_option('fetchStatus', 'enableForContracts', False)  # temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
         response = None
-        if marketType != 'spot':
+        if marketType != 'spot' and enabledForContracts:
             subType = self.safe_string(params, 'subType', self.options['defaultSubType'])
             if marketType == 'swap':
                 if subType == 'linear':
@@ -1265,7 +1266,7 @@ class htx(Exchange, ImplicitAPI):
                     response = self.statusPublicFutureInverseGetApiV2SummaryJson()
             elif marketType == 'contract':
                 response = self.contractPublicGetHeartbeat()
-        else:
+        elif marketType == 'spot':
             response = self.statusPublicSpotGetApiV2SummaryJson()
         #
         # statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
@@ -1433,7 +1434,10 @@ class htx(Exchange, ImplicitAPI):
         url = None
         if marketType == 'contract':
             statusRaw = self.safe_string(response, 'status')
-            status = 'ok' if (statusRaw == 'ok') else 'maintenance'  # 'ok', 'error'
+            if statusRaw is None:
+                status = None
+            else:
+                status = 'ok' if (statusRaw == 'ok') else 'maintenance'  # 'ok', 'error'
             updated = self.safe_string(response, 'ts')
         else:
             statusData = self.safe_value(response, 'status', {})
@@ -2502,7 +2506,9 @@ class htx(Exchange, ImplicitAPI):
         amountString = self.safe_string(trade, 'trade_volume', amountString)
         costString = self.safe_string(trade, 'trade_turnover')
         fee = None
-        feeCost = self.safe_string_2(trade, 'filled-fees', 'trade_fee')
+        feeCost = self.safe_string(trade, 'filled-fees')
+        if feeCost is None:
+            feeCost = Precise.string_neg(self.safe_string(trade, 'trade_fee'))
         feeCurrencyId = self.safe_string_2(trade, 'fee-currency', 'fee_asset')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         filledPoints = self.safe_string(trade, 'filled-points')

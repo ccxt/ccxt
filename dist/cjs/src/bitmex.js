@@ -59,7 +59,8 @@ class bitmex extends bitmex$1 {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
                 'fetchMarketLeverageTiers': false,
@@ -1506,7 +1507,7 @@ class bitmex extends bitmex$1 {
             request['endTime'] = this.iso8601(until);
         }
         const duration = this.parseTimeframe(timeframe) * 1000;
-        const fetchOHLCVOpenTimestamp = this.safeValue(this.options, 'fetchOHLCVOpenTimestamp', true);
+        const fetchOHLCVOpenTimestamp = this.safeBool(this.options, 'fetchOHLCVOpenTimestamp', true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
             let timestamp = since;
@@ -2113,6 +2114,30 @@ class bitmex extends bitmex$1 {
         //     ]
         //
         return this.parseOrders(response, market);
+    }
+    async fetchLeverages(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchLeverages
+         * @description fetch the set leverage for all contract markets
+         * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        const leverages = await this.fetchPositions(symbols, params);
+        return this.parseLeverages(leverages, symbols, 'symbol');
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': this.safeStringLower(leverage, 'marginMode'),
+            'longLeverage': this.safeInteger(leverage, 'leverage'),
+            'shortLeverage': this.safeInteger(leverage, 'leverage'),
+        };
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**

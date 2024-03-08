@@ -53,6 +53,9 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
         for (let i = 0; i < format.length; i++) {
             const emptyAllowedForThisKey = exchange.inArray(i, emptyAllowedFor);
             const value = entry[i];
+            if (i in skippedProperties) {
+                continue;
+            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
@@ -61,7 +64,8 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
             }
             assert(value !== undefined, i.toString() + ' index is expected to have a value' + logText);
             // because of other langs, this is needed for arrays
-            assert(assertType(exchange, skippedProperties, entry, i, format), i.toString() + ' index does not have an expected type ' + logText);
+            const typeAssertion = assertType(exchange, skippedProperties, entry, i, format);
+            assert(typeAssertion, i.toString() + ' index does not have an expected type ' + logText);
         }
     }
     else {
@@ -73,6 +77,9 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
                 continue;
             }
             assert(key in entry, '"' + stringValue(key) + '" key is missing from structure' + logText);
+            if (key in skippedProperties) {
+                continue;
+            }
             const emptyAllowedForThisKey = exchange.inArray(key, emptyAllowedFor);
             const value = entry[key];
             // check when:
@@ -85,7 +92,8 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
             assert(value !== undefined, '"' + stringValue(key) + '" key is expected to have a value' + logText);
             // add exclusion for info key, as it can be any type
             if (key !== 'info') {
-                assert(assertType(exchange, skippedProperties, entry, key, format), '"' + stringValue(key) + '" key is neither undefined, neither of expected type' + logText);
+                const typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
+                assert(typeAssertion, '"' + stringValue(key) + '" key is neither undefined, neither of expected type' + logText);
             }
         }
     }
@@ -286,10 +294,10 @@ function assertFeeStructure(exchange, skippedProperties, method, entry, key) {
 function assertTimestampOrder(exchange, method, codeOrSymbol, items, ascending = true) {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
-            const ascendingOrDescending = ascending ? 'ascending' : 'descending';
             const currentTs = items[i - 1]['timestamp'];
             const nextTs = items[i]['timestamp'];
             if (currentTs !== undefined && nextTs !== undefined) {
+                const ascendingOrDescending = ascending ? 'ascending' : 'descending';
                 const comparison = ascending ? (currentTs <= nextTs) : (currentTs >= nextTs);
                 assert(comparison, exchange.id + ' ' + method + ' ' + stringValue(codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp, but ' + currentTs.toString() + ' is opposite with its next ' + nextTs.toString() + ' ' + exchange.json(items));
             }
