@@ -333,10 +333,10 @@ export default class bitfinex2 extends bitfinex2Rest {
             // initial snapshot
             const trades = this.safeList (message, 1, []);
             // needs to be reversed to make chronological order
-            const tradesLength = trades.length;
-            const maxLength = Math.max (0, tradesLength - 1);
-            for (let i = maxLength; i >= 0; i--) {
-                const parsed = this.parseWsTrade (trades[i], market);
+            const length = trades.length;
+            for (let i = 0; i < length; i++) {
+                const index = length - i - 1;
+                const parsed = this.parseWsTrade (trades[index], market);
                 stored.append (parsed);
             }
         } else {
