@@ -277,6 +277,7 @@
       {
         "description": "Create order with tp and sl",
         "method": "createOrder",
+        "disabledCS": true,
         "input": [
           "LTC/USDT:USDT",
           "market",
@@ -329,7 +330,7 @@
           "lastUpdateTimestamp": null,
           "symbol": "LTC/USDT:USDT",
           "type": "market",
-          "timeInForce": "IOC",
+          "timeInForce": "GTC",
           "postOnly": null,
           "side": "buy",
           "price": null,
@@ -339,7 +340,7 @@
           "takeProfitPrice": 100,
           "average": null,
           "cost": null,
-          "amount": null,
+          "amount": 1,
           "filled": null,
           "remaining": null,
           "status": null,
@@ -420,7 +421,7 @@
           "lastUpdateTimestamp": null,
           "symbol": "LTC/USDT:USDT",
           "type": "market",
-          "timeInForce": "IOC",
+          "timeInForce": "GTC",
           "postOnly": null,
           "side": "buy",
           "price": null,
@@ -430,7 +431,7 @@
           "takeProfitPrice": null,
           "average": null,
           "cost": null,
-          "amount": null,
+          "amount": 0.1,
           "filled": null,
           "remaining": null,
           "status": null,
@@ -979,6 +980,196 @@
             ]
           }
         ]
+      }
+    ],
+    "fetchOpenOrders": [
+      {
+        "description": "spot open orders",
+        "method": "fetchOpenOrders",
+        "input": [
+          "LTC/USDT"
+        ],
+        "httpResponse": {
+          "code": "0",
+          "msg": "",
+          "debugMsg": "",
+          "data": {
+            "orders": [
+              {
+                "symbol": "LTC-USDT",
+                "orderId": "1752456208763060224",
+                "price": "50",
+                "StopPrice": "0",
+                "origQty": "0.1",
+                "executedQty": "0",
+                "cummulativeQuoteQty": "0",
+                "status": "PENDING",
+                "type": "LIMIT",
+                "side": "BUY",
+                "time": "1706653093888",
+                "updateTime": "1706653093888",
+                "origQuoteOrderQty": "0",
+                "clientOrderID": "",
+                "fee": "0"
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "symbol": "LTC-USDT",
+              "orderId": "1752456208763060224",
+              "price": "50",
+              "StopPrice": "0",
+              "origQty": "0.1",
+              "executedQty": "0",
+              "cummulativeQuoteQty": "0",
+              "status": "PENDING",
+              "type": "LIMIT",
+              "side": "BUY",
+              "time": "1706653093888",
+              "updateTime": "1706653093888",
+              "origQuoteOrderQty": "0",
+              "clientOrderID": "",
+              "fee": "0"
+            },
+            "id": "1752456208763060224",
+            "clientOrderId": null,
+            "timestamp": 1706653093888,
+            "datetime": "2024-01-30T22:18:13.888Z",
+            "lastTradeTimestamp": 1706653093888,
+            "lastUpdateTimestamp": 1706653093888,
+            "symbol": "LTC/USDT",
+            "type": "limit",
+            "timeInForce": null,
+            "postOnly": null,
+            "side": "buy",
+            "price": 50,
+            "stopPrice": null,
+            "triggerPrice": null,
+            "stopLossPrice": null,
+            "takeProfitPrice": null,
+            "average": null,
+            "cost": 0,
+            "amount": 0.1,
+            "filled": 0,
+            "remaining": 0.1,
+            "status": "open",
+            "fee": {
+              "currency": "LTC",
+              "cost": "0"
+            },
+            "trades": [],
+            "fees": [
+              {
+                "currency": "LTC",
+                "cost": 0
+              }
+            ],
+            "reduceOnly": null
+          }
+        ]
+      }
+    ],
+    "fetchDepositAddressesByNetwork": [
+      {
+        "description": "fetch USDT addresses",
+        "method": "fetchDepositAddressesByNetwork",
+        "input": [
+          "USDT"
+        ],
+        "httpResponse": {
+          "code": "0",
+          "timestamp": "1707911818729",
+          "data": {
+            "data": [
+              {
+                "coinId": "780",
+                "coin": "USDT",
+                "network": "TRC20",
+                "address": "ADD1",
+                "tag": ""
+              },
+              {
+                "coinId": "799",
+                "coin": "USDT",
+                "network": "BEP20",
+                "address": "ADD2",
+                "tag": ""
+              },
+              {
+                "coinId": "857",
+                "coin": "USDT",
+                "network": "SOL",
+                "address": "ADD3",
+                "tag": ""
+              },
+              {
+                "coinId": "1192",
+                "coin": "USDT",
+                "network": "POLYGON",
+                "address": "ADD2",
+                "tag": ""
+              }
+            ],
+            "total": "4"
+          }
+        },
+        "parsedResponse": {
+          "TRC20": {
+            "currency": "USDT",
+            "address": "ADD1",
+            "tag": null,
+            "network": "TRC20",
+            "info": {
+              "coinId": "780",
+              "coin": "USDT",
+              "network": "TRC20",
+              "address": "ADD1",
+              "tag": ""
+            }
+          },
+          "BEP20": {
+            "currency": "USDT",
+            "address": "ADD2",
+            "tag": null,
+            "network": "BEP20",
+            "info": {
+              "coinId": "799",
+              "coin": "USDT",
+              "network": "BEP20",
+              "address": "ADD2",
+              "tag": ""
+            }
+          },
+          "SOL": {
+            "currency": "USDT",
+            "address": "ADD3",
+            "tag": null,
+            "network": "SOL",
+            "info": {
+              "coinId": "857",
+              "coin": "USDT",
+              "network": "SOL",
+              "address": "ADD3",
+              "tag": ""
+            }
+          },
+          "POLYGON": {
+            "currency": "USDT",
+            "address": "ADD2",
+            "tag": null,
+            "network": "POLYGON",
+            "info": {
+              "coinId": "1192",
+              "coin": "USDT",
+              "network": "POLYGON",
+              "address": "ADD2",
+              "tag": ""
+            }
+          }
+        }
       }
     ]
   }

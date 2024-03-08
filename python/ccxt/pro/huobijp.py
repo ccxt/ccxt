@@ -350,6 +350,7 @@ class huobijp(ccxt.async_support.huobijp):
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
+        return None
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -507,10 +508,8 @@ class huobijp(ccxt.async_support.huobijp):
                 # ...
             }
             method = self.safe_value(methods, methodName)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+            if method is not None:
+                method(client, message)
 
     async def pong(self, client, message):
         #

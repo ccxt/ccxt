@@ -223,6 +223,17 @@
                 "output": "nonce=1699458295807"
             }
         ],
+        "cancelOrder": [
+            {
+                "description": "cancel open trailing percent order",
+                "method": "cancelOrder",
+                "url": "https://api.kraken.com/0/private/CancelOrder",
+                "input": [
+                  "OF7S76-H2IMS-N2ML4U"
+                ],
+                "output": "nonce=1706895560930&txid=OF7S76-H2IMS-N2ML4U"
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch spot Balance",
@@ -291,6 +302,18 @@
 
                 ],
                 "output": "nonce=1699458295995&asset=USDT&start=1670935203"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv with since",
+                "method": "fetchOHLCV",
+                "url": "https://api.kraken.com/0/public/OHLC?pair=XBTUSDT&interval=60&since=1706628191000000000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1706628191000
+                ]
             }
         ]
     }

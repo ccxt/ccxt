@@ -22,6 +22,7 @@ export default class p2b extends Exchange {
             'countries': ['LT'],
             'rateLimit': 100,
             'version': 'v2',
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,

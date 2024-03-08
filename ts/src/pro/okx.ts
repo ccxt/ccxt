@@ -578,7 +578,7 @@ export default class okx extends okxRest {
         const storedBids = orderbook['bids'];
         this.handleDeltas (storedAsks, asks);
         this.handleDeltas (storedBids, bids);
-        const checksum = this.safeValue (this.options, 'checksum', true);
+        const checksum = this.safeBool (this.options, 'checksum', true);
         if (checksum) {
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
@@ -774,7 +774,7 @@ export default class okx extends okxRest {
             const message = this.extend (request, params);
             this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -887,7 +887,7 @@ export default class okx extends okxRest {
         // By default, receive order updates from any instrument type
         let type = undefined;
         [ type, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'type', 'ANY');
-        const isStop = this.safeValue (params, 'stop', false);
+        const isStop = this.safeBool (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
         await this.loadMarkets ();
         await this.authenticate ({ 'access': isStop ? 'business' : 'private' });
@@ -931,9 +931,6 @@ export default class okx extends okxRest {
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
-        if (this.isEmpty (symbols)) {
-            throw new ArgumentsRequired (this.id + ' watchPositions requires a list of symbols');
-        }
         await this.loadMarkets ();
         await this.authenticate (params);
         symbols = this.marketSymbols (symbols);
@@ -941,7 +938,22 @@ export default class okx extends okxRest {
             'instType': 'ANY',
         };
         const channel = 'positions';
-        const newPositions = await this.subscribeMultiple ('private', channel, symbols, this.extend (request, params));
+        let newPositions = undefined;
+        if (symbols === undefined) {
+            const arg = {
+                'channel': 'positions',
+                'instType': 'ANY',
+            };
+            const args = [ arg ];
+            const nonSymbolRequest = {
+                'op': 'subscribe',
+                'args': args,
+            };
+            const url = this.getUrl (channel, 'private');
+            newPositions = await this.watch (url, channel, nonSymbolRequest, channel);
+        } else {
+            newPositions = await this.subscribeMultiple ('private', channel, symbols, this.extend (request, params));
+        }
         if (this.newUpdates) {
             return newPositions;
         }
@@ -1040,6 +1052,7 @@ export default class okx extends okxRest {
                 client.resolve (positions, messageHash);
             }
         }
+        client.resolve (newPositions, channel);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1599,7 +1612,8 @@ export default class okx extends okxRest {
         //
         //
         if (message === 'pong') {
-            return this.handlePong (client, message);
+            this.handlePong (client, message);
+            return;
         }
         // const table = this.safeString (message, 'table');
         // if (table === undefined) {
@@ -1618,10 +1632,8 @@ export default class okx extends okxRest {
                 'mass-cancel': this.handleCancelAllOrders,
             };
             const method = this.safeValue (methods, event);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         } else {
             const arg = this.safeValue (message, 'arg', {});
@@ -1647,11 +1659,9 @@ export default class okx extends okxRest {
             if (method === undefined) {
                 if (channel.indexOf ('candle') === 0) {
                     this.handleOHLCV (client, message);
-                } else {
-                    return message;
                 }
             } else {
-                return method.call (this, client, message);
+                method.call (this, client, message);
             }
         }
     }

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Num, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Num, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -165,7 +165,7 @@ class ascendex(Exchange, ImplicitAPI):
                         'get': {
                             'info': 1,
                             'wallet/transactions': 1,
-                            'wallet/deposit/address': 1,  # not documented
+                            'wallet/deposit/address': 1,
                             'data/balance/snapshot': 1,
                             'data/balance/history': 1,
                         },
@@ -284,11 +284,14 @@ class ascendex(Exchange, ImplicitAPI):
                     'fillResponseFromRequest': True,
                 },
                 'networks': {
-                    'BSC': 'BEP20(BSC)',
+                    'BSC': 'BEP20 ' + '(BSC)',
                     'ARB': 'arbitrum',
                     'SOL': 'Solana',
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
+                    'TRC': 'TRC20',
+                    'TRX': 'TRC20',
+                    'ERC': 'ERC20',
                 },
                 'networksById': {
                     'BEP20(BSC)': 'BSC',
@@ -296,6 +299,16 @@ class ascendex(Exchange, ImplicitAPI):
                     'Solana': 'SOL',
                     'avalanche C chain': 'AVAX',
                     'Omni': 'OMNI',
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
+                    'GO20': 'GO20',
+                    'BEP2': 'BEP2',
+                    'Bitcoin': 'BTC',
+                    'Bitcoin ABC': 'BCH',
+                    'Litecoin': 'LTC',
+                    'Matic Network': 'MATIC',
+                    'xDai': 'STAKE',
+                    'Akash': 'AKT',
                 },
             },
             'exceptions': {
@@ -622,7 +635,7 @@ class ascendex(Exchange, ImplicitAPI):
                 maxPrice = self.safe_number(priceFilter, 'maxPrice')
                 symbol = base + '/' + quote + ':' + settle
             fee = self.safe_number(market, 'commissionReserveRate')
-            marginTradable = self.safe_value(market, 'marginTradable', False)
+            marginTradable = self.safe_bool(market, 'marginTradable', False)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -738,11 +751,10 @@ class ascendex(Exchange, ImplicitAPI):
         ]
 
     def parse_balance(self, response) -> Balances:
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -755,11 +767,10 @@ class ascendex(Exchange, ImplicitAPI):
         return self.safe_balance(result)
 
     def parse_margin_balance(self, response):
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -775,11 +786,10 @@ class ascendex(Exchange, ImplicitAPI):
         return self.safe_balance(result)
 
     def parse_swap_balance(self, response):
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         data = self.safe_value(response, 'data', {})
         collaterals = self.safe_value(data, 'collaterals', [])
@@ -798,6 +808,8 @@ class ascendex(Exchange, ImplicitAPI):
         :see: https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: wallet type, 'spot', 'margin', or 'swap'
+        :param str [params.marginMode]: 'cross' or None, for spot margin trading, value of 'isolated' is invalid
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
@@ -806,7 +818,7 @@ class ascendex(Exchange, ImplicitAPI):
         marginMode = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
-        isMargin = self.safe_value(params, 'margin', False)
+        isMargin = self.safe_bool(params, 'margin', False)
         isCross = marginMode == 'cross'
         marketType = 'margin' if (isMargin or isCross) else marketType
         params = self.omit(params, 'margin')
@@ -1142,7 +1154,7 @@ class ascendex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'ts')
         priceString = self.safe_string_2(trade, 'price', 'p')
         amountString = self.safe_string(trade, 'q')
-        buyerIsMaker = self.safe_value(trade, 'bm', False)
+        buyerIsMaker = self.safe_bool(trade, 'bm', False)
         side = 'sell' if buyerIsMaker else 'buy'
         market = self.safe_market(None, market)
         return self.safe_trade({
@@ -1426,7 +1438,7 @@ class ascendex(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -1468,7 +1480,7 @@ class ascendex(Exchange, ImplicitAPI):
         isLimitOrder = ((type == 'limit') or (type == 'stop_limit'))
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = self.is_post_only(isMarketOrder, False, params)
-        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if isLimitOrder:
             request['orderPrice'] = self.price_to_precision(symbol, price)
@@ -1498,7 +1510,7 @@ class ascendex(Exchange, ImplicitAPI):
         params = self.omit(params, ['reduceOnly', 'triggerPrice'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order on the exchange
         :see: https://ascendex.github.io/ascendex-pro-api/#place-order
@@ -2253,8 +2265,8 @@ class ascendex(Exchange, ImplicitAPI):
         tag = self.safe_string(depositAddress, tagId)
         self.check_address(address)
         code = None if (currency is None) else currency['code']
-        chainName = self.safe_string(depositAddress, 'chainName')
-        network = self.safe_network(chainName)
+        chainName = self.safe_string(depositAddress, 'blockchain')
+        network = self.network_id_to_code(chainName, code)
         return {
             'currency': code,
             'address': address,
@@ -2264,35 +2276,26 @@ class ascendex(Exchange, ImplicitAPI):
         }
 
     def safe_network(self, networkId):
-        networksById = {
-            'TRC20': 'TRC20',
-            'ERC20': 'ERC20',
-            'GO20': 'GO20',
-            'BEP2': 'BEP2',
-            'BEP20(BSC)': 'BEP20',
-            'Bitcoin': 'BTC',
-            'Bitcoin ABC': 'BCH',
-            'Litecoin': 'LTC',
-            'Matic Network': 'MATIC',
-            'Solana': 'SOL',
-            'xDai': 'STAKE',
-            'Akash': 'AKT',
-        }
+        networksById = self.safe_dict(self.options, 'networksById')
         return self.safe_string(networksById, networkId, networkId)
 
     def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        :see: https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: unified network code for deposit chain
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
-        chainName = self.safe_string(params, 'chainName')
-        params = self.omit(params, 'chainName')
+        networkCode = self.safe_string_2(params, 'network', 'chainName')
+        networkId = self.network_code_to_id(networkCode)
+        params = self.omit(params, ['chainName'])
         request = {
             'asset': currency['id'],
+            'blockchain': networkId,
         }
         response = self.v1PrivateGetWalletDepositAddress(self.extend(request, params))
         #
@@ -2328,20 +2331,20 @@ class ascendex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        addresses = self.safe_value(data, 'address', [])
+        data = self.safe_dict(response, 'data', {})
+        addresses = self.safe_list(data, 'address', [])
         numAddresses = len(addresses)
         address = None
         if numAddresses > 1:
             addressesByChainName = self.index_by(addresses, 'chainName')
-            if chainName is None:
+            if networkId is None:
                 chainNames = list(addressesByChainName.keys())
                 chains = ', '.join(chainNames)
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains)
-            address = self.safe_value(addressesByChainName, chainName, {})
+            address = self.safe_dict(addressesByChainName, networkId, {})
         else:
             # first address
-            address = self.safe_value(addresses, 0, {})
+            address = self.safe_dict(addresses, 0, {})
         result = self.parse_deposit_address(address, currency)
         return self.extend(result, {
             'info': response,
@@ -2754,7 +2757,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
-    def set_leverage(self, leverage, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-leverage
@@ -2781,7 +2784,7 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return self.v2PrivateAccountGroupPostFuturesLeverage(self.extend(request, params))
 
-    def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
@@ -2959,10 +2962,10 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'assetCode')
 
-    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :param str code: unified currency code
+        :param str code: unified currency codeåå
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
@@ -2992,7 +2995,7 @@ class ascendex(Exchange, ImplicitAPI):
         #    {"code": "0"}
         #
         transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         transfer = self.parse_transfer(response, currency)
         if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
@@ -3007,12 +3010,11 @@ class ascendex(Exchange, ImplicitAPI):
         #
         status = self.safe_integer(transfer, 'code')
         currencyCode = self.safe_currency_code(None, currency)
-        timestamp = self.milliseconds()
         return {
             'info': transfer,
             'id': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'currency': currencyCode,
             'amount': None,
             'fromAccount': None,

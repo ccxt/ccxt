@@ -45,11 +45,11 @@ export default class coinmetro extends Exchange {
         after: number;
         status: string;
         fee: any;
-        info: any;
+        info: import("./base/types.js").Dictionary<any>;
     };
     parseLedgerEntryDescription(description: any): any[];
     parseLedgerEntryType(type: any): string;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     handleCreateOrderSide(sellingCurrency: any, buyingCurrency: any, sellingQty: any, buyingQty: any, request?: {}): {};
     encodeOrderTimeInForce(timeInForce: any): any;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -59,7 +59,7 @@ export default class coinmetro extends Exchange {
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
     parseOrderTimeInForce(timeInForce: any): any;
-    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<any>;
+    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
         id: any;
         currency: string;

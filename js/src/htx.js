@@ -1234,9 +1234,10 @@ export default class htx extends Exchange {
     async fetchStatus(params = {}) {
         await this.loadMarkets();
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', undefined, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchStatus', undefined, params);
+        const enabledForContracts = this.handleOption('fetchStatus', 'enableForContracts', false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
         let response = undefined;
-        if (marketType !== 'spot') {
+        if (marketType !== 'spot' && enabledForContracts) {
             const subType = this.safeString(params, 'subType', this.options['defaultSubType']);
             if (marketType === 'swap') {
                 if (subType === 'linear') {
@@ -1258,7 +1259,7 @@ export default class htx extends Exchange {
                 response = await this.contractPublicGetHeartbeat();
             }
         }
-        else {
+        else if (marketType === 'spot') {
             response = await this.statusPublicSpotGetApiV2SummaryJson();
         }
         //
@@ -1427,7 +1428,12 @@ export default class htx extends Exchange {
         let url = undefined;
         if (marketType === 'contract') {
             const statusRaw = this.safeString(response, 'status');
-            status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            if (statusRaw === undefined) {
+                status = undefined;
+            }
+            else {
+                status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            }
             updated = this.safeString(response, 'ts');
         }
         else {
@@ -2588,7 +2594,10 @@ export default class htx extends Exchange {
         amountString = this.safeString(trade, 'trade_volume', amountString);
         const costString = this.safeString(trade, 'trade_turnover');
         let fee = undefined;
-        let feeCost = this.safeString2(trade, 'filled-fees', 'trade_fee');
+        let feeCost = this.safeString(trade, 'filled-fees');
+        if (feeCost === undefined) {
+            feeCost = Precise.stringNeg(this.safeString(trade, 'trade_fee'));
+        }
         const feeCurrencyId = this.safeString2(trade, 'fee-currency', 'fee_asset');
         let feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         const filledPoints = this.safeString(trade, 'filled-points');
@@ -3984,7 +3993,7 @@ export default class htx extends Exchange {
         let response = undefined;
         const stop = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-        const trailing = this.safeValue(params, 'trailing', false);
+        const trailing = this.safeBool(params, 'trailing', false);
         params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
         if (stop || stopLossTakeProfit || trailing) {
             if (limit !== undefined) {
@@ -4359,7 +4368,7 @@ export default class htx extends Exchange {
             request['contract_code'] = market['id'];
             const stop = this.safeValue(params, 'stop');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-            const trailing = this.safeValue(params, 'trailing', false);
+            const trailing = this.safeBool(params, 'trailing', false);
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
             if (market['linear']) {
                 let marginMode = undefined;
@@ -5012,7 +5021,7 @@ export default class htx extends Exchange {
         const marketId = this.safeString2(order, 'contract_code', 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeIntegerN(order, ['created_at', 'created-at', 'create_date']);
-        const clientOrderId = this.safeString2(order, 'client_order_id', 'client-order-id');
+        const clientOrderId = this.safeString2(order, 'client_order_id', 'client-or' + 'der-id'); // transpiler regex trick for php issue
         let cost = undefined;
         let amount = undefined;
         if ((type !== undefined) && (type.indexOf('market') >= 0)) {
@@ -5738,7 +5747,7 @@ export default class htx extends Exchange {
             }
             const stop = this.safeValue(params, 'stop');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-            const trailing = this.safeValue(params, 'trailing', false);
+            const trailing = this.safeBool(params, 'trailing', false);
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
             if (market['linear']) {
                 let marginMode = undefined;
@@ -6063,7 +6072,7 @@ export default class htx extends Exchange {
             request['contract_code'] = market['id'];
             const stop = this.safeValue(params, 'stop');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-            const trailing = this.safeValue(params, 'trailing', false);
+            const trailing = this.safeBool(params, 'trailing', false);
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing']);
             if (market['linear']) {
                 let marginMode = undefined;
@@ -6529,7 +6538,7 @@ export default class htx extends Exchange {
         }
         amount = parseFloat(this.currencyToPrecision(code, amount, networkCode));
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
-        if (this.safeValue(withdrawOptions, 'includeFee', false)) {
+        if (this.safeBool(withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber(params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies();
@@ -7091,7 +7100,7 @@ export default class htx extends Exchange {
         const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
         market = this.safeMarket(marketId);
         const symbol = this.safeString(market, 'symbol');
-        const timestamp = this.safeNumber(info, 'accrued-at');
+        const timestamp = this.safeInteger(info, 'accrued-at');
         return {
             'account': (marginMode === 'isolated') ? symbol : 'cross',
             'symbol': symbol,

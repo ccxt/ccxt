@@ -88,7 +88,7 @@ export default class coinbase extends coinbaseRest {
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
-    async watchTicker (symbol, params = {}): Promise<Ticker> {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coinbasepro#watchTicker
@@ -269,7 +269,7 @@ export default class coinbase extends coinbaseRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbasepro#watchOrders
@@ -473,7 +473,8 @@ export default class coinbase extends coinbaseRest {
             const side = this.safeString (this.options['sides'], sideId);
             const price = this.safeNumber (trade, 'price_level');
             const amount = this.safeNumber (trade, 'new_quantity');
-            orderbook[side].store (price, amount);
+            const orderbookSide = orderbook[side];
+            orderbookSide.store (price, amount);
         }
     }
 
@@ -568,6 +569,6 @@ export default class coinbase extends coinbaseRest {
             throw new ExchangeError (errorMessage);
         }
         const method = this.safeValue (methods, channel);
-        return method.call (this, client, message);
+        method.call (this, client, message);
     }
 }

@@ -18,6 +18,8 @@ class ImplicitAPI:
     public_get_public_orderbook_symbol = publicGetPublicOrderbookSymbol = Entry('public/orderbook/{symbol}', 'public', 'GET', {'cost': 10})
     public_get_public_candles = publicGetPublicCandles = Entry('public/candles', 'public', 'GET', {'cost': 10})
     public_get_public_candles_symbol = publicGetPublicCandlesSymbol = Entry('public/candles/{symbol}', 'public', 'GET', {'cost': 10})
+    public_get_public_converted_candles = publicGetPublicConvertedCandles = Entry('public/converted/candles', 'public', 'GET', {'cost': 10})
+    public_get_public_converted_candles_symbol = publicGetPublicConvertedCandlesSymbol = Entry('public/converted/candles/{symbol}', 'public', 'GET', {'cost': 10})
     public_get_public_futures_info = publicGetPublicFuturesInfo = Entry('public/futures/info', 'public', 'GET', {'cost': 10})
     public_get_public_futures_info_symbol = publicGetPublicFuturesInfoSymbol = Entry('public/futures/info/{symbol}', 'public', 'GET', {'cost': 10})
     public_get_public_futures_history_funding = publicGetPublicFuturesHistoryFunding = Entry('public/futures/history/funding', 'public', 'GET', {'cost': 10})

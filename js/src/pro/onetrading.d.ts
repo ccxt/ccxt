@@ -28,7 +28,7 @@ export default class onetrading extends onetradingRest {
     handleSubscriptions(client: Client, message: any): any;
     handleHeartbeat(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
     handlePricePointUpdates(client: Client, message: any): any;
     handleAuthenticationMessage(client: Client, message: any): any;
     watchMany(messageHash: any, request: any, subscriptionHash: any, symbols?: Strings, params?: {}): Promise<any>;

@@ -84,10 +84,10 @@ class woo extends woo$1 {
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchStatus': false,
+                'fetchStatus': true,
                 'fetchTicker': false,
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
@@ -97,6 +97,7 @@ class woo extends woo$1 {
                 'reduceMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
@@ -171,10 +172,16 @@ class woo extends woo$1 {
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
+                            'client/hist_trades': 1,
+                            'staking/yield_history': 1,
+                            'client/holding': 1,
                             'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
                             'sub_account/assets': 60,
+                            'sub_account/asset_detail': 60,
+                            'sub_account/ip_restriction': 10,
+                            'asset/main_sub_transfer_history': 30,
                             'token_interest': 60,
                             'token_interest/{token}': 60,
                             'interest/history': 60,
@@ -187,9 +194,12 @@ class woo extends woo$1 {
                         'post': {
                             'order': 5,
                             'asset/main_sub_transfer': 30,
+                            'asset/ltv': 30,
                             'asset/withdraw': 30,
+                            'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
+                            'client/position_mode': 5,
                             'client/leverage': 120,
                         },
                         'delete': {
@@ -295,7 +305,6 @@ class woo extends woo$1 {
                     '-1007': errors.BadRequest,
                     '-1008': errors.InvalidOrder,
                     '-1009': errors.BadRequest,
-                    '-1011': errors.ExchangeError,
                     '-1012': errors.BadRequest,
                     '-1101': errors.InvalidOrder,
                     '-1102': errors.InvalidOrder,
@@ -304,6 +313,8 @@ class woo extends woo$1 {
                     '-1105': errors.InvalidOrder, // { "code": -1105,  "message": "Price is X% too high or X% too low from the mid price." }
                 },
                 'broad': {
+                    'Can not place': errors.ExchangeError,
+                    'maintenance': errors.OnMaintenance,
                     'symbol must not be blank': errors.BadRequest,
                     'The token is not supported': errors.BadRequest,
                     'Your order and symbol are not valid or already canceled': errors.BadRequest,
@@ -312,6 +323,67 @@ class woo extends woo$1 {
             },
             'precisionMode': number.TICK_SIZE,
         });
+    }
+    async fetchStatus(params = {}) {
+        /**
+         * @method
+         * @name woo#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @see https://docs.woo.org/#get-system-maintenance-status-public
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         */
+        const response = await this.v1PublicGetSystemInfo(params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "status": "0",
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        let status = this.safeString(data, 'status');
+        if (status === undefined) {
+            status = 'error';
+        }
+        else if (status === '0') {
+            status = 'ok';
+        }
+        else {
+            status = 'maintenance';
+        }
+        return {
+            'status': status,
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+    async fetchTime(params = {}) {
+        /**
+         * @method
+         * @name woo#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.woo.org/#get-system-maintenance-status-public
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.v1PublicGetSystemInfo(params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "status": "0",
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
+        //     }
+        //
+        return this.safeInteger(response, 'timestamp');
     }
     async fetchMarkets(params = {}) {
         /**
@@ -343,7 +415,7 @@ class woo extends woo$1 {
         //     "success": true
         // }
         //
-        const data = this.safeValue(response, 'rows', []);
+        const data = this.safeList(response, 'rows', []);
         return this.parseMarkets(data);
     }
     parseMarket(market) {
@@ -479,7 +551,7 @@ class woo extends woo$1 {
         //      ]
         // }
         //
-        const resultResponse = this.safeValue(response, 'rows', {});
+        const resultResponse = this.safeList(response, 'rows', []);
         return this.parseTrades(resultResponse, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -595,7 +667,7 @@ class woo extends woo$1 {
         //         "timestamp": 1673323685109
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const maker = this.safeString(data, 'makerFeeRate');
         const taker = this.safeString(data, 'takerFeeRate');
         const result = {};
@@ -682,7 +754,7 @@ class woo extends woo$1 {
         //     "success": true
         // }
         //
-        const tokenRows = this.safeValue(tokenResponse, 'rows', []);
+        const tokenRows = this.safeList(tokenResponse, 'rows', []);
         const networksByCurrencyId = this.groupBy(tokenRows, 'balance_token');
         const currencyIds = Object.keys(networksByCurrencyId);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -842,7 +914,7 @@ class woo extends woo$1 {
          * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         params = this.omit(params, ['reduceOnly', 'reduce_only']);
         const orderType = type.toUpperCase();
         await this.loadMarkets();
@@ -856,7 +928,7 @@ class woo extends woo$1 {
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
         const algoType = this.safeString(params, 'algoType');
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
         const isTrailingAmountOrder = trailingAmount !== undefined;
@@ -1013,9 +1085,9 @@ class woo extends woo$1 {
         //     },
         //     "timestamp": "1686149372216"
         // }
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         if (data !== undefined) {
-            const rows = this.safeValue(data, 'rows', []);
+            const rows = this.safeList(data, 'rows', []);
             return this.parseOrder(rows[0], market);
         }
         const order = this.parseOrder(response, market);
@@ -1065,7 +1137,7 @@ class woo extends woo$1 {
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
-        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', price);
+        const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRate');
         const isTrailingAmountOrder = trailingAmount !== undefined;
@@ -1116,7 +1188,7 @@ class woo extends woo$1 {
         //         "timestamp": 0
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -1133,7 +1205,7 @@ class woo extends woo$1 {
          * @param {boolean} [params.stop] whether the order is a stop/algo order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const stop = this.safeValue(params, 'stop', false);
+        const stop = this.safeBool(params, 'stop', false);
         params = this.omit(params, 'stop');
         if (!stop && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
@@ -1190,8 +1262,8 @@ class woo extends woo$1 {
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        const stop = this.safeValue(params, 'stop');
-        params = this.omit(params, 'stop');
+        const stop = this.safeBool2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
         if (stop) {
             return await this.v3PrivateDeleteAlgoOrdersPending(params);
         }
@@ -1225,8 +1297,8 @@ class woo extends woo$1 {
          */
         await this.loadMarkets();
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
-        const stop = this.safeValue(params, 'stop');
-        params = this.omit(params, 'stop');
+        const stop = this.safeBool2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
         const request = {};
         const clientOrderId = this.safeString2(params, 'clOrdID', 'clientOrderId');
         let response = undefined;
@@ -1300,9 +1372,9 @@ class woo extends woo$1 {
         await this.loadMarkets();
         const request = {};
         let market = undefined;
-        const stop = this.safeValue(params, 'stop');
-        const trailing = this.safeValue(params, 'trailing', false);
-        params = this.omit(params, ['stop', 'trailing']);
+        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trailing = this.safeBool(params, 'trailing', false);
+        params = this.omit(params, ['stop', 'trailing', 'trigger']);
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
@@ -1360,7 +1432,7 @@ class woo extends woo$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', response);
-        const orders = this.safeValue(data, 'rows');
+        const orders = this.safeList(data, 'rows');
         return this.parseOrders(orders, market, since, limit, params);
     }
     parseTimeInForce(timeInForce) {
@@ -1462,7 +1534,7 @@ class woo extends woo$1 {
             'type': orderType,
             'timeInForce': this.parseTimeInForce(orderType),
             'postOnly': undefined,
-            'reduceOnly': this.safeValue(order, 'reduce_only'),
+            'reduceOnly': this.safeBool(order, 'reduce_only'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1543,11 +1615,12 @@ class woo extends woo$1 {
          * @method
          * @name woo#fetchOHLCV
          * @see https://docs.woo.org/#kline-public
+         * @see https://docs.woo.org/#kline-historical-data-public
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -1557,42 +1630,70 @@ class woo extends woo$1 {
             'symbol': market['id'],
             'type': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (limit !== undefined) {
+        let useHistEndpoint = since !== undefined;
+        if ((limit !== undefined) && (since !== undefined)) {
+            const oneThousandCandles = this.parseTimeframe(timeframe) * 1000 * 999; // 999 because there will be delay between this and the request, causing the latest candle to be excluded sometimes
+            const startWithLimit = this.milliseconds() - oneThousandCandles;
+            useHistEndpoint = since < startWithLimit;
+        }
+        if (useHistEndpoint) {
+            request['start_time'] = since;
+        }
+        else if (limit !== undefined) { // the hist endpoint does not accept limit
             request['limit'] = Math.min(limit, 1000);
         }
-        const response = await this.v1PublicGetKline(this.extend(request, params));
-        // {
-        //     "success": true,
-        //     "rows": [
-        //       {
-        //         "open": "0.94238",
-        //         "close": "0.94271",
-        //         "low": "0.94238",
-        //         "high": "0.94296",
-        //         "volume": "73.55",
-        //         "amount": "69.32040520",
-        //         "symbol": "SPOT_WOO_USDT",
-        //         "type": "1m",
-        //         "start_timestamp": "1641584700000",
-        //         "end_timestamp": "1641584760000"
-        //       },
-        //       {
-        //         "open": "0.94186",
-        //         "close": "0.94186",
-        //         "low": "0.94186",
-        //         "high": "0.94186",
-        //         "volume": "64.00",
-        //         "amount": "60.27904000",
-        //         "symbol": "SPOT_WOO_USDT",
-        //         "type": "1m",
-        //         "start_timestamp": "1641584640000",
-        //         "end_timestamp": "1641584700000"
-        //       },
-        //       ...
-        //     ]
-        // }
-        const data = this.safeValue(response, 'rows', []);
-        return this.parseOHLCVs(data, market, timeframe, since, limit);
+        let response = undefined;
+        if (!useHistEndpoint) {
+            response = await this.v1PublicGetKline(this.extend(request, params));
+            //
+            //    {
+            //        "success": true,
+            //        "rows": [
+            //            {
+            //                "open": "0.94238",
+            //                "close": "0.94271",
+            //                "low": "0.94238",
+            //                "high": "0.94296",
+            //                "volume": "73.55",
+            //                "amount": "69.32040520",
+            //                "symbol": "SPOT_WOO_USDT",
+            //                "type": "1m",
+            //                "start_timestamp": "1641584700000",
+            //                "end_timestamp": "1641584760000"
+            //            },
+            //            ...
+            //        ]
+            //    }
+            //
+        }
+        else {
+            response = await this.v1PubGetHistKline(this.extend(request, params));
+            response = this.safeDict(response, 'data');
+            //
+            //    {
+            //        "success": true,
+            //        "data": {
+            //            "rows": [
+            //                {
+            //                    "symbol": "SPOT_BTC_USDT",
+            //                    "open": 44181.40000000,
+            //                    "close": 44174.29000000,
+            //                    "high": 44193.44000000,
+            //                    "low": 44148.34000000,
+            //                    "volume": 110.11930100,
+            //                    "amount": 4863796.24318878,
+            //                    "type": "1m",
+            //                    "start_timestamp": 1704153600000,
+            //                    "end_timestamp": 1704153660000
+            //                },
+            //                ...
+            //            ]
+            //        }
+            //    }
+            //
+        }
+        const rows = this.safeList(response, 'rows', []);
+        return this.parseOHLCVs(rows, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         // example response in fetchOHLCV
@@ -1644,7 +1745,7 @@ class woo extends woo$1 {
         //       }
         //     ]
         // }
-        const trades = this.safeValue(response, 'rows', []);
+        const trades = this.safeList(response, 'rows', []);
         return this.parseTrades(trades, market, since, limit, params);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1692,7 +1793,7 @@ class woo extends woo$1 {
         //         ...
         //     ]
         // }
-        const trades = this.safeValue(response, 'rows', []);
+        const trades = this.safeList(response, 'rows', []);
         return this.parseTrades(trades, market, since, limit, params);
     }
     async fetchAccounts(params = {}) {
@@ -1720,7 +1821,7 @@ class woo extends woo$1 {
         //         "success": true
         //     }
         //
-        const rows = this.safeValue(response, 'rows', []);
+        const rows = this.safeList(response, 'rows', []);
         return this.parseAccounts(rows, params);
     }
     parseAccount(account) {
@@ -1774,14 +1875,14 @@ class woo extends woo$1 {
         //         "timestamp": 1673323746259
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseBalance(data);
     }
     parseBalance(response) {
         const result = {
             'info': response,
         };
-        const balances = this.safeValue(response, 'holding', []);
+        const balances = this.safeList(response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode(this.safeString(balance, 'token'));
@@ -2058,6 +2159,7 @@ class woo extends woo$1 {
         /**
          * @method
          * @name woo#transfer
+         * @see https://docs.woo.org/#get-transfer-history
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
@@ -2070,7 +2172,7 @@ class woo extends woo$1 {
         const currency = this.currency(code);
         const request = {
             'token': currency['id'],
-            'amount': this.parseNumber(amount),
+            'amount': this.parseToNumeric(amount),
             'from_application_id': fromAccount,
             'to_application_id': toAccount,
         };
@@ -2082,8 +2184,8 @@ class woo extends woo$1 {
         //     }
         //
         const transfer = this.parseTransfer(response, currency);
-        const transferOptions = this.safeValue(this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeValue(transferOptions, 'fillResponseFromRequest', true);
+        const transferOptions = this.safeDict(this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['amount'] = amount;
             transfer['fromAccount'] = fromAccount;
@@ -2096,41 +2198,71 @@ class woo extends woo$1 {
          * @method
          * @name woo#fetchTransfers
          * @description fetch a history of internal transfers made on an account
+         * @see https://docs.woo.org/#get-transfer-history
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
-        const request = {
-            'type': 'COLLATERAL',
-        };
-        const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
-        return this.parseTransfers(rows, currency, since, limit, params);
+        const request = {};
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_t'] = since;
+        }
+        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        params = this.omit(params, ['until', 'till']);
+        if (until !== undefined) {
+            request['end_t'] = until;
+        }
+        const response = await this.v1PrivateGetAssetMainSubTransferHistory(this.extend(request, params));
+        //
+        //     {
+        //         "rows": [
+        //             {
+        //                 "id": 46704,
+        //                 "token": "USDT",
+        //                 "amount": 30000.00000000,
+        //                 "status": "COMPLETED",
+        //                 "from_application_id": "0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3",
+        //                 "to_application_id": "c01e6940-a735-4022-9b6c-9d3971cdfdfa",
+        //                 "from_user": "LeverageLow",
+        //                 "to_user": "dev",
+        //                 "created_time": "1709022325.427",
+        //                 "updated_time": "1709022325.542"
+        //             }
+        //         ],
+        //         "meta": {
+        //             "total": 50,
+        //             "records_per_page": 25,
+        //             "current_page": 1
+        //         },
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList(response, 'rows', []);
+        return this.parseTransfers(data, undefined, since, limit, params);
     }
     parseTransfer(transfer, currency = undefined) {
         //
-        //    getAssetHistoryRows
-        //        {
-        //            "created_time": "1579399877.041",  // Unix epoch time in seconds
-        //            "updated_time": "1579399877.041",  // Unix epoch time in seconds
-        //            "id": "202029292829292",
-        //            "external_id": "202029292829292",
-        //            "application_id": null,
-        //            "token": "ETH",
-        //            "target_address": "0x31d64B3230f8baDD91dE1710A65DF536aF8f7cDa",
-        //            "source_address": "0x70fd25717f769c7f9a46b319f0f9103c0d887af0",
-        //            "extra": "",
-        //            "type": "BALANCE",
-        //            "token_side": "DEPOSIT",
-        //            "amount": 1000,
-        //            "tx_id": "0x8a74c517bc104c8ebad0c3c3f64b1f302ed5f8bca598ae4459c63419038106b6",
-        //            "fee_token": null,
-        //            "fee_amount": null,
-        //            "status": "CONFIRMING"
-        //        }
+        //    fetchTransfers
+        //     {
+        //         "id": 46704,
+        //         "token": "USDT",
+        //         "amount": 30000.00000000,
+        //         "status": "COMPLETED",
+        //         "from_application_id": "0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3",
+        //         "to_application_id": "c01e6940-a735-4022-9b6c-9d3971cdfdfa",
+        //         "from_user": "LeverageLow",
+        //         "to_user": "dev",
+        //         "created_time": "1709022325.427",
+        //         "updated_time": "1709022325.542"
+        //     }
         //
-        //    v1PrivatePostAssetMainSubTransfer
+        //    transfer
         //        {
         //            "success": true,
         //            "id": 200
@@ -2139,22 +2271,8 @@ class woo extends woo$1 {
         const networkizedCode = this.safeString(transfer, 'token');
         const currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         const code = currencyDefined['code'];
-        let movementDirection = this.safeStringLower(transfer, 'token_side');
-        if (movementDirection === 'withdraw') {
-            movementDirection = 'withdrawal';
-        }
-        let fromAccount = undefined;
-        let toAccount = undefined;
-        if (movementDirection === 'withdraw') {
-            fromAccount = undefined;
-            toAccount = 'spot';
-        }
-        else if (movementDirection === 'deposit') {
-            fromAccount = 'spot';
-            toAccount = undefined;
-        }
         const timestamp = this.safeTimestamp(transfer, 'created_time');
-        const success = this.safeValue(transfer, 'success');
+        const success = this.safeBool(transfer, 'success');
         let status = undefined;
         if (success !== undefined) {
             status = success ? 'ok' : 'failed';
@@ -2165,8 +2283,8 @@ class woo extends woo$1 {
             'datetime': this.iso8601(timestamp),
             'currency': code,
             'amount': this.safeNumber(transfer, 'amount'),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'fromAccount': this.safeString(transfer, 'from_application_id'),
+            'toAccount': this.safeString(transfer, 'to_application_id'),
             'status': this.parseTransferStatus(this.safeString(transfer, 'status', status)),
             'info': transfer,
         };
@@ -2204,11 +2322,11 @@ class woo extends woo$1 {
         if (tag !== undefined) {
             request['extra'] = tag;
         }
-        const networks = this.safeValue(this.options, 'networks', {});
-        const currencyNetworks = this.safeValue(currency, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
+        const currencyNetworks = this.safeDict(currency, 'networks', {});
         const network = this.safeStringUpper(params, 'network');
         const networkId = this.safeString(networks, network, network);
-        const coinNetwork = this.safeValue(currencyNetworks, networkId, {});
+        const coinNetwork = this.safeDict(currencyNetworks, networkId, {});
         const coinNetworkId = this.safeString(coinNetwork, 'id');
         if (coinNetworkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() require network parameter');
@@ -2294,7 +2412,7 @@ class woo extends woo$1 {
         else {
             this.checkRequiredCredentials();
             if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
-                const isSandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+                const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
                 if (!isSandboxMode) {
                     const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     const brokerId = this.safeString(this.options, 'brokerId', applicationId);
@@ -2336,7 +2454,9 @@ class woo extends woo$1 {
                     body = auth;
                 }
                 else {
-                    url += '?' + auth;
+                    if (Object.keys(params).length) {
+                        url += '?' + auth;
+                    }
                 }
                 auth += '|' + ts;
                 headers['content-type'] = 'application/x-www-form-urlencoded';
@@ -2351,8 +2471,9 @@ class woo extends woo$1 {
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        const success = this.safeValue(response, 'success');
+        const success = this.safeBool(response, 'success');
         const errorCode = this.safeString(response, 'code');
         if (!success) {
             const feedback = this.id + ' ' + this.json(response);
@@ -2428,7 +2549,7 @@ class woo extends woo$1 {
         //         "success":true
         //     }
         //
-        const result = this.safeValue(response, 'rows', []);
+        const result = this.safeList(response, 'rows', []);
         return this.parseIncomes(result, market, since, limit);
     }
     parseFundingRate(fundingRate, market = undefined) {
@@ -2509,7 +2630,7 @@ class woo extends woo$1 {
         //         "timestamp":1653633985646
         //     }
         //
-        const rows = this.safeValue(response, 'rows', {});
+        const rows = this.safeList(response, 'rows', []);
         const result = this.parseFundingRates(rows);
         return this.filterByArray(result, 'symbol', symbols);
     }
@@ -2563,7 +2684,7 @@ class woo extends woo$1 {
         //         "timestamp":1653640814885
         //     }
         //
-        const result = this.safeValue(response, 'rows');
+        const result = this.safeList(response, 'rows');
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -2580,8 +2701,49 @@ class woo extends woo$1 {
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://docs.woo.org/#update-position-mode
+         * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
+         * @param {string} symbol not used by woo setPositionMode
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        let hedgeMode = undefined;
+        if (hedged) {
+            hedgeMode = 'HEDGE_MODE';
+        }
+        else {
+            hedgeMode = 'ONE_WAY';
+        }
+        const request = {
+            'position_mode': hedgeMode,
+        };
+        const response = await this.v1PrivatePostClientPositionMode(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {},
+        //         "timestamp": "1709195608551"
+        //     }
+        //
+        return response;
+    }
     async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://docs.woo.org/#get-account-information-new
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
         await this.loadMarkets();
+        const market = this.market(symbol);
         const response = await this.v3PrivateGetAccountinfo(params);
         //
         //     {
@@ -2611,11 +2773,17 @@ class woo extends woo$1 {
         //         "timestamp": 1673323685109
         //     }
         //
-        const result = this.safeValue(response, 'data');
-        const leverage = this.safeNumber(result, 'leverage');
+        const data = this.safeDict(response, 'data', {});
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const leverageValue = this.safeInteger(leverage, 'leverage');
         return {
-            'info': response,
-            'leverage': leverage,
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
         };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -2678,8 +2846,8 @@ class woo extends woo$1 {
         //         "timestamp": 1673323880342
         //     }
         //
-        const result = this.safeValue(response, 'data', {});
-        const positions = this.safeValue(result, 'positions', []);
+        const result = this.safeDict(response, 'data', {});
+        const positions = this.safeList(result, 'positions', []);
         return this.parsePositions(positions, symbols);
     }
     parsePosition(position, market = undefined) {

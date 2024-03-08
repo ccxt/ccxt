@@ -385,13 +385,13 @@ class ndax extends ndax$1 {
         const firstBidAsk = this.safeValue(payload, 0, []);
         const marketId = this.safeString(firstBidAsk, 7);
         if (marketId === undefined) {
-            return message;
+            return;
         }
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
-            return message;
+            return;
         }
         let timestamp = undefined;
         let nonce = undefined;
@@ -485,11 +485,8 @@ class ndax extends ndax$1 {
         const subscription = this.safeValue(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message, subscription);
+            if (method !== undefined) {
+                method.call(this, client, message, subscription);
             }
         }
     }
@@ -518,7 +515,7 @@ class ndax extends ndax$1 {
         //
         const payload = this.safeString(message, 'o');
         if (payload === undefined) {
-            return message;
+            return;
         }
         message['o'] = JSON.parse(payload);
         const methods = {
@@ -533,11 +530,8 @@ class ndax extends ndax$1 {
         };
         const event = this.safeString(message, 'n');
         const method = this.safeValue(methods, event);
-        if (method === undefined) {
-            return message;
-        }
-        else {
-            return method.call(this, client, message);
+        if (method !== undefined) {
+            method.call(this, client, message);
         }
     }
 }

@@ -357,7 +357,7 @@ export default class bitteam extends Exchange {
         const created = this.parse8601 (timeStart);
         let minCost = undefined;
         const currenciesValuedInUsd = this.safeValue (this.options, 'currenciesValuedInUsd', {});
-        const quoteInUsd = this.safeValue (currenciesValuedInUsd, quote, false);
+        const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
             const settings = this.safeValue (market, 'settings', {});
             minCost = this.safeNumber (settings, 'limit_usd');
@@ -545,7 +545,7 @@ export default class bitteam extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const numericId = this.safeInteger (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const active = this.safeValue (currency, 'active', false);
+            const active = this.safeBool (currency, 'active', false);
             const precision = this.safeInteger (currency, 'precision');
             const txLimits = this.safeValue (currency, 'txLimits', {});
             const minWithdraw = this.safeString (txLimits, 'minWithdraw');
@@ -982,7 +982,7 @@ export default class bitteam extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name bitteam#createOrder

@@ -66,7 +66,7 @@
                   "ATLAS/USDT",
                   "market",
                   "buy",
-                  null,
+                  0,
                   null,
                   {
                     "cost": 8
@@ -450,6 +450,16 @@
                     "LTC/USDT:USDT"
                 ],
                 "output": "[\"129402018493145088\"]"
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Swap fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://contract.mexc.com/api/v1/private/position/leverage?symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
             }
         ]
     }

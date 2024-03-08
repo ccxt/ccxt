@@ -83,6 +83,7 @@ class ImplicitAPI:
     private_get_project_marketinterestrate = privateGetProjectMarketInterestRate = Entry('project/marketInterestRate', 'private', 'GET', {'cost': 7.5})
     private_get_redeem_orders = privateGetRedeemOrders = Entry('redeem/orders', 'private', 'GET', {'cost': 10})
     private_get_purchase_orders = privateGetPurchaseOrders = Entry('purchase/orders', 'private', 'GET', {'cost': 10})
+    private_get_broker_api_rebase_download = privateGetBrokerApiRebaseDownload = Entry('broker/api/rebase/download', 'private', 'GET', {'cost': 3})
     private_post_sub_user_created = privatePostSubUserCreated = Entry('sub/user/created', 'private', 'POST', {'cost': 22.5})
     private_post_sub_api_key = privatePostSubApiKey = Entry('sub/api-key', 'private', 'POST', {'cost': 30})
     private_post_sub_api_key_update = privatePostSubApiKeyUpdate = Entry('sub/api-key/update', 'private', 'POST', {'cost': 45})

@@ -382,7 +382,7 @@ export default class coinmetro extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const basePrecisionAndLimits = this.parseMarketPrecisionAndLimits (baseId);
         const quotePrecisionAndLimits = this.parseMarketPrecisionAndLimits (quoteId);
-        const margin = this.safeValue (market, 'margin', false);
+        const margin = this.safeBool (market, 'margin', false);
         const tradingFees = this.safeValue (this.fees, 'trading', {});
         return this.safeMarketStructure ({
             'id': id,
@@ -1181,7 +1181,8 @@ export default class coinmetro extends Exchange {
         }
         let type = undefined;
         let referenceId = undefined;
-        if (descriptionArray.length > 1) {
+        const length = descriptionArray.length;
+        if (length > 1) {
             type = this.parseLedgerEntryType (descriptionArray[0]);
             if (descriptionArray[1] !== '-') {
                 referenceId = descriptionArray[1];
@@ -1201,7 +1202,7 @@ export default class coinmetro extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name coinmetro#createOrder
@@ -1354,7 +1355,7 @@ export default class coinmetro extends Exchange {
         };
         const marginMode = undefined;
         [ params, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
-        const isMargin = this.safeValue (params, 'margin', false);
+        const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, 'margin');
         let response = undefined;
         if (isMargin || (marginMode !== undefined)) {
@@ -1832,7 +1833,7 @@ export default class coinmetro extends Exchange {
         return this.safeValue (timeInForceTypes, timeInForce, timeInForce);
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
          * @name coinmetro#borrowCrossMargin
@@ -1877,11 +1878,11 @@ export default class coinmetro extends Exchange {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
+        if (headers === undefined) {
+            headers = {};
+        }
+        headers['CCXT'] = 'true';
         if (api === 'private') {
-            if (headers === undefined) {
-                headers = {};
-            }
-            headers['CCXT'] = true;
             if ((this.uid === undefined) && (this.apiKey !== undefined)) {
                 this.uid = this.apiKey;
             }

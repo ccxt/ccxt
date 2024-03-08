@@ -248,7 +248,7 @@ class delta extends Exchange {
         return $reconstructedDate;
     }
 
-    public function create_expired_option_market($symbol) {
+    public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USDT';
         $optionParts = explode('-', $symbol);
@@ -1769,7 +1769,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.delta.exchange/#place-order
@@ -1850,7 +1850,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://docs.delta.exchange/#edit-order
@@ -2776,7 +2776,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
         /**
          * fetch the set leverage for a $market
          * @see https://docs.delta.exchange/#get-order-leverage
@@ -2789,6 +2789,7 @@ class delta extends Exchange {
         $request = array(
             'product_id' => $market['numericId'],
         );
+        $response = $this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params));
         //
         //     {
         //         "result" => array(
@@ -2802,10 +2803,23 @@ class delta extends Exchange {
         //         "success" => true
         //     }
         //
-        return $this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params));
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_leverage($result, $market);
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'index_symbol');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'margin_mode'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
+    }
+
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://docs.delta.exchange/#change-order-$leverage

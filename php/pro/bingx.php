@@ -568,6 +568,7 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
+            Async\await($this->load_markets());
             $market = $this->market($symbol);
             list($marketType, $query) = $this->handle_market_type_and_params('watchOHLCV', $market, $params);
             $url = $this->safe_value($this->urls['api']['ws'], $marketType);
@@ -734,7 +735,7 @@ class bingx extends \ccxt\async\bingx {
 
     public function set_balance_cache(Client $client, $type, $subscriptionHash, $params) {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash, $client->subscriptions)) {
-            return null;
+            return;
         }
         $fetchBalanceSnapshot = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if ($fetchBalanceSnapshot) {

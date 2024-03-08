@@ -533,6 +533,7 @@ class bingx(ccxt.async_support.bingx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
+        await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('watchOHLCV', market, params)
         url = self.safe_value(self.urls['api']['ws'], marketType)
@@ -675,7 +676,7 @@ class bingx(ccxt.async_support.bingx):
 
     def set_balance_cache(self, client: Client, type, subscriptionHash, params):
         if subscriptionHash in client.subscriptions:
-            return None
+            return
         fetchBalanceSnapshot = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
         if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'

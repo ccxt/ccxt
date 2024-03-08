@@ -130,8 +130,6 @@ interface Exchange {
     privateGetV5PreUpgradeAssetSettlementRecord (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountWalletBalance (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountBorrowHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetV5AccountSetCollateralSwitch (params?: {}): Promise<implicitReturnType>;
-    privateGetV5AccountSetCollateralSwitchBatch (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountCollateralInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetCoinGreeks (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountFeeRate (params?: {}): Promise<implicitReturnType>;
@@ -298,6 +296,8 @@ interface Exchange {
     privatePostV5LendingPurchase (params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingRedeem (params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingRedeemCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountSetCollateralSwitch (params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountSetCollateralSwitchBatch (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

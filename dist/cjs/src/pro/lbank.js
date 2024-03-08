@@ -172,7 +172,7 @@ class lbank extends lbank$1 {
         //          },
         //          type: 'kbar',
         //          pair: 'btc_usdt',
-        //          TS: '2022-10-02T12:44:15.864'
+        //          TS: '2022-10-02T12:44:15.865'
         //      }
         //
         const marketId = this.safeString(message, 'pair');
@@ -776,17 +776,17 @@ class lbank extends lbank$1 {
         const orderBook = this.safeValue(message, 'depth', message);
         const datetime = this.safeString(message, 'TS');
         const timestamp = this.parse8601(datetime);
-        let storedOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook({});
+            this.orderbooks[symbol] = orderbook;
         }
         const snapshot = this.parseOrderBook(orderBook, symbol, timestamp, 'bids', 'asks');
-        storedOrderBook.reset(snapshot);
+        orderbook.reset(snapshot);
         let messageHash = 'orderbook:' + symbol;
-        client.resolve(storedOrderBook, messageHash);
+        client.resolve(orderbook, messageHash);
         messageHash = 'fetchOrderbook:' + symbol;
-        client.resolve(storedOrderBook, messageHash);
+        client.resolve(orderbook, messageHash);
     }
     handleErrorMessage(client, message) {
         //
@@ -814,7 +814,8 @@ class lbank extends lbank$1 {
     handleMessage(client, message) {
         const status = this.safeString(message, 'status');
         if (status === 'error') {
-            return this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, message);
+            return;
         }
         const type = this.safeString2(message, 'type', 'action');
         if (type === 'ping') {
@@ -830,9 +831,8 @@ class lbank extends lbank$1 {
         };
         const handler = this.safeValue(handlers, type);
         if (handler !== undefined) {
-            return handler.call(this, client, message);
+            handler.call(this, client, message);
         }
-        return message;
     }
     async authenticate(params = {}) {
         // when we implement more private streams, we need to refactor the authentication

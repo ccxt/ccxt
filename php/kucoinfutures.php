@@ -31,6 +31,7 @@ class kucoinfutures extends kucoin {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
                 'closePosition' => true,
                 'closePositions' => false,
                 'createDepositAddress' => true,
@@ -1077,7 +1078,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @see https://docs.kucoin.com/futures/#place-an-order
@@ -1106,7 +1107,7 @@ class kucoinfutures extends kucoin {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $testOrder = $this->safe_value($params, 'test', false);
+        $testOrder = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, 'test');
         $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
@@ -1175,7 +1176,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_orders($data);
     }
 
-    public function create_contract_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         // required param, cannot be used twice
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId', $this->uuid());
@@ -1594,7 +1595,7 @@ class kucoinfutures extends kucoin {
         return $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order($id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @see https://docs.kucoin.com/futures/#get-details-of-a-single-order
@@ -1754,7 +1755,7 @@ class kucoinfutures extends kucoin {
         // $average = Precise::string_div($cost, Precise::string_mul($filled, $market['contractSize']));
         // bool
         $isActive = $this->safe_value($order, 'isActive');
-        $cancelExist = $this->safe_value($order, 'cancelExist', false);
+        $cancelExist = $this->safe_bool($order, 'cancelExist', false);
         $status = null;
         if ($isActive !== null) {
             $status = $isActive ? 'open' : 'closed';
@@ -1903,7 +1904,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_balance($response);
     }
 
-    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -2039,8 +2040,8 @@ class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($data, 'items', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $trades = $this->safe_list($data, 'items', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -2472,7 +2473,7 @@ class kucoinfutures extends kucoin {
         $this->load_markets();
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        $testOrder = $this->safe_value($params, 'test', false);
+        $testOrder = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, array( 'test', 'clientOrderId' ));
         if ($clientOrderId === null) {
             $clientOrderId = $this->number_to_string($this->nonce());

@@ -172,7 +172,7 @@ class poloniex extends poloniex$1 {
          * @returns {object} data from the websocket stream
          */
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce();
+        const messageHash = this.nonce().toString();
         const subscribe = {
             'id': messageHash,
             'event': name,
@@ -1039,7 +1039,8 @@ class poloniex extends poloniex$1 {
                         const bid = this.safeValue(bids, j);
                         const price = this.safeNumber(bid, 0);
                         const amount = this.safeNumber(bid, 1);
-                        orderbook['bids'].store(price, amount);
+                        const bidsSide = orderbook['bids'];
+                        bidsSide.store(price, amount);
                     }
                 }
                 if (asks !== undefined) {
@@ -1047,7 +1048,8 @@ class poloniex extends poloniex$1 {
                         const ask = this.safeValue(asks, j);
                         const price = this.safeNumber(ask, 0);
                         const amount = this.safeNumber(ask, 1);
-                        orderbook['asks'].store(price, amount);
+                        const asksSide = orderbook['asks'];
+                        asksSide.store(price, amount);
                     }
                 }
                 orderbook['symbol'] = symbol;
@@ -1181,14 +1183,14 @@ class poloniex extends poloniex$1 {
                 this.handleErrorMessage(client, item);
             }
             else {
-                return this.handleOrderRequest(client, message);
+                this.handleOrderRequest(client, message);
             }
         }
         else {
             const data = this.safeValue(message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
-                return method.call(this, client, message);
+                method.call(this, client, message);
             }
         }
     }
