@@ -986,6 +986,7 @@ class Transpiler {
             'MarginModes': /-> MarginModes:/,
             'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
+            'MarketInterface': /-> MarketInterface:/,
             'Order': /-> Order:/,
             'TransferEntry': /-> TransferEntry:/,
             'OrderBook': /-> OrderBook:/,
