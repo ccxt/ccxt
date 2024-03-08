@@ -36,7 +36,7 @@
     "build-docs": "node jsdoc2md.js && node examples2md.js",
     "serve-docs": "docsify serve ./wiki",
     "tsBuildFile": "tsc --skipLibCheck --strictNullChecks false --strict --noImplicitAny false --esModuleInterop --isolatedModules false --forceConsistentCasingInFileNames --removeComments false --target ES2020 --declaration --allowJs --checkJs false --moduleResolution Node --module ES2022 --outDir ./js/src --lib ES2020.BigInt --lib dom ",
-    "tsBuild": "tsc || echo 1",
+    "tsBuild": "tsc || echo \"\"",
     "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
     "emitAPI": "node build/generateImplicitAPI.js",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges && npm run build-docs",
