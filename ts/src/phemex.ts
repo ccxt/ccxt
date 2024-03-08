@@ -2656,7 +2656,6 @@ export default class phemex extends Exchange {
                 request['priceEp'] = this.toEp (priceString, market);
             }
         }
-        let method = 'privatePostSpotOrders';
         params = this.omit (params, 'reduceOnly');
         let response = undefined;
         if (market['settle'] === 'USDT') {
