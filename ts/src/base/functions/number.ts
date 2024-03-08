@@ -32,6 +32,15 @@ const precisionConstants = {
     NO_PADDING,
     PAD_WITH_ZERO,
 };
+/** Used when we turn precision like 1e-10 to the number 10, it represents the most precise value (1e-22) */
+const MINIMUM_PRECISION = 22;
+/** 
+ * When rounding/truncating, we apply a first rounding with a precision of exchangePrecision + FIXED_POIND_ERROR_TOLERANCE.
+ * We assume that all decimals after exchangePrecision + FIXED_POIND_ERROR_TOLERANCE are imprecise and introduced by floating point operation errors.
+ * @example With precision = 3, mode = TRUNCATE, 1.999996 will be rounded to 2 (correct the fp error) and then to 2  because 6 was introduced by a fp operation
+ * @example With precision = 3, mode = TRUNCATE, 1.999989 will be rounded to 1.99999 (correct the fp error) and then to 1.99 because 8 was not introduced by a fp operation
+ */
+const FIXED_POIND_ERROR_TOLERANCE = 2;
 
 /*  ------------------------------------------------------------------------ */
 
@@ -99,29 +108,29 @@ function precisionFromString (str) {
 
 /*  ------------------------------------------------------------------------ */
 
-const decimalToPrecisionWrapper = (
+const decimalToPrecision = (
     x,
     roundingMode,
     numPrecisionDigits,
     countingMode = DECIMAL_PLACES,
     paddingMode = NO_PADDING
 ) => {
-    // Turn precision value to and integer
+    // Turn precision value to an integer. ex: 1e-7 to 7
     let precision = numPrecisionDigits;
     if (typeof precision === 'string') {
         precision = parseFloat(precision)
     }
     if (countingMode === TICK_SIZE) {
-        const precisionDigitsString = decimalToPrecision (precision, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
+        const precisionDigitsString = internalDecimalToPrecision (precision, ROUND, MINIMUM_PRECISION, DECIMAL_PLACES, NO_PADDING);
         precision = precisionFromString (precisionDigitsString);
     }
     // Eliminate rounding errors
-    x = decimalToPrecision (x, ROUND, precision+2, DECIMAL_PLACES, NO_PADDING);
+    x = internalDecimalToPrecision (x, ROUND, precision+FIXED_POIND_ERROR_TOLERANCE, DECIMAL_PLACES, NO_PADDING);
     // Round the number
-    return decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
+    return internalDecimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
 };
 
-const decimalToPrecision = (
+const internalDecimalToPrecision = (
     x,
     roundingMode,
     numPrecisionDigits,
@@ -139,7 +148,7 @@ const decimalToPrecision = (
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
+            return (toNearest * internalDecimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ();
@@ -147,12 +156,12 @@ const decimalToPrecision = (
     }
     /*  handle tick size */
     if (countingMode === TICK_SIZE) {
-        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
+        const precisionDigitsString = internalDecimalToPrecision (numPrecisionDigits, ROUND, MINIMUM_PRECISION, DECIMAL_PLACES, NO_PADDING);
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString);
         let missing = x % numPrecisionDigits;
         // See: https://github.com/ccxt/ccxt/pull/6486
-        missing = Number (decimalToPrecision (missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
-        const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
+        missing = Number (internalDecimalToPrecision (missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
+        const fpError = internalDecimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
         if (precisionFromString (fpError) !== 0) {
             if (roundingMode === ROUND) {
                 if (x > 0) {
@@ -172,7 +181,7 @@ const decimalToPrecision = (
                 x = x - missing;
             }
         }
-        return decimalToPrecision (x, roundingMode, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
+        return internalDecimalToPrecision (x, roundingMode, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 
     /*  Convert to a string (if needed), skip leading minus sign (if any)   */
@@ -324,7 +333,7 @@ function omitZero (stringNumber) {
 export {
     numberToString,
     precisionFromString,
-    decimalToPrecisionWrapper as decimalToPrecision,
+    decimalToPrecision,
     truncate_to_string,
     truncate,
     omitZero,

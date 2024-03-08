@@ -1319,7 +1319,10 @@ export default class coinbase extends Exchange {
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
             const lastCurrencyInformations = this.safeValue (this.currencies ?? {}, code, {});
-            // Precision is not provided by this endpoint but when we fetch balances - if we fetched it once, we use it since it won't change
+            // We do not have the precision property here. We will fetch it when we fetch balances (fetchBalance) and populate the currencies object
+            // Because we only need this precision for withdrawals, it's ok since we will fetch balances at least once before performing the withdrawal
+            // But because fetchCurrencies can be called at any time, we don't want to totally replace the currencies object and lose the precision property
+            // We use the last currency information to keep the precision property (since it won't change between two calls)
             const precision = this.safeValue (lastCurrencyInformations, 'precision', undefined);
             result[code] = {
                 'id': id,
@@ -1715,7 +1718,9 @@ export default class coinbase extends Exchange {
                 const exponent = this.safeInteger (currency, 'exponent');
                 const currencyInfo = this.safeValue (this.currencies, code);
                 if (currencyInfo && exponent) {
-                    // Exponent corresponds to DECIMAL precision mode, the exchande precision mode is TICK_SIZE so we convert it
+                    // Exponent property is expressed as a decimal exponent (ex: 8)
+                    // Coinbase precisions convention is TICK_SIZE (ex: 1e-8)
+                    // We convert the exponent to a string representation of the precision (ex 8 -> 1e-8)
                     currencyInfo.precision = Math.pow (10, -exponent).toString ();
                     this.currencies[code] = currencyInfo;
                 }

@@ -2698,14 +2698,18 @@ export default class binance extends Exchange {
                 let fee = undefined;
                 for (let j = 0; j < networkList.length; j++) {
                     const networkItem = networkList[j];
-                    const network = this.safeString (networkItem, 'network');
+                    const networkCode = this.safeString (networkItem, 'network');
+                    const network = this.safeStringUpper (networkItem, 'network');
+                    const networks = this.safeDict (this.options, 'networks', {});
+                    const ecid = this.safeString (networks, network, network); // handle ERC20>ETH alias
+                    networkList[j]['network'] = ecid;
                     // const name = this.safeString (networkItem, 'name');
                     const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
                     const isDepositEnabled = this.safeValue (networkItem, 'depositEnable');
                     const isWithdrawalEnabled = this.safeValue (networkItem, 'withdrawEnable');
                     isTokenDepositable = isDepositEnabled || isTokenDepositable;
                     isTokenWithdrawable = isWithdrawalEnabled || isTokenWithdrawable;
-                    fees[network] = withdrawFee;
+                    fees[networkCode] = withdrawFee;
                     const isDefault = this.safeValue (networkItem, 'isDefault');
                     if (isDefault || (fee === undefined)) {
                         fee = withdrawFee;
@@ -8093,13 +8097,13 @@ export default class binance extends Exchange {
         }
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        const precisionAmount = this.currencyToPrecision (code, amount, network);
+        request['amount'] = precisionAmount;
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['network'] = network;
             params = this.omit (params, 'network');
         }
-        const precisionAmount = this.currencyToPrecision (code, amount, network);
-        request['amount'] = precisionAmount;
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);
