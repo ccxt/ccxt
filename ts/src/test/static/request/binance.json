@@ -333,6 +333,38 @@
                   }
                 ],
                 "output": "timestamp=1708360882808&symbol=LTCUSDT&side=BUY&newOrderRespType=RESULT&newClientOrderId=x-xcKtGhcu6f60e2c1e1ed4166838709&type=LIMIT&quantity=0.2&timeInForce=GTC&priceMatch=OPPONENT&recvWindow=10000&signature=b73ae983cc2d4995d48e98841152c802ba0b420ee79fc501bde0b6eeee4817ab"
+            },
+            {
+                "description": "spot buy limit with reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.00008,
+                  65000,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "timestamp=1709895235709&symbol=BTCUSDT&side=BUY&newOrderRespType=FULL&newClientOrderId=x-R4BD3S82c2f30989c60a4e5f8ba05a&type=LIMIT&quantity=0.00008&price=65000&timeInForce=GTC&recvWindow=10000&signature=374010e60a1c9caa093b7b201bec8fef399b5c41e1f932ed11cb97f22a35b6f0"
+            },
+            {
+                "description": "swap buy limit with reduceOnly",
+                "method": "createOrder",
+                "url": "https://fapi.binance.com/fapi/v1/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.01,
+                  10000,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "timestamp=1709895616844&symbol=BTCUSDT&side=BUY&newOrderRespType=RESULT&newClientOrderId=x-xcKtGhcu2aaaefebcaf6437e8084bb&type=LIMIT&quantity=0.01&price=10000&timeInForce=GTC&recvWindow=10000&signature=49c86041752655f5f60308396297ad9b62db1d6480f8c28a74d45f3811071744"
             }
         ],
         "createOrders": [
