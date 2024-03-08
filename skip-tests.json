@@ -1165,9 +1165,7 @@
             "watchTrades": {
                 "timestamp": "ts several hours ahead in in future :)"
             },
-            "watchOHLCV": {
-                "0": "ts several hours ahead in in future :)"
-            }
+            "watchOHLCV": "some timestamp issues"
         }
     },
     "lykke": {
