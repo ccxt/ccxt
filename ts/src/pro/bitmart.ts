@@ -855,9 +855,7 @@ export default class bitmart extends bitmartRest {
                 symbol = this.handleTradeLoop (data[i]);
             }
         }
-        if (symbol !== undefined) {
-            client.resolve (this.trades[symbol], 'trade:' + symbol);
-        }
+        client.resolve (this.trades[symbol], 'trade:' + symbol);
     }
 
     handleTradeLoop (entry) {
