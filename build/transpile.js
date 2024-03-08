@@ -342,6 +342,8 @@ class Transpiler {
             [ /\.getDescribeForExtendedWsExchange\s/g, '.get_describe_for_extended_ws_exchange'],
             [ /\.watchMultiple\s/g, '.watch_multiple'],
             [ /\.intToBase16\s/g, '.int_to_base16'],
+            [ /\.handleParamString\s/g, '.handle_param_string'],
+            [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
