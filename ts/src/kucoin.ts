@@ -119,6 +119,7 @@ export default class kucoin extends Exchange {
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
                     'webExchange': 'https://kucoin.com/_api',
+                    'broker': 'https://api-broker.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -232,6 +233,7 @@ export default class kucoin extends Exchange {
                         'project/marketInterestRate': 7.5, // 5PW
                         'redeem/orders': 10, // 10SW
                         'purchase/orders': 10, // 10SW
+                        // broker
                         'broker/api/rebase/download': 3,
                     },
                     'post': {
@@ -376,6 +378,23 @@ export default class kucoin extends Exchange {
                 'webExchange': {
                     'get': {
                         'currency/currency/chain-info': 1, // this is temporary from webApi
+                    },
+                },
+                'broker': {
+                    'get': {
+                        'broker/nd/info': 2,
+                        'broker/nd/account': 2,
+                        'broker/nd/account/apikey': 2,
+                        'broker/nd/rebase/download': 3,
+                    },
+                    'post': {
+                        'broker/nd/transfer': 1,
+                        'broker/nd/account': 3,
+                        'broker/nd/account/apikey': 3,
+                        'broker/nd/account/update-apikey': 3,
+                    },
+                    'delete': {
+                        'broker/nd/account/apikey': 3,
                     },
                 },
             },
@@ -4448,7 +4467,8 @@ export default class kucoin extends Exchange {
         url = url + endpoint;
         const isFuturePrivate = (api === 'futuresPrivate');
         const isPrivate = (api === 'private');
-        if (isPrivate || isFuturePrivate) {
+        const isBroker = (api === 'private');
+        if (isPrivate || isFuturePrivate || isBroker) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             headers = this.extend ({
@@ -4475,6 +4495,10 @@ export default class kucoin extends Exchange {
                 const partnerSignature = this.hmac (this.encode (partnerPayload), this.encode (partnerSecret), sha256, 'base64');
                 headers['KC-API-PARTNER-SIGN'] = partnerSignature;
                 headers['KC-API-PARTNER'] = partnerId;
+            }
+            if (isBroker) {
+                const brokerName = this.safeString (partner, 'name');
+                headers['KC-BROKER-NAME'] = brokerName;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
