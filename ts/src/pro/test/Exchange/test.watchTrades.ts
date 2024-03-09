@@ -19,7 +19,7 @@ async function testWatchTrades (exchange, skippedProperties, symbol) {
             continue;
         }
         assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (response));
-        if (!('tradesLength' in skippedProperties)) {
+        if (!('emptyResponse' in skippedProperties)) {
             assert (response.length > 0, exchange.id + ' ' + method + ' ' + symbol + ' must return at least one trade');
         }
         now = exchange.milliseconds ();
