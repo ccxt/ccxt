@@ -6,7 +6,7 @@ import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchClosedOrders (exchange, skippedProperties, symbol) {
     const method = 'fetchClosedOrders';
     const orders = await exchange.fetchClosedOrders (symbol);
-    assert (Array.isArray (orders), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (orders));
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, orders, symbol);
     const now = exchange.milliseconds ();
     for (let i = 0; i < orders.length; i++) {
         const order = orders[i];
