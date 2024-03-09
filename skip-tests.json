@@ -1200,8 +1200,14 @@
             "fetchCurrencies": {
                 "fee":"not provided"
             },
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same",
+            "fetchOrderBook": {
+                "bid": "bid should be greater than next bid",
+                "ask": "similar"
+            },
+            "fetchL2OrderBook": {
+                "bid": "same",
+                "ask": "same"
+            },
             "fetchTickers": "negative values",
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
