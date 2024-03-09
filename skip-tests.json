@@ -67,11 +67,8 @@
         "httpsProxy": "http://5.75.153.75:8002",
         "wsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
-            "fetchStatus": "temporarily failing",
             "loadMarkets": {
-                "currencyIdAndCode": "i.e. binance does not have currency code BCC",
-                "expiry": "expiry not set for future markets",
-                "expiryDatetime": "expiry not set for future markets"
+                "currencyIdAndCode": "i.e. binance does not have currency code BCC"
             },
             "fetchCurrencies": {
                 "precision": "not provided in public api",
@@ -79,6 +76,9 @@
             },
             "watchTicker": {
                 "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
+            },
+            "watchTickers": {
+                "quoteVolume": "same"
             }
         }
     },
