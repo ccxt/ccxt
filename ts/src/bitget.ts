@@ -4900,7 +4900,7 @@ export default class bitget extends Exchange {
             } else {
                 if (stop) {
                     request['symbolList'] = [ market['id'] ];
-                    request['symbol'] = undefined;
+                    delete request['symbol'];
                     response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder (this.extend (request, params));
                 } else {
                     response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder (this.extend (request, params));
