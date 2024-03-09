@@ -2397,7 +2397,7 @@ export default class coinex extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
@@ -4272,7 +4272,7 @@ export default class coinex extends Exchange {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -5023,7 +5023,7 @@ export default class coinex extends Exchange {
          * @description fetch the borrow interest rates of all currencies
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
+         * @returns {object[]} a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetMarginConfig (params);
@@ -5352,7 +5352,7 @@ export default class coinex extends Exchange {
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
          * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         * @returns {object[]} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);

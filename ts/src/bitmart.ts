@@ -4349,7 +4349,7 @@ export default class bitmart extends Exchange {
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the bitmart api endpoint
          * @param {int} [params.until] timestamp in ms of the latest liquidation
-         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object} a list of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyLiquidations() requires a symbol argument');

@@ -3194,7 +3194,7 @@ export default class deribit extends Exchange {
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the deribit api endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object} a list of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -3273,7 +3273,7 @@ export default class deribit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the deribit api endpoint
-         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object} a list of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyLiquidations() requires a symbol argument');

@@ -3743,7 +3743,7 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
@@ -3830,7 +3830,7 @@ export default class bingx extends Exchange {
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the bingx api endpoint
          * @param {int} [params.until] timestamp in ms of the latest liquidation
-         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object[]} a list of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets ();
         let request = {

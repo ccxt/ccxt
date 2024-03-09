@@ -4776,7 +4776,7 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
          * @param {boolean} [params.stop] *contract only* set to true for canceling trigger orders
-         * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
@@ -5418,7 +5418,7 @@ export default class bitget extends Exchange {
          * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
          * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
@@ -7391,7 +7391,7 @@ export default class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicSpotGetV2SpotPublicCoins (params);
@@ -7643,7 +7643,7 @@ export default class bitget extends Exchange {
          * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @param {string} [params.marginMode] 'cross' or 'isolated' default value is 'cross'
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object[]} a list of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets ();
         let paginate = false;

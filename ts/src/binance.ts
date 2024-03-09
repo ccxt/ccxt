@@ -10257,7 +10257,7 @@ export default class binance extends Exchange {
          * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
-         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         * @returns {object[]} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
         await this.loadLeverageBrackets (false, params);
@@ -11073,7 +11073,7 @@ export default class binance extends Exchange {
          * @param {int} [since] timestamp for the earliest borrow rate
          * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object[]} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
         if (limit === undefined) {
@@ -11502,7 +11502,7 @@ export default class binance extends Exchange {
          * @param {int} [limit] default 30, max 500
          * @param {object} [params] exchange specific parameters
          * @param {int} [params.until] the time(ms) of the latest record to retrieve as a unix timestamp
-         * @returns {object} an array of [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+         * @returns {object[]} a list of [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
         if (timeframe === '1m') {
             throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
@@ -11672,7 +11672,7 @@ export default class binance extends Exchange {
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch liquidations in a portfolio margin account
          * @param {string} [params.type] "spot"
          * @param {string} [params.subType] "linear" or "inverse"
-         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object[]} a list of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -12034,7 +12034,7 @@ export default class binance extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
-         * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+         * @returns {object[]} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
          */
         await this.loadMarkets ();
         let market = undefined;

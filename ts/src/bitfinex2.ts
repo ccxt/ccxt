@@ -1849,7 +1849,7 @@ export default class bitfinex2 extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         for (let i = 0; i < ids.length; i++) {
@@ -2529,7 +2529,7 @@ export default class bitfinex2 extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -3287,7 +3287,7 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] exchange specific parameters
          * @param {int} [params.until] the time in ms of the latest record to retrieve as a unix timestamp
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+         * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -3424,7 +3424,7 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] exchange specific parameters
          * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object[]} a list of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets ();
         let paginate = false;

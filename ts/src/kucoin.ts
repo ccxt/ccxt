@@ -1790,7 +1790,7 @@ export default class kucoin extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);

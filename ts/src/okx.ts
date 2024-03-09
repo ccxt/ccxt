@@ -3814,7 +3814,7 @@ export default class okx extends Exchange {
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
          * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -6232,7 +6232,7 @@ export default class okx extends Exchange {
          * @description fetch the borrow interest rates of all currencies
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object[]} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetAccountInterestRate (params);
@@ -6408,7 +6408,7 @@ export default class okx extends Exchange {
          * @param {int} [since] timestamp for the earliest borrow rate
          * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object[]} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6868,7 +6868,7 @@ export default class okx extends Exchange {
          * @param {int} [limit] Not used by okx, but parsed internally by CCXT
          * @param {object} [params] Exchange specific parameters
          * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
-         * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+         * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
         const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
         const timeframes = this.safeValue (options, 'timeframes', {});

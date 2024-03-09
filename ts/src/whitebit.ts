@@ -465,7 +465,7 @@ export default class whitebit extends Exchange {
          * @see https://docs.whitebit.com/public/http-v4/#fee
          * @param {string[]|undefined} codes not used by fetchTransactionFees ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.v4PublicGetFee (params);
@@ -521,7 +521,7 @@ export default class whitebit extends Exchange {
          * @see https://docs.whitebit.com/public/http-v4/#fee
          * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.v4PublicGetFee (params);

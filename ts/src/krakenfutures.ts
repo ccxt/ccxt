@@ -497,7 +497,7 @@ export default class krakenfutures extends Exchange {
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
          * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object[]} a list of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
@@ -707,7 +707,7 @@ export default class krakenfutures extends Exchange {
          * @param {object} [params] Exchange specific params
          * @param {int} [params.until] Timestamp in ms of latest trade
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns An array of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -1182,7 +1182,7 @@ export default class krakenfutures extends Exchange {
          * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
          * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
          * @param {object} [params] Exchange specific parameters
-         * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1204,7 +1204,7 @@ export default class krakenfutures extends Exchange {
          * @param {int} [since] Timestamp (ms) of earliest order.
          * @param {int} [limit] How many orders to return.
          * @param {object} [params] Exchange specific parameters
-         * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1247,7 +1247,7 @@ export default class krakenfutures extends Exchange {
          * @param {int} [since] Timestamp (ms) of earliest order.
          * @param {int} [limit] How many orders to return.
          * @param {object} [params] Exchange specific parameters
-         * @returns An array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1982,7 +1982,7 @@ export default class krakenfutures extends Exchange {
          * @description fetch the current funding rates
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {Order[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         const marketIds = this.marketIds (symbols);
@@ -2482,7 +2482,7 @@ export default class krakenfutures extends Exchange {
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
          * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         * @returns {object[]} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetLeveragepreferences (params);

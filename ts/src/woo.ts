@@ -2102,7 +2102,7 @@ export default class woo extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const request = {
             'type': 'BALANCE',

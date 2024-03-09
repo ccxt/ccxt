@@ -1260,7 +1260,7 @@ export default class bitmex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -2139,7 +2139,7 @@ export default class bitmex extends Exchange {
          * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
          * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         * @returns {object[]} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
         const leverages = await this.fetchPositions (symbols, params);
@@ -2774,7 +2774,7 @@ export default class bitmex extends Exchange {
          * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const assets = await this.publicGetWalletAssets (params);
@@ -2835,7 +2835,7 @@ export default class bitmex extends Exchange {
          * @param {object} [params] exchange specific parameters for the bitmex api endpoint
          * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object[]} a list of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets ();
         let paginate = false;

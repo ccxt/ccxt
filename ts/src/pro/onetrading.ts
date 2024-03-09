@@ -172,7 +172,7 @@ export default class onetrading extends onetradingRest {
          * @description watches price tickers, a statistical calculation with the information for all markets or those specified.
          * @param {string} symbols unified symbols of the markets to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a list of [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);

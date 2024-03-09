@@ -8066,7 +8066,7 @@ export default class htx extends Exchange {
          * @param {object} [params] Exchange specific parameters
          * @param {int} [params.amount_type] *required* Open interest unit. 1-cont，2-cryptocurrency
          * @param {int} [params.pair] eg BTC-USDT *Only for USDT-M*
-         * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+         * @returns {object} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
         if (timeframe !== '1h' && timeframe !== '4h' && timeframe !== '12h' && timeframe !== '1d') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
@@ -8855,7 +8855,7 @@ export default class htx extends Exchange {
          * @param {object} [params] exchange specific parameters for the huobi api endpoint
          * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @param {int} [params.tradeType] default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
-         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object} a list of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
