@@ -1880,7 +1880,7 @@ export default class bitmex extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
-         * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
+         * @param {object} [params.triggerDirection] the direction that the price will be going when the triggerPrice is reached and activated, 'rising' or 'falling'
          * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
@@ -1909,21 +1909,21 @@ export default class bitmex extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTriggerOrder || isTrailingAmountOrder) {
             const triggerDirection = this.safeString (params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const isAscending = (triggerDirection === 'rising');
             if ((type === 'limit') || (type === 'market')) {
-                this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
+                this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'rising', 'falling' ]);
             }
             if (type === 'limit') {
                 if (side === 'buy') {
-                    orderType = triggerAbove ? 'StopLimit' : 'LimitIfTouched';
+                    orderType = isAscending ? 'StopLimit' : 'LimitIfTouched';
                 } else {
-                    orderType = triggerAbove ? 'LimitIfTouched' : 'StopLimit';
+                    orderType = isAscending ? 'LimitIfTouched' : 'StopLimit';
                 }
             } else if (type === 'market') {
                 if (side === 'buy') {
-                    orderType = triggerAbove ? 'Stop' : 'MarketIfTouched';
+                    orderType = isAscending ? 'Stop' : 'MarketIfTouched';
                 } else {
-                    orderType = triggerAbove ? 'MarketIfTouched' : 'Stop';
+                    orderType = isAscending ? 'MarketIfTouched' : 'Stop';
                 }
             }
             if (isTrailingAmountOrder) {
@@ -1963,22 +1963,22 @@ export default class bitmex extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTrailingAmountOrder) {
             const triggerDirection = this.safeString (params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const isAscending = (triggerDirection === 'rising');
             if ((type === 'limit') || (type === 'market')) {
-                this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
+                this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'rising', 'falling' ]);
             }
             let orderType = undefined;
             if (type === 'limit') {
                 if (side === 'buy') {
-                    orderType = triggerAbove ? 'StopLimit' : 'LimitIfTouched';
+                    orderType = isAscending ? 'StopLimit' : 'LimitIfTouched';
                 } else {
-                    orderType = triggerAbove ? 'LimitIfTouched' : 'StopLimit';
+                    orderType = isAscending ? 'LimitIfTouched' : 'StopLimit';
                 }
             } else if (type === 'market') {
                 if (side === 'buy') {
-                    orderType = triggerAbove ? 'Stop' : 'MarketIfTouched';
+                    orderType = isAscending ? 'Stop' : 'MarketIfTouched';
                 } else {
-                    orderType = triggerAbove ? 'MarketIfTouched' : 'Stop';
+                    orderType = isAscending ? 'MarketIfTouched' : 'Stop';
                 }
             }
             const isStopSellOrder = (side === 'sell') && ((orderType === 'Stop') || (orderType === 'StopLimit'));

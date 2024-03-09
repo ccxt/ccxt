@@ -78,7 +78,7 @@
                 "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\"}"
             },
             {
-                "description": "swap limit buy with triggerPrice and triggerDirection above",
+                "description": "swap limit buy with triggerPrice and triggerDirection rising",
                 "method": "createOrder",
                 "url": "https://api.bybit.com/v5/order/create",
                 "input": [
@@ -89,13 +89,13 @@
                   37000,
                   {
                     "triggerPrice": 37000,
-                    "triggerDirection": "above"
+                    "triggerDirection": "rising"
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"37000\",\"triggerDirection\":1,\"triggerPrice\":\"37000\"}"
             },
             {
-                "description": "swap limit buy with triggerPrice and triggerDirection below",
+                "description": "swap limit buy with triggerPrice and triggerDirection falling",
                 "method": "createOrder",
                 "url": "https://api.bybit.com/v5/order/create",
                 "input": [
@@ -106,7 +106,7 @@
                   35000,
                   {
                     "triggerPrice": 35000,
-                    "triggerDirection": "below"
+                    "triggerDirection": "falling"
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"35000\",\"triggerDirection\":2,\"triggerPrice\":\"35000\"}"
@@ -209,7 +209,7 @@
                   41000,
                   {
                     "triggerPrice": "40000",
-                    "triggerDirection": "above",
+                    "triggerDirection": "rising",
                     "stopLoss": "39500"
                   }
                 ],

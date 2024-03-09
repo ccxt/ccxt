@@ -4257,7 +4257,7 @@ We have different classification of trigger orders:
 
 Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open or close a position.
 
-* Typically, it is activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**. However, some exchanges' API require to set `triggerDirection` too, which triggers order depending whether price is above or below `triggerPrice`. For example, if you want to trigger  limit order (buy 0.1 `ETH` at limit price `1500`) once pair price crosses `1700`:
+* Typically, it is activated when the price of the underlying asset/contract touches the `triggerPrice` from **any direction**. However, some exchange API's require that you set `triggerDirection` too, which triggers the order depending on whether the price is rising or falling to the `triggerPrice`. For example, if you want to trigger a limit order (buy 0.1 `ETH` at limit price `1500`) once the price reaches `1700`:
 
 <!-- tabs:start -->
 #### **Javascript**
@@ -4282,12 +4282,12 @@ $params = {
 $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params)
 ```
 <!-- tabs:end -->
-However, if some exchanges require that you provided `triggerDirection`, with either `above` or `below` values:
+However, some exchanges require that you provide the `triggerDirection`, with either a `rising` or `falling` value:
 
 ```
 params = {
     'triggerPrice': 1700,
-    'triggerDirection': 'above', // order will be triggered when price is above 1700
+    'triggerDirection': 'rising', // the order will be triggered when the price rises and reaches 1700
 }
 ```
 

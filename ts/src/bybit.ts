@@ -3492,7 +3492,7 @@ export default class bybit extends Exchange {
          * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [params.mmp] *option only* market maker protection
-         * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+         * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'rising' or 'falling'
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -3665,10 +3665,10 @@ export default class bybit extends Exchange {
                 }
             } else {
                 if (triggerDirection === undefined) {
-                    throw new ArgumentsRequired (this.id + ' stop/trigger orders require a triggerDirection parameter, either "above" or "below" to determine the direction of the trigger.');
+                    throw new ArgumentsRequired (this.id + ' stop/trigger orders require a triggerDirection parameter, either "rising" or "falling" to determine the direction of the trigger.');
                 }
-                const isAsending = ((triggerDirection === 'above') || (triggerDirection === '1'));
-                request['triggerDirection'] = isAsending ? 1 : 2;
+                const isAscending = ((triggerDirection === '1') || (triggerDirection === 'rising'));
+                request['triggerDirection'] = isAscending ? 1 : 2;
             }
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
