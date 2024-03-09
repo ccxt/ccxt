@@ -373,6 +373,15 @@ function setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, http
     exchange.socksProxy = socksProxy;
 }
 
+function assertNonEmtpyArray (exchange, skippedProperties, method, entry) {
+    const logText = logTemplate (exchange, method, entry);
+    if (!('emptyResponse' in skippedProperties)) {
+        return;
+    }
+    assert (Array.isArray (entry), 'response is expected to be an array' + logText);
+    assert (entry.length > 0, 'response is expected to be a non-empty array' + logText);
+}
+
 export default {
     logTemplate,
     isTemporaryFailure,
@@ -397,4 +406,5 @@ export default {
     assertType,
     removeProxyOptions,
     setProxyOptions,
+    assertNonEmtpyArray,
 };
