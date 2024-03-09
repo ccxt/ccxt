@@ -4860,6 +4860,7 @@ export default class bitget extends Exchange {
          * @name bitget#cancelAllOrders
          * @description cancel all open orders
          * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+         * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
          * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -4897,7 +4898,13 @@ export default class bitget extends Exchange {
                     response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder (this.extend (request, params));
                 }
             } else {
-                response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder (this.extend (request, params));
+                if (stop) {
+                    request['symbolList'] = [ market['id'] ];
+                    request['symbol'] = undefined;
+                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder (this.extend (request, params));
+                } else {
+                    response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder (this.extend (request, params));
+                }
             }
         } else {
             let productType = undefined;
