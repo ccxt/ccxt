@@ -533,5 +533,101 @@
         },
         "taker": 0.001,
         "maker": 0.001
+    },
+    "ETH/USDT": {
+        "id": "eth_usdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "eth",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "eth_usdt",
+            "quantityAccuracy": "4",
+            "minTranQua": "0.0001",
+            "priceAccuracy": "2"
+        }
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "subType": "linear",
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.001,
+                "max": 500
+            },
+            "price": {
+                "min": 0.2,
+                "max": 0.2
+            },
+            "cost": {
+                "min": 5
+            }
+        },
+        "info": {
+            "priceLimitUpperValue": "0.2",
+            "symbol": "ETHUSDT",
+            "volumeTick": "0.001",
+            "indexPrice": "3911.12600000",
+            "minOrderVolume": "0.001",
+            "priceTick": "0.01",
+            "maxOrderVolume": "500.0",
+            "baseCurrency": "ETH",
+            "maxLeverage": "100",
+            "volumeMultiple": "1.0",
+            "exchangeID": "Exchange",
+            "priceCurrency": "USDT",
+            "priceLimitLowerValue": "0.2",
+            "clearCurrency": "USDT",
+            "symbolName": "ETHUSDT",
+            "defaultLeverage": "20.0",
+            "minOrderCost": "5.0"
+        }
     }
 }
