@@ -1183,6 +1183,12 @@
             "watchTrades": {
                 "timestamp": "ts several hours ahead in in future :)"
             },
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
+            },
             "watchOHLCV": "some timestamp issues"
         }
     },
