@@ -1006,7 +1006,7 @@ export default class huobijp extends Exchange {
          * @name huobijp#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         const request = {
             'language': this.options['language'],

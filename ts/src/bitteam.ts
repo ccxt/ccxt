@@ -421,7 +421,7 @@ export default class bitteam extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         const response = await this.publicGetTradeApiCurrencies (params);
         //

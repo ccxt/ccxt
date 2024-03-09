@@ -591,7 +591,7 @@ export default class deribit extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://docs.deribit.com/#public-get_currencies
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         const response = await this.publicGetGetCurrencies (params);
         //

@@ -339,7 +339,7 @@ export default class bigone extends Exchange {
          * @name bigone#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @param {dict} [params] extra parameters specific to the exchange API endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @returns {dict} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetUcV2Assets', true);

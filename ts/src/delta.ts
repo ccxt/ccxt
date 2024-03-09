@@ -426,7 +426,7 @@ export default class delta extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://docs.delta.exchange/#get-list-of-all-assets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         const response = await this.publicGetAssets (params);
         //

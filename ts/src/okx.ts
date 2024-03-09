@@ -1561,7 +1561,7 @@ export default class okx extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design

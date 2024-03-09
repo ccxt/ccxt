@@ -1563,7 +1563,7 @@ export default class gate extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currencies-details
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         // sandbox/testnet only supports future markets
         const apiBackup = this.safeValue (this.urls, 'apiBackup');

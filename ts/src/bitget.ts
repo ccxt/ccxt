@@ -1826,7 +1826,7 @@ export default class bitget extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         const response = await this.publicSpotGetV2SpotPublicCoins (params);
         //

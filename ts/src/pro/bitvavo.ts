@@ -966,7 +966,7 @@ export default class bitvavo extends bitvavoRest {
          * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         await this.loadMarkets ();
         return await this.watchRequest ('getAssets', params);

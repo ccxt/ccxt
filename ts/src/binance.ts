@@ -2554,7 +2554,7 @@ export default class binance extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         const fetchCurrenciesEnabled = this.safeValue (this.options, 'fetchCurrencies');
         if (!fetchCurrenciesEnabled) {

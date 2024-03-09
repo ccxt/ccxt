@@ -296,7 +296,7 @@ export default class gemini extends Exchange {
          * @name gemini#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         return await this.fetchCurrenciesFromWeb (params);
     }
@@ -308,7 +308,7 @@ export default class gemini extends Exchange {
          * @ignore
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {

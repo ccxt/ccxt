@@ -256,7 +256,7 @@ export default class coinmetro extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#d5876d43-a3fe-4479-8c58-24d0f044edfb
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         const response = await this.publicGetAssets (params);
         //

@@ -946,7 +946,7 @@ export default class wazirx extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://docs.wazirx.com/#all-coins-39-information-user_data
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         if (!this.checkRequiredCredentials (false)) {
             return undefined;

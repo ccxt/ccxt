@@ -222,7 +222,7 @@ export default class bitopro extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         const response = await this.publicGetProvisioningCurrencies (params);
         const currencies = this.safeValue (response, 'data', []);

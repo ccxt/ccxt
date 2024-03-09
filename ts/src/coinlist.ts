@@ -332,7 +332,7 @@ export default class coinlist extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
          */
         const response = await this.publicGetV1Assets (params);
         //
