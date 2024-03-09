@@ -149,7 +149,7 @@ function assertTimestampAndDatetime (exchange, skippedProperties, method, entry,
 }
 
 function assertCurrencyCode (exchange, skippedProperties, method, entry, actualCode, expectedCode = undefined) {
-    if ('currency' in skippedProperties) {
+    if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
     }
     const logText = logTemplate (exchange, method, entry);
