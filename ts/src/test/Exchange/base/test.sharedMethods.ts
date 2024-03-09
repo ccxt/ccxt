@@ -382,7 +382,7 @@ function assertNonEmtpyArray (exchange, skippedProperties, method, entry, hint =
     if (!('emptyResponse' in skippedProperties)) {
         return;
     }
-    assert (entry.length > 0, 'response is expected to be a non-empty array' + logText);
+    assert (entry.length > 0, 'response is expected to be a non-empty array' + logText + ' (add "emptyResponse" in skip-tests.json to skip this check)');
 }
 
 export default {
