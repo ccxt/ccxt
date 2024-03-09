@@ -18,12 +18,14 @@ async function testWatchTrades (exchange, skippedProperties, symbol) {
             now = exchange.milliseconds ();
             continue;
         }
-        testSharedMethods.assertNonEmtpyArray (exchange, method, symbol, response);
+        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response);
         now = exchange.milliseconds ();
         for (let i = 0; i < response.length; i++) {
             testTrade (exchange, skippedProperties, method, response[i], symbol, now);
         }
-        testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+        if (!('timestamp' in skippedProperties)) {
+            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+        }
     }
 }
 
