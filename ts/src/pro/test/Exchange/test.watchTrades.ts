@@ -19,6 +19,9 @@ async function testWatchTrades (exchange, skippedProperties, symbol) {
             continue;
         }
         assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (response));
+        if (!('tradesLength' in skippedProperties)) {
+            assert (response.length > 0, exchange.id + ' ' + method + ' ' + symbol + ' must return at least one trade');
+        }
         now = exchange.milliseconds ();
         for (let i = 0; i < response.length; i++) {
             testTrade (exchange, skippedProperties, method, response[i], symbol, now);
