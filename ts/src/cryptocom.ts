@@ -384,7 +384,7 @@ export default class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
          * @description retrieves data on all markets for cryptocom
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const response = await this.v1PublicGetPublicGetInstruments (params);
         //

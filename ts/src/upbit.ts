@@ -410,7 +410,7 @@ export default class upbit extends Exchange {
          * @see https://docs.upbit.com/reference/%EB%A7%88%EC%BC%93-%EC%BD%94%EB%93%9C-%EC%A1%B0%ED%9A%8C
          * @description retrieves data on all markets for upbit
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const response = await this.publicGetMarketAll (params);
         //

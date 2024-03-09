@@ -213,7 +213,7 @@ export default class poloniexfutures extends Exchange {
          * @description retrieves data on all markets for poloniexfutures
          * @see https://futures-docs.poloniex.com/#symbol-2
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const response = await this.publicGetContractsActive (params);
         //

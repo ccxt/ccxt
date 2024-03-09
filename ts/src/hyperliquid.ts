@@ -259,7 +259,7 @@ export default class hyperliquid extends Exchange {
          * @description retrieves data on all markets for hyperliquid
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const request = {
             'type': 'metaAndAssetCtxs',

@@ -566,7 +566,7 @@ export default class bitfinex extends Exchange {
          * @see https://docs.bitfinex.com/v1/reference/rest-public-symbols
          * @see https://docs.bitfinex.com/v1/reference/rest-public-symbol-details
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const ids = await this.publicGetSymbols ();
         //

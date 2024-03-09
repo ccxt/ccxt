@@ -729,7 +729,7 @@ export default class exmo extends Exchange {
          * @description retrieves data on all markets for exmo
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const response = await this.publicGetPairSettings (params);
         //

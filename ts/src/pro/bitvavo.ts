@@ -954,7 +954,7 @@ export default class bitvavo extends bitvavoRest {
          * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
          * @description retrieves data on all markets for bitvavo
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         return await this.watchRequest ('getMarkets', params);
     }

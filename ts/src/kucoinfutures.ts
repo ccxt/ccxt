@@ -368,7 +368,7 @@ export default class kucoinfutures extends kucoin {
          * @description retrieves data on all markets for kucoinfutures
          * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const response = await this.futuresPublicGetContractsActive (params);
         //

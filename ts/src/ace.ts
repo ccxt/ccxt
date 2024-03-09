@@ -177,7 +177,7 @@ export default class ace extends Exchange {
          * @description retrieves data on all markets for ace
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const response = await this.publicGetOapiV2ListMarketPair ();
         //

@@ -270,7 +270,7 @@ export default class lykke extends Exchange {
          * @description retrieves data on all markets for lykke
          * @see https://lykkecity.github.io/Trading-API/#get-asset-by-id
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const response = await this.publicGetAssetpairs (params);
         const markets = this.safeValue (response, 'payload', []);

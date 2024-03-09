@@ -723,7 +723,7 @@ export default class bitrue extends Exchange {
          * @see https://www.bitrue.com/api-docs#current-open-contract
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const promisesRaw = [];
         const fetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);

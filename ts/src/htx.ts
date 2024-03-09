@@ -1608,7 +1608,7 @@ export default class htx extends Exchange {
          * @name huobi#fetchMarkets
          * @description retrieves data on all markets for huobi
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const types = this.safeValue (options, 'types', {});

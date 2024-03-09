@@ -1076,7 +1076,7 @@ export default class coinbase extends Exchange {
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
          * @description retrieves data on all markets for coinbase
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const method = this.safeString (this.options, 'fetchMarkets', 'fetchMarketsV3');
         return await this[method] (params);

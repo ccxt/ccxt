@@ -1325,7 +1325,7 @@ export default class okx extends Exchange {
          * @description retrieves data on all markets for okx
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const types = this.safeValue (this.options, 'fetchMarkets');
         let promises = [];

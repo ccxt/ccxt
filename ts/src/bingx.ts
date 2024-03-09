@@ -699,7 +699,7 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const requests = [ this.fetchSwapMarkets (params) ];
         const isSandbox = this.safeBool (this.options, 'sandboxMode', false);

@@ -347,7 +347,7 @@ export default class lbank extends Exchange {
          * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs
          * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const marketsPromises = [
             this.fetchSpotMarkets (params),

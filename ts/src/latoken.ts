@@ -256,7 +256,7 @@ export default class latoken extends Exchange {
          * @description retrieves data on all markets for latoken
          * @see https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const currencies = await this.fetchCurrenciesFromCache (params);
         //

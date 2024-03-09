@@ -200,7 +200,7 @@ export default class bithumb extends Exchange {
          * @description retrieves data on all markets for bithumb
          * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const result = [];
         const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});

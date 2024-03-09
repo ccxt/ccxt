@@ -248,7 +248,7 @@ export default class bitteam extends Exchange {
          * @description retrieves data on all markets for bitteam
          * @see https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const response = await this.publicGetTradeApiCcxtPairs (params);
         //

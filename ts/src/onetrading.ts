@@ -367,7 +367,7 @@ export default class onetrading extends Exchange {
          * @name onetrading#fetchMarkets
          * @description retrieves data on all markets for onetrading
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const response = await this.publicGetInstruments (params);
         //

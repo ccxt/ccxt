@@ -484,7 +484,7 @@ export default class poloniex extends Exchange {
          * @description retrieves data on all markets for poloniex
          * @see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const markets = await this.publicGetMarkets (params);
         //

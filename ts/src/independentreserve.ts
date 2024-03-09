@@ -150,7 +150,7 @@ export default class independentreserve extends Exchange {
          * @name independentreserve#fetchMarkets
          * @description retrieves data on all markets for independentreserve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes (params);
         //     ['Xbt', 'Eth', 'Usdt', ...]

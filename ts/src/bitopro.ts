@@ -286,7 +286,7 @@ export default class bitopro extends Exchange {
          * @description retrieves data on all markets for bitopro
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
          */
         const response = await this.publicGetProvisioningTradingPairs ();
         const markets = this.safeValue (response, 'data', []);
