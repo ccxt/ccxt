@@ -82,6 +82,18 @@
             }
         }
     },
+    "binanceusdm ": {
+        "httpsProxy": "http://5.75.153.75:8002",
+        "wsProxy": "http://5.75.153.75:8002",
+        "skipMethods": {
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3463"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
+            }
+        }
+    },
     "binanceus": {
         "skipMethods": {
             "loadMarkets": {
@@ -320,15 +332,17 @@
             },
             "fetchTickers": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3615",
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+                "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269331129#L3609"
             },
             "fetchTicker": {
-                "spread": "same",
-                "quoteVolume": "same"
+                "spread": "same", "quoteVolume": "same", "ask": "same"
             },
             "watchTickers": {
-                "spread": "same",
-                "quoteVolume": "same"
+                "spread": "same", "quoteVolume": "same", "ask": "same"
+            },
+            "watchTicker": {
+                "spread": "same", "quoteVolume": "same", "ask": "same"
             },
             "fetchOrderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3946"
@@ -601,7 +615,13 @@
             "fetchOpenInterestHistory": {
                 "openInterestAmount": "openInterestAmount is not provided"
             },
-            "fetchBorrowRate": "does not work with unified account"
+            "fetchBorrowRate": "does not work with unified account",
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3669"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
+            }
         }
     },
     "bigone": {
@@ -1163,9 +1183,7 @@
             "watchTrades": {
                 "timestamp": "ts several hours ahead in in future :)"
             },
-            "watchOHLCV": {
-                "0": "ts several hours ahead in in future :)"
-            }
+            "watchOHLCV": "some timestamp issues"
         }
     },
     "lykke": {
@@ -1356,12 +1374,16 @@
                 "deposit":"not provided"
             },
             "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3690"
             },
             "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "quoteVolume": "same"
+            },
+            "watchTickers": {
+                "quoteVolume": "same"
+            },
+            "watchTicker": {
+                "quoteVolume": "same"
             },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4807"

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.64'
+__version__ = '4.2.65'
 
 # -----------------------------------------------------------------------------
 
@@ -944,7 +944,7 @@ class Exchange(BaseExchange):
         await self.load_markets()
         if not self.has['fetchBorrowRates']:
             raise NotSupported(self.id + ' fetchIsolatedBorrowRate() is not supported yet')
-        borrowRates = await self.fetchIsolatedBorrowRates(params)
+        borrowRates = await self.fetch_isolated_borrow_rates(params)
         rate = self.safe_dict(borrowRates, symbol)
         if rate is None:
             raise ExchangeError(self.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol)

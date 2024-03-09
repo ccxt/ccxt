@@ -331,6 +331,22 @@
                     "clientOrderId": "myorder1"
                   }
                 ]
+            },
+            {
+                "description": "Swap send test order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order/test?positionSide=LONG&quantity=0.0001&side=SELL&stopPrice=40000&symbol=BTC-USDT&timestamp=1699343342279&type=TAKE_PROFIT_MARKET&signature=26051175a041231ba47518249dd2e70c7ccc45185f32bb5551b4cccf49e9cb9d",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "takeProfitPrice": "40000",
+                        "test": true
+                    }
+                ]
             }
         ],
         "createOrders": [
