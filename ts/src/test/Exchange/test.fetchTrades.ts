@@ -7,7 +7,7 @@ async function testFetchTrades (exchange, skippedProperties, symbol) {
     const method = 'fetchTrades';
     const trades = await exchange.fetchTrades (symbol);
     assert (Array.isArray (trades), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (trades));
-    if (!('tradesLength' in skippedProperties)) {
+    if (!('emptyResponse' in skippedProperties)) {
         assert (trades.length > 0, exchange.id + ' ' + method + ' ' + symbol + ' must return at least one trade');
     }
     const now = exchange.milliseconds ();
