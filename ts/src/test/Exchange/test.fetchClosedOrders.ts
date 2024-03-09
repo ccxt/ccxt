@@ -11,7 +11,7 @@ async function testFetchClosedOrders (exchange, skippedProperties, symbol) {
     for (let i = 0; i < orders.length; i++) {
         const order = orders[i];
         testOrder (exchange, skippedProperties, method, order, symbol, now);
-        assert (exchange.inArray (order['status'], [ 'closed', 'canceled' ]), exchange.id + ' ' + method + ' ' + symbol + ' returned an order with status ' + order['status'] + ' (expected "closed" or "canceled")');
+        testSharedMethods.assertInArray (exchange, skippedProperties, method, order, 'status', [ 'closed', 'canceled' ]);
     }
     testSharedMethods.assertTimestampOrder (exchange, method, symbol, orders);
 }
