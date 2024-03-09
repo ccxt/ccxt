@@ -18,10 +18,7 @@ async function testWatchTrades (exchange, skippedProperties, symbol) {
             now = exchange.milliseconds ();
             continue;
         }
-        assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (response));
-        if (!('emptyResponse' in skippedProperties)) {
-            assert (response.length > 0, exchange.id + ' ' + method + ' ' + symbol + ' must return at least one trade');
-        }
+        testSharedMethods.assertNonEmtpyArray (exchange, method, symbol, response);
         now = exchange.milliseconds ();
         for (let i = 0; i < response.length; i++) {
             testTrade (exchange, skippedProperties, method, response[i], symbol, now);
