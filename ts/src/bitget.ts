@@ -4890,7 +4890,7 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
         if (market['spot']) {
@@ -4902,9 +4902,10 @@ export default class bitget extends Exchange {
                 }
             } else {
                 if (stop) {
-                    request['symbolList'] = [ market['id'] ];
-                    delete request['symbol'];
-                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder (this.extend (request, params));
+                    const stopRequest = {
+                        'symbolList': [ market['id'] ],
+                    };
+                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder (this.extend (stopRequest, params));
                 } else {
                     response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder (this.extend (request, params));
                 }

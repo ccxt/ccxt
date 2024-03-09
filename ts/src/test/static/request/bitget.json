@@ -931,7 +931,7 @@
         ],
         "cancelAllOrders": [
             {
-                "description": "Spot cancel all orders",
+                "description": "Spot stop cancel all orders",
                 "method": "cancelAllOrders",
                 "url": "https://api.bitget.com/api/v2/spot/trade/batch-cancel-plan-order",
                 "input": [
