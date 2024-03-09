@@ -3111,10 +3111,10 @@ export default class bitfinex2 extends Exchange {
         }
         const reversedArray = [];
         const rawRates = this.filterBySymbolSinceLimit (rates, symbol, since, limit);
-        const rawRatesLength = rawRates.length;
-        const ratesLength = Math.max (rawRatesLength - 1, 0);
-        for (let i = ratesLength; i >= 0; i--) {
-            const valueAtIndex = rawRates[i];
+        const ratesLength = rawRates.length;
+        for (let i = 0; i < ratesLength; i++) {
+            const index = ratesLength - i - 1;
+            const valueAtIndex = rawRates[index];
             reversedArray.push (valueAtIndex);
         }
         return reversedArray as FundingRateHistory[];
