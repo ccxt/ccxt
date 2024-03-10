@@ -705,5 +705,17 @@
                 ]
             }
         ]
-    }
+    },
+    "fetchOHLCV": [
+        {
+            "description": "fetch OHLCV with since",
+            "method": "fetchOHLCV",
+            "url": "https://api.hitbtc.com/api/3/public/candles/BTCUSDT?period=H1&from=2024-01-10T14%3A11%3A22.000Z",
+            "input": [
+              "BTC/USDT",
+              "1h",
+              1704895882000
+            ]
+        }
+    ]
 }
