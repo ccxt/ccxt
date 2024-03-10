@@ -29,17 +29,29 @@
         "strike": false,
         "optionType": false,
         "precision": {
-          "amount": false,
-          "price": false,
-          "cost": false,
-          "base": false,
-          "quote": false
+            "amount": false,
+            "price": false,
+            "cost": false,
+            "base": false,
+            "quote": false
         },
         "limits": {
-          "leverage": { "min": false, "max": false },
-          "amount": { "min": false, "max": false },
-          "price": { "min": false, "max": false },
-          "cost": { "min": false, "max": false }
+            "leverage": {
+                "min": false,
+                "max": false
+            },
+            "amount": {
+                "min": false,
+                "max": false
+            },
+            "price": {
+                "min": false,
+                "max": false
+            },
+            "cost": {
+                "min": false,
+                "max": false
+            }
         },
         "created": false,
         "info": false,
