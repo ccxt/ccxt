@@ -3566,7 +3566,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined): [string, object] {
         /**
          * @ignore
          * @method

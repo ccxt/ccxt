@@ -4440,14 +4440,24 @@ export default class Exchange {
         return [ subType, params ];
     }
 
-    handleMarginModeAndParams (methodName: string, params = {}, defaultValue = undefined) {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined): [string, object] {
         /**
          * @ignore
          * @method
+         * @description checks this.options and params for a value set for marginMode or defaultMarginMode
+         * @param {string} methodName the name of the method being called
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         * @param {string} [defaultValue] the default value to be returned if there is no value provided by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         * @returns {[string, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
-        return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode', defaultValue);
+        const methodOptions = this.safeValue (this.options, methodName, {});
+        const methodMarginMode = this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
+        const marginMode = this.safeStringLower2 (params, 'marginMode', 'defaultMarginMode', methodMarginMode);
+        if (marginMode !== undefined) {
+            params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
+        }
+        return [ marginMode, params ];
     }
 
     throwExactlyMatchedException (exact, string, message) {

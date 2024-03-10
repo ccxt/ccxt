@@ -5467,7 +5467,7 @@ export default class mexc extends Exchange {
         } as Leverage;
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined): [string, object] {
         /**
          * @ignore
          * @method

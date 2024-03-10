@@ -3926,7 +3926,7 @@ export default class digifinex extends Exchange {
         return tiers;
     }
 
-    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined): [string, object] {
         /**
          * @ignore
          * @method
