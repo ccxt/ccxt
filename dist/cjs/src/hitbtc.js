@@ -1721,10 +1721,10 @@ class hitbtc extends hitbtc$1 {
             'symbol': market['id'],
             'period': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        [request, params] = this.handleUntilOption('till', request, params);
         if (since !== undefined) {
             request['from'] = this.iso8601(since);
         }
+        [request, params] = this.handleUntilOption('till', request, params);
         if (limit !== undefined) {
             request['limit'] = limit;
         }

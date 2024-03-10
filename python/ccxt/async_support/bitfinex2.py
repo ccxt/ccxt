@@ -2906,10 +2906,10 @@ class bitfinex2(Exchange, ImplicitAPI):
             rates.append(rate)
         reversedArray = []
         rawRates = self.filter_by_symbol_since_limit(rates, symbol, since, limit)
-        rawRatesLength = len(rawRates)
-        ratesLength = max(rawRatesLength - 1, 0)
-        for i in range(ratesLength, 0):
-            valueAtIndex = rawRates[i]
+        ratesLength = len(rawRates)
+        for i in range(0, ratesLength):
+            index = ratesLength - i - 1
+            valueAtIndex = rawRates[index]
             reversedArray.append(valueAtIndex)
         return reversedArray
 

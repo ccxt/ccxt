@@ -367,6 +367,55 @@
             "quoteCurrency": "USDT"
         }
     },
+    "DOT/USDT": {
+        "id": "DOT-USDT",
+        "symbol": "DOT/USDT",
+        "base": "DOT",
+        "quote": "USDT",
+        "baseId": "DOT",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 500000
+            }
+        },
+        "info": {
+            "id": "3bf03cb5-6bd0-40cd-9924-af66aa624564",
+            "name": "DOT-USDT",
+            "quote_scale": "4",
+            "quote_asset": {
+                "id": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                "symbol": "USDT",
+                "name": "TetherUS"
+            },
+            "base_asset": {
+                "id": "866a364a-8ff4-43d5-8136-f4636e23f0d3",
+                "symbol": "DOT",
+                "name": "Polkadot"
+            },
+            "base_scale": "2",
+            "min_quote_value": "10",
+            "max_quote_value": "500000"
+        },
+        "uuid": "3bf03cb5-6bd0-40cd-9924-af66aa624564"
+    },
     "ETH/USDT": {
         "id": "ETH-USDT",
         "symbol": "ETH/USDT",

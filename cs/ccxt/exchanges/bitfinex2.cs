@@ -3290,11 +3290,11 @@ public partial class bitfinex2 : Exchange
         }
         object reversedArray = new List<object>() {};
         object rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
-        object rawRatesLength = getArrayLength(rawRates);
-        object ratesLength = mathMax(subtract(rawRatesLength, 1), 0);
-        for (object i = ratesLength; isGreaterThanOrEqual(i, 0); postFixDecrement(ref i))
+        object ratesLength = getArrayLength(rawRates);
+        for (object i = 0; isLessThan(i, ratesLength); postFixIncrement(ref i))
         {
-            object valueAtIndex = getValue(rawRates, i);
+            object index = subtract(subtract(ratesLength, i), 1);
+            object valueAtIndex = getValue(rawRates, index);
             ((IList<object>)reversedArray).Add(valueAtIndex);
         }
         return reversedArray;
