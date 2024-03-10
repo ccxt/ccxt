@@ -1646,13 +1646,13 @@ public partial class hitbtc : Exchange
             { "symbol", getValue(market, "id") },
             { "period", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
+        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
