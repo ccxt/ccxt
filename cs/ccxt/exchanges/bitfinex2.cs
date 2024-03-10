@@ -1414,9 +1414,12 @@ public partial class bitfinex2 : Exchange
             { "symbol", getValue(market, "id") },
             { "timeframe", this.safeString(this.timeframes, timeframe, timeframe) },
             { "sort", 1 },
-            { "start", since },
             { "limit", limit },
         };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start"] = since;
+        }
         var requestparametersVariable = this.handleUntilOption("end", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
@@ -3152,7 +3155,7 @@ public partial class bitfinex2 : Exchange
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return ((object)this.fetchFundingRates(new List<object>() {symbol}, parameters));
+        return ((object)await this.fetchFundingRates(new List<object>() {symbol}, parameters));
     }
 
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)

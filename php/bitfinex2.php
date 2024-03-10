@@ -1377,9 +1377,11 @@ class bitfinex2 extends Exchange {
             'symbol' => $market['id'],
             'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'sort' => 1,
-            'start' => $since,
             'limit' => $limit,
         );
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = $this->publicGetCandlesTradeTimeframeSymbolHist (array_merge($request, $params));
         //

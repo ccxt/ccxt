@@ -1347,9 +1347,10 @@ class bitfinex2(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
-            'start': since,
             'limit': limit,
         }
+        if since is not None:
+            request['start'] = since
         request, params = self.handle_until_option('end', request, params)
         response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         #
@@ -2792,7 +2793,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
-        return self.fetch_funding_rates([symbol], params)
+        return await self.fetch_funding_rates([symbol], params)
 
     async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
