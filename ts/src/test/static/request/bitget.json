@@ -931,13 +931,25 @@
         ],
         "cancelAllOrders": [
             {
-                "description": "Spot cancel all orders",
+                "description": "Spot stop cancel all orders",
                 "method": "cancelAllOrders",
-                "url": "https://api.bitget.com/api/v2/spot/trade/cancel-symbol-order",
+                "url": "https://api.bitget.com/api/v2/spot/trade/batch-cancel-plan-order",
                 "input": [
-                  "BTC/USDT"
+                  "BTC/USDT",
+                  {
+                    "stop": true
+                  }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\"}"
+                "output": "{\"symbolList\":[\"BTCUSDT\"]}"
+            },
+            {
+              "description": "Spot cancel all plan orders",
+              "method": "cancelAllOrders",
+              "url": "https://api.bitget.com/api/v2/spot/trade/cancel-symbol-order",
+              "input": [
+                "BTC/USDT"
+              ],
+              "output": "{\"symbol\":\"BTCUSDT\"}"
             },
             {
                 "description": "Swap cancel all orders",
