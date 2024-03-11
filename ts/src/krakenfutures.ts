@@ -737,6 +737,95 @@ export default class krakenfutures extends Exchange {
                 request['lastTime'] = this.iso8601 (until);
             }
             response = await this.historyGetMarketSymbolExecutions (this.extend (request, params));
+            //
+            //    {
+            //        "elements": [
+            //            {
+            //                "uid": "a5105030-f054-44cc-98ab-30d5cae96bef",
+            //                "timestamp": "1710150778607",
+            //                "event": {
+            //                    "Execution": {
+            //                        "execution": {
+            //                            "uid": "2d485b71-cd28-4a1e-9364-371a127550d2",
+            //                            "makerOrder": {
+            //                                "uid": "0a25f66b-1109-49ec-93a3-d17bf9e9137e",
+            //                                "tradeable": "PF_XBTUSD",
+            //                                "direction": "Buy",
+            //                                "quantity": "0.26500",
+            //                                "timestamp": "1710150778570",
+            //                                "limitPrice": "71907",
+            //                                "orderType": "Post",
+            //                                "reduceOnly": false,
+            //                                "lastUpdateTimestamp": "1710150778570"
+            //                            },
+            //                            "takerOrder": {
+            //                                "uid": "04de3ee0-9125-4960-bf8f-f63b577b6790",
+            //                                "tradeable": "PF_XBTUSD",
+            //                                "direction": "Sell",
+            //                                "quantity": "0.0002",
+            //                                "timestamp": "1710150778607",
+            //                                "limitPrice": "71187.00",
+            //                                "orderType": "Market",
+            //                                "reduceOnly": false,
+            //                                "lastUpdateTimestamp": "1710150778607"
+            //                            },
+            //                            "timestamp": "1710150778607",
+            //                            "quantity": "0.0002",
+            //                            "price": "71907",
+            //                            "markPrice": "71903.32715463147",
+            //                            "limitFilled": false,
+            //                            "usdValue": "14.38"
+            //                        },
+            //                        "takerReducedQuantity": ""
+            //                    }
+            //                }
+            //            },
+            //            {
+            //                "uid": "6ffeb768-20c4-43ee-bf19-b2f5c4ca24b7",
+            //                "timestamp": "1710150776808",
+            //                "event": {
+            //                    "Execution": {
+            //                        "execution": {
+            //                            "uid": "ff1e43bc-20ee-4045-b139-ba56f17f67a6",
+            //                            "makerOrder": {
+            //                                "uid": "b32b8f92-ef49-46ff-884d-ab57843342f7",
+            //                                "tradeable": "PF_XBTUSD",
+            //                                "direction": "Buy",
+            //                                "quantity": "0.26500",
+            //                                "timestamp": "1710150775739",
+            //                                "limitPrice": "71905",
+            //                                "orderType": "Post",
+            //                                "reduceOnly": false,
+            //                                "lastUpdateTimestamp": "1710150775739"
+            //                            },
+            //                            "takerOrder": {
+            //                                "uid": "692915fd-a7a8-46a1-90ce-e004f66ddef4",
+            //                                "tradeable": "PF_XBTUSD",
+            //                                "direction": "Sell",
+            //                                "quantity": "0.0002",
+            //                                "timestamp": "1710150776808",
+            //                                "limitPrice": "69029.0",
+            //                                "orderType": "IoC",
+            //                                "reduceOnly": false,
+            //                                "lastUpdateTimestamp": "1710150776808"
+            //                            },
+            //                            "timestamp": "1710150776808",
+            //                            "quantity": "0.0002",
+            //                            "price": "71905",
+            //                            "markPrice": "71902.36833770950",
+            //                            "limitFilled": false,
+            //                            "usdValue": "14.38"
+            //                        },
+            //                        "takerReducedQuantity": ""
+            //                    }
+            //                }
+            //            },
+            //            ...
+            //        ],
+            //        "len": "1000",
+            //        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
+            //    }
+            //
         } else {
             if (until !== undefined) {
                 request['lastTime'] = this.iso8601 (until);
@@ -760,9 +849,9 @@ export default class krakenfutures extends Exchange {
             //        "serverTime": "2022-03-18T06:39:18.056Z"
             //    }
             //
+            const history = this.safeValue (response, 'history');
+            return this.parseTrades (history, market, since, limit);
         }
-        const history = this.safeValue (response, 'history');
-        return this.parseTrades (history, market, since, limit);
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
