@@ -249,6 +249,9 @@ export default class krakenfutures extends Exchange {
                         },
                     },
                 },
+                'fetchTrades': {
+                    'method': 'historyGetMarketSymbolExecutions', // historyGetMarketSymbolExecutions, publicGetHistory
+                },
             },
             'timeframes': {
                 '1m': '1m',
@@ -700,6 +703,7 @@ export default class krakenfutures extends Exchange {
          * @method
          * @name krakenfutures#fetchTrades
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
+         * @see https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events
          * @description Fetch a history of filled trades that this account has made
          * @param {string} symbol Unified CCXT market symbol
          * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -719,29 +723,44 @@ export default class krakenfutures extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            request['lastTime'] = this.iso8601 (until);
+        let until = undefined;
+        [ until, params ] = this.handleParamInteger (params, 'until');
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
+        let response = undefined;
+        const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
+        if (isFullHistoryEndpoint) {
+            if (since !== undefined) {
+                request['since'] = since;
+            }
+            if (until !== undefined) {
+                request['lastTime'] = this.iso8601 (until);
+            }
+            response = await this.historyGetMarketSymbolExecutions (this.extend (request, params));
+        } else {
+            if (until !== undefined) {
+                request['lastTime'] = this.iso8601 (until);
+            }
+            response = await this.publicGetHistory (this.extend (request, params));
+            //
+            //    {
+            //        "result": "success",
+            //        "history": [
+            //            {
+            //                "time": "2022-03-18T04:55:37.692Z",
+            //                "trade_id": 100,
+            //                "price": 0.7921,
+            //                "size": 1068,
+            //                "side": "sell",
+            //                "type": "fill",
+            //                "uid": "6c5da0b0-f1a8-483f-921f-466eb0388265"
+            //            },
+            //            ...
+            //        ],
+            //        "serverTime": "2022-03-18T06:39:18.056Z"
+            //    }
+            //
         }
-        //
-        //    {
-        //        "result": "success",
-        //        "history": [
-        //            {
-        //                "time": "2022-03-18T04:55:37.692Z",
-        //                "trade_id": 100,
-        //                "price": 0.7921,
-        //                "size": 1068,
-        //                "side": "sell",
-        //                "type": "fill",
-        //                "uid": "6c5da0b0-f1a8-483f-921f-466eb0388265"
-        //            },
-        //            ...
-        //        ],
-        //        "serverTime": "2022-03-18T06:39:18.056Z"
-        //    }
-        //
-        const response = await this.publicGetHistory (this.extend (request, params));
         const history = this.safeValue (response, 'history');
         return this.parseTrades (history, market, since, limit);
     }
