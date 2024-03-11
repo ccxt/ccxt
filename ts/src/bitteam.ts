@@ -342,7 +342,7 @@ export default class bitteam extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market: NullableDict): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'name');
         let parts: NullableList = undefined;
         if (id !== undefined) {
