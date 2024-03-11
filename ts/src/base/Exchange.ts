@@ -3910,8 +3910,16 @@ export default class Exchange {
         return this.safeString (market, 'symbol', symbol);
     }
 
-    handleParamString (params: object, paramName: string, defaultValue = undefined): [string, object] {
+    handleParamString (params: object, paramName: string, defaultValue: Str = undefined): [string, object] {
         const value = this.safeString (params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
+    handleParamInteger (params: object, paramName: string, defaultValue: Int = undefined): [Int, object] {
+        const value = this.safeInteger (params, paramName, defaultValue);
         if (value !== undefined) {
             params = this.omit (params, paramName);
         }
