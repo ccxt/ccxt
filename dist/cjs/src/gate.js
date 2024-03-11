@@ -2241,7 +2241,8 @@ class gate extends gate$1 {
         const [request, requestParams] = this.prepareRequest(market, type, query);
         request['type'] = 'fund'; // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (since !== undefined) {
-            request['from'] = since / 1000;
+            // from should be integer
+            request['from'] = this.parseToInt(since / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit;

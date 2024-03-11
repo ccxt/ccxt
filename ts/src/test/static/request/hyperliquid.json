@@ -16,11 +16,11 @@
                 "method": "createOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  "SOL/USDC:USDC",
-                  "limit",
-                  "buy",
-                  0.1,
-                  100.9
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100.9
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"100.9\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1709144041776,\"signature\":{\"r\":\"0x98e752f90b99d6b52254d471e2096bf1ebcd9af53e41124ad838375eb86268b5\",\"s\":\"0x5ffbec62ad6ad94a14d7db87b6bf8d72c146f9bf49756dfd6359f5ee7580f14d\",\"v\":27}}"
             },
@@ -29,11 +29,11 @@
                 "method": "createOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  "SOL/USDC:USDC",
-                  "market",
-                  "buy",
-                  1,
-                  110
+                    "SOL/USDC:USDC",
+                    "market",
+                    "buy",
+                    1,
+                    110
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"115.5\",\"s\":\"1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1709144079538,\"signature\":{\"r\":\"0xc51efbead65cfc7fa4b9484faf796e711296709ab361e76632901dc13d6eb9e4\",\"s\":\"0x11b1526c06b7b301ec2129b4aca7fa8570ad435302a9d6245d1613c0abae5176\",\"v\":27}}"
             },
@@ -42,14 +42,14 @@
                 "method": "createOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  "SOL/USDC:USDC",
-                  "limit",
-                  "buy",
-                  0.5,
-                  50,
-                  {
-                    "triggerPrice": 55
-                  }
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.5,
+                    50,
+                    {
+                        "triggerPrice": 55
+                    }
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"50\",\"s\":\"0.5\",\"r\":false,\"t\":{\"trigger\":{\"isMarket\":false,\"triggerPx\":\"55\",\"tpsl\":\"sl\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1709642462922,\"signature\":{\"r\":\"0x5103646526d5556c306be0250f0acc63eba58639e47bc44f3c4ddc3cec33c568\",\"s\":\"0x667fc5139457aff57e323025355bae03f5f136ed8e4c0379595a858651efc9e9\",\"v\":28}}"
             },
@@ -58,14 +58,14 @@
                 "method": "createOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  "SOL/USDC:USDC",
-                  "market",
-                  "buy",
-                  0.5,
-                  55,
-                  {
-                    "triggerPrice": 55
-                  }
+                    "SOL/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.5,
+                    55,
+                    {
+                        "triggerPrice": 55
+                    }
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"57.75\",\"s\":\"0.5\",\"r\":false,\"t\":{\"trigger\":{\"isMarket\":true,\"triggerPx\":\"55\",\"tpsl\":\"sl\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1709642530122,\"signature\":{\"r\":\"0x86f34e7f2c71b6a1ec0a67e6c44676c3be94c2146d395c8f51ab33478158bef9\",\"s\":\"0x48a694df72c8cf57e29ec59aaffbaee2674c041151cb14d5e4167efcfb1f42b5\",\"v\":28}}"
             },
@@ -74,14 +74,14 @@
                 "method": "createOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  "SOL/USDC:USDC",
-                  "market",
-                  "buy",
-                  0.5,
-                  130,
-                  {
-                    "clientOrderId": "0x1234567890abcdef1234567890abcdef"
-                  }
+                    "SOL/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.5,
+                    130,
+                    {
+                        "clientOrderId": "0x1234567890abcdef1234567890abcdef"
+                    }
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"136.5\",\"s\":\"0.5\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}},\"c\":\"0x1234567890abcdef1234567890abcdef\"}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1709643341698,\"signature\":{\"r\":\"0xb873d98d5530fdb1e188eed56e80f74c22b3e13fcf40001a79c2b55738bde25c\",\"s\":\"0x4658527dcd831b2aad7eaf6b534f783cfea54cb4c1c93d8c2924f7bf052ab4e\",\"v\":27}}"
             }
@@ -92,22 +92,22 @@
                 "method": "createOrders",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  [
-                    {
-                      "symbol": "SOL/USDC:USDC",
-                      "amount": 0.1,
-                      "side": "buy",
-                      "type": "limit",
-                      "price": 60
-                    },
-                    {
-                      "symbol": "SOL/USDC:USDC",
-                      "amount": 0.11,
-                      "side": "buy",
-                      "type": "limit",
-                      "price": 61
-                    }
-                  ]
+                    [
+                        {
+                            "symbol": "SOL/USDC:USDC",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 60
+                        },
+                        {
+                            "symbol": "SOL/USDC:USDC",
+                            "amount": 0.11,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 61
+                        }
+                    ]
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"60\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}},{\"a\":5,\"b\":true,\"p\":\"61\",\"s\":\"0.11\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1709643776143,\"signature\":{\"r\":\"0xe94bca75465d32e21e86e86f32d443331ebe1195888eb05e5eebf5a4db2a1716\",\"s\":\"0x2c9b208ec7e339ed005b2263030f303c9d0b3a1f4bb41e9aa38b40a62b9c34a4\",\"v\":28}}"
             }
@@ -118,12 +118,12 @@
                 "method": "editOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  "6530857127",
-                  "SOL/USDC:USDC",
-                  "limit",
-                  "buy",
-                  0.7,
-                  100
+                    "6530857127",
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.7,
+                    100
                 ],
                 "output": "{\"action\":{\"type\":\"batchModify\",\"modifies\":[{\"oid\":6530857127,\"order\":{\"a\":5,\"b\":true,\"p\":\"100\",\"s\":\"0.7\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}}]},\"nonce\":1709643553938,\"signature\":{\"r\":\"0x5455e138164fb02c23fae78d26bcfff278ebbd7d0ad4bfdd450685221135bcbb\",\"s\":\"0x2eb7ab67b84d7614c195fe42f50ebfa83822237abd1b68c44ab547a2f8acdd1a\",\"v\":27}}"
             }
@@ -134,8 +134,8 @@
                 "method": "cancelOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  6466108935,
-                  "SOL/USDC:USDC"
+                    6466108935,
+                    "SOL/USDC:USDC"
                 ],
                 "output": "{\"nonce\":1709205271182,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":5,\"o\":6466108935}]},\"signature\":{\"r\":\"0xba035847994c83ffeaadf906639c0f82548cbcae8195c527f74e3cb50148cd6b\",\"s\":\"0x64098742b1d2fdac9a11973c991de69b8adbcee4e461acb7dd06f41decf4995d\",\"v\":27}}"
             }
@@ -146,11 +146,11 @@
                 "method": "cancelOrders",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  [
-                    "6927265353",
-                    "6927351467"
-                  ],
-                  "SOL/USDC:USDC"
+                    [
+                        "6927265353",
+                        "6927351467"
+                    ],
+                    "SOL/USDC:USDC"
                 ],
                 "output": "{\"nonce\":1709652626969,\"action\":{\"type\":\"cancel\",\"cancels\":[{\"a\":5,\"o\":6927265353},{\"a\":5,\"o\":6927351467}]},\"signature\":{\"r\":\"0x546bc0dcf536756b5cce7206528aadf03a44d1b2a9b0a48c2e85fd21b1692b6f\",\"s\":\"0x5088740b9decdc966025ba75f127eb6cbb097eaab1835238dab8d95cfe101040\",\"v\":27}}"
             }
@@ -328,8 +328,8 @@
                 "method": "setLeverage",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
-                  5,
-                  "BTC/USDC:USDC"
+                    5,
+                    "BTC/USDC:USDC"
                 ],
                 "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":0,\"isCross\":true,\"leverage\":5},\"nonce\":1709652347195,\"signature\":{\"r\":\"0x5a9023d51d2c2d0d6eb243a423473a270b8ad80bb7284bc6d9d7a9007201026\",\"s\":\"0x3bd6c3257be38a5aac22bf5ecefe63ba0c5e4c39c9ac78d5d059e1dfe69dedd\",\"v\":27}}"
             }

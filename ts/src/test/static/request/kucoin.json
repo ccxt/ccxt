@@ -1,7 +1,9 @@
 {
     "exchange": "kucoin",
     "skipKeys": [
-        "clientOid"
+        "clientOid",
+        "startAt",
+        "endAt"
     ],
     "outputType": "json",
     "methods": {
@@ -35,14 +37,14 @@
                 "method": "createOrder",
                 "url": "https://api.kucoin.com/api/v1/stop-order",
                 "input": [
-                  "LTC/USDT",
-                  "limit",
-                  "buy",
-                  0.1,
-                  55,
-                  {
-                    "triggerPrice": 60
-                  }
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    55,
+                    {
+                        "triggerPrice": 60
+                    }
                 ],
                 "output": "{\"clientOid\":\"7417761e-9fa9-4030-8863-66fba6487b24\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"55\",\"stopPrice\":\"60\"}"
             },
@@ -51,14 +53,14 @@
                 "method": "createOrder",
                 "url": "https://api.kucoin.com/api/v1/hf/orders",
                 "input": [
-                  "LTC/USDT",
-                  "market",
-                  "buy",
-                  0.1,
-                  null,
-                  {
-                    "hf": true
-                  }
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "hf": true
+                    }
                 ],
                 "output": "{\"clientOid\":\"5d7a8110-1ea6-46e7-8d8f-1ba53267f20c\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\",\"hf\":true}"
             }
@@ -69,33 +71,33 @@
                 "method": "createOrders",
                 "url": "https://api.kucoin.com/api/v1/orders/multi",
                 "input": [
-                  [
-                    {
-                      "symbol": "LTC/USDT",
-                      "amount": 0.1,
-                      "side": "buy",
-                      "type": "limit",
-                      "price": 60
-                    },
-                    {
-                      "symbol": "LTC/USDT",
-                      "amount": 0.11,
-                      "side": "buy",
-                      "type": "limit",
-                      "price": 61
-                    }
-                  ]
+                    [
+                        {
+                            "symbol": "LTC/USDT",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 60
+                        },
+                        {
+                            "symbol": "LTC/USDT",
+                            "amount": 0.11,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 61
+                        }
+                    ]
                 ],
                 "output": "{\"symbol\":\"LTC-USDT\",\"orderList\":[{\"clientOid\":\"fb7b2388-a744-4c4f-a78b-712b24023843\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"60\"},{\"clientOid\":\"ebc583e1-1c04-45b8-bc9e-fa46f76d1208\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.11\",\"price\":\"61\"}]}"
-              }
+            }
         ],
         "createMarketBuyOrderWithCost": [
             {
                 "method": "market buy with cost",
                 "url": "https://api.kucoin.com/api/v1/orders",
                 "input": [
-                  "LTC/USDT",
-                  5
+                    "LTC/USDT",
+                    5
                 ],
                 "output": "{\"clientOid\":\"161d6deb-6d83-4f94-a47d-95b4cdf8a239\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"funds\":\"5\"}"
             }
@@ -106,8 +108,8 @@
                 "method": "createMarketSellOrderWithCost",
                 "url": "https://api.kucoin.com/api/v1/orders",
                 "input": [
-                  "LTC/USDT",
-                  5
+                    "LTC/USDT",
+                    5
                 ],
                 "output": "{\"clientOid\":\"8c981786-2534-4bd8-b3ee-fea9ecaf5b8c\",\"side\":\"sell\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"funds\":\"5\"}"
             }
@@ -181,11 +183,11 @@
                 "method": "cancelOrder",
                 "url": "https://api.kucoin.com/api/v1/stop-order/vs8lgpan88t0q73m003j7m81",
                 "input": [
-                  "vs8lgpan88t0q73m003j7m81",
-                  "LTC/USDT",
-                  {
-                    "stop": true
-                  }
+                    "vs8lgpan88t0q73m003j7m81",
+                    "LTC/USDT",
+                    {
+                        "stop": true
+                    }
                 ]
             },
             {
@@ -193,8 +195,8 @@
                 "method": "cancelOrder",
                 "url": "https://api.kucoin.com/api/v1/orders/6556088034d111000738f7b8",
                 "input": [
-                  "6556088034d111000738f7b8",
-                  "LTC/USDT"
+                    "6556088034d111000738f7b8",
+                    "LTC/USDT"
                 ]
             },
             {
@@ -202,11 +204,11 @@
                 "method": "cancelOrder",
                 "url": "https://api.kucoin.com/api/v1/order/client-order/myorderid",
                 "input": [
-                  "random",
-                  "LTC/USDT",
-                  {
-                    "clientOrderId": "myorderid"
-                  }
+                    "random",
+                    "LTC/USDT",
+                    {
+                        "clientOrderId": "myorderid"
+                    }
                 ]
             }
         ],
@@ -226,9 +228,9 @@
                 "method": "fetchBalance",
                 "url": "https://api.kucoin.com/api/v1/accounts?type=trade_hf",
                 "input": [
-                  {
-                    "hf": true
-                  }
+                    {
+                        "hf": true
+                    }
                 ]
             }
         ],
@@ -266,10 +268,10 @@
                 "method": "transfer",
                 "url": "https://api.kucoin.com/api/v2/accounts/inner-transfer",
                 "input": [
-                  "USDT",
-                  5,
-                  "trade",
-                  "trade_hf"
+                    "USDT",
+                    5,
+                    "trade",
+                    "trade_hf"
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"from\":\"trade\",\"to\":\"trade_hf\",\"clientOid\":\"d0da1feb-d76c-4562-b727-ddfabec6ca45\"}"
             }
@@ -288,12 +290,12 @@
                 "method": "fetchLedger",
                 "url": "https://api.kucoin.com/api/v1/hf/accounts/ledgers?currency=USDT",
                 "input": [
-                  "USDT",
-                  null,
-                  null,
-                  {
-                    "hf": true
-                  }
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "hf": true
+                    }
                 ]
             }
         ],
@@ -303,10 +305,21 @@
                 "method": "fetchTickers",
                 "url": "https://api.kucoin.com/api/v1/market/allTickers",
                 "input": [
-                  [
-                    "BTC/USDT",
-                    "ETH/USDT"
-                  ]
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.kucoin.com/api/v1/market/allTickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
                 ]
             }
         ],
@@ -316,7 +329,15 @@
                 "method": "fetchTicker",
                 "url": "https://api.kucoin.com/api/v1/market/stats?symbol=BTC-USDT",
                 "input": [
-                  "BTC/USDT"
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.kucoin.com/api/v1/market/stats?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -326,7 +347,15 @@
                 "method": "fetchTrades",
                 "url": "https://api.kucoin.com/api/v1/market/histories?symbol=BTC-USDT",
                 "input": [
-                  "BTC/USDT"
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.kucoin.com/api/v1/market/histories?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -336,8 +365,16 @@
                 "method": "fetchOrderBook",
                 "url": "https://api.kucoin.com/api/v1/market/orderbook/level2_20?symbol=BTC-USDT",
                 "input": [
-                  "BTC/USDT",
-                  20
+                    "BTC/USDT",
+                    20
+                ]
+            },
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.kucoin.com/api/v3/market/orderbook/level2?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -347,10 +384,18 @@
                 "method": "fetchOHLCV",
                 "url": "https://api.kucoin.com/api/v1/market/candles?symbol=BTC-USDT&type=1hour&startAt=1706628191&endAt=1706638991",
                 "input": [
-                  "BTC/USDT",
-                  "1h",
-                  1706628191000,
-                  3
+                    "BTC/USDT",
+                    "1h",
+                    1706628191000,
+                    3
+                ]
+            },
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.kucoin.com/api/v1/market/candles?symbol=BTC-USDT&type=1min&endAt=1709992989",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -360,7 +405,7 @@
                 "method": "fetchTradingFee",
                 "url": "https://api.kucoin.com/api/v1/trade-fees?symbols=BTC-USDT",
                 "input": [
-                  "BTC/USDT"
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -370,8 +415,8 @@
                 "method": "fetchOrder",
                 "url": "https://api.kucoin.com/api/v1/orders/65e371dd0ddaa40007cb437b",
                 "input": [
-                  "65e371dd0ddaa40007cb437b",
-                  "LTC/USDT"
+                    "65e371dd0ddaa40007cb437b",
+                    "LTC/USDT"
                 ]
             }
         ],
@@ -381,9 +426,9 @@
                 "method": "fetchDepositWithdrawFees",
                 "url": "https://api.kucoin.com/api/v3/currencies",
                 "input": [
-                  [
-                    "BTC"
-                  ]
+                    [
+                        "BTC"
+                    ]
                 ]
             }
         ],
@@ -392,6 +437,14 @@
                 "description": "fetch accounts",
                 "method": "fetchAccounts",
                 "url": "https://api.kucoin.com/api/v1/accounts",
+                "input": []
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.kucoin.com/api/v1/timestamp",
                 "input": []
             }
         ]

@@ -24,13 +24,13 @@
                 "method": "fetchMyTrades",
                 "url": "https://api.coinex.com/v1/order/user/deals?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&account_id=6&limit=100&market=LTCUSDT&offset=0&page=1&tonce=1706032695073",
                 "input": [
-                  "LTC/USDT",
-                  null,
-                  null,
-                  {
-                    "marginMode": "isolated",
-                    "account_id": 6
-                  }
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "marginMode": "isolated",
+                        "account_id": 6
+                    }
                 ]
             }
         ],
@@ -82,13 +82,13 @@
                 "method": "fetchOpenOrders",
                 "url": "https://api.coinex.com/v1/order/pending?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&account_id=6&limit=100&marginMode=isolated&market=LTCUSDT&page=1&tonce=1706032720402",
                 "input": [
-                  "LTC/USDT",
-                  null,
-                  null,
-                  {
-                    "marginMode": "isolated",
-                    "account_id": 6
-                  }
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "marginMode": "isolated",
+                        "account_id": 6
+                    }
                 ]
             }
         ],
@@ -181,10 +181,10 @@
                 "method": "fetchBalance",
                 "url": "https://api.coinex.com/v1/margin/account?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&market=LTCUSDT&tonce=1706032524583",
                 "input": [
-                  {
-                    "marginMode": "isolated",
-                    "symbol": "LTC/USDT"
-                  }
+                    {
+                        "marginMode": "isolated",
+                        "symbol": "LTC/USDT"
+                    }
                 ]
             }
         ],
@@ -204,12 +204,12 @@
                 "method": "fetchPositions",
                 "url": "https://api.coinex.com/perpetual/v1/position/finished?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&limit=100&market=LTCUSDT&side=0&timestamp=1706265378027",
                 "input": [
-                  [
-                    "LTC/USDT:USDT"
-                  ],
-                  {
-                    "method": "perpetualPrivateGetPositionFinished"
-                  }
+                    [
+                        "LTC/USDT:USDT"
+                    ],
+                    {
+                        "method": "perpetualPrivateGetPositionFinished"
+                    }
                 ]
             }
         ],
@@ -516,6 +516,22 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api.coinex.com/perpetual/v1/market/ticker?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.coinex.com/v1/market/ticker?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
             }
         ],
         "fetchTickers": [
@@ -535,6 +551,28 @@
                         "type": "swap"
                     }
                 ]
+            },
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.coinex.com/v1/market/ticker/all",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api.coinex.com/perpetual/v1/market/ticker/all",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
             }
         ],
         "fetchOrderBook": [
@@ -548,6 +586,22 @@
             },
             {
                 "description": "Swap fetch orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.coinex.com/perpetual/v1/market/depth?market=BTCUSDT&merge=0&limit=20",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.coinex.com/v1/market/depth?market=BTCUSDT&merge=0&limit=20",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
                 "method": "fetchOrderBook",
                 "url": "https://api.coinex.com/perpetual/v1/market/depth?market=BTCUSDT&merge=0&limit=20",
                 "input": [
@@ -571,6 +625,22 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.coinex.com/v1/market/deals?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.coinex.com/perpetual/v1/market/deals?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchOHLCV": [
@@ -584,6 +654,22 @@
             },
             {
                 "description": "Swap fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.coinex.com/perpetual/v1/market/kline?market=BTCUSDT&type=1min",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.coinex.com/v1/market/kline?market=BTCUSDT&type=1min",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://api.coinex.com/perpetual/v1/market/kline?market=BTCUSDT&type=1min",
                 "input": [
@@ -637,12 +723,12 @@
                 "method": "fetchTransfers",
                 "url": "https://api.coinex.com/v1/margin/transfer/history?access_id=85D9FDDCA1914FB78E2F2448A0EF812A&limit=100&page=1&tonce=1706032791206",
                 "input": [
-                  null,
-                  null,
-                  null,
-                  {
-                    "marginMode": "isolated"
-                  }
+                    null,
+                    null,
+                    null,
+                    {
+                        "marginMode": "isolated"
+                    }
                 ]
             }
         ],
@@ -652,7 +738,7 @@
                 "method": "fetchLeverage",
                 "url": "https://api.coinex.com/v1/margin/config?access_id=36280D3BC1284980A37DDAE67EBABE74&tonce=1709711145773",
                 "input": [
-                  "BTC/USDT"
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -662,6 +748,34 @@
                 "method": "fetchLeverages",
                 "url": "https://api.coinex.com/v1/margin/config?access_id=36280D3BC1284980A37DDAE67EBABE74&tonce=1709711478774",
                 "input": []
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.coinex.com/perpetual/v1/time",
+                "input": []
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.coinex.com/perpetual/v1/market/funding_history?market=BTCUSDT&limit=100&offset=0",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.coinex.com/perpetual/v1/market/ticker?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ]
     },

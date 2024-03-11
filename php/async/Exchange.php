@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.65';
+$version = '4.2.67';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.65';
+    const VERSION = '4.2.67';
 
     public $browser;
     public $marketsLoading = null;
@@ -4502,7 +4502,10 @@ class Exchange extends \ccxt\Exchange {
                         $response = Async\await($this->$method ($symbol, null, $maxEntriesPerRequest, $params));
                         $responseLength = count($response);
                         if ($this->verbose) {
-                            $backwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                            $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                            if ($paginationTimestamp !== null) {
+                                $backwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                            }
                             $this->log ($backwardMessage);
                         }
                         if ($responseLength === 0) {
@@ -4520,7 +4523,10 @@ class Exchange extends \ccxt\Exchange {
                         $response = Async\await($this->$method ($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params));
                         $responseLength = count($response);
                         if ($this->verbose) {
-                            $forwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                            $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                            if ($paginationTimestamp !== null) {
+                                $forwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                            }
                             $this->log ($forwardMessage);
                         }
                         if ($responseLength === 0) {

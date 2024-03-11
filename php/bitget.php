@@ -368,6 +368,8 @@ class bitget extends Exchange {
                             'v2/spot/wallet/transfer' => 2,
                             'v2/spot/wallet/subaccount-transfer' => 2,
                             'v2/spot/wallet/withdrawal' => 2,
+                            'v2/spot/wallet/cancel-withdrawal' => 2,
+                            'v2/spot/wallet/modify-deposit-account' => 2,
                         ),
                     ),
                     'mix' => array(
@@ -712,9 +714,12 @@ class bitget extends Exchange {
                             'v2/convert/currencies' => 2,
                             'v2/convert/quoted-price' => 2,
                             'v2/convert/convert-record' => 2,
+                            'v2/convert/bgb-convert-coin-list' => 2,
+                            'v2/convert/bgb-convert-records' => 2,
                         ),
                         'post' => array(
                             'v2/convert/trade' => 2,
+                            'v2/convert/bgb-convert' => 2,
                         ),
                     ),
                     'earn' => array(
@@ -4805,6 +4810,7 @@ class bitget extends Exchange {
         /**
          * cancel all open orders
          * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+         * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
          * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -4831,7 +4837,7 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
         if ($market['spot']) {
@@ -4842,7 +4848,14 @@ class bitget extends Exchange {
                     $response = $this->privateMarginPostMarginV1IsolatedOrderBatchCancelOrder (array_merge($request, $params));
                 }
             } else {
-                $response = $this->privateSpotPostV2SpotTradeCancelSymbolOrder (array_merge($request, $params));
+                if ($stop) {
+                    $stopRequest = array(
+                        'symbolList' => [ $market['id'] ],
+                    );
+                    $response = $this->privateSpotPostV2SpotTradeBatchCancelPlanOrder (array_merge($stopRequest, $params));
+                } else {
+                    $response = $this->privateSpotPostV2SpotTradeCancelSymbolOrder (array_merge($request, $params));
+                }
             }
         } else {
             $productType = null;

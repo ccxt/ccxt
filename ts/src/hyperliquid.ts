@@ -905,13 +905,16 @@ export default class hyperliquid extends Exchange {
             }
             orderReq.push (orderObj);
         }
+        const vaultAddress = this.safeString (params, 'vaultAddress');
         const orderAction = {
             'type': 'order',
             'orders': orderReq,
             'grouping': 'na',
-            'brokerCode': 1,
+            // 'brokerCode': 1, // cant
         };
-        const vaultAddress = this.safeString (params, 'vaultAddress');
+        if (vaultAddress === undefined) {
+            orderAction['brokerCode'] = 1;
+        }
         const signature = this.signL1Action (orderAction, nonce, vaultAddress);
         const request = {
             'action': orderAction,
