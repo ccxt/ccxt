@@ -205,6 +205,39 @@
                 "url": "https://demo-futures.kraken.com/derivatives/api/v3/leveragepreferences",
                 "input": []
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "without arguments",
+                "method": "fetchTrades",
+                "url": "https://futures.kraken.com/api/history/v3/market/PF_XBTUSD/executions",
+                "input": [
+                  "BTC/USD:USD"
+                ]
+            },
+            {
+                "description": "with since & limit",
+                "method": "fetchTrades",
+                "url": "https://futures.kraken.com/api/history/v3/market/PF_XBTUSD/executions?since=1650000000000&sort=asc&count=2",
+                "input": [
+                  "BTC/USD:USD",
+                  1650000000000,
+                  2
+                ]
+            },
+            {
+                "description": "with until & limit",
+                "method": "fetchTrades",
+                "url": "https://futures.kraken.com/api/history/v3/market/PF_XBTUSD/executions?before=1650000000000&count=2",
+                "input": [
+                  "BTC/USD:USD",
+                  null,
+                  2,
+                  {
+                    "until": 1650000000000
+                  }
+                ]
+            }
         ]
     }
 }
