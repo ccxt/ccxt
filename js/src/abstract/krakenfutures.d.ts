@@ -32,6 +32,7 @@ interface Exchange {
     historyGetExecutions(params?: {}): Promise<implicitReturnType>;
     historyGetTriggers(params?: {}): Promise<implicitReturnType>;
     historyGetAccountlogcsv(params?: {}): Promise<implicitReturnType>;
+    historyGetAccountLog(params?: {}): Promise<implicitReturnType>;
     historyGetMarketSymbolOrders(params?: {}): Promise<implicitReturnType>;
     historyGetMarketSymbolExecutions(params?: {}): Promise<implicitReturnType>;
 }

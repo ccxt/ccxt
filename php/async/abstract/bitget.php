@@ -505,6 +505,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_spot_post_v2_spot_wallet_withdrawal($params = array()) {
         return $this->request('v2/spot/wallet/withdrawal', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_spot_post_v2_spot_wallet_cancel_withdrawal($params = array()) {
+        return $this->request('v2/spot/wallet/cancel-withdrawal', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_post_v2_spot_wallet_modify_deposit_account($params = array()) {
+        return $this->request('v2/spot/wallet/modify-deposit-account', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_mix_get_mix_v1_account_account($params = array()) {
         return $this->request('mix/v1/account/account', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1411,8 +1417,17 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_convert_get_v2_convert_convert_record($params = array()) {
         return $this->request('v2/convert/convert-record', array('private', 'convert'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_convert_get_v2_convert_bgb_convert_coin_list($params = array()) {
+        return $this->request('v2/convert/bgb-convert-coin-list', array('private', 'convert'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_convert_get_v2_convert_bgb_convert_records($params = array()) {
+        return $this->request('v2/convert/bgb-convert-records', array('private', 'convert'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_convert_post_v2_convert_trade($params = array()) {
         return $this->request('v2/convert/trade', array('private', 'convert'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_convert_post_v2_convert_bgb_convert($params = array()) {
+        return $this->request('v2/convert/bgb-convert', array('private', 'convert'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_earn_get_v2_earn_savings_product($params = array()) {
         return $this->request('v2/earn/savings/product', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
@@ -1989,6 +2004,12 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateSpotPostV2SpotWalletWithdrawal($params = array()) {
         return $this->request('v2/spot/wallet/withdrawal', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostV2SpotWalletCancelWithdrawal($params = array()) {
+        return $this->request('v2/spot/wallet/cancel-withdrawal', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotPostV2SpotWalletModifyDepositAccount($params = array()) {
+        return $this->request('v2/spot/wallet/modify-deposit-account', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateMixGetMixV1AccountAccount($params = array()) {
         return $this->request('mix/v1/account/account', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
@@ -2896,8 +2917,17 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function privateConvertGetV2ConvertConvertRecord($params = array()) {
         return $this->request('v2/convert/convert-record', array('private', 'convert'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function privateConvertGetV2ConvertBgbConvertCoinList($params = array()) {
+        return $this->request('v2/convert/bgb-convert-coin-list', array('private', 'convert'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateConvertGetV2ConvertBgbConvertRecords($params = array()) {
+        return $this->request('v2/convert/bgb-convert-records', array('private', 'convert'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateConvertPostV2ConvertTrade($params = array()) {
         return $this->request('v2/convert/trade', array('private', 'convert'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateConvertPostV2ConvertBgbConvert($params = array()) {
+        return $this->request('v2/convert/bgb-convert', array('private', 'convert'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateEarnGetV2EarnSavingsProduct($params = array()) {
         return $this->request('v2/earn/savings/product', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));

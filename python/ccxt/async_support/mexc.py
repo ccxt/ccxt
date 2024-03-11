@@ -5148,7 +5148,7 @@ class mexc(Exchange, ImplicitAPI):
                     'X-MEXC-APIKEY': self.apiKey,
                     'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
-            if (method == 'POST') or (method == 'PUT'):
+            if (method == 'POST') or (method == 'PUT') or (method == 'DELETE'):
                 headers['Content-Type'] = 'application/json'
         elif section == 'contract' or section == 'spot2':
             url = self.urls['api'][section][access] + '/' + self.implode_params(path, params)

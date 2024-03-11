@@ -343,6 +343,9 @@ class Transpiler {
             [ /\.streamToSymbol\s/g, '.stream_to_symbol'],
             [ /\.getDescribeForExtendedWsExchange\s/g, '.get_describe_for_extended_ws_exchange'],
             [ /\.watchMultiple\s/g, '.watch_multiple'],
+            [ /\.intToBase16\s/g, '.int_to_base16'],
+            [ /\.handleParamString\s/g, '.handle_param_string'],
+            [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -409,6 +412,11 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
+            // beware of .reverse() in python, because opposed to JS, python does in-place, so 
+            // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
+            // `x.reverse()` in python. otherwise, if transpiling `x = y.reverse()`, then the
+            // left side `x = `will be removed and only `y.reverse()` will end up in python
+            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ], 
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
@@ -643,7 +651,7 @@ class Transpiler {
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
             // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
-            [ /(\w+)\.reverse\s*\(\)/g, 'array_reverse($1)' ],
+            [ /(\w+)\.reverse\s*\(\)/g, 'array_reverse($1)' ], // see comment in python .reverse()
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
             [ /Precise\.stringAdd\s/g, 'Precise::string_add' ],

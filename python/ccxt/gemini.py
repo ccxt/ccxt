@@ -266,7 +266,7 @@ class gemini(Exchange, ImplicitAPI):
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchMarketsMethod': 'fetch_markets_from_web',  # fetch_markets_from_api, fetch_markets_from_web
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': False,
@@ -276,12 +276,12 @@ class gemini(Exchange, ImplicitAPI):
                     'webApiEnable': True,  # fetches from WEB
                     'webApiRetries': 10,
                 },
+                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],  # self is only used if markets-fetch is set from "web"; keep self list updated(not available trough web api)
                 'fetchCurrencies': {
                     'webApiEnable': True,  # fetches from WEB
                     'webApiRetries': 5,
                     'webApiMuteFailure': True,
                 },
-                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],  # keep self list updated(not available trough web api)
                 'fetchTickerMethod': 'fetchTickerV1',  # fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networks': {
                     'BTC': 'bitcoin',
@@ -410,9 +410,11 @@ class gemini(Exchange, ImplicitAPI):
         """
         method = self.safe_value(self.options, 'fetchMarketsMethod', 'fetch_markets_from_api')
         if method == 'fetch_markets_from_web':
-            usdMarkets = self.fetch_markets_from_web(params)  # get usd markets
-            usdtMarkets = self.fetch_usdt_markets(params)  # get usdt markets
-            return self.array_concat(usdMarkets, usdtMarkets)
+            promises = []
+            promises.append(self.fetch_markets_from_web(params))  # get usd markets
+            promises.append(self.fetch_usdt_markets(params))  # get usdt markets
+            promisesResult = promises
+            return self.array_concat(promisesResult[0], promisesResult[1])
         return self.fetch_markets_from_api(params)
 
     def fetch_markets_from_web(self, params={}):
@@ -515,6 +517,8 @@ class gemini(Exchange, ImplicitAPI):
             'post_only': True,
             'limit_only': True,
         }
+        if status is None:
+            return True  # below
         return self.safe_bool(statuses, status, True)
 
     def fetch_usdt_markets(self, params={}):

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -70,6 +70,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRates': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': True,
+                'fetchLeverages': True,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
@@ -160,6 +161,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'executions',
                         'triggers',
                         'accountlogcsv',
+                        'account-log',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
                     ],
@@ -2302,6 +2304,31 @@ class krakenfutures(Exchange, ImplicitAPI):
         # {result: "success", serverTime: "2023-08-01T09:40:32.345Z"}
         #
         return await self.privatePutLeveragepreferences(self.extend(request, params))
+
+    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+        """
+        fetch the set leverage for all contract and margin markets
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateGetLeveragepreferences(params)
+        #
+        #     {
+        #         "result": "success",
+        #         "serverTime": "2024-03-06T02:35:46.336Z",
+        #         "leveragePreferences": [
+        #             {
+        #                 "symbol": "PF_ETHUSD",
+        #                 "maxLeverage": 30.00
+        #             },
+        #         ]
+        #     }
+        #
+        leveragePreferences = self.safe_list(response, 'leveragePreferences', [])
+        return self.parse_leverages(leveragePreferences, symbols, 'symbol')
 
     async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """

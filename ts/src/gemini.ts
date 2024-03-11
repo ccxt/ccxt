@@ -254,7 +254,7 @@ export default class gemini extends Exchange {
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchMarketsMethod': 'fetch_markets_from_web', // fetch_markets_from_api, fetch_markets_from_web
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
@@ -264,12 +264,12 @@ export default class gemini extends Exchange {
                     'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 10,
                 },
+                'fetchUsdtMarkets': [ 'btcusdt', 'ethusdt' ], // this is only used if markets-fetch is set from "web"; keep this list updated (not available trough web api)
                 'fetchCurrencies': {
                     'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
-                'fetchUsdtMarkets': [ 'btcusdt', 'ethusdt' ], // keep this list updated (not available trough web api)
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networks': {
                     'BTC': 'bitcoin',
@@ -411,9 +411,11 @@ export default class gemini extends Exchange {
          */
         const method = this.safeValue (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
-            const usdMarkets = await this.fetchMarketsFromWeb (params); // get usd markets
-            const usdtMarkets = await this.fetchUSDTMarkets (params); // get usdt markets
-            return this.arrayConcat (usdMarkets, usdtMarkets);
+            const promises = [];
+            promises.push (this.fetchMarketsFromWeb (params)); // get usd markets
+            promises.push (this.fetchUSDTMarkets (params)); // get usdt markets
+            const promisesResult = await Promise.all (promises);
+            return this.arrayConcat (promisesResult[0], promisesResult[1]);
         }
         return await this.fetchMarketsFromAPI (params);
     }
@@ -523,6 +525,9 @@ export default class gemini extends Exchange {
             'post_only': true,
             'limit_only': true,
         };
+        if (status === undefined) {
+            return true; // as defaulted below
+        }
         return this.safeBool (statuses, status, true);
     }
 

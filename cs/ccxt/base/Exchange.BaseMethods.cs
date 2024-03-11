@@ -1621,6 +1621,18 @@ public partial class Exchange
 
     public virtual object calculateFee(object symbol, object type, object side, object amount, object price, object takerOrMaker = null, object parameters = null)
     {
+        /**
+        * @method
+        * @description calculates the presumptive fee that would be charged for an order
+        * @param {string} symbol unified market symbol
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+        * @param {float} price the price for the order to be filled at, in units of the quote currency
+        * @param {string} takerOrMaker 'taker' or 'maker'
+        * @param {object} params
+        * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+        */
         takerOrMaker ??= "taker";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(isEqual(type, "market")) && isTrue(isEqual(takerOrMaker, "maker"))))
@@ -3250,6 +3262,10 @@ public partial class Exchange
             parameters = this.omit(parameters, new List<object>() {optionName, defaultOptionName});
         } else
         {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", methodName);
+            methodName = ((IList<object>)methodNameparametersVariable)[0];
+            parameters = ((IList<object>)methodNameparametersVariable)[1];
             // check if exchange has properties for this method
             object exchangeWideMethodOptions = this.safeValue(this.options, methodName);
             if (isTrue(!isEqual(exchangeWideMethodOptions, null)))

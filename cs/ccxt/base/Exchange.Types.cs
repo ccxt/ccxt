@@ -1142,7 +1142,24 @@ public struct Currency
 
     public Currency(object currency)
     {
-        info = Exchange.SafeValue(currency, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(currency, "info") : null;
+
+        // info = Exchange.SafeValue(currency, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(currency, "info") : null;
+        var rawInfo = Exchange.SafeValue(currency, "info");
+        if (rawInfo is IDictionary<string, object>)
+        {
+            info = (Dictionary<string, object>)rawInfo;
+        }
+        else if (rawInfo is IList<object>)
+        {
+            info = new Dictionary<string, object> {
+                {"currencies", rawInfo}
+            };
+        }
+        else
+        {
+            info = null;
+        }
+
         id = Exchange.SafeString(currency, "id");
         code = Exchange.SafeString(currency, "code");
         precision = Exchange.SafeFloat(currency, "precision");

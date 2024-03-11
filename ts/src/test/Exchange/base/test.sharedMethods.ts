@@ -114,7 +114,7 @@ function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck
         assert (typeof ts === 'number', 'timestamp is not numeric' + logText);
         assert (Number.isInteger (ts), 'timestamp should be an integer' + logText);
         const minTs = 1230940800000; // 03 Jan 2009 - first block
-        const maxTs = 2147483648000; // 03 Jan 2009 - first block
+        const maxTs = 2147483648000; // 19 Jan 2038 - max int
         assert (ts > minTs, 'timestamp is impossible to be before ' + minTs.toString () + ' (03.01.2009)' + logText); // 03 Jan 2009 - first block
         assert (ts < maxTs, 'timestamp more than ' + maxTs.toString () + ' (19.01.2038)' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if (nowToCheck !== undefined) {

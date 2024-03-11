@@ -1530,7 +1530,7 @@ class bitmex extends Exchange {
                 $request['endTime'] = $this->iso8601($until);
             }
             $duration = $this->parse_timeframe($timeframe) * 1000;
-            $fetchOHLCVOpenTimestamp = $this->safe_value($this->options, 'fetchOHLCVOpenTimestamp', true);
+            $fetchOHLCVOpenTimestamp = $this->safe_bool($this->options, 'fetchOHLCVOpenTimestamp', true);
             // if $since is not set, they will return candles starting from 2017-01-01
             if ($since !== null) {
                 $timestamp = $since;
@@ -2572,7 +2572,9 @@ class bitmex extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $this->iso8601($until);
             }
-            $request['reverse'] = true;
+            if (($since === null) && ($until === null)) {
+                $request['reverse'] = true;
+            }
             $response = Async\await($this->publicGetFunding (array_merge($request, $params)));
             //
             //    array(

@@ -82,7 +82,8 @@ class coinex extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => true,
                 'fetchIsolatedBorrowRates' => true,
-                'fetchLeverage' => false,
+                'fetchLeverage' => 'emulated',
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
@@ -5366,6 +5367,67 @@ class coinex extends Exchange {
             $depositWithdrawFees[$code] = $this->assign_default_deposit_withdraw_fees($depositWithdrawFees[$code], $currency);
         }
         return $depositWithdrawFees;
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch the set leverage for all contract and margin markets
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+             * @param {string[]} [$symbols] a list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $market = null;
+            if ($symbols !== null) {
+                $symbol = $this->safe_value($symbols, 0);
+                $market = $this->market($symbol);
+            }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchLeverages', $market, $params);
+            if ($marketType !== 'spot') {
+                throw new NotSupported($this->id . ' fetchLeverages() supports spot margin markets only');
+            }
+            $response = Async\await($this->privateGetMarginConfig ($params));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             {
+            //                 "market" => "BTCUSDT",
+            //                 "leverage" => 10,
+            //                 "BTC" => array(
+            //                     "min_amount" => "0.0008",
+            //                     "max_amount" => "200",
+            //                     "day_rate" => "0.0015"
+            //                 ),
+            //                 "USDT" => array(
+            //                     "min_amount" => "50",
+            //                     "max_amount" => "500000",
+            //                     "day_rate" => "0.001"
+            //                 }
+            //             ),
+            //         ),
+            //         "message" => "Success"
+            //     }
+            //
+            $leverages = $this->safe_list($response, 'data', array());
+            return $this->parse_leverages($leverages, $symbols, 'market', $marketType);
+        }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'market');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'spot'),
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {

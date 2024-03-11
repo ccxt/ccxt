@@ -1047,8 +1047,28 @@ public partial class tokocrypto : Exchange
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
             object responseInner = this.publicGetOpenV1MarketTrades(this.extend(request, parameters));
-            object data = this.safeValue(responseInner, "data", new Dictionary<string, object>() {});
-            return this.parseTrades(data, market, since, limit);
+            //
+            //    {
+            //       "code": 0,
+            //       "msg": "success",
+            //       "data": {
+            //           "list": [
+            //                {
+            //                    "id": 28457,
+            //                    "price": "4.00000100",
+            //                    "qty": "12.00000000",
+            //                    "time": 1499865549590,
+            //                    "isBuyerMaker": true,
+            //                    "isBestMatch": true
+            //                }
+            //            ]
+            //        },
+            //        "timestamp": 1571921637091
+            //    }
+            //
+            object data = this.safeDict(responseInner, "data", new Dictionary<string, object>() {});
+            object list = this.safeList(data, "list", new List<object>() {});
+            return this.parseTrades(list, market, since, limit);
         }
         if (isTrue(!isEqual(limit, null)))
         {

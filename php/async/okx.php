@@ -1574,7 +1574,7 @@ class okx extends Exchange {
             // while fetchCurrencies is a public API method by design
             // therefore we check the keys here
             // and fallback to generating the currencies from the markets
-            $isSandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             if (!$this->check_required_credentials(false) || $isSandboxMode) {
                 return null;
             }
@@ -5661,7 +5661,7 @@ class okx extends Exchange {
         $fromAccountId = $this->safe_string($transfer, 'from');
         $toAccountId = $this->safe_string($transfer, 'to');
         $accountsById = $this->safe_value($this->options, 'accountsById', array());
-        $timestamp = $this->safe_integer($transfer, 'ts', $this->milliseconds());
+        $timestamp = $this->safe_integer($transfer, 'ts');
         $balanceChange = $this->safe_string($transfer, 'sz');
         if ($balanceChange !== null) {
             $amount = $this->parse_number(Precise::string_abs($balanceChange));
@@ -6990,7 +6990,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
         if ($enable) {

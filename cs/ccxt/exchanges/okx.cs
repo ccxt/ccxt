@@ -1528,7 +1528,7 @@ public partial class okx : Exchange
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         parameters ??= new Dictionary<string, object>();
-        object isSandboxMode = this.safeValue(this.options, "sandboxMode", false);
+        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(!isTrue(this.checkRequiredCredentials(false)) || isTrue(isSandboxMode)))
         {
             return null;
@@ -5943,7 +5943,7 @@ public partial class okx : Exchange
         object fromAccountId = this.safeString(transfer, "from");
         object toAccountId = this.safeString(transfer, "to");
         object accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(transfer, "ts", this.milliseconds());
+        object timestamp = this.safeInteger(transfer, "ts");
         object balanceChange = this.safeString(transfer, "sz");
         if (isTrue(!isEqual(balanceChange, null)))
         {

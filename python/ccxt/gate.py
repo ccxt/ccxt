@@ -879,7 +879,7 @@ class gate(Exchange, ImplicitAPI):
             },
         })
 
-    def set_sandbox_mode(self, enable):
+    def set_sandbox_mode(self, enable: bool):
         super(gate, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 

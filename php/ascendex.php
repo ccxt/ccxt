@@ -749,11 +749,10 @@ class ascendex extends Exchange {
     }
 
     public function parse_balance($response): array {
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $balances = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -768,11 +767,10 @@ class ascendex extends Exchange {
     }
 
     public function parse_margin_balance($response) {
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $balances = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -790,11 +788,10 @@ class ascendex extends Exchange {
     }
 
     public function parse_swap_balance($response) {
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $data = $this->safe_value($response, 'data', array());
         $collaterals = $this->safe_value($data, 'collaterals', array());
@@ -815,6 +812,8 @@ class ascendex extends Exchange {
          * @see https://ascendex.github.io/ascendex-pro-api/#margin-$account-balance
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] wallet type, 'spot', 'margin', or 'swap'
+         * @param {string} [$params->marginMode] 'cross' or null, for spot margin trading, value of 'isolated' is invalid
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
@@ -3140,12 +3139,11 @@ class ascendex extends Exchange {
         //
         $status = $this->safe_integer($transfer, 'code');
         $currencyCode = $this->safe_currency_code(null, $currency);
-        $timestamp = $this->milliseconds();
         return array(
             'info' => $transfer,
             'id' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'currency' => $currencyCode,
             'amount' => null,
             'fromAccount' => null,

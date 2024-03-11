@@ -1600,7 +1600,7 @@ public partial class bitmex : Exchange
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
         object duration = multiply(this.parseTimeframe(timeframe), 1000);
-        object fetchOHLCVOpenTimestamp = this.safeValue(this.options, "fetchOHLCVOpenTimestamp", true);
+        object fetchOHLCVOpenTimestamp = this.safeBool(this.options, "fetchOHLCVOpenTimestamp", true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (isTrue(!isEqual(since, null)))
         {
@@ -2740,7 +2740,10 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
-        ((IDictionary<string,object>)request)["reverse"] = true;
+        if (isTrue(isTrue((isEqual(since, null))) && isTrue((isEqual(until, null)))))
+        {
+            ((IDictionary<string,object>)request)["reverse"] = true;
+        }
         object response = await this.publicGetFunding(this.extend(request, parameters));
         //
         //    [

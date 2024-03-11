@@ -98,6 +98,7 @@ const {
     , ymd
     , base64ToString
     , crc32
+    , packb
     , TRUNCATE
     , ROUND
     , DECIMAL_PLACES
@@ -152,13 +153,16 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
-import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js'
-import {OrderBook as Ob} from './ws/OrderBook.js';
-
-import totp from './functions/totp.js';
 import Stream from './ws/Stream.js'
 import { sleep } from './functions.js'
 
+// move this elsewhere.
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
+import {OrderBook as Ob} from './ws/OrderBook.js';
+
+import totp from './functions/totp.js';
+import ethers from '../static_dependencies/ethers/index.js';
+import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -457,6 +461,7 @@ export default class Exchange {
     crc32 = crc32
     sleep = sleep
     stream: Stream = new Stream ();
+    packb = packb
 
     describe () {
         return {
@@ -1715,6 +1720,18 @@ export default class Exchange {
             this.stream.produce (topic + '::' + symbol, payload);
         }
         return callback.bind (this);
+    }
+
+    ethAbiEncode (types, args) {
+        return this.base16ToBinary (ethers.encode (types, args).slice (2));
+    }
+
+    ethEncodeStructuredData (domain, messageTypes, messageData) {
+        return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
+    }
+
+    intToBase16(elem): string {
+        return elem.toString(16);
     }
 
     /* eslint-enable */
@@ -3228,6 +3245,18 @@ export default class Exchange {
     }
 
     calculateFee (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker = 'taker', params = {}) {
+        /**
+         * @method
+         * @description calculates the presumptive fee that would be charged for an order
+         * @param {string} symbol unified market symbol
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} price the price for the order to be filled at, in units of the quote currency
+         * @param {string} takerOrMaker 'taker' or 'maker'
+         * @param {object} params
+         * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+         */
         if (type === 'market' && takerOrMaker === 'maker') {
             throw new ArgumentsRequired (this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -4569,6 +4598,8 @@ export default class Exchange {
         if (value !== undefined) {
             params = this.omit (params, [ optionName, defaultOptionName ]);
         } else {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            [ methodName, params ] = this.handleParamString (params, 'callerMethodName', methodName);
             // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {
@@ -6189,7 +6220,10 @@ export default class Exchange {
                     const response = await this[method] (symbol, undefined, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        const backwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        let backwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
+                        if (paginationTimestamp !== undefined) {
+                            backwardMessage += ' timestamp ' + this.numberToString (paginationTimestamp);
+                        }
                         this.log (backwardMessage);
                     }
                     if (responseLength === 0) {
@@ -6207,7 +6241,10 @@ export default class Exchange {
                     const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        const forwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        let forwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
+                        if (paginationTimestamp !== undefined) {
+                            forwardMessage += ' timestamp ' + this.numberToString (paginationTimestamp);
+                        }
                         this.log (forwardMessage);
                     }
                     if (responseLength === 0) {
