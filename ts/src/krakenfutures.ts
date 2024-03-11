@@ -720,22 +720,18 @@ export default class krakenfutures extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
-        let until = undefined;
-        [ until, params ] = this.handleParamInteger (params, 'until');
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
         let rawTrades = undefined;
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
+            [ request, params ] = this.handleUntilOption ('before', request, params);
             if (since !== undefined) {
                 request['since'] = since;
                 request['sort'] = 'asc';
-            }
-            if (until !== undefined) {
-                request['before'] = until;
             }
             if (limit !== undefined) {
                 request['count'] = limit;
@@ -803,9 +799,7 @@ export default class krakenfutures extends Exchange {
                 rawTrades.push (rawTrade);
             }
         } else {
-            if (until !== undefined) {
-                request['lastTime'] = this.iso8601 (until);
-            }
+            [ request, params ] = this.handleUntilOption ('lastTime', request, params);
             const response = await this.publicGetHistory (this.extend (request, params));
             //
             //    {
