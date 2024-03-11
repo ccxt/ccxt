@@ -550,7 +550,7 @@ export default class gemini extends Exchange {
     }
 
     async fetchMarketsFromAPI (params = {}) {
-        const marketIds = await this.publicGetV1Symbols (params);
+        const marketIdsRaw = await this.publicGetV1Symbols (params);
         //
         //     [
         //         "btcusd",
@@ -560,6 +560,13 @@ export default class gemini extends Exchange {
         //
         const result = [];
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
+        const bugSymbol = 'efilfil'; // we skip this inexistent test symbol, which bugs other functions
+        const marketIds = [];
+        for (let i = 0; i < marketIdsRaw.length; i++) {
+            if (marketIdsRaw[i] !== bugSymbol) {
+                marketIds.push (marketIdsRaw[i]);
+            }
+        }
         if (this.safeBool (options, 'fetchDetailsForAllSymbols', false)) {
             const promises = [];
             for (let i = 0; i < marketIds.length; i++) {
