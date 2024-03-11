@@ -139,11 +139,61 @@
                 "description": "cancel All Orders",
                 "method": "cancelAllOrders",
                 "url": "https://www.bitstamp.net/api/v2/cancel_all_orders/",
-                "input": [
-                ],
+                "input": [],
                 "output": "foo=bar"
             }
         ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://www.bitstamp.net/api/v2/transactions/btcusdt/?time=hour",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://www.bitstamp.net/api/v2/order_book/btcusdt/",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://www.bitstamp.net/api/v2/ticker/btcusdt/",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://www.bitstamp.net/api/v2/ticker/",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://www.bitstamp.net/api/v2/ohlc/btcusdt/?step=60&limit=1000",
+                "input": [
+                    "BTC/USDT"
+                ]
         "transfer": [
             {
                 "description": "transfer from main to subAccount or from subAccount to main",

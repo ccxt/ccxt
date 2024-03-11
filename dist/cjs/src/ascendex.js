@@ -754,11 +754,10 @@ class ascendex extends ascendex$1 {
         ];
     }
     parseBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const balances = this.safeValue(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
@@ -772,11 +771,10 @@ class ascendex extends ascendex$1 {
         return this.safeBalance(result);
     }
     parseMarginBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const balances = this.safeValue(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
@@ -793,11 +791,10 @@ class ascendex extends ascendex$1 {
         return this.safeBalance(result);
     }
     parseSwapBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const data = this.safeValue(response, 'data', {});
         const collaterals = this.safeValue(data, 'collaterals', []);
@@ -819,6 +816,8 @@ class ascendex extends ascendex$1 {
          * @see https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] wallet type, 'spot', 'margin', or 'swap'
+         * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
@@ -3181,12 +3180,11 @@ class ascendex extends ascendex$1 {
         //
         const status = this.safeInteger(transfer, 'code');
         const currencyCode = this.safeCurrencyCode(undefined, currency);
-        const timestamp = this.milliseconds();
         return {
             'info': transfer,
             'id': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'currency': currencyCode,
             'amount': undefined,
             'fromAccount': undefined,

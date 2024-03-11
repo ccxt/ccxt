@@ -86,5 +86,6 @@ export default class testMainClass extends baseMainTestClass {
     testBingx(): Promise<void>;
     testPhemex(): Promise<void>;
     testBlofin(): Promise<void>;
+    testHyperliquid(): Promise<void>;
 }
 export {};

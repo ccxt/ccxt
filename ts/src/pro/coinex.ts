@@ -563,7 +563,7 @@ export default class coinex extends coinexRest {
         }
         const url = this.urls['api']['ws'][type];
         const messageHash = 'ohlcv';
-        const watchOHLCVWarning = this.safeValue (this.options, 'watchOHLCVWarning', true);
+        const watchOHLCVWarning = this.safeBool (this.options, 'watchOHLCVWarning', true);
         const client = this.safeValue (this.clients, url, {});
         const clientSub = this.safeValue (client, 'subscriptions', {});
         const existingSubscription = this.safeValue (clientSub, messageHash);
@@ -1072,7 +1072,7 @@ export default class coinex extends coinexRest {
             const messageHash = 'authenticated:spot';
             let future = this.safeValue (client.subscriptions, messageHash);
             if (future !== undefined) {
-                return future;
+                return await future;
             }
             const requestId = this.requestId ();
             const subscribe = {
@@ -1092,12 +1092,12 @@ export default class coinex extends coinexRest {
             };
             future = this.watch (url, messageHash, request, requestId, subscribe);
             client.subscriptions[messageHash] = future;
-            return future;
+            return await future;
         } else {
             const messageHash = 'authenticated:swap';
             let future = this.safeValue (client.subscriptions, messageHash);
             if (future !== undefined) {
-                return future;
+                return await future;
             }
             const requestId = this.requestId ();
             const subscribe = {
@@ -1117,7 +1117,7 @@ export default class coinex extends coinexRest {
             };
             future = this.watch (url, messageHash, request, requestId, subscribe);
             client.subscriptions[messageHash] = future;
-            return future;
+            return await future;
         }
     }
 }

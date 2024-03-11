@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.58';
+$version = '4.2.67';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.58';
+    const VERSION = '4.2.67';
 
     public $browser;
     public $marketsLoading = null;
@@ -1629,6 +1629,17 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
+        /**
+         * calculates the presumptive fee that would be charged for an order
+         * @param {string} $symbol unified $market $symbol
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} $price the $price for the order to be filled at, in units of the quote currency
+         * @param {string} $takerOrMaker 'taker' or 'maker'
+         * @param {array} $params
+         * @return {array} contains the $rate, the percentage multiplied to the order $amount to obtain the fee $amount, and $cost, the total value of the fee in units of the quote currency, for the order
+         */
         if ($type === 'market' && $takerOrMaker === 'maker') {
             throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -2932,7 +2943,7 @@ class Exchange extends \ccxt\Exchange {
             if (!$this->has['fetchBorrowRates']) {
                 throw new NotSupported($this->id . ' fetchIsolatedBorrowRate() is not supported yet');
             }
-            $borrowRates = Async\await($this->fetchIsolatedBorrowRates ($params));
+            $borrowRates = Async\await($this->fetch_isolated_borrow_rates($params));
             $rate = $this->safe_dict($borrowRates, $symbol);
             if ($rate === null) {
                 throw new ExchangeError($this->id . ' fetchIsolatedBorrowRate() could not find the borrow $rate for market $symbol ' . $symbol);
@@ -2949,6 +2960,8 @@ class Exchange extends \ccxt\Exchange {
         if ($value !== null) {
             $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
         } else {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', $methodName);
             // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
@@ -4489,7 +4502,10 @@ class Exchange extends \ccxt\Exchange {
                         $response = Async\await($this->$method ($symbol, null, $maxEntriesPerRequest, $params));
                         $responseLength = count($response);
                         if ($this->verbose) {
-                            $backwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                            $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                            if ($paginationTimestamp !== null) {
+                                $backwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                            }
                             $this->log ($backwardMessage);
                         }
                         if ($responseLength === 0) {
@@ -4507,7 +4523,10 @@ class Exchange extends \ccxt\Exchange {
                         $response = Async\await($this->$method ($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params));
                         $responseLength = count($response);
                         if ($this->verbose) {
-                            $forwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                            $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                            if ($paginationTimestamp !== null) {
+                                $forwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                            }
                             $this->log ($forwardMessage);
                         }
                         if ($responseLength === 0) {

@@ -196,7 +196,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
-        checksum = self.safe_value(self.options, 'checksum', True)
+        checksum = self.safe_bool(self.options, 'checksum', True)
         if checksum and receivedSnapshot:
             storedAsks = orderbook['asks']
             storedBids = orderbook['bids']

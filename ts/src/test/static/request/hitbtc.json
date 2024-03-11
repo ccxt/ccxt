@@ -4,96 +4,96 @@
     "outputType": "json",
     "methods": {
         "createOrder": [
-          {
-            "description": "Spot market buy",
-            "method": "createOrder",
-            "url": "https://api.hitbtc.com/api/3/spot/order",
-            "input": [
-              "TRX/USDT",
-              "market",
-              "buy",
-              10
-            ],
-            "output": "{\"type\":\"market\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
-          },
-          {
-            "description": "Spot market sell",
-            "method": "createOrder",
-            "url": "https://api.hitbtc.com/api/3/spot/order",
-            "input": [
-              "TRX/USDT",
-              "market",
-              "sell",
-              10
-            ],
-            "output": "{\"type\":\"market\",\"side\":\"sell\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
-          },
-          {
-            "description": "Spot limit buy",
-            "method": "createOrder",
-            "url": "https://api.hitbtc.com/api/3/spot/order",
-            "input": [
-              "TRX/USDT",
-              "limit",
-              "buy",
-              10,
-              0.05
-            ],
-            "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\",\"price\":\"0.05\"}"
-          },
-          {
-            "description": "Swap market buy",
-            "method": "createOrder",
-            "url": "https://api.hitbtc.com/api/3/futures/order",
-            "input": [
-              "TRX/USDT:USDT",
-              "market",
-              "buy",
-              10
-            ],
-            "output": "{\"type\":\"market\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
-          },
-          {
-            "description": "Swap market sell",
-            "method": "createOrder",
-            "url": "https://api.hitbtc.com/api/3/futures/order",
-            "input": [
-              "TRX/USDT:USDT",
-              "market",
-              "sell",
-              10
-            ],
-            "output": "{\"type\":\"market\",\"side\":\"sell\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
-          },
-          {
-            "description": "Swap limit buy",
-            "method": "createOrder",
-            "url": "https://api.hitbtc.com/api/3/futures/order",
-            "input": [
-              "TRX/USDT:USDT",
-              "limit",
-              "buy",
-              10,
-              0.05
-            ],
-            "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\",\"price\":\"0.05\"}"
-          },
-          {
-            "description": "Spot margin limit buy",
-            "method": "createOrder",
-            "url": "https://api.hitbtc.com/api/3/margin/order",
-            "input": [
-              "TRX/USDT",
-              "limit",
-              "buy",
-              10,
-              0.05,
-              {
-                "marginMode": "cross"
-              }
-            ],
-            "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\",\"price\":\"0.05\"}"
-        }
+            {
+                "description": "Spot market buy",
+                "method": "createOrder",
+                "url": "https://api.hitbtc.com/api/3/spot/order",
+                "input": [
+                    "TRX/USDT",
+                    "market",
+                    "buy",
+                    10
+                ],
+                "output": "{\"type\":\"market\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://api.hitbtc.com/api/3/spot/order",
+                "input": [
+                    "TRX/USDT",
+                    "market",
+                    "sell",
+                    10
+                ],
+                "output": "{\"type\":\"market\",\"side\":\"sell\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
+            },
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.hitbtc.com/api/3/spot/order",
+                "input": [
+                    "TRX/USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.05
+                ],
+                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\",\"price\":\"0.05\"}"
+            },
+            {
+                "description": "Swap market buy",
+                "method": "createOrder",
+                "url": "https://api.hitbtc.com/api/3/futures/order",
+                "input": [
+                    "TRX/USDT:USDT",
+                    "market",
+                    "buy",
+                    10
+                ],
+                "output": "{\"type\":\"market\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
+            },
+            {
+                "description": "Swap market sell",
+                "method": "createOrder",
+                "url": "https://api.hitbtc.com/api/3/futures/order",
+                "input": [
+                    "TRX/USDT:USDT",
+                    "market",
+                    "sell",
+                    10
+                ],
+                "output": "{\"type\":\"market\",\"side\":\"sell\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
+            },
+            {
+                "description": "Swap limit buy",
+                "method": "createOrder",
+                "url": "https://api.hitbtc.com/api/3/futures/order",
+                "input": [
+                    "TRX/USDT:USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.05
+                ],
+                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\",\"price\":\"0.05\"}"
+            },
+            {
+                "description": "Spot margin limit buy",
+                "method": "createOrder",
+                "url": "https://api.hitbtc.com/api/3/margin/order",
+                "input": [
+                    "TRX/USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.05,
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\",\"price\":\"0.05\"}"
+            }
         ],
         "cancelOrder": [
             {
@@ -121,11 +121,11 @@
                 "method": "cancelOrder",
                 "url": "https://api.hitbtc.com/api/3/margin/order/ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn",
                 "input": [
-                  "ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn",
-                  "LTC/USDT",
-                  {
-                    "marginMode": "isolated"
-                  }
+                    "ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn",
+                    "LTC/USDT",
+                    {
+                        "marginMode": "isolated"
+                    }
                 ],
                 "output": "{\"client_order_id\":\"ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn\"}"
             }
@@ -584,8 +584,8 @@
                 "method": "addMargin",
                 "url": "https://api.hitbtc.com/api/3/margin/account/isolated/TRXUSDT",
                 "input": [
-                  "TRX/USDT",
-                  5
+                    "TRX/USDT",
+                    5
                 ],
                 "output": "{\"symbol\":\"TRXUSDT\",\"margin_balance\":\"5\"}"
             }
@@ -609,8 +609,8 @@
                 "method": "reduceMargin",
                 "url": "https://api.hitbtc.com/api/3/margin/account/isolated/TRXUSDT",
                 "input": [
-                  "TRX/USDT",
-                  0
+                    "TRX/USDT",
+                    0
                 ],
                 "output": "{\"symbol\":\"TRXUSDT\",\"margin_balance\":\"0\"}"
             }
@@ -650,7 +650,7 @@
                 "method": "closePosition",
                 "url": "https://api.hitbtc.com/api/3/futures/position/cross/TRXUSDT_PERP",
                 "input": [
-                  "TRX/USDT:USDT"
+                    "TRX/USDT:USDT"
                 ],
                 "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
             }
@@ -661,12 +661,12 @@
                 "method": "fetchMarginModes",
                 "url": "https://api.hitbtc.com/api/3/futures/config",
                 "input": [
-                  [
-                    "BTC/USDT:USDT"
-                  ],
-                  {
-                    "type": "swap"
-                  }
+                    [
+                        "BTC/USDT:USDT"
+                    ],
+                    {
+                        "type": "swap"
+                    }
                 ]
             },
             {
@@ -674,10 +674,10 @@
                 "method": "fetchMarginModes",
                 "url": "https://api.hitbtc.com/api/3/futures/config",
                 "input": [
-                  null,
-                  {
-                    "type": "swap"
-                  }
+                    null,
+                    {
+                        "type": "swap"
+                    }
                 ]
             },
             {
@@ -685,12 +685,12 @@
                 "method": "fetchMarginModes",
                 "url": "https://api.hitbtc.com/api/3/margin/config",
                 "input": [
-                  [
-                    "BTC/USDT"
-                  ],
-                  {
-                    "type": "margin"
-                  }
+                    [
+                        "BTC/USDT"
+                    ],
+                    {
+                        "type": "margin"
+                    }
                 ]
             },
             {
@@ -698,10 +698,136 @@
                 "method": "fetchMarginModes",
                 "url": "https://api.hitbtc.com/api/3/margin/config",
                 "input": [
-                  null,
-                  {
-                    "type": "margin"
-                  }
+                    null,
+                    {
+                        "type": "margin"
+                    }
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.hitbtc.com/api/3/public/trades/BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.hitbtc.com/api/3/public/trades/BTCUSDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.hitbtc.com/api/3/public/orderbook/BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.hitbtc.com/api/3/public/orderbook/BTCUSDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api.hitbtc.com/api/3/public/ticker/BTCUSDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.hitbtc.com/api/3/public/ticker/BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.hitbtc.com/api/3/public/ticker?symbols=BTCUSDT%2CETHUSDT",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api.hitbtc.com/api/3/public/ticker?symbols=BTCUSDT_PERP%2CETHUSDT_PERP",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.hitbtc.com/api/3/public/candles/BTCUSDT?period=M1",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.hitbtc.com/api/3/public/candles/BTCUSDT_PERP?period=M1",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch OHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://api.hitbtc.com/api/3/public/candles/BTCUSDT?period=H1&from=2024-01-10T14%3A11%3A22.000Z",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1704895882000
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.hitbtc.com/api/3/public/futures/history/funding?symbols=BTCUSDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.hitbtc.com/api/3/public/futures/info/BTCUSDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ]

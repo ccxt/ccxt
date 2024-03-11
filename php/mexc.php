@@ -5417,7 +5417,7 @@ class mexc extends Exchange {
                     'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
                 );
             }
-            if (($method === 'POST') || ($method === 'PUT')) {
+            if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
                 $headers['Content-Type'] = 'application/json';
             }
         } elseif ($section === 'contract' || $section === 'spot2') {

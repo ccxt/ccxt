@@ -600,6 +600,7 @@ public partial class bingx : ccxt.bingx
         */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object market = this.market(symbol);
         var marketTypequeryVariable = this.handleMarketTypeAndParams("watchOHLCV", market, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];

@@ -275,6 +275,7 @@ export default class Exchange {
     ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
     base64ToString: (string: any) => string;
     crc32: typeof functions.crc32;
+    packb: typeof functions.packb;
     describe(): {
         id: any;
         name: any;
@@ -617,6 +618,9 @@ export default class Exchange {
     setProperty(obj: any, property: any, defaultValue?: any): void;
     axolotl(payload: any, hexKey: any, ed25519: any): string;
     fixStringifiedJsonMembers(content: string): any;
+    ethAbiEncode(types: any, args: any): Uint8Array;
+    ethEncodeStructuredData(domain: any, messageTypes: any, messageData: any): Uint8Array;
+    intToBase16(elem: any): string;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
     safeBool(dictionary: any, key: IndexType, defaultValue?: boolean): boolean | undefined;

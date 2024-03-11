@@ -30,13 +30,15 @@ SOFTWARE.
 
 namespace ccxt;
 
+use MessagePack\MessagePack;
 use kornrunner\Keccak;
+use Web3\Contracts\TypedDataEncoder;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.58';
+$version = '4.2.67';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +57,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.58';
+    const VERSION = '4.2.67';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -435,6 +437,7 @@ class Exchange {
         'htx',
         'huobi',
         'huobijp',
+        'hyperliquid',
         'idex',
         'independentreserve',
         'indodax',
@@ -1093,6 +1096,10 @@ class Exchange {
         return hex2bin($data);
     }
 
+    public static function int_to_base16($integer) {
+        return dechex($integer);
+    }
+
     public static function json($data, $params = array()) {
         $options = array(
             'convertArraysToObjects' => JSON_FORCE_OBJECT,
@@ -1299,6 +1306,27 @@ class Exchange {
         $hex_secret = substr(bin2hex(base64_decode($match[1])), 32);
         $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
         return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
+    }
+
+    public function eth_abi_encode($types, $args) {
+        $typedDataEncoder = new TypedDataEncoder();
+        $abiEncoder = $typedDataEncoder->ethabi;
+        // workaround to replace array() with []
+        $types = preg_replace('/array\(\)/', '[]', $types);
+        return hex2bin(str_replace('0x', '', $abiEncoder->encodeParameters($types, $args)));
+    }
+
+    public function eth_encode_structured_data($domainData, $messageTypes, $messageData) {
+        $typedDataEncoder = new TypedDataEncoder();
+        return $this->binary_concat(
+            hex2bin('1901'),
+            hex2bin(str_replace('0x', '', $typedDataEncoder->hashDomain($domainData))),
+            hex2bin(str_replace('0x', '', $typedDataEncoder->hashEIP712Message($messageTypes, $messageData)))
+        );
+    }
+
+    public function packb($data) {
+        return MessagePack::pack($data);
     }
 
     public function throttle($cost = null) {
@@ -3458,6 +3486,17 @@ class Exchange {
     }
 
     public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
+        /**
+         * calculates the presumptive fee that would be charged for an order
+         * @param {string} $symbol unified $market $symbol
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} $price the $price for the order to be filled at, in units of the quote currency
+         * @param {string} $takerOrMaker 'taker' or 'maker'
+         * @param {array} $params
+         * @return {array} contains the $rate, the percentage multiplied to the order $amount to obtain the fee $amount, and $cost, the total value of the fee in units of the quote currency, for the order
+         */
         if ($type === 'market' && $takerOrMaker === 'maker') {
             throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -4718,7 +4757,7 @@ class Exchange {
         if (!$this->has['fetchBorrowRates']) {
             throw new NotSupported($this->id . ' fetchIsolatedBorrowRate() is not supported yet');
         }
-        $borrowRates = $this->fetchIsolatedBorrowRates ($params);
+        $borrowRates = $this->fetch_isolated_borrow_rates($params);
         $rate = $this->safe_dict($borrowRates, $symbol);
         if ($rate === null) {
             throw new ExchangeError($this->id . ' fetchIsolatedBorrowRate() could not find the borrow $rate for market $symbol ' . $symbol);
@@ -4734,6 +4773,8 @@ class Exchange {
         if ($value !== null) {
             $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
         } else {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', $methodName);
             // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
@@ -6201,7 +6242,10 @@ class Exchange {
                     $response = $this->$method ($symbol, null, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $backwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                        $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                        if ($paginationTimestamp !== null) {
+                            $backwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                        }
                         $this->log ($backwardMessage);
                     }
                     if ($responseLength === 0) {
@@ -6219,7 +6263,10 @@ class Exchange {
                     $response = $this->$method ($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $forwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                        $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                        if ($paginationTimestamp !== null) {
+                            $forwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                        }
                         $this->log ($forwardMessage);
                     }
                     if ($responseLength === 0) {

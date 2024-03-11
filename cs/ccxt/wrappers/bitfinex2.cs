@@ -261,9 +261,57 @@ public partial class bitfinex2
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stopPrice</term>
+    /// <description>
+    /// float : The price at which a trigger order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : "GTC", "IOC", "FOK", or "PO"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.postOnly</term>
+    /// <description>
+    /// bool :          * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.flags</term>
+    /// <description>
+    /// int : additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.lev</term>
+    /// <description>
+    /// int : leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.price_traling</term>
+    /// <description>
+    /// string : The trailing price for a trailing stop order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.price_aux_limit</term>
+    /// <description>
+    /// string : Order price for stop limit orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.price_oco_stop</term>
+    /// <description>
+    /// string : OCO stop price
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> request to be sent to the exchange.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}.</returns>
     public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;

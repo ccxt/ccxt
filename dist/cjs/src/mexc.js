@@ -5496,7 +5496,7 @@ class mexc extends mexc$1 {
                     'source': this.safeString(this.options, 'broker', 'CCXT'),
                 };
             }
-            if ((method === 'POST') || (method === 'PUT')) {
+            if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 headers['Content-Type'] = 'application/json';
             }
         }

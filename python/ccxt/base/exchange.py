@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.58'
+__version__ = '4.2.67'
 
 # -----------------------------------------------------------------------------
 
@@ -52,6 +52,12 @@ try:
     import axolotl_curve25519 as eddsa
 except ImportError:
     eddsa = None
+
+# eth signing
+from ccxt.static_dependencies.ethereum import abi
+from ccxt.static_dependencies.ethereum import account
+from ccxt.static_dependencies.msgpack import packb
+
 
 # -----------------------------------------------------------------------------
 
@@ -1340,6 +1346,23 @@ class Exchange(object):
         algorithm = algorithms[alg]
         priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
         return Exchange.binary_to_base64(priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm))
+
+    @staticmethod
+    def eth_abi_encode(types, args):
+        return abi.encode(types, args)
+
+    @staticmethod
+    def eth_encode_structured_data(domain, messageTypes, message):
+        encodedData = account.messages.encode_typed_data(domain, messageTypes, message)
+        return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
+
+    @staticmethod
+    def packb(o):
+        return packb(o)
+
+    @staticmethod
+    def int_to_base16(num):
+        return "%0.2X" % num
 
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
@@ -2795,6 +2818,17 @@ class Exchange(object):
         return self.filter_by_symbol_since_limit(results, symbol, since, limit)
 
     def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params={}):
+        """
+        calculates the presumptive fee that would be charged for an order
+        :param str symbol: unified market symbol
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+        :param float price: the price for the order to be filled at, in units of the quote currency
+        :param str takerOrMaker: 'taker' or 'maker'
+        :param dict params:
+        :returns dict: contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+        """
         if type == 'market' and takerOrMaker == 'maker':
             raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
@@ -3811,7 +3845,7 @@ class Exchange(object):
         self.load_markets()
         if not self.has['fetchBorrowRates']:
             raise NotSupported(self.id + ' fetchIsolatedBorrowRate() is not supported yet')
-        borrowRates = self.fetchIsolatedBorrowRates(params)
+        borrowRates = self.fetch_isolated_borrow_rates(params)
         rate = self.safe_dict(borrowRates, symbol)
         if rate is None:
             raise ExchangeError(self.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol)
@@ -3825,6 +3859,8 @@ class Exchange(object):
         if value is not None:
             params = self.omit(params, [optionName, defaultOptionName])
         else:
+            # handle routed methods like "watchTrades > watchTradesForSymbols"(or "watchTicker > watchTickers")
+            methodName, params = self.handle_param_string(params, 'callerMethodName', methodName)
             # check if exchange has properties for self method
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:
@@ -5024,7 +5060,9 @@ class Exchange(object):
                     response = getattr(self, method)(symbol, None, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp
+                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        if paginationTimestamp is not None:
+                            backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
                     if responseLength == 0:
                         break
@@ -5039,7 +5077,9 @@ class Exchange(object):
                     response = getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp
+                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        if paginationTimestamp is not None:
+                            forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
                     if responseLength == 0:
                         break
