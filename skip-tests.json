@@ -1185,7 +1185,10 @@
             "watchTrades": {
                 "timestamp": "ts several hours ahead in in future :)"
             },
-            "watchOHLCV": "some timestamp issues"
+            "watchOHLCV": "some timestamp issues",
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612"
+            }
         }
     },
     "lykke": {
