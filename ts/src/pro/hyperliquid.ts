@@ -3,7 +3,7 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Market, Trade } from '../base/types.js';
+import { Int, Market, OrderBook, Trade } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'watchBalance': false,
                 'watchMyTrades': false,
                 'watchOHLCV': false,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTicker': false,
                 'watchTickers': false,
@@ -50,6 +50,83 @@ export default class hyperliquid extends hyperliquidRest {
         });
     }
 
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name hyperliquid#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'orderbook:' + symbol;
+        const url = this.urls['api']['ws']['public'];
+        const request = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'l2Book',
+                'coin': market['base'],
+            },
+        };
+        const message = this.extend (request, params);
+        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client, message) {
+        //
+        //     {
+        //         "channel": "l2Book",
+        //         "data": {
+        //             "coin": "BTC",
+        //             "time": 1710131872708,
+        //             "levels": [
+        //                 [
+        //                     {
+        //                         "px": "68674.0",
+        //                         "sz": "0.97139",
+        //                         "n": 4
+        //                     }
+        //                 ],
+        //                 [
+        //                     {
+        //                         "px": "68675.0",
+        //                         "sz": "0.04396",
+        //                         "n": 1
+        //                     }
+        //                 ]
+        //             ]
+        //         }
+        //     }
+        //
+        const entry = this.safeDict (message, 'data', {});
+        const coin = this.safeString (entry, 'coin');
+        const marketId = coin + '/USDC:USDC';
+        const market = this.market (marketId);
+        const symbol = market['symbol'];
+        const rawData = this.safeList (entry, 'levels', []);
+        const data = {
+            'bids': this.safeList (rawData, 0, []),
+            'asks': this.safeList (rawData, 1, []),
+        };
+        const timestamp = this.safeInteger (entry, 'time');
+        const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'px', 'sz');
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook (snapshot);
+            this.orderbooks[symbol] = orderbook;
+        } else {
+            orderbook = this.orderbooks[symbol];
+            orderbook.reset (snapshot);
+        }
+        const messageHash = 'orderbook:' + symbol;
+        client.resolve (orderbook, messageHash);
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -64,7 +141,7 @@ export default class hyperliquid extends hyperliquidRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'trade:' + market['symbol'];
+        const messageHash = 'trade:' + symbol;
         const url = this.urls['api']['ws']['public'];
         const request = {
             'method': 'subscribe',
@@ -184,6 +261,7 @@ export default class hyperliquid extends hyperliquidRest {
         const methods = {
             'pong': this.handlePong,
             'trades': this.handleTrades,
+            'l2Book': this.handleOrderBook,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
