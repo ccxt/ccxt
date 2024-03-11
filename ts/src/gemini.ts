@@ -254,12 +254,11 @@ export default class gemini extends Exchange {
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_web', // fetch_markets_from_api, fetch_markets_from_web
+                'fetchMarketsMethod': 'fetch_markets_from_api', // fetch_markets_from_api, fetch_markets_from_web
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
-                    'useTradingPairsData': true,
                     'fetchDetailsForAllSymbols': false,
-                    'fetchDetailsForMarketIds': [],
+                    'useTradingPairsInfo': true,
                 },
                 'fetchMarkets': {
                     'webApiEnable': true, // fetches from WEB
@@ -317,17 +316,7 @@ export default class gemini extends Exchange {
         }
         //
         //    {
-        //        "tradingPairs": [
-        //            [
-        //              'BTCUSD',   // symbol
-        //              2,          // priceTickDecimalPlaces
-        //              8,          // quantityTickDecimalPlaces
-        //              '0.00001',  // quantityMinimum)
-        //              10,         // quantityRoundDecimalPlaces
-        //              true        // minimumsAreInclusive
-        //            ],
-        //            ...
-        //        ],
+        //        "tradingPairs": [ [ 'BTCUSD', 2, 8, '0.00001', 10, true ],  ... ],
         //        "currencies": [
         //            [ "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ], // as confirmed, precisions seem to be the 5th index
         //            [ "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ],
@@ -561,7 +550,7 @@ export default class gemini extends Exchange {
     }
 
     async fetchMarketsFromAPI (params = {}) {
-        const response = await this.publicGetV1Symbols (params);
+        const marketIds = await this.publicGetV1Symbols (params);
         //
         //     [
         //         "btcusd",
@@ -569,50 +558,48 @@ export default class gemini extends Exchange {
         //         ...
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const marketId = response[i];
-            const market = {
-                'symbol': marketId,
-            };
-            result[marketId] = this.parseMarket (market);
-        }
-        const options = this.safeValue (this.options, 'fetchMarketsFromAPI', {});
-        const fetchDetailsForAllSymbols = this.safeBool (options, 'fetchDetailsForAllSymbols', false);
-        const fetchDetailsForMarketIds = this.safeValue (options, 'fetchDetailsForMarketIds', []);
-        let promises = [];
-        let marketIds = [];
-        if (fetchDetailsForAllSymbols) {
-            marketIds = response;
+        const result = [];
+        const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
+        if (this.safeBool (options, 'fetchDetailsForAllSymbols', false)) {
+            const promises = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const request = {
+                    'symbol': marketId,
+                };
+                promises.push (this.publicGetV1SymbolsDetailsSymbol (this.extend (request, params)));
+                //
+                //     {
+                //         "symbol": "BTCUSD",
+                //         "base_currency": "BTC",
+                //         "quote_currency": "USD",
+                //         "tick_size": 1E-8,
+                //         "quote_increment": 0.01,
+                //         "min_order_size": "0.00001",
+                //         "status": "open",
+                //         "wrap_enabled": false
+                //     }
+                //
+            }
+            const responses = await Promise.all (promises);
+            for (let i = 0; i < responses.length; i++) {
+                result.push (this.parseMarket (responses[i]));
+            }
+        } else if (this.safeBool (options, 'useTradingPairsInfo', false)) {
+            const tradingPairs = this.safeList (options, 'tradingPairs', []);
+            const indexedTradingPairs = this.indexBy (tradingPairs, 0);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const tradingPair = this.safeDict (indexedTradingPairs, marketId.toUpperCase (), {});
+                const amrket
+                result.push (this.parseMarket ({ 'symbol': marketIds[i] }));
+            }
         } else {
-            marketIds = fetchDetailsForMarketIds;
+            for (let i = 0; i < marketIds.length; i++) {
+                result.push (this.parseMarket ({ 'symbol': marketIds[i] }));
+            }
         }
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const request = {
-                'symbol': marketId,
-            };
-            promises.push (this.publicGetV1SymbolsDetailsSymbol (this.extend (request, params)));
-            //
-            //     {
-            //         "symbol": "BTCUSD",
-            //         "base_currency": "BTC",
-            //         "quote_currency": "USD",
-            //         "tick_size": 1E-8,
-            //         "quote_increment": 0.01,
-            //         "min_order_size": "0.00001",
-            //         "status": "open",
-            //         "wrap_enabled": false
-            //     }
-            //
-        }
-        promises = await Promise.all (promises);
-        for (let i = 0; i < promises.length; i++) {
-            const responseInner = promises[i];
-            const marketId = this.safeStringLower (responseInner, 'symbol');
-            result[marketId] = this.parseMarket (responseInner);
-        }
-        return this.toArray (result);
+        return result;
     }
 
     parseMarket (response): Market {
