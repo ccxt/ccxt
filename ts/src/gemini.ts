@@ -706,6 +706,7 @@ export default class gemini extends Exchange {
             linear = true; // always linear
             inverse = false;
         }
+        const type = swap ? 'swap' : 'spot';
         return {
             'id': marketId,
             'symbol': symbol,
@@ -715,8 +716,8 @@ export default class gemini extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'spot',
-            'spot': true,
+            'type': type,
+            'spot': !swap,
             'margin': false,
             'swap': swap,
             'future': false,
