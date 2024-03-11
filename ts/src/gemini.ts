@@ -259,6 +259,7 @@ export default class gemini extends Exchange {
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
                     'useTradingPairsInfo': true,
+                    'quoteCurrencies': [ 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH' ],
                 },
                 'fetchMarkets': {
                     'webApiEnable': true, // fetches from WEB
@@ -586,63 +587,138 @@ export default class gemini extends Exchange {
                 result.push (this.parseMarket (responses[i]));
             }
         } else if (this.safeBool (options, 'useTradingPairsInfo', false)) {
-            const tradingPairs = this.safeList (options, 'tradingPairs', []);
+            const tradingPairs = this.safeList (this.options, 'tradingPairs', []);
             const indexedTradingPairs = this.indexBy (tradingPairs, 0);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
-                const tradingPair = this.safeDict (indexedTradingPairs, marketId.toUpperCase (), {});
-                const amrket
-                result.push (this.parseMarket ({ 'symbol': marketIds[i] }));
+                const tradingPair = this.safeDict (indexedTradingPairs, marketId.toUpperCase ());
+                if (tradingPair !== undefined) {
+                    result.push (this.parseMarket (tradingPair));
+                }
             }
         } else {
             for (let i = 0; i < marketIds.length; i++) {
-                result.push (this.parseMarket ({ 'symbol': marketIds[i] }));
+                result.push (this.parseMarket (marketIds[i]));
             }
         }
         return result;
     }
 
     parseMarket (response): Market {
-        const marketId = this.safeStringLower (response, 'symbol');
-        let baseId = this.safeString (response, 'base_currency');
-        let quoteId = this.safeString (response, 'quote_currency');
-        if (baseId === undefined) {
+        //
+        // response might be:
+        //
+        //     btcusd
+        //
+        // or
+        //
+        //     [
+        //         'BTCUSD',   // symbol
+        //         2,          // priceTickDecimalPlaces
+        //         8,          // quantityTickDecimalPlaces
+        //         '0.00001',  // quantityMinimum
+        //         10,         // quantityRoundDecimalPlaces
+        //         true        // minimumsAreInclusive
+        //     ],
+        //
+        // or
+        //
+        //     {
+        //         "symbol": "BTCUSD", // perpetuals have 'PERP' suffix, i.e. DOGEUSDPERP
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USD",
+        //         "tick_size": 1E-8,
+        //         "quote_increment": 0.01,
+        //         "min_order_size": "0.00001",
+        //         "status": "open",
+        //         "wrap_enabled": false
+        //         "product_type": "swap", // only in perps
+        //         "contract_type": "linear", // only in perps
+        //         "contract_price_currency": "GUSD" // only in perps
+        //     }
+        //
+        let marketId = undefined;
+        let baseId = undefined;
+        let quoteId = undefined;
+        let settleId = undefined;
+        let tickSize = undefined;
+        let increment = undefined;
+        let minSize = undefined;
+        let status = undefined;
+        let contract = undefined;
+        let contractSize = undefined;
+        let linear = undefined;
+        let inverse = undefined;
+        const isString = (typeof response === 'string');
+        const isArray = (Array.isArray (response));
+        if (!isString && !isArray) {
+            marketId = this.safeStringLower (response, 'symbol');
+            minSize = this.safeNumber (response, 'min_order_size');
+            tickSize = this.safeNumber (response, 'tick_size');
+            increment = this.safeNumber (response, 'quote_increment');
+            status = this.parseMarketActive (this.safeString (response, 'status'));
+            baseId = this.safeString (response, 'base_currency');
+            quoteId = this.safeString (response, 'quote_currency');
+            settleId = this.safeString (response, 'contract_price_currency');
+        } else {
+            // if no detailed API was called, then parse either string or array
+            if (isString) {
+                marketId = response;
+            } else {
+                marketId = this.safeStringLower (response, 0);
+                minSize = this.safeNumber (response, 3);
+                tickSize = this.parseNumber (this.parsePrecision (this.safeString (response, 1)));
+                increment = this.parseNumber (this.parsePrecision (this.safeString (response, 2)));
+            }
+            let baseCurrency = undefined;
+            const isPerp = (marketId.indexOf ('perp') >= 0);
+            const quoteQurrencies = [ 'USDT']
+            const marketIdWithoutPerp = marketId.replace ('perp', '');
+            if (marketId.indexOf ('gusd') >= 0) {
             const idLength = marketId.length - 0;
             const isUSDT = marketId.indexOf ('usdt') >= 0;
             const quoteSize = isUSDT ? 4 : 3;
             baseId = marketId.slice (0, idLength - quoteSize); // Not true for all markets
             quoteId = marketId.slice (idLength - quoteSize, idLength);
+            if (marketId.indexOf ('perp') >= 0) {
+                settleId = primaryCurrency.toUpperCase (); // always gusd
+            }
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const status = this.safeString (response, 'status');
+        const settle = this.safeCurrencyCode (settleId);
+        let symbol = base + '/' + quote;
+        if (contract) {
+            symbol = symbol + ':' + settle;
+            contractSize = tickSize; // matches
+        }
         return {
             'id': marketId,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': undefined,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': undefined,
+            'settleId': settleId,
             'type': 'spot',
             'spot': true,
             'margin': false,
             'swap': false,
             'future': false,
             'option': false,
-            'active': this.parseMarketActive (status),
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
+            'active': status,
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': this.safeNumber (response, 'quote_increment'),
-                'amount': this.safeNumber (response, 'tick_size'),
+                'price': increment,
+                'amount': tickSize,
             },
             'limits': {
                 'leverage': {
@@ -650,7 +726,7 @@ export default class gemini extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.safeNumber (response, 'min_order_size'),
+                    'min': minSize,
                     'max': undefined,
                 },
                 'price': {
