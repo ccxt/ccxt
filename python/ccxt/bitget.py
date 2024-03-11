@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Liquidation, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Liquidation, Leverage, MarginMode, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -105,7 +105,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': False,
-                'fetchMarginMode': False,
+                'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -392,6 +392,8 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/spot/wallet/transfer': 2,
                             'v2/spot/wallet/subaccount-transfer': 2,
                             'v2/spot/wallet/withdrawal': 2,
+                            'v2/spot/wallet/cancel-withdrawal': 2,
+                            'v2/spot/wallet/modify-deposit-account': 2,
                         },
                     },
                     'mix': {
@@ -736,9 +738,12 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/convert/currencies': 2,
                             'v2/convert/quoted-price': 2,
                             'v2/convert/convert-record': 2,
+                            'v2/convert/bgb-convert-coin-list': 2,
+                            'v2/convert/bgb-convert-records': 2,
                         },
                         'post': {
                             'v2/convert/trade': 2,
+                            'v2/convert/bgb-convert': 2,
                         },
                     },
                     'earn': {
@@ -4610,6 +4615,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         cancel all open orders
         :see: https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+        :see: https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
         :see: https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -4634,7 +4640,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
         if market['spot']:
@@ -4644,7 +4650,13 @@ class bitget(Exchange, ImplicitAPI):
                 else:
                     response = self.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(self.extend(request, params))
             else:
-                response = self.privateSpotPostV2SpotTradeCancelSymbolOrder(self.extend(request, params))
+                if stop:
+                    stopRequest = {
+                        'symbolList': [market['id']],
+                    }
+                    response = self.privateSpotPostV2SpotTradeBatchCancelPlanOrder(self.extend(stopRequest, params))
+                else:
+                    response = self.privateSpotPostV2SpotTradeCancelSymbolOrder(self.extend(request, params))
         else:
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
@@ -7725,6 +7737,70 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         orderInfo = self.safe_value(data, 'successList', [])
         return self.parse_positions(orderInfo, None, params)
+
+    def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the margin mode of a trading pair
+        :see: https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+        :param str symbol: unified symbol of the market to fetch the margin mode for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        """
+        self.load_markets()
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        market = None
+        if sandboxMode:
+            sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
+            market = self.market(sandboxSymbol)
+        else:
+            market = self.market(symbol)
+        productType = None
+        productType, params = self.handle_product_type_and_params(market, params)
+        request = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+            'productType': productType,
+        }
+        response = self.privateMixGetV2MixAccountAccount(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1709791216652,
+        #         "data": {
+        #             "marginCoin": "USDT",
+        #             "locked": "0",
+        #             "available": "19.88811074",
+        #             "crossedMaxAvailable": "19.88811074",
+        #             "isolatedMaxAvailable": "19.88811074",
+        #             "maxTransferOut": "19.88811074",
+        #             "accountEquity": "19.88811074",
+        #             "usdtEquity": "19.888110749166",
+        #             "btcEquity": "0.000302183391",
+        #             "crossedRiskRate": "0",
+        #             "crossedMarginLeverage": 20,
+        #             "isolatedLongLever": 20,
+        #             "isolatedShortLever": 20,
+        #             "marginMode": "crossed",
+        #             "posMode": "hedge_mode",
+        #             "unrealizedPL": "0",
+        #             "coupon": "0",
+        #             "crossedUnrealizedPL": "0",
+        #             "isolatedUnrealizedPL": ""
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_margin_mode(data, market)
+
+    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+        marginType = self.safe_string(marginMode, 'marginMode')
+        marginType = 'cross' if (marginType == 'crossed') else marginType
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginType,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

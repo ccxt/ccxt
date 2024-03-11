@@ -1740,10 +1740,10 @@ class hitbtc extends Exchange {
                 'symbol' => $market['id'],
                 'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            list($request, $params) = $this->handle_until_option('till', $request, $params);
             if ($since !== null) {
                 $request['from'] = $this->iso8601($since);
             }
+            list($request, $params) = $this->handle_until_option('till', $request, $params);
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
@@ -2513,7 +2513,7 @@ class hitbtc extends Exchange {
              * @see https://api.hitbtc.com/#get-futures-position-parameters
              * @param {string} symbol unified symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} Struct of MarginMode
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
              */
             Async\await($this->load_markets());
             $market = null;

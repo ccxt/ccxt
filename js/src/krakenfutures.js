@@ -149,6 +149,7 @@ export default class krakenfutures extends Exchange {
                         'executions',
                         'triggers',
                         'accountlogcsv',
+                        'account-log',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
                     ],

@@ -2740,7 +2740,10 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
-        ((IDictionary<string,object>)request)["reverse"] = true;
+        if (isTrue(isTrue((isEqual(since, null))) && isTrue((isEqual(until, null)))))
+        {
+            ((IDictionary<string,object>)request)["reverse"] = true;
+        }
         object response = await this.publicGetFunding(this.extend(request, parameters));
         //
         //    [

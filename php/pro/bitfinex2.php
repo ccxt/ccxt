@@ -340,9 +340,10 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             // initial snapshot
             $trades = $this->safe_list($message, 1, array());
             // needs to be reversed to make chronological order
-            $trades = array_reverse($trades);
-            for ($i = 0; $i < count($trades); $i++) {
-                $parsed = $this->parse_ws_trade($trades[$i], $market);
+            $length = count($trades);
+            for ($i = 0; $i < $length; $i++) {
+                $index = $length - $i - 1;
+                $parsed = $this->parse_ws_trade($trades[$index], $market);
                 $stored->append ($parsed);
             }
         } else {

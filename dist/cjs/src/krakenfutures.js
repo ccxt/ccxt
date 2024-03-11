@@ -146,6 +146,7 @@ class krakenfutures extends krakenfutures$1 {
                         'executions',
                         'triggers',
                         'accountlogcsv',
+                        'account-log',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
                     ],

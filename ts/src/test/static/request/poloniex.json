@@ -34,8 +34,8 @@
                 "method": "cancelOrder",
                 "url": "https://api.poloniex.com/orders/258660009938837504",
                 "input": [
-                  "258660009938837504",
-                  "LTC/USDT"
+                    "258660009938837504",
+                    "LTC/USDT"
                 ]
             }
         ],
@@ -107,10 +107,10 @@
                 "method": "createOrder",
                 "url": "https://api.poloniex.com/orders",
                 "input": [
-                  "LTC/USDT",
-                  "market",
-                  "sell",
-                  0.1
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.1
                 ],
                 "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"sell\",\"type\":\"MARKET\",\"quantity\":\"0.1\"}"
             },
@@ -119,14 +119,14 @@
                 "method": "createOrder",
                 "url": "https://api.poloniex.com/orders",
                 "input": [
-                  "LTC/USDT",
-                  "market",
-                  "buy",
-                  10,
-                  null,
-                  {
-                    "createMarketBuyOrderRequiresPrice": false
-                  }
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    10,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
                 ],
                 "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"buy\",\"type\":\"MARKET\",\"amount\":\"10\"}"
             },
@@ -135,11 +135,11 @@
                 "method": "createOrder",
                 "url": "https://api.poloniex.com/orders",
                 "input": [
-                  "LTC/USDT",
-                  "limit",
-                  "sell",
-                  0.1,
-                  100
+                    "LTC/USDT",
+                    "limit",
+                    "sell",
+                    0.1,
+                    100
                 ],
                 "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"sell\",\"type\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"100\"}"
             }
@@ -150,10 +150,71 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://api.poloniex.com/orders",
                 "input": [
-                  "LTC/USDT",
-                  10
+                    "LTC/USDT",
+                    10
                 ],
                 "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"buy\",\"type\":\"MARKET\",\"amount\":\"10\"}"
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.poloniex.com/timestamp",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.poloniex.com/markets/BTC_USDT/trades",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.poloniex.com/markets/BTC_USDT/orderBook",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.poloniex.com/markets/BTC_USDT/ticker24h",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.poloniex.com/markets/ticker24h",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/markets/BTC_USDT/candles?interval=MINUTE_1",
+                "input": [
+                    "BTC/USDT"
+                ]
             }
         ]
     }

@@ -1414,9 +1414,12 @@ public partial class bitfinex2 : Exchange
             { "symbol", getValue(market, "id") },
             { "timeframe", this.safeString(this.timeframes, timeframe, timeframe) },
             { "sort", 1 },
-            { "start", since },
             { "limit", limit },
         };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start"] = since;
+        }
         var requestparametersVariable = this.handleUntilOption("end", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
@@ -3152,7 +3155,7 @@ public partial class bitfinex2 : Exchange
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return ((object)this.fetchFundingRates(new List<object>() {symbol}, parameters));
+        return ((object)await this.fetchFundingRates(new List<object>() {symbol}, parameters));
     }
 
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
@@ -3290,11 +3293,11 @@ public partial class bitfinex2 : Exchange
         }
         object reversedArray = new List<object>() {};
         object rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
-        object rawRatesLength = getArrayLength(rawRates);
-        object ratesLength = mathMax(subtract(rawRatesLength, 1), 0);
-        for (object i = ratesLength; isGreaterThanOrEqual(i, 0); postFixDecrement(ref i))
+        object ratesLength = getArrayLength(rawRates);
+        for (object i = 0; isLessThan(i, ratesLength); postFixIncrement(ref i))
         {
-            object valueAtIndex = getValue(rawRates, i);
+            object index = subtract(subtract(ratesLength, i), 1);
+            object valueAtIndex = getValue(rawRates, index);
             ((IList<object>)reversedArray).Add(valueAtIndex);
         }
         return reversedArray;

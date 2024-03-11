@@ -1721,10 +1721,10 @@ class hitbtc extends hitbtc$1 {
             'symbol': market['id'],
             'period': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        [request, params] = this.handleUntilOption('till', request, params);
         if (since !== undefined) {
             request['from'] = this.iso8601(since);
         }
+        [request, params] = this.handleUntilOption('till', request, params);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2517,7 +2517,7 @@ class hitbtc extends hitbtc$1 {
          * @see https://api.hitbtc.com/#get-futures-position-parameters
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} Struct of MarginMode
+         * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
          */
         await this.loadMarkets();
         let market = undefined;
