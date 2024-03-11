@@ -257,6 +257,7 @@ export default class gemini extends Exchange {
                 'fetchMarketsMethod': 'fetch_markets_from_web', // fetch_markets_from_api, fetch_markets_from_web
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
+                    'useTradingPairsData': true,
                     'fetchDetailsForAllSymbols': false,
                     'fetchDetailsForMarketIds': [],
                 },
@@ -317,7 +318,14 @@ export default class gemini extends Exchange {
         //
         //    {
         //        "tradingPairs": [
-        //            [ "BTCAUD", 2, 8, "0.00001", 10, true ],
+        //            [
+        //              'BTCUSD',   // symbol
+        //              2,          // priceTickDecimalPlaces
+        //              8,          // quantityTickDecimalPlaces
+        //              '0.00001',  // quantityMinimum)
+        //              10,         // quantityRoundDecimalPlaces
+        //              true        // minimumsAreInclusive
+        //            ],
         //            ...
         //        ],
         //        "currencies": [
@@ -338,6 +346,7 @@ export default class gemini extends Exchange {
         //    }
         //
         const result = {};
+        this.options['tradingPairs'] = this.safeList (data, 'tradingPairs');
         const currenciesArray = this.safeValue (data, 'currencies', []);
         for (let i = 0; i < currenciesArray.length; i++) {
             const currency = currenciesArray[i];
