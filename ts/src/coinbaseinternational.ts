@@ -236,7 +236,7 @@ export default class coinbaseinternational extends Exchange {
                 '1d': 'ONE_DAY',
             },
             'options': {
-                'clientOrderId': 'ccxt',
+                'brokerId': 'nfqkvdjp',
                 'portfolio': '', // default portfolio id
                 'withdraw': {
                     'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
@@ -1252,8 +1252,8 @@ export default class coinbaseinternational extends Exchange {
         const market = this.market (symbol);
         let typeId = type.toUpperCase ();
         const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId', 'ccxt');
-        let clientOrderId = clientOrderIdprefix + this.uuid ();
+        const clientOrderIdprefix = this.safeString (this.options, 'brokerId', 'nfqkvdjp');
+        let clientOrderId = clientOrderIdprefix + '-' + this.uuid ();
         clientOrderId = clientOrderId.slice (0, 17);
         const request = {
             'client_order_id': clientOrderId,
