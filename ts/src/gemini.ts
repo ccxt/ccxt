@@ -647,7 +647,7 @@ export default class gemini extends Exchange {
         let increment = undefined;
         let minSize = undefined;
         let status = undefined;
-        let contract = undefined;
+        let swap = false;
         let contractSize = undefined;
         let linear = undefined;
         let inverse = undefined;
@@ -694,7 +694,7 @@ export default class gemini extends Exchange {
         let symbol = base + '/' + quote;
         if (settleId !== undefined) {
             symbol = symbol + ':' + settle;
-            contract = true;
+            swap = true;
             contractSize = tickSize; // always same
             linear = true; // always linear
             inverse = false;
@@ -711,11 +711,11 @@ export default class gemini extends Exchange {
             'type': 'spot',
             'spot': true,
             'margin': false,
-            'swap': contract,
+            'swap': swap,
             'future': false,
             'option': false,
             'active': status,
-            'contract': contract,
+            'contract': swap,
             'linear': linear,
             'inverse': inverse,
             'contractSize': contractSize,
