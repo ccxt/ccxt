@@ -521,17 +521,19 @@
             {
                 "description": "Fetch FundingHistory - swap",
                 "method": "fetchFundingHistory",
-                "url": "https://api.gateio.ws/api/v4/futures/usdt/account_book?contract=BTC_USDT&type=fund",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/account_book?contract=BTC_USDT&type=fund&from=1672527600",
                 "input": [
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    1672527600000
                 ]
             },
             {
                 "description": "Fetch FundingHistory - future",
                 "method": "fetchFundingHistory",
-                "url": "https://api.gateio.ws/api/v4/delivery/usdt/account_book?contract=BTC_USDT_20240329&type=fund",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/account_book?contract=BTC_USDT_20240329&type=fund&from=1672527600",
                 "input": [
-                    "BTC/USDT:USDT-240329"
+                    "BTC/USDT:USDT-240329",
+                    1672527600000
                 ]
             }
         ],
