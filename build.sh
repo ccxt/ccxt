@@ -116,7 +116,7 @@ diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static 
 # diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
 # diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
 # diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
-#echo $diff  
+#echo $diff
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
 if [[ "$diff" =~ $critical_pattern ]]; then
