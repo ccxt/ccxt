@@ -258,7 +258,6 @@ export default class gemini extends Exchange {
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
-                    'useTradingPairsInfo': true,
                     'quoteCurrencies': [ 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH' ],
                 },
                 'fetchMarkets': {
@@ -586,19 +585,22 @@ export default class gemini extends Exchange {
             for (let i = 0; i < responses.length; i++) {
                 result.push (this.parseMarket (responses[i]));
             }
-        } else if (this.safeBool (options, 'useTradingPairsInfo', false)) {
-            const tradingPairs = this.safeList (this.options, 'tradingPairs', []);
-            const indexedTradingPairs = this.indexBy (tradingPairs, 0);
-            for (let i = 0; i < marketIds.length; i++) {
-                const marketId = marketIds[i];
-                const tradingPair = this.safeDict (indexedTradingPairs, marketId.toUpperCase ());
-                if (tradingPair !== undefined) {
-                    result.push (this.parseMarket (tradingPair));
-                }
-            }
         } else {
-            for (let i = 0; i < marketIds.length; i++) {
-                result.push (this.parseMarket (marketIds[i]));
+            // use trading-pairs info, if it was fetched
+            const tradingPairs = this.safeList (this.options, 'tradingPairs');
+            if (tradingPairs !== undefined) {
+                const indexedTradingPairs = this.indexBy (tradingPairs, 0);
+                for (let i = 0; i < marketIds.length; i++) {
+                    const marketId = marketIds[i];
+                    const tradingPair = this.safeDict (indexedTradingPairs, marketId.toUpperCase ());
+                    if (tradingPair !== undefined) {
+                        result.push (this.parseMarket (tradingPair));
+                    }
+                }
+            } else {
+                for (let i = 0; i < marketIds.length; i++) {
+                    result.push (this.parseMarket (marketIds[i]));
+                }
             }
         }
         return result;
