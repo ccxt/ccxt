@@ -732,6 +732,7 @@ export default class krakenfutures extends Exchange {
         if (isFullHistoryEndpoint) {
             if (since !== undefined) {
                 request['since'] = since;
+                request['sort'] = 'asc';
             }
             if (until !== undefined) {
                 request['lastTime'] = this.iso8601 (until);
