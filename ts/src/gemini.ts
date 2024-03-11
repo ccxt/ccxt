@@ -670,27 +670,32 @@ export default class gemini extends Exchange {
                 tickSize = this.parseNumber (this.parsePrecision (this.safeString (response, 1)));
                 increment = this.parseNumber (this.parsePrecision (this.safeString (response, 2)));
             }
-            let baseCurrency = undefined;
-            const isPerp = (marketId.indexOf ('perp') >= 0);
-            const quoteQurrencies = [ 'USDT']
-            const marketIdWithoutPerp = marketId.replace ('perp', '');
-            if (marketId.indexOf ('gusd') >= 0) {
-            const idLength = marketId.length - 0;
-            const isUSDT = marketId.indexOf ('usdt') >= 0;
-            const quoteSize = isUSDT ? 4 : 3;
-            baseId = marketId.slice (0, idLength - quoteSize); // Not true for all markets
-            quoteId = marketId.slice (idLength - quoteSize, idLength);
-            if (marketId.indexOf ('perp') >= 0) {
-                settleId = primaryCurrency.toUpperCase (); // always gusd
+            const marketIdUpper = marketId.toUpperCase ();
+            const isPerp = (marketIdUpper.indexOf ('PERP') >= 0);
+            const marketIdWithoutPerp = marketIdUpper.replace ('PERP', '');
+            const quoteQurrencies = this.handleOption ('fetchMarketsFromAPI', 'quoteCurrencies', []);
+            for (let i = 0; i < quoteQurrencies.length; i++) {
+                const quoteCurrency = quoteQurrencies[i];
+                if (marketIdWithoutPerp.endsWith (quoteCurrency)) {
+                    baseId = marketIdWithoutPerp.replace (quoteCurrency, '');
+                    quoteId = quoteCurrency;
+                    if (isPerp) {
+                        settleId = quoteCurrency; // always same
+                    }
+                    break;
+                }
             }
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
-        if (contract) {
+        if (settleId !== undefined) {
             symbol = symbol + ':' + settle;
-            contractSize = tickSize; // matches
+            contract = true;
+            contractSize = tickSize; // always same
+            linear = true; // always linear
+            inverse = false;
         }
         return {
             'id': marketId,
