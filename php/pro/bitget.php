@@ -686,10 +686,10 @@ class bitget extends \ccxt\async\bitget {
         }
         $data = $this->safe_list($message, 'data', array());
         $length = count($data);
-        $maxLength = max ($length - 1, 0);
         // fix chronological order by reversing
-        for ($i = $maxLength; $i >= 0; $i--) {
-            $rawTrade = $data[$i];
+        for ($i = 0; $i < $length; $i++) {
+            $index = $length - $i - 1;
+            $rawTrade = $data[$index];
             $parsed = $this->parse_ws_trade($rawTrade, $market);
             $stored->append ($parsed);
         }

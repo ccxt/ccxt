@@ -32,14 +32,14 @@
                 "method": "createOrder",
                 "url": "https://demo-futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_XBTUSD&side=buy&size=0.0001&triggerSignal=last&stopPrice=45000&orderType=stp&limitPrice=46000",
                 "input": [
-                  "BTC/USD:USD",
-                  "limit",
-                  "buy",
-                  0.0001,
-                  46000,
-                  {
-                    "triggerPrice": 45000
-                  }
+                    "BTC/USD:USD",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    46000,
+                    {
+                        "triggerPrice": 45000
+                    }
                 ]
             },
             {
@@ -47,14 +47,14 @@
                 "method": "createOrder",
                 "url": "https://demo-futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_XBTUSD&side=sell&size=0.01&triggerSignal=last&reduceOnly=true&stopPrice=38000&orderType=stp&limitPrice=37000",
                 "input": [
-                  "BTC/USD:USD",
-                  "limit",
-                  "sell",
-                  0.01,
-                  37000,
-                  {
-                    "stopLossPrice": 38000
-                  }
+                    "BTC/USD:USD",
+                    "limit",
+                    "sell",
+                    0.01,
+                    37000,
+                    {
+                        "stopLossPrice": 38000
+                    }
                 ]
             },
             {
@@ -62,28 +62,28 @@
                 "method": "createOrder",
                 "url": "https://demo-futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_XBTUSD&side=sell&size=0.01&triggerSignal=last&reduceOnly=true&stopPrice=49000&orderType=take_profit&limitPrice=50000",
                 "input": [
-                  "BTC/USD:USD",
-                  "limit",
-                  "sell",
-                  0.01,
-                  50000,
-                  {
-                    "takeProfitPrice": 49000
-                  }
+                    "BTC/USD:USD",
+                    "limit",
+                    "sell",
+                    0.01,
+                    50000,
+                    {
+                        "takeProfitPrice": 49000
+                    }
                 ]
             },
             {
                 "method": "order with clientOrderId",
                 "url": "https://futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_LTCUSD&side=buy&size=0.1&cliOrdId=myid1&orderType=lmt&limitPrice=50",
                 "input": [
-                  "LTC/USD:USD",
-                  "limit",
-                  "buy",
-                  0.1,
-                  50,
-                  {
-                    "clientOrderId": "myid1"
-                  }
+                    "LTC/USD:USD",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "clientOrderId": "myid1"
+                    }
                 ]
             },
             {
@@ -91,11 +91,11 @@
                 "method": "createOrder",
                 "url": "https://futures.kraken.com/derivatives/api/v3/sendorder?symbol=PF_LTCUSD&side=buy&size=0.1&orderType=lmt&limitPrice=55",
                 "input": [
-                  "LTC/USD:USD",
-                  "limit",
-                  "buy",
-                  0.1000000000000001,
-                  55.000001
+                    "LTC/USD:USD",
+                    "limit",
+                    "buy",
+                    0.1000000000000001,
+                    55.000001
                 ]
             }
         ],
@@ -129,8 +129,8 @@
                 "method": "cancelOrder",
                 "url": "https://futures.kraken.com/derivatives/api/v3/cancelorder?order_id=6e88d923-630d-40aa-af4f-64e5e2b3ad03",
                 "input": [
-                  "6e88d923-630d-40aa-af4f-64e5e2b3ad03",
-                  "LTC/USD:USD"
+                    "6e88d923-630d-40aa-af4f-64e5e2b3ad03",
+                    "LTC/USD:USD"
                 ]
             }
         ],
@@ -140,9 +140,9 @@
                 "method": "fetchMyTrades",
                 "url": "https://futures.kraken.com/derivatives/api/v3/fills",
                 "input": [
-                  "LTC/USD:USD",
-                  null,
-                  1
+                    "LTC/USD:USD",
+                    null,
+                    1
                 ]
             }
         ],
@@ -160,9 +160,9 @@
                 "method": "fetchClosedOrders",
                 "url": "https://futures.kraken.com/api/history/v2/orders?count=1",
                 "input": [
-                  "LTC/USD:USD",
-                  null,
-                  1
+                    "LTC/USD:USD",
+                    null,
+                    1
                 ]
             }
         ],
@@ -180,10 +180,10 @@
                 "method": "cancelOrders",
                 "url": "https://futures.kraken.com/derivatives/api/v3/batchorder",
                 "input": [
-                  [
-                    "3d080c9b-6a50-45c1-8365-11c00295f011"
-                  ],
-                  "LTC/USD:USD"
+                    [
+                        "3d080c9b-6a50-45c1-8365-11c00295f011"
+                    ],
+                    "LTC/USD:USD"
                 ],
                 "output": "json={\"batchOrder\":[{\"order\":\"cancel\",\"order_id\":\"3d080c9b-6a50-45c1-8365-11c00295f011\"}]}"
             }
@@ -194,7 +194,7 @@
                 "method": "fetchLeverage",
                 "url": "https://demo-futures.kraken.com/derivatives/api/v3/leveragepreferences?symbol=PF_XBTUSD",
                 "input": [
-                  "BTC/USD:USD"
+                    "BTC/USD:USD"
                 ]
             }
         ],
