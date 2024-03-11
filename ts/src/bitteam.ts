@@ -5,7 +5,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Dict, Int, Market, NullableDict, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -241,7 +241,7 @@ export default class bitteam extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params: Dict = {}) {
         /**
          * @method
          * @name bitteam#fetchMarkets
@@ -342,10 +342,13 @@ export default class bitteam extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: NullableDict): Market {
         const id = this.safeString (market, 'name');
+        let parts: NullableList = undefined;
+        if (id !== undefined) {
+            parts = id.split ('_');
+        }
         const numericId = this.safeInteger (market, 'id');
-        const parts = id.split ('_');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
@@ -414,7 +417,7 @@ export default class bitteam extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params: Dict = {}) {
         /**
          * @method
          * @name bitteam#fetchCurrencies
@@ -628,7 +631,7 @@ export default class bitteam extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitteam#fetchOHLCV
@@ -701,7 +704,7 @@ export default class bitteam extends Exchange {
         ];
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitteam#fetchOrderBook
@@ -750,7 +753,7 @@ export default class bitteam extends Exchange {
         return orderbook;
     }
 
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitteam#fetchOrders
@@ -864,7 +867,7 @@ export default class bitteam extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         /**
          * @method
          * @name bitteam#fetchOrder
@@ -925,7 +928,7 @@ export default class bitteam extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitteam#fetchOpenOrders
@@ -944,7 +947,7 @@ export default class bitteam extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitteam#fetchClosedOrders
@@ -963,7 +966,7 @@ export default class bitteam extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         /**
          * @method
          * @name bitteam#fetchCanceledOrders
@@ -982,7 +985,7 @@ export default class bitteam extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params: Dict = {}) {
         /**
          * @method
          * @name bitteam#createOrder
@@ -1039,7 +1042,7 @@ export default class bitteam extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}) {
         /**
          * @method
          * @name bitteam#cancelOrder
@@ -1067,7 +1070,7 @@ export default class bitteam extends Exchange {
         return this.parseOrder (result);
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params: Dict = {}) {
         /**
          * @method
          * @name bitteam#cancelAllOrders
@@ -1276,7 +1279,7 @@ export default class bitteam extends Exchange {
         return Precise.stringMul (valueRawString, precisionString);
     }
 
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitteam#fetchTickers
@@ -1331,7 +1334,7 @@ export default class bitteam extends Exchange {
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitteam#fetchTicker
@@ -1663,7 +1666,7 @@ export default class bitteam extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitteam#fetchTrades
@@ -1705,7 +1708,7 @@ export default class bitteam extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         /**
          * @method
          * @name bitteam#fetchMyTrades
@@ -1974,7 +1977,7 @@ export default class bitteam extends Exchange {
         }, market);
     }
 
-    async fetchBalance (params = {}): Promise<Balances> {
+    async fetchBalance (params: Dict = {}): Promise<Balances> {
         /**
          * @method
          * @name betteam#fetchBalance
@@ -2055,7 +2058,7 @@ export default class bitteam extends Exchange {
         return this.safeBalance (balance);
     }
 
-    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitteam#fetchDepositsWithdrawals
@@ -2278,7 +2281,7 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params: Dict = {}, headers = undefined, body = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
