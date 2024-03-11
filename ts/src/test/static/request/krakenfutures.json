@@ -237,7 +237,20 @@
                     "until": 1650000000000
                   }
                 ]
-            }
+            },
+            {
+                "description": "fetch Trades using publicGetHistory",
+                "method": "fetchTrades",
+                "url": "https://futures.kraken.com/derivatives/api/v3/history?symbol=PF_XBTUSD",
+                "input": [
+                  "BTC/USD:USD",
+                  null,
+                  null,
+                  {
+                    "method": "publicGetHistory"
+                  }
+                ]
+              }
         ]
     }
 }
