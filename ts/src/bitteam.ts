@@ -5,7 +5,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currency, Dict, Int, Market, NullableDict, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Dict, Int, Market, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -337,8 +337,8 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const markets = this.safeValue (result, 'pairs', []);
+        const result = this.safeDict (response, 'result', {});
+        const markets = this.safeList (result, 'pairs', []);
         return this.parseMarkets (markets);
     }
 
@@ -353,16 +353,16 @@ export default class bitteam extends Exchange {
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const active = this.safeValue (market, 'active');
+        const active = this.safeBool (market, 'active');
         const amountPrecision = this.safeInteger (market, 'baseStep');
         const pricePrecision = this.safeInteger (market, 'quoteStep');
         const timeStart = this.safeString (market, 'timeStart');
         const created = this.parse8601 (timeStart);
         let minCost = undefined;
-        const currenciesValuedInUsd = this.safeValue (this.options, 'currenciesValuedInUsd', {});
+        const currenciesValuedInUsd = this.safeDict (this.options, 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
-            const settings = this.safeValue (market, 'settings', {});
+            const settings = this.safeDict (market, 'settings', {}) as Dict;
             minCost = this.safeNumber (settings, 'limit_usd');
         }
         return this.safeMarketStructure ({
@@ -517,8 +517,8 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const responseResult = this.safeValue (response, 'result', {});
-        const currencies = this.safeValue (responseResult, 'currencies', []);
+        const responseResult = this.safeDict (response, 'result', {});
+        const currencies = this.safeList (responseResult, 'currencies');
         // usding another endpoint to fetch statuses of deposits and withdrawals
         let statusesResponse = await this.publicGetTradeApiCmcAssets ();
         //
@@ -542,47 +542,80 @@ export default class bitteam extends Exchange {
         //     }
         //
         statusesResponse = this.indexBy (statusesResponse, 'unified_cryptoasset_id');
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString (currency, 'symbol');
-            const numericId = this.safeInteger (currency, 'id');
-            const code = this.safeCurrencyCode (id);
-            const active = this.safeBool (currency, 'active', false);
-            const precision = this.safeInteger (currency, 'precision');
-            const txLimits = this.safeValue (currency, 'txLimits', {});
-            const minWithdraw = this.safeString (txLimits, 'minWithdraw');
-            const maxWithdraw = this.safeString (txLimits, 'maxWithdraw');
-            const minDeposit = this.safeString (txLimits, 'minDeposit');
-            let fee = undefined;
-            const withdrawCommissionFixed = this.safeValue (txLimits, 'withdrawCommissionFixed', {}) as any;
-            let feesByNetworkId = {};
-            const blockChain = this.safeString (currency, 'blockChain');
-            // if only one blockChain
-            if ((blockChain !== undefined) && (blockChain !== '')) {
-                fee = this.parseNumber (withdrawCommissionFixed);
-                feesByNetworkId[blockChain] = fee;
-            } else {
-                feesByNetworkId = withdrawCommissionFixed;
-            }
-            const statuses = this.safeValue (statusesResponse, numericId, {});
-            const deposit = this.safeValue (statuses, 'depositStatus');
-            const withdraw = this.safeValue (statuses, 'withdrawStatus');
-            const networkIds = Object.keys (feesByNetworkId);
-            const networks = {};
-            const networkPrecision = this.safeInteger (currency, 'decimals');
-            for (let j = 0; j < networkIds.length; j++) {
-                const networkId = networkIds[j];
-                const networkCode = this.networkIdToCode (networkId, code);
-                const networkFee = this.safeNumber (feesByNetworkId, networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
+        const result: Dict = {};
+        if (currencies !== undefined) {
+            for (let i = 0; i < currencies.length; i++) {
+                const currency = currencies[i];
+                const id = this.safeString (currency, 'symbol');
+                const numericId = this.safeInteger (currency, 'id');
+                const code = this.safeCurrencyCode (id);
+                const active = this.safeBool (currency, 'active', false);
+                const precision = this.safeInteger (currency, 'precision');
+                const txLimits = this.safeValue (currency, 'txLimits', {});
+                const minWithdraw = this.safeString (txLimits, 'minWithdraw');
+                const maxWithdraw = this.safeString (txLimits, 'maxWithdraw');
+                const minDeposit = this.safeString (txLimits, 'minDeposit');
+                let feesByNetworkId: Dict = {};
+                let fee: Num = undefined;
+                const withdrawCommissionFixed = this.safeDict (txLimits, 'withdrawCommissionFixed');
+                if (withdrawCommissionFixed !== undefined) {
+                    feesByNetworkId = withdrawCommissionFixed;
+                } else {
+                    const blockChain = this.safeString (currency, 'blockChain');
+                    // if only one blockChain
+                    if ((blockChain !== undefined) && (blockChain !== '')) {
+                        const withdrawCommissionFixedString = this.safeString (txLimits, 'withdrawCommissionFixed');
+                        fee = this.parseNumber (withdrawCommissionFixedString);
+                        feesByNetworkId[blockChain] = fee;
+                    }
+                }
+                const numericIdString = this.numberToString (numericId);
+                const statuses = this.safeDict (statusesResponse, numericIdString, {});
+                const deposit = this.safeBool (statuses, 'depositStatus');
+                const withdraw = this.safeBool (statuses, 'withdrawStatus');
+                const networkIds = Object.keys (feesByNetworkId);
+                const networks: Dict = {};
+                const networkPrecision = this.safeInteger (currency, 'decimals');
+                for (let j = 0; j < networkIds.length; j++) {
+                    const networkId = networkIds[j];
+                    const networkCode = this.networkIdToCode (networkId, code);
+                    const networkFee = this.safeNumber (feesByNetworkId, networkId);
+                    networks[networkCode] = {
+                        'id': networkId,
+                        'network': networkCode,
+                        'deposit': deposit,
+                        'withdraw': withdraw,
+                        'active': active,
+                        'fee': networkFee,
+                        'precision': networkPrecision,
+                        'limits': {
+                            'amount': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'withdraw': {
+                                'min': this.parseNumber (minWithdraw),
+                                'max': this.parseNumber (maxWithdraw),
+                            },
+                            'deposit': {
+                                'min': this.parseNumber (minDeposit),
+                                'max': undefined,
+                            },
+                        },
+                        'info': currency,
+                    };
+                }
+                result[code] = {
+                    'id': id,
+                    'numericId': numericId,
+                    'code': code,
+                    'name': code,
+                    'info': currency,
+                    'active': active,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'active': active,
-                    'fee': networkFee,
-                    'precision': networkPrecision,
+                    'fee': fee,
+                    'precision': precision,
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -597,36 +630,9 @@ export default class bitteam extends Exchange {
                             'max': undefined,
                         },
                     },
-                    'info': currency,
+                    'networks': networks,
                 };
             }
-            result[code] = {
-                'id': id,
-                'numericId': numericId,
-                'code': code,
-                'name': code,
-                'info': currency,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.parseNumber (minWithdraw),
-                        'max': this.parseNumber (maxWithdraw),
-                    },
-                    'deposit': {
-                        'min': this.parseNumber (minDeposit),
-                        'max': undefined,
-                    },
-                },
-                'networks': networks,
-            };
         }
         return result;
     }
