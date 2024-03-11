@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.67'
+__version__ = '4.2.68'
 
 # -----------------------------------------------------------------------------
 
@@ -3514,8 +3514,14 @@ class Exchange(object):
         market = self.market(symbol)
         return self.safe_string(market, 'symbol', symbol)
 
-    def handle_param_string(self, params: object, paramName: str, defaultValue=None):
+    def handle_param_string(self, params: object, paramName: str, defaultValue: Str = None):
         value = self.safe_string(params, paramName, defaultValue)
+        if value is not None:
+            params = self.omit(params, paramName)
+        return [value, params]
+
+    def handle_param_integer(self, params: object, paramName: str, defaultValue: Int = None):
+        value = self.safe_integer(params, paramName, defaultValue)
         if value is not None:
             params = self.omit(params, paramName)
         return [value, params]
