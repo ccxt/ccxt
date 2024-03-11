@@ -194,6 +194,8 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer from main to subAccount or from subAccount to main",
