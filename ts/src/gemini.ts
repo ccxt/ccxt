@@ -592,7 +592,7 @@ export default class gemini extends Exchange {
                 const indexedTradingPairs = this.indexBy (tradingPairs, 0);
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
-                    const tradingPair = this.safeDict (indexedTradingPairs, marketId.toUpperCase ());
+                    const tradingPair = this.safeList (indexedTradingPairs, marketId.toUpperCase ());
                     if (tradingPair !== undefined) {
                         result.push (this.parseMarket (tradingPair));
                     }
