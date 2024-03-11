@@ -797,8 +797,9 @@ export default class krakenfutures extends Exchange {
                 const index = length - 1 - i;
                 const element = elements[index];
                 const event = this.safeDict (element, 'event', {});
-                const execution = this.safeDict (event, 'Execution', {});
-                rawTrades.push (execution);
+                const executionContainer = this.safeDict (event, 'Execution', {});
+                const rawTrade = this.safeDict (executionContainer, 'execution', {});
+                rawTrades.push (rawTrade);
             }
         } else {
             if (until !== undefined) {
