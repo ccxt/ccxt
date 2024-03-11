@@ -360,6 +360,7 @@ class Transpiler {
 
             // convert javascript primitive types to python ones
             [ /(^\s+(?:let|const|var)\s+\w+:\s+)string/mg, '$1str' ],
+            [ /(^\s+(?:let|const|var)\s+\w+:\s+)NullableDict/mg, '$1dict' ],
             [ /(^\s+(?:let|const|var)\s+\w+:\s+)Dict/mg, '$1dict' ], // remove from now
             // [ /(^\s+(?:let|const|var)\s+\w+:\s+)Int/mg, '$1int' ], // remove from now
             // [ /(^\s+(?:let|const|var)\s+\w+:\s+)Number/mg, '$1float' ], // remove from now
@@ -410,11 +411,11 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
-            // beware of .reverse() in python, because opposed to JS, python does in-place, so 
-            // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
+            // beware of .reverse() in python, because opposed to JS, python does in-place, so
+            // only cases like `x = x.reverse ()` should be transpiled, which will resul as
             // `x.reverse()` in python. otherwise, if transpiling `x = y.reverse()`, then the
             // left side `x = `will be removed and only `y.reverse()` will end up in python
-            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ], 
+            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
@@ -600,8 +601,8 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number|Dict|any);\n/mg, '' ],
-            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number|Dict|NullableDict|any);\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|NullableDict|any)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -1660,6 +1661,7 @@ class Transpiler {
                 'OrderSide': 'string',
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
+                'NullableDict': 'array'
             }
             const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
@@ -1722,7 +1724,8 @@ class Transpiler {
                 'Int': 'Int',
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
-                'Dict': 'dict'
+                'Dict': 'dict',
+                'NullableDict': 'dict',
             }
             const unwrapLists = (type) => {
                 const output = []
@@ -2350,7 +2353,7 @@ class Transpiler {
 
 
         // ########### PHP ###########
-        
+
         const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
         const phpReform = (cont) => {
             const partBeforClass =  existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n';
@@ -2512,10 +2515,10 @@ class Transpiler {
             const phpDirsAmount = getDirLevelForPath('php', test.phpFileAsync || test.phpFileSync, 2);
             const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
             // In PHP preable, for specifically WS tests, we need to avoid php namespace differences for tests, for example, if WATCH methods use ccxt\\pro, then the inlcuded non-pro test methods (like "test_trade" etc) are under ccxt, causing the purely transpiled code to have namespace conflicts specifically in PHP. so, for now, let's just leave all watch method tests under `ccxt` namespace, not `ccxt\pro`
-            // let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs); 
+            // let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs);
             const includePath = isWs && test.base;
             const addProNs = isWs && test.base; // only for base CACHE and ORDERBOOK tests
-            let phpPreamble = this.getPHPPreamble (includePath, phpDirsAmount, addProNs); 
+            let phpPreamble = this.getPHPPreamble (includePath, phpDirsAmount, addProNs);
 
 
             let pythonHeaderSync = []
