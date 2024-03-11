@@ -3,8 +3,8 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Market, OrderBook, Trade, OHLCV } from '../base/types.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'watchMyTrades': false,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
@@ -305,6 +305,88 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (stored, messageHash);
     }
 
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name hyperliquid#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         */
+        await this.loadMarkets ();
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('watchOrders', params);
+        let market = undefined;
+        let messageHash = 'order';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = messageHash + ':' + symbol;
+        }
+        const url = this.urls['api']['ws']['public'];
+        const request = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'orderUpdates',
+                'user': userAddress,
+            },
+        };
+        const message = this.extend (request, params);
+        const orders = await this.watch (url, messageHash, message, messageHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message, subscription = undefined) {
+        //
+        //     {
+        //         channel: 'orderUpdates',
+        //         data: [
+        //             {
+        //                 order: {
+        //                     coin: 'BTC',
+        //                     side: 'B',
+        //                     limitPx: '30000.0',
+        //                     sz: '0.001',
+        //                     oid: 7456484275,
+        //                     timestamp: 1710163596492,
+        //                     origSz: '0.001'
+        //                 },
+        //                 status: 'open',
+        //                 statusTimestamp: 1710163596492
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (message, 'data', []);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.orders;
+        const messageHash = 'order';
+        const marketSymbols = {};
+        for (let i = 0; i < data.length; i++) {
+            const rawOrder = data[i];
+            const order = this.parseOrder (rawOrder);
+            stored.append (order);
+            const symbol = this.safeString (order, 'symbol');
+            marketSymbols[symbol] = true;
+        }
+        const keys = Object.keys (marketSymbols);
+        for (let i = 0; i < keys.length; i++) {
+            const symbol = keys[i];
+            const innerMessageHash = messageHash + ':' + symbol;
+            client.resolve (stored, innerMessageHash);
+        }
+        client.resolve (stored, messageHash);
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         //     {
@@ -331,6 +413,7 @@ export default class hyperliquid extends hyperliquidRest {
             'trades': this.handleTrades,
             'l2Book': this.handleOrderBook,
             'candle': this.handleOHLCV,
+            'orderUpdates': this.handleOrder,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
