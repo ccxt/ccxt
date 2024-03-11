@@ -102,7 +102,7 @@ export default class hyperliquid extends hyperliquidRest {
         const first = this.safeDict (entry, 0, {});
         const coin = this.safeString (first, 'coin');
         const marketId = coin + '/USDC:USDC';
-        const market = this.safeMarket (marketId, undefined);
+        const market = this.market (marketId);
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -111,7 +111,7 @@ export default class hyperliquid extends hyperliquidRest {
             this.trades[symbol] = stored;
         }
         for (let i = 0; i < entry.length; i++) {
-            const data = this.safeValue (entry, i);
+            const data = this.safeDict (entry, i);
             const trade = this.parseWsTrade (data);
             stored.append (trade);
         }
