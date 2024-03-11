@@ -374,6 +374,9 @@
                 "1": "same as above"
             },
             "fetchTickers": "negative values",
+            "watchTickers": {
+                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269367056#L3473"
+            },
             "fetchPositions": {
                 "stopLossPrice": "undefined",
                 "takeProfitPrice": "undefined",
