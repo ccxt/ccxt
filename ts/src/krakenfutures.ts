@@ -831,7 +831,7 @@ export default class krakenfutures extends Exchange {
 
     parseTrade (trade, market: Market = undefined): Trade {
         //
-        // fetchTrades (public)
+        // fetchTrades (recent trades)
         //
         //    {
         //        "time": "2019-02-14T09:25:33.920Z",
@@ -839,8 +839,22 @@ export default class krakenfutures extends Exchange {
         //        "price": 3574,
         //        "size": 100,
         //        "side": "buy",
-        //        "type": "fill"                                          // fill, liquidation, assignment, termination
+        //        "type": "fill" // fill, liquidation, assignment, termination
         //        "uid": "11c3d82c-9e70-4fe9-8115-f643f1b162d4"
+        //    }
+        //
+        // fetchTrades (executions history)
+        //
+        //    {
+        //        "timestamp": "1710152516830",
+        //        "price": "71927.0",
+        //        "quantity": "0.0695",
+        //        "markPrice": "71936.38701675525",
+        //        "limitFilled": true,
+        //        "usdValue": "4998.93",
+        //        "uid": "116ae634-253f-470b-bd20-fa9d429fb8b1",
+        //        "makerOrder": { "uid": "17bfe4de-c01e-4938-926c-617d2a2d0597", "tradeable": "PF_XBTUSD", "direction": "Buy", "quantity": "0.0695", "timestamp": "1710152515836", "limitPrice": "71927.0", "orderType": "Post", "reduceOnly": false, "lastUpdateTimestamp": "1710152515836" },
+        //        "takerOrder": { "uid": "d3e437b4-aa70-4108-b5cf-b1eecb9845b5", "tradeable": "PF_XBTUSD", "direction": "Sell", "quantity": "0.940100", "timestamp": "1710152516830", "limitPrice": "71915", "orderType": "IoC", "reduceOnly": false, "lastUpdateTimestamp": "1710152516830" }
         //    }
         //
         // fetchMyTrades (private)
@@ -881,9 +895,9 @@ export default class krakenfutures extends Exchange {
         //        "type": "EXECUTION"
         //    }
         //
-        const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'fillTime'));
+        let timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'fillTime'));
         const price = this.safeString (trade, 'price');
-        const amount = this.safeString2 (trade, 'size', 'amount', '0.0');
+        const amount = this.safeStringN (trade, [ 'size', 'amount', 'quantity' ], '0.0');
         let id = this.safeString2 (trade, 'uid', 'fill_id');
         if (id === undefined) {
             id = this.safeString (trade, 'executionId');
@@ -927,6 +941,15 @@ export default class krakenfutures extends Exchange {
                 takerOrMaker = 'taker';
             } else if (fillType.indexOf ('maker') >= 0) {
                 takerOrMaker = 'maker';
+            }
+        }
+        const isHistoricalExecution = ('takerOrder' in trade);
+        if (isHistoricalExecution) {
+            timestamp = this.safeInteger (trade, 'timestamp');
+            const taker = this.safeDict (trade, 'takerOrder', {});
+            if (taker !== undefined) {
+                side = this.safeStringLower (taker, 'direction');
+                takerOrMaker = 'taker';
             }
         }
         return this.safeTrade ({
