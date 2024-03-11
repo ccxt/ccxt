@@ -735,7 +735,7 @@ export default class krakenfutures extends Exchange {
                 request['sort'] = 'asc';
             }
             if (until !== undefined) {
-                request['lastTime'] = this.iso8601 (until);
+                request['before'] = until;
             }
             if (limit !== undefined) {
                 request['count'] = limit;
