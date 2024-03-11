@@ -727,7 +727,7 @@ export default class krakenfutures extends Exchange {
         [ until, params ] = this.handleParamInteger (params, 'until');
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
-        let response = undefined;
+        let rawTrades = undefined;
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
             if (since !== undefined) {
@@ -736,7 +736,10 @@ export default class krakenfutures extends Exchange {
             if (until !== undefined) {
                 request['lastTime'] = this.iso8601 (until);
             }
-            response = await this.historyGetMarketSymbolExecutions (this.extend (request, params));
+            if (limit !== undefined) {
+                request['count'] = limit;
+            }
+            const response = await this.historyGetMarketSymbolExecutions (this.extend (request, params));
             //
             //    {
             //        "elements": [
@@ -780,57 +783,28 @@ export default class krakenfutures extends Exchange {
             //                    }
             //                }
             //            },
-            //            {
-            //                "uid": "6ffeb768-20c4-43ee-bf19-b2f5c4ca24b7",
-            //                "timestamp": "1710150776808",
-            //                "event": {
-            //                    "Execution": {
-            //                        "execution": {
-            //                            "uid": "ff1e43bc-20ee-4045-b139-ba56f17f67a6",
-            //                            "makerOrder": {
-            //                                "uid": "b32b8f92-ef49-46ff-884d-ab57843342f7",
-            //                                "tradeable": "PF_XBTUSD",
-            //                                "direction": "Buy",
-            //                                "quantity": "0.26500",
-            //                                "timestamp": "1710150775739",
-            //                                "limitPrice": "71905",
-            //                                "orderType": "Post",
-            //                                "reduceOnly": false,
-            //                                "lastUpdateTimestamp": "1710150775739"
-            //                            },
-            //                            "takerOrder": {
-            //                                "uid": "692915fd-a7a8-46a1-90ce-e004f66ddef4",
-            //                                "tradeable": "PF_XBTUSD",
-            //                                "direction": "Sell",
-            //                                "quantity": "0.0002",
-            //                                "timestamp": "1710150776808",
-            //                                "limitPrice": "69029.0",
-            //                                "orderType": "IoC",
-            //                                "reduceOnly": false,
-            //                                "lastUpdateTimestamp": "1710150776808"
-            //                            },
-            //                            "timestamp": "1710150776808",
-            //                            "quantity": "0.0002",
-            //                            "price": "71905",
-            //                            "markPrice": "71902.36833770950",
-            //                            "limitFilled": false,
-            //                            "usdValue": "14.38"
-            //                        },
-            //                        "takerReducedQuantity": ""
-            //                    }
-            //                }
-            //            },
-            //            ...
+            //            ... followed by older items
             //        ],
             //        "len": "1000",
             //        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
             //    }
             //
+            const elements = this.safeList (response, 'elements', []);
+            // we need to reverse the list to fix chronology
+            rawTrades = [];
+            const length = elements.length;
+            for (let i = 0; i < length; i++) {
+                const index = length - 1 - i;
+                const element = elements[index];
+                const event = this.safeDict (element, 'event', {});
+                const execution = this.safeDict (event, 'Execution', {});
+                rawTrades.push (execution);
+            }
         } else {
             if (until !== undefined) {
                 request['lastTime'] = this.iso8601 (until);
             }
-            response = await this.publicGetHistory (this.extend (request, params));
+            const response = await this.publicGetHistory (this.extend (request, params));
             //
             //    {
             //        "result": "success",
@@ -849,9 +823,9 @@ export default class krakenfutures extends Exchange {
             //        "serverTime": "2022-03-18T06:39:18.056Z"
             //    }
             //
-            const history = this.safeValue (response, 'history');
-            return this.parseTrades (history, market, since, limit);
+            rawTrades = this.safeList (response, 'history', []);
         }
+        return this.parseTrades (rawTrades, market, since, limit);
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
