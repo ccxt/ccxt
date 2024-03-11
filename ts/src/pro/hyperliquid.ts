@@ -3,8 +3,8 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Market, OrderBook, Trade } from '../base/types.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { Int, Market, OrderBook, Trade, OHLCV } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'ws': true,
                 'watchBalance': false,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTicker': false,
@@ -237,6 +237,74 @@ export default class hyperliquid extends hyperliquidRest {
         }, market);
     }
 
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name hyperliquid#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const url = this.urls['api']['ws']['public'];
+        const request = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'candle',
+                'coin': market['base'],
+                'interval': timeframe,
+            },
+        };
+        const messageHash = 'candles:' + timeframe + ':' + symbol;
+        const message = this.extend (request, params);
+        const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //     {
+        //         channel: 'candle',
+        //         data: {
+        //             t: 1710146280000,
+        //             T: 1710146339999,
+        //             s: 'BTC',
+        //             i: '1m',
+        //             o: '71400.0',
+        //             c: '71411.0',
+        //             h: '71422.0',
+        //             l: '71389.0',
+        //             v: '1.20407',
+        //             n: 20
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const base = this.safeString (data, 's');
+        const symbol = base + '/USDC:USDC';
+        const timeframe = this.safeString (data, 'i');
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        const parsed = this.parseOHLCV (data);
+        stored.append (parsed);
+        const messageHash = 'candles:' + timeframe + ':' + symbol;
+        client.resolve (stored, messageHash);
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         //     {
@@ -262,6 +330,7 @@ export default class hyperliquid extends hyperliquidRest {
             'pong': this.handlePong,
             'trades': this.handleTrades,
             'l2Book': this.handleOrderBook,
+            'candle': this.handleOHLCV,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
