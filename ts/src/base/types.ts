@@ -18,7 +18,7 @@ export interface Dictionary<T> {
 export type Dict = Dictionary<any>;
 export type NullableDict = Dict | undefined;
 
-export type List = Array<any> | undefined;
+export type List = Array<any>;
 export type NullableList = List | undefined;
 
 /** Request parameters */
