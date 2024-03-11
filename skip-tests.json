@@ -367,12 +367,8 @@
     "bitmex": {
         "skipMethods": {
             "loadMarkets": "some market types are out of expected market-types",
-            "fetchOHLCV": {
-                "1": "open value is greater than high: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862"
-            },
-            "watchOHLCV": {
-                "1": "same as above"
-            },
+            "fetchOHLCV": "https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862",
+            "watchOHLCV": "same as above, needs key fix",
             "fetchTickers": "negative values",
             "watchTickers": {
                 "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269367056#L3473"
