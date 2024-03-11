@@ -38,7 +38,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.66';
+$version = '4.2.67';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -57,7 +57,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.66';
+    const VERSION = '4.2.67';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -6242,7 +6242,10 @@ class Exchange {
                     $response = $this->$method ($symbol, null, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $backwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                        $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                        if ($paginationTimestamp !== null) {
+                            $backwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                        }
                         $this->log ($backwardMessage);
                     }
                     if ($responseLength === 0) {
@@ -6260,7 +6263,10 @@ class Exchange {
                     $response = $this->$method ($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $forwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                        $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                        if ($paginationTimestamp !== null) {
+                            $forwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                        }
                         $this->log ($forwardMessage);
                     }
                     if ($responseLength === 0) {
