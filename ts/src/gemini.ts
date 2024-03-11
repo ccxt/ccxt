@@ -709,7 +709,7 @@ export default class gemini extends Exchange {
             'type': 'spot',
             'spot': true,
             'margin': false,
-            'swap': false,
+            'swap': contract,
             'future': false,
             'option': false,
             'active': status,
