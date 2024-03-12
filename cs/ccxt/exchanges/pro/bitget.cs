@@ -735,11 +735,11 @@ public partial class bitget : ccxt.bitget
         }
         object data = this.safeList(message, "data", new List<object>() {});
         object length = getArrayLength(data);
-        object maxLength = mathMax(subtract(length, 1), 0);
         // fix chronological order by reversing
-        for (object i = maxLength; isGreaterThanOrEqual(i, 0); postFixDecrement(ref i))
+        for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
-            object rawTrade = getValue(data, i);
+            object index = subtract(subtract(length, i), 1);
+            object rawTrade = getValue(data, index);
             object parsed = this.parseWsTrade(rawTrade, market);
             callDynamically(stored, "append", new object[] {parsed});
         }

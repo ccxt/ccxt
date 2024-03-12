@@ -2001,6 +2001,7 @@ public partial class bingx : Exchange
             object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             object trailingAmount = this.safeString(parameters, "trailingAmount");
             object trailingPercent = this.safeString2(parameters, "trailingPercent", "priceRate");
+            object trailingType = this.safeString(parameters, "trailingType", "TRAILING_STOP_MARKET");
             object isTriggerOrder = !isEqual(triggerPrice, null);
             object isStopLossPriceOrder = !isEqual(stopLossPrice, null);
             object isTakeProfitPriceOrder = !isEqual(takeProfitPrice, null);
@@ -2053,7 +2054,7 @@ public partial class bingx : Exchange
                 }
             } else if (isTrue(isTrailing))
             {
-                ((IDictionary<string,object>)request)["type"] = "TRAILING_STOP_MARKET";
+                ((IDictionary<string,object>)request)["type"] = trailingType;
                 if (isTrue(isTrailingAmountOrder))
                 {
                     ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(trailingAmount);
@@ -2115,7 +2116,7 @@ public partial class bingx : Exchange
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
             ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
-            parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "takeProfit", "stopLoss", "clientOrderId"});
+            parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         }
         return this.extend(request, parameters);
     }
@@ -2148,16 +2149,25 @@ public partial class bingx : Exchange
         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+        * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object test = this.safeBool(parameters, "test", false);
+        parameters = this.omit(parameters, "test");
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.swapV2PrivatePostTradeOrder(request);
+            if (isTrue(test))
+            {
+                response = await this.swapV2PrivatePostTradeOrderTest(request);
+            } else
+            {
+                response = await this.swapV2PrivatePostTradeOrder(request);
+            }
         } else
         {
             response = await this.spotV1PrivatePostTradeOrder(request);
@@ -4313,7 +4323,7 @@ public partial class bingx : Exchange
         * @param {string} [params.newClientOrderId] custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
         * @param {string} [params.positionSide] *contract only* position direction, required for single position as BOTH, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
         * @param {string} [params.reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
-        * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market, Max = 1
+        * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
         * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */

@@ -849,13 +849,15 @@ class hyperliquid(Exchange, ImplicitAPI):
             if clientOrderId is not None:
                 orderObj['c'] = clientOrderId
             orderReq.append(orderObj)
+        vaultAddress = self.safe_string(params, 'vaultAddress')
         orderAction = {
             'type': 'order',
             'orders': orderReq,
             'grouping': 'na',
-            'brokerCode': 1,
+            # 'brokerCode': 1,  # cant
         }
-        vaultAddress = self.safe_string(params, 'vaultAddress')
+        if vaultAddress is None:
+            orderAction['brokerCode'] = 1
         signature = self.sign_l1_action(orderAction, nonce, vaultAddress)
         request = {
             'action': orderAction,

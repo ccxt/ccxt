@@ -85,6 +85,8 @@ class blofin extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => true,
+                'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -188,6 +190,7 @@ class blofin extends Exchange {
                         'account/balance' => 1,
                         'account/positions' => 1,
                         'account/leverage-info' => 1,
+                        'account/margin-mode' => 1,
                         'account/batch-leverage-info' => 1,
                         'trade/orders-tpsl-pending' => 1,
                         'trade/orders-history' => 1,
@@ -2136,6 +2139,40 @@ class blofin extends Exchange {
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches the margin mode of a trading pair
+             * @see https://docs.blofin.com/index.html#get-margin-mode
+             * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $response = Async\await($this->privateGetAccountMarginMode ($params));
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "success",
+            //         "data" => {
+            //             "marginMode" => "cross"
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_margin_mode($data, $market);
+        }) ();
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+        return array(
+            'info' => $marginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $this->safe_string($marginMode, 'marginMode'),
+        );
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

@@ -212,6 +212,15 @@ interface kucoin {
     futuresPrivateDeleteSubApiKey (params?: {}): Promise<implicitReturnType>;
     webExchangeGetCurrencyCurrencyChainInfo (params?: {}): Promise<implicitReturnType>;
     webExchangeGetContractSymbolFundingRates (params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdInfo (params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdAccount (params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdAccountApikey (params?: {}): Promise<implicitReturnType>;
+    brokerGetBrokerNdRebaseDownload (params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdTransfer (params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdAccount (params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdAccountApikey (params?: {}): Promise<implicitReturnType>;
+    brokerPostBrokerNdAccountUpdateApikey (params?: {}): Promise<implicitReturnType>;
+    brokerDeleteBrokerNdAccountApikey (params?: {}): Promise<implicitReturnType>;
 }
 abstract class kucoin extends _kucoin {}
 

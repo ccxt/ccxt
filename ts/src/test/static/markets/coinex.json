@@ -572,5 +572,115 @@
         },
         "taker": 0.001,
         "maker": 0.001
+    },
+    "ETH/USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.002,
+        "maker": 0.002,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0005
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "name": "ETHUSDT",
+            "min_amount": "0.0005",
+            "maker_fee_rate": "0.002",
+            "taker_fee_rate": "0.002",
+            "pricing_name": "USDT",
+            "pricing_decimal": 2,
+            "trading_name": "ETH",
+            "trading_decimal": 8
+        }
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 100
+            },
+            "amount": {
+                "min": 0.005
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "name": "ETHUSDT",
+            "type": 1,
+            "leverages": [
+                "1",
+                "2",
+                "3",
+                "5",
+                "8",
+                "10",
+                "15",
+                "20",
+                "30",
+                "50",
+                "100"
+            ],
+            "stock": "ETH",
+            "money": "USDT",
+            "fee_prec": 5,
+            "stock_prec": 8,
+            "money_prec": 2,
+            "amount_prec": 3,
+            "amount_min": "0.005",
+            "multiplier": "1",
+            "tick_size": "0.01",
+            "available": true,
+            "open_interest_volume": "1230.356",
+            "funding": {
+                "interval": 28800,
+                "max": "0.00375",
+                "min": "-0.00375"
+            }
+        }
     }
 }

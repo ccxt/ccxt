@@ -2572,7 +2572,9 @@ class bitmex extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $this->iso8601($until);
             }
-            $request['reverse'] = true;
+            if (($since === null) && ($until === null)) {
+                $request['reverse'] = true;
+            }
             $response = Async\await($this->publicGetFunding (array_merge($request, $params)));
             //
             //    array(

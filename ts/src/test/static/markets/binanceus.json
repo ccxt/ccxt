@@ -1046,5 +1046,144 @@
         "tierBased": true,
         "percentage": true,
         "feeSide": "get"
+    },
+    "ETH/USDT": {
+        "id": "ETHUSDT",
+        "lowercaseId": "ethusdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 4,
+            "price": 2,
+            "base": 8,
+            "quote": 8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001,
+                "max": 9000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {
+                "min": 1
+            },
+            "market": {
+                "min": 0,
+                "max": 116.24694375
+            }
+        },
+        "info": {
+            "symbol": "ETHUSDT",
+            "status": "TRADING",
+            "baseAsset": "ETH",
+            "baseAssetPrecision": "8",
+            "quoteAsset": "USDT",
+            "quotePrecision": "8",
+            "quoteAssetPrecision": "8",
+            "baseCommissionPrecision": "8",
+            "quoteCommissionPrecision": "8",
+            "orderTypes": [
+                "LIMIT",
+                "LIMIT_MAKER",
+                "MARKET",
+                "STOP_LOSS_LIMIT",
+                "TAKE_PROFIT_LIMIT"
+            ],
+            "icebergAllowed": true,
+            "ocoAllowed": true,
+            "quoteOrderQtyMarketAllowed": true,
+            "allowTrailingStop": true,
+            "cancelReplaceAllowed": true,
+            "isSpotTradingAllowed": true,
+            "isMarginTradingAllowed": false,
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.01000000",
+                    "maxPrice": "1000000.00000000",
+                    "tickSize": "0.01000000"
+                },
+                {
+                    "filterType": "PERCENT_PRICE",
+                    "multiplierUp": "5",
+                    "multiplierDown": "0.2",
+                    "avgPriceMins": "5"
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.00010000",
+                    "maxQty": "9000.00000000",
+                    "stepSize": "0.00010000"
+                },
+                {
+                    "filterType": "MIN_NOTIONAL",
+                    "minNotional": "1.00000000",
+                    "applyToMarket": true,
+                    "avgPriceMins": "5"
+                },
+                {
+                    "filterType": "ICEBERG_PARTS",
+                    "limit": "10"
+                },
+                {
+                    "filterType": "MARKET_LOT_SIZE",
+                    "minQty": "0.00000000",
+                    "maxQty": "116.24694375",
+                    "stepSize": "0.00000000"
+                },
+                {
+                    "filterType": "TRAILING_DELTA",
+                    "minTrailingAboveDelta": "10",
+                    "maxTrailingAboveDelta": "2000",
+                    "minTrailingBelowDelta": "10",
+                    "maxTrailingBelowDelta": "2000"
+                },
+                {
+                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                    "bidMultiplierUp": "1.25",
+                    "bidMultiplierDown": "0.2",
+                    "askMultiplierUp": "5",
+                    "askMultiplierDown": "0.75",
+                    "avgPriceMins": "5"
+                },
+                {
+                    "filterType": "MAX_NUM_ORDERS",
+                    "maxNumOrders": "200"
+                },
+                {
+                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                    "maxNumAlgoOrders": "5"
+                }
+            ],
+            "permissions": [
+                "SPOT"
+            ],
+            "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
+            "allowedSelfTradePreventionModes": [
+                "EXPIRE_TAKER",
+                "EXPIRE_MAKER",
+                "EXPIRE_BOTH"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     }
 }

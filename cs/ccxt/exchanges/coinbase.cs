@@ -3980,7 +3980,8 @@ public partial class coinbase : Exchange
         parameters ??= new Dictionary<string, object>();
         object version = getValue(api, 0);
         object signed = isEqual(getValue(api, 1), "private");
-        object pathPart = ((bool) isTrue((isEqual(version, "v3")))) ? "api/v3" : "v2";
+        object isV3 = isEqual(version, "v3");
+        object pathPart = ((bool) isTrue((isV3))) ? "api/v3" : "v2";
         object fullPath = add(add(add("/", pathPart), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object savedPath = fullPath;
@@ -4033,9 +4034,20 @@ public partial class coinbase : Exchange
                         body = this.json(query);
                         payload = body;
                     }
+                } else
+                {
+                    if (!isTrue(isV3))
+                    {
+                        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                        {
+                            payload = add(payload, add("?", this.urlencode(query)));
+                        }
+                    }
                 }
-                // 'GET' doesn't need payload in the signature. inside url is enough
+                // v3: 'GET' doesn't need payload in the signature. inside url is enough
                 // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                // v2: 'GET' require payload in the signature
+                // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 object auth = add(add(add(timestampString, method), savedPath), payload);
                 object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {

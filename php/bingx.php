@@ -1837,6 +1837,7 @@ class bingx extends Exchange {
             $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
             $trailingAmount = $this->safe_string($params, 'trailingAmount');
             $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'priceRate');
+            $trailingType = $this->safe_string($params, 'trailingType', 'TRAILING_STOP_MARKET');
             $isTriggerOrder = $triggerPrice !== null;
             $isStopLossPriceOrder = $stopLossPrice !== null;
             $isTakeProfitPriceOrder = $takeProfitPrice !== null;
@@ -1877,7 +1878,7 @@ class bingx extends Exchange {
                     }
                 }
             } elseif ($isTrailing) {
-                $request['type'] = 'TRAILING_STOP_MARKET';
+                $request['type'] = $trailingType;
                 if ($isTrailingAmountOrder) {
                     $request['price'] = $this->parse_to_numeric($trailingAmount);
                 } elseif ($isTrailingPercentOrder) {
@@ -1930,7 +1931,7 @@ class bingx extends Exchange {
             }
             $request['positionSide'] = $positionSide;
             $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
-            $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss', 'clientOrderId' ));
+            $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         }
         return array_merge($request, $params);
     }
@@ -1960,14 +1961,21 @@ class bingx extends Exchange {
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+         * @param {boolean} [$params->test] *swap only* whether to use the $test endpoint or not, default is false
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        $test = $this->safe_bool($params, 'test', false);
+        $params = $this->omit($params, 'test');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
         if ($market['swap']) {
-            $response = $this->swapV2PrivatePostTradeOrder ($request);
+            if ($test) {
+                $response = $this->swapV2PrivatePostTradeOrderTest ($request);
+            } else {
+                $response = $this->swapV2PrivatePostTradeOrder ($request);
+            }
         } else {
             $response = $this->spotV1PrivatePostTradeOrder ($request);
         }
@@ -3987,7 +3995,7 @@ class bingx extends Exchange {
          * @param {string} [$params->newClientOrderId] custom order $id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
          * @param {string} [$params->positionSide] *contract only* position direction, required for single position, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
          * @param {string} [$params->reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
-         * @param {float} [$params->priceRate] *contract only* for $type TRAILING_STOP_Market, Max = 1
+         * @param {float} [$params->priceRate] *contract only* for $type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
          * @param {string} [$params->workingType] *contract only* StopPrice trigger $price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */

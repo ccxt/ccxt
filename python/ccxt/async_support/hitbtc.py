@@ -1646,9 +1646,9 @@ class hitbtc(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        request, params = self.handle_until_option('till', request, params)
         if since is not None:
             request['from'] = self.iso8601(since)
+        request, params = self.handle_until_option('till', request, params)
         if limit is not None:
             request['limit'] = limit
         price = self.safe_string(params, 'price')

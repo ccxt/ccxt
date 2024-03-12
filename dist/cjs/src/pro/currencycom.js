@@ -191,7 +191,7 @@ class currencycom extends currencycom$1 {
             'fee': undefined,
         };
     }
-    handleTrades(client, message, subscription) {
+    handleTrades(client, message) {
         //
         //     {
         //         "status": "OK",
