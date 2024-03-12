@@ -5128,7 +5128,7 @@ export default class Exchange {
         if (precision === undefined) {
             return this.forceString (fee);
         } else {
-            const roundingMode = this.safeValue (this.options, 'currencyToPrecisionRoundingMode', ROUND);
+            const roundingMode = this.safeInteger (this.options, 'currencyToPrecisionRoundingMode', ROUND);
             return this.decimalToPrecision (fee, roundingMode, precision, this.precisionMode, this.paddingMode);
         }
     }
