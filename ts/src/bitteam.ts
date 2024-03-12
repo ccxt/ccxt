@@ -344,7 +344,7 @@ export default class bitteam extends Exchange {
 
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'name');
-        let parts: NullableList = undefined;
+        let parts: Strings = undefined;
         if (id !== undefined) {
             parts = id.split ('_');
         }
