@@ -1674,6 +1674,7 @@
                 "deposit": "not provided",
                 "withdraw": "not provided"
             }
-        }
+        },
+        "skipWs": true
     }
 }
