@@ -888,7 +888,7 @@ public partial class gate : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object sandboxMode = this.safeValue(this.options, "sandboxMode", false);
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
         if (!isTrue(sandboxMode))
         {
@@ -2293,7 +2293,8 @@ public partial class gate : Exchange
         ((IDictionary<string,object>)request)["type"] = "fund"; // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["from"] = divide(since, 1000);
+            // from should be integer
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
         }
         if (isTrue(!isEqual(limit, null)))
         {

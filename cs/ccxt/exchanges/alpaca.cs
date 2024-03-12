@@ -348,7 +348,7 @@ public partial class alpaca : Exchange
             { "loc", loc },
         };
         parameters = this.omit(parameters, new List<object>() {"loc", "method"});
-        object response = null;
+        object symbolTrades = null;
         if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocTrades")))
         {
             if (isTrue(!isEqual(since, null)))
@@ -359,47 +359,47 @@ public partial class alpaca : Exchange
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
-            response = await this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, parameters));
+            object response = await this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, parameters));
+            //
+            //    {
+            //        "next_page_token": null,
+            //        "trades": {
+            //            "BTC/USD": [
+            //                {
+            //                    "i": 36440704,
+            //                    "p": 22625,
+            //                    "s": 0.0001,
+            //                    "t": "2022-07-21T11:47:31.073391Z",
+            //                    "tks": "B"
+            //                }
+            //            ]
+            //        }
+            //    }
+            //
+            object trades = this.safeDict(response, "trades", new Dictionary<string, object>() {});
+            symbolTrades = this.safeList(trades, marketId, new List<object>() {});
         } else if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocLatestTrades")))
         {
-            response = await this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters));
+            object response = await this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters));
+            //
+            //    {
+            //       "trades": {
+            //            "BTC/USD": {
+            //                "i": 36440704,
+            //                "p": 22625,
+            //                "s": 0.0001,
+            //                "t": "2022-07-21T11:47:31.073391Z",
+            //                "tks": "B"
+            //            }
+            //        }
+            //    }
+            //
+            object trades = this.safeDict(response, "trades", new Dictionary<string, object>() {});
+            symbolTrades = this.safeDict(trades, marketId, new Dictionary<string, object>() {});
+            symbolTrades = new List<object>() {symbolTrades};
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
-        }
-        //
-        // {
-        //     "next_page_token":null,
-        //     "trades":{
-        //        "BTC/USD":[
-        //           {
-        //              "i":36440704,
-        //              "p":22625,
-        //              "s":0.0001,
-        //              "t":"2022-07-21T11:47:31.073391Z",
-        //              "tks":"B"
-        //           }
-        //        ]
-        //     }
-        // }
-        //
-        // {
-        //     "trades":{
-        //        "BTC/USD":{
-        //           "i":36440704,
-        //           "p":22625,
-        //           "s":0.0001,
-        //           "t":"2022-07-21T11:47:31.073391Z",
-        //           "tks":"B"
-        //        }
-        //     }
-        // }
-        //
-        object trades = this.safeValue(response, "trades", new Dictionary<string, object>() {});
-        object symbolTrades = this.safeValue(trades, marketId, new Dictionary<string, object>() {});
-        if (!isTrue(((symbolTrades is IList<object>) || (symbolTrades.GetType().IsGenericType && symbolTrades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-        {
-            symbolTrades = new List<object>() {symbolTrades};
         }
         return this.parseTrades(symbolTrades, market, since, limit);
     }
@@ -499,7 +499,7 @@ public partial class alpaca : Exchange
             { "loc", loc },
         };
         parameters = this.omit(parameters, new List<object>() {"loc", "method"});
-        object response = null;
+        object ohlcvs = null;
         if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocBars")))
         {
             if (isTrue(!isEqual(limit, null)))
@@ -511,63 +511,63 @@ public partial class alpaca : Exchange
                 ((IDictionary<string,object>)request)["start"] = this.yyyymmdd(since);
             }
             ((IDictionary<string,object>)request)["timeframe"] = this.safeString(this.timeframes, timeframe, timeframe);
-            response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
+            object response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
+            //
+            //    {
+            //        "bars": {
+            //           "BTC/USD": [
+            //              {
+            //                 "c": 22887,
+            //                 "h": 22888,
+            //                 "l": 22873,
+            //                 "n": 11,
+            //                 "o": 22883,
+            //                 "t": "2022-07-21T05:00:00Z",
+            //                 "v": 1.1138,
+            //                 "vw": 22883.0155324116
+            //              },
+            //              {
+            //                 "c": 22895,
+            //                 "h": 22895,
+            //                 "l": 22884,
+            //                 "n": 6,
+            //                 "o": 22884,
+            //                 "t": "2022-07-21T05:01:00Z",
+            //                 "v": 0.001,
+            //                 "vw": 22889.5
+            //              }
+            //           ]
+            //        },
+            //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
+            //     }
+            //
+            object bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
+            ohlcvs = this.safeList(bars, marketId, new List<object>() {});
         } else if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")))
         {
-            response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters));
+            object response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters));
+            //
+            //    {
+            //        "bars": {
+            //           "BTC/USD": {
+            //              "c": 22887,
+            //              "h": 22888,
+            //              "l": 22873,
+            //              "n": 11,
+            //              "o": 22883,
+            //              "t": "2022-07-21T05:00:00Z",
+            //              "v": 1.1138,
+            //              "vw": 22883.0155324116
+            //           }
+            //        }
+            //     }
+            //
+            object bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
+            ohlcvs = this.safeDict(bars, marketId, new Dictionary<string, object>() {});
+            ohlcvs = new List<object>() {ohlcvs};
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
-        }
-        //
-        //    {
-        //        "bars":{
-        //           "BTC/USD":[
-        //              {
-        //                 "c":22887,
-        //                 "h":22888,
-        //                 "l":22873,
-        //                 "n":11,
-        //                 "o":22883,
-        //                 "t":"2022-07-21T05:00:00Z",
-        //                 "v":1.1138,
-        //                 "vw":22883.0155324116
-        //              },
-        //              {
-        //                 "c":22895,
-        //                 "h":22895,
-        //                 "l":22884,
-        //                 "n":6,
-        //                 "o":22884,
-        //                 "t":"2022-07-21T05:01:00Z",
-        //                 "v":0.001,
-        //                 "vw":22889.5
-        //              }
-        //           ]
-        //        },
-        //        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-        //     }
-        //
-        //    {
-        //        "bars":{
-        //           "BTC/USD":{
-        //              "c":22887,
-        //              "h":22888,
-        //              "l":22873,
-        //              "n":11,
-        //              "o":22883,
-        //              "t":"2022-07-21T05:00:00Z",
-        //              "v":1.1138,
-        //              "vw":22883.0155324116
-        //           }
-        //        }
-        //     }
-        //
-        object bars = this.safeValue(response, "bars", new Dictionary<string, object>() {});
-        object ohlcvs = this.safeValue(bars, marketId, new Dictionary<string, object>() {});
-        if (!isTrue(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-        {
-            ohlcvs = new List<object>() {ohlcvs};
         }
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }

@@ -101,9 +101,12 @@ class binance extends Exchange {
                 'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => true,
-                'fetchLeverage' => true,
+                'fetchLeverage' => 'emulated',
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
                 'fetchLiquidations' => false,
+                'fetchMarginMode' => 'emulated',
+                'fetchMarginModes' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -2361,7 +2364,7 @@ class binance extends Exchange {
         }
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
     }
@@ -2529,6 +2532,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
              * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $defaultType = $this->safe_string_2($this->options, 'fetchTime', 'defaultType', 'spot');
@@ -2785,14 +2789,12 @@ class binance extends Exchange {
                 }
             }
             $promises = Async\await(Promise\all($promisesRaw));
-            $spotMarkets = $this->safe_value($this->safe_value($promises, 0), 'symbols', array());
-            $futureMarkets = $this->safe_value($this->safe_value($promises, 1), 'symbols', array());
-            $deliveryMarkets = $this->safe_value($this->safe_value($promises, 2), 'symbols', array());
-            $optionMarkets = $this->safe_value($this->safe_value($promises, 3), 'optionSymbols', array());
-            $markets = $spotMarkets;
-            $markets = $this->array_concat($markets, $futureMarkets);
-            $markets = $this->array_concat($markets, $deliveryMarkets);
-            $markets = $this->array_concat($markets, $optionMarkets);
+            $markets = array();
+            for ($i = 0; $i < count($fetchMarkets); $i++) {
+                $promise = $this->safe_dict($promises, $i);
+                $promiseMarkets = $this->safe_list_2($promise, 'symbols', 'optionSymbols', array());
+                $markets = $this->array_concat($markets, $promiseMarkets);
+            }
             //
             // spot / margin
             //
@@ -3311,6 +3313,7 @@ class binance extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
              * @param {string[]|null} [$params->symbols] unified market $symbols, only used in isolated margin mode
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/#/?$id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -3877,6 +3880,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    // future
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
@@ -3916,6 +3920,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of lastprices structures
              */
             Async\await($this->load_markets());
@@ -4020,6 +4025,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
@@ -4771,7 +4777,7 @@ class binance extends Exchange {
         $stopPriceIsRequired = false;
         $quantityIsRequired = false;
         if ($uppercaseType === 'MARKET') {
-            $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
+            $quoteOrderQty = $this->safe_bool($this->options, 'quoteOrderQty', true);
             if ($quoteOrderQty) {
                 $quoteOrderQtyNew = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
                 $precision = $market['precision']['price'];
@@ -6377,6 +6383,7 @@ class binance extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
              * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account conditional orders
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -8490,6 +8497,7 @@ class binance extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
@@ -8555,6 +8563,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
              * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market $symbols
              */
             Async\await($this->load_markets());
@@ -8809,6 +8818,7 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] $timestamp in ms of the latest funding rate
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
              */
             Async\await($this->load_markets());
@@ -8881,6 +8891,7 @@ class binance extends Exchange {
              * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
              */
             Async\await($this->load_markets());
@@ -9496,6 +9507,7 @@ class binance extends Exchange {
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
@@ -9807,6 +9819,7 @@ class binance extends Exchange {
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} data on account positions
              */
             if ($symbols !== null) {
@@ -9857,6 +9870,7 @@ class binance extends Exchange {
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} data on the positions risk
              */
             if ($symbols !== null) {
@@ -10013,6 +10027,7 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest funding history entry
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
              */
             Async\await($this->load_markets());
@@ -10161,7 +10176,7 @@ class binance extends Exchange {
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm
                 if ($e instanceof MarginModeAlreadySet) {
-                    $throwMarginModeAlreadySet = $this->safe_value($this->options, 'throwMarginModeAlreadySet', false);
+                    $throwMarginModeAlreadySet = $this->safe_bool($this->options, 'throwMarginModeAlreadySet', false);
                     if ($throwMarginModeAlreadySet) {
                         throw $e;
                     } else {
@@ -10187,6 +10202,7 @@ class binance extends Exchange {
              * @param {string} $symbol not used by binance setPositionMode ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} $response from the exchange
              */
             $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
@@ -10212,12 +10228,14 @@ class binance extends Exchange {
                 } else {
                     $response = Async\await($this->dapiPrivatePostPositionSideDual (array_merge($request, $params)));
                 }
-            } else {
+            } elseif ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
                     $response = Async\await($this->papiPostUmPositionSideDual (array_merge($request, $params)));
                 } else {
                     $response = Async\await($this->fapiPrivatePostPositionSideDual (array_merge($request, $params)));
                 }
+            } else {
+                throw new BadRequest($this->id . ' setPositionMode() supports linear and inverse contracts only');
             }
             //
             //     {
@@ -10229,30 +10247,27 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
-        return Async\async(function () use ($symbol, $params) {
+    public function fetch_leverages(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
             /**
-             * fetch the set leverage for a $market
+             * fetch the set leverage for all markets
              * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
              * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
              * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
              * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
-             * @param {string} $symbol unified $market $symbol
+             * @param {string[]} [$symbols] a list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
              */
             Async\await($this->load_markets());
             Async\await($this->load_leverage_brackets(false, $params));
-            $market = $this->market($symbol);
-            if (!$market['contract']) {
-                throw new NotSupported($this->id . ' fetchLeverage() supports linear and inverse contracts only');
-            }
             $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchLeverage', $market, $params);
+            list($type, $params) = $this->handle_market_type_and_params('fetchLeverages', null, $params);
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverage', $market, $params, 'linear');
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverages', null, $params, 'linear');
             $isPortfolioMargin = null;
-            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchLeverage', 'papi', 'portfolioMargin', false);
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchLeverages', 'papi', 'portfolioMargin', false);
             $response = null;
             if ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
@@ -10267,24 +10282,39 @@ class binance extends Exchange {
                     $response = Async\await($this->dapiPrivateGetAccount ($params));
                 }
             } else {
-                throw new NotSupported($this->id . ' fetchPositions() supports linear and inverse contracts only');
+                throw new NotSupported($this->id . ' fetchLeverages() supports linear and inverse contracts only');
             }
-            $positions = $this->safe_list($response, 'positions', array());
-            for ($i = 0; $i < count($positions); $i++) {
-                $position = $positions[$i];
-                $innerSymbol = $this->safe_string($position, 'symbol');
-                if ($innerSymbol === $market['id']) {
-                    $isolated = $this->safe_bool($position, 'isolated');
-                    $marginMode = $isolated ? 'isolated' : 'cross';
-                    return array(
-                        'info' => $position,
-                        'marginMode' => $marginMode,
-                        'leverage' => $this->safe_integer($position, 'leverage'),
-                    );
-                }
-            }
-            return $response;
+            $leverages = $this->safe_list($response, 'positions', array());
+            return $this->parse_leverages($leverages, $symbols, 'symbol');
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $marginModeRaw = $this->safe_bool($leverage, 'isolated');
+        $marginMode = null;
+        if ($marginModeRaw !== null) {
+            $marginMode = $marginModeRaw ? 'isolated' : 'cross';
+        }
+        $side = $this->safe_string_lower($leverage, 'positionSide');
+        $longLeverage = null;
+        $shortLeverage = null;
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        if ($side === 'both') {
+            $longLeverage = $leverageValue;
+            $shortLeverage = $leverageValue;
+        } elseif ($side === 'long') {
+            $longLeverage = $leverageValue;
+        } elseif ($side === 'short') {
+            $shortLeverage = $leverageValue;
+        }
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $marginMode,
+            'longLeverage' => $longLeverage,
+            'shortLeverage' => $shortLeverage,
+        );
     }
 
     public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -10505,6 +10535,7 @@ class binance extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
             Async\await($this->load_markets());
@@ -11646,6 +11677,8 @@ class binance extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest liquidation
              * @param {boolean} [$params->paginate] *spot only* default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $liquidations in a portfolio margin account
+             * @param {string} [$params->type] "spot"
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
              */
             Async\await($this->load_markets());
@@ -11971,8 +12004,8 @@ class binance extends Exchange {
             /**
              * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {array} $params extra parameters specific to the exchange API endpoint
-             * @param {string} $params->subType "linear" or "inverse"
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} an object detailing whether the $market is in hedged or one-way mode
              */
             $market = null;
@@ -12000,5 +12033,159 @@ class binance extends Exchange {
                 'hedged' => $dualSidePosition,
             );
         }) ();
+    }
+
+    public function fetch_margin_modes(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches margin modes ("isolated" or "cross") that the $market for the symbol in in, with symbol=null all markets for a $subType (linear/inverse) are returned
+             * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+             * @param {string} symbol unified symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbols !== null) {
+                $symbols = $this->market_symbols($symbols);
+                $market = $this->market($symbols[0]);
+            }
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
+            $response = null;
+            if ($subType === 'linear') {
+                $response = Async\await($this->fapiPrivateV2GetAccount ($params));
+                //
+                //    {
+                //        feeTier => '0',
+                //        canTrade => true,
+                //        canDeposit => true,
+                //        canWithdraw => true,
+                //        tradeGroupId => '-1',
+                //        updateTime => '0',
+                //        multiAssetsMargin => true,
+                //        totalInitialMargin => '438.31134352',
+                //        totalMaintMargin => '5.90847101',
+                //        totalWalletBalance => '4345.15626338',
+                //        totalUnrealizedProfit => '376.45220224',
+                //        totalMarginBalance => '4721.60846562',
+                //        totalPositionInitialMargin => '425.45252687',
+                //        totalOpenOrderInitialMargin => '12.85881664',
+                //        totalCrossWalletBalance => '4345.15626338',
+                //        totalCrossUnPnl => '376.45220224',
+                //        availableBalance => '4281.84764041',
+                //        maxWithdrawAmount => '4281.84764041',
+                //        $assets => array(
+                //            array(
+                //                asset => 'ETH',
+                //                walletBalance => '0.00000000',
+                //                unrealizedProfit => '0.00000000',
+                //                marginBalance => '0.00000000',
+                //                maintMargin => '0.00000000',
+                //                initialMargin => '0.00000000',
+                //                positionInitialMargin => '0.00000000',
+                //                openOrderInitialMargin => '0.00000000',
+                //                maxWithdrawAmount => '0.00000000',
+                //                crossWalletBalance => '0.00000000',
+                //                crossUnPnl => '0.00000000',
+                //                availableBalance => '1.26075574',
+                //                marginAvailable => true,
+                //                updateTime => '0'
+                //            ),
+                //        ...
+                //        ),
+                //        positions => array(
+                //            array(
+                //              symbol => 'SNTUSDT',
+                //              initialMargin => '0',
+                //              maintMargin => '0',
+                //              unrealizedProfit => '0.00000000',
+                //              positionInitialMargin => '0',
+                //              openOrderInitialMargin => '0',
+                //              leverage => '20',
+                //              isolated => false,
+                //              entryPrice => '0.0',
+                //              breakEvenPrice => '0.0',
+                //              maxNotional => '25000',
+                //              positionSide => 'BOTH',
+                //              positionAmt => '0',
+                //              notional => '0',
+                //              isolatedWallet => '0',
+                //              updateTime => '0',
+                //              bidNotional => '0',
+                //              askNotional => '0'
+                //            ),
+                //            ...
+                //        )
+                //    }
+                //
+            } elseif ($subType === 'inverse') {
+                $response = Async\await($this->dapiPrivateGetAccount ($params));
+                //
+                //    {
+                //        feeTier => '0',
+                //        canTrade => true,
+                //        canDeposit => true,
+                //        canWithdraw => true,
+                //        updateTime => '0',
+                //        $assets => array(
+                //            array(
+                //                asset => 'APT',
+                //                walletBalance => '0.00000000',
+                //                unrealizedProfit => '0.00000000',
+                //                marginBalance => '0.00000000',
+                //                maintMargin => '0.00000000',
+                //                initialMargin => '0.00000000',
+                //                positionInitialMargin => '0.00000000',
+                //                openOrderInitialMargin => '0.00000000',
+                //                maxWithdrawAmount => '0.00000000',
+                //                crossWalletBalance => '0.00000000',
+                //                crossUnPnl => '0.00000000',
+                //                availableBalance => '0.00000000',
+                //                updateTime => '0'
+                //            ),
+                //            ...
+                //        ),
+                //        positions => array(
+                //            array(
+                //                symbol => 'BCHUSD_240329',
+                //                initialMargin => '0',
+                //                maintMargin => '0',
+                //                unrealizedProfit => '0.00000000',
+                //                positionInitialMargin => '0',
+                //                openOrderInitialMargin => '0',
+                //                leverage => '20',
+                //                isolated => false,
+                //                positionSide => 'BOTH',
+                //                entryPrice => '0.00000000',
+                //                maxQty => '1000',
+                //                notionalValue => '0',
+                //                isolatedWallet => '0',
+                //                updateTime => '0',
+                //                positionAmt => '0',
+                //                breakEvenPrice => '0.00000000'
+                //            ),
+                //            ...
+                //        )
+                //    }
+                //
+            } else {
+                throw new BadRequest($this->id . ' fetchMarginModes () supports linear and inverse subTypes only');
+            }
+            $assets = $this->safe_value($response, 'positions', array());
+            return $this->parse_margin_modes($assets, $symbols, 'symbol', 'swap');
+        }) ();
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+        $marketId = $this->safe_string($marginMode, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $isIsolated = $this->safe_bool($marginMode, 'isolated');
+        return array(
+            'info' => $marginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $isIsolated ? 'isolated' : 'cross',
+        );
     }
 }

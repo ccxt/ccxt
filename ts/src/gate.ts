@@ -862,7 +862,7 @@ export default class gate extends Exchange {
         });
     }
 
-    setSandboxMode (enable) {
+    setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }
@@ -963,7 +963,7 @@ export default class gate extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let rawPromises = [
             this.fetchContractMarkets (params),
             this.fetchOptionMarkets (params),
@@ -2260,7 +2260,8 @@ export default class gate extends Exchange {
         const [ request, requestParams ] = this.prepareRequest (market, type, query);
         request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (since !== undefined) {
-            request['from'] = since / 1000;
+            // from should be integer
+            request['from'] = this.parseToInt (since / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -4466,7 +4467,10 @@ export default class gate extends Exchange {
         if (lastTradeTimestamp === undefined) {
             lastTradeTimestamp = this.safeTimestamp2 (order, 'update_time', 'finish_time');
         }
-        const marketType = ('currency_pair' in order) ? 'spot' : 'contract';
+        let marketType = 'contract';
+        if (('currency_pair' in order) || ('market' in order)) {
+            marketType = 'spot';
+        }
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
         const symbol = this.safeSymbol (exchangeSymbol, market, '_', marketType);
         // Everything below this(above return) is related to fees

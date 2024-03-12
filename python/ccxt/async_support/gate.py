@@ -880,7 +880,7 @@ class gate(Exchange, ImplicitAPI):
             },
         })
 
-    def set_sandbox_mode(self, enable):
+    def set_sandbox_mode(self, enable: bool):
         super(gate, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
@@ -973,7 +973,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         rawPromises = [
             self.fetch_contract_markets(params),
             self.fetch_option_markets(params),
@@ -2174,7 +2174,8 @@ class gate(Exchange, ImplicitAPI):
         request, requestParams = self.prepare_request(market, type, query)
         request['type'] = 'fund'  # 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if since is not None:
-            request['from'] = since / 1000
+            # from should be integer
+            request['from'] = self.parse_to_int(since / 1000)
         if limit is not None:
             request['limit'] = limit
         response = None

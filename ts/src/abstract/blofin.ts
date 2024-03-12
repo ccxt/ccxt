@@ -26,6 +26,8 @@ interface Exchange {
     privateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
     privateGetAccountPositions (params?: {}): Promise<implicitReturnType>;
     privateGetAccountLeverageInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountMarginMode (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountBatchLeverageInfo (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersTpslPending (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersTpslHistory (params?: {}): Promise<implicitReturnType>;

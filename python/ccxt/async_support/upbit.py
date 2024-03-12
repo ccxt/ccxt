@@ -604,7 +604,7 @@ class upbit(Exchange, ImplicitAPI):
         #                    "trade_time": "104543",
         #                "trade_date_kst": "20181122",
         #                "trade_time_kst": "194543",
-        #               "trade_timestamp":  1542883543097,
+        #               "trade_timestamp":  1542883543096,
         #                 "opening_price":  0.02976455,
         #                    "high_price":  0.02992577,
         #                     "low_price":  0.02934283,

@@ -3716,8 +3716,8 @@ class bybit extends Exchange {
         $market = $this->market($symbols[0]);
         $category = null;
         list($category, $params) = $this->get_bybit_type('createOrders', $market, $params);
-        if (($category === 'spot') || ($category === 'inverse')) {
-            throw new NotSupported($this->id . ' createOrders does not allow spot or inverse orders');
+        if ($category === 'inverse') {
+            throw new NotSupported($this->id . ' createOrders does not allow inverse orders');
         }
         $request = array(
             'category' => $category,
@@ -4182,6 +4182,86 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_order($result, $market);
+    }
+
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->clientOrderIds] client order $ids
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $category = null;
+        list($category, $params) = $this->get_bybit_type('cancelOrders', $market, $params);
+        if ($category === 'inverse') {
+            throw new NotSupported($this->id . ' cancelOrders does not allow inverse orders');
+        }
+        $ordersRequests = array();
+        $clientOrderIds = $this->safe_list_2($params, 'clientOrderIds', 'clientOids', array());
+        $params = $this->omit($params, array( 'clientOrderIds', 'clientOids' ));
+        for ($i = 0; $i < count($clientOrderIds); $i++) {
+            $ordersRequests[] = array(
+                'symbol' => $market['id'],
+                'orderLinkId' => $this->safe_string($clientOrderIds, $i),
+            );
+        }
+        for ($i = 0; $i < count($ids); $i++) {
+            $ordersRequests[] = array(
+                'symbol' => $market['id'],
+                'orderId' => $this->safe_string($ids, $i),
+            );
+        }
+        $request = array(
+            'category' => $category,
+            'request' => $ordersRequests,
+        );
+        $response = $this->privatePostV5OrderCancelBatch (array_merge($request, $params));
+        //
+        //     {
+        //         "retCode" => "0",
+        //         "retMsg" => "OK",
+        //         "result" => {
+        //             "list" => array(
+        //                 array(
+        //                     "category" => "spot",
+        //                     "symbol" => "BTCUSDT",
+        //                     "orderId" => "1636282505818800896",
+        //                     "orderLinkId" => "1636282505818800897"
+        //                 ),
+        //                 array(
+        //                     "category" => "spot",
+        //                     "symbol" => "BTCUSDT",
+        //                     "orderId" => "1636282505818800898",
+        //                     "orderLinkId" => "1636282505818800899"
+        //                 }
+        //             )
+        //         ),
+        //         "retExtInfo" => {
+        //             "list" => array(
+        //                 array(
+        //                     "code" => "0",
+        //                     "msg" => "OK"
+        //                 ),
+        //                 array(
+        //                     "code" => "0",
+        //                     "msg" => "OK"
+        //                 }
+        //             )
+        //         ),
+        //         "time" => "1709796158501"
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $row = $this->safe_list($result, 'list', array());
+        return $this->parse_orders($row, $market);
     }
 
     public function cancel_all_usdc_orders(?string $symbol = null, $params = array ()) {
@@ -6238,20 +6318,29 @@ class bybit extends Exchange {
         ));
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
         /**
-         * fetch the set leverage for a market
+         * fetch the set leverage for a $market
          * @see https://bybit-exchange.github.io/docs/v5/position
-         * @param {string} $symbol unified market $symbol
+         * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $position = $this->fetch_position($symbol, $params);
+        return $this->parse_leverage($position, $market);
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
-            'info' => $position,
-            'leverage' => $this->safe_integer($position, 'leverage'),
-            'marginMode' => $this->safe_number($position, 'marginMode'),
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'marginMode'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
         );
     }
 
@@ -7091,7 +7180,8 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($fee, 'symbol');
-        $symbol = $this->safe_symbol($marketId, null, null, 'contract');
+        $defaultType = ($market !== null) ? $market['type'] : 'contract';
+        $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
         return array(
             'info' => $fee,
             'symbol' => $symbol,
@@ -7110,12 +7200,20 @@ class bybit extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['spot']) {
-            throw new NotSupported($this->id . ' fetchTradingFee() is not supported for spot market');
-        }
         $request = array(
             'symbol' => $market['id'],
         );
+        $category = null;
+        if ($market['linear']) {
+            $category = 'linear';
+        } elseif ($market['inverse']) {
+            $category = 'inverse';
+        } elseif ($market['spot']) {
+            $category = 'spot';
+        } else {
+            $category = 'option';
+        }
+        $request['category'] = $category;
         $response = $this->privateGetV5AccountFeeRate (array_merge($request, $params));
         //
         //     {
@@ -7137,7 +7235,7 @@ class bybit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $fees = $this->safe_value($result, 'list', array());
         $first = $this->safe_value($fees, 0, array());
-        return $this->parse_trading_fee($first);
+        return $this->parse_trading_fee($first, $market);
     }
 
     public function fetch_trading_fees($params = array ()) {

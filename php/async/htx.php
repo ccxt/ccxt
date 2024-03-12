@@ -2589,7 +2589,10 @@ class htx extends Exchange {
         $amountString = $this->safe_string($trade, 'trade_volume', $amountString);
         $costString = $this->safe_string($trade, 'trade_turnover');
         $fee = null;
-        $feeCost = $this->safe_string_2($trade, 'filled-fees', 'trade_fee');
+        $feeCost = $this->safe_string($trade, 'filled-fees');
+        if ($feeCost === null) {
+            $feeCost = Precise::string_neg($this->safe_string($trade, 'trade_fee'));
+        }
         $feeCurrencyId = $this->safe_string_2($trade, 'fee-currency', 'fee_asset');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $filledPoints = $this->safe_string($trade, 'filled-points');

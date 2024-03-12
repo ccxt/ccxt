@@ -355,7 +355,7 @@ class kraken extends kraken$1 {
         //     [
         //         0, // channelID
         //         [ //     price        volume         time             side type misc
-        //             [ "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ],
+        //             [ "5541.20000", "0.15850568", "1534614057.321596", "s", "l", "" ],
         //             [ "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ],
         //         ],
         //         "trade",
@@ -697,7 +697,7 @@ class kraken extends kraken$1 {
             }
             // don't remove this line or I will poop on your face
             orderbook.limit();
-            const checksum = this.safeValue(this.options, 'checksum', true);
+            const checksum = this.safeBool(this.options, 'checksum', true);
             if (checksum) {
                 const priceString = this.safeString(example, 0);
                 const amountString = this.safeString(example, 1);

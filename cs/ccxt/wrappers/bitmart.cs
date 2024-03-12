@@ -890,6 +890,7 @@ public partial class bitmart
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

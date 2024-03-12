@@ -114,6 +114,8 @@ class Transpiler {
             [ /\.parseDepositAddress\s/g, '.parse_deposit_address'],
             [ /\.parseMarketLeverageTiers\s/g, '.parse_market_leverage_tiers'],
             [ /\.parseLeverageTiers\s/g, '.parse_leverage_tiers'],
+            [ /\.parseLeverage\s/g, '.parse_leverage' ],
+            [ /\.parseLeverages\s/g, '.parse_leverages' ],
             [ /\.parseLedgerEntry\s/g, '.parse_ledger_entry'],
             [ /\.parseLedger\s/g, '.parse_ledger'],
             [ /\.parseTickers\s/g, '.parse_tickers'],
@@ -156,6 +158,8 @@ class Transpiler {
             [ /\.parseFundingRates\s/g, '.parse_funding_rates' ],
             [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],
             [ /\.parseMarginModification\s/g, '.parse_margin_modification' ],
+            [ /\.parseMarginMode\s/g, '.parse_margin_mode' ],
+            [ /\.parseMarginModes\s/g, '.parse_margin_modes' ],
             [ /\.filterByArray\s/g, '.filter_by_array'],
             [ /\.filterByValueSinceLimit\s/g, '.filter_by_value_since_limit'],
             [ /\.filterBySymbolSinceLimit\s/g, '.filter_by_symbol_since_limit'],
@@ -337,6 +341,9 @@ class Transpiler {
             [ /\.isRoundNumber\s/g, '.is_round_number'],
             [ /\.getDescribeForExtendedWsExchange\s/g, '.get_describe_for_extended_ws_exchange'],
             [ /\.watchMultiple\s/g, '.watch_multiple'],
+            [ /\.intToBase16\s/g, '.int_to_base16'],
+            [ /\.handleParamString\s/g, '.handle_param_string'],
+            [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -403,6 +410,11 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
+            // beware of .reverse() in python, because opposed to JS, python does in-place, so 
+            // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
+            // `x.reverse()` in python. otherwise, if transpiling `x = y.reverse()`, then the
+            // left side `x = `will be removed and only `y.reverse()` will end up in python
+            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ], 
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
@@ -637,7 +649,7 @@ class Transpiler {
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
             // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
-            [ /(\w+)\.reverse\s*\(\)/g, 'array_reverse($1)' ],
+            [ /(\w+)\.reverse\s*\(\)/g, 'array_reverse($1)' ], // see comment in python .reverse()
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
             [ /Precise\.stringAdd\s/g, 'Precise::string_add' ],
@@ -975,7 +987,10 @@ class Transpiler {
             'Greeks': /-> Greeks:/,
             'Int': /: Int =/,
             'Liquidation': /-> (?:List\[)?Liquidation/,
+            'Leverage': /-> Leverage:/,
+            'Leverages': /-> Leverages:/,
             'MarginMode': /-> MarginMode:/,
+            'MarginModes': /-> MarginModes:/,
             'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
             'Order': /-> Order:/,

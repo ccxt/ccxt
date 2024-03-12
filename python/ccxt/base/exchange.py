@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.55'
+__version__ = '4.2.68'
 
 # -----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Account, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, Str, Num
+from ccxt.base.types import Account, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num
 
 # -----------------------------------------------------------------------------
 
@@ -52,6 +52,12 @@ try:
     import axolotl_curve25519 as eddsa
 except ImportError:
     eddsa = None
+
+# eth signing
+from ccxt.static_dependencies.ethereum import abi
+from ccxt.static_dependencies.ethereum import account
+from ccxt.static_dependencies.msgpack import packb
+
 
 # -----------------------------------------------------------------------------
 
@@ -1342,6 +1348,23 @@ class Exchange(object):
         return Exchange.binary_to_base64(priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm))
 
     @staticmethod
+    def eth_abi_encode(types, args):
+        return abi.encode(types, args)
+
+    @staticmethod
+    def eth_encode_structured_data(domain, messageTypes, message):
+        encodedData = account.messages.encode_typed_data(domain, messageTypes, message)
+        return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
+
+    @staticmethod
+    def packb(o):
+        return packb(o)
+
+    @staticmethod
+    def int_to_base16(num):
+        return "%0.2X" % num
+
+    @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
         # your welcome - frosty00
         algorithms = {
@@ -2032,7 +2055,7 @@ class Exchange(object):
             return self.arraySlice(result, -limit)
         return self.filter_by_limit(result, limit, key, sinceIsDefined)
 
-    def set_sandbox_mode(self, enabled):
+    def set_sandbox_mode(self, enabled: bool):
         if enabled:
             if 'test' in self.urls:
                 if isinstance(self.urls['api'], str):
@@ -2087,8 +2110,15 @@ class Exchange(object):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
-    def fetch_margin_mode(self, symbol: str = None, params={}):
-        raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
+    def fetch_margin_mode(self, symbol: str, params={}):
+        if self.has['fetchMarginModes']:
+            marginModes = self.fetchMarginModes([symbol], params)
+            return self.safe_dict(marginModes, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
+
+    def fetch_margin_modes(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchMarginModes() is not supported yet')
 
     def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
         fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)
@@ -2192,7 +2222,14 @@ class Exchange(object):
         raise NotSupported(self.id + ' setLeverage() is not supported yet')
 
     def fetch_leverage(self, symbol: str, params={}):
-        raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
+        if self.has['fetchLeverages']:
+            leverages = self.fetchLeverages([symbol], params)
+            return self.safe_dict(leverages, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
+
+    def fetch_leverages(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchLeverages() is not supported yet')
 
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setPositionMode() is not supported yet')
@@ -2781,6 +2818,17 @@ class Exchange(object):
         return self.filter_by_symbol_since_limit(results, symbol, since, limit)
 
     def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params={}):
+        """
+        calculates the presumptive fee that would be charged for an order
+        :param str symbol: unified market symbol
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+        :param float price: the price for the order to be filled at, in units of the quote currency
+        :param str takerOrMaker: 'taker' or 'maker'
+        :param dict params:
+        :returns dict: contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+        """
         if type == 'market' and takerOrMaker == 'maker':
             raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
@@ -3466,8 +3514,14 @@ class Exchange(object):
         market = self.market(symbol)
         return self.safe_string(market, 'symbol', symbol)
 
-    def handle_param_string(self, params: object, paramName: str, defaultValue=None):
+    def handle_param_string(self, params: object, paramName: str, defaultValue: Str = None):
         value = self.safe_string(params, paramName, defaultValue)
+        if value is not None:
+            params = self.omit(params, paramName)
+        return [value, params]
+
+    def handle_param_integer(self, params: object, paramName: str, defaultValue: Int = None):
+        value = self.safe_integer(params, paramName, defaultValue)
         if value is not None:
             params = self.omit(params, paramName)
         return [value, params]
@@ -3797,7 +3851,7 @@ class Exchange(object):
         self.load_markets()
         if not self.has['fetchBorrowRates']:
             raise NotSupported(self.id + ' fetchIsolatedBorrowRate() is not supported yet')
-        borrowRates = self.fetchIsolatedBorrowRates(params)
+        borrowRates = self.fetch_isolated_borrow_rates(params)
         rate = self.safe_dict(borrowRates, symbol)
         if rate is None:
             raise ExchangeError(self.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol)
@@ -3811,6 +3865,8 @@ class Exchange(object):
         if value is not None:
             params = self.omit(params, [optionName, defaultOptionName])
         else:
+            # handle routed methods like "watchTrades > watchTradesForSymbols"(or "watchTicker > watchTickers")
+            methodName, params = self.handle_param_string(params, 'callerMethodName', methodName)
             # check if exchange has properties for self method
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:
@@ -5010,7 +5066,9 @@ class Exchange(object):
                     response = getattr(self, method)(symbol, None, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp
+                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        if paginationTimestamp is not None:
+                            backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
                     if responseLength == 0:
                         break
@@ -5025,7 +5083,9 @@ class Exchange(object):
                     response = getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp
+                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        if paginationTimestamp is not None:
+                            forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
                     if responseLength == 0:
                         break
@@ -5237,3 +5297,29 @@ class Exchange(object):
 
     def parse_greeks(self, greeks, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
+
+    def parse_margin_modes(self, response: List[object], symbols: List[str] = None, symbolKey: str = None, marketType: MarketType = None):
+        marginModeStructures = {}
+        for i in range(0, len(response)):
+            info = response[i]
+            marketId = self.safe_string(info, symbolKey)
+            market = self.safe_market(marketId, None, None, marketType)
+            if (symbols is None) or self.in_array(market['symbol'], symbols):
+                marginModeStructures[market['symbol']] = self.parse_margin_mode(info, market)
+        return marginModeStructures
+
+    def parse_margin_mode(self, marginMode, market: Market = None):
+        raise NotSupported(self.id + ' parseMarginMode() is not supported yet')
+
+    def parse_leverages(self, response: List[object], symbols: List[str] = None, symbolKey: str = None, marketType: MarketType = None):
+        leverageStructures = {}
+        for i in range(0, len(response)):
+            info = response[i]
+            marketId = self.safe_string(info, symbolKey)
+            market = self.safe_market(marketId, None, None, marketType)
+            if (symbols is None) or self.in_array(market['symbol'], symbols):
+                leverageStructures[market['symbol']] = self.parse_leverage(info, market)
+        return leverageStructures
+
+    def parse_leverage(self, leverage, market: Market = None):
+        raise NotSupported(self.id + ' parseLeverage() is not supported yet')

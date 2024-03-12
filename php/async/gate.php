@@ -871,7 +871,7 @@ class gate extends Exchange {
         ));
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
     }
@@ -971,7 +971,7 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $rawPromises = array(
                 $this->fetch_contract_markets($params),
                 $this->fetch_option_markets($params),
@@ -2270,7 +2270,8 @@ class gate extends Exchange {
             list($request, $requestParams) = $this->prepare_request($market, $type, $query);
             $request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
             if ($since !== null) {
-                $request['from'] = $since / 1000;
+                // from should be integer
+                $request['from'] = $this->parse_to_int($since / 1000);
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;

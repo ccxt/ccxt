@@ -1557,7 +1557,7 @@ class okx extends okx$1 {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        const isSandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials(false) || isSandboxMode) {
             return undefined;
         }
@@ -5161,7 +5161,37 @@ class okx extends okx$1 {
         //        "msg": ""
         //     }
         //
-        return response;
+        const data = this.safeList(response, 'data', []);
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        let marketId = undefined;
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            marginMode = this.safeStringLower(entry, 'mgnMode');
+            marketId = this.safeString(entry, 'instId');
+            const positionSide = this.safeStringLower(entry, 'posSide');
+            if (positionSide === 'long') {
+                longLeverage = this.safeInteger(entry, 'lever');
+            }
+            else if (positionSide === 'short') {
+                shortLeverage = this.safeInteger(entry, 'lever');
+            }
+            else {
+                longLeverage = this.safeInteger(entry, 'lever');
+                shortLeverage = this.safeInteger(entry, 'lever');
+            }
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
     }
     async fetchPosition(symbol, params = {}) {
         /**
@@ -5638,7 +5668,7 @@ class okx extends okx$1 {
         const fromAccountId = this.safeString(transfer, 'from');
         const toAccountId = this.safeString(transfer, 'to');
         const accountsById = this.safeValue(this.options, 'accountsById', {});
-        const timestamp = this.safeInteger(transfer, 'ts', this.milliseconds());
+        const timestamp = this.safeInteger(transfer, 'ts');
         const balanceChange = this.safeString(transfer, 'sz');
         if (balanceChange !== undefined) {
             amount = this.parseNumber(Precise["default"].stringAbs(balanceChange));

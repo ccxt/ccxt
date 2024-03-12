@@ -65,6 +65,10 @@ public partial class testMainClass : BaseTest
                 {
                     object emptyAllowedForThisKey = exchange.inArray(i, emptyAllowedFor);
                     object value = getValue(entry, i);
+                    if (isTrue(inOp(skippedProperties, i)))
+                    {
+                        continue;
+                    }
                     // check when:
                     // - it's not inside "allowe empty values" list
                     // - it's not undefined
@@ -74,7 +78,8 @@ public partial class testMainClass : BaseTest
                     }
                     assert(!isEqual(value, null), add(add(((object)i).ToString(), " index is expected to have a value"), logText));
                     // because of other langs, this is needed for arrays
-                    assert(assertType(exchange, skippedProperties, entry, i, format), add(add(((object)i).ToString(), " index does not have an expected type "), logText));
+                    object typeAssertion = assertType(exchange, skippedProperties, entry, i, format);
+                    assert(typeAssertion, add(add(((object)i).ToString(), " index does not have an expected type "), logText));
                 }
             } else
             {
@@ -88,6 +93,10 @@ public partial class testMainClass : BaseTest
                         continue;
                     }
                     assert(inOp(entry, key), add(add(add("\"", stringValue(key)), "\" key is missing from structure"), logText));
+                    if (isTrue(inOp(skippedProperties, key)))
+                    {
+                        continue;
+                    }
                     object emptyAllowedForThisKey = exchange.inArray(key, emptyAllowedFor);
                     object value = getValue(entry, key);
                     // check when:
@@ -102,7 +111,8 @@ public partial class testMainClass : BaseTest
                     // add exclusion for info key, as it can be any type
                     if (isTrue(!isEqual(key, "info")))
                     {
-                        assert(assertType(exchange, skippedProperties, entry, key, format), add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
+                        object typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
+                        assert(typeAssertion, add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
                     }
                 }
             }
@@ -131,7 +141,7 @@ public partial class testMainClass : BaseTest
                 assert((ts is Int64 || ts is int || ts is float || ts is double), add("timestamp is not numeric", logText));
                 assert(((ts is int) || (ts is long) || (ts is Int32) || (ts is Int64)), add("timestamp should be an integer", logText));
                 object minTs = 1230940800000; // 03 Jan 2009 - first block
-                object maxTs = 2147483648000; // 03 Jan 2009 - first block
+                object maxTs = 2147483648000; // 19 Jan 2038 - max int
                 assert(isGreaterThan(ts, minTs), add(add(add("timestamp is impossible to be before ", ((object)minTs).ToString()), " (03.01.2009)"), logText)); // 03 Jan 2009 - first block
                 assert(isLessThan(ts, maxTs), add(add(add("timestamp more than ", ((object)maxTs).ToString()), " (19.01.2038)"), logText)); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
                 if (isTrue(!isEqual(nowToCheck, null)))

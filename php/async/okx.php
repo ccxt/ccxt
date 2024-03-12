@@ -1574,7 +1574,7 @@ class okx extends Exchange {
             // while fetchCurrencies is a public API method by design
             // therefore we check the keys here
             // and fallback to generating the currencies from the markets
-            $isSandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             if (!$this->check_required_credentials(false) || $isSandboxMode) {
                 return null;
             }
@@ -5116,7 +5116,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -5155,8 +5155,37 @@ class okx extends Exchange {
             //        "msg" => ""
             //     }
             //
-            return $response;
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_leverage($data, $market);
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = null;
+        $marginMode = null;
+        $longLeverage = null;
+        $shortLeverage = null;
+        for ($i = 0; $i < count($leverage); $i++) {
+            $entry = $leverage[$i];
+            $marginMode = $this->safe_string_lower($entry, 'mgnMode');
+            $marketId = $this->safe_string($entry, 'instId');
+            $positionSide = $this->safe_string_lower($entry, 'posSide');
+            if ($positionSide === 'long') {
+                $longLeverage = $this->safe_integer($entry, 'lever');
+            } elseif ($positionSide === 'short') {
+                $shortLeverage = $this->safe_integer($entry, 'lever');
+            } else {
+                $longLeverage = $this->safe_integer($entry, 'lever');
+                $shortLeverage = $this->safe_integer($entry, 'lever');
+            }
+        }
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $marginMode,
+            'longLeverage' => $longLeverage,
+            'shortLeverage' => $shortLeverage,
+        );
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -5632,7 +5661,7 @@ class okx extends Exchange {
         $fromAccountId = $this->safe_string($transfer, 'from');
         $toAccountId = $this->safe_string($transfer, 'to');
         $accountsById = $this->safe_value($this->options, 'accountsById', array());
-        $timestamp = $this->safe_integer($transfer, 'ts', $this->milliseconds());
+        $timestamp = $this->safe_integer($transfer, 'ts');
         $balanceChange = $this->safe_string($transfer, 'sz');
         if ($balanceChange !== null) {
             $amount = $this->parse_number(Precise::string_abs($balanceChange));
@@ -6961,7 +6990,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
         if ($enable) {

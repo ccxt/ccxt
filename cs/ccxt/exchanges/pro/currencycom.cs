@@ -91,7 +91,7 @@ public partial class currencycom : ccxt.currencycom
         //                     "accountId": 5470310874305732,
         //                     "collateralCurrency": true,
         //                     "asset": "USD",
-        //                     "free": 47.82576735,
+        //                     "free": 47.82576736,
         //                     "locked": 1.187925,
         //                     "default": true
         //                 },
@@ -200,7 +200,7 @@ public partial class currencycom : ccxt.currencycom
         };
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message, object subscription)
+    public virtual void handleTrades(WebSocketClient client, object message)
     {
         //
         //     {
@@ -501,6 +501,7 @@ public partial class currencycom : ccxt.currencycom
             orderbook = this.orderBook();
         }
         (orderbook as IOrderBook).reset(new Dictionary<string, object>() {
+            { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         });

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.55'
+__version__ = '4.2.68'
 
 # -----------------------------------------------------------------------------
 
@@ -604,8 +604,15 @@ class Exchange(BaseExchange):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
-    async def fetch_margin_mode(self, symbol: str = None, params={}):
-        raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
+    async def fetch_margin_mode(self, symbol: str, params={}):
+        if self.has['fetchMarginModes']:
+            marginModes = await self.fetchMarginModes([symbol], params)
+            return self.safe_dict(marginModes, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
+
+    async def fetch_margin_modes(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchMarginModes() is not supported yet')
 
     async def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
         fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)
@@ -652,7 +659,14 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' setLeverage() is not supported yet')
 
     async def fetch_leverage(self, symbol: str, params={}):
-        raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
+        if self.has['fetchLeverages']:
+            leverages = await self.fetchLeverages([symbol], params)
+            return self.safe_dict(leverages, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchLeverage() is not supported yet')
+
+    async def fetch_leverages(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchLeverages() is not supported yet')
 
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setPositionMode() is not supported yet')
@@ -930,7 +944,7 @@ class Exchange(BaseExchange):
         await self.load_markets()
         if not self.has['fetchBorrowRates']:
             raise NotSupported(self.id + ' fetchIsolatedBorrowRate() is not supported yet')
-        borrowRates = await self.fetchIsolatedBorrowRates(params)
+        borrowRates = await self.fetch_isolated_borrow_rates(params)
         rate = self.safe_dict(borrowRates, symbol)
         if rate is None:
             raise ExchangeError(self.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol)
@@ -1513,7 +1527,9 @@ class Exchange(BaseExchange):
                     response = await getattr(self, method)(symbol, None, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp
+                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        if paginationTimestamp is not None:
+                            backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
                     if responseLength == 0:
                         break
@@ -1528,7 +1544,9 @@ class Exchange(BaseExchange):
                     response = await getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp
+                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        if paginationTimestamp is not None:
+                            forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
                     if responseLength == 0:
                         break

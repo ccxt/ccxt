@@ -79,6 +79,64 @@
                 ],
                 "output": "{\"pair\":\"LTC_USDT\",\"orderSide\":\"Bid\",\"quantity\":\"0.1\",\"type\":\"Limit\",\"price\":\"50\"}"
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch Trades",
+                "method": "fetchTrades",
+                "url": "https://api.kuna.io/v4/trade/public/book/BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.kuna.io/v4/trade/public/book/BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.kuna.io/v4/public/timestamp",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.kuna.io/v4/order/public/book/BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.kuna.io/v4/markets/public/tickers?pairs=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.kuna.io/v4/markets/public/tickers?pairs=BTC_USDT",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            }
         ]
     }
 }
