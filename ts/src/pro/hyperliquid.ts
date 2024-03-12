@@ -14,7 +14,7 @@ export default class hyperliquid extends hyperliquidRest {
             'has': {
                 'ws': true,
                 'watchBalance': false,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -127,6 +127,96 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (orderbook, messageHash);
     }
 
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name hyperliquid#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         */
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('watchMyTrades', params);
+        await this.loadMarkets ();
+        let messageHash = 'myTrades';
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash += ':' + symbol;
+        }
+        const url = this.urls['api']['ws']['public'];
+        const request = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'userFills',
+                'user': userAddress,
+            },
+        };
+        const message = this.extend (request, params);
+        const trades = await this.watch (url, messageHash, message, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrades (client: Client, message) {
+        //
+        //     {
+        //         "channel": "userFills",
+        //         "data": {
+        //             "isSnapshot": true,
+        //             "user": "0x15f43d1f2dee81424afd891943262aa90f22cc2a",
+        //             "fills": [
+        //                 {
+        //                     "coin": "BTC",
+        //                     "px": "72528.0",
+        //                     "sz": "0.11693",
+        //                     "side": "A",
+        //                     "time": 1710208712815,
+        //                     "startPosition": "0.11693",
+        //                     "dir": "Close Long",
+        //                     "closedPnl": "-0.81851",
+        //                     "hash": "0xc5adaf35f8402750c218040b0a7bc301130051521273b6f398b3caad3e1f3f5f",
+        //                     "oid": 7484888874,
+        //                     "crossed": true,
+        //                     "fee": "2.968244",
+        //                     "liquidationMarkPx": null,
+        //                     "tid": 567547935839686,
+        //                     "cloid": null
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const entry = this.safeDict (message, 'data', {});
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const trades = this.myTrades;
+        const symbols = {};
+        const data = this.safeList (entry, 'fills', []);
+        for (let i = 0; i < data.length; i++) {
+            const rawTrade = data[i];
+            const parsed = this.parseWsTrade (rawTrade);
+            const symbol = parsed['symbol'];
+            symbols[symbol] = true;
+            trades.append (parsed);
+        }
+        const keys = Object.keys (symbols);
+        for (let i = 0; i < keys.length; i++) {
+            const currentMessageHash = 'myTrades:' + keys[i];
+            client.resolve (trades, currentMessageHash);
+        }
+        // non-symbol specific
+        const messageHash = 'myTrades';
+        client.resolve (trades, messageHash);
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -198,6 +288,28 @@ export default class hyperliquid extends hyperliquidRest {
 
     parseWsTrade (trade, market: Market = undefined): Trade {
         //
+        // fetchMyTrades
+        //
+        //     {
+        //         "coin": "BTC",
+        //         "px": "72528.0",
+        //         "sz": "0.11693",
+        //         "side": "A",
+        //         "time": 1710208712815,
+        //         "startPosition": "0.11693",
+        //         "dir": "Close Long",
+        //         "closedPnl": "-0.81851",
+        //         "hash": "0xc5adaf35f8402750c218040b0a7bc301130051521273b6f398b3caad3e1f3f5f",
+        //         "oid": 7484888874,
+        //         "crossed": true,
+        //         "fee": "2.968244",
+        //         "liquidationMarkPx": null,
+        //         "tid": 567547935839686,
+        //         "cloid": null
+        //     }
+        //
+        // fetchTrades
+        //
         //     {
         //         "coin": "BTC",
         //         "side": "A",
@@ -220,6 +332,7 @@ export default class hyperliquid extends hyperliquidRest {
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
         }
+        const fee = this.safeString (trade, 'fee');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -233,7 +346,7 @@ export default class hyperliquid extends hyperliquidRest {
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': { 'cost': undefined, 'currency': undefined },
+            'fee': { 'cost': fee, 'currency': 'USDC' },
         }, market);
     }
 
@@ -314,6 +427,7 @@ export default class hyperliquid extends hyperliquidRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
@@ -414,6 +528,7 @@ export default class hyperliquid extends hyperliquidRest {
             'l2Book': this.handleOrderBook,
             'candle': this.handleOHLCV,
             'orderUpdates': this.handleOrder,
+            'userFills': this.handleMyTrades,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
