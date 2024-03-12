@@ -111,8 +111,7 @@
                 "description": "Fetch Balance - trade",
                 "method": "fetchBalance",
                 "url": "https://whitebit.com/api/v4/trade-account/balance",
-                "input": [
-                ],
+                "input": [],
                 "output": "{\"request\":\"/api/v4/trade-account/balance\",\"nonce\":\"1701937579352\"}"
             },
             {
@@ -161,6 +160,120 @@
                     "BTC"
                 ],
                 "output": "{\"request\":\"/api/v4/main-account/address\",\"nonce\":\"1701937579352\",\"ticker\":\"BTC\"}"
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://whitebit.com/api/v4/public/time",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://whitebit.com/api/v4/public/trades/BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://whitebit.com/api/v4/public/trades/BTC_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://whitebit.com/api/v4/public/orderbook/BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://whitebit.com/api/v4/public/orderbook/BTC_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://whitebit.com/api/v1/public/ticker?market=BTC_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://whitebit.com/api/v1/public/ticker?market=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://whitebit.com/api/v4/public/ticker",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://whitebit.com/api/v4/public/ticker",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://whitebit.com/api/v1/public/kline?market=BTC_USDT&interval=1m",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://whitebit.com/api/v1/public/kline?market=BTC_PERP&interval=1m",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://whitebit.com/api/v4/public/futures",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ]
     }

@@ -3,6 +3,3 @@ include LICENSE.txt
 
 # Include the package.json file
 include package.json
-
-
-include ccxt/static_dependencies/ethereum/utils/__json/eth_networks.json

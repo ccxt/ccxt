@@ -1696,10 +1696,10 @@ class hitbtc extends Exchange {
             'symbol' => $market['id'],
             'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        list($request, $params) = $this->handle_until_option('till', $request, $params);
         if ($since !== null) {
             $request['from'] = $this->iso8601($since);
         }
+        list($request, $params) = $this->handle_until_option('till', $request, $params);
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
