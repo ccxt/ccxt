@@ -973,22 +973,14 @@ export default class Exchange {
     socksProxyAgentModule:any = undefined;
     socksProxyAgentModuleChecked:boolean = false;
     proxyDictionaries:any = {};
-    proxiesModulesLoading:Promise<boolean> = undefined
+    proxiesModulesLoading:Promise<any> = undefined
 
     async loadProxyModules () {
         // when loading markets, multiple parallel calls are made, so need one promise
         if (this.proxiesModulesLoading === undefined) {
-            this.proxiesModulesLoading = new Promise<boolean> (async (resolve, reject) => {
-                await this.loadProxyModulesHelper ();
-                resolve (true);
-            }).catch ((e) => {
-                this.proxiesModulesLoading = undefined;
-                throw e;
-            });
-        } else {
-            await this.proxiesModulesLoading;
-            return;
+            this.proxiesModulesLoading = this.loadProxyModulesHelper ();
         }
+        return await this.proxiesModulesLoading;
     }
 
     async loadProxyModulesHelper () {
