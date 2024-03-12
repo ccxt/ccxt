@@ -5039,7 +5039,8 @@ export default class Exchange {
         if (precision === undefined) {
             return this.forceString (fee);
         } else {
-            return this.decimalToPrecision (fee, TRUNCATE, precision, this.precisionMode, this.paddingMode);
+            const result = this.decimalToPrecision (fee, TRUNCATE, precision, this.precisionMode, this.paddingMode);
+            return result;
         }
     }
 

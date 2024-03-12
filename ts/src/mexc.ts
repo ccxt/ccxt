@@ -5029,7 +5029,7 @@ export default class mexc extends Exchange {
         }
         const request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': this.currencyToPrecision (code, amount),
             'fromAccountType': fromId,
             'toAccountType': toId,
         };
@@ -5050,7 +5050,7 @@ export default class mexc extends Exchange {
         //
         const transaction = this.parseTransfer (response, currency);
         return this.extend (transaction, {
-            'amount': amount,
+            'amount': this.amountToPrecision (code, amount),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         });
@@ -5152,10 +5152,11 @@ export default class mexc extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const precisionAmount = this.currencyToPrecision (code, amount, network);
         const request = {
             'coin': currency['id'],
             'address': address,
-            'amount': amount,
+            'amount': precisionAmount,
         };
         if (tag !== undefined) {
             request['memo'] = tag;

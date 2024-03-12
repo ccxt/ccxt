@@ -5230,15 +5230,9 @@ export default class htx extends Exchange {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
-                    // despite that cost = amount * price is in quote currency and should have quote precision
-                    // the exchange API requires the cost supplied in 'amount' to be of base precision
-                    // more about it here:
-                    // https://github.com/ccxt/ccxt/pull/4395
-                    // https://github.com/ccxt/ccxt/issues/7611
-                    // we use amountToPrecision here because the exchange requires cost in base precision
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
-                    quoteAmount = this.amountToPrecision (symbol, Precise.stringMul (amountString, priceString));
+                    quoteAmount = this.costToPrecision (symbol, Precise.stringMul (amountString, priceString));
                 }
             } else {
                 quoteAmount = this.amountToPrecision (symbol, amount);
@@ -6455,12 +6449,7 @@ export default class htx extends Exchange {
         if (ecid !== undefined) {
             request['chain'] = this.ecidToNetworkId (ecid, code);
         }
-        const networks = this.safeValue (currency, 'networks', {});
-        const networkItem = this.safeValue (networks, ecid, {});
-        let precision = this.safeValue (currency, 'precision');
-        precision = this.safeString (networkItem, 'precision', precision);
-        precision = this.precisionFromString (String (precision));
-        amount = parseFloat (this.decimalToPrecision (amount, TRUNCATE, precision));
+        amount = this.currencyToPrecision (code, amount, ecid);
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');

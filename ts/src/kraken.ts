@@ -2686,9 +2686,10 @@ export default class kraken extends Exchange {
         if ('key' in params) {
             await this.loadMarkets ();
             const currency = this.currency (code);
+            const amountPrecision = this.currencyToPrecision (code, amount);
             const request = {
                 'asset': currency['id'],
-                'amount': amount,
+                'amount': amountPrecision,
             };
             if (address) {
                 request['address'] = address;

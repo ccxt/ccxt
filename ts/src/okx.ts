@@ -4642,7 +4642,6 @@ export default class okx extends Exchange {
             'ccy': currency['id'],
             'toAddr': address,
             'dest': '4', // 2 = OKCoin International, 3 = OKX 4 = others
-            'amt': this.numberToString (amount),
         };
         let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
@@ -4651,6 +4650,8 @@ export default class okx extends Exchange {
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit (params, 'network');
         }
+        const precisionAmount = this.currencyToPrecision (code, amount, network);
+        request['amt'] = this.numberToString (precisionAmount);
         let fee = this.safeString (params, 'fee');
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();

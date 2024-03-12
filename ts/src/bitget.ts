@@ -2210,11 +2210,12 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const networkId = this.networkCodeToId (chain, code);
+        const precisionAmount = this.currencyToPrecision (code, amount, chain);
         const request = {
             'coin': currency['code'],
             'address': address,
             'chain': networkId,
-            'amount': amount,
+            'amount': precisionAmount,
         };
         if (tag !== undefined) {
             request['tag'] = tag;
@@ -7210,10 +7211,11 @@ export default class bitget extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromType = this.safeString (accountsByType, fromAccount);
         const toType = this.safeString (accountsByType, toAccount);
+        const precisionAmount = this.currencyToPrecision (code, amount);
         const request = {
             'fromType': fromType,
             'toType': toType,
-            'amount': amount,
+            'amount': precisionAmount,
             'coin': currency['code'],
         };
         const symbol = this.safeString (params, 'symbol');

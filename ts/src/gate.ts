@@ -3612,7 +3612,6 @@ export default class gate extends Exchange {
         const request = {
             'currency': currency['id'],
             'address': address,
-            'amount': this.currencyToPrecision (code, amount),
         };
         if (tag !== undefined) {
             request['memo'] = tag;
@@ -3626,6 +3625,8 @@ export default class gate extends Exchange {
         } else {
             request['chain'] = currency['id'];
         }
+        const precisionAmount = this.currencyToPrecision (code, amount, network);
+        request['amount'] = precisionAmount;
         const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
         //    {

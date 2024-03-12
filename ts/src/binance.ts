@@ -2698,14 +2698,18 @@ export default class binance extends Exchange {
                 let fee = undefined;
                 for (let j = 0; j < networkList.length; j++) {
                     const networkItem = networkList[j];
-                    const network = this.safeString (networkItem, 'network');
+                    const networkCode = this.safeString (networkItem, 'network');
+                    const network = this.safeStringUpper (networkItem, 'network');
+                    const networks = this.safeDict (this.options, 'networks', {});
+                    const ecid = this.safeString (networks, network, network); // handle ERC20>ETH alias
+                    networkList[j]['network'] = ecid;
                     // const name = this.safeString (networkItem, 'name');
                     const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
                     const isDepositEnabled = this.safeValue (networkItem, 'depositEnable');
                     const isWithdrawalEnabled = this.safeValue (networkItem, 'withdrawEnable');
                     isTokenDepositable = isDepositEnabled || isTokenDepositable;
                     isTokenWithdrawable = isWithdrawalEnabled || isTokenWithdrawable;
-                    fees[network] = withdrawFee;
+                    fees[networkCode] = withdrawFee;
                     const isDefault = this.safeValue (networkItem, 'isDefault');
                     if (isDefault || (fee === undefined)) {
                         fee = withdrawFee;
@@ -5745,16 +5749,15 @@ export default class binance extends Exchange {
                 const quoteOrderQty = this.safeBool (this.options, 'quoteOrderQty', true);
                 if (quoteOrderQty) {
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
-                    const precision = market['precision']['price'];
                     if (quoteOrderQtyNew !== undefined) {
                         // We shouldn't truncate as it will break the min amount logic
-                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, ROUND, precision, this.precisionMode);
+                        request['quoteOrderQty'] = this.costToPrecision (symbol, quoteOrderQtyNew);
                     } else if (price !== undefined) {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
                         const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
                         // We shouldn't truncate as it will break the min amount logic
-                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, ROUND, precision, this.precisionMode);
+                        request['quoteOrderQty'] = this.costToPrecision (symbol, quoteOrderQuantity);
                     } else {
                         quantityIsRequired = true;
                     }
@@ -8085,7 +8088,6 @@ export default class binance extends Exchange {
             'forceProxy': true,
             'coin': currency['id'],
             'address': address,
-            'amount': amount,
             // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
@@ -8095,6 +8097,8 @@ export default class binance extends Exchange {
         }
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        const precisionAmount = this.currencyToPrecision (code, amount, network);
+        request['amount'] = precisionAmount;
         network = this.safeString (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['network'] = network;
@@ -8396,9 +8400,10 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const precisionAmount = this.currencyToPrecision (code, amount);
         const request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': precisionAmount,
             'type': type,
         };
         const response = await this.sapiPostFuturesTransfer (this.extend (request, params));

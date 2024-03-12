@@ -3358,9 +3358,10 @@ export default class bitmart extends Exchange {
         if (currencyId === undefined) {
             throw new NotSupported (this.id + ' fetchDepositAddress() does not support ' + code + ' with network ' + networkCode + ', specify a supported network in params.network');
         }
+        const precisionAmount = this.currencyToPrecision (code, amount, networkCode);
         const request = {
             'currency': currencyId,
-            'amount': amount,
+            'amount': precisionAmount,
             'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX
             'address': address,
         };
