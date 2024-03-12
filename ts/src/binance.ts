@@ -1502,6 +1502,7 @@ export default class binance extends Exchange {
                         //
                         //        4xxx (different from contract markets)
                         //
+                        '-4000': ExchangeError, // override commons
                         '-4001': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
                         '-4002': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
                         '-4003': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
@@ -1521,6 +1522,7 @@ export default class binance extends Exchange {
                         '-4017': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
                         '-4018': BadSymbol, // {"code":-4018,"msg":"We don't have this asset."}
                         '-4019': BadRequest, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
+                        '-4020': ExchangeError, // override commons
                         '-4021': BadRequest, // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
                         '-4022': BadRequest, // {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
                         '-4023': OperationFailed, // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
@@ -2282,7 +2284,8 @@ export default class binance extends Exchange {
                     '-4013': BadRequest, // PRICE_LESS_THAN_MIN_PRICE
                     '-4014': BadRequest, // PRICE NOT INCREASED BY TICK SIZE
                     '-4015': BadRequest, // Client order id is not valid
-                    '-4016': BadRequest, // Price is higher than mark price multiplier cap.'-4017': BadRequest, // MULTIPLIER_UP_LESS_THAN_ZERO
+                    '-4016': BadRequest, // Price is higher than mark price multiplier cap.
+                    '-4017': BadRequest, // MULTIPLIER_UP_LESS_THAN_ZERO
                     '-4018': BadRequest, // MULTIPLIER_DOWN_LESS_THAN_ZERO
                     '-4019': OperationRejected, // COMPOSITE_SCALE_OVERFLOW
                     '-4020': BadRequest, // TARGET_STRATEGY_INVALID
@@ -2325,7 +2328,8 @@ export default class binance extends Exchange {
                     '-4084': BadRequest, // UPCOMING_METHOD : Method is not allowed currently. Upcoming soon.
                     '-4086': BadRequest, // Invalid price spread threshold.
                     '-4104': BadRequest, // INVALID_CONTRACT_TYPE
-                    '-4135': BadRequest, // Invalid activation price'-4137': BadRequest, // Quantity must be zero with closePosition equals true
+                    '-4135': BadRequest, // Invalid activation price
+                    '-4137': BadRequest, // Quantity must be zero with closePosition equals true
                     '-4138': BadRequest, // Reduce only must be true with closePosition equals true
                     '-4139': BadRequest, // Order type can not be market if it's unable to cancel
                     '-4142': OrderImmediatelyFillable, // REJECT: take profit or stop order will be triggered immediately
