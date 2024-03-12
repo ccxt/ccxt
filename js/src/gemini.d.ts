@@ -12,7 +12,7 @@ export default class gemini extends Exchange {
     fetchMarketsFromWeb(params?: {}): Promise<any[]>;
     parseMarketActive(status: any): boolean;
     fetchUSDTMarkets(params?: {}): Promise<any[]>;
-    fetchMarketsFromAPI(params?: {}): Promise<unknown[]>;
+    fetchMarketsFromAPI(params?: {}): Promise<any[]>;
     parseMarket(response: any): Market;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTickerV1(symbol: string, params?: {}): Promise<Ticker>;

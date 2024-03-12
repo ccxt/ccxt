@@ -4199,7 +4199,9 @@ class gate(Exchange, ImplicitAPI):
         lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
         if lastTradeTimestamp is None:
             lastTradeTimestamp = self.safe_timestamp_2(order, 'update_time', 'finish_time')
-        marketType = 'spot' if ('currency_pair' in order) else 'contract'
+        marketType = 'contract'
+        if ('currency_pair' in order) or ('market' in order):
+            marketType = 'spot'
         exchangeSymbol = self.safe_string_2(order, 'currency_pair', 'market', contract)
         symbol = self.safe_symbol(exchangeSymbol, market, '_', marketType)
         # Everything below self(above return) is related to fees

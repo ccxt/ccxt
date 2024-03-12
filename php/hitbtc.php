@@ -314,6 +314,7 @@ class hitbtc extends Exchange {
                     '2012' => '\\ccxt\\BadRequest',
                     '2020' => '\\ccxt\\BadRequest',
                     '2022' => '\\ccxt\\BadRequest',
+                    '2024' => '\\ccxt\\InvalidOrder', // Invalid margin mode.
                     '10001' => '\\ccxt\\BadRequest',
                     '10021' => '\\ccxt\\AccountSuspended',
                     '10022' => '\\ccxt\\BadRequest',
@@ -331,6 +332,7 @@ class hitbtc extends Exchange {
                     '20012' => '\\ccxt\\ExchangeError',
                     '20014' => '\\ccxt\\ExchangeError',
                     '20016' => '\\ccxt\\ExchangeError',
+                    '20018' => '\\ccxt\\ExchangeError', // Withdrawals are unavailable due to the current configuration. Any of => - internal withdrawals are disabled; - in-chain withdrawals are disabled.
                     '20031' => '\\ccxt\\ExchangeError',
                     '20032' => '\\ccxt\\ExchangeError',
                     '20033' => '\\ccxt\\ExchangeError',
@@ -341,10 +343,15 @@ class hitbtc extends Exchange {
                     '20043' => '\\ccxt\\ExchangeError',
                     '20044' => '\\ccxt\\PermissionDenied',
                     '20045' => '\\ccxt\\InvalidOrder',
+                    '20047' => '\\ccxt\\InvalidOrder', // Order placing exceeds the central counterparty balance limit.
+                    '20048' => '\\ccxt\\InvalidOrder', // Provided Time-In-Force instruction is invalid or the combination of the instruction and the order type is not allowed.
+                    '20049' => '\\ccxt\\InvalidOrder', // Provided order type is invalid.
                     '20080' => '\\ccxt\\ExchangeError',
                     '21001' => '\\ccxt\\ExchangeError',
                     '21003' => '\\ccxt\\AccountSuspended',
                     '21004' => '\\ccxt\\AccountSuspended',
+                    '22004' => '\\ccxt\\ExchangeError', // User is not found.
+                    '22008' => '\\ccxt\\ExchangeError', // Gateway timeout exceeded.
                 ),
                 'broad' => array(),
             ),
