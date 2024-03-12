@@ -4468,7 +4468,7 @@ export default class kucoin extends Exchange {
         url = url + endpoint;
         const isFuturePrivate = (api === 'futuresPrivate');
         const isPrivate = (api === 'private');
-        const isBroker = (api === 'private');
+        const isBroker = (api === 'broker');
         if (isPrivate || isFuturePrivate || isBroker) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
@@ -4499,7 +4499,9 @@ export default class kucoin extends Exchange {
             }
             if (isBroker) {
                 const brokerName = this.safeString (partner, 'name');
-                headers['KC-BROKER-NAME'] = brokerName;
+                if (brokerName !== undefined) {
+                    headers['KC-BROKER-NAME'] = brokerName;
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
