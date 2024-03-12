@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -78,7 +78,8 @@ export default class coinex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': true,
                 'fetchIsolatedBorrowRates': true,
-                'fetchLeverage': false,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -5341,6 +5342,67 @@ export default class coinex extends Exchange {
             depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
         }
         return depositWithdrawFees;
+    }
+
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+        /**
+         * @method
+         * @name coinex#fetchLeverages
+         * @description fetch the set leverage for all contract and margin markets
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLeverages', market, params);
+        if (marketType !== 'spot') {
+            throw new NotSupported (this.id + ' fetchLeverages() supports spot margin markets only');
+        }
+        const response = await this.privateGetMarginConfig (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "market": "BTCUSDT",
+        //                 "leverage": 10,
+        //                 "BTC": {
+        //                     "min_amount": "0.0008",
+        //                     "max_amount": "200",
+        //                     "day_rate": "0.0015"
+        //                 },
+        //                 "USDT": {
+        //                     "min_amount": "50",
+        //                     "max_amount": "500000",
+        //                     "day_rate": "0.001"
+        //                 }
+        //             },
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        const leverages = this.safeList (response, 'data', []);
+        return this.parseLeverages (leverages, symbols, 'market', marketType);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'market');
+        const leverageValue = this.safeInteger (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'spot'),
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {

@@ -605,6 +605,26 @@ public partial class bybit
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
+    /// <summary>
+    /// cancel multiple orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/order/batch-cancel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
     public async Task<Dictionary<string, object>> CancelAllUsdcOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllUsdcOrders(symbol, parameters);
@@ -1455,7 +1475,7 @@ public partial class bybit
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/withdraw"/>  <br/>
+    /// See <see href="https://www.tokocrypto.com/apidocs/#withdraw-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

@@ -208,7 +208,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
-        $checksum = $this->safe_value($this->options, 'checksum', true);
+        $checksum = $this->safe_bool($this->options, 'checksum', true);
         if ($checksum && $receivedSnapshot) {
             $storedAsks = $orderbook['asks'];
             $storedBids = $orderbook['bids'];

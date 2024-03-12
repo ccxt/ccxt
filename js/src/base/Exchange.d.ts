@@ -275,6 +275,7 @@ export default class Exchange {
     ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
     base64ToString: (string: any) => string;
     crc32: typeof functions.crc32;
+    packb: typeof functions.packb;
     describe(): {
         id: any;
         name: any;
@@ -617,6 +618,9 @@ export default class Exchange {
     setProperty(obj: any, property: any, defaultValue?: any): void;
     axolotl(payload: any, hexKey: any, ed25519: any): string;
     fixStringifiedJsonMembers(content: string): any;
+    ethAbiEncode(types: any, args: any): Uint8Array;
+    ethEncodeStructuredData(domain: any, messageTypes: any, messageData: any): Uint8Array;
+    intToBase16(elem: any): string;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
     safeBool(dictionary: any, key: IndexType, defaultValue?: boolean): boolean | undefined;
@@ -791,7 +795,8 @@ export default class Exchange {
     setHeaders(headers: any): any;
     marketId(symbol: string): string;
     symbol(symbol: string): string;
-    handleParamString(params: object, paramName: string, defaultValue?: any): [string, object];
+    handleParamString(params: object, paramName: string, defaultValue?: Str): [string, object];
+    handleParamInteger(params: object, paramName: string, defaultValue?: Int): [Int, object];
     resolvePath(path: any, params: any): any[];
     getListFromObjectValues(objects: any, key: IndexType): any[];
     getSymbolsForMarketType(marketType?: string, subType?: string, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): any[];

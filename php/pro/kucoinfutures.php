@@ -255,7 +255,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             $client = $this->client($url);
             $this->set_position_cache($client, $symbol);
             $fetchPositionSnapshot = $this->handle_option('watchPosition', 'fetchPositionSnapshot', true);
-            $awaitPositionSnapshot = $this->safe_value('watchPosition', 'awaitPositionSnapshot', true);
+            $awaitPositionSnapshot = $this->safe_bool('watchPosition', 'awaitPositionSnapshot', true);
             $currentPosition = $this->get_current_position($symbol);
             if ($fetchPositionSnapshot && $awaitPositionSnapshot && $currentPosition === null) {
                 $snapshot = Async\await($client->future ('fetchPositionSnapshot:' . $symbol));

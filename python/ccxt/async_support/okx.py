@@ -1550,7 +1550,7 @@ class okx(Exchange, ImplicitAPI):
         # while fetchCurrencies is a public API method by design
         # therefore we check the keys here
         # and fallback to generating the currencies from the markets
-        isSandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         if not self.check_required_credentials(False) or isSandboxMode:
             return None
         #
@@ -5302,7 +5302,7 @@ class okx(Exchange, ImplicitAPI):
         fromAccountId = self.safe_string(transfer, 'from')
         toAccountId = self.safe_string(transfer, 'to')
         accountsById = self.safe_value(self.options, 'accountsById', {})
-        timestamp = self.safe_integer(transfer, 'ts', self.milliseconds())
+        timestamp = self.safe_integer(transfer, 'ts')
         balanceChange = self.safe_string(transfer, 'sz')
         if balanceChange is not None:
             amount = self.parse_number(Precise.string_abs(balanceChange))
@@ -6497,7 +6497,7 @@ class okx(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def set_sandbox_mode(self, enable):
+    def set_sandbox_mode(self, enable: bool):
         super(okx, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
         if enable:

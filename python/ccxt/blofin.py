@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginMode, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -89,7 +89,10 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': True,
+                'fetchLeverages': True,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': True,
+                'fetchMarginModes': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -193,6 +196,8 @@ class blofin(Exchange, ImplicitAPI):
                         'account/balance': 1,
                         'account/positions': 1,
                         'account/leverage-info': 1,
+                        'account/margin-mode': 1,
+                        'account/batch-leverage-info': 1,
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
@@ -382,7 +387,7 @@ class blofin(Exchange, ImplicitAPI):
         strikePrice = None
         optionType = None
         tickSize = self.safe_string(market, 'tickSize')
-        fees = self.safe_value_2(self.fees, type, 'trading', {})
+        fees = self.safe_dict_2(self.fees, type, 'trading', {})
         taker = self.safe_number(fees, 'taker')
         maker = self.safe_number(fees, 'maker')
         maxLeverage = self.safe_string(market, 'maxLeverage', '100')
@@ -480,7 +485,7 @@ class blofin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        first = self.safe_value(data, 0, {})
+        first = self.safe_dict(data, 0, {})
         timestamp = self.safe_integer(first, 'ts')
         return self.parse_order_book(first, symbol, timestamp)
 
@@ -491,7 +496,7 @@ class blofin(Exchange, ImplicitAPI):
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
-        spot = self.safe_value(market, 'spot', False)
+        spot = self.safe_bool(market, 'spot', False)
         quoteVolume = self.safe_string(ticker, 'volCurrency24h') if spot else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
@@ -534,7 +539,7 @@ class blofin(Exchange, ImplicitAPI):
         }
         response = self.publicGetMarketTickers(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
-        first = self.safe_value(data, 0, {})
+        first = self.safe_dict(data, 0, {})
         return self.parse_ticker(first, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -959,8 +964,8 @@ class blofin(Exchange, ImplicitAPI):
         postOnly, params = self.handle_post_only(isMarketOrder, type == 'post_only', params)
         if postOnly:
             request['type'] = 'post_only'
-        stopLoss = self.safe_value(params, 'stopLoss')
-        takeProfit = self.safe_value(params, 'takeProfit')
+        stopLoss = self.safe_dict(params, 'stopLoss')
+        takeProfit = self.safe_dict(params, 'takeProfit')
         params = self.omit(params, ['stopLoss', 'takeProfit'])
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
@@ -1225,7 +1230,7 @@ class blofin(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
-            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderParams = self.safe_dict(rawOrder, 'params', {})
             extendedParams = self.extend(orderParams, params)  # the request does not accept extra params since it's a list, so we're extending each order with the common params
             orderRequest = self.create_order_request(marketId, type, side, amount, price, extendedParams)
             ordersRequests.append(orderRequest)
@@ -1259,7 +1264,7 @@ class blofin(Exchange, ImplicitAPI):
             request['instId'] = market['id']
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        isStop = self.safe_value_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
+        isStop = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
         method: str = None
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
@@ -1558,7 +1563,7 @@ class blofin(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request = []
-        options = self.safe_value(self.options, 'cancelOrders', {})
+        options = self.safe_dict(self.options, 'cancelOrders', {})
         defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
         method = self.safe_string(params, 'method', defaultMethod)
         clientOrderIds = self.parse_ids(self.safe_value(params, 'clientOrderId'))
@@ -1612,7 +1617,7 @@ class blofin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         request = {
@@ -1757,10 +1762,58 @@ class blofin(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
+    def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+        """
+        fetch the set leverage for all contract markets
+        :see: https://docs.blofin.com/index.html#get-multiple-leverage
+        :param str[] symbols: a list of unified market symbols, required on blofin
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated'
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        self.load_markets()
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchLeverages() requires a symbols argument')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchLeverages', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross marginMode
+        if (marginMode != 'cross') and (marginMode != 'isolated'):
+            raise BadRequest(self.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated')
+        symbols = self.market_symbols(symbols)
+        instIds = ''
+        for i in range(0, len(symbols)):
+            entry = symbols[i]
+            entryMarket = self.market(entry)
+            if i > 0:
+                instIds = instIds + ',' + entryMarket['id']
+            else:
+                instIds = instIds + entryMarket['id']
+        request = {
+            'instId': instIds,
+            'marginMode': marginMode,
+        }
+        response = self.privateGetAccountBatchLeverageInfo(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "leverage": "3",
+        #                 "marginMode": "cross",
+        #                 "instId": "BTC-USDT"
+        #             },
+        #         ]
+        #     }
+        #
+        leverages = self.safe_list(response, 'data', [])
+        return self.parse_leverages(leverages, symbols, 'instId')
+
     def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
-        :see: https://blofin.com/docs#set-leverage
+        :see: https://docs.blofin.com/index.html#get-leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
@@ -1862,7 +1915,7 @@ class blofin(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
         response = self.privatePostTradeClosePosition(self.extend(request, params))
-        return self.safe_value(response, 'data')
+        return self.safe_dict(response, 'data')
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1892,7 +1945,7 @@ class blofin(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 100, max 100
         if since is not None:
             request['begin'] = since
-        isStop = self.safe_value_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
+        isStop = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
         method: str = None
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
@@ -1903,6 +1956,36 @@ class blofin(Exchange, ImplicitAPI):
             response = self.privateGetTradeOrdersHistory(self.extend(request, query))
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
+
+    def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the margin mode of a trading pair
+        :see: https://docs.blofin.com/index.html#get-margin-mode
+        :param str symbol: unified symbol of the market to fetch the margin mode for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.privateGetAccountMarginMode(params)
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": {
+        #             "marginMode": "cross"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_margin_mode(data, market)
+
+    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': self.safe_string(marginMode, 'marginMode'),
+        }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

@@ -1020,7 +1020,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         return messageHash
 
     def check_message_hash_does_not_exist(self, messageHash):
-        supressMultipleWsRequestsError = self.safe_value(self.options, 'supressMultipleWsRequestsError', False)
+        supressMultipleWsRequestsError = self.safe_bool(self.options, 'supressMultipleWsRequestsError', False)
         if not supressMultipleWsRequestsError:
             client = self.safe_value(self.clients, self.urls['api']['ws'])
             if client is not None:

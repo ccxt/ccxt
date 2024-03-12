@@ -586,7 +586,7 @@ class okx extends \ccxt\async\okx {
         $storedBids = $orderbook['bids'];
         $this->handle_deltas($storedAsks, $asks);
         $this->handle_deltas($storedBids, $bids);
-        $checksum = $this->safe_value($this->options, 'checksum', true);
+        $checksum = $this->safe_bool($this->options, 'checksum', true);
         if ($checksum) {
             $asksLength = count($storedAsks);
             $bidsLength = count($storedBids);

@@ -2404,7 +2404,7 @@ class phemex extends Exchange {
 
     public function parse_order($order, ?array $market = null): array {
         $isSwap = $this->safe_bool($market, 'swap', false);
-        $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order));
+        $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order)) || (is_array($order) && array_key_exists('closedPnlRv', $order)) || (is_array($order) && array_key_exists('totalPnlRv', $order));
         if ($isSwap || $hasPnl) {
             return $this->parse_swap_order($order, $market);
         }
@@ -3289,7 +3289,7 @@ class phemex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
@@ -3328,7 +3328,7 @@ class phemex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 

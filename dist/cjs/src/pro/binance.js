@@ -2465,7 +2465,7 @@ class binance extends binance$1 {
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, symbols, isPortfolioMargin);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.safeValue(this.positions, type);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future(type + ':fetchPositionsSnapshot');
@@ -2599,8 +2599,21 @@ class binance extends binance$1 {
         //     }
         //
         const marketId = this.safeString(position, 's');
-        const positionSide = this.safeStringLower(position, 'ps');
-        const hedged = positionSide !== 'both';
+        const contracts = this.safeString(position, 'pa');
+        const contractsAbs = Precise["default"].stringAbs(this.safeString(position, 'pa'));
+        let positionSide = this.safeStringLower(position, 'ps');
+        let hedged = true;
+        if (positionSide === 'both') {
+            hedged = false;
+            if (!Precise["default"].stringEq(contracts, '0')) {
+                if (Precise["default"].stringLt(contracts, '0')) {
+                    positionSide = 'short';
+                }
+                else {
+                    positionSide = 'long';
+                }
+            }
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -2611,7 +2624,7 @@ class binance extends binance$1 {
             'entryPrice': this.safeNumber(position, 'ep'),
             'unrealizedPnl': this.safeNumber(position, 'up'),
             'percentage': undefined,
-            'contracts': this.safeNumber(position, 'pa'),
+            'contracts': this.parseNumber(contractsAbs),
             'contractSize': undefined,
             'markPrice': undefined,
             'side': positionSide,

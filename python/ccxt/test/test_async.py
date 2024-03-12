@@ -1064,6 +1064,7 @@ class testMainClass(baseMainTestClass):
             'secret': 'secretsecret',
             'password': 'password',
             'walletAddress': 'wallet',
+            'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid': 'uid',
             'token': 'token',
             'accounts': [{
@@ -1100,7 +1101,7 @@ class testMainClass(baseMainTestClass):
                 description = exchange.safe_value(result, 'description')
                 if (test_name is not None) and (test_name != description):
                     continue
-                is_disabled = exchange.safe_value(result, 'disabled', False)
+                is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
                     continue
                 type = exchange.safe_string(exchange_data, 'outputType')
@@ -1126,13 +1127,13 @@ class testMainClass(baseMainTestClass):
                 old_exchange_options = exchange.options  # snapshot options;
                 test_exchange_options = exchange.safe_value(result, 'options', {})
                 exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
-                is_disabled = exchange.safe_value(result, 'disabled', False)
+                is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
                     continue
-                is_disabled_c_sharp = exchange.safe_value(result, 'disabledCS', False)
+                is_disabled_c_sharp = exchange.safe_bool(result, 'disabledCS', False)
                 if is_disabled_c_sharp and (self.lang == 'C#'):
                     continue
-                is_disabled_php = exchange.safe_value(result, 'disabledPHP', False)
+                is_disabled_php = exchange.safe_bool(result, 'disabledPHP', False)
                 if is_disabled_php and (self.lang == 'PHP'):
                     continue
                 if (test_name is not None) and (test_name != description):
@@ -1199,7 +1200,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1454,6 +1455,18 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         broker_id = request['brokerId']
         assert broker_id.startswith(str(id)), 'brokerId does not start with id'
+        await close(exchange)
+
+    async def test_hyperliquid(self):
+        exchange = self.init_offline_exchange('hyperliquid')
+        id = '1'
+        request = None
+        try:
+            await exchange.create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        broker_id = str((request['action']['brokerCode']))
+        assert broker_id == id, 'brokerId does not start with id'
         await close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****

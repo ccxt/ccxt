@@ -10,6 +10,17 @@ var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
 var crypto = require('./functions/crypto.js');
 var totp = require('./functions/totp.js');
+var index = require('../static_dependencies/ethers/index.js');
+require('../static_dependencies/ethers/utils/base58.js');
+require('../static_dependencies/ethers/utils/errors.js');
+require('../static_dependencies/ethers/utils/events.js');
+require('../static_dependencies/ethers/utils/fixednumber.js');
+require('../static_dependencies/ethers/utils/maths.js');
+require('../static_dependencies/ethers/utils/utf8.js');
+require('../static_dependencies/noble-hashes/sha3.js');
+require('../static_dependencies/noble-hashes/sha256.js');
+require('../static_dependencies/ethers/address/address.js');
+var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
 var generic = require('./functions/generic.js');
 var misc = require('./functions/misc.js');
 
@@ -32,7 +43,7 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
+const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -219,6 +230,7 @@ class Exchange {
         this.ymd = ymd;
         this.base64ToString = base64ToString;
         this.crc32 = crc32;
+        this.packb = packb;
         this.httpProxyAgentModule = undefined;
         this.httpsProxyAgentModule = undefined;
         this.socksProxyAgentModule = undefined;
@@ -1413,6 +1425,15 @@ class Exchange {
         modifiedContent = modifiedContent.replaceAll('"{', '{');
         modifiedContent = modifiedContent.replaceAll('}"', '}');
         return modifiedContent;
+    }
+    ethAbiEncode(types, args) {
+        return this.base16ToBinary(index["default"].encode(types, args).slice(2));
+    }
+    ethEncodeStructuredData(domain, messageTypes, messageData) {
+        return this.base16ToBinary(typedData.TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
+    }
+    intToBase16(elem) {
+        return elem.toString(16);
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -2684,6 +2705,18 @@ class Exchange {
         return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
     calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        /**
+         * @method
+         * @description calculates the presumptive fee that would be charged for an order
+         * @param {string} symbol unified market symbol
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} price the price for the order to be filled at, in units of the quote currency
+         * @param {string} takerOrMaker 'taker' or 'maker'
+         * @param {object} params
+         * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+         */
         if (type === 'market' && takerOrMaker === 'maker') {
             throw new errors.ArgumentsRequired(this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -3502,6 +3535,13 @@ class Exchange {
         }
         return [value, params];
     }
+    handleParamInteger(params, paramName, defaultValue = undefined) {
+        const value = this.safeInteger(params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit(params, paramName);
+        }
+        return [value, params];
+    }
     resolvePath(path, params) {
         return [
             this.implodeParams(path, params),
@@ -3895,6 +3935,8 @@ class Exchange {
             params = this.omit(params, [optionName, defaultOptionName]);
         }
         else {
+            // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
+            [methodName, params] = this.handleParamString(params, 'callerMethodName', methodName);
             // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue(this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {
@@ -5295,7 +5337,10 @@ class Exchange {
                     const response = await this[method](symbol, undefined, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        const backwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        let backwardMessage = 'Dynamic pagination call ' + this.numberToString(calls) + ' method ' + method + ' response length ' + this.numberToString(responseLength);
+                        if (paginationTimestamp !== undefined) {
+                            backwardMessage += ' timestamp ' + this.numberToString(paginationTimestamp);
+                        }
                         this.log(backwardMessage);
                     }
                     if (responseLength === 0) {
@@ -5314,7 +5359,10 @@ class Exchange {
                     const response = await this[method](symbol, paginationTimestamp, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        const forwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        let forwardMessage = 'Dynamic pagination call ' + this.numberToString(calls) + ' method ' + method + ' response length ' + this.numberToString(responseLength);
+                        if (paginationTimestamp !== undefined) {
+                            forwardMessage += ' timestamp ' + this.numberToString(paginationTimestamp);
+                        }
                         this.log(forwardMessage);
                     }
                     if (responseLength === 0) {

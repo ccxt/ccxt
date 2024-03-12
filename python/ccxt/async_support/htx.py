@@ -486,6 +486,7 @@ class htx(Exchange, ImplicitAPI):
                             'v2/sub-user/api-key-modification': 1,
                             'v2/sub-user/api-key-deletion': 1,
                             'v1/subuser/transfer': 10,
+                            'v1/trust/user/active/credit': 10,
                             # Trading
                             'v1/order/orders/place': 0.2,
                             'v1/order/batch-orders': 0.4,
@@ -2507,7 +2508,9 @@ class htx(Exchange, ImplicitAPI):
         amountString = self.safe_string(trade, 'trade_volume', amountString)
         costString = self.safe_string(trade, 'trade_turnover')
         fee = None
-        feeCost = self.safe_string_2(trade, 'filled-fees', 'trade_fee')
+        feeCost = self.safe_string(trade, 'filled-fees')
+        if feeCost is None:
+            feeCost = Precise.string_neg(self.safe_string(trade, 'trade_fee'))
         feeCurrencyId = self.safe_string_2(trade, 'fee-currency', 'fee_asset')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         filledPoints = self.safe_string(trade, 'filled-points')

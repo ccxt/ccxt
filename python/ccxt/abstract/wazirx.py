@@ -3,7 +3,7 @@ from ccxt.base.types import Entry
 
 class ImplicitAPI:
     public_get_exchangeinfo = publicGetExchangeInfo = Entry('exchangeInfo', 'public', 'GET', {'cost': 1})
-    public_get_depth = publicGetDepth = Entry('depth', 'public', 'GET', {'cost': 1})
+    public_get_depth = publicGetDepth = Entry('depth', 'public', 'GET', {'cost': 0.5})
     public_get_ping = publicGetPing = Entry('ping', 'public', 'GET', {'cost': 1})
     public_get_systemstatus = publicGetSystemStatus = Entry('systemStatus', 'public', 'GET', {'cost': 1})
     public_get_tickers_24hr = publicGetTickers24hr = Entry('tickers/24hr', 'public', 'GET', {'cost': 1})
@@ -18,6 +18,11 @@ class ImplicitAPI:
     private_get_openorders = privateGetOpenOrders = Entry('openOrders', 'private', 'GET', {'cost': 1})
     private_get_order = privateGetOrder = Entry('order', 'private', 'GET', {'cost': 0.5})
     private_get_mytrades = privateGetMyTrades = Entry('myTrades', 'private', 'GET', {'cost': 0.5})
+    private_get_coins = privateGetCoins = Entry('coins', 'private', 'GET', {'cost': 12})
+    private_get_crypto_withdraws = privateGetCryptoWithdraws = Entry('crypto/withdraws', 'private', 'GET', {'cost': 12})
+    private_get_crypto_deposits_address = privateGetCryptoDepositsAddress = Entry('crypto/deposits/address', 'private', 'GET', {'cost': 60})
+    private_get_sub_account_fund_transfer_history = privateGetSubAccountFundTransferHistory = Entry('sub_account/fund_transfer/history', 'private', 'GET', {'cost': 1})
+    private_get_sub_account_accounts = privateGetSubAccountAccounts = Entry('sub_account/accounts', 'private', 'GET', {'cost': 1})
     private_post_order = privatePostOrder = Entry('order', 'private', 'POST', {'cost': 0.1})
     private_post_order_test = privatePostOrderTest = Entry('order/test', 'private', 'POST', {'cost': 0.5})
     private_post_create_auth_token = privatePostCreateAuthToken = Entry('create_auth_token', 'private', 'POST', {'cost': 1})

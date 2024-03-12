@@ -6,7 +6,7 @@ import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenI
  */
 export default class gate extends Exchange {
     describe(): any;
-    setSandboxMode(enable: any): void;
+    setSandboxMode(enable: boolean): void;
     convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;

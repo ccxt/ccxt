@@ -1557,7 +1557,7 @@ class okx extends okx$1 {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        const isSandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials(false) || isSandboxMode) {
             return undefined;
         }
@@ -5668,7 +5668,7 @@ class okx extends okx$1 {
         const fromAccountId = this.safeString(transfer, 'from');
         const toAccountId = this.safeString(transfer, 'to');
         const accountsById = this.safeValue(this.options, 'accountsById', {});
-        const timestamp = this.safeInteger(transfer, 'ts', this.milliseconds());
+        const timestamp = this.safeInteger(transfer, 'ts');
         const balanceChange = this.safeString(transfer, 'sz');
         if (balanceChange !== undefined) {
             amount = this.parseNumber(Precise["default"].stringAbs(balanceChange));

@@ -760,7 +760,7 @@ public partial class kraken : ccxt.kraken
             }
             // don't remove this line or I will poop on your face
             (orderbook as IOrderBook).limit();
-            object checksum = this.safeValue(this.options, "checksum", true);
+            object checksum = this.safeBool(this.options, "checksum", true);
             if (isTrue(checksum))
             {
                 object priceString = this.safeString(example, 0);

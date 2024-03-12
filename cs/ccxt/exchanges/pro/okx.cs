@@ -608,7 +608,7 @@ public partial class okx : ccxt.okx
         object storedBids = getValue(orderbook, "bids");
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
-        object checksum = this.safeValue(this.options, "checksum", true);
+        object checksum = this.safeBool(this.options, "checksum", true);
         if (isTrue(checksum))
         {
             object asksLength = getArrayLength(storedAsks);

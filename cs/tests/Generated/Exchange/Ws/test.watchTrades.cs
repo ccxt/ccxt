@@ -34,7 +34,10 @@ public partial class testMainClass : BaseTest
             {
                 testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
             }
-            testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
+            if (!isTrue((inOp(skippedProperties, "timestamp"))))
+            {
+                testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
+            }
         }
     }
 

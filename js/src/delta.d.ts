@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
@@ -188,6 +188,8 @@ export default class delta extends Exchange {
         info: any;
     };
     closeAllPositions(params?: {}): Promise<Position[]>;
+    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    parseMarginMode(marginMode: any, market?: any): MarginMode;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

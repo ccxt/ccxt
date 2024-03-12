@@ -1543,7 +1543,11 @@ class bigone extends Exchange {
                 }
             }
             $request['type'] = $uppercaseType;
-            $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce' ));
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($clientOrderId !== null) {
+                $request['client_order_id'] = $clientOrderId;
+            }
+            $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ));
             $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
             //
             //    {
@@ -1833,7 +1837,7 @@ class bigone extends Exchange {
                 }
             } elseif ($method === 'POST') {
                 $headers['Content-Type'] = 'application/json';
-                $body = $query;
+                $body = $this->json($query);
             }
         }
         $headers['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;

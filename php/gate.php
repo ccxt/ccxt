@@ -860,7 +860,7 @@ class gate extends Exchange {
         ));
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
     }
@@ -2230,7 +2230,8 @@ class gate extends Exchange {
         list($request, $requestParams) = $this->prepare_request($market, $type, $query);
         $request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if ($since !== null) {
-            $request['from'] = $since / 1000;
+            // from should be integer
+            $request['from'] = $this->parse_to_int($since / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -4406,7 +4407,10 @@ class gate extends Exchange {
         if ($lastTradeTimestamp === null) {
             $lastTradeTimestamp = $this->safe_timestamp_2($order, 'update_time', 'finish_time');
         }
-        $marketType = (is_array($order) && array_key_exists('currency_pair', $order)) ? 'spot' : 'contract';
+        $marketType = 'contract';
+        if ((is_array($order) && array_key_exists('currency_pair', $order)) || (is_array($order) && array_key_exists('market', $order))) {
+            $marketType = 'spot';
+        }
         $exchangeSymbol = $this->safe_string_2($order, 'currency_pair', 'market', $contract);
         $symbol = $this->safe_symbol($exchangeSymbol, $market, '_', $marketType);
         // Everything below this(above return) is related to $fees

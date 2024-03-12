@@ -2293,7 +2293,8 @@ public partial class gate : Exchange
         ((IDictionary<string,object>)request)["type"] = "fund"; // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["from"] = divide(since, 1000);
+            // from should be integer
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -4755,7 +4756,11 @@ public partial class gate : Exchange
         {
             lastTradeTimestamp = this.safeTimestamp2(order, "update_time", "finish_time");
         }
-        object marketType = ((bool) isTrue((inOp(order, "currency_pair")))) ? "spot" : "contract";
+        object marketType = "contract";
+        if (isTrue(isTrue((inOp(order, "currency_pair"))) || isTrue((inOp(order, "market")))))
+        {
+            marketType = "spot";
+        }
         object exchangeSymbol = this.safeString2(order, "currency_pair", "market", contract);
         object symbol = this.safeSymbol(exchangeSymbol, market, "_", marketType);
         // Everything below this(above return) is related to fees
