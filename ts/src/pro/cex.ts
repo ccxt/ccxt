@@ -172,11 +172,12 @@ export default class cex extends cexRest {
         //     }
         //
         const data = this.safeValue (message, 'data', []);
-        data.reverse (); // fix chronological order
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache (limit);
+        const dataLength = data.length;
         for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
+            const index = dataLength - 1 - i; // correct chronological order
+            const rawTrade = data[index];
             const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
         }
@@ -228,9 +229,10 @@ export default class cex extends cexRest {
         //
         const data = this.safeValue (message, 'data', []);
         const stored = this.trades as any; // to do fix this, this.trades is not meant to be used like this
-        data.reverse (); // fix chronological order
+        const dataLength = data.length;
         for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
+            const index = dataLength - 1 - i; // correct chronological order
+            const rawTrade = data[index];
             const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
         }
