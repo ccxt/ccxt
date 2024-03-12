@@ -115,14 +115,12 @@ export default class hyperliquid extends hyperliquidRest {
         };
         const timestamp = this.safeInteger (entry, 'time');
         const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'px', 'sz');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook (snapshot);
-            this.orderbooks[symbol] = orderbook;
-        } else {
-            orderbook = this.orderbooks[symbol];
-            orderbook.reset (snapshot);
+        if (!(symbol in this.orderbooks)) {
+            const ob = this.orderBook (snapshot);
+            this.orderbooks[symbol] = ob;
         }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset (snapshot);
         const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
@@ -271,19 +269,19 @@ export default class hyperliquid extends hyperliquidRest {
         const marketId = coin + '/USDC:USDC';
         const market = this.market (marketId);
         const symbol = market['symbol'];
-        let stored = this.safeValue (this.trades, symbol);
-        if (stored === undefined) {
+        if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
+            const stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
+        const trades = this.trades[symbol];
         for (let i = 0; i < entry.length; i++) {
             const data = this.safeDict (entry, i);
             const trade = this.parseWsTrade (data);
-            stored.append (trade);
+            trades.append (trade);
         }
         const messageHash = 'trade:' + symbol;
-        client.resolve (stored, messageHash);
+        client.resolve (trades, messageHash);
     }
 
     parseWsTrade (trade, market: Market = undefined): Trade {
@@ -405,17 +403,19 @@ export default class hyperliquid extends hyperliquidRest {
         const base = this.safeString (data, 's');
         const symbol = base + '/USDC:USDC';
         const timeframe = this.safeString (data, 'i');
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (stored === undefined) {
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
+        if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
+            const stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
+        const ohlcv = this.ohlcvs[symbol][timeframe];
         const parsed = this.parseOHLCV (data);
-        stored.append (parsed);
+        ohlcv.append (parsed);
         const messageHash = 'candles:' + timeframe + ':' + symbol;
-        client.resolve (stored, messageHash);
+        client.resolve (ohlcv, messageHash);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -456,7 +456,7 @@ export default class hyperliquid extends hyperliquidRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message, subscription = undefined) {
+    handleOrder (client: Client, message) {
         //
         //     {
         //         channel: 'orderUpdates',
