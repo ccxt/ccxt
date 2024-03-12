@@ -973,13 +973,25 @@ export default class Exchange {
     socksProxyAgentModule:any = undefined;
     socksProxyAgentModuleChecked:boolean = false;
     proxyDictionaries:any = {};
-    proxyModulesLoaded:boolean = false;
+    proxiesModulesLoading:Promise<boolean> = undefined
 
     async loadProxyModules () {
-        if (this.proxyModulesLoaded) {
+        // when loading markets, multiple parallel calls are made, so need one promise
+        if (this.proxiesModulesLoading === undefined) {
+            this.proxiesModulesLoading = new Promise<boolean> (async (resolve, reject) => {
+                await this.loadProxyModulesHelper ();
+                resolve (true);
+            }).catch ((e) => {
+                this.proxiesModulesLoading = undefined;
+                throw e;
+            });
+        } else {
+            await this.proxiesModulesLoading;
             return;
         }
-        this.proxyModulesLoaded = true;
+    }
+
+    async loadProxyModulesHelper () {
         // we have to handle it with below nested way, because of dynamic
         // import issues (https://github.com/ccxt/ccxt/pull/20687)
         try {
@@ -997,12 +1009,13 @@ export default class Exchange {
             } catch (e) { }
         }
         if (this.socksProxyAgentModuleChecked === false) {
-            this.socksProxyAgentModuleChecked = true;
             try {
                 // @ts-ignore
                 this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
             } catch (e) {}
+            this.socksProxyAgentModuleChecked = true;
         }
+        this.proxiesModulesLoading.resolve (true);
     }
 
     setProxyAgents (httpProxy, httpsProxy, socksProxy) {
