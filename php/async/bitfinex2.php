@@ -1405,9 +1405,11 @@ class bitfinex2 extends Exchange {
                 'symbol' => $market['id'],
                 'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'sort' => 1,
-                'start' => $since,
                 'limit' => $limit,
             );
+            if ($since !== null) {
+                $request['start'] = $since;
+            }
             list($request, $params) = $this->handle_until_option('end', $request, $params);
             $response = Async\await($this->publicGetCandlesTradeTimeframeSymbolHist (array_merge($request, $params)));
             //
@@ -2981,14 +2983,16 @@ class bitfinex2 extends Exchange {
     }
 
     public function fetch_funding_rate(string $symbol, $params = array ()) {
-        /**
-         * fetch the current funding rate
-         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-         * @param {string} $symbol unified market $symbol
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
-         */
-        return $this->fetch_funding_rates(array( $symbol ), $params);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            return Async\await($this->fetch_funding_rates(array( $symbol ), $params));
+        }) ();
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
@@ -3112,10 +3116,10 @@ class bitfinex2 extends Exchange {
             }
             $reversedArray = array();
             $rawRates = $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
-            $rawRatesLength = count($rawRates);
-            $ratesLength = max ($rawRatesLength - 1, 0);
-            for ($i = $ratesLength; $i >= 0; $i--) {
-                $valueAtIndex = $rawRates[$i];
+            $ratesLength = count($rawRates);
+            for ($i = 0; $i < $ratesLength; $i++) {
+                $index = $ratesLength - $i - 1;
+                $valueAtIndex = $rawRates[$index];
                 $reversedArray[] = $valueAtIndex;
             }
             return $reversedArray;

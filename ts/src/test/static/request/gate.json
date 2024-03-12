@@ -35,14 +35,14 @@
                 "method": "createOrder",
                 "url": "https://api.gateio.ws/api/v4/spot/orders",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  5,
-                  null,
-                  {
-                    "createMarketBuyOrderRequiresPrice": false
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    5,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
                 ],
                 "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"5\",\"time_in_force\":\"ioc\"}"
             },
@@ -51,14 +51,14 @@
                 "method": "createOrder",
                 "url": "https://api.gateio.ws/api/v4/spot/orders",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  0,
-                  null,
-                  {
-                    "cost": 5
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 5
+                    }
                 ],
                 "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"5\",\"time_in_force\":\"ioc\"}"
             },
@@ -67,11 +67,11 @@
                 "method": "createOrder",
                 "url": "https://api.gateio.ws/api/v4/spot/orders",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "sell",
-                  0.0001,
-                  null
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null
                 ],
                 "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"sell\",\"amount\":\"0.0001\",\"time_in_force\":\"ioc\"}"
             },
@@ -80,11 +80,11 @@
                 "method": "createOrder",
                 "url": "https://api.gateio.ws/api/v4/spot/orders",
                 "input": [
-                  "BTC/USDT",
-                  "limit",
-                  "sell",
-                  0.0001,
-                  55000
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.0001,
+                    55000
                 ],
                 "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"sell\",\"amount\":\"0.0001\",\"price\":\"55000\"}"
             }
@@ -95,8 +95,8 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://api.gateio.ws/api/v4/spot/orders",
                 "input": [
-                  "BTC/USDT",
-                  5
+                    "BTC/USDT",
+                    5
                 ],
                 "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"5\",\"time_in_force\":\"ioc\"}"
             }
@@ -167,7 +167,7 @@
                 "method": "fetchPosition",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/positions/BTC_USDT",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -460,7 +460,9 @@
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/contracts",
                 "input": [
                     null,
-                    {"type": "swap"}
+                    {
+                        "type": "swap"
+                    }
                 ]
             },
             {
@@ -469,7 +471,9 @@
                 "url": "https://api.gateio.ws/api/v4/delivery/btc/contracts",
                 "input": [
                     null,
-                    {"type": "future"}
+                    {
+                        "type": "future"
+                    }
                 ]
             }
         ],
@@ -517,17 +521,19 @@
             {
                 "description": "Fetch FundingHistory - swap",
                 "method": "fetchFundingHistory",
-                "url": "https://api.gateio.ws/api/v4/futures/usdt/account_book?contract=BTC_USDT&type=fund",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/account_book?contract=BTC_USDT&type=fund&from=1672527600",
                 "input": [
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    1672527600000
                 ]
             },
             {
                 "description": "Fetch FundingHistory - future",
                 "method": "fetchFundingHistory",
-                "url": "https://api.gateio.ws/api/v4/delivery/usdt/account_book?contract=BTC_USDT_20240329&type=fund",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/account_book?contract=BTC_USDT_20240329&type=fund&from=1672527600",
                 "input": [
-                    "BTC/USDT:USDT-240329"
+                    "BTC/USDT:USDT-240329",
+                    1672527600000
                 ]
             }
         ],
@@ -563,6 +569,22 @@
                 "input": [
                     "BTC/USDT:USDT-240126-20000-C"
                 ]
+            },
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.gateio.ws/api/v4/spot/order_book?currency_pair=BTC_USDT&with_id=true",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/order_book?contract=BTC_USDT&with_id=true",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchTicker": [
@@ -596,6 +618,22 @@
                 "url": "https://api.gateio.ws/api/v4/options/tickers?contract=BTC_USDT-20240126-20000-C&underlying=BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT-240126-20000-C"
+                ]
+            },
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/tickers?contract=BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.gateio.ws/api/v4/spot/tickers?currency_pair=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -642,6 +680,28 @@
                         "BTC/USDT:USDT-240126-20000-C"
                     ]
                 ]
+            },
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.gateio.ws/api/v4/spot/tickers?timezone=utc0",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/tickers?timezone=utc0",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
             }
         ],
         "fetchOHLCV": [
@@ -668,11 +728,35 @@
                 "input": [
                     "BTC/USDT:USDT-240329"
                 ]
+            },
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1m&limit=1000",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1m&limit=1000",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchFundingRateHistory": [
             {
                 "description": "Fetch Funding Rate History - swap",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/funding_rate?contract=BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fundingRateHistory",
                 "method": "fetchFundingRateHistory",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/funding_rate?contract=BTC_USDT",
                 "input": [
@@ -711,6 +795,22 @@
                 "url": "https://api.gateio.ws/api/v4/options/trades?contract=BTC_USDT-20240126-20000-C",
                 "input": [
                     "BTC/USDT:USDT-240126-20000-C"
+                ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.gateio.ws/api/v4/spot/trades?currency_pair=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/trades?contract=BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -951,7 +1051,7 @@
             }
         ],
         "borrowIsolatedMargin": [
-            {           
+            {
                 "description": "Borrow 1 USDT in the XRP/USDT Isolated market",
                 "method": "borrowIsolatedMargin",
                 "url": "https://api.gateio.ws/api/v4/margin/uni/loans",
@@ -982,16 +1082,26 @@
                 "method": "closePosition",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
                 "input": [
-                  "XRP/USDT:USDT"
+                    "XRP/USDT:USDT"
                 ],
                 "output": "{\"contract\":\"XRP_USDT\",\"size\":0,\"price\":0,\"tif\":\"ioc\",\"close\":true}"
-              }
+            }
         ],
         "fetchMarketLeverageTiers": [
             {
                 "description": "fetchMarketLeverageTiers",
                 "method": "fetchMarketLeverageTiers",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/risk_limit_tiers?contract=BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/contracts/BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]

@@ -566,5 +566,114 @@
         "percentage": true,
         "taker": 0.002,
         "maker": 0.002
+    },
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.002,
+        "maker": 0.002,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0006
+            },
+            "price": {},
+            "cost": {
+                "min": 2
+            }
+        },
+        "info": {
+            "order_types": [
+                "LIMIT",
+                "MARKET"
+            ],
+            "quote_asset": "USDT",
+            "minimum_value": "2",
+            "amount_precision": "4",
+            "status": "TRADING",
+            "minimum_amount": "0.0006",
+            "symbol": "ETH_USDT",
+            "is_allow": "1",
+            "zone": "MAIN",
+            "base_asset": "ETH",
+            "price_precision": "2"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETHUSDTPERP",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": 0.01,
+        "precision": {
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 0.01
+            },
+            "cost": {}
+        },
+        "info": {
+            "instrument_id": "ETHUSDTPERP",
+            "type": "REAL",
+            "contract_type": "PERPETUAL",
+            "base_currency": "ETH",
+            "quote_currency": "USDT",
+            "clear_currency": "USDT",
+            "contract_value": "0.01",
+            "contract_value_currency": "ETH",
+            "is_inverse": false,
+            "is_trading": true,
+            "status": "ONLINE",
+            "price_precision": "2",
+            "tick_size": "0.01",
+            "min_order_amount": "1",
+            "open_max_limits": [
+                {
+                    "leverage": "50",
+                    "max_limit": "1000000"
+                }
+            ]
+        },
+        "tierBased": true,
+        "percentage": true
     }
 }
