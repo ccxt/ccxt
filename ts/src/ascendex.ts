@@ -3173,7 +3173,7 @@ export default class ascendex extends Exchange {
         const account = this.safeDict (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const currency = this.currency (code);
-        const preciseAmount = this.currencyToPrecision (code, amount);
+        const preciseAmount = this.currencyToPrecision (code, this.numberToString (amount));
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);

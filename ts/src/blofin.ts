@@ -1759,7 +1759,7 @@ export default class blofin extends Exchange {
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
             'currency': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'fromAccount': fromId,
             'toAccount': toId,
         };

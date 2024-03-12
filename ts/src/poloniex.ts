@@ -1871,7 +1871,7 @@ export default class poloniex extends Exchange {
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'currency': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,

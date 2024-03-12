@@ -3635,7 +3635,7 @@ export default class kucoin extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const requestedAmount = this.currencyToPrecision (code, amount);
+        const requestedAmount = this.currencyToPrecision (code, this.numberToString (amount));
         let fromId = this.convertTypeToAccount (fromAccount);
         let toId = this.convertTypeToAccount (toAccount);
         const fromIsolated = this.inArray (fromId, this.ids);
@@ -4249,7 +4249,7 @@ export default class kucoin extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            'size': this.currencyToPrecision (code, amount),
+            'size': this.currencyToPrecision (code, this.numberToString (amount)),
             'timeInForce': 'FOK',
         };
         const response = await this.privatePostMarginBorrow (this.extend (request, params));
@@ -4287,7 +4287,7 @@ export default class kucoin extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            'size': this.currencyToPrecision (code, amount),
+            'size': this.currencyToPrecision (code, this.numberToString (amount)),
             'symbol': market['id'],
             'timeInForce': 'FOK',
             'isIsolated': true,

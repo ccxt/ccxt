@@ -2582,7 +2582,7 @@ export default class hitbtc extends Exchange {
         // account can be "spot", "wallet", or "derivatives"
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const requestAmount = this.currencyToPrecision (code, amount);
+        const requestAmount = this.currencyToPrecision (code, this.numberToString (amount));
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         fromAccount = fromAccount.toLowerCase ();
         toAccount = toAccount.toLowerCase ();

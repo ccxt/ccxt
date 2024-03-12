@@ -5552,7 +5552,7 @@ export default class okx extends Exchange {
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
             'ccy': currency['id'],
-            'amt': this.currencyToPrecision (code, amount),
+            'amt': this.currencyToPrecision (code, this.numberToString (amount)),
             'type': '0', // 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account, 3 = sub-account to master account (Only applicable to APIKey from sub-account), 4 = sub-account to sub-account
             'from': fromId, // remitting account, 6: Funding account, 18: Trading account
             'to': toId, // beneficiary account, 6: Funding account, 18: Trading account
@@ -6719,7 +6719,7 @@ export default class okx extends Exchange {
         const currency = this.currency (code);
         const request = {
             'ccy': currency['id'],
-            'amt': this.currencyToPrecision (code, amount),
+            'amt': this.currencyToPrecision (code, this.numberToString (amount)),
             'side': 'borrow',
         };
         const response = await this.privatePostAccountBorrowRepay (this.extend (request, params));

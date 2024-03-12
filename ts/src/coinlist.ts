@@ -1754,7 +1754,7 @@ export default class coinlist extends Exchange {
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromAcc = this.safeString (accountsByType, fromAccount, fromAccount);
@@ -2004,7 +2004,7 @@ export default class coinlist extends Exchange {
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'destination_address': address,
         };
         const response = await this.privatePostV1TransfersWithdrawalRequest (this.extend (request, params));

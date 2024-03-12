@@ -3012,7 +3012,7 @@ export default class bingx extends Exchange {
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request: Dict = {
             'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'type': fromId + '_' + toId,
         };
         const response = await this.spotV3PrivateGetGetAssetTransfer (this.extend (request, params));

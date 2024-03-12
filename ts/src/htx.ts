@@ -6373,15 +6373,15 @@ export default class htx extends Exchange {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        amount = parseFloat (this.currencyToPrecision (code, amount, networkCode));
+        amount = parseFloat (this.currencyToPrecision (code, this.numberToString (amount), networkCode));
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
-            let fee = this.safeNumber (params, 'fee');
+            let fee = this.safeString (params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies ();
                 this.currencies = this.deepExtend (this.currencies, currencies);
                 const targetNetwork = this.safeValue (currency['networks'], networkCode, {});
-                fee = this.safeNumber (targetNetwork, 'fee');
+                fee = this.safeString (targetNetwork, 'fee');
                 if (fee === undefined) {
                     throw new ArgumentsRequired (this.id + ' withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with "exchange.loadMarkets(true)", or provide the "fee" parameter');
                 }
@@ -6390,8 +6390,7 @@ export default class htx extends Exchange {
             const feeString = this.currencyToPrecision (code, fee, networkCode);
             params = this.omit (params, 'fee');
             const amountString = this.numberToString (amount);
-            const amountSubtractedString = Precise.stringSub (amountString, feeString);
-            const amountSubtracted = parseFloat (amountSubtractedString);
+            const amountSubtracted = Precise.stringSub (amountString, feeString);
             request['fee'] = parseFloat (feeString);
             amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode));
         }
@@ -6455,7 +6454,7 @@ export default class htx extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            'amount': parseFloat (this.currencyToPrecision (code, amount)),
+            'amount': parseFloat (this.currencyToPrecision (code, this.numberToString (amount))),
         };
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
@@ -8361,7 +8360,7 @@ export default class htx extends Exchange {
         const market = this.market (symbol);
         const request = {
             'currency': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'symbol': market['id'],
         };
         const response = await this.privatePostMarginOrders (this.extend (request, params));
@@ -8395,7 +8394,7 @@ export default class htx extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         const response = await this.privatePostCrossMarginOrders (this.extend (request, params));
         //

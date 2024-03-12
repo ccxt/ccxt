@@ -1261,7 +1261,7 @@ export default class onetrading extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency': code,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             // 'payout_account_id': '66756a10-3e86-48f4-9678-b634c4b135b2', // fiat only
             // 'recipient': { // crypto only
             //     'address': address,

@@ -1245,7 +1245,7 @@ export default class wavesexchange extends Exchange {
         return this.parseToInt (parseFloat (amountPrecision));
     }
 
-    currencyToPrecision (code: string, fee: number, networkCode: Str = undefined): string {
+    currencyToPrecision (code: string, fee: string, networkCode: Str = undefined): string {
         const amountPrecision = this.numberToString (this.toPrecision (fee, this.currencies[code]['precision']));
         return amountPrecision;
     }
@@ -2542,7 +2542,7 @@ export default class wavesexchange extends Exchange {
         const feeAssetId = 'WAVES';
         const type = 4;  // transfer
         const version = 2;
-        const preciseAmount = this.currencyToPrecision (code, amount);
+        const preciseAmount = this.currencyToPrecision (code, this.numberToString (amount));
         const amountInteger = this.parseToInt (this.parseNumber (preciseAmount));
         const currency = this.currency (code);
         const timestamp = this.milliseconds ();

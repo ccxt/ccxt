@@ -7456,7 +7456,7 @@ export default class bitget extends Exchange {
         const currency = this.currency (code);
         const request = {
             'coin': currency['code'],
-            'borrowAmount': this.currencyToPrecision (code, amount),
+            'borrowAmount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         const response = await this.privateMarginPostV2MarginCrossedAccountBorrow (this.extend (request, params));
         //
@@ -7492,7 +7492,7 @@ export default class bitget extends Exchange {
         const market = this.market (symbol);
         const request = {
             'coin': currency['code'],
-            'borrowAmount': this.currencyToPrecision (code, amount),
+            'borrowAmount': this.currencyToPrecision (code, this.numberToString (amount)),
             'symbol': market['id'],
         };
         const response = await this.privateMarginPostV2MarginIsolatedAccountBorrow (this.extend (request, params));
