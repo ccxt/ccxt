@@ -41,15 +41,18 @@ define('PATH_TO_CCXT_ASYNC', PATH_TO_CCXT . 'async' . DIRECTORY_SEPARATOR);
 spl_autoload_register(function ($class) {
     // used to include static dependencies
     $PATH = PATH_TO_CCXT . 'static_dependencies/';
-    if (strpos($class, 'kornrunner') !== false) {
+    if (strpos($class, 'kornrunner') !== false || strpos($class, 'Web3') !== false) {
         $version = phpversion();
         if (intval(explode('.', $version)[0]) < 7) {
             throw new \RuntimeException($class . " requires php7 or greater, your version: " . $version);
         }
     }
-    $class_name = str_replace('kornrunner\\Solidity', 'kornrunner/solidity/src/Solidity', $class);
-    $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class_name);
+    $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class);
+    $class_name = str_replace('Web3\\', 'web3.php/src/', $class_name);
+    $class_name = str_replace('phpseclib\\Math\\BigInteger', 'phpseclib/Math/BigInteger', $class_name);
     $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
+    $class_name = str_replace('Ratchet\\Client', 'ratchet\\pawl\\src', $class_name);
+    $class_name = str_replace('Ratchet\\RFC6455', 'ratchet\\rfc6455\\src', $class_name);
     $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
     $file = $PATH . $class_name . '.php';
     if (file_exists($file)) {
@@ -66,6 +69,8 @@ require_once PATH_TO_CCXT . 'AccountSuspended.php';
 require_once PATH_TO_CCXT . 'ArgumentsRequired.php';
 require_once PATH_TO_CCXT . 'BadRequest.php';
 require_once PATH_TO_CCXT . 'BadSymbol.php';
+require_once PATH_TO_CCXT . 'OperationRejected.php';
+require_once PATH_TO_CCXT . 'NoChange.php';
 require_once PATH_TO_CCXT . 'MarginModeAlreadySet.php';
 require_once PATH_TO_CCXT . 'BadResponse.php';
 require_once PATH_TO_CCXT . 'NullResponse.php';
@@ -81,6 +86,8 @@ require_once PATH_TO_CCXT . 'OrderNotFillable.php';
 require_once PATH_TO_CCXT . 'DuplicateOrderId.php';
 require_once PATH_TO_CCXT . 'ContractUnavailable.php';
 require_once PATH_TO_CCXT . 'NotSupported.php';
+require_once PATH_TO_CCXT . 'ProxyError.php';
+require_once PATH_TO_CCXT . 'OperationFailed.php';
 require_once PATH_TO_CCXT . 'NetworkError.php';
 require_once PATH_TO_CCXT . 'DDoSProtection.php';
 require_once PATH_TO_CCXT . 'RateLimitExceeded.php';
@@ -88,6 +95,7 @@ require_once PATH_TO_CCXT . 'ExchangeNotAvailable.php';
 require_once PATH_TO_CCXT . 'OnMaintenance.php';
 require_once PATH_TO_CCXT . 'InvalidNonce.php';
 require_once PATH_TO_CCXT . 'RequestTimeout.php';
+require_once PATH_TO_CCXT . 'ExchangeClosedByUser.php';
 
 
 require_once PATH_TO_WS_CCXT . 'ClientTrait.php';

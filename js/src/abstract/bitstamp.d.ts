@@ -10,6 +10,11 @@ interface Exchange {
     publicGetTradingPairsInfo(params?: {}): Promise<implicitReturnType>;
     publicGetCurrencies(params?: {}): Promise<implicitReturnType>;
     publicGetEurUsd(params?: {}): Promise<implicitReturnType>;
+    publicGetTravelRuleVasps(params?: {}): Promise<implicitReturnType>;
+    privateGetTravelRuleContacts(params?: {}): Promise<implicitReturnType>;
+    privateGetContactsContactUuid(params?: {}): Promise<implicitReturnType>;
+    privateGetEarnSubscriptions(params?: {}): Promise<implicitReturnType>;
+    privateGetEarnTransactions(params?: {}): Promise<implicitReturnType>;
     privatePostAccountBalances(params?: {}): Promise<implicitReturnType>;
     privatePostAccountBalancesCurrency(params?: {}): Promise<implicitReturnType>;
     privatePostBalance(params?: {}): Promise<implicitReturnType>;
@@ -35,6 +40,7 @@ interface Exchange {
     privatePostTransferFromMain(params?: {}): Promise<implicitReturnType>;
     privatePostMyTradingPairs(params?: {}): Promise<implicitReturnType>;
     privatePostFeesTrading(params?: {}): Promise<implicitReturnType>;
+    privatePostFeesTradingPair(params?: {}): Promise<implicitReturnType>;
     privatePostFeesWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostFeesWithdrawalCurrency(params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawalRequests(params?: {}): Promise<implicitReturnType>;
@@ -207,6 +213,26 @@ interface Exchange {
     privatePostDgldAddress(params?: {}): Promise<implicitReturnType>;
     privatePostLdoWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostLdoAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostTravelRuleContacts(params?: {}): Promise<implicitReturnType>;
+    privatePostEarnSubscribe(params?: {}): Promise<implicitReturnType>;
+    privatePostEarnSubscriptionsSetting(params?: {}): Promise<implicitReturnType>;
+    privatePostEarnUnsubscribe(params?: {}): Promise<implicitReturnType>;
+    privatePostWecanWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostWecanAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostTracWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostTracAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostEurcvWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostEurcvAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostPyusdWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostPyusdAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostLmwrWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostLmwrAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostPepeWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostPepeAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostBlurWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostBlurAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostVextWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostVextAddress(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

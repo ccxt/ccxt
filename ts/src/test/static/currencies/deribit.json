@@ -1,0 +1,94 @@
+{
+    "BTC": {
+        "info": {
+            "in_cross_collateral_pool": true,
+            "currency_long": "Bitcoin",
+            "min_confirmations": "1",
+            "withdrawal_priorities": [],
+            "coin_type": "BTC",
+            "fee_precision": "5",
+            "min_withdrawal_fee": "0.00001",
+            "withdrawal_fee": "0.00013",
+            "currency": "BTC"
+        },
+        "code": "BTC",
+        "id": "BTC",
+        "name": "Bitcoin",
+        "fee": 0.00013,
+        "precision": 0.00001,
+        "limits": {
+            "amount": {},
+            "withdraw": {},
+            "deposit": {}
+        }
+    },
+    "USDT": {
+        "info": {
+            "in_cross_collateral_pool": true,
+            "currency_long": "USDT",
+            "min_confirmations": "1",
+            "withdrawal_priorities": [],
+            "coin_type": "USDT",
+            "fee_precision": "4",
+            "min_withdrawal_fee": "0.0001",
+            "withdrawal_fee": "2.7383",
+            "currency": "USDT"
+        },
+        "code": "USDT",
+        "id": "USDT",
+        "name": "USDT",
+        "fee": 2.7383,
+        "precision": 0.0001,
+        "limits": {
+            "amount": {},
+            "withdraw": {},
+            "deposit": {}
+        }
+    },
+    "ETH": {
+        "info": {
+            "in_cross_collateral_pool": true,
+            "currency_long": "Ethereum",
+            "min_confirmations": "50",
+            "withdrawal_priorities": [],
+            "coin_type": "ETH",
+            "fee_precision": "4",
+            "min_withdrawal_fee": "0.0001",
+            "withdrawal_fee": "0.0008",
+            "currency": "ETH"
+        },
+        "code": "ETH",
+        "id": "ETH",
+        "name": "Ethereum",
+        "fee": 0.0008,
+        "precision": 0.0001,
+        "limits": {
+            "amount": {},
+            "withdraw": {},
+            "deposit": {}
+        }
+    },
+    "USDC": {
+        "info": {
+            "in_cross_collateral_pool": true,
+            "currency_long": "USD Coin",
+            "min_confirmations": "50",
+            "withdrawal_priorities": [],
+            "coin_type": "USDC",
+            "fee_precision": "4",
+            "min_withdrawal_fee": "10.0",
+            "withdrawal_fee": "10.0",
+            "currency": "USDC"
+        },
+        "code": "USDC",
+        "id": "USDC",
+        "name": "USD Coin",
+        "fee": 10,
+        "precision": 0.0001,
+        "limits": {
+            "amount": {},
+            "withdraw": {},
+            "deposit": {}
+        }
+    }
+}

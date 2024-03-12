@@ -2,7 +2,6 @@
 
 var bitrue$1 = require('../bitrue.js');
 var Cache = require('../base/ws/Cache.js');
-var errors = require('../base/errors.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -58,8 +57,8 @@ class bitrue extends bitrue$1 {
          * @name bitrue#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-         * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const url = await this.authenticate();
         const messageHash = 'balance';
@@ -75,47 +74,47 @@ class bitrue extends bitrue$1 {
     handleBalance(client, message) {
         //
         //     {
-        //         e: 'BALANCE',
-        //         x: 'OutboundAccountPositionTradeEvent',
-        //         E: 1657799510175,
-        //         I: '302274978401288200',
-        //         i: 1657799510175,
-        //         B: [{
-        //                 a: 'btc',
-        //                 F: '0.0006000000000000',
-        //                 T: 1657799510000,
-        //                 f: '0.0006000000000000',
-        //                 t: 0
+        //         "e": "BALANCE",
+        //         "x": "OutboundAccountPositionTradeEvent",
+        //         "E": 1657799510175,
+        //         "I": "302274978401288200",
+        //         "i": 1657799510175,
+        //         "B": [{
+        //                 "a": "btc",
+        //                 "F": "0.0006000000000000",
+        //                 "T": 1657799510000,
+        //                 "f": "0.0006000000000000",
+        //                 "t": 0
         //             },
         //             {
-        //                 a: 'usdt',
-        //                 T: 0,
-        //                 L: '0.0000000000000000',
-        //                 l: '-11.8705317318000000',
-        //                 t: 1657799510000
+        //                 "a": "usdt",
+        //                 "T": 0,
+        //                 "L": "0.0000000000000000",
+        //                 "l": "-11.8705317318000000",
+        //                 "t": 1657799510000
         //             }
         //         ],
-        //         u: 1814396
+        //         "u": 1814396
         //     }
         //
         //     {
-        //      e: 'BALANCE',
-        //      x: 'OutboundAccountPositionOrderEvent',
-        //      E: 1670051332478,
-        //      I: '353662845694083072',
-        //      i: 1670051332478,
-        //      B: [
+        //      "e": "BALANCE",
+        //      "x": "OutboundAccountPositionOrderEvent",
+        //      "E": 1670051332478,
+        //      "I": "353662845694083072",
+        //      "i": 1670051332478,
+        //      "B": [
         //        {
-        //          a: 'eth',
-        //          F: '0.0400000000000000',
-        //          T: 1670051332000,
-        //          f: '-0.0100000000000000',
-        //          L: '0.0100000000000000',
-        //          l: '0.0100000000000000',
-        //          t: 1670051332000
+        //          "a": "eth",
+        //          "F": "0.0400000000000000",
+        //          "T": 1670051332000,
+        //          "f": "-0.0100000000000000",
+        //          "L": "0.0100000000000000",
+        //          "l": "0.0100000000000000",
+        //          "t": 1670051332000
         //        }
         //      ],
-        //      u: 2285311
+        //      "u": 2285311
         //    }
         //
         const balances = this.safeValue(message, 'B', []);
@@ -126,18 +125,18 @@ class bitrue extends bitrue$1 {
     parseWSBalances(balances) {
         //
         //    [{
-        //         a: 'btc',
-        //         F: '0.0006000000000000',
-        //         T: 1657799510000,
-        //         f: '0.0006000000000000',
-        //         t: 0
+        //         "a": "btc",
+        //         "F": "0.0006000000000000",
+        //         "T": 1657799510000,
+        //         "f": "0.0006000000000000",
+        //         "t": 0
         //     },
         //     {
-        //         a: 'usdt',
-        //         T: 0,
-        //         L: '0.0000000000000000',
-        //         l: '-11.8705317318000000',
-        //         t: 1657799510000
+        //         "a": "usdt",
+        //         "T": 0,
+        //         "L": "0.0000000000000000",
+        //         "l": "-11.8705317318000000",
+        //         "t": 1657799510000
         //     }]
         //
         this.balance['info'] = balances;
@@ -173,8 +172,8 @@ class bitrue extends bitrue$1 {
          * @param {string[]} symbols unified symbols of the market to watch the orders for
          * @param {int} [since] timestamp in ms of the earliest order
          * @param {int} [limit] the maximum amount of orders to return
-         * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @returns {object} A dictionary of [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
          */
         await this.loadMarkets();
         if (symbol !== undefined) {
@@ -199,25 +198,25 @@ class bitrue extends bitrue$1 {
     handleOrder(client, message) {
         //
         //    {
-        //        e: 'ORDER',
-        //        i: 16122802798,
-        //        E: 1657882521876,
-        //        I: '302623154710888464',
-        //        u: 1814396,
-        //        s: 'btcusdt',
-        //        S: 2,
-        //        o: 1,
-        //        q: '0.0005',
-        //        p: '60000',
-        //        X: 0,
-        //        x: 1,
-        //        z: '0',
-        //        n: '0',
-        //        N: 'usdt',
-        //        O: 1657882521876,
-        //        L: '0',
-        //        l: '0',
-        //        Y: '0'
+        //        "e": "ORDER",
+        //        "i": 16122802798,
+        //        "E": 1657882521876,
+        //        "I": "302623154710888464",
+        //        "u": 1814396,
+        //        "s": "btcusdt",
+        //        "S": 2,
+        //        "o": 1,
+        //        "q": "0.0005",
+        //        "p": "60000",
+        //        "X": 0,
+        //        "x": 1,
+        //        "z": "0",
+        //        "n": "0",
+        //        "N": "usdt",
+        //        "O": 1657882521876,
+        //        "L": "0",
+        //        "l": "0",
+        //        "Y": "0"
         //    }
         //
         const parsed = this.parseWsOrder(message);
@@ -233,25 +232,25 @@ class bitrue extends bitrue$1 {
     parseWsOrder(order, market = undefined) {
         //
         //    {
-        //        e: 'ORDER',
-        //        i: 16122802798,
-        //        E: 1657882521876,
-        //        I: '302623154710888464',
-        //        u: 1814396,
-        //        s: 'btcusdt',
-        //        S: 2,
-        //        o: 1,
-        //        q: '0.0005',
-        //        p: '60000',
-        //        X: 0,
-        //        x: 1,
-        //        z: '0',
-        //        n: '0',
-        //        N: 'usdt',
-        //        O: 1657882521876,
-        //        L: '0',
-        //        l: '0',
-        //        Y: '0'
+        //        "e": "ORDER",
+        //        "i": 16122802798,
+        //        "E": 1657882521876,
+        //        "I": "302623154710888464",
+        //        "u": 1814396,
+        //        "s": "btcusdt",
+        //        "S": 2,
+        //        "o": 1,
+        //        "q": "0.0005",
+        //        "p": "60000",
+        //        "X": 0,
+        //        "x": 1,
+        //        "z": "0",
+        //        "n": "0",
+        //        "N": "usdt",
+        //        "O": 1657882521876,
+        //        "L": "0",
+        //        "l": "0",
+        //        "Y": "0"
         //    }
         //
         const timestamp = this.safeInteger(order, 'E');
@@ -290,9 +289,6 @@ class bitrue extends bitrue$1 {
         }, market);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchOrderBook() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -350,7 +346,12 @@ class bitrue extends bitrue$1 {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(message, 'ts');
         const tick = this.safeValue(message, 'tick', {});
-        const orderbook = this.parseOrderBook(tick, symbol, timestamp, 'buys', 'asks');
+        let orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook();
+        }
+        const snapshot = this.parseOrderBook(tick, symbol, timestamp, 'buys', 'asks');
+        orderbook.reset(snapshot);
         this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
@@ -418,7 +419,7 @@ class bitrue extends bitrue$1 {
             catch (error) {
                 this.options['listenKey'] = undefined;
                 this.options['listenKeyUrl'] = undefined;
-                return;
+                return undefined;
             }
             //
             //     {

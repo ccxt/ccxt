@@ -1,0 +1,359 @@
+{
+    "BTC/USDT": {
+        "id": "448d1629-e69f-4934-bb61-3f8992626072",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        "quoteId": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-7,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "448d1629-e69f-4934-bb61-3f8992626072",
+            "status": "PAIR_STATUS_ACTIVE",
+            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            "priceTick": "0.01",
+            "priceDecimals": "2",
+            "quantityTick": "0.0000001",
+            "quantityDecimals": "7",
+            "costDisplayDecimals": "2",
+            "created": "1572957250862",
+            "minOrderQuantity": "0.00001",
+            "maxOrderCostUsd": "999999999999999999",
+            "minOrderCostUsd": "0",
+            "externalSymbol": "",
+            "popularity": "80"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0049,
+        "maker": 0.0049,
+        "feeSide": "get",
+        "created": 1572957250862
+    },
+    "LTC/USDT": {
+        "id": "c74a1f24-79a1-4f4b-b3f8-6682485972f1",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "0d02fdfc-9555-4cd9-8398-006003033a9e",
+        "quoteId": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 0
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "c74a1f24-79a1-4f4b-b3f8-6682485972f1",
+            "status": "PAIR_STATUS_ACTIVE",
+            "baseCurrency": "0d02fdfc-9555-4cd9-8398-006003033a9e",
+            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            "priceTick": "0.0001",
+            "priceDecimals": "4",
+            "quantityTick": "0.00001",
+            "quantityDecimals": "5",
+            "costDisplayDecimals": "4",
+            "created": "1572957371393",
+            "minOrderQuantity": "0",
+            "maxOrderCostUsd": "999999999999999999",
+            "minOrderCostUsd": "0",
+            "externalSymbol": "",
+            "popularity": "80"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0049,
+        "maker": 0.0049,
+        "feeSide": "get",
+        "created": 1572957371393
+    },
+    "ADA/USDT": {
+        "id": "93761c64-1e0f-4316-b37d-6a3c0a4a1f4a",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "2bbddbd3-b346-4683-b7ed-64190f123c98",
+        "quoteId": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 1e-8
+        },
+        "limits": {
+            "amount": {
+                "min": 0
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "93761c64-1e0f-4316-b37d-6a3c0a4a1f4a",
+            "status": "PAIR_STATUS_ACTIVE",
+            "baseCurrency": "2bbddbd3-b346-4683-b7ed-64190f123c98",
+            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            "priceTick": "0.00000001",
+            "priceDecimals": "8",
+            "quantityTick": "0.00001",
+            "quantityDecimals": "5",
+            "costDisplayDecimals": "10",
+            "created": "1588098442078",
+            "minOrderQuantity": "0",
+            "maxOrderCostUsd": "999999999999999999",
+            "minOrderCostUsd": "0",
+            "externalSymbol": "",
+            "popularity": "81"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0049,
+        "maker": 0.0049,
+        "feeSide": "get",
+        "created": 1588098442078
+    },
+    "XRP/USDT": {
+        "id": "88dd5643-81d6-48e7-bb0f-7af73c4f5100",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "f5a0d630-7866-4382-aaf8-77b1222f8139",
+        "quoteId": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 1e-7
+        },
+        "limits": {
+            "amount": {
+                "min": 0
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "88dd5643-81d6-48e7-bb0f-7af73c4f5100",
+            "status": "PAIR_STATUS_ACTIVE",
+            "baseCurrency": "f5a0d630-7866-4382-aaf8-77b1222f8139",
+            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            "priceTick": "0.0000001",
+            "priceDecimals": "7",
+            "quantityTick": "0.01",
+            "quantityDecimals": "2",
+            "costDisplayDecimals": "7",
+            "created": "1572957387676",
+            "minOrderQuantity": "0",
+            "maxOrderCostUsd": "999999999999999999",
+            "minOrderCostUsd": "0",
+            "externalSymbol": "",
+            "popularity": "81"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0049,
+        "maker": 0.0049,
+        "feeSide": "get",
+        "created": 1572957387676
+    },
+    "SOL/USDT": {
+        "id": "0ef52c7c-1d1c-44c2-a19c-5fe2377a91b1",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "64a148cd-7975-49a4-a812-a36d7effb27c",
+        "quoteId": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 1e-8
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "0ef52c7c-1d1c-44c2-a19c-5fe2377a91b1",
+            "status": "PAIR_STATUS_ACTIVE",
+            "baseCurrency": "64a148cd-7975-49a4-a812-a36d7effb27c",
+            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            "priceTick": "0.000000010000000000",
+            "priceDecimals": "8",
+            "quantityTick": "0.001000000",
+            "quantityDecimals": "3",
+            "costDisplayDecimals": "8",
+            "created": "1622547826687",
+            "minOrderQuantity": "0.0001",
+            "maxOrderCostUsd": "999999999999999999",
+            "minOrderCostUsd": "0",
+            "externalSymbol": "",
+            "popularity": "60"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0049,
+        "maker": 0.0049,
+        "feeSide": "get",
+        "created": 1622547826687
+    },
+    "TRX/USDT": {
+        "id": "8af898d2-ddf3-4bb9-9af4-6491daaf7081",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "34629b4b-753c-4537-865f-4b62ff1a31d6",
+        "quoteId": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 1e-7
+        },
+        "limits": {
+            "amount": {
+                "min": 0
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "8af898d2-ddf3-4bb9-9af4-6491daaf7081",
+            "status": "PAIR_STATUS_ACTIVE",
+            "baseCurrency": "34629b4b-753c-4537-865f-4b62ff1a31d6",
+            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            "priceTick": "0.0000001",
+            "priceDecimals": "7",
+            "quantityTick": "0.001",
+            "quantityDecimals": "3",
+            "costDisplayDecimals": "7",
+            "created": "1572957215231",
+            "minOrderQuantity": "0",
+            "maxOrderCostUsd": "999999999999999999",
+            "minOrderCostUsd": "0",
+            "externalSymbol": "",
+            "popularity": "82"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0049,
+        "maker": 0.0049,
+        "feeSide": "get",
+        "created": 1572957215231
+    },
+    "ETH/USDT": {
+        "id": "1e8c0f3b-b117-4d76-93a5-5172a5c33741",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        "quoteId": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0049,
+        "maker": 0.0049,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1572957250706,
+        "info": {
+            "id": "1e8c0f3b-b117-4d76-93a5-5172a5c33741",
+            "status": "PAIR_STATUS_ACTIVE",
+            "baseCurrency": "620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            "priceTick": "0.010000000000000000",
+            "priceDecimals": "2",
+            "quantityTick": "0.000010000",
+            "quantityDecimals": "5",
+            "costDisplayDecimals": "2",
+            "created": "1572957250706",
+            "minOrderQuantity": "0.00001",
+            "maxOrderCostUsd": "999999999999999999",
+            "minOrderCostUsd": "0",
+            "externalSymbol": "",
+            "popularity": "80"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
+    }
+}

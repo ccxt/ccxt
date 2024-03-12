@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import coinbaseRest from '../coinbase.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -15,14 +15,23 @@ export default class coinbase extends coinbaseRest {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'cancelAllOrdersWs': false,
+                'cancelOrdersWs': false,
+                'cancelOrderWs': false,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchBalanceWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'fetchTradesWs': false,
+                'watchBalance': false,
+                'watchMyTrades': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
-                'watchBalance': false,
-                'watchOrders': true,
-                'watchMyTrades': false,
             },
             'urls': {
                 'api': {
@@ -48,7 +57,7 @@ export default class coinbase extends coinbaseRest {
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
          * @param {string} name the name of the channel
          * @param {string|string[]} [symbol] unified market symbol
-         * @param {object} [params] extra parameters specific to the cex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} subscription to a websocket channel
          */
         await this.loadMarkets();
@@ -87,8 +96,8 @@ export default class coinbase extends coinbaseRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
          * @param {string} [symbol] unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const name = 'ticker';
         return await this.subscribe(name, symbol, params);
@@ -100,15 +109,18 @@ export default class coinbase extends coinbaseRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
          * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         if (symbols === undefined) {
-            throw new ArgumentsRequired(this.id + ' watchTickers requires a symbols argument');
+            symbols = this.symbols;
         }
         const name = 'ticker_batch';
         const tickers = await this.subscribe(name, symbols, params);
-        return tickers;
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.tickers;
     }
     handleTickers(client, message) {
         //
@@ -241,8 +253,8 @@ export default class coinbase extends coinbaseRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -261,9 +273,9 @@ export default class coinbase extends coinbaseRest {
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const name = 'user';
@@ -281,8 +293,8 @@ export default class coinbase extends coinbaseRest {
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const name = 'level2';
@@ -329,12 +341,11 @@ export default class coinbase extends coinbaseRest {
             this.trades[symbol] = tradesArray;
         }
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
-            const trades = this.safeValue(event, 'trades');
-            for (let i = 0; i < trades.length; i++) {
-                const item = trades[i];
-                const trade = this.parseTrade(item);
-                tradesArray.append(trade);
+            const currentEvent = events[i];
+            const currentTrades = this.safeValue(currentEvent, 'trades');
+            for (let j = 0; j < currentTrades.length; j++) {
+                const item = currentTrades[i];
+                tradesArray.append(this.parseTrade(item));
             }
         }
         client.resolve(tradesArray, messageHash);
@@ -453,7 +464,8 @@ export default class coinbase extends coinbaseRest {
             const side = this.safeString(this.options['sides'], sideId);
             const price = this.safeNumber(trade, 'price_level');
             const amount = this.safeNumber(trade, 'new_quantity');
-            orderbook[side].store(price, amount);
+            const orderbookSide = orderbook[side];
+            orderbookSide.store(price, amount);
         }
     }
     handleOrderBook(client, message) {
@@ -519,11 +531,11 @@ export default class coinbase extends coinbaseRest {
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         type: 'subscriptions',
-        //         channels: [
+        //         "type": "subscriptions",
+        //         "channels": [
         //             {
-        //                 name: 'level2',
-        //                 product_ids: [ 'ETH-BTC' ]
+        //                 "name": "level2",
+        //                 "product_ids": [ "ETH-BTC" ]
         //             }
         //         ]
         //     }
@@ -546,6 +558,6 @@ export default class coinbase extends coinbaseRest {
             throw new ExchangeError(errorMessage);
         }
         const method = this.safeValue(methods, channel);
-        return method.call(this, client, message);
+        method.call(this, client, message);
     }
 }

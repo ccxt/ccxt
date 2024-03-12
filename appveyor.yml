@@ -1,6 +1,9 @@
+image:
+  - Visual Studio 2022
+
 environment:
   matrix:
-    - nodejs_version: '16'
+    - nodejs_version: '20'
 install:
   - ps: Install-Product node $env:nodejs_version
   - set LIB=C:\OpenSSL-Win64\lib;%LIB%
@@ -10,11 +13,11 @@ install:
   - set PATH=%APPDATA%\npm;C:\Python38;C:\Python38\Scripts;%PATH%
   - npm install
   - python -m pip install --upgrade pip setuptools
-  - pip install tox cryptography requests # common packages
+  - pip install tox cryptography requests ruff # common packages
   - set PATH=C:\Program Files\curl;%PATH%
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
-  - cinst -y php --version 8.1.10 --allow-empty-checksums
+  - cinst -y php --version 8.1.12 --allow-empty-checksums
   - cinst composer -i -y
   # - php -i | findstr "php.ini"
   - cd c:\tools\php81

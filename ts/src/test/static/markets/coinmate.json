@@ -1,0 +1,61 @@
+{
+    "BTC/EUR": {
+        "active": null,
+        "base": "BTC",
+        "baseId": "BTC",
+        "contract": false,
+        "contractSize": null,
+        "created": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "future": false,
+        "id": "BTC_EUR",
+        "info": {
+            "firstCurrency": "BTC",
+            "lotDecimals": "8",
+            "minAmount": "0.0001",
+            "name": "BTC_EUR",
+            "orderBookWebSocketChannelId": null,
+            "priceDecimals": "1",
+            "secondCurrency": "EUR",
+            "tradeStatisticsWebSocketChannelId": null,
+            "tradesWebSocketChannelId": null
+        },
+        "inverse": null,
+        "limits": {
+            "amount": {
+                "max": null,
+                "min": 0.0001
+            },
+            "cost": {
+                "max": null,
+                "min": null
+            },
+            "leverage": {
+                "max": null,
+                "min": null
+            },
+            "price": {
+                "max": null,
+                "min": null
+            }
+        },
+        "linear": null,
+        "margin": false,
+        "option": false,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "quote": "EUR",
+        "quoteId": "EUR",
+        "settle": null,
+        "settleId": null,
+        "spot": true,
+        "strike": null,
+        "swap": false,
+        "symbol": "BTC/EUR",
+        "type": "spot"
+    }
+}
