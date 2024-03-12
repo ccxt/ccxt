@@ -978,35 +978,33 @@ export default class Exchange {
     async loadProxyModules () {
         // when loading markets, multiple parallel calls are made, so need one promise
         if (this.proxiesModulesLoading === undefined) {
-            this.proxiesModulesLoading = this.loadProxyModulesHelper ();
+            this.proxiesModulesLoading = (async () => {
+                // we have to handle it with below nested way, because of dynamic
+                // import issues (https://github.com/ccxt/ccxt/pull/20687)
+                try {
+                    // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+                    this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+                    this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+                } catch (e) {
+                    // if several users are using those frameworks which cause exceptions,
+                    // let them to be able to load modules still, by installing them
+                    try {
+                        // @ts-ignore
+                        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
+                        // @ts-ignore
+                        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
+                    } catch (e) { }
+                }
+                if (this.socksProxyAgentModuleChecked === false) {
+                    try {
+                        // @ts-ignore
+                        this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
+                    } catch (e) {}
+                    this.socksProxyAgentModuleChecked = true;
+                }
+            })();
         }
         return await this.proxiesModulesLoading;
-    }
-
-    async loadProxyModulesHelper () {
-        // we have to handle it with below nested way, because of dynamic
-        // import issues (https://github.com/ccxt/ccxt/pull/20687)
-        try {
-            // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-            this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-            this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
-        } catch (e) {
-            // if several users are using those frameworks which cause exceptions,
-            // let them to be able to load modules still, by installing them
-            try {
-                // @ts-ignore
-                this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
-                // @ts-ignore
-                this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
-            } catch (e) { }
-        }
-        if (this.socksProxyAgentModuleChecked === false) {
-            try {
-                // @ts-ignore
-                this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
-            } catch (e) {}
-            this.socksProxyAgentModuleChecked = true;
-        }
     }
 
     setProxyAgents (httpProxy, httpsProxy, socksProxy) {
