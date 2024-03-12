@@ -20,7 +20,8 @@ const skipMethods = [
 ]
 
 const skipExchanges = [
-    'someExchange'
+    'someExchange',
+    'bitteam'
     // place exchanges here
 ]
 
