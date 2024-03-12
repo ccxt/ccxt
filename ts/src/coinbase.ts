@@ -3367,7 +3367,6 @@ export default class coinbase extends Exchange {
         const pathPart = (version === 'v3') ? 'api/v3' : 'v2';
         let fullPath = '/' + pathPart + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const savedPath = fullPath;
         if (method === 'GET') {
             if (Object.keys (query).length) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat (query);
@@ -3406,7 +3405,7 @@ export default class coinbase extends Exchange {
                         payload = body;
                     }
                 }
-                const auth = nonce + method + savedPath + payload;
+                const auth = nonce + method + fullPath + payload;
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,
