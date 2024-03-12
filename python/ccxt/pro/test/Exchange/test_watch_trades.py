@@ -32,4 +32,5 @@ async def test_watch_trades(exchange, skipped_properties, symbol):
         now = exchange.milliseconds()
         for i in range(0, len(response)):
             test_trade(exchange, skipped_properties, method, response[i], symbol, now)
-        test_shared_methods.assert_timestamp_order(exchange, method, symbol, response)
+        if not ('timestamp' in skipped_properties):
+            test_shared_methods.assert_timestamp_order(exchange, method, symbol, response)

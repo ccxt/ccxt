@@ -167,6 +167,8 @@ interface Exchange {
     privateSpotPostV2SpotWalletTransfer(params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotWalletSubaccountTransfer(params?: {}): Promise<implicitReturnType>;
     privateSpotPostV2SpotWalletWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostV2SpotWalletCancelWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostV2SpotWalletModifyDepositAccount(params?: {}): Promise<implicitReturnType>;
     privateMixGetMixV1AccountAccount(params?: {}): Promise<implicitReturnType>;
     privateMixGetMixV1AccountAccounts(params?: {}): Promise<implicitReturnType>;
     privateMixGetMixV1PositionSinglePosition(params?: {}): Promise<implicitReturnType>;
@@ -469,7 +471,10 @@ interface Exchange {
     privateConvertGetV2ConvertCurrencies(params?: {}): Promise<implicitReturnType>;
     privateConvertGetV2ConvertQuotedPrice(params?: {}): Promise<implicitReturnType>;
     privateConvertGetV2ConvertConvertRecord(params?: {}): Promise<implicitReturnType>;
+    privateConvertGetV2ConvertBgbConvertCoinList(params?: {}): Promise<implicitReturnType>;
+    privateConvertGetV2ConvertBgbConvertRecords(params?: {}): Promise<implicitReturnType>;
     privateConvertPostV2ConvertTrade(params?: {}): Promise<implicitReturnType>;
+    privateConvertPostV2ConvertBgbConvert(params?: {}): Promise<implicitReturnType>;
     privateEarnGetV2EarnSavingsProduct(params?: {}): Promise<implicitReturnType>;
     privateEarnGetV2EarnSavingsAccount(params?: {}): Promise<implicitReturnType>;
     privateEarnGetV2EarnSavingsAssets(params?: {}): Promise<implicitReturnType>;

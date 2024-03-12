@@ -77,7 +77,7 @@ public partial class bitget : Exchange
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", false },
                 { "fetchLiquidations", false },
-                { "fetchMarginMode", false },
+                { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -352,6 +352,8 @@ public partial class bitget : Exchange
                             { "v2/spot/wallet/transfer", 2 },
                             { "v2/spot/wallet/subaccount-transfer", 2 },
                             { "v2/spot/wallet/withdrawal", 2 },
+                            { "v2/spot/wallet/cancel-withdrawal", 2 },
+                            { "v2/spot/wallet/modify-deposit-account", 2 },
                         } },
                     } },
                     { "mix", new Dictionary<string, object>() {
@@ -696,9 +698,12 @@ public partial class bitget : Exchange
                             { "v2/convert/currencies", 2 },
                             { "v2/convert/quoted-price", 2 },
                             { "v2/convert/convert-record", 2 },
+                            { "v2/convert/bgb-convert-coin-list", 2 },
+                            { "v2/convert/bgb-convert-records", 2 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v2/convert/trade", 2 },
+                            { "v2/convert/bgb-convert", 2 },
                         } },
                     } },
                     { "earn", new Dictionary<string, object>() {
@@ -5233,6 +5238,7 @@ public partial class bitget : Exchange
         * @name bitget#cancelAllOrders
         * @description cancel all open orders
         * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+        * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
         * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -5265,7 +5271,7 @@ public partial class bitget : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
         if (isTrue(getValue(market, "spot")))
@@ -5281,7 +5287,16 @@ public partial class bitget : Exchange
                 }
             } else
             {
-                response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, parameters));
+                if (isTrue(stop))
+                {
+                    object stopRequest = new Dictionary<string, object>() {
+                        { "symbolList", new List<object>() {getValue(market, "id")} },
+                    };
+                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder(this.extend(stopRequest, parameters));
+                } else
+                {
+                    response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, parameters));
+                }
             }
         } else
         {
@@ -8983,6 +8998,82 @@ public partial class bitget : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object orderInfo = this.safeValue(data, "successList", new List<object>() {});
         return this.parsePositions(orderInfo, null, parameters);
+    }
+
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#fetchMarginMode
+        * @description fetches the margin mode of a trading pair
+        * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+        * @param {string} symbol unified symbol of the market to fetch the margin mode for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object market = null;
+        if (isTrue(sandboxMode))
+        {
+            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
+            market = this.market(sandboxSymbol);
+        } else
+        {
+            market = this.market(symbol);
+        }
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "marginCoin", getValue(market, "settleId") },
+            { "productType", productType },
+        };
+        object response = await this.privateMixGetV2MixAccountAccount(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1709791216652,
+        //         "data": {
+        //             "marginCoin": "USDT",
+        //             "locked": "0",
+        //             "available": "19.88811074",
+        //             "crossedMaxAvailable": "19.88811074",
+        //             "isolatedMaxAvailable": "19.88811074",
+        //             "maxTransferOut": "19.88811074",
+        //             "accountEquity": "19.88811074",
+        //             "usdtEquity": "19.888110749166",
+        //             "btcEquity": "0.000302183391",
+        //             "crossedRiskRate": "0",
+        //             "crossedMarginLeverage": 20,
+        //             "isolatedLongLever": 20,
+        //             "isolatedShortLever": 20,
+        //             "marginMode": "crossed",
+        //             "posMode": "hedge_mode",
+        //             "unrealizedPL": "0",
+        //             "coupon": "0",
+        //             "crossedUnrealizedPL": "0",
+        //             "isolatedUnrealizedPL": ""
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseMarginMode(data, market);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marginType = this.safeString(marginMode, "marginMode");
+        marginType = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : marginType;
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", marginType },
+        };
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

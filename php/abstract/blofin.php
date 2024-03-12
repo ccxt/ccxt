@@ -58,6 +58,9 @@ abstract class blofin extends \ccxt\Exchange {
     public function private_get_account_leverage_info($params = array()) {
         return $this->request('account/leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_account_margin_mode($params = array()) {
+        return $this->request('account/margin-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_account_batch_leverage_info($params = array()) {
         return $this->request('account/batch-leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -147,6 +150,9 @@ abstract class blofin extends \ccxt\Exchange {
     }
     public function privateGetAccountLeverageInfo($params = array()) {
         return $this->request('account/leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAccountMarginMode($params = array()) {
+        return $this->request('account/margin-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetAccountBatchLeverageInfo($params = array()) {
         return $this->request('account/batch-leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));

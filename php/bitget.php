@@ -81,7 +81,7 @@ class bitget extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => false,
-                'fetchMarginMode' => false,
+                'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -368,6 +368,8 @@ class bitget extends Exchange {
                             'v2/spot/wallet/transfer' => 2,
                             'v2/spot/wallet/subaccount-transfer' => 2,
                             'v2/spot/wallet/withdrawal' => 2,
+                            'v2/spot/wallet/cancel-withdrawal' => 2,
+                            'v2/spot/wallet/modify-deposit-account' => 2,
                         ),
                     ),
                     'mix' => array(
@@ -712,9 +714,12 @@ class bitget extends Exchange {
                             'v2/convert/currencies' => 2,
                             'v2/convert/quoted-price' => 2,
                             'v2/convert/convert-record' => 2,
+                            'v2/convert/bgb-convert-coin-list' => 2,
+                            'v2/convert/bgb-convert-records' => 2,
                         ),
                         'post' => array(
                             'v2/convert/trade' => 2,
+                            'v2/convert/bgb-convert' => 2,
                         ),
                     ),
                     'earn' => array(
@@ -4805,6 +4810,7 @@ class bitget extends Exchange {
         /**
          * cancel all open orders
          * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+         * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
          * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -4831,7 +4837,7 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
         if ($market['spot']) {
@@ -4842,7 +4848,14 @@ class bitget extends Exchange {
                     $response = $this->privateMarginPostMarginV1IsolatedOrderBatchCancelOrder (array_merge($request, $params));
                 }
             } else {
-                $response = $this->privateSpotPostV2SpotTradeCancelSymbolOrder (array_merge($request, $params));
+                if ($stop) {
+                    $stopRequest = array(
+                        'symbolList' => [ $market['id'] ],
+                    );
+                    $response = $this->privateSpotPostV2SpotTradeBatchCancelPlanOrder (array_merge($stopRequest, $params));
+                } else {
+                    $response = $this->privateSpotPostV2SpotTradeCancelSymbolOrder (array_merge($request, $params));
+                }
             }
         } else {
             $productType = null;
@@ -8112,6 +8125,73 @@ class bitget extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $orderInfo = $this->safe_value($data, 'successList', array());
         return $this->parse_positions($orderInfo, null, $params);
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array ()): MarginMode {
+        /**
+         * fetches the margin mode of a trading pair
+         * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+         * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+         */
+        $this->load_markets();
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $market = null;
+        if ($sandboxMode) {
+            $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
+            $market = $this->market($sandboxSymbol);
+        } else {
+            $market = $this->market($symbol);
+        }
+        $productType = null;
+        list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+        $request = array(
+            'symbol' => $market['id'],
+            'marginCoin' => $market['settleId'],
+            'productType' => $productType,
+        );
+        $response = $this->privateMixGetV2MixAccountAccount (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1709791216652,
+        //         "data" => {
+        //             "marginCoin" => "USDT",
+        //             "locked" => "0",
+        //             "available" => "19.88811074",
+        //             "crossedMaxAvailable" => "19.88811074",
+        //             "isolatedMaxAvailable" => "19.88811074",
+        //             "maxTransferOut" => "19.88811074",
+        //             "accountEquity" => "19.88811074",
+        //             "usdtEquity" => "19.888110749166",
+        //             "btcEquity" => "0.000302183391",
+        //             "crossedRiskRate" => "0",
+        //             "crossedMarginLeverage" => 20,
+        //             "isolatedLongLever" => 20,
+        //             "isolatedShortLever" => 20,
+        //             "marginMode" => "crossed",
+        //             "posMode" => "hedge_mode",
+        //             "unrealizedPL" => "0",
+        //             "coupon" => "0",
+        //             "crossedUnrealizedPL" => "0",
+        //             "isolatedUnrealizedPL" => ""
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_margin_mode($data, $market);
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+        $marginType = $this->safe_string($marginMode, 'marginMode');
+        $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
+        return array(
+            'info' => $marginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $marginType,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

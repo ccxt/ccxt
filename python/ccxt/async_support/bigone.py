@@ -1465,7 +1465,10 @@ class bigone(Exchange, ImplicitAPI):
             elif uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_MARKET'
         request['type'] = uppercaseType
-        params = self.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce'])
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+        params = self.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId'])
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #    {
@@ -1724,7 +1727,7 @@ class bigone(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(query)
             elif method == 'POST':
                 headers['Content-Type'] = 'application/json'
-                body = query
+                body = self.json(query)
         headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

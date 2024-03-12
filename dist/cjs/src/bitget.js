@@ -84,7 +84,7 @@ class bitget extends bitget$1 {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -371,6 +371,8 @@ class bitget extends bitget$1 {
                             'v2/spot/wallet/transfer': 2,
                             'v2/spot/wallet/subaccount-transfer': 2,
                             'v2/spot/wallet/withdrawal': 2,
+                            'v2/spot/wallet/cancel-withdrawal': 2,
+                            'v2/spot/wallet/modify-deposit-account': 2,
                         },
                     },
                     'mix': {
@@ -715,9 +717,12 @@ class bitget extends bitget$1 {
                             'v2/convert/currencies': 2,
                             'v2/convert/quoted-price': 2,
                             'v2/convert/convert-record': 2,
+                            'v2/convert/bgb-convert-coin-list': 2,
+                            'v2/convert/bgb-convert-records': 2,
                         },
                         'post': {
                             'v2/convert/trade': 2,
+                            'v2/convert/bgb-convert': 2,
                         },
                     },
                     'earn': {
@@ -4922,6 +4927,7 @@ class bitget extends bitget$1 {
          * @name bitget#cancelAllOrders
          * @description cancel all open orders
          * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+         * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
          * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -4949,7 +4955,7 @@ class bitget extends bitget$1 {
         const request = {
             'symbol': market['id'],
         };
-        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const stop = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
         if (market['spot']) {
@@ -4962,7 +4968,15 @@ class bitget extends bitget$1 {
                 }
             }
             else {
-                response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, params));
+                if (stop) {
+                    const stopRequest = {
+                        'symbolList': [market['id']],
+                    };
+                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder(this.extend(stopRequest, params));
+                }
+                else {
+                    response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, params));
+                }
             }
         }
         else {
@@ -8303,6 +8317,74 @@ class bitget extends bitget$1 {
         const data = this.safeValue(response, 'data', {});
         const orderInfo = this.safeValue(data, 'successList', []);
         return this.parsePositions(orderInfo, undefined, params);
+    }
+    async fetchMarginMode(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchMarginMode
+         * @description fetches the margin mode of a trading pair
+         * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+         * @param {string} symbol unified symbol of the market to fetch the margin mode for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+         */
+        await this.loadMarkets();
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        let market = undefined;
+        if (sandboxMode) {
+            const sandboxSymbol = this.convertSymbolForSandbox(symbol);
+            market = this.market(sandboxSymbol);
+        }
+        else {
+            market = this.market(symbol);
+        }
+        let productType = undefined;
+        [productType, params] = this.handleProductTypeAndParams(market, params);
+        const request = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+            'productType': productType,
+        };
+        const response = await this.privateMixGetV2MixAccountAccount(this.extend(request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1709791216652,
+        //         "data": {
+        //             "marginCoin": "USDT",
+        //             "locked": "0",
+        //             "available": "19.88811074",
+        //             "crossedMaxAvailable": "19.88811074",
+        //             "isolatedMaxAvailable": "19.88811074",
+        //             "maxTransferOut": "19.88811074",
+        //             "accountEquity": "19.88811074",
+        //             "usdtEquity": "19.888110749166",
+        //             "btcEquity": "0.000302183391",
+        //             "crossedRiskRate": "0",
+        //             "crossedMarginLeverage": 20,
+        //             "isolatedLongLever": 20,
+        //             "isolatedShortLever": 20,
+        //             "marginMode": "crossed",
+        //             "posMode": "hedge_mode",
+        //             "unrealizedPL": "0",
+        //             "coupon": "0",
+        //             "crossedUnrealizedPL": "0",
+        //             "isolatedUnrealizedPL": ""
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseMarginMode(data, market);
+    }
+    parseMarginMode(marginMode, market = undefined) {
+        let marginType = this.safeString(marginMode, 'marginMode');
+        marginType = (marginType === 'crossed') ? 'cross' : marginType;
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginType,
+        };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

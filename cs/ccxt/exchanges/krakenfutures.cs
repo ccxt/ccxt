@@ -99,7 +99,7 @@ public partial class krakenfutures : Exchange
                     { "get", new List<object>() {"{price_type}/{symbol}/{interval}"} },
                 } },
                 { "history", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"orders", "executions", "triggers", "accountlogcsv", "market/{symbol}/orders", "market/{symbol}/executions"} },
+                    { "get", new List<object>() {"orders", "executions", "triggers", "accountlogcsv", "account-log", "market/{symbol}/orders", "market/{symbol}/executions"} },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -179,6 +179,9 @@ public partial class krakenfutures : Exchange
                             { "accountlogcsv", "v2" },
                         } },
                     } },
+                } },
+                { "fetchTrades", new Dictionary<string, object>() {
+                    { "method", "historyGetMarketSymbolExecutions" },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -655,6 +658,7 @@ public partial class krakenfutures : Exchange
         * @method
         * @name krakenfutures#fetchTrades
         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
+        * @see https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events
         * @description Fetch a history of filled trades that this account has made
         * @param {string} symbol Unified CCXT market symbol
         * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -662,6 +666,7 @@ public partial class krakenfutures : Exchange
         * @param {object} [params] Exchange specific params
         * @param {int} [params.until] Timestamp in ms of latest trade
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {string} [params.method] The method to use to fetch trades. Can be 'historyGetMarketSymbolExecutions' or 'publicGetHistory' default is 'historyGetMarketSymbolExecutions'
         * @returns An array of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -678,38 +683,122 @@ public partial class krakenfutures : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object until = this.safeInteger(parameters, "until");
-        if (isTrue(!isEqual(until, null)))
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
+        object rawTrades = null;
+        object isFullHistoryEndpoint = (isEqual(method, "historyGetMarketSymbolExecutions"));
+        if (isTrue(isFullHistoryEndpoint))
         {
-            ((IDictionary<string,object>)request)["lastTime"] = this.iso8601(until);
+            var requestparametersVariable = this.handleUntilOption("before", request, parameters);
+            request = ((IList<object>)requestparametersVariable)[0];
+            parameters = ((IList<object>)requestparametersVariable)[1];
+            if (isTrue(!isEqual(since, null)))
+            {
+                ((IDictionary<string,object>)request)["since"] = since;
+                ((IDictionary<string,object>)request)["sort"] = "asc";
+            }
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["count"] = limit;
+            }
+            object response = await this.historyGetMarketSymbolExecutions(this.extend(request, parameters));
+            //
+            //    {
+            //        "elements": [
+            //            {
+            //                "uid": "a5105030-f054-44cc-98ab-30d5cae96bef",
+            //                "timestamp": "1710150778607",
+            //                "event": {
+            //                    "Execution": {
+            //                        "execution": {
+            //                            "uid": "2d485b71-cd28-4a1e-9364-371a127550d2",
+            //                            "makerOrder": {
+            //                                "uid": "0a25f66b-1109-49ec-93a3-d17bf9e9137e",
+            //                                "tradeable": "PF_XBTUSD",
+            //                                "direction": "Buy",
+            //                                "quantity": "0.26500",
+            //                                "timestamp": "1710150778570",
+            //                                "limitPrice": "71907",
+            //                                "orderType": "Post",
+            //                                "reduceOnly": false,
+            //                                "lastUpdateTimestamp": "1710150778570"
+            //                            },
+            //                            "takerOrder": {
+            //                                "uid": "04de3ee0-9125-4960-bf8f-f63b577b6790",
+            //                                "tradeable": "PF_XBTUSD",
+            //                                "direction": "Sell",
+            //                                "quantity": "0.0002",
+            //                                "timestamp": "1710150778607",
+            //                                "limitPrice": "71187.00",
+            //                                "orderType": "Market",
+            //                                "reduceOnly": false,
+            //                                "lastUpdateTimestamp": "1710150778607"
+            //                            },
+            //                            "timestamp": "1710150778607",
+            //                            "quantity": "0.0002",
+            //                            "price": "71907",
+            //                            "markPrice": "71903.32715463147",
+            //                            "limitFilled": false,
+            //                            "usdValue": "14.38"
+            //                        },
+            //                        "takerReducedQuantity": ""
+            //                    }
+            //                }
+            //            },
+            //            ... followed by older items
+            //        ],
+            //        "len": "1000",
+            //        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
+            //    }
+            //
+            object elements = this.safeList(response, "elements", new List<object>() {});
+            // we need to reverse the list to fix chronology
+            rawTrades = new List<object>() {};
+            object length = getArrayLength(elements);
+            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+            {
+                object index = subtract(subtract(length, 1), i);
+                object element = getValue(elements, index);
+                object eventVar = this.safeDict(element, "event", new Dictionary<string, object>() {});
+                object executionContainer = this.safeDict(eventVar, "Execution", new Dictionary<string, object>() {});
+                object rawTrade = this.safeDict(executionContainer, "execution", new Dictionary<string, object>() {});
+                ((IList<object>)rawTrades).Add(rawTrade);
+            }
+        } else
+        {
+            var requestparametersVariable = this.handleUntilOption("lastTime", request, parameters);
+            request = ((IList<object>)requestparametersVariable)[0];
+            parameters = ((IList<object>)requestparametersVariable)[1];
+            object response = await this.publicGetHistory(this.extend(request, parameters));
+            //
+            //    {
+            //        "result": "success",
+            //        "history": [
+            //            {
+            //                "time": "2022-03-18T04:55:37.692Z",
+            //                "trade_id": 100,
+            //                "price": 0.7921,
+            //                "size": 1068,
+            //                "side": "sell",
+            //                "type": "fill",
+            //                "uid": "6c5da0b0-f1a8-483f-921f-466eb0388265"
+            //            },
+            //            ...
+            //        ],
+            //        "serverTime": "2022-03-18T06:39:18.056Z"
+            //    }
+            //
+            rawTrades = this.safeList(response, "history", new List<object>() {});
         }
-        //
-        //    {
-        //        "result": "success",
-        //        "history": [
-        //            {
-        //                "time": "2022-03-18T04:55:37.692Z",
-        //                "trade_id": 100,
-        //                "price": 0.7921,
-        //                "size": 1068,
-        //                "side": "sell",
-        //                "type": "fill",
-        //                "uid": "6c5da0b0-f1a8-483f-921f-466eb0388265"
-        //            },
-        //            ...
-        //        ],
-        //        "serverTime": "2022-03-18T06:39:18.056Z"
-        //    }
-        //
-        object response = await this.publicGetHistory(this.extend(request, parameters));
-        object history = this.safeValue(response, "history");
-        return this.parseTrades(history, market, since, limit);
+        return this.parseTrades(rawTrades, market, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
     {
         //
-        // fetchTrades (public)
+        // fetchTrades (recent trades)
         //
         //    {
         //        "time": "2019-02-14T09:25:33.920Z",
@@ -717,8 +806,22 @@ public partial class krakenfutures : Exchange
         //        "price": 3574,
         //        "size": 100,
         //        "side": "buy",
-        //        "type": "fill"                                          // fill, liquidation, assignment, termination
+        //        "type": "fill" // fill, liquidation, assignment, termination
         //        "uid": "11c3d82c-9e70-4fe9-8115-f643f1b162d4"
+        //    }
+        //
+        // fetchTrades (executions history)
+        //
+        //    {
+        //        "timestamp": "1710152516830",
+        //        "price": "71927.0",
+        //        "quantity": "0.0695",
+        //        "markPrice": "71936.38701675525",
+        //        "limitFilled": true,
+        //        "usdValue": "4998.93",
+        //        "uid": "116ae634-253f-470b-bd20-fa9d429fb8b1",
+        //        "makerOrder": { "uid": "17bfe4de-c01e-4938-926c-617d2a2d0597", "tradeable": "PF_XBTUSD", "direction": "Buy", "quantity": "0.0695", "timestamp": "1710152515836", "limitPrice": "71927.0", "orderType": "Post", "reduceOnly": false, "lastUpdateTimestamp": "1710152515836" },
+        //        "takerOrder": { "uid": "d3e437b4-aa70-4108-b5cf-b1eecb9845b5", "tradeable": "PF_XBTUSD", "direction": "Sell", "quantity": "0.940100", "timestamp": "1710152516830", "limitPrice": "71915", "orderType": "IoC", "reduceOnly": false, "lastUpdateTimestamp": "1710152516830" }
         //    }
         //
         // fetchMyTrades (private)
@@ -761,7 +864,7 @@ public partial class krakenfutures : Exchange
         //
         object timestamp = this.parse8601(this.safeString2(trade, "time", "fillTime"));
         object price = this.safeString(trade, "price");
-        object amount = this.safeString2(trade, "size", "amount", "0.0");
+        object amount = this.safeStringN(trade, new List<object>() {"size", "amount", "quantity"}, "0.0");
         object id = this.safeString2(trade, "uid", "fill_id");
         if (isTrue(isEqual(id, null)))
         {
@@ -815,6 +918,17 @@ public partial class krakenfutures : Exchange
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(fillType, "maker"), 0)))
             {
                 takerOrMaker = "maker";
+            }
+        }
+        object isHistoricalExecution = (inOp(trade, "takerOrder"));
+        if (isTrue(isHistoricalExecution))
+        {
+            timestamp = this.safeInteger(trade, "timestamp");
+            object taker = this.safeDict(trade, "takerOrder", new Dictionary<string, object>() {});
+            if (isTrue(!isEqual(taker, null)))
+            {
+                side = this.safeStringLower(taker, "direction");
+                takerOrMaker = "taker";
             }
         }
         return this.safeTrade(new Dictionary<string, object>() {

@@ -590,5 +590,77 @@
         "percentage": true,
         "feeSide": "get",
         "numericId": 24
+    },
+    "ETH/USDT": {
+        "id": "eth_usdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "eth",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 8,
+            "price": 6
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 0.1
+            }
+        },
+        "created": 1611825570706,
+        "info": {
+            "id": "2",
+            "name": "eth_usdt",
+            "baseAssetId": "2",
+            "quoteAssetId": "3",
+            "fullName": "ETH USDT",
+            "description": "ETH   USDT",
+            "lastBuy": "3910.364996",
+            "lastSell": "3898.295004",
+            "lastPrice": "3910.364996",
+            "change24": "-0.39",
+            "volume24": "8.42080066",
+            "volume24USD": "29737.257596831303",
+            "active": true,
+            "baseStep": "8",
+            "quoteStep": "6",
+            "status": "1",
+            "settings": {
+                "limit_usd": "0.1",
+                "price_max": "10000000000000",
+                "price_min": "1",
+                "price_tick": "1",
+                "pricescale": "10000",
+                "lot_size_max": "1000000000000000",
+                "lot_size_min": "1",
+                "lot_size_tick": "1",
+                "price_view_min": "6",
+                "default_slippage": "10",
+                "lot_size_view_min": "6"
+            },
+            "updateId": "2855",
+            "timeStart": "2021-01-28T09:19:30.706Z",
+            "makerFee": "200",
+            "takerFee": "200",
+            "quoteVolume24": "32932.00049888122",
+            "lowPrice24": "3825.315004",
+            "highPrice24": "3975.474999"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get",
+        "numericId": 2
     }
 }

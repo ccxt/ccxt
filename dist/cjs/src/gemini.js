@@ -262,12 +262,12 @@ class gemini extends gemini$1 {
                     'webApiEnable': true,
                     'webApiRetries': 10,
                 },
+                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],
                 'fetchCurrencies': {
                     'webApiEnable': true,
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
-                'fetchUsdtMarkets': ['btcusdt', 'ethusdt'],
                 'fetchTickerMethod': 'fetchTickerV1',
                 'networks': {
                     'BTC': 'bitcoin',
@@ -406,9 +406,11 @@ class gemini extends gemini$1 {
          */
         const method = this.safeValue(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
-            const usdMarkets = await this.fetchMarketsFromWeb(params); // get usd markets
-            const usdtMarkets = await this.fetchUSDTMarkets(params); // get usdt markets
-            return this.arrayConcat(usdMarkets, usdtMarkets);
+            const promises = [];
+            promises.push(this.fetchMarketsFromWeb(params)); // get usd markets
+            promises.push(this.fetchUSDTMarkets(params)); // get usdt markets
+            const promisesResult = await Promise.all(promises);
+            return this.arrayConcat(promisesResult[0], promisesResult[1]);
         }
         return await this.fetchMarketsFromAPI(params);
     }
@@ -516,6 +518,9 @@ class gemini extends gemini$1 {
             'post_only': true,
             'limit_only': true,
         };
+        if (status === undefined) {
+            return true; // as defaulted below
+        }
         return this.safeBool(statuses, status, true);
     }
     async fetchUSDTMarkets(params = {}) {
