@@ -4467,7 +4467,10 @@ export default class gate extends Exchange {
         if (lastTradeTimestamp === undefined) {
             lastTradeTimestamp = this.safeTimestamp2 (order, 'update_time', 'finish_time');
         }
-        const marketType = ('currency_pair' in order) ? 'spot' : 'contract';
+        let marketType = 'contract';
+        if (('currency_pair' in order) || ('market' in order)) {
+            marketType = 'spot';
+        }
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
         const symbol = this.safeSymbol (exchangeSymbol, market, '_', marketType);
         // Everything below this(above return) is related to fees
