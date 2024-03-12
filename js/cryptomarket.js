@@ -34,8 +34,8 @@ module.exports = class cryptomarket extends Exchange {
                 'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchCanceledOrders': true,
-                'fetchClosedOrders': false,
+                'fetchCanceledOrders': 'emulated',
+                'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
@@ -107,6 +107,8 @@ module.exports = class cryptomarket extends Exchange {
                         'public/orderbook/{symbol}',
                         'public/candles',
                         'public/candles/{symbol}',
+                        'public/converted/candles',
+                        'public/converted/candles/{symbol}',
                     ],
                 },
                 'private': {
@@ -143,6 +145,7 @@ module.exports = class cryptomarket extends Exchange {
                         'wallet/crypto/address',
                         'wallet/crypto/withdraw',
                         'wallet/crypto/check-offchain-available',
+                        'wallet/crypto/fees/estimate',
                         'sub-account/freeze',
                         'sub-account/activate',
                         'sub-account/transfer',
@@ -407,20 +410,25 @@ module.exports = class cryptomarket extends Exchange {
     }
 
     parseNetwork (network, market = undefined) {
-        //  {
-        //      "network": "BTC",
-        //      "protocol": "OMNI",
-        //      "default": true,
-        //      "payin_enabled": true,
-        //      "payout_enabled": true,
-        //      "precision_payout": "0.00000001",
-        //      "payout_fee": "0.000725840000",
-        //      "payout_is_payment_id": false,
-        //      "payin_payment_id": false,
-        //      "payin_confirmations": 3
-        //  }
-        const id = this.safeString (network, 'network');
-        const networkCode = this.safeStringUper (network, 'protocol');
+        // {
+        //     "code": "ETHTEST",
+        //     "network_name": "ETHTEST",
+        //     "network": "ETHTEST",
+        //     "protocol": "",
+        //     "default": true,
+        //     "is_ens_available": true,
+        //     "payin_enabled": true,
+        //     "payout_enabled": true,
+        //     "precision_payout": "0.000000000000000001",
+        //     "payout_fee": "0.000000000000",
+        //     "payout_is_payment_id": false,
+        //     "payin_payment_id": false,
+        //     "payin_confirmations": 2,
+        //     "is_multichain": false
+        // }
+        const id = this.safeString (network, 'code');
+        const networkName = this.safeString (network, 'network_name');
+        const networkCode = this.safeStringUper (network, 'network');
         const withdrawEnabled = this.safeValue (network, 'payout_enabled');
         const depositEnabled = this.safeValue (network, 'payin_enabled');
         const active = withdrawEnabled && depositEnabled;
@@ -429,7 +437,7 @@ module.exports = class cryptomarket extends Exchange {
         return {
             'id': id,
             'network': networkCode,
-            'name': undefined,
+            'name': networkName,
             'active': active,
             'fee': fee,
             'precision': precision,
@@ -460,8 +468,6 @@ module.exports = class cryptomarket extends Exchange {
         //      "price":"0.027668",
         //      "qty":"0.069",
         //      "side":"buy",
-        //      "fee": "0.001237803000",
-        //      "taker": true,
         //      "timestamp":"2021-06-24T12:54:32.843Z"
         //  }
         // user trade
@@ -709,8 +715,8 @@ module.exports = class cryptomarket extends Exchange {
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const symbol = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (symbol);
+            const curerncy = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (curerncy);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'reserved');
@@ -736,6 +742,20 @@ module.exports = class cryptomarket extends Exchange {
         const response = await this.privateGetSpotBalance (params);
         const balances = this.parseBalance (response);
         return balances;
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'state': 'canceled',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'state': 'filled',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     parseOrderStatus (status) {
@@ -877,10 +897,13 @@ module.exports = class cryptomarket extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        let request = {
-            'symbols': market['id'],
-        };
+        let request = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request = this.extend (request, {
+                'symbol': market['id'],
+            });
+        }
         if (since !== undefined) {
             request = this.extend (request, {
                 'from': since,
@@ -944,6 +967,7 @@ module.exports = class cryptomarket extends Exchange {
         const tag = this.safeString (native, 'payment_id');
         const amount = this.safeNumber (native, 'amount');
         const currencyId = this.safeString (native, 'currency');
+        const fee = this.safeString (native, 'fee');
         const code = this.safeCurrencyCode (currencyId, currency);
         return {
             'info': transaction,
@@ -963,7 +987,7 @@ module.exports = class cryptomarket extends Exchange {
             'status': status,
             'updated': updated,
             'comment': undefined,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -1049,9 +1073,10 @@ module.exports = class cryptomarket extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString2 (depositAddress, 'memo', 'payment_id');
+        const network_code = this.safeString2 (depositAddress, 'network_code');
         return {
             'currency': code,
-            'network': undefined,
+            'network': network_code,
             'address': address,
             'tag': tag,
             'info': depositAddress,
