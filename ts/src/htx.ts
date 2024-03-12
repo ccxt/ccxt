@@ -951,6 +951,9 @@ export default class htx extends Exchange {
                         },
                     },
                 },
+                'fetchOHLCV': {
+                    'useHistoricalEndpoint': false,
+                },
                 'withdraw': {
                     'includeFee': false,
                 },
@@ -3034,9 +3037,7 @@ export default class htx extends Exchange {
             request['symbol'] = market['id'];
             let useHistorical = undefined;
             [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpoint', false);
-            if (!useHistorical && (timeframe === '1M' || timeframe === '1y')) {
-                // for some reason 1M and 1Y does not work with the regular endpoint
-                // https://github.com/ccxt/ccxt/issues/18006
+            if (!useHistorical) {
                 response = await this.spotPublicGetMarketHistoryKline (this.extend (request, params));
             } else {
                 response = await this.spotPublicGetMarketHistoryCandles (this.extend (request, params));
