@@ -1646,9 +1646,9 @@ class hitbtc(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        request, params = self.handle_until_option('till', request, params)
         if since is not None:
             request['from'] = self.iso8601(since)
+        request, params = self.handle_until_option('till', request, params)
         if limit is not None:
             request['limit'] = limit
         price = self.safe_string(params, 'price')
@@ -2339,7 +2339,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :see: https://api.hitbtc.com/#get-futures-position-parameters
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: Struct of MarginMode
+        :returns dict: a list of `margin mode structures <https://docs.ccxt.com/#/?id=margin-mode-structure>`
         """
         self.load_markets()
         market = None

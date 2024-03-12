@@ -155,7 +155,7 @@ import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks, Leverage, Leverages } from './types.js'
 
 // ----------------------------------------------------------------------------
-// move this elsewhere
+// move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
 import {OrderBook as Ob} from './ws/OrderBook.js';
 
@@ -3061,6 +3061,18 @@ export default class Exchange {
     }
 
     calculateFee (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker = 'taker', params = {}) {
+        /**
+         * @method
+         * @description calculates the presumptive fee that would be charged for an order
+         * @param {string} symbol unified market symbol
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} price the price for the order to be filled at, in units of the quote currency
+         * @param {string} takerOrMaker 'taker' or 'maker'
+         * @param {object} params
+         * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+         */
         if (type === 'market' && takerOrMaker === 'maker') {
             throw new ArgumentsRequired (this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -3904,8 +3916,16 @@ export default class Exchange {
         return this.safeString (market, 'symbol', symbol);
     }
 
-    handleParamString (params: object, paramName: string, defaultValue = undefined): [string, object] {
+    handleParamString (params: object, paramName: string, defaultValue: Str = undefined): [string, object] {
         const value = this.safeString (params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit (params, paramName);
+        }
+        return [ value, params ];
+    }
+
+    handleParamInteger (params: object, paramName: string, defaultValue: Int = undefined): [Int, object] {
+        const value = this.safeInteger (params, paramName, defaultValue);
         if (value !== undefined) {
             params = this.omit (params, paramName);
         }
@@ -5853,7 +5873,10 @@ export default class Exchange {
                     const response = await this[method] (symbol, undefined, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        const backwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        let backwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
+                        if (paginationTimestamp !== undefined) {
+                            backwardMessage += ' timestamp ' + this.numberToString (paginationTimestamp);
+                        }
                         this.log (backwardMessage);
                     }
                     if (responseLength === 0) {
@@ -5871,7 +5894,10 @@ export default class Exchange {
                     const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        const forwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        let forwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
+                        if (paginationTimestamp !== undefined) {
+                            forwardMessage += ' timestamp ' + this.numberToString (paginationTimestamp);
+                        }
                         this.log (forwardMessage);
                     }
                     if (responseLength === 0) {

@@ -238,12 +238,12 @@ public partial class gemini : Exchange
                     { "webApiEnable", true },
                     { "webApiRetries", 10 },
                 } },
+                { "fetchUsdtMarkets", new List<object>() {"btcusdt", "ethusdt"} },
                 { "fetchCurrencies", new Dictionary<string, object>() {
                     { "webApiEnable", true },
                     { "webApiRetries", 5 },
                     { "webApiMuteFailure", true },
                 } },
-                { "fetchUsdtMarkets", new List<object>() {"btcusdt", "ethusdt"} },
                 { "fetchTickerMethod", "fetchTickerV1" },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "bitcoin" },
@@ -396,9 +396,11 @@ public partial class gemini : Exchange
         object method = this.safeValue(this.options, "fetchMarketsMethod", "fetch_markets_from_api");
         if (isTrue(isEqual(method, "fetch_markets_from_web")))
         {
-            object usdMarkets = await this.fetchMarketsFromWeb(parameters); // get usd markets
-            object usdtMarkets = await this.fetchUSDTMarkets(parameters); // get usdt markets
-            return this.arrayConcat(usdMarkets, usdtMarkets);
+            object promises = new List<object>() {};
+            ((IList<object>)promises).Add(this.fetchMarketsFromWeb(parameters)); // get usd markets
+            ((IList<object>)promises).Add(this.fetchUSDTMarkets(parameters)); // get usdt markets
+            object promisesResult = await promiseAll(promises);
+            return this.arrayConcat(getValue(promisesResult, 0), getValue(promisesResult, 1));
         }
         return await this.fetchMarketsFromAPI(parameters);
     }
@@ -515,6 +517,10 @@ public partial class gemini : Exchange
             { "post_only", true },
             { "limit_only", true },
         };
+        if (isTrue(isEqual(status, null)))
+        {
+            return true;  // as defaulted below
+        }
         return this.safeBool(statuses, status, true);
     }
 

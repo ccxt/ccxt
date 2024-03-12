@@ -3684,8 +3684,8 @@ export default class bybit extends Exchange {
         const market = this.market (symbols[0]);
         let category = undefined;
         [ category, params ] = this.getBybitType ('createOrders', market, params);
-        if ((category === 'spot') || (category === 'inverse')) {
-            throw new NotSupported (this.id + ' createOrders does not allow spot or inverse orders');
+        if (category === 'inverse') {
+            throw new NotSupported (this.id + ' createOrders does not allow inverse orders');
         }
         const request = {
             'category': category,
@@ -4154,6 +4154,88 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result, market);
+    }
+
+    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#cancelOrders
+         * @description cancel multiple orders
+         * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let category = undefined;
+        [ category, params ] = this.getBybitType ('cancelOrders', market, params);
+        if (category === 'inverse') {
+            throw new NotSupported (this.id + ' cancelOrders does not allow inverse orders');
+        }
+        const ordersRequests = [];
+        const clientOrderIds = this.safeList2 (params, 'clientOrderIds', 'clientOids', []);
+        params = this.omit (params, [ 'clientOrderIds', 'clientOids' ]);
+        for (let i = 0; i < clientOrderIds.length; i++) {
+            ordersRequests.push ({
+                'symbol': market['id'],
+                'orderLinkId': this.safeString (clientOrderIds, i),
+            });
+        }
+        for (let i = 0; i < ids.length; i++) {
+            ordersRequests.push ({
+                'symbol': market['id'],
+                'orderId': this.safeString (ids, i),
+            });
+        }
+        const request = {
+            'category': category,
+            'request': ordersRequests,
+        };
+        const response = await this.privatePostV5OrderCancelBatch (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800896",
+        //                     "orderLinkId": "1636282505818800897"
+        //                 },
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800898",
+        //                     "orderLinkId": "1636282505818800899"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {
+        //             "list": [
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 },
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 }
+        //             ]
+        //         },
+        //         "time": "1709796158501"
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const row = this.safeList (result, 'list', []);
+        return this.parseOrders (row, market);
     }
 
     async cancelAllUsdcOrders (symbol: Str = undefined, params = {}) {
@@ -7140,7 +7222,8 @@ export default class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
+        const defaultType = (market !== undefined) ? market['type'] : 'contract';
+        const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         return {
             'info': fee,
             'symbol': symbol,
@@ -7161,12 +7244,20 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot']) {
-            throw new NotSupported (this.id + ' fetchTradingFee() is not supported for spot market');
-        }
         const request = {
             'symbol': market['id'],
         };
+        let category = undefined;
+        if (market['linear']) {
+            category = 'linear';
+        } else if (market['inverse']) {
+            category = 'inverse';
+        } else if (market['spot']) {
+            category = 'spot';
+        } else {
+            category = 'option';
+        }
+        request['category'] = category;
         const response = await this.privateGetV5AccountFeeRate (this.extend (request, params));
         //
         //     {
@@ -7188,7 +7279,7 @@ export default class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const fees = this.safeValue (result, 'list', []);
         const first = this.safeValue (fees, 0, {});
-        return this.parseTradingFee (first);
+        return this.parseTradingFee (first, market);
     }
 
     async fetchTradingFees (params = {}) {

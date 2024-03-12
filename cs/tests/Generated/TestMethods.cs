@@ -1381,7 +1381,7 @@ public partial class testMainClass : BaseTest
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1729,6 +1729,23 @@ public partial class testMainClass : BaseTest
         }
         object brokerId = getValue(request, "brokerId");
         assert(((string)brokerId).StartsWith(((string)((object)id).ToString())), "brokerId does not start with id");
+        await close(exchange);
+    }
+
+    public async virtual Task testHyperliquid()
+    {
+        Exchange exchange = this.initOfflineExchange("hyperliquid");
+        object id = "1";
+        object request = null;
+        try
+        {
+            await exchange.createOrder("SOL/USDC:USDC", "limit", "buy", 1, 100);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object brokerId = ((object)(getValue(getValue(request, "action"), "brokerCode"))).ToString();
+        assert(isEqual(brokerId, id), "brokerId does not start with id");
         await close(exchange);
     }
 }

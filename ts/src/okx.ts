@@ -6970,7 +6970,7 @@ export default class okx extends Exchange {
         }, market);
     }
 
-    setSandboxMode (enable) {
+    setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
         if (enable) {

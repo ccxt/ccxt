@@ -125,7 +125,7 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
         assert((is_int($ts) || is_float($ts)), 'timestamp is not numeric' . $log_text);
         assert(is_int($ts), 'timestamp should be an integer' . $log_text);
         $min_ts = 1230940800000; // 03 Jan 2009 - first block
-        $max_ts = 2147483648000; // 03 Jan 2009 - first block
+        $max_ts = 2147483648000; // 19 Jan 2038 - max int
         assert($ts > $min_ts, 'timestamp is impossible to be before ' . ((string) $min_ts) . ' (03.01.2009)' . $log_text); // 03 Jan 2009 - first block
         assert($ts < $max_ts, 'timestamp more than ' . ((string) $max_ts) . ' (19.01.2038)' . $log_text); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if ($now_to_check !== null) {

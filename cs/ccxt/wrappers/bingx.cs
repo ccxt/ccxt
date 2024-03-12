@@ -530,6 +530,12 @@ public partial class bingx
     /// object : *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.test</term>
+    /// <description>
+    /// boolean : *swap only* whether to use the test endpoint or not, default is false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1278,7 +1284,7 @@ public partial class bingx
     /// <item>
     /// <term>params.priceRate</term>
     /// <description>
-    /// float : *contract only* for type TRAILING_STOP_Market, Max = 1
+    /// float : *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
     /// </description>
     /// </item>
     /// <item>
@@ -1311,7 +1317,7 @@ public partial class bingx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> Struct of MarginMode.</returns>
+    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
     public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginMode(symbol, parameters);

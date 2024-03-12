@@ -249,7 +249,7 @@ class gemini extends Exchange {
                 ),
             ),
             'options' => array(
-                'fetchMarketsMethod' => 'fetch_markets_from_web',
+                'fetchMarketsMethod' => 'fetch_markets_from_web', // fetch_markets_from_api, fetch_markets_from_web
                 'fetchMarketFromWebRetries' => 10,
                 'fetchMarketsFromAPI' => array(
                     'fetchDetailsForAllSymbols' => false,
@@ -259,12 +259,12 @@ class gemini extends Exchange {
                     'webApiEnable' => true, // fetches from WEB
                     'webApiRetries' => 10,
                 ),
+                'fetchUsdtMarkets' => array( 'btcusdt', 'ethusdt' ), // this is only used if markets-fetch is set from "web"; keep this list updated (not available trough web api)
                 'fetchCurrencies' => array(
                     'webApiEnable' => true, // fetches from WEB
                     'webApiRetries' => 5,
                     'webApiMuteFailure' => true,
                 ),
-                'fetchUsdtMarkets' => array( 'btcusdt', 'ethusdt' ), // keep this list updated (not available trough web api)
                 'fetchTickerMethod' => 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networks' => array(
                     'BTC' => 'bitcoin',
@@ -400,9 +400,11 @@ class gemini extends Exchange {
          */
         $method = $this->safe_value($this->options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if ($method === 'fetch_markets_from_web') {
-            $usdMarkets = $this->fetch_markets_from_web($params); // get usd markets
-            $usdtMarkets = $this->fetch_usdt_markets($params); // get usdt markets
-            return $this->array_concat($usdMarkets, $usdtMarkets);
+            $promises = array();
+            $promises[] = $this->fetch_markets_from_web($params); // get usd markets
+            $promises[] = $this->fetch_usdt_markets($params); // get usdt markets
+            $promisesResult = $promises;
+            return $this->array_concat($promisesResult[0], $promisesResult[1]);
         }
         return $this->fetch_markets_from_api($params);
     }
@@ -512,6 +514,9 @@ class gemini extends Exchange {
             'post_only' => true,
             'limit_only' => true,
         );
+        if ($status === null) {
+            return true; // below
+        }
         return $this->safe_bool($statuses, $status, true);
     }
 

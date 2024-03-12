@@ -15,9 +15,11 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 
-export type Dict = Dictionary<any> | undefined;
+export type Dict = Dictionary<any>;
+export type NullableDict = Dict | undefined;
 
 export type List = Array<any> | undefined;
+export type NullableList = List | undefined;
 
 /** Request parameters */
 // type Params = Dictionary<string | number | boolean | string[]>;
@@ -183,7 +185,6 @@ export interface Transaction {
 
 export interface Tickers extends Dictionary<Ticker> {
 }
-
 
 export interface CurrencyInterface {
     id: string;

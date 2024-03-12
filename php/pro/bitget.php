@@ -686,10 +686,10 @@ class bitget extends \ccxt\async\bitget {
         }
         $data = $this->safe_list($message, 'data', array());
         $length = count($data);
-        $maxLength = max ($length - 1, 0);
         // fix chronological order by reversing
-        for ($i = $maxLength; $i >= 0; $i--) {
-            $rawTrade = $data[$i];
+        for ($i = 0; $i < $length; $i++) {
+            $index = $length - $i - 1;
+            $rawTrade = $data[$index];
             $parsed = $this->parse_ws_trade($rawTrade, $market);
             $stored->append ($parsed);
         }
@@ -1310,7 +1310,7 @@ class bitget extends \ccxt\async\bitget {
         if ($feeAmount !== null) {
             $feeCurrency = $this->safe_string($fee, 'feeCoin');
             $feeObject = array(
-                'cost' => Precise::string_abs($feeAmount),
+                'cost' => $this->parse_number(Precise::string_abs($feeAmount)),
                 'currency' => $this->safe_currency_code($feeCurrency),
             );
         }
@@ -1324,9 +1324,9 @@ class bitget extends \ccxt\async\bitget {
             $cost = $this->safe_string($order, 'newSize', $cost);
         }
         $filled = $this->safe_string_2($order, 'accBaseVolume', 'baseVolume');
-        if ($market['spot'] && ($rawStatus !== 'live')) {
-            $filled = Precise::string_div($cost, $avgPrice);
-        }
+        // if ($market['spot'] && ($rawStatus !== 'live')) {
+        //     $filled = Precise::string_div($cost, $avgPrice);
+        // }
         $amount = $this->safe_string($order, 'baseVolume');
         if (!$market['spot'] || !($side === 'buy' && $type === 'market')) {
             $amount = $this->safe_string($order, 'newSize', $amount);

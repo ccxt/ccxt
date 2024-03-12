@@ -1646,13 +1646,13 @@ public partial class hitbtc : Exchange
             { "symbol", getValue(market, "id") },
             { "period", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
+        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
@@ -2548,7 +2548,7 @@ public partial class hitbtc : Exchange
         * @see https://api.hitbtc.com/#get-futures-position-parameters
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} Struct of MarginMode
+        * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, MarginMode, Market, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -61,7 +61,8 @@ class delta(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
-                'fetchMarginMode': False,
+                'fetchMarginMode': True,
+                'fetchMarginModes': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -3087,6 +3088,95 @@ class delta(Exchange, ImplicitAPI):
         #
         position = self.parse_position(self.safe_value(response, 'result', {}))
         return [position]
+
+    async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the margin mode of a trading pair
+        :see: https://docs.delta.exchange/#get-user
+        :param str symbol: unified symbol of the market to fetch the margin mode for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = await self.privateGetProfile(params)
+        #
+        #     {
+        #         "result": {
+        #             "is_password_set": True,
+        #             "kyc_expiry_date": null,
+        #             "phishing_code": "12345",
+        #             "preferences": {
+        #                 "favorites": []
+        #             },
+        #             "is_kyc_provisioned": False,
+        #             "country": "Canada",
+        #             "margin_mode": "isolated",
+        #             "mfa_updated_at": "2023-07-19T01:04:43Z",
+        #             "last_name": "",
+        #             "oauth_apple_active": False,
+        #             "pf_index_symbol": null,
+        #             "proof_of_identity_status": "approved",
+        #             "dob": null,
+        #             "email": "abc_123@gmail.com",
+        #             "force_change_password": False,
+        #             "nick_name": "still-breeze-123",
+        #             "oauth_google_active": False,
+        #             "phone_verification_status": "verified",
+        #             "id": 12345678,
+        #             "last_seen": null,
+        #             "is_withdrawal_enabled": True,
+        #             "force_change_mfa": False,
+        #             "enable_bots": False,
+        #             "kyc_verified_on": null,
+        #             "created_at": "2023-07-19T01:02:32Z",
+        #             "withdrawal_blocked_till": null,
+        #             "proof_of_address_status": "approved",
+        #             "is_password_change_blocked": False,
+        #             "is_mfa_enabled": True,
+        #             "is_kyc_done": True,
+        #             "oauth": null,
+        #             "account_name": "Main",
+        #             "sub_account_permissions": null,
+        #             "phone_number": null,
+        #             "tracking_info": {
+        #                 "ga_cid": "1234.4321",
+        #                 "is_kyc_gtm_tracked": True,
+        #                 "sub_account_config": {
+        #                     "cross": 2,
+        #                     "isolated": 2,
+        #                     "portfolio": 2
+        #                 }
+        #             },
+        #             "first_name": "",
+        #             "phone_verified_on": null,
+        #             "seen_intro": False,
+        #             "password_updated_at": null,
+        #             "is_login_enabled": True,
+        #             "registration_date": "2023-07-19T01:02:32Z",
+        #             "permissions": {},
+        #             "max_sub_accounts_limit": 2,
+        #             "country_calling_code": null,
+        #             "is_sub_account": False,
+        #             "is_kyc_refresh_required": False
+        #         },
+        #         "success": True
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_margin_mode(result, market)
+
+    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        return {
+            'info': marginMode,
+            'symbol': symbol,
+            'marginMode': self.safe_string(marginMode, 'margin_mode'),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
