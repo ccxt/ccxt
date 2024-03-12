@@ -174,10 +174,8 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', []);
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache (limit);
-        const dataLength = data.length;
         for (let i = 0; i < data.length; i++) {
-            const index = dataLength - 1 - i; // correct chronological order
-            const rawTrade = data[index];
+            const rawTrade = data[i];
             const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
         }
