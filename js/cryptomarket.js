@@ -1073,7 +1073,7 @@ module.exports = class cryptomarket extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString2 (depositAddress, 'memo', 'payment_id');
-        const network_code = this.safeString2 (depositAddress, 'network_code');
+        const network_code = this.safeString (depositAddress, 'network_code');
         return {
             'currency': code,
             'network': network_code,
