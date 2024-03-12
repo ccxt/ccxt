@@ -3032,7 +3032,9 @@ export default class htx extends Exchange {
                 request['size'] = limit; // max 2000
             }
             request['symbol'] = market['id'];
-            if (timeframe === '1M' || timeframe === '1y') {
+            let useHistorical = undefined;
+            [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpoint', false);
+            if (!useHistorical && (timeframe === '1M' || timeframe === '1y')) {
                 // for some reason 1M and 1Y does not work with the regular endpoint
                 // https://github.com/ccxt/ccxt/issues/18006
                 response = await this.spotPublicGetMarketHistoryKline (this.extend (request, params));
