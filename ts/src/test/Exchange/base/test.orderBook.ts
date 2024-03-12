@@ -3,7 +3,7 @@ import assert from 'assert';
 import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
-function testOrderBook (exchange, skippedProperties, method, orderbook, symbol) {
+function testOrderBook (exchange, skippedProperties, method, orderbook, symbol = undefined) {
     const format = {
         'symbol': 'ETH/BTC',
         'asks': [
