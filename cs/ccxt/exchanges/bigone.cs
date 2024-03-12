@@ -1527,7 +1527,12 @@ public partial class bigone : Exchange
             }
         }
         ((IDictionary<string,object>)request)["type"] = uppercaseType;
-        parameters = this.omit(parameters, new List<object>() {"stop_price", "stopPrice", "triggerPrice", "timeInForce"});
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        }
+        parameters = this.omit(parameters, new List<object>() {"stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"});
         object response = await this.privatePostOrders(this.extend(request, parameters));
         //
         //    {
@@ -1844,7 +1849,7 @@ public partial class bigone : Exchange
             } else if (isTrue(isEqual(method, "POST")))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
-                body = query;
+                body = this.json(query);
             }
         }
         ((IDictionary<string,object>)headers)["User-Agent"] = add(add(add("ccxt/", this.id), "-"), this.version);

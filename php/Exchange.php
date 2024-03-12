@@ -38,7 +38,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.65';
+$version = '4.2.68';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -57,7 +57,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.65';
+    const VERSION = '4.2.68';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4336,8 +4336,16 @@ class Exchange {
         return $this->safe_string($market, 'symbol', $symbol);
     }
 
-    public function handle_param_string(array $params, string $paramName, $defaultValue = null) {
+    public function handle_param_string(array $params, string $paramName, ?string $defaultValue = null) {
         $value = $this->safe_string($params, $paramName, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, $paramName);
+        }
+        return array( $value, $params );
+    }
+
+    public function handle_param_integer(array $params, string $paramName, ?int $defaultValue = null) {
+        $value = $this->safe_integer($params, $paramName, $defaultValue);
         if ($value !== null) {
             $params = $this->omit ($params, $paramName);
         }
@@ -6242,7 +6250,10 @@ class Exchange {
                     $response = $this->$method ($symbol, null, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $backwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                        $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                        if ($paginationTimestamp !== null) {
+                            $backwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                        }
                         $this->log ($backwardMessage);
                     }
                     if ($responseLength === 0) {
@@ -6260,7 +6271,10 @@ class Exchange {
                     $response = $this->$method ($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params);
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $forwardMessage = 'Dynamic pagination call ' . $calls . ' $method ' . $method . ' $response length ' . $responseLength . ' timestamp ' . $paginationTimestamp;
+                        $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' $method ' . $method . ' $response length ' . $this->number_to_string($responseLength);
+                        if ($paginationTimestamp !== null) {
+                            $forwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
+                        }
                         $this->log ($forwardMessage);
                     }
                     if ($responseLength === 0) {

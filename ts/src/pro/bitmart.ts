@@ -845,9 +845,9 @@ export default class bitmart extends bitmartRest {
         const isSwap = ('group' in message);
         if (isSwap) {
             // in swap, chronologically decreasing: 1709536849322, 1709536848954,
-            const maxLen = Math.max (length - 1, 0);
-            for (let i = maxLen; i >= 0; i--) {
-                symbol = this.handleTradeLoop (data[i]);
+            for (let i = 0; i < length; i++) {
+                const index = length - i - 1;
+                symbol = this.handleTradeLoop (data[index]);
             }
         } else {
             // in spot, chronologically increasing: 1709536771200, 1709536771226,
@@ -1497,7 +1497,17 @@ export default class bitmart extends bitmartRest {
         }
         //
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
-        //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
+        //
+        // subscribe events on spot:
+        //
+        //     {"event":"subscribe", "topic":"spot/kline1m:BTC_USDT" }
+        //
+        // subscribe on contracts:
+        //
+        //     {"action":"subscribe", "group":"futures/klineBin1m:BTCUSDT", "success":true, "request":{"action":"subscribe", "args":[ "futures/klineBin1m:BTCUSDT" ] } }
+        //
+        // regular updates - spot
+        //
         //     {
         //         "table": "spot/depth",
         //         "action": "partial",
@@ -1518,10 +1528,21 @@ export default class bitmart extends bitmartRest {
         //         ]
         //     }
         //
+        // regular updates - contracts
+        //
+        //     {
+        //         group: "futures/klineBin1m:BTCUSDT",
+        //         data: {
+        //           symbol: "BTCUSDT",
+        //           items: [ { o: "67944.7", "h": .... } ],
+        //         },
+        //       }
+        //
         //     { data: '', table: "spot/user/order" }
         //
-        const channel = this.safeString2 (message, 'table', 'group');
-        if (channel === undefined) {
+        // the only realiable way (for both spot & swap) is to check 'data' key
+        const isDataUpdate = ('data' in message);
+        if (!isDataUpdate) {
             const event = this.safeString2 (message, 'event', 'action');
             if (event !== undefined) {
                 const methods = {
@@ -1536,6 +1557,7 @@ export default class bitmart extends bitmartRest {
                 }
             }
         } else {
+            const channel = this.safeString2 (message, 'table', 'group');
             const methods = {
                 'depth': this.handleOrderBook,
                 'ticker': this.handleTicker,

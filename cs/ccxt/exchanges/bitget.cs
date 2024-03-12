@@ -352,6 +352,8 @@ public partial class bitget : Exchange
                             { "v2/spot/wallet/transfer", 2 },
                             { "v2/spot/wallet/subaccount-transfer", 2 },
                             { "v2/spot/wallet/withdrawal", 2 },
+                            { "v2/spot/wallet/cancel-withdrawal", 2 },
+                            { "v2/spot/wallet/modify-deposit-account", 2 },
                         } },
                     } },
                     { "mix", new Dictionary<string, object>() {
@@ -696,9 +698,12 @@ public partial class bitget : Exchange
                             { "v2/convert/currencies", 2 },
                             { "v2/convert/quoted-price", 2 },
                             { "v2/convert/convert-record", 2 },
+                            { "v2/convert/bgb-convert-coin-list", 2 },
+                            { "v2/convert/bgb-convert-records", 2 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v2/convert/trade", 2 },
+                            { "v2/convert/bgb-convert", 2 },
                         } },
                     } },
                     { "earn", new Dictionary<string, object>() {
@@ -5233,6 +5238,7 @@ public partial class bitget : Exchange
         * @name bitget#cancelAllOrders
         * @description cancel all open orders
         * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+        * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
         * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -5265,7 +5271,7 @@ public partial class bitget : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
         if (isTrue(getValue(market, "spot")))
@@ -5281,7 +5287,16 @@ public partial class bitget : Exchange
                 }
             } else
             {
-                response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, parameters));
+                if (isTrue(stop))
+                {
+                    object stopRequest = new Dictionary<string, object>() {
+                        { "symbolList", new List<object>() {getValue(market, "id")} },
+                    };
+                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder(this.extend(stopRequest, parameters));
+                } else
+                {
+                    response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, parameters));
+                }
             }
         } else
         {

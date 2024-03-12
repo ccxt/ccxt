@@ -6475,7 +6475,7 @@ Such network-related exceptions are time-dependent and re-trying the request lat
 
 #### DDoSProtection
 
-This exception is thrown in cases when cloud/hosting services (Cloudflare, Incapsula or etc..) limits reqeusts from user/region/location or when the exchange API restricts user because of making abnormal requests. This exception also contains specific sub-type exception `RateLimitExceeded`, which directly means that user makes much frequent requests than tolerated by exchange API engine.
+This exception is thrown in cases when cloud/hosting services (Cloudflare, Incapsula or etc..) limits requests from user/region/location or when the exchange API restricts user because of making abnormal requests. This exception also contains specific sub-type exception `RateLimitExceeded`, which directly means that user makes much frequent requests than tolerated by exchange API engine.
 
 #### RequestTimeout
 
