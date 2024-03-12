@@ -8,6 +8,11 @@ import Precise from '../../base/Precise.js';
 async function testFetchTrades (exchange, skippedProperties, symbol) {
     const method = 'fetchTrades';
     const trades = await exchange.fetchTrades (symbol, undefined, 12000); // lets test with unrealistically high amount
+    const logText = testSharedMethods.logTemplate (exchange, method, trades);
+    // check trades length (any normal exchange should be tested against this. If there are any crappy exchange that doesn't have trades, that exchange should be added into skips )
+    if (!('emptyResponse' in skippedProperties)) {
+        assert (trades.length > 0, 'Returned trades should not be empty' + logText);
+    }
     await testFetchTrades_Structure (exchange, skippedProperties, symbol, method, trades);
     await testFetchTrades_ArrayValues (exchange, skippedProperties, symbol, method, trades);
     await testFetchTrades_Side (exchange, skippedProperties, symbol, method, trades);
@@ -16,10 +21,6 @@ async function testFetchTrades (exchange, skippedProperties, symbol) {
 async function testFetchTrades_Structure (exchange, skippedProperties, symbol, method, trades) {
     const logText = testSharedMethods.logTemplate (exchange, method, trades);
     assert (Array.isArray (trades), 'Returned respone is not an array' + logText);
-    // check trades length (any normal exchange should be tested against this. If there are any crappy exchange that doesn't have trades, that exchange should be added into skips )
-    if (!('emptyResponse' in skippedProperties)) {
-        assert (trades.length > 0, 'Returned trades should not be empty' + logText);
-    }
     const now = exchange.milliseconds ();
     for (let i = 0; i < trades.length; i++) {
         testTrade (exchange, skippedProperties, method, trades[i], symbol, now);
