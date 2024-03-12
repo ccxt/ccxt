@@ -3197,7 +3197,7 @@ export default class ascendex extends Exchange {
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
-            transfer['amount'] = this.number (preciseAmount);
+            transfer['amount'] = this.parseNumber (preciseAmount);
             transfer['currency'] = code;
         }
         return transfer;
