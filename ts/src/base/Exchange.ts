@@ -1015,7 +1015,6 @@ export default class Exchange {
             } catch (e) {}
             this.socksProxyAgentModuleChecked = true;
         }
-        this.proxiesModulesLoading.resolve (true);
     }
 
     setProxyAgents (httpProxy, httpsProxy, socksProxy) {
