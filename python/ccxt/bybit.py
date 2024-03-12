@@ -15,7 +15,7 @@ from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError, NotChanged, OrderCancelled, PositionNotFound, TradesNotFound, \
-    AccountRateLimitExceeded
+    AccountRateLimitExceeded, MaxStopAllowed
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -543,7 +543,7 @@ class bybit(Exchange):
                     '110007': InsufficientFunds,
                     # {"retCode":110007,"retMsg":"ab not enough for new order","result":{},"retExtInfo":{},"time":1668838414793}
                     '110008': InvalidOrder,  # Order has been finished or canceled
-                    '110009': InvalidOrder,  # The number of stop orders exceeds maximum limit allowed
+                    '110009': MaxStopAllowed,  # The number of stop orders exceeds maximum limit allowed
                     '110010': InvalidOrder,  # Order already cancelled
                     '110011': InvalidOrder,  # Any adjustments made will trigger immediate liquidation
                     '110012': InsufficientFunds,  # Available balance not enough
