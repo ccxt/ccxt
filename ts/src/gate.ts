@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages } from './base/types.js';
 
 /**
  * @class gate
@@ -116,6 +116,7 @@ export default class gate extends Exchange {
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
                 'fetchMarginMode': false,
@@ -7096,12 +7097,63 @@ export default class gate extends Exchange {
         return this.parseLeverage (response, market);
     }
 
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+        /**
+         * @method
+         * @name gate#fetchLeverages
+         * @description fetch the set leverage for all leverage markets, only spot margin is supported on gate
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-lending-markets
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated
+         * @param {string[]} symbols a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.unified] default false, set to true for fetching unified account leverages
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let response = undefined;
+        const isUnified = this.safeBool (params, 'unified');
+        params = this.omit (params, 'unified');
+        let marketIdRequest = 'id';
+        if (isUnified) {
+            marketIdRequest = 'currency_pair';
+            response = await this.publicMarginGetUniCurrencyPairs (params);
+            //
+            //     [
+            //         {
+            //             "currency_pair": "1INCH_USDT",
+            //             "base_min_borrow_amount": "8",
+            //             "quote_min_borrow_amount": "1",
+            //             "leverage": "3"
+            //         },
+            //     ]
+            //
+        } else {
+            response = await this.publicMarginGetCurrencyPairs (params);
+            //
+            //     [
+            //         {
+            //             "id": "1CAT_USDT",
+            //             "base": "1CAT",
+            //             "quote": "USDT",
+            //             "leverage": 3,
+            //             "min_base_amount": "71",
+            //             "min_quote_amount": "1",
+            //             "max_quote_amount": "10000",
+            //             "status": 1
+            //         },
+            //     ]
+            //
+        }
+        return this.parseLeverages (response, symbols, marketIdRequest, 'spot');
+    }
+
     parseLeverage (leverage, market = undefined): Leverage {
         const marketId = this.safeString2 (leverage, 'currency_pair', 'id');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
             'info': leverage,
-            'symbol': this.safeSymbol (marketId, market, undefined, 'spot'),
+            'symbol': this.safeSymbol (marketId, market, '_', 'spot'),
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
