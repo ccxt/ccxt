@@ -469,6 +469,7 @@ export default class htx extends Exchange {
                             'v2/sub-user/api-key-modification': 1,
                             'v2/sub-user/api-key-deletion': 1,
                             'v1/subuser/transfer': 10,
+                            'v1/trust/user/active/credit': 10,
                             // Trading
                             'v1/order/orders/place': 0.2,
                             'v1/order/batch-orders': 0.4,
