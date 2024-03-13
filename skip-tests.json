@@ -984,6 +984,18 @@
                 "quoteVolume": "same",
                 "baseVolume": "same"
             },
+            "watchTicker": {
+                "bid":"same",
+                "ask":"same",
+                "quoteVolume": "same",
+                "baseVolume": "same"
+            },
+            "watchTickers": {
+                "bid":"same",
+                "ask":"same",
+                "quoteVolume": "same",
+                "baseVolume": "same"
+            },
             "fetchPositions":  "currently returns a lot of default/non open positions",
             "fetchLedger": {
                 "currency": "undefined",
