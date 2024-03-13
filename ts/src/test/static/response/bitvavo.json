@@ -7,38 +7,13 @@
                 "description": "create order limit buy",
                 "method": "createOrder",
                 "input": [
-                  "BTC/EUR",
-                  "limit",
-                  "buy",
-                  0.0003,
-                  30000
+                    "BTC/EUR",
+                    "limit",
+                    "buy",
+                    0.0003,
+                    30000
                 ],
                 "httpResponse": {
-                  "orderId": "decccad3-7c79-4933-a34e-dfe911ebd363",
-                  "market": "BTC-EUR",
-                  "created": "1702354762111",
-                  "updated": "1702354762111",
-                  "status": "new",
-                  "side": "buy",
-                  "orderType": "limit",
-                  "clientOrderId": "080b43f8-412d-4dc9-ac1f-d902554087ed",
-                  "amount": "0.0003",
-                  "amountRemaining": "0.0003",
-                  "onHold": "9.03",
-                  "onHoldCurrency": "EUR",
-                  "filledAmount": "0",
-                  "filledAmountQuote": "0",
-                  "feePaid": "0",
-                  "feeCurrency": "EUR",
-                  "fills": [],
-                  "selfTradePrevention": "decrementAndCancel",
-                  "visible": true,
-                  "price": "30000",
-                  "timeInForce": "GTC",
-                  "postOnly": false
-                },
-                "parsedResponse": {
-                  "info": {
                     "orderId": "decccad3-7c79-4933-a34e-dfe911ebd363",
                     "market": "BTC-EUR",
                     "created": "1702354762111",
@@ -61,41 +36,66 @@
                     "price": "30000",
                     "timeInForce": "GTC",
                     "postOnly": false
-                  },
-                  "id": "decccad3-7c79-4933-a34e-dfe911ebd363",
-                  "clientOrderId": null,
-                  "timestamp": 1702354762111,
-                  "datetime": "2023-12-12T04:19:22.111Z",
-                  "lastTradeTimestamp": null,
-                  "symbol": "BTC/EUR",
-                  "type": "limit",
-                  "timeInForce": "GTC",
-                  "postOnly": false,
-                  "side": "buy",
-                  "price": 30000,
-                  "stopPrice": null,
-                  "triggerPrice": null,
-                  "amount": 0.0003,
-                  "cost": 0,
-                  "average": null,
-                  "filled": 0,
-                  "remaining": 0.0003,
-                  "status": "open",
-                  "fee": {
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "decccad3-7c79-4933-a34e-dfe911ebd363",
+                        "market": "BTC-EUR",
+                        "created": "1702354762111",
+                        "updated": "1702354762111",
+                        "status": "new",
+                        "side": "buy",
+                        "orderType": "limit",
+                        "clientOrderId": "080b43f8-412d-4dc9-ac1f-d902554087ed",
+                        "amount": "0.0003",
+                        "amountRemaining": "0.0003",
+                        "onHold": "9.03",
+                        "onHoldCurrency": "EUR",
+                        "filledAmount": "0",
+                        "filledAmountQuote": "0",
+                        "feePaid": "0",
+                        "feeCurrency": "EUR",
+                        "fills": [],
+                        "selfTradePrevention": "decrementAndCancel",
+                        "visible": true,
+                        "price": "30000",
+                        "timeInForce": "GTC",
+                        "postOnly": false
+                    },
+                    "id": "decccad3-7c79-4933-a34e-dfe911ebd363",
+                    "clientOrderId": null,
+                    "timestamp": 1702354762111,
+                    "datetime": "2023-12-12T04:19:22.111Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/EUR",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 30000,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 0.0003,
                     "cost": 0,
-                    "currency": "EUR"
-                  },
-                  "trades": [],
-                  "fees": [
-                    {
-                      "cost": 0,
-                      "currency": "EUR"
-                    }
-                  ],
-                  "lastUpdateTimestamp": null,
-                  "reduceOnly": null,
-                  "takeProfitPrice": null,
-                  "stopLossPrice": null
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.0003,
+                    "status": "open",
+                    "fee": {
+                        "cost": 0,
+                        "currency": "EUR"
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 0,
+                            "currency": "EUR"
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
                 }
             }
         ],
@@ -104,38 +104,14 @@
                 "description": "edit order price",
                 "method": "editOrder",
                 "input": [
-                  "decccad3-7c79-4933-a34e-dfe911ebd363",
-                  "BTC/EUR",
-                  "limit",
-                  "buy",
-                  0.0003,
-                  31000
+                    "decccad3-7c79-4933-a34e-dfe911ebd363",
+                    "BTC/EUR",
+                    "limit",
+                    "buy",
+                    0.0003,
+                    31000
                 ],
                 "httpResponse": {
-                  "orderId": "decccad3-7c79-4933-a34e-dfe911ebd363",
-                  "market": "BTC-EUR",
-                  "created": "1702354762111",
-                  "updated": "1702354882084",
-                  "status": "new",
-                  "side": "buy",
-                  "orderType": "limit",
-                  "amount": "0.0003",
-                  "amountRemaining": "0.0003",
-                  "onHold": "9.33",
-                  "onHoldCurrency": "EUR",
-                  "filledAmount": "0",
-                  "filledAmountQuote": "0",
-                  "feePaid": "0",
-                  "feeCurrency": "EUR",
-                  "fills": [],
-                  "selfTradePrevention": "decrementAndCancel",
-                  "visible": true,
-                  "price": "31000",
-                  "timeInForce": "GTC",
-                  "postOnly": false
-                },
-                "parsedResponse": {
-                  "info": {
                     "orderId": "decccad3-7c79-4933-a34e-dfe911ebd363",
                     "market": "BTC-EUR",
                     "created": "1702354762111",
@@ -157,41 +133,65 @@
                     "price": "31000",
                     "timeInForce": "GTC",
                     "postOnly": false
-                  },
-                  "id": "decccad3-7c79-4933-a34e-dfe911ebd363",
-                  "clientOrderId": null,
-                  "timestamp": 1702354762111,
-                  "datetime": "2023-12-12T04:19:22.111Z",
-                  "lastTradeTimestamp": null,
-                  "symbol": "BTC/EUR",
-                  "type": "limit",
-                  "timeInForce": "GTC",
-                  "postOnly": false,
-                  "side": "buy",
-                  "price": 31000,
-                  "stopPrice": null,
-                  "triggerPrice": null,
-                  "amount": 0.0003,
-                  "cost": 0,
-                  "average": null,
-                  "filled": 0,
-                  "remaining": 0.0003,
-                  "status": "open",
-                  "fee": {
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "decccad3-7c79-4933-a34e-dfe911ebd363",
+                        "market": "BTC-EUR",
+                        "created": "1702354762111",
+                        "updated": "1702354882084",
+                        "status": "new",
+                        "side": "buy",
+                        "orderType": "limit",
+                        "amount": "0.0003",
+                        "amountRemaining": "0.0003",
+                        "onHold": "9.33",
+                        "onHoldCurrency": "EUR",
+                        "filledAmount": "0",
+                        "filledAmountQuote": "0",
+                        "feePaid": "0",
+                        "feeCurrency": "EUR",
+                        "fills": [],
+                        "selfTradePrevention": "decrementAndCancel",
+                        "visible": true,
+                        "price": "31000",
+                        "timeInForce": "GTC",
+                        "postOnly": false
+                    },
+                    "id": "decccad3-7c79-4933-a34e-dfe911ebd363",
+                    "clientOrderId": null,
+                    "timestamp": 1702354762111,
+                    "datetime": "2023-12-12T04:19:22.111Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/EUR",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 31000,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 0.0003,
                     "cost": 0,
-                    "currency": "EUR"
-                  },
-                  "trades": [],
-                  "fees": [
-                    {
-                      "cost": 0,
-                      "currency": "EUR"
-                    }
-                  ],
-                  "lastUpdateTimestamp": null,
-                  "reduceOnly": null,
-                  "takeProfitPrice": null,
-                  "stopLossPrice": null
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.0003,
+                    "status": "open",
+                    "fee": {
+                        "cost": 0,
+                        "currency": "EUR"
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 0,
+                            "currency": "EUR"
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
                 }
             }
         ],
@@ -200,42 +200,42 @@
                 "description": "cancel order",
                 "method": "cancelOrder",
                 "input": [
-                  "decccad3-7c79-4933-a34e-dfe911ebd363",
-                  "BTC/EUR"
+                    "decccad3-7c79-4933-a34e-dfe911ebd363",
+                    "BTC/EUR"
                 ],
                 "httpResponse": {
-                  "orderId": "decccad3-7c79-4933-a34e-dfe911ebd363"
+                    "orderId": "decccad3-7c79-4933-a34e-dfe911ebd363"
                 },
                 "parsedResponse": {
-                  "info": {
-                    "orderId": "decccad3-7c79-4933-a34e-dfe911ebd363"
-                  },
-                  "id": "decccad3-7c79-4933-a34e-dfe911ebd363",
-                  "clientOrderId": null,
-                  "timestamp": null,
-                  "datetime": null,
-                  "lastTradeTimestamp": null,
-                  "symbol": "BTC/EUR",
-                  "type": null,
-                  "timeInForce": null,
-                  "postOnly": null,
-                  "side": null,
-                  "price": null,
-                  "stopPrice": null,
-                  "triggerPrice": null,
-                  "amount": null,
-                  "cost": null,
-                  "average": null,
-                  "filled": null,
-                  "remaining": null,
-                  "status": null,
-                  "fee": null,
-                  "trades": [],
-                  "fees": [],
-                  "lastUpdateTimestamp": null,
-                  "reduceOnly": null,
-                  "takeProfitPrice": null,
-                  "stopLossPrice": null
+                    "info": {
+                        "orderId": "decccad3-7c79-4933-a34e-dfe911ebd363"
+                    },
+                    "id": "decccad3-7c79-4933-a34e-dfe911ebd363",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/EUR",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
                 }
             }
         ],
@@ -244,525 +244,525 @@
                 "description": "fetchOHLCV BTC/EUR 1m limit 5",
                 "method": "fetchOHLCV",
                 "input": [
-                  "BTC/EUR",
-                  "1m",
-                  null,
-                  5
+                    "BTC/EUR",
+                    "1m",
+                    null,
+                    5
                 ],
                 "httpResponse": [
-                  [
-                    1702354080000,
-                    "38766",
-                    "38766",
-                    "38766",
-                    "38766",
-                    "0.00012865"
-                  ],
-                  [
-                    1702354020000,
-                    "38761",
-                    "38764",
-                    "38761",
-                    "38761",
-                    "0.27526588"
-                  ],
-                  [
-                    1702353960000,
-                    "38756",
-                    "38756",
-                    "38756",
-                    "38756",
-                    "0.01266973"
-                  ],
-                  [
-                    1702353900000,
-                    "38750",
-                    "38766",
-                    "38750",
-                    "38766",
-                    "0.05047192"
-                  ],
-                  [
-                    1702353840000,
-                    "38743",
-                    "38743",
-                    "38743",
-                    "38743",
-                    "0.3114"
-                  ]
+                    [
+                        1702354080000,
+                        "38766",
+                        "38766",
+                        "38766",
+                        "38766",
+                        "0.00012865"
+                    ],
+                    [
+                        1702354020000,
+                        "38761",
+                        "38764",
+                        "38761",
+                        "38761",
+                        "0.27526588"
+                    ],
+                    [
+                        1702353960000,
+                        "38756",
+                        "38756",
+                        "38756",
+                        "38756",
+                        "0.01266973"
+                    ],
+                    [
+                        1702353900000,
+                        "38750",
+                        "38766",
+                        "38750",
+                        "38766",
+                        "0.05047192"
+                    ],
+                    [
+                        1702353840000,
+                        "38743",
+                        "38743",
+                        "38743",
+                        "38743",
+                        "0.3114"
+                    ]
                 ],
                 "parsedResponse": [
-                  [
-                    1702353840000,
-                    38743,
-                    38743,
-                    38743,
-                    38743,
-                    0.3114
-                  ],
-                  [
-                    1702353900000,
-                    38750,
-                    38766,
-                    38750,
-                    38766,
-                    0.05047192
-                  ],
-                  [
-                    1702353960000,
-                    38756,
-                    38756,
-                    38756,
-                    38756,
-                    0.01266973
-                  ],
-                  [
-                    1702354020000,
-                    38761,
-                    38764,
-                    38761,
-                    38761,
-                    0.27526588
-                  ],
-                  [
-                    1702354080000,
-                    38766,
-                    38766,
-                    38766,
-                    38766,
-                    0.00012865
-                  ]
+                    [
+                        1702353840000,
+                        38743,
+                        38743,
+                        38743,
+                        38743,
+                        0.3114
+                    ],
+                    [
+                        1702353900000,
+                        38750,
+                        38766,
+                        38750,
+                        38766,
+                        0.05047192
+                    ],
+                    [
+                        1702353960000,
+                        38756,
+                        38756,
+                        38756,
+                        38756,
+                        0.01266973
+                    ],
+                    [
+                        1702354020000,
+                        38761,
+                        38764,
+                        38761,
+                        38761,
+                        0.27526588
+                    ],
+                    [
+                        1702354080000,
+                        38766,
+                        38766,
+                        38766,
+                        38766,
+                        0.00012865
+                    ]
                 ]
-              }
+            }
         ],
         "fetchOrders": [
             {
                 "description": "fetchOrders for BTC/EUR and limit 3",
                 "method": "fetchOrders",
                 "input": [
-                  "BTC/EUR",
-                  null,
-                  3
+                    "BTC/EUR",
+                    null,
+                    3
                 ],
                 "httpResponse": [
-                  {
-                    "orderId": "af596202-5712-4453-81fa-41bdca71e7b4",
-                    "market": "BTC-EUR",
-                    "created": "1700130652264",
-                    "updated": "1700130652264",
-                    "status": "filled",
-                    "side": "sell",
-                    "orderType": "market",
-                    "clientOrderId": "123b3e62-bb61-41db-8425-cbc541c05fe9",
-                    "amount": "0.00020002",
-                    "amountRemaining": "0",
-                    "onHold": "0",
-                    "onHoldCurrency": "BTC",
-                    "filledAmount": "0.00020002",
-                    "filledAmountQuote": "6.89448938",
-                    "feePaid": "0.02448938",
-                    "feeCurrency": "EUR",
-                    "fills": [
-                      {
-                        "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
-                        "timestamp": "1700130652275",
+                    {
+                        "orderId": "af596202-5712-4453-81fa-41bdca71e7b4",
+                        "market": "BTC-EUR",
+                        "created": "1700130652264",
+                        "updated": "1700130652264",
+                        "status": "filled",
+                        "side": "sell",
+                        "orderType": "market",
+                        "clientOrderId": "123b3e62-bb61-41db-8425-cbc541c05fe9",
                         "amount": "0.00020002",
-                        "price": "34469",
-                        "taker": true,
-                        "fee": "0.02448938",
+                        "amountRemaining": "0",
+                        "onHold": "0",
+                        "onHoldCurrency": "BTC",
+                        "filledAmount": "0.00020002",
+                        "filledAmountQuote": "6.89448938",
+                        "feePaid": "0.02448938",
                         "feeCurrency": "EUR",
-                        "settled": true
-                      }
-                    ],
-                    "selfTradePrevention": "decrementAndCancel",
-                    "visible": false,
-                    "disableMarketProtection": false
-                  },
-                  {
-                    "orderId": "b8a4b71b-d435-4664-913d-ee81829e6109",
-                    "market": "BTC-EUR",
-                    "created": "1700130593592",
-                    "updated": "1700130593598",
-                    "status": "filled",
-                    "side": "buy",
-                    "orderType": "stopLoss",
-                    "clientOrderId": "0fc26ff3-a21a-4292-b823-f6ad1e00373a",
-                    "amount": "0.0002",
-                    "amountRemaining": "0",
-                    "triggerPrice": "30000",
-                    "triggerAmount": "30000",
-                    "triggerType": "price",
-                    "triggerReference": "lastTrade",
-                    "onHold": "0",
-                    "onHoldCurrency": "EUR",
-                    "filledAmount": "0.0002",
-                    "filledAmountQuote": "6.8976",
-                    "feePaid": "0.0224",
-                    "feeCurrency": "EUR",
-                    "fills": [
-                      {
-                        "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
-                        "timestamp": "1700130593656",
+                        "fills": [
+                            {
+                                "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
+                                "timestamp": "1700130652275",
+                                "amount": "0.00020002",
+                                "price": "34469",
+                                "taker": true,
+                                "fee": "0.02448938",
+                                "feeCurrency": "EUR",
+                                "settled": true
+                            }
+                        ],
+                        "selfTradePrevention": "decrementAndCancel",
+                        "visible": false,
+                        "disableMarketProtection": false
+                    },
+                    {
+                        "orderId": "b8a4b71b-d435-4664-913d-ee81829e6109",
+                        "market": "BTC-EUR",
+                        "created": "1700130593592",
+                        "updated": "1700130593598",
+                        "status": "filled",
+                        "side": "buy",
+                        "orderType": "stopLoss",
+                        "clientOrderId": "0fc26ff3-a21a-4292-b823-f6ad1e00373a",
                         "amount": "0.0002",
-                        "price": "34488",
-                        "taker": true,
-                        "fee": "0.0224",
+                        "amountRemaining": "0",
+                        "triggerPrice": "30000",
+                        "triggerAmount": "30000",
+                        "triggerType": "price",
+                        "triggerReference": "lastTrade",
+                        "onHold": "0",
+                        "onHoldCurrency": "EUR",
+                        "filledAmount": "0.0002",
+                        "filledAmountQuote": "6.8976",
+                        "feePaid": "0.0224",
                         "feeCurrency": "EUR",
-                        "settled": true
-                      }
-                    ],
-                    "selfTradePrevention": "decrementAndCancel",
-                    "visible": false,
-                    "disableMarketProtection": false
-                  },
-                  {
-                    "orderId": "cc365406-280a-45a6-8b07-c690657bea09",
-                    "market": "BTC-EUR",
-                    "created": "1700130493027",
-                    "updated": "1700130493027",
-                    "status": "filled",
-                    "side": "sell",
-                    "orderType": "market",
-                    "clientOrderId": "3269836f-0de4-4176-a23f-8f5f73453ec3",
-                    "amount": "0.0002",
-                    "amountRemaining": "0",
-                    "onHold": "0",
-                    "onHoldCurrency": "BTC",
-                    "filledAmount": "0.0002",
-                    "filledAmountQuote": "6.8928",
-                    "feePaid": "0.0228",
-                    "feeCurrency": "EUR",
-                    "fills": [
-                      {
-                        "id": "7cfcac66-6f14-4c60-a43b-561160f82e11",
-                        "timestamp": "1700130493037",
+                        "fills": [
+                            {
+                                "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
+                                "timestamp": "1700130593656",
+                                "amount": "0.0002",
+                                "price": "34488",
+                                "taker": true,
+                                "fee": "0.0224",
+                                "feeCurrency": "EUR",
+                                "settled": true
+                            }
+                        ],
+                        "selfTradePrevention": "decrementAndCancel",
+                        "visible": false,
+                        "disableMarketProtection": false
+                    },
+                    {
+                        "orderId": "cc365406-280a-45a6-8b07-c690657bea09",
+                        "market": "BTC-EUR",
+                        "created": "1700130493027",
+                        "updated": "1700130493027",
+                        "status": "filled",
+                        "side": "sell",
+                        "orderType": "market",
+                        "clientOrderId": "3269836f-0de4-4176-a23f-8f5f73453ec3",
                         "amount": "0.0002",
-                        "price": "34464",
-                        "taker": true,
-                        "fee": "0.0228",
+                        "amountRemaining": "0",
+                        "onHold": "0",
+                        "onHoldCurrency": "BTC",
+                        "filledAmount": "0.0002",
+                        "filledAmountQuote": "6.8928",
+                        "feePaid": "0.0228",
                         "feeCurrency": "EUR",
-                        "settled": true
-                      }
-                    ],
-                    "selfTradePrevention": "decrementAndCancel",
-                    "visible": false,
-                    "disableMarketProtection": false
-                  }
+                        "fills": [
+                            {
+                                "id": "7cfcac66-6f14-4c60-a43b-561160f82e11",
+                                "timestamp": "1700130493037",
+                                "amount": "0.0002",
+                                "price": "34464",
+                                "taker": true,
+                                "fee": "0.0228",
+                                "feeCurrency": "EUR",
+                                "settled": true
+                            }
+                        ],
+                        "selfTradePrevention": "decrementAndCancel",
+                        "visible": false,
+                        "disableMarketProtection": false
+                    }
                 ],
                 "parsedResponse": [
-                  {
-                    "info": {
-                      "orderId": "cc365406-280a-45a6-8b07-c690657bea09",
-                      "market": "BTC-EUR",
-                      "created": "1700130493027",
-                      "updated": "1700130493027",
-                      "status": "filled",
-                      "side": "sell",
-                      "orderType": "market",
-                      "clientOrderId": "3269836f-0de4-4176-a23f-8f5f73453ec3",
-                      "amount": "0.0002",
-                      "amountRemaining": "0",
-                      "onHold": "0",
-                      "onHoldCurrency": "BTC",
-                      "filledAmount": "0.0002",
-                      "filledAmountQuote": "6.8928",
-                      "feePaid": "0.0228",
-                      "feeCurrency": "EUR",
-                      "fills": [
-                        {
-                          "id": "7cfcac66-6f14-4c60-a43b-561160f82e11",
-                          "timestamp": "1700130493037",
-                          "amount": "0.0002",
-                          "price": "34464",
-                          "taker": true,
-                          "fee": "0.0228",
-                          "feeCurrency": "EUR",
-                          "settled": true
-                        }
-                      ],
-                      "selfTradePrevention": "decrementAndCancel",
-                      "visible": false,
-                      "disableMarketProtection": false
-                    },
-                    "id": "cc365406-280a-45a6-8b07-c690657bea09",
-                    "clientOrderId": null,
-                    "timestamp": 1700130493027,
-                    "datetime": "2023-11-16T10:28:13.027Z",
-                    "lastTradeTimestamp": 1700130493037,
-                    "symbol": "BTC/EUR",
-                    "type": "market",
-                    "timeInForce": "IOC",
-                    "postOnly": null,
-                    "side": "sell",
-                    "price": 34464,
-                    "stopPrice": null,
-                    "triggerPrice": null,
-                    "amount": 0.0002,
-                    "cost": 6.8928,
-                    "average": 34464,
-                    "filled": 0.0002,
-                    "remaining": 0,
-                    "status": "closed",
-                    "fee": {
-                      "cost": 0.0228,
-                      "currency": "EUR"
-                    },
-                    "trades": [
-                      {
+                    {
                         "info": {
-                          "id": "7cfcac66-6f14-4c60-a43b-561160f82e11",
-                          "timestamp": "1700130493037",
-                          "amount": "0.0002",
-                          "price": "34464",
-                          "taker": true,
-                          "fee": "0.0228",
-                          "feeCurrency": "EUR",
-                          "settled": true
+                            "orderId": "cc365406-280a-45a6-8b07-c690657bea09",
+                            "market": "BTC-EUR",
+                            "created": "1700130493027",
+                            "updated": "1700130493027",
+                            "status": "filled",
+                            "side": "sell",
+                            "orderType": "market",
+                            "clientOrderId": "3269836f-0de4-4176-a23f-8f5f73453ec3",
+                            "amount": "0.0002",
+                            "amountRemaining": "0",
+                            "onHold": "0",
+                            "onHoldCurrency": "BTC",
+                            "filledAmount": "0.0002",
+                            "filledAmountQuote": "6.8928",
+                            "feePaid": "0.0228",
+                            "feeCurrency": "EUR",
+                            "fills": [
+                                {
+                                    "id": "7cfcac66-6f14-4c60-a43b-561160f82e11",
+                                    "timestamp": "1700130493037",
+                                    "amount": "0.0002",
+                                    "price": "34464",
+                                    "taker": true,
+                                    "fee": "0.0228",
+                                    "feeCurrency": "EUR",
+                                    "settled": true
+                                }
+                            ],
+                            "selfTradePrevention": "decrementAndCancel",
+                            "visible": false,
+                            "disableMarketProtection": false
                         },
-                        "id": "7cfcac66-6f14-4c60-a43b-561160f82e11",
+                        "id": "cc365406-280a-45a6-8b07-c690657bea09",
+                        "clientOrderId": null,
+                        "timestamp": 1700130493027,
+                        "datetime": "2023-11-16T10:28:13.027Z",
+                        "lastTradeTimestamp": 1700130493037,
                         "symbol": "BTC/EUR",
-                        "timestamp": 1700130493037,
-                        "datetime": "2023-11-16T10:28:13.037Z",
-                        "order": null,
-                        "type": null,
-                        "side": null,
-                        "takerOrMaker": "taker",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": null,
+                        "side": "sell",
                         "price": 34464,
+                        "stopPrice": null,
+                        "triggerPrice": null,
                         "amount": 0.0002,
                         "cost": 6.8928,
+                        "average": 34464,
+                        "filled": 0.0002,
+                        "remaining": 0,
+                        "status": "closed",
                         "fee": {
-                          "cost": 0.0228,
-                          "currency": "EUR"
-                        },
-                        "fees": [
-                          {
-                            "cost": "0.0228",
+                            "cost": 0.0228,
                             "currency": "EUR"
-                          }
-                        ]
-                      }
-                    ],
-                    "fees": [
-                      {
-                        "currency": "EUR",
-                        "cost": 0.0228
-                      }
-                    ],
-                    "lastUpdateTimestamp": null,
-                    "reduceOnly": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
-                  },
-                  {
-                    "info": {
-                      "orderId": "b8a4b71b-d435-4664-913d-ee81829e6109",
-                      "market": "BTC-EUR",
-                      "created": "1700130593592",
-                      "updated": "1700130593598",
-                      "status": "filled",
-                      "side": "buy",
-                      "orderType": "stopLoss",
-                      "clientOrderId": "0fc26ff3-a21a-4292-b823-f6ad1e00373a",
-                      "amount": "0.0002",
-                      "amountRemaining": "0",
-                      "triggerPrice": "30000",
-                      "triggerAmount": "30000",
-                      "triggerType": "price",
-                      "triggerReference": "lastTrade",
-                      "onHold": "0",
-                      "onHoldCurrency": "EUR",
-                      "filledAmount": "0.0002",
-                      "filledAmountQuote": "6.8976",
-                      "feePaid": "0.0224",
-                      "feeCurrency": "EUR",
-                      "fills": [
-                        {
-                          "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
-                          "timestamp": "1700130593656",
-                          "amount": "0.0002",
-                          "price": "34488",
-                          "taker": true,
-                          "fee": "0.0224",
-                          "feeCurrency": "EUR",
-                          "settled": true
-                        }
-                      ],
-                      "selfTradePrevention": "decrementAndCancel",
-                      "visible": false,
-                      "disableMarketProtection": false
-                    },
-                    "id": "b8a4b71b-d435-4664-913d-ee81829e6109",
-                    "clientOrderId": null,
-                    "timestamp": 1700130593592,
-                    "datetime": "2023-11-16T10:29:53.592Z",
-                    "lastTradeTimestamp": 1700130593656,
-                    "symbol": "BTC/EUR",
-                    "type": "stopLoss",
-                    "timeInForce": null,
-                    "postOnly": null,
-                    "side": "buy",
-                    "price": null,
-                    "stopPrice": 30000,
-                    "triggerPrice": 30000,
-                    "amount": 0.0002,
-                    "cost": 6.8976,
-                    "average": 34488,
-                    "filled": 0.0002,
-                    "remaining": 0,
-                    "status": "closed",
-                    "fee": {
-                      "cost": 0.0224,
-                      "currency": "EUR"
-                    },
-                    "trades": [
-                      {
-                        "info": {
-                          "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
-                          "timestamp": "1700130593656",
-                          "amount": "0.0002",
-                          "price": "34488",
-                          "taker": true,
-                          "fee": "0.0224",
-                          "feeCurrency": "EUR",
-                          "settled": true
                         },
-                        "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
+                        "trades": [
+                            {
+                                "info": {
+                                    "id": "7cfcac66-6f14-4c60-a43b-561160f82e11",
+                                    "timestamp": "1700130493037",
+                                    "amount": "0.0002",
+                                    "price": "34464",
+                                    "taker": true,
+                                    "fee": "0.0228",
+                                    "feeCurrency": "EUR",
+                                    "settled": true
+                                },
+                                "id": "7cfcac66-6f14-4c60-a43b-561160f82e11",
+                                "symbol": "BTC/EUR",
+                                "timestamp": 1700130493037,
+                                "datetime": "2023-11-16T10:28:13.037Z",
+                                "order": null,
+                                "type": null,
+                                "side": null,
+                                "takerOrMaker": "taker",
+                                "price": 34464,
+                                "amount": 0.0002,
+                                "cost": 6.8928,
+                                "fee": {
+                                    "cost": 0.0228,
+                                    "currency": "EUR"
+                                },
+                                "fees": [
+                                    {
+                                        "cost": "0.0228",
+                                        "currency": "EUR"
+                                    }
+                                ]
+                            }
+                        ],
+                        "fees": [
+                            {
+                                "currency": "EUR",
+                                "cost": 0.0228
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "orderId": "b8a4b71b-d435-4664-913d-ee81829e6109",
+                            "market": "BTC-EUR",
+                            "created": "1700130593592",
+                            "updated": "1700130593598",
+                            "status": "filled",
+                            "side": "buy",
+                            "orderType": "stopLoss",
+                            "clientOrderId": "0fc26ff3-a21a-4292-b823-f6ad1e00373a",
+                            "amount": "0.0002",
+                            "amountRemaining": "0",
+                            "triggerPrice": "30000",
+                            "triggerAmount": "30000",
+                            "triggerType": "price",
+                            "triggerReference": "lastTrade",
+                            "onHold": "0",
+                            "onHoldCurrency": "EUR",
+                            "filledAmount": "0.0002",
+                            "filledAmountQuote": "6.8976",
+                            "feePaid": "0.0224",
+                            "feeCurrency": "EUR",
+                            "fills": [
+                                {
+                                    "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
+                                    "timestamp": "1700130593656",
+                                    "amount": "0.0002",
+                                    "price": "34488",
+                                    "taker": true,
+                                    "fee": "0.0224",
+                                    "feeCurrency": "EUR",
+                                    "settled": true
+                                }
+                            ],
+                            "selfTradePrevention": "decrementAndCancel",
+                            "visible": false,
+                            "disableMarketProtection": false
+                        },
+                        "id": "b8a4b71b-d435-4664-913d-ee81829e6109",
+                        "clientOrderId": null,
+                        "timestamp": 1700130593592,
+                        "datetime": "2023-11-16T10:29:53.592Z",
+                        "lastTradeTimestamp": 1700130593656,
                         "symbol": "BTC/EUR",
-                        "timestamp": 1700130593656,
-                        "datetime": "2023-11-16T10:29:53.656Z",
-                        "order": null,
-                        "type": null,
-                        "side": null,
-                        "takerOrMaker": "taker",
-                        "price": 34488,
+                        "type": "stopLoss",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": null,
+                        "stopPrice": 30000,
+                        "triggerPrice": 30000,
                         "amount": 0.0002,
                         "cost": 6.8976,
+                        "average": 34488,
+                        "filled": 0.0002,
+                        "remaining": 0,
+                        "status": "closed",
                         "fee": {
-                          "cost": 0.0224,
-                          "currency": "EUR"
-                        },
-                        "fees": [
-                          {
-                            "cost": "0.0224",
+                            "cost": 0.0224,
                             "currency": "EUR"
-                          }
-                        ]
-                      }
-                    ],
-                    "fees": [
-                      {
-                        "currency": "EUR",
-                        "cost": 0.0224
-                      }
-                    ],
-                    "lastUpdateTimestamp": null,
-                    "reduceOnly": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
-                  },
-                  {
-                    "info": {
-                      "orderId": "af596202-5712-4453-81fa-41bdca71e7b4",
-                      "market": "BTC-EUR",
-                      "created": "1700130652264",
-                      "updated": "1700130652264",
-                      "status": "filled",
-                      "side": "sell",
-                      "orderType": "market",
-                      "clientOrderId": "123b3e62-bb61-41db-8425-cbc541c05fe9",
-                      "amount": "0.00020002",
-                      "amountRemaining": "0",
-                      "onHold": "0",
-                      "onHoldCurrency": "BTC",
-                      "filledAmount": "0.00020002",
-                      "filledAmountQuote": "6.89448938",
-                      "feePaid": "0.02448938",
-                      "feeCurrency": "EUR",
-                      "fills": [
-                        {
-                          "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
-                          "timestamp": "1700130652275",
-                          "amount": "0.00020002",
-                          "price": "34469",
-                          "taker": true,
-                          "fee": "0.02448938",
-                          "feeCurrency": "EUR",
-                          "settled": true
-                        }
-                      ],
-                      "selfTradePrevention": "decrementAndCancel",
-                      "visible": false,
-                      "disableMarketProtection": false
-                    },
-                    "id": "af596202-5712-4453-81fa-41bdca71e7b4",
-                    "clientOrderId": null,
-                    "timestamp": 1700130652264,
-                    "datetime": "2023-11-16T10:30:52.264Z",
-                    "lastTradeTimestamp": 1700130652275,
-                    "symbol": "BTC/EUR",
-                    "type": "market",
-                    "timeInForce": "IOC",
-                    "postOnly": null,
-                    "side": "sell",
-                    "price": 34469,
-                    "stopPrice": null,
-                    "triggerPrice": null,
-                    "amount": 0.00020002,
-                    "cost": 6.89448938,
-                    "average": 34469,
-                    "filled": 0.00020002,
-                    "remaining": 0,
-                    "status": "closed",
-                    "fee": {
-                      "cost": 0.02448938,
-                      "currency": "EUR"
-                    },
-                    "trades": [
-                      {
-                        "info": {
-                          "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
-                          "timestamp": "1700130652275",
-                          "amount": "0.00020002",
-                          "price": "34469",
-                          "taker": true,
-                          "fee": "0.02448938",
-                          "feeCurrency": "EUR",
-                          "settled": true
                         },
-                        "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
+                        "trades": [
+                            {
+                                "info": {
+                                    "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
+                                    "timestamp": "1700130593656",
+                                    "amount": "0.0002",
+                                    "price": "34488",
+                                    "taker": true,
+                                    "fee": "0.0224",
+                                    "feeCurrency": "EUR",
+                                    "settled": true
+                                },
+                                "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
+                                "symbol": "BTC/EUR",
+                                "timestamp": 1700130593656,
+                                "datetime": "2023-11-16T10:29:53.656Z",
+                                "order": null,
+                                "type": null,
+                                "side": null,
+                                "takerOrMaker": "taker",
+                                "price": 34488,
+                                "amount": 0.0002,
+                                "cost": 6.8976,
+                                "fee": {
+                                    "cost": 0.0224,
+                                    "currency": "EUR"
+                                },
+                                "fees": [
+                                    {
+                                        "cost": "0.0224",
+                                        "currency": "EUR"
+                                    }
+                                ]
+                            }
+                        ],
+                        "fees": [
+                            {
+                                "currency": "EUR",
+                                "cost": 0.0224
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "orderId": "af596202-5712-4453-81fa-41bdca71e7b4",
+                            "market": "BTC-EUR",
+                            "created": "1700130652264",
+                            "updated": "1700130652264",
+                            "status": "filled",
+                            "side": "sell",
+                            "orderType": "market",
+                            "clientOrderId": "123b3e62-bb61-41db-8425-cbc541c05fe9",
+                            "amount": "0.00020002",
+                            "amountRemaining": "0",
+                            "onHold": "0",
+                            "onHoldCurrency": "BTC",
+                            "filledAmount": "0.00020002",
+                            "filledAmountQuote": "6.89448938",
+                            "feePaid": "0.02448938",
+                            "feeCurrency": "EUR",
+                            "fills": [
+                                {
+                                    "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
+                                    "timestamp": "1700130652275",
+                                    "amount": "0.00020002",
+                                    "price": "34469",
+                                    "taker": true,
+                                    "fee": "0.02448938",
+                                    "feeCurrency": "EUR",
+                                    "settled": true
+                                }
+                            ],
+                            "selfTradePrevention": "decrementAndCancel",
+                            "visible": false,
+                            "disableMarketProtection": false
+                        },
+                        "id": "af596202-5712-4453-81fa-41bdca71e7b4",
+                        "clientOrderId": null,
+                        "timestamp": 1700130652264,
+                        "datetime": "2023-11-16T10:30:52.264Z",
+                        "lastTradeTimestamp": 1700130652275,
                         "symbol": "BTC/EUR",
-                        "timestamp": 1700130652275,
-                        "datetime": "2023-11-16T10:30:52.275Z",
-                        "order": null,
-                        "type": null,
-                        "side": null,
-                        "takerOrMaker": "taker",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": null,
+                        "side": "sell",
                         "price": 34469,
+                        "stopPrice": null,
+                        "triggerPrice": null,
                         "amount": 0.00020002,
                         "cost": 6.89448938,
+                        "average": 34469,
+                        "filled": 0.00020002,
+                        "remaining": 0,
+                        "status": "closed",
                         "fee": {
-                          "cost": 0.02448938,
-                          "currency": "EUR"
-                        },
-                        "fees": [
-                          {
-                            "cost": "0.02448938",
+                            "cost": 0.02448938,
                             "currency": "EUR"
-                          }
-                        ]
-                      }
-                    ],
-                    "fees": [
-                      {
-                        "currency": "EUR",
-                        "cost": 0.02448938
-                      }
-                    ],
-                    "lastUpdateTimestamp": null,
-                    "reduceOnly": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
-                  }
+                        },
+                        "trades": [
+                            {
+                                "info": {
+                                    "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
+                                    "timestamp": "1700130652275",
+                                    "amount": "0.00020002",
+                                    "price": "34469",
+                                    "taker": true,
+                                    "fee": "0.02448938",
+                                    "feeCurrency": "EUR",
+                                    "settled": true
+                                },
+                                "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
+                                "symbol": "BTC/EUR",
+                                "timestamp": 1700130652275,
+                                "datetime": "2023-11-16T10:30:52.275Z",
+                                "order": null,
+                                "type": null,
+                                "side": null,
+                                "takerOrMaker": "taker",
+                                "price": 34469,
+                                "amount": 0.00020002,
+                                "cost": 6.89448938,
+                                "fee": {
+                                    "cost": 0.02448938,
+                                    "currency": "EUR"
+                                },
+                                "fees": [
+                                    {
+                                        "cost": "0.02448938",
+                                        "currency": "EUR"
+                                    }
+                                ]
+                            }
+                        ],
+                        "fees": [
+                            {
+                                "currency": "EUR",
+                                "cost": 0.02448938
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
                 ]
             }
         ],
@@ -771,97 +771,97 @@
                 "description": "fetchDeposits USDT limt 2",
                 "method": "fetchDeposits",
                 "input": [
-                  "USDT",
-                  null,
-                  2
+                    "USDT",
+                    null,
+                    2
                 ],
                 "httpResponse": [
-                  {
-                    "timestamp": "1697559267000",
-                    "symbol": "USDT",
-                    "amount": "989.7037",
-                    "fee": "0",
-                    "status": "completed",
-                    "txId": "0x677655dd6e838c70435e3b3a00f4bfb60f6a63ec610afb81d630094505ad3bcf",
-                    "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc"
-                  },
-                  {
-                    "timestamp": "1695903975000",
-                    "symbol": "USDT",
-                    "amount": "1000",
-                    "fee": "0",
-                    "status": "completed",
-                    "txId": "0xc63fc9f3c82cd01b6547d76a84d53cbda54d622e43a2dea4971104f8fef66d22",
-                    "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc"
-                  }
+                    {
+                        "timestamp": "1697559267000",
+                        "symbol": "USDT",
+                        "amount": "989.7037",
+                        "fee": "0",
+                        "status": "completed",
+                        "txId": "0x677655dd6e838c70435e3b3a00f4bfb60f6a63ec610afb81d630094505ad3bcf",
+                        "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc"
+                    },
+                    {
+                        "timestamp": "1695903975000",
+                        "symbol": "USDT",
+                        "amount": "1000",
+                        "fee": "0",
+                        "status": "completed",
+                        "txId": "0xc63fc9f3c82cd01b6547d76a84d53cbda54d622e43a2dea4971104f8fef66d22",
+                        "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc"
+                    }
                 ],
                 "parsedResponse": [
-                  {
-                    "info": {
-                      "timestamp": "1695903975000",
-                      "symbol": "USDT",
-                      "amount": "1000",
-                      "fee": "0",
-                      "status": "completed",
-                      "txId": "0xc63fc9f3c82cd01b6547d76a84d53cbda54d622e43a2dea4971104f8fef66d22",
-                      "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc"
+                    {
+                        "info": {
+                            "timestamp": "1695903975000",
+                            "symbol": "USDT",
+                            "amount": "1000",
+                            "fee": "0",
+                            "status": "completed",
+                            "txId": "0xc63fc9f3c82cd01b6547d76a84d53cbda54d622e43a2dea4971104f8fef66d22",
+                            "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc"
+                        },
+                        "id": null,
+                        "txid": "0xc63fc9f3c82cd01b6547d76a84d53cbda54d622e43a2dea4971104f8fef66d22",
+                        "timestamp": 1695903975000,
+                        "datetime": "2023-09-28T12:26:15.000Z",
+                        "addressFrom": null,
+                        "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc",
+                        "addressTo": "0x0316187e026f9a889cee7bceacefae322ac7bdcc",
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 1000,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "network": null,
+                        "comment": null,
+                        "internal": null
                     },
-                    "id": null,
-                    "txid": "0xc63fc9f3c82cd01b6547d76a84d53cbda54d622e43a2dea4971104f8fef66d22",
-                    "timestamp": 1695903975000,
-                    "datetime": "2023-09-28T12:26:15.000Z",
-                    "addressFrom": null,
-                    "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc",
-                    "addressTo": "0x0316187e026f9a889cee7bceacefae322ac7bdcc",
-                    "tagFrom": null,
-                    "tag": null,
-                    "tagTo": null,
-                    "type": "deposit",
-                    "amount": 1000,
-                    "currency": "USDT",
-                    "status": "ok",
-                    "updated": null,
-                    "fee": {
-                      "cost": 0,
-                      "currency": "USDT"
-                    },
-                    "network": null,
-                    "comment": null,
-                    "internal": null
-                  },
-                  {
-                    "info": {
-                      "timestamp": "1697559267000",
-                      "symbol": "USDT",
-                      "amount": "989.7037",
-                      "fee": "0",
-                      "status": "completed",
-                      "txId": "0x677655dd6e838c70435e3b3a00f4bfb60f6a63ec610afb81d630094505ad3bcf",
-                      "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc"
-                    },
-                    "id": null,
-                    "txid": "0x677655dd6e838c70435e3b3a00f4bfb60f6a63ec610afb81d630094505ad3bcf",
-                    "timestamp": 1697559267000,
-                    "datetime": "2023-10-17T16:14:27.000Z",
-                    "addressFrom": null,
-                    "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc",
-                    "addressTo": "0x0316187e026f9a889cee7bceacefae322ac7bdcc",
-                    "tagFrom": null,
-                    "tag": null,
-                    "tagTo": null,
-                    "type": "deposit",
-                    "amount": 989.7037,
-                    "currency": "USDT",
-                    "status": "ok",
-                    "updated": null,
-                    "fee": {
-                      "cost": 0,
-                      "currency": "USDT"
-                    },
-                    "network": null,
-                    "comment": null,
-                    "internal": null
-                  }
+                    {
+                        "info": {
+                            "timestamp": "1697559267000",
+                            "symbol": "USDT",
+                            "amount": "989.7037",
+                            "fee": "0",
+                            "status": "completed",
+                            "txId": "0x677655dd6e838c70435e3b3a00f4bfb60f6a63ec610afb81d630094505ad3bcf",
+                            "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc"
+                        },
+                        "id": null,
+                        "txid": "0x677655dd6e838c70435e3b3a00f4bfb60f6a63ec610afb81d630094505ad3bcf",
+                        "timestamp": 1697559267000,
+                        "datetime": "2023-10-17T16:14:27.000Z",
+                        "addressFrom": null,
+                        "address": "0x0316187e026f9a889cee7bceacefae322ac7bdcc",
+                        "addressTo": "0x0316187e026f9a889cee7bceacefae322ac7bdcc",
+                        "tagFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 989.7037,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "network": null,
+                        "comment": null,
+                        "internal": null
+                    }
                 ]
             }
         ],
@@ -870,39 +870,39 @@
                 "description": "Fill this with a description of the method call",
                 "method": "fetchMyTrades",
                 "input": [
-                  "BTC/EUR",
-                  0,
-                  2
+                    "BTC/EUR",
+                    0,
+                    2
                 ],
                 "httpResponse": [
-                  {
-                    "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
-                    "orderId": "af596202-5712-4453-81fa-41bdca71e7b4",
-                    "timestamp": "1700130652275",
-                    "market": "BTC-EUR",
-                    "side": "sell",
-                    "amount": "0.00020002",
-                    "price": "34469",
-                    "taker": true,
-                    "fee": "0.02448938",
-                    "feeCurrency": "EUR",
-                    "settled": true,
-                    "clientOrderId": "123b3e62-bb61-41db-8425-cbc541c05fe9"
-                  },
-                  {
-                    "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
-                    "orderId": "b8a4b71b-d435-4664-913d-ee81829e6109",
-                    "timestamp": "1700130593656",
-                    "market": "BTC-EUR",
-                    "side": "buy",
-                    "amount": "0.0002",
-                    "price": "34488",
-                    "taker": true,
-                    "fee": "0.0224",
-                    "feeCurrency": "EUR",
-                    "settled": true,
-                    "clientOrderId": "0fc26ff3-a21a-4292-b823-f6ad1e00373a"
-                  }
+                    {
+                        "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
+                        "orderId": "af596202-5712-4453-81fa-41bdca71e7b4",
+                        "timestamp": "1700130652275",
+                        "market": "BTC-EUR",
+                        "side": "sell",
+                        "amount": "0.00020002",
+                        "price": "34469",
+                        "taker": true,
+                        "fee": "0.02448938",
+                        "feeCurrency": "EUR",
+                        "settled": true,
+                        "clientOrderId": "123b3e62-bb61-41db-8425-cbc541c05fe9"
+                    },
+                    {
+                        "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
+                        "orderId": "b8a4b71b-d435-4664-913d-ee81829e6109",
+                        "timestamp": "1700130593656",
+                        "market": "BTC-EUR",
+                        "side": "buy",
+                        "amount": "0.0002",
+                        "price": "34488",
+                        "taker": true,
+                        "fee": "0.0224",
+                        "feeCurrency": "EUR",
+                        "settled": true,
+                        "clientOrderId": "0fc26ff3-a21a-4292-b823-f6ad1e00373a"
+                    }
                 ],
                 "parsedResponse": []
             }
@@ -913,216 +913,216 @@
                 "method": "fetchBalance",
                 "input": [],
                 "httpResponse": [
-                  {
-                    "symbol": "ADA",
-                    "available": "0",
-                    "inOrder": "0"
-                  },
-                  {
-                    "symbol": "BTC",
-                    "available": "0",
-                    "inOrder": "0"
-                  },
-                  {
-                    "symbol": "ETH",
-                    "available": "0.00002812",
-                    "inOrder": "0"
-                  },
-                  {
-                    "symbol": "EUR",
-                    "available": "16.48",
-                    "inOrder": "0"
-                  },
-                  {
-                    "symbol": "GAS",
-                    "available": "0.0003475",
-                    "inOrder": "0"
-                  },
-                  {
-                    "symbol": "LTC",
-                    "available": "0",
-                    "inOrder": "0"
-                  },
-                  {
-                    "symbol": "NEO",
-                    "available": "0",
-                    "inOrder": "0"
-                  },
-                  {
-                    "symbol": "SOL",
-                    "available": "0",
-                    "inOrder": "0"
-                  },
-                  {
-                    "symbol": "TRX",
-                    "available": "0.000001",
-                    "inOrder": "0"
-                  },
-                  {
-                    "symbol": "USDC",
-                    "available": "0.051613",
-                    "inOrder": "0"
-                  },
-                  {
-                    "symbol": "USDT",
-                    "available": "0",
-                    "inOrder": "0"
-                  }
+                    {
+                        "symbol": "ADA",
+                        "available": "0",
+                        "inOrder": "0"
+                    },
+                    {
+                        "symbol": "BTC",
+                        "available": "0",
+                        "inOrder": "0"
+                    },
+                    {
+                        "symbol": "ETH",
+                        "available": "0.00002812",
+                        "inOrder": "0"
+                    },
+                    {
+                        "symbol": "EUR",
+                        "available": "16.48",
+                        "inOrder": "0"
+                    },
+                    {
+                        "symbol": "GAS",
+                        "available": "0.0003475",
+                        "inOrder": "0"
+                    },
+                    {
+                        "symbol": "LTC",
+                        "available": "0",
+                        "inOrder": "0"
+                    },
+                    {
+                        "symbol": "NEO",
+                        "available": "0",
+                        "inOrder": "0"
+                    },
+                    {
+                        "symbol": "SOL",
+                        "available": "0",
+                        "inOrder": "0"
+                    },
+                    {
+                        "symbol": "TRX",
+                        "available": "0.000001",
+                        "inOrder": "0"
+                    },
+                    {
+                        "symbol": "USDC",
+                        "available": "0.051613",
+                        "inOrder": "0"
+                    },
+                    {
+                        "symbol": "USDT",
+                        "available": "0",
+                        "inOrder": "0"
+                    }
                 ],
                 "parsedResponse": {
-                  "info": [
-                    {
-                      "symbol": "ADA",
-                      "available": "0",
-                      "inOrder": "0"
+                    "info": [
+                        {
+                            "symbol": "ADA",
+                            "available": "0",
+                            "inOrder": "0"
+                        },
+                        {
+                            "symbol": "BTC",
+                            "available": "0",
+                            "inOrder": "0"
+                        },
+                        {
+                            "symbol": "ETH",
+                            "available": "0.00002812",
+                            "inOrder": "0"
+                        },
+                        {
+                            "symbol": "EUR",
+                            "available": "16.48",
+                            "inOrder": "0"
+                        },
+                        {
+                            "symbol": "GAS",
+                            "available": "0.0003475",
+                            "inOrder": "0"
+                        },
+                        {
+                            "symbol": "LTC",
+                            "available": "0",
+                            "inOrder": "0"
+                        },
+                        {
+                            "symbol": "NEO",
+                            "available": "0",
+                            "inOrder": "0"
+                        },
+                        {
+                            "symbol": "SOL",
+                            "available": "0",
+                            "inOrder": "0"
+                        },
+                        {
+                            "symbol": "TRX",
+                            "available": "0.000001",
+                            "inOrder": "0"
+                        },
+                        {
+                            "symbol": "USDC",
+                            "available": "0.051613",
+                            "inOrder": "0"
+                        },
+                        {
+                            "symbol": "USDT",
+                            "available": "0",
+                            "inOrder": "0"
+                        }
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "ADA": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
                     },
-                    {
-                      "symbol": "BTC",
-                      "available": "0",
-                      "inOrder": "0"
+                    "BTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
                     },
-                    {
-                      "symbol": "ETH",
-                      "available": "0.00002812",
-                      "inOrder": "0"
+                    "ETH": {
+                        "free": 0.00002812,
+                        "used": 0,
+                        "total": 0.00002812
                     },
-                    {
-                      "symbol": "EUR",
-                      "available": "16.48",
-                      "inOrder": "0"
+                    "EUR": {
+                        "free": 16.48,
+                        "used": 0,
+                        "total": 16.48
                     },
-                    {
-                      "symbol": "GAS",
-                      "available": "0.0003475",
-                      "inOrder": "0"
+                    "GAS": {
+                        "free": 0.0003475,
+                        "used": 0,
+                        "total": 0.0003475
                     },
-                    {
-                      "symbol": "LTC",
-                      "available": "0",
-                      "inOrder": "0"
+                    "LTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
                     },
-                    {
-                      "symbol": "NEO",
-                      "available": "0",
-                      "inOrder": "0"
+                    "NEO": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
                     },
-                    {
-                      "symbol": "SOL",
-                      "available": "0",
-                      "inOrder": "0"
+                    "SOL": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
                     },
-                    {
-                      "symbol": "TRX",
-                      "available": "0.000001",
-                      "inOrder": "0"
+                    "TRX": {
+                        "free": 0.000001,
+                        "used": 0,
+                        "total": 0.000001
                     },
-                    {
-                      "symbol": "USDC",
-                      "available": "0.051613",
-                      "inOrder": "0"
+                    "USDC": {
+                        "free": 0.051613,
+                        "used": 0,
+                        "total": 0.051613
                     },
-                    {
-                      "symbol": "USDT",
-                      "available": "0",
-                      "inOrder": "0"
+                    "USDT": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "ADA": 0,
+                        "BTC": 0,
+                        "ETH": 0.00002812,
+                        "EUR": 16.48,
+                        "GAS": 0.0003475,
+                        "LTC": 0,
+                        "NEO": 0,
+                        "SOL": 0,
+                        "TRX": 0.000001,
+                        "USDC": 0.051613,
+                        "USDT": 0
+                    },
+                    "used": {
+                        "ADA": 0,
+                        "BTC": 0,
+                        "ETH": 0,
+                        "EUR": 0,
+                        "GAS": 0,
+                        "LTC": 0,
+                        "NEO": 0,
+                        "SOL": 0,
+                        "TRX": 0,
+                        "USDC": 0,
+                        "USDT": 0
+                    },
+                    "total": {
+                        "ADA": 0,
+                        "BTC": 0,
+                        "ETH": 0.00002812,
+                        "EUR": 16.48,
+                        "GAS": 0.0003475,
+                        "LTC": 0,
+                        "NEO": 0,
+                        "SOL": 0,
+                        "TRX": 0.000001,
+                        "USDC": 0.051613,
+                        "USDT": 0
                     }
-                  ],
-                  "timestamp": null,
-                  "datetime": null,
-                  "ADA": {
-                    "free": 0,
-                    "used": 0,
-                    "total": 0
-                  },
-                  "BTC": {
-                    "free": 0,
-                    "used": 0,
-                    "total": 0
-                  },
-                  "ETH": {
-                    "free": 0.00002812,
-                    "used": 0,
-                    "total": 0.00002812
-                  },
-                  "EUR": {
-                    "free": 16.48,
-                    "used": 0,
-                    "total": 16.48
-                  },
-                  "GAS": {
-                    "free": 0.0003475,
-                    "used": 0,
-                    "total": 0.0003475
-                  },
-                  "LTC": {
-                    "free": 0,
-                    "used": 0,
-                    "total": 0
-                  },
-                  "NEO": {
-                    "free": 0,
-                    "used": 0,
-                    "total": 0
-                  },
-                  "SOL": {
-                    "free": 0,
-                    "used": 0,
-                    "total": 0
-                  },
-                  "TRX": {
-                    "free": 0.000001,
-                    "used": 0,
-                    "total": 0.000001
-                  },
-                  "USDC": {
-                    "free": 0.051613,
-                    "used": 0,
-                    "total": 0.051613
-                  },
-                  "USDT": {
-                    "free": 0,
-                    "used": 0,
-                    "total": 0
-                  },
-                  "free": {
-                    "ADA": 0,
-                    "BTC": 0,
-                    "ETH": 0.00002812,
-                    "EUR": 16.48,
-                    "GAS": 0.0003475,
-                    "LTC": 0,
-                    "NEO": 0,
-                    "SOL": 0,
-                    "TRX": 0.000001,
-                    "USDC": 0.051613,
-                    "USDT": 0
-                  },
-                  "used": {
-                    "ADA": 0,
-                    "BTC": 0,
-                    "ETH": 0,
-                    "EUR": 0,
-                    "GAS": 0,
-                    "LTC": 0,
-                    "NEO": 0,
-                    "SOL": 0,
-                    "TRX": 0,
-                    "USDC": 0,
-                    "USDT": 0
-                  },
-                  "total": {
-                    "ADA": 0,
-                    "BTC": 0,
-                    "ETH": 0.00002812,
-                    "EUR": 16.48,
-                    "GAS": 0.0003475,
-                    "LTC": 0,
-                    "NEO": 0,
-                    "SOL": 0,
-                    "TRX": 0.000001,
-                    "USDC": 0.051613,
-                    "USDT": 0
-                  }
                 }
             }
         ]
