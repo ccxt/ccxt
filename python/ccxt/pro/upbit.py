@@ -5,8 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
+from ccxt.base.types import Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
 
 
 class upbit(ccxt.async_support.upbit):
@@ -53,23 +54,23 @@ class upbit(ccxt.async_support.upbit):
         messageHash = channel + ':' + marketId
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the upbit api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_public(symbol, 'ticker')
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the upbit api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -78,13 +79,13 @@ class upbit(ccxt.async_support.upbit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the upbit api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         orderbook = await self.watch_public(symbol, 'orderbook')
         return orderbook.limit()
@@ -160,15 +161,15 @@ class upbit(ccxt.async_support.upbit):
         limit = self.safe_integer(options, 'limit', 15)
         if type == 'SNAPSHOT':
             self.orderbooks[symbol] = self.order_book({}, limit)
-        orderBook = self.orderbooks[symbol]
+        orderbook = self.orderbooks[symbol]
         # upbit always returns a snapshot of 15 topmost entries
         # the "REALTIME" deltas are not incremental
         # therefore we reset the orderbook on each update
         # and reinitialize it again with new bidasks
-        orderBook.reset({})
-        orderBook['symbol'] = symbol
-        bids = orderBook['bids']
-        asks = orderBook['asks']
+        orderbook.reset({})
+        orderbook['symbol'] = symbol
+        bids = orderbook['bids']
+        asks = orderbook['asks']
         data = self.safe_value(message, 'orderbook_units', [])
         for i in range(0, len(data)):
             entry = data[i]
@@ -180,10 +181,10 @@ class upbit(ccxt.async_support.upbit):
             bids.store(bid_price, bid_size)
         timestamp = self.safe_integer(message, 'timestamp')
         datetime = self.iso8601(timestamp)
-        orderBook['timestamp'] = timestamp
-        orderBook['datetime'] = datetime
+        orderbook['timestamp'] = timestamp
+        orderbook['datetime'] = datetime
         messageHash = 'orderbook:' + marketId
-        client.resolve(orderBook, messageHash)
+        client.resolve(orderbook, messageHash)
 
     def handle_trades(self, client: Client, message):
         # {type: "trade",

@@ -1,0 +1,469 @@
+{
+    "exchange": "ascendex",
+    "skipKeys": [
+        "time",
+        "account-group",
+        "requestTime"
+    ],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "Spot limit order",
+                "method": "createOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0002,
+                    25000
+                ],
+                "output": "{\"symbol\":\"BTC/USDT\",\"time\":1699323490303,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"25000\",\"category\":\"cash\"}"
+            },
+            {
+                "description": "Spot market order",
+                "method": "createOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/order",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.0002
+                ],
+                "output": "{\"symbol\":\"BTC/USDT\",\"time\":1699323995691,\"orderQty\":\"0.0002\",\"orderType\":\"market\",\"side\":\"buy\",\"category\":\"cash\"}"
+            },
+            {
+                "description": "Spot margin limit order",
+                "method": "createOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0002,
+                    25000,
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDT\",\"time\":1699323658409,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"25000\",\"category\":\"margin\"}"
+            },
+            {
+                "description": "Spot margin market order",
+                "method": "createOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.0002,
+                    null,
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDT\",\"time\":1699324274612,\"orderQty\":\"0.0002\",\"orderType\":\"market\",\"side\":\"buy\",\"category\":\"margin\"}"
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "Spot create multiple limit orders at once",
+                "method": "createOrders",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/order/batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": "0.0002",
+                            "price": "25000"
+                        },
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": "0.0002",
+                            "price": "27000"
+                        }
+                    ]
+                ],
+                "output": "{\"orders\":[{\"account-group\":\"6\",\"account-category\":\"cash\",\"symbol\":\"BTC/USDT\",\"time\":1699329018603,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"25000\",\"category\":\"cash\"},{\"account-group\":\"6\",\"account-category\":\"cash\",\"symbol\":\"BTC/USDT\",\"time\":1699329018604,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"27000\",\"category\":\"cash\"}]}"
+            },
+            {
+                "description": "Spot margin create multiple limit orders at once",
+                "method": "createOrders",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order/batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0002,
+                            "price": 25000,
+                            "params": {
+                                "marginMode": "cross"
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0002,
+                            "price": 27000,
+                            "params": {
+                                "marginMode": "cross"
+                            }
+                        }
+                    ]
+                ],
+                "output": "{\"orders\":[{\"account-group\":\"6\",\"account-category\":\"margin\",\"symbol\":\"BTC/USDT\",\"time\":1699935570199,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"25000\",\"category\":\"margin\"},{\"account-group\":\"6\",\"account-category\":\"margin\",\"symbol\":\"BTC/USDT\",\"time\":1699935570200,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"27000\",\"category\":\"margin\"}]}"
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://ascendex.com/api/pro/v1/wallet/transactions?txType=deposit",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot balance",
+                "method": "fetchBalance",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/balance",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch margin balance",
+                "method": "fetchBalance",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/balance",
+                "input": [
+                    {
+                        "margin": true
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap balance",
+                "method": "fetchBalance",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch spot order",
+                "method": "fetchOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/order/status?orderId=1234",
+                "input": [
+                    "1234",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch margin order",
+                "method": "fetchOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order/status?orderId=1234",
+                "input": [
+                    "1234",
+                    null,
+                    {
+                        "type": "margin"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap order",
+                "method": "fetchOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/order/status?orderId=1234",
+                "input": [
+                    "1234",
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch spot open order",
+                "method": "fetchOpenOrders",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/order/open",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch margin open order",
+                "method": "fetchOpenOrders",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order/open",
+                "input": [
+                    null,
+                    1,
+                    1,
+                    {
+                        "type": "margin"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap open order",
+                "method": "fetchOpenOrders",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/order/open",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch spot closed order",
+                "method": "fetchClosedOrders",
+                "url": "https://ascendex.com/api/pro/data/v2/order/hist?symbol=BTC%2FUSDT&account=cash",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch margin closed order",
+                "method": "fetchClosedOrders",
+                "url": "https://ascendex.com/api/pro/data/v2/order/hist?symbol=BTC%2FUSDT&startTime=1&limit=1&account=margin",
+                "input": [
+                    "BTC/USDT",
+                    1,
+                    1,
+                    {
+                        "type": "margin"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap closed order",
+                "method": "fetchClosedOrders",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/order/hist/current?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel spot order",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/order",
+                "input": [
+                    "1234",
+                    "BTC/USDT"
+                ],
+                "output": "{\"symbol\":\"BTC/USDT\",\"time\":1701161145825,\"id\":\"foobar\",\"orderId\":\"1234\"}"
+            },
+            {
+                "description": "Cancel margin order",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order",
+                "input": [
+                    "1234",
+                    "BTC/USDT",
+                    {
+                        "type": "margin"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDT\",\"time\":1701161145825,\"id\":\"foobar\",\"orderId\":\"1234\"}"
+            },
+            {
+                "description": "Cancel swap order",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/order",
+                "input": [
+                    "1234",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTC-PERP\",\"time\":1701161145825,\"id\":\"foobar\",\"orderId\":\"1234\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel all spot orders",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/order/all",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": "{\"symbol\":\"BTC/USDT\",\"time\":1701161145825}"
+            },
+            {
+                "description": "Cancel all margin orders",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order/all",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "type": "margin"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDT\",\"time\":1701161145825}"
+            },
+            {
+                "description": "Cancel all swap orders",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/order/all",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTC-PERP\",\"time\":1701161145825}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://ascendex.com/api/pro/v1/wallet/deposit/address?asset=USDT&blockchain=TRC20&network=TRC20",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to futures",
+                "method": "transfer",
+                "disabled": true,
+                "url": "https://ascendex.com/3/api/pro/v1/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "cash",
+                    "futures"
+                ],
+                "output": "{\"amount\":\"1\",\"asset\":\"USDT\",\"fromAccount\":\"cash\",\"toAccount\":\"futures\"}"
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://ascendex.com/api/pro/v1/exchange-info?requestTime=1709992982155",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://ascendex.com/api/pro/v1/trades?symbol=BTC%2FUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://ascendex.com/api/pro/v1/trades?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://ascendex.com/api/pro/v1/depth?symbol=BTC%2FUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://ascendex.com/api/pro/v1/depth?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://ascendex.com/api/pro/v1/ticker?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://ascendex.com/api/pro/v1/ticker?symbol=BTC%2FUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://ascendex.com/api/pro/v1/ticker?symbol=BTC%2FUSDT%2CETH%2FUSDT",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://ascendex.com/api/pro/v2/futures/ticker?symbol=BTC-PERP%2CETH-PERP",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC%2FUSDT&interval=1",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=1",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://ascendex.com/api/pro/v2/futures/pricing-data",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ]
+    }
+}

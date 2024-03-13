@@ -79,7 +79,7 @@ class ascendex extends ascendex$1 {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the ascendex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -143,8 +143,8 @@ class ascendex extends ascendex$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the ascendex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -203,12 +203,12 @@ class ascendex extends ascendex$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the ascendex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const channel = 'depth-realtime' + ':' + market['id'];
+        const channel = 'depth' + ':' + market['id'];
         params = this.extend(params, {
             'ch': channel,
         });
@@ -218,7 +218,7 @@ class ascendex extends ascendex$1 {
     async watchOrderBookSnapshot(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const action = 'depth-snapshot-realtime';
+        const action = 'depth-snapshot';
         const channel = action + ':' + market['id'];
         params = this.extend(params, {
             'action': action,
@@ -229,6 +229,15 @@ class ascendex extends ascendex$1 {
         });
         const orderbook = await this.watchPublic(channel, params);
         return orderbook.limit();
+    }
+    async fetchOrderBookSnapshot(symbol, limit = undefined, params = {}) {
+        const restOrderBook = await this.fetchRestOrderBookSafe(symbol, limit, params);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook();
+        }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset(restOrderBook);
+        return orderbook;
     }
     handleOrderBookSnapshot(client, message) {
         //
@@ -348,8 +357,8 @@ class ascendex extends ascendex$1 {
          * @method
          * @name ascendex#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the ascendex api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const [type, query] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
@@ -475,9 +484,9 @@ class ascendex extends ascendex$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the ascendex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -866,8 +875,8 @@ class ascendex extends ascendex$1 {
             'ping': this.handlePing,
             'auth': this.handleAuthenticate,
             'sub': this.handleSubscriptionStatus,
-            'depth-realtime': this.handleOrderBook,
-            'depth-snapshot-realtime': this.handleOrderBookSnapshot,
+            'depth': this.handleOrderBook,
+            'depth-snapshot': this.handleOrderBookSnapshot,
             'trades': this.handleTrades,
             'bar': this.handleOHLCV,
             'balance': this.handleBalance,
@@ -886,7 +895,6 @@ class ascendex extends ascendex$1 {
                 this.handleBalance(client, message);
             }
         }
-        return message;
     }
     handleSubscriptionStatus(client, message) {
         //
@@ -895,7 +903,7 @@ class ascendex extends ascendex$1 {
         //     { m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0 }
         //
         const channel = this.safeString(message, 'ch', '');
-        if (channel.indexOf('depth-realtime') > -1) {
+        if (channel.indexOf('depth') > -1 && !(channel.indexOf('depth-snapshot') > -1)) {
             this.handleOrderBookSubscription(client, message);
         }
         return message;
@@ -904,12 +912,18 @@ class ascendex extends ascendex$1 {
         const channel = this.safeString(message, 'ch');
         const parts = channel.split(':');
         const marketId = parts[1];
-        const symbol = this.safeSymbol(marketId);
+        const market = this.safeMarket(marketId);
+        const symbol = market['symbol'];
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook({});
-        this.spawn(this.watchOrderBookSnapshot, symbol);
+        if (this.options['defaultType'] === 'swap' || market['contract']) {
+            this.spawn(this.fetchOrderBookSnapshot, symbol);
+        }
+        else {
+            this.spawn(this.watchOrderBookSnapshot, symbol);
+        }
     }
     async pong(client, message) {
         //
@@ -926,7 +940,7 @@ class ascendex extends ascendex$1 {
     handlePing(client, message) {
         this.spawn(this.pong, client, message);
     }
-    authenticate(url, params = {}) {
+    async authenticate(url, params = {}) {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);

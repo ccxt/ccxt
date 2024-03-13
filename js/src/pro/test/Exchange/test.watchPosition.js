@@ -4,35 +4,28 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-'use strict';
-// ----------------------------------------------------------------------------
-import errors from '../../../base/errors.js';
+import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
-/*  ------------------------------------------------------------------------ */
-export default async (exchange, symbol) => {
-    console.log('testing watchPosition...');
+import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+async function testWatchPosition(exchange, skippedProperties, symbol) {
     const method = 'watchPosition';
-    const skippedProperties = {};
-    if (!exchange.has[method]) {
-        console.log(exchange.id, 'does not support', method + '() method');
-        return;
-    }
-    let response = undefined;
-    let now = Date.now();
-    const ends = now + 10000;
+    let now = exchange.milliseconds();
+    const ends = now + 15000;
     while (now < ends) {
+        let response = undefined;
         try {
-            // Test without symbol
-            const position = await exchange[method](symbol);
-            testPosition(exchange, skippedProperties, method, position, symbol, now);
-            response = position;
+            response = await exchange.watchPosition(symbol);
         }
         catch (e) {
-            if (!(e instanceof errors.NetworkError)) {
+            if (!testSharedMethods.isTemporaryFailure(e)) {
                 throw e;
             }
-            now = Date.now();
+            now = exchange.milliseconds();
+            continue;
         }
+        assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response));
+        now = exchange.milliseconds();
+        testPosition(exchange, skippedProperties, method, response, undefined, now);
     }
-    return response;
-};
+}
+export default testWatchPosition;

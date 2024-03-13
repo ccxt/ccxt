@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,7 +7,7 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_borrow_interest.php';
+include_once PATH_TO_CCXT . '/test/base/test_borrow_interest.php';
 
 function test_fetch_borrow_interest($exchange, $skipped_properties, $code, $symbol) {
     $method = 'fetchBorrowInterest';

@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\NetworkError;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class ascendex extends \ccxt\async\ascendex {
 
@@ -81,7 +82,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -89,7 +90,7 @@ class ascendex extends \ccxt\async\ascendex {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the ascendex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -148,15 +149,15 @@ class ascendex extends \ccxt\async\ascendex {
         return $message;
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -211,18 +212,18 @@ class ascendex extends \ccxt\async\ascendex {
         $client->resolve ($tradesArray, $messageHash);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $channel = 'depth-realtime' . ':' . $market['id'];
+            $channel = 'depth' . ':' . $market['id'];
             $params = array_merge($params, array(
                 'ch' => $channel,
             ));
@@ -235,7 +236,7 @@ class ascendex extends \ccxt\async\ascendex {
         return Async\async(function () use ($symbol, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $action = 'depth-snapshot-realtime';
+            $action = 'depth-snapshot';
             $channel = $action . ':' . $market['id'];
             $params = array_merge($params, array(
                 'action' => $action,
@@ -246,6 +247,18 @@ class ascendex extends \ccxt\async\ascendex {
             ));
             $orderbook = Async\await($this->watch_public($channel, $params));
             return $orderbook->limit ();
+        }) ();
+    }
+
+    public function fetch_order_book_snapshot(string $symbol, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $restOrderBook = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book();
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $orderbook->reset ($restOrderBook);
+            return $orderbook;
         }) ();
     }
 
@@ -366,12 +379,12 @@ class ascendex extends \ccxt\async\ascendex {
         return $orderbook;
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             list($type, $query) = $this->handle_market_type_and_params('watchBalance', null, $params);
@@ -488,16 +501,16 @@ class ascendex extends \ccxt\async\ascendex {
         $client->resolve ($this->safe_balance($result), $messageHash);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://ascendex.github.io/ascendex-pro-api/#$channel-order-and-balance
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -889,8 +902,8 @@ class ascendex extends \ccxt\async\ascendex {
             'ping' => array($this, 'handle_ping'),
             'auth' => array($this, 'handle_authenticate'),
             'sub' => array($this, 'handle_subscription_status'),
-            'depth-realtime' => array($this, 'handle_order_book'),
-            'depth-snapshot-realtime' => array($this, 'handle_order_book_snapshot'),
+            'depth' => array($this, 'handle_order_book'),
+            'depth-snapshot' => array($this, 'handle_order_book_snapshot'),
             'trades' => array($this, 'handle_trades'),
             'bar' => array($this, 'handle_ohlcv'),
             'balance' => array($this, 'handle_balance'),
@@ -909,7 +922,6 @@ class ascendex extends \ccxt\async\ascendex {
                 $this->handle_balance($client, $message);
             }
         }
-        return $message;
     }
 
     public function handle_subscription_status(Client $client, $message) {
@@ -919,7 +931,7 @@ class ascendex extends \ccxt\async\ascendex {
         //     array( m => 'sub', id => "1647515701", ch => "depth:BTC/USDT", code => 0 )
         //
         $channel = $this->safe_string($message, 'ch', '');
-        if (mb_strpos($channel, 'depth-realtime') > -1) {
+        if (mb_strpos($channel, 'depth') > -1 && !(mb_strpos($channel, 'depth-snapshot') > -1)) {
             $this->handle_order_book_subscription($client, $message);
         }
         return $message;
@@ -929,12 +941,17 @@ class ascendex extends \ccxt\async\ascendex {
         $channel = $this->safe_string($message, 'ch');
         $parts = explode(':', $channel);
         $marketId = $parts[1];
-        $symbol = $this->safe_symbol($marketId);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
         $this->orderbooks[$symbol] = $this->order_book(array());
-        $this->spawn(array($this, 'watch_order_book_snapshot'), $symbol);
+        if ($this->options['defaultType'] === 'swap' || $market['contract']) {
+            $this->spawn(array($this, 'fetch_order_book_snapshot'), $symbol);
+        } else {
+            $this->spawn(array($this, 'watch_order_book_snapshot'), $symbol);
+        }
     }
 
     public function pong($client, $message) {

@@ -6,8 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
@@ -284,15 +285,15 @@ class phemex(ccxt.async_support.phemex):
             self.tickers[symbol] = ticker
             client.resolve(ticker, messageHash)
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-account-order-position-aop
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-account-order-position-aop
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-wallet-order-messages
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the phemex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.settle]: set to USDT to use hedged perpetual api
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         type = None
@@ -468,15 +469,15 @@ class phemex(ccxt.async_support.phemex):
                 stored.append(candle)
             client.resolve(stored, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-24-hours-ticker
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-24-hours-ticker
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-24-hours-ticker
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -498,7 +499,7 @@ class phemex(ccxt.async_support.phemex):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, subscriptionHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-trade
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-trade
@@ -507,8 +508,8 @@ class phemex(ccxt.async_support.phemex):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -533,7 +534,7 @@ class phemex(ccxt.async_support.phemex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-orderbook-for-new-model
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-30-levels-orderbook
@@ -541,8 +542,8 @@ class phemex(ccxt.async_support.phemex):
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -565,7 +566,7 @@ class phemex(ccxt.async_support.phemex):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-kline
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-kline
@@ -575,7 +576,7 @@ class phemex(ccxt.async_support.phemex):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the phemex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -602,13 +603,13 @@ class phemex(ccxt.async_support.phemex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_delta(self, bookside, delta, market=None):
+    def custom_handle_delta(self, bookside, delta, market=None):
         bidAsk = self.custom_parse_bid_ask(delta, 0, 1, market)
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside, deltas, market=None):
+    def custom_handle_deltas(self, bookside, deltas, market=None):
         for i in range(0, len(deltas)):
-            self.handle_delta(bookside, deltas[i], market)
+            self.custom_handle_delta(bookside, deltas[i], market)
 
     def handle_order_book(self, client: Client, message):
         #
@@ -676,22 +677,22 @@ class phemex(ccxt.async_support.phemex):
                 changes = self.safe_value_2(message, 'book', 'orderbook_p', {})
                 asks = self.safe_value(changes, 'asks', [])
                 bids = self.safe_value(changes, 'bids', [])
-                self.handle_deltas(orderbook['asks'], asks, market)
-                self.handle_deltas(orderbook['bids'], bids, market)
+                self.custom_handle_deltas(orderbook['asks'], asks, market)
+                self.custom_handle_deltas(orderbook['bids'], bids, market)
                 orderbook['nonce'] = nonce
                 orderbook['timestamp'] = timestamp
                 orderbook['datetime'] = self.iso8601(timestamp)
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
-        :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
         market = None
@@ -836,14 +837,14 @@ class phemex(ccxt.async_support.phemex):
         messageHash = channel + ':' + type
         client.resolve(cachedTrades, messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'orders:'
@@ -1213,7 +1214,7 @@ class phemex(ccxt.async_support.phemex):
         lastTradeTimestamp = self.safe_integer_product(order, 'transactTimeNs', 0.000001)
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
-        timeInForce = self.parseTimeInForce(self.safe_string(order, 'timeInForce'))
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.safe_string(order, 'stopPx')
         postOnly = (timeInForce == 'PO')
         return self.safe_order({
@@ -1342,16 +1343,21 @@ class phemex(ccxt.async_support.phemex):
             method = client.subscriptions[id]
             del client.subscriptions[id]
             if method is not True:
-                return method(client, message)
+                method(client, message)
+                return
         methodName = self.safe_string(message, 'method', '')
         if ('market24h' in message) or ('spot_market24h' in message) or (methodName.find('perp_market24h_pack_p') >= 0):
-            return self.handle_ticker(client, message)
+            self.handle_ticker(client, message)
+            return
         elif ('trades' in message) or ('trades_p' in message):
-            return self.handle_trades(client, message)
+            self.handle_trades(client, message)
+            return
         elif ('kline' in message) or ('kline_p' in message):
-            return self.handle_ohlcv(client, message)
+            self.handle_ohlcv(client, message)
+            return
         elif ('book' in message) or ('orderbook_p' in message):
-            return self.handle_order_book(client, message)
+            self.handle_order_book(client, message)
+            return
         if ('orders' in message) or ('orders_p' in message):
             orders = self.safe_value_2(message, 'orders', 'orders_p', {})
             self.handle_orders(client, orders)
@@ -1427,4 +1433,4 @@ class phemex(ccxt.async_support.phemex):
                 client.subscriptions[subscriptionHash] = self.handle_authenticate
             future = self.watch(url, messageHash, message)
             client.subscriptions[messageHash] = future
-        return await future
+        return future

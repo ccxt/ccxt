@@ -1,46 +1,43 @@
 import bitgetRest from '../bitget.js';
-import { Int, OHLCV } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 /**
  * @class bitget
- * @extends Exchange
+ * @augments Exchange
  * @description watching delivery future markets is not yet implemented (perpertual future / swap is implemented)
  */
 export default class bitget extends bitgetRest {
     describe(): any;
-    getWsMarketId(market: any): any;
-    getMarketIdFromArg(arg: any): string;
-    watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): Promise<any>;
-    handleTicker(client: Client, message: any): any;
-    parseWsTicker(message: any, market?: any): import("../base/types.js").Ticker;
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    getInstType(market: any, params?: {}): any[];
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleTicker(client: Client, message: any): void;
+    parseWsTicker(message: any, market?: any): Ticker;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
     parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<any>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
-    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseWsTrade(trade: any, market?: any): Trade;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handlePositions(client: Client, message: any): void;
-    parseWsPosition(position: any, market?: any): import("../base/types.js").Position;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseWsPosition(position: any, market?: any): Position;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any, subscription?: any): void;
-    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
+    parseWsOrder(order: any, market?: any): Order;
     parseWsOrderStatus(status: any): string;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrades(client: Client, message: any): void;
-    parseWsMyTrade(trade: any, market?: any): import("../base/types.js").Trade;
-    watchBalance(params?: {}): Promise<any>;
+    watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     watchPublic(messageHash: any, args: any, params?: {}): Promise<any>;
-    watchPublicMultiple(messageHash: any, argsArray: any, params?: {}): Promise<any>;
+    watchPublicMultiple(messageHashes: any, argsArray: any, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
     watchPrivate(messageHash: any, subscriptionHash: any, args: any, params?: {}): Promise<any>;
     handleAuthenticate(client: Client, message: any): void;

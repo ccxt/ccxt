@@ -1,6 +1,0 @@
-{
-    "exchange": "deribit",
-    "skipKeys": [],
-    "outputType": "json",
-    "methods": {}
-}

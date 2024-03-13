@@ -1,0 +1,149 @@
+{
+    "exchange": "delta",
+    "skipKeys": ["end", "start"],
+    "outputType": "json",
+    "methods": {
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch Open Orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.delta.exchange/v2/orders?product_ids=8320",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch Closed Orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.delta.exchange/v2/orders/history?product_ids=8320",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "Fetch the set margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://testnet-api.delta.exchange/v2/profile",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.delta.exchange/v2/settings",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.delta.exchange/v2/trades/BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.delta.exchange/v2/trades/BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.delta.exchange/v2/l2orderbook/BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.delta.exchange/v2/l2orderbook/BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api.delta.exchange/v2/tickers/BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.delta.exchange/v2/tickers/BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.delta.exchange/v2/tickers",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api.delta.exchange/v2/tickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.delta.exchange/v2/history/candles?resolution=1m&end=1709992992&start=1709872992&symbol=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.delta.exchange/v2/history/candles?resolution=1m&end=1709992993&start=1709872993&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.delta.exchange/v2/tickers/BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ]
+    }
+}

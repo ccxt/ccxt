@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class upbit extends \ccxt\async\upbit {
 
@@ -56,27 +57,27 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the upbit api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_public($symbol, 'ticker'));
         }) ();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the upbit api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -88,14 +89,14 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the upbit api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $orderbook = Async\await($this->watch_public($symbol, 'orderbook'));
             return $orderbook->limit ();
@@ -175,15 +176,15 @@ class upbit extends \ccxt\async\upbit {
         if ($type === 'SNAPSHOT') {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
-        $orderBook = $this->orderbooks[$symbol];
+        $orderbook = $this->orderbooks[$symbol];
         // upbit always returns a snapshot of 15 topmost entries
         // the "REALTIME" deltas are not incremental
-        // therefore we reset the orderbook on each update
+        // therefore we reset the $orderbook on each update
         // and reinitialize it again with new bidasks
-        $orderBook->reset (array());
-        $orderBook['symbol'] = $symbol;
-        $bids = $orderBook['bids'];
-        $asks = $orderBook['asks'];
+        $orderbook->reset (array());
+        $orderbook['symbol'] = $symbol;
+        $bids = $orderbook['bids'];
+        $asks = $orderbook['asks'];
         $data = $this->safe_value($message, 'orderbook_units', array());
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -196,10 +197,10 @@ class upbit extends \ccxt\async\upbit {
         }
         $timestamp = $this->safe_integer($message, 'timestamp');
         $datetime = $this->iso8601($timestamp);
-        $orderBook['timestamp'] = $timestamp;
-        $orderBook['datetime'] = $datetime;
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $datetime;
         $messageHash = 'orderbook:' . $marketId;
-        $client->resolve ($orderBook, $messageHash);
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_trades(Client $client, $message) {

@@ -1,0 +1,155 @@
+{
+    "ETH/USD:USD": {
+        "id": "ETH/USD_LEVERAGE",
+        "symbol": "ETH/USD:USD",
+        "base": "ETH",
+        "quote": "USD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": false,
+        "contract": true,
+        "linear": true,
+        "taker": 0.0006,
+        "maker": 0.0006,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.001,
+                "max": 10000
+            },
+            "market": {},
+            "price": {},
+            "cost": {
+                "min": 2
+            }
+        },
+        "info": {
+            "symbol": "ETH/USD_LEVERAGE",
+            "name": "Ethereum / USD",
+            "status": "HALT",
+            "baseAsset": "ETH",
+            "baseAssetPrecision": "3",
+            "quoteAsset": "USD",
+            "quoteAssetId": "USD_LEVERAGE",
+            "quotePrecision": "3",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "STOP"
+            ],
+            "filters": [
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.001",
+                    "maxQty": "10000",
+                    "stepSize": "0.001"
+                },
+                {
+                    "filterType": "MIN_NOTIONAL",
+                    "minNotional": "2"
+                }
+            ],
+            "marketModes": [
+                "REGULAR"
+            ],
+            "marketType": "LEVERAGE",
+            "longRate": "-0.01",
+            "shortRate": "0.01",
+            "swapChargeInterval": "480",
+            "country": "",
+            "tradingHours": "UTC; Mon - 21:00, 21:05 -; Tue - 21:00, 21:05 -; Wed - 21:00, 21:05 -; Thu - 21:00, 21:05 -; Fri - 21:00, 22:01 -; Sat - 05:00, 07:00 - 21:00, 21:05 -; Sun - 21:00, 21:05 -",
+            "tickSize": "0.01",
+            "tickValue": "19.32875",
+            "tradingFee": "0.06",
+            "maxSLGap": "5E+1",
+            "minSLGap": "0",
+            "maxTPGap": "5E+1",
+            "minTPGap": "0",
+            "assetType": "CRYPTOCURRENCY"
+        }
+    },
+    "ETH/USDT": {
+        "id": "ETH/USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.002,
+        "maker": 0.002,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.01,
+                "max": 700
+            },
+            "price": {},
+            "cost": {
+                "min": 31
+            },
+            "market": {}
+        },
+        "info": {
+            "symbol": "ETH/USDT",
+            "name": "ETH/USDT",
+            "status": "TRADING",
+            "baseAsset": "ETH",
+            "baseAssetPrecision": "2",
+            "quoteAsset": "USDT",
+            "quoteAssetId": "USDT",
+            "quotePrecision": "2",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "STOP"
+            ],
+            "filters": [
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.01",
+                    "maxQty": "700",
+                    "stepSize": "0.01"
+                },
+                {
+                    "filterType": "MIN_NOTIONAL",
+                    "minNotional": "31"
+                }
+            ],
+            "marketModes": [
+                "REGULAR"
+            ],
+            "marketType": "SPOT",
+            "country": "",
+            "sector": "",
+            "industry": "",
+            "tradingHours": "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 22:05 -; Sat - 06:00, 08:00 - 22:00, 22:05 -; Sun - 22:00, 22:05 -",
+            "tickSize": "0.01",
+            "tickValue": "30.5716",
+            "exchangeFee": "0.2",
+            "assetType": "CRYPTOCURRENCY"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
+    }
+}

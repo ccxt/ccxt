@@ -340,5 +340,62 @@
         "maker": 0.0009,
         "feeSide": "get",
         "created": 1659018823985
+    },
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0009,
+        "maker": 0.0009,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000001
+            },
+            "price": {},
+            "cost": {
+                "min": 1
+            }
+        },
+        "created": 1659018820007,
+        "info": {
+            "symbol": "ETH_USDT",
+            "baseCurrencyName": "ETH",
+            "quoteCurrencyName": "USDT",
+            "displayName": "ETH/USDT",
+            "state": "NORMAL",
+            "visibleStartTime": 1659018820007,
+            "tradableStartTime": 1659018820007,
+            "symbolTradeLimit": {
+                "symbol": "ETH_USDT",
+                "priceScale": 2,
+                "quantityScale": 6,
+                "amountScale": 2,
+                "minQuantity": "0.000001",
+                "minAmount": "1",
+                "highestBid": "0",
+                "lowestAsk": "0"
+            },
+            "crossMargin": {
+                "supportCrossMargin": true,
+                "maxLeverage": 3
+            }
+        },
+        "feeSide": "get"
     }
 }

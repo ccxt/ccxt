@@ -7,6 +7,9 @@ namespace ccxt\abstract;
 
 
 abstract class okx extends \ccxt\Exchange {
+    public function public_get_market_books_full($params = array()) {
+        return $this->request('market/books-full', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function public_get_market_tickers($params = array()) {
         return $this->request('market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -60,6 +63,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function public_get_market_index_components($params = array()) {
         return $this->request('market/index-components', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_public_economic_calendar($params = array()) {
+        return $this->request('public/economic-calendar', 'public', 'GET', $params, null, null, array("cost" => 50));
     }
     public function public_get_market_block_tickers($params = array()) {
         return $this->request('market/block-tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -196,11 +202,32 @@ abstract class okx extends \ccxt\Exchange {
     public function public_get_finance_sfp_dcd_products($params = array()) {
         return $this->request('finance/sfp/dcd/products', 'public', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
     }
+    public function public_get_copytrading_public_lead_traders($params = array()) {
+        return $this->request('copytrading/public-lead-traders', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_copytrading_public_weekly_pnl($params = array()) {
+        return $this->request('copytrading/public-weekly-pnl', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_copytrading_public_stats($params = array()) {
+        return $this->request('copytrading/public-stats', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_copytrading_public_preference_currency($params = array()) {
+        return $this->request('copytrading/public-preference-currency', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_copytrading_public_current_subpositions($params = array()) {
+        return $this->request('copytrading/public-current-subpositions', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function public_get_copytrading_public_subpositions_history($params = array()) {
+        return $this->request('copytrading/public-subpositions-history', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function private_get_rfq_counterparties($params = array()) {
         return $this->request('rfq/counterparties', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_rfq_maker_instrument_settings($params = array()) {
         return $this->request('rfq/maker-instrument-settings', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_rfq_mmp_config($params = array()) {
+        return $this->request('rfq/mmp-config', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_rfq_rfqs($params = array()) {
         return $this->request('rfq/rfqs', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -222,6 +249,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_get_sprd_orders_history($params = array()) {
         return $this->request('sprd/orders-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function private_get_sprd_orders_history_archive($params = array()) {
+        return $this->request('sprd/orders-history-archive', 'private', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function private_get_sprd_trades($params = array()) {
         return $this->request('sprd/trades', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));
@@ -268,6 +298,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_trade_one_click_repay_history($params = array()) {
         return $this->request('trade/one-click-repay-history', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function private_get_trade_account_rate_limit($params = array()) {
+        return $this->request('trade/account-rate-limit', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_asset_currencies($params = array()) {
         return $this->request('asset/currencies', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -309,6 +342,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_get_asset_convert_history($params = array()) {
         return $this->request('asset/convert/history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function private_get_asset_monthly_statement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_get_account_balance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 2));
@@ -412,9 +448,6 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_users_entrust_subaccount_list($params = array()) {
         return $this->request('users/entrust-subaccount-list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
-    public function private_get_users_partner_if_rebate($params = array()) {
-        return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function private_get_account_subaccount_interest_limits($params = array()) {
         return $this->request('account/subaccount/interest-limits', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -436,14 +469,20 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_tradingbot_grid_ai_param($params = array()) {
         return $this->request('tradingBot/grid/ai-param', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_tradingbot_public_rsi_back_testing($params = array()) {
-        return $this->request('tradingBot/public/rsi-back-testing', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_tradingbot_signal_signals($params = array()) {
+        return $this->request('tradingBot/signal/signals', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_tradingbot_signal_orders_algo_details($params = array()) {
         return $this->request('tradingBot/signal/orders-algo-details', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_tradingbot_signal_orders_algo_history($params = array()) {
+        return $this->request('tradingBot/signal/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_tradingbot_signal_positions($params = array()) {
         return $this->request('tradingBot/signal/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_tradingbot_signal_positions_history($params = array()) {
+        return $this->request('tradingBot/signal/positions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_tradingbot_signal_sub_orders($params = array()) {
         return $this->request('tradingBot/signal/sub-orders', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -485,22 +524,34 @@ abstract class okx extends \ccxt\Exchange {
         return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function private_get_copytrading_current_subpositions($params = array()) {
-        return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 4));
+        return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_copytrading_subpositions_history($params = array()) {
-        return $this->request('copytrading/subpositions-history', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/subpositions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_copytrading_instruments($params = array()) {
-        return $this->request('copytrading/instruments', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/instruments', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_copytrading_profit_sharing_details($params = array()) {
-        return $this->request('copytrading/profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_copytrading_total_profit_sharing($params = array()) {
-        return $this->request('copytrading/total-profit-sharing', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/total-profit-sharing', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_copytrading_unrealized_profit_sharing_details($params = array()) {
-        return $this->request('copytrading/unrealized-profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/unrealized-profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_copytrading_copy_settings($params = array()) {
+        return $this->request('copytrading/copy-settings', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_copytrading_batch_leverage_info($params = array()) {
+        return $this->request('copytrading/batch-leverage-info', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_copytrading_current_lead_traders($params = array()) {
+        return $this->request('copytrading/current-lead-traders', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_copytrading_lead_traders_history($params = array()) {
+        return $this->request('copytrading/lead-traders-history', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_broker_nd_info($params = array()) {
         return $this->request('broker/nd/info', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -538,6 +589,12 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_broker_fd_if_rebate($params = array()) {
         return $this->request('broker/fd/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_affiliate_invitee_detail($params = array()) {
+        return $this->request('affiliate/invitee/detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_users_partner_if_rebate($params = array()) {
+        return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_rfq_create_rfq($params = array()) {
         return $this->request('rfq/create-rfq', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -558,6 +615,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_post_rfq_mmp_reset($params = array()) {
         return $this->request('rfq/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_rfq_mmp_config($params = array()) {
+        return $this->request('rfq/mmp-config', 'private', 'POST', $params, null, null, array("cost" => 100));
     }
     public function private_post_rfq_create_quote($params = array()) {
         return $this->request('rfq/create-quote', 'private', 'POST', $params, null, null, array("cost" => 0.4));
@@ -652,6 +712,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_post_asset_convert_trade($params = array()) {
         return $this->request('asset/convert/trade', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_asset_monthly_statement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_account_set_position_mode($params = array()) {
         return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -675,6 +738,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_post_account_simulated_margin($params = array()) {
         return $this->request('account/simulated_margin', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function private_post_account_position_builder($params = array()) {
+        return $this->request('account/position-builder', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function private_post_account_set_riskoffset_type($params = array()) {
         return $this->request('account/set-riskOffset-type', 'private', 'POST', $params, null, null, array("cost" => 2));
@@ -736,6 +802,33 @@ abstract class okx extends \ccxt\Exchange {
     public function private_post_tradingbot_grid_min_investment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_tradingbot_signal_create_signal($params = array()) {
+        return $this->request('tradingBot/signal/create-signal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_order_algo($params = array()) {
+        return $this->request('tradingBot/signal/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_stop_order_algo($params = array()) {
+        return $this->request('tradingBot/signal/stop-order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_margin_balance($params = array()) {
+        return $this->request('tradingBot/signal/margin-balance', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_amendtpsl($params = array()) {
+        return $this->request('tradingBot/signal/amendTPSL', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_set_instruments($params = array()) {
+        return $this->request('tradingBot/signal/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_close_position($params = array()) {
+        return $this->request('tradingBot/signal/close-position', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_sub_order($params = array()) {
+        return $this->request('tradingBot/signal/sub-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_signal_cancel_sub_order($params = array()) {
+        return $this->request('tradingBot/signal/cancel-sub-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_tradingbot_recurring_order_algo($params = array()) {
         return $this->request('tradingBot/recurring/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -767,13 +860,25 @@ abstract class okx extends \ccxt\Exchange {
         return $this->request('finance/staking-defi/eth/redeem', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_copytrading_algo_order($params = array()) {
-        return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_copytrading_close_subposition($params = array()) {
-        return $this->request('copytrading/close-subposition', 'private', 'POST', $params, null, null, array("cost" => 4));
+        return $this->request('copytrading/close-subposition', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_copytrading_set_instruments($params = array()) {
-        return $this->request('copytrading/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_copytrading_first_copy_settings($params = array()) {
+        return $this->request('copytrading/first-copy-settings', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_copytrading_amend_copy_settings($params = array()) {
+        return $this->request('copytrading/amend-copy-settings', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_copytrading_stop_copy_trading($params = array()) {
+        return $this->request('copytrading/stop-copy-trading', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_copytrading_batch_set_leverage($params = array()) {
+        return $this->request('copytrading/batch-set-leverage', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_post_broker_nd_create_subaccount($params = array()) {
         return $this->request('broker/nd/create-subaccount', 'private', 'POST', $params, null, null, array("cost" => 0.25));
@@ -819,6 +924,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_post_broker_fd_rebate_per_orders($params = array()) {
         return $this->request('broker/fd/rebate-per-orders', 'private', 'POST', $params, null, null, array("cost" => 36000));
+    }
+    public function publicGetMarketBooksFull($params = array()) {
+        return $this->request('market/books-full', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     public function publicGetMarketTickers($params = array()) {
         return $this->request('market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -873,6 +981,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function publicGetMarketIndexComponents($params = array()) {
         return $this->request('market/index-components', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetPublicEconomicCalendar($params = array()) {
+        return $this->request('public/economic-calendar', 'public', 'GET', $params, null, null, array("cost" => 50));
     }
     public function publicGetMarketBlockTickers($params = array()) {
         return $this->request('market/block-tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -1009,11 +1120,32 @@ abstract class okx extends \ccxt\Exchange {
     public function publicGetFinanceSfpDcdProducts($params = array()) {
         return $this->request('finance/sfp/dcd/products', 'public', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
     }
+    public function publicGetCopytradingPublicLeadTraders($params = array()) {
+        return $this->request('copytrading/public-lead-traders', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetCopytradingPublicWeeklyPnl($params = array()) {
+        return $this->request('copytrading/public-weekly-pnl', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetCopytradingPublicStats($params = array()) {
+        return $this->request('copytrading/public-stats', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetCopytradingPublicPreferenceCurrency($params = array()) {
+        return $this->request('copytrading/public-preference-currency', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetCopytradingPublicCurrentSubpositions($params = array()) {
+        return $this->request('copytrading/public-current-subpositions', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetCopytradingPublicSubpositionsHistory($params = array()) {
+        return $this->request('copytrading/public-subpositions-history', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function privateGetRfqCounterparties($params = array()) {
         return $this->request('rfq/counterparties', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetRfqMakerInstrumentSettings($params = array()) {
         return $this->request('rfq/maker-instrument-settings', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetRfqMmpConfig($params = array()) {
+        return $this->request('rfq/mmp-config', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetRfqRfqs($params = array()) {
         return $this->request('rfq/rfqs', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -1035,6 +1167,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privateGetSprdOrdersHistory($params = array()) {
         return $this->request('sprd/orders-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function privateGetSprdOrdersHistoryArchive($params = array()) {
+        return $this->request('sprd/orders-history-archive', 'private', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function privateGetSprdTrades($params = array()) {
         return $this->request('sprd/trades', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));
@@ -1081,6 +1216,9 @@ abstract class okx extends \ccxt\Exchange {
     public function privateGetTradeOneClickRepayHistory($params = array()) {
         return $this->request('trade/one-click-repay-history', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function privateGetTradeAccountRateLimit($params = array()) {
+        return $this->request('trade/account-rate-limit', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetAssetCurrencies($params = array()) {
         return $this->request('asset/currencies', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -1122,6 +1260,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privateGetAssetConvertHistory($params = array()) {
         return $this->request('asset/convert/history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function privateGetAssetMonthlyStatement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateGetAccountBalance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 2));
@@ -1225,9 +1366,6 @@ abstract class okx extends \ccxt\Exchange {
     public function privateGetUsersEntrustSubaccountList($params = array()) {
         return $this->request('users/entrust-subaccount-list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
-    public function privateGetUsersPartnerIfRebate($params = array()) {
-        return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function privateGetAccountSubaccountInterestLimits($params = array()) {
         return $this->request('account/subaccount/interest-limits', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1249,14 +1387,20 @@ abstract class okx extends \ccxt\Exchange {
     public function privateGetTradingBotGridAiParam($params = array()) {
         return $this->request('tradingBot/grid/ai-param', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetTradingBotPublicRsiBackTesting($params = array()) {
-        return $this->request('tradingBot/public/rsi-back-testing', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetTradingBotSignalSignals($params = array()) {
+        return $this->request('tradingBot/signal/signals', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetTradingBotSignalOrdersAlgoDetails($params = array()) {
         return $this->request('tradingBot/signal/orders-algo-details', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetTradingBotSignalOrdersAlgoHistory($params = array()) {
+        return $this->request('tradingBot/signal/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetTradingBotSignalPositions($params = array()) {
         return $this->request('tradingBot/signal/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradingBotSignalPositionsHistory($params = array()) {
+        return $this->request('tradingBot/signal/positions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetTradingBotSignalSubOrders($params = array()) {
         return $this->request('tradingBot/signal/sub-orders', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1298,22 +1442,34 @@ abstract class okx extends \ccxt\Exchange {
         return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function privateGetCopytradingCurrentSubpositions($params = array()) {
-        return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 4));
+        return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetCopytradingSubpositionsHistory($params = array()) {
-        return $this->request('copytrading/subpositions-history', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/subpositions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetCopytradingInstruments($params = array()) {
-        return $this->request('copytrading/instruments', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/instruments', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetCopytradingProfitSharingDetails($params = array()) {
-        return $this->request('copytrading/profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetCopytradingTotalProfitSharing($params = array()) {
-        return $this->request('copytrading/total-profit-sharing', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/total-profit-sharing', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetCopytradingUnrealizedProfitSharingDetails($params = array()) {
-        return $this->request('copytrading/unrealized-profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/unrealized-profit-sharing-details', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetCopytradingCopySettings($params = array()) {
+        return $this->request('copytrading/copy-settings', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetCopytradingBatchLeverageInfo($params = array()) {
+        return $this->request('copytrading/batch-leverage-info', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetCopytradingCurrentLeadTraders($params = array()) {
+        return $this->request('copytrading/current-lead-traders', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetCopytradingLeadTradersHistory($params = array()) {
+        return $this->request('copytrading/lead-traders-history', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetBrokerNdInfo($params = array()) {
         return $this->request('broker/nd/info', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -1351,6 +1507,12 @@ abstract class okx extends \ccxt\Exchange {
     public function privateGetBrokerFdIfRebate($params = array()) {
         return $this->request('broker/fd/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetAffiliateInviteeDetail($params = array()) {
+        return $this->request('affiliate/invitee/detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetUsersPartnerIfRebate($params = array()) {
+        return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privatePostRfqCreateRfq($params = array()) {
         return $this->request('rfq/create-rfq', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -1371,6 +1533,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostRfqMmpReset($params = array()) {
         return $this->request('rfq/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostRfqMmpConfig($params = array()) {
+        return $this->request('rfq/mmp-config', 'private', 'POST', $params, null, null, array("cost" => 100));
     }
     public function privatePostRfqCreateQuote($params = array()) {
         return $this->request('rfq/create-quote', 'private', 'POST', $params, null, null, array("cost" => 0.4));
@@ -1465,6 +1630,9 @@ abstract class okx extends \ccxt\Exchange {
     public function privatePostAssetConvertTrade($params = array()) {
         return $this->request('asset/convert/trade', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostAssetMonthlyStatement($params = array()) {
+        return $this->request('asset/monthly-statement', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privatePostAccountSetPositionMode($params = array()) {
         return $this->request('account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -1488,6 +1656,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostAccountSimulatedMargin($params = array()) {
         return $this->request('account/simulated_margin', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostAccountPositionBuilder($params = array()) {
+        return $this->request('account/position-builder', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function privatePostAccountSetRiskOffsetType($params = array()) {
         return $this->request('account/set-riskOffset-type', 'private', 'POST', $params, null, null, array("cost" => 2));
@@ -1549,6 +1720,33 @@ abstract class okx extends \ccxt\Exchange {
     public function privatePostTradingBotGridMinInvestment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostTradingBotSignalCreateSignal($params = array()) {
+        return $this->request('tradingBot/signal/create-signal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalOrderAlgo($params = array()) {
+        return $this->request('tradingBot/signal/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalStopOrderAlgo($params = array()) {
+        return $this->request('tradingBot/signal/stop-order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalMarginBalance($params = array()) {
+        return $this->request('tradingBot/signal/margin-balance', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalAmendTPSL($params = array()) {
+        return $this->request('tradingBot/signal/amendTPSL', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalSetInstruments($params = array()) {
+        return $this->request('tradingBot/signal/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalClosePosition($params = array()) {
+        return $this->request('tradingBot/signal/close-position', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalSubOrder($params = array()) {
+        return $this->request('tradingBot/signal/sub-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotSignalCancelSubOrder($params = array()) {
+        return $this->request('tradingBot/signal/cancel-sub-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privatePostTradingBotRecurringOrderAlgo($params = array()) {
         return $this->request('tradingBot/recurring/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1580,13 +1778,25 @@ abstract class okx extends \ccxt\Exchange {
         return $this->request('finance/staking-defi/eth/redeem', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostCopytradingAlgoOrder($params = array()) {
-        return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostCopytradingCloseSubposition($params = array()) {
-        return $this->request('copytrading/close-subposition', 'private', 'POST', $params, null, null, array("cost" => 4));
+        return $this->request('copytrading/close-subposition', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostCopytradingSetInstruments($params = array()) {
-        return $this->request('copytrading/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 10));
+        return $this->request('copytrading/set-instruments', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostCopytradingFirstCopySettings($params = array()) {
+        return $this->request('copytrading/first-copy-settings', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostCopytradingAmendCopySettings($params = array()) {
+        return $this->request('copytrading/amend-copy-settings', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostCopytradingStopCopyTrading($params = array()) {
+        return $this->request('copytrading/stop-copy-trading', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostCopytradingBatchSetLeverage($params = array()) {
+        return $this->request('copytrading/batch-set-leverage', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
     public function privatePostBrokerNdCreateSubaccount($params = array()) {
         return $this->request('broker/nd/create-subaccount', 'private', 'POST', $params, null, null, array("cost" => 0.25));

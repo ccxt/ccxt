@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitrue extends \ccxt\async\bitrue {
 
@@ -56,13 +57,13 @@ class bitrue extends \ccxt\async\bitrue {
         ));
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-             * @param {array} [$params] extra parameters specific to the bitrue api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             $url = Async\await($this->authenticate());
             $messageHash = 'balance';
@@ -171,7 +172,7 @@ class bitrue extends \ccxt\async\bitrue {
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on user $orders
@@ -179,8 +180,8 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {string[]} symbols unified symbols of the $market to watch the $orders for
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum amount of $orders to return
-             * @param {array} [$params] extra parameters specific to the bitrue api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-structure order structure~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {
@@ -299,7 +300,7 @@ class bitrue extends \ccxt\async\bitrue {
         ), $market);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -360,7 +361,12 @@ class bitrue extends \ccxt\async\bitrue {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($message, 'ts');
         $tick = $this->safe_value($message, 'tick', array());
-        $orderbook = $this->parse_order_book($tick, $symbol, $timestamp, 'buys', 'asks');
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->order_book();
+        }
+        $snapshot = $this->parse_order_book($tick, $symbol, $timestamp, 'buys', 'asks');
+        $orderbook->reset ($snapshot);
         $this->orderbooks[$symbol] = $orderbook;
         $messageHash = 'orderbook:' . $symbol;
         $client->resolve ($orderbook, $messageHash);
@@ -434,7 +440,7 @@ class bitrue extends \ccxt\async\bitrue {
                 } catch (Exception $error) {
                     $this->options['listenKey'] = null;
                     $this->options['listenKeyUrl'] = null;
-                    return;
+                    return null;
                 }
                 //
                 //     {

@@ -6,8 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import AuthenticationError
 
@@ -76,14 +77,14 @@ class ascendex(ccxt.async_support.ascendex):
         await self.authenticate(url, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -136,14 +137,14 @@ class ascendex(ccxt.async_support.ascendex):
         client.resolve(stored, messageHash)
         return message
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -191,27 +192,27 @@ class ascendex(ccxt.async_support.ascendex):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
-        channel = 'depth-realtime' + ':' + market['id']
+        channel = 'depth' + ':' + market['id']
         params = self.extend(params, {
             'ch': channel,
         })
         orderbook = await self.watch_public(channel, params)
         return orderbook.limit()
 
-    async def watch_order_book_snapshot(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book_snapshot(self, symbol: str, limit: Int = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        action = 'depth-snapshot-realtime'
+        action = 'depth-snapshot'
         channel = action + ':' + market['id']
         params = self.extend(params, {
             'action': action,
@@ -222,6 +223,14 @@ class ascendex(ccxt.async_support.ascendex):
         })
         orderbook = await self.watch_public(channel, params)
         return orderbook.limit()
+
+    async def fetch_order_book_snapshot(self, symbol: str, limit: Int = None, params={}):
+        restOrderBook = await self.fetch_rest_order_book_safe(symbol, limit, params)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
+        orderbook.reset(restOrderBook)
+        return orderbook
 
     def handle_order_book_snapshot(self, client: Client, message):
         #
@@ -330,11 +339,11 @@ class ascendex(ccxt.async_support.ascendex):
             orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         type, query = self.handle_market_type_and_params('watchBalance', None, params)
@@ -443,15 +452,15 @@ class ascendex(ccxt.async_support.ascendex):
         messageHash = 'balance' + ':' + type
         client.resolve(self.safe_balance(result), messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the ascendex api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -825,8 +834,8 @@ class ascendex(ccxt.async_support.ascendex):
             'ping': self.handle_ping,
             'auth': self.handle_authenticate,
             'sub': self.handle_subscription_status,
-            'depth-realtime': self.handle_order_book,
-            'depth-snapshot-realtime': self.handle_order_book_snapshot,
+            'depth': self.handle_order_book,
+            'depth-snapshot': self.handle_order_book_snapshot,
             'trades': self.handle_trades,
             'bar': self.handle_ohlcv,
             'balance': self.handle_balance,
@@ -842,7 +851,6 @@ class ascendex(ccxt.async_support.ascendex):
             self.handle_order(client, message)
             if subject == 'order':
                 self.handle_balance(client, message)
-        return message
 
     def handle_subscription_status(self, client: Client, message):
         #
@@ -851,7 +859,7 @@ class ascendex(ccxt.async_support.ascendex):
         #     {m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0}
         #
         channel = self.safe_string(message, 'ch', '')
-        if channel.find('depth-realtime') > -1:
+        if channel.find('depth') > -1 and not (channel.find('depth-snapshot') > -1):
             self.handle_order_book_subscription(client, message)
         return message
 
@@ -859,11 +867,15 @@ class ascendex(ccxt.async_support.ascendex):
         channel = self.safe_string(message, 'ch')
         parts = channel.split(':')
         marketId = parts[1]
-        symbol = self.safe_symbol(marketId)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({})
-        self.spawn(self.watch_order_book_snapshot, symbol)
+        if self.options['defaultType'] == 'swap' or market['contract']:
+            self.spawn(self.fetch_order_book_snapshot, symbol)
+        else:
+            self.spawn(self.watch_order_book_snapshot, symbol)
 
     async def pong(self, client, message):
         #
@@ -878,7 +890,7 @@ class ascendex(ccxt.async_support.ascendex):
     def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)
 
-    def authenticate(self, url, params={}):
+    async def authenticate(self, url, params={}):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)

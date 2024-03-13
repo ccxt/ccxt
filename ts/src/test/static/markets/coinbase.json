@@ -1,4 +1,152 @@
 {
+    "BTC/USDC": {
+        "id": "BTC-USDC",
+        "symbol": "BTC/USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.000016,
+                "max": 2500
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 75000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "product_id": "BTC-USDC",
+            "price": "41879.12",
+            "price_percentage_change_24h": "1.42975853736571",
+            "volume_24h": "19891.16722555",
+            "volume_percentage_change_24h": "74.81477259994482",
+            "base_increment": "0.00000001",
+            "quote_increment": "0.01",
+            "quote_min_size": "1",
+            "quote_max_size": "75000000",
+            "base_min_size": "0.000016",
+            "base_max_size": "2500",
+            "base_name": "Bitcoin",
+            "quote_name": "USDC",
+            "watched": false,
+            "is_disabled": false,
+            "new": false,
+            "status": "online",
+            "cancel_only": false,
+            "limit_only": false,
+            "post_only": false,
+            "trading_disabled": false,
+            "auction_mode": false,
+            "product_type": "SPOT",
+            "quote_currency_id": "USDC",
+            "base_currency_id": "BTC",
+            "fcm_trading_session_details": null,
+            "mid_market_price": "",
+            "alias": "BTC-USD",
+            "alias_to": [],
+            "base_display_symbol": "BTC",
+            "quote_display_symbol": "USDC",
+            "view_only": false,
+            "price_increment": "0.01"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.008,
+        "maker": 0.006,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.006
+                ],
+                [
+                    10000,
+                    0.004
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    75000000,
+                    0.0012
+                ],
+                [
+                    250000000,
+                    0.0008
+                ],
+                [
+                    400000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.0025
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    15000000,
+                    0.0006
+                ],
+                [
+                    75000000,
+                    0.0003
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    400000000,
+                    0
+                ]
+            ]
+        }
+    },
     "BTC/USDT": {
         "id": "BTC-USDT",
         "symbol": "BTC/USDT",

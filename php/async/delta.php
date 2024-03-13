@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\delta as Exchange;
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\Precise;
@@ -34,6 +35,8 @@ class delta extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => true,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
@@ -47,11 +50,13 @@ class delta extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
-                'fetchMarginMode' => false,
+                'fetchMarginMode' => true,
+                'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -251,7 +256,7 @@ class delta extends Exchange {
         return $reconstructedDate;
     }
 
-    public function create_expired_option_market($symbol) {
+    public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USDT';
         $optionParts = explode('-', $symbol);
@@ -318,25 +323,8 @@ class delta extends Exchange {
         );
     }
 
-    public function market($symbol) {
-        if ($this->markets === null) {
-            throw new ExchangeError($this->id . ' $markets not loaded');
-        }
-        if (gettype($symbol) === 'string') {
-            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                return $this->markets[$symbol];
-            } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                $markets = $this->markets_by_id[$symbol];
-                return $markets[0];
-            } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1) || (mb_strpos($symbol, 'C')) || (mb_strpos($symbol, 'P'))) {
-                return $this->create_expired_option_market($symbol);
-            }
-        }
-        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
-    }
-
     public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
-        $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1) || (mb_strpos($marketId, 'C')) || (mb_strpos($marketId, 'P')));
+        $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')) || (str_starts_with($marketId, 'C-')) || (str_starts_with($marketId, 'P-')));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
@@ -348,7 +336,7 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetSettings ($params));
@@ -362,8 +350,8 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-$status-structure $status structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
              */
             $response = Async\await($this->publicGetSettings ($params));
             //
@@ -438,7 +426,7 @@ class delta extends Exchange {
             /**
              * fetches all available $currencies on an exchange
              * @see https://docs.delta.exchange/#get-list-of-all-assets
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
             $response = Async\await($this->publicGetAssets ($params));
@@ -529,7 +517,7 @@ class delta extends Exchange {
             /**
              * retrieves data on all $markets for delta
              * @see https://docs.delta.exchange/#get-list-of-products
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetProducts ($params));
@@ -834,7 +822,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -985,8 +973,8 @@ class delta extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1126,11 +1114,11 @@ class delta extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @see https://docs.delta.exchange/#get-$tickers-for-products
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1283,8 +1271,8 @@ class delta extends Exchange {
              * @see https://docs.delta.exchange/#get-l2-orderbook
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1318,7 +1306,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -1426,8 +1414,8 @@ class delta extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1455,7 +1443,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "time":1605393120,
@@ -1485,7 +1473,7 @@ class delta extends Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1551,8 +1539,8 @@ class delta extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.delta.exchange/#get-wallet-balances
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetWalletBalances ($params));
@@ -1587,8 +1575,8 @@ class delta extends Exchange {
              * fetch data on a single open contract trade position
              * @see https://docs.delta.exchange/#get-position
              * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1617,8 +1605,8 @@ class delta extends Exchange {
              * fetch all open positions
              * @see https://docs.delta.exchange/#get-margined-positions
              * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetPositionsMargined ($params));
@@ -1648,7 +1636,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         // fetchPosition
         //
@@ -1728,7 +1716,7 @@ class delta extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -1815,7 +1803,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1825,9 +1813,9 @@ class delta extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $orderType = $type . '_order';
@@ -1898,7 +1886,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1909,8 +1897,8 @@ class delta extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1956,10 +1944,12 @@ class delta extends Exchange {
              * @see https://docs.delta.exchange/#cancel-order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
-            $this->check_required_symbol('cancelOrder', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -2014,10 +2004,12 @@ class delta extends Exchange {
              * cancel all open orders in a $market
              * @see https://docs.delta.exchange/#cancel-all-open-orders
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $this->check_required_symbol('cancelAllOrders', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -2044,8 +2036,8 @@ class delta extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_with_method('privateGetOrders', $symbol, $since, $limit, $params));
         }) ();
@@ -2059,8 +2051,8 @@ class delta extends Exchange {
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params));
         }) ();
@@ -2090,7 +2082,12 @@ class delta extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($method === 'privateGetOrders') {
+                $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            } elseif ($method === 'privateGetOrdersHistory') {
+                $response = Async\await($this->privateGetOrdersHistory (array_merge($request, $params)));
+            }
             //
             //     {
             //         "success" => true,
@@ -2127,8 +2124,8 @@ class delta extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -2210,8 +2207,8 @@ class delta extends Exchange {
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -2272,7 +2269,7 @@ class delta extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     {
         //         "amount":"29.889184",
@@ -2334,9 +2331,9 @@ class delta extends Exchange {
             /**
              * fetch the deposit address for a $currency associated with this account
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] unified network $code
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2371,7 +2368,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //    {
         //        "id" => 1915615,
@@ -2405,8 +2402,8 @@ class delta extends Exchange {
              * fetch the current funding rate
              * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2473,8 +2470,8 @@ class delta extends Exchange {
              * fetch the funding rate for multiple markets
              * @see https://docs.delta.exchange/#get-tickers-for-products
              * @param {string[]|null} $symbols list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-$rates-structure funding $rates structures}, indexe by market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-$rates-structure funding $rates structures~, indexe by market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -2535,7 +2532,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "close" => 30600.5,
@@ -2610,8 +2607,8 @@ class delta extends Exchange {
              * @see https://docs.delta.exchange/#add-remove-position-margin
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure margin structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
         }) ();
@@ -2624,8 +2621,8 @@ class delta extends Exchange {
              * @see https://docs.delta.exchange/#add-remove-position-margin
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure margin structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
         }) ();
@@ -2672,7 +2669,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         //
         //     {
         //         "auto_topup" => false,
@@ -2713,7 +2710,7 @@ class delta extends Exchange {
              * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] exchange specific parameters
-             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure)
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2781,7 +2778,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         //     {
         //         "close" => 894.0,
@@ -2845,20 +2842,21 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
              * @see https://docs.delta.exchange/#get-order-leverage
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure leverage structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'product_id' => $market['numericId'],
             );
+            $response = Async\await($this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -2872,21 +2870,36 @@ class delta extends Exchange {
             //         "success" => true
             //     }
             //
-            return Async\await($this->privateGetProductsProductIdOrdersLeverage (array_merge($request, $params)));
+            $result = $this->safe_dict($response, 'result', array());
+            return $this->parse_leverage($result, $market);
         }) ();
     }
 
-    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+    public function parse_leverage($leverage, $market = null): Leverage {
+        $marketId = $this->safe_string($leverage, 'index_symbol');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'margin_mode'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
+    }
+
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
              * @see https://docs.delta.exchange/#change-order-$leverage
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the delta api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */
-            $this->check_required_symbol('setLeverage', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -2917,7 +2930,7 @@ class delta extends Exchange {
              * @param {int} [$since] timestamp in ms
              * @param {int} [$limit] number of records
              * @param {array} [$params] exchange specific $params
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=settlement-history-structure settlement history objects~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -3067,6 +3080,275 @@ class delta extends Exchange {
             $result[] = $this->parse_settlement($settlements[$i], $market);
         }
         return $result;
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch greeks for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTickersSymbol (array_merge($request, $params)));
+            //
+            //     {
+            //         "result" => array(
+            //             "close" => 6793.0,
+            //             "contract_type" => "call_options",
+            //             "greeks" => array(
+            //                 "delta" => "0.94739174",
+            //                 "gamma" => "0.00002206",
+            //                 "rho" => "11.00890725",
+            //                 "spot" => "36839.58124652",
+            //                 "theta" => "-18.18365310",
+            //                 "vega" => "7.85209698"
+            //             ),
+            //             "high" => 7556.0,
+            //             "low" => 6793.0,
+            //             "mark_price" => "6955.70698909",
+            //             "mark_vol" => "0.66916863",
+            //             "oi" => "1.8980",
+            //             "oi_change_usd_6h" => "110.4600",
+            //             "oi_contracts" => "1898",
+            //             "oi_value" => "1.8980",
+            //             "oi_value_symbol" => "BTC",
+            //             "oi_value_usd" => "69940.7319",
+            //             "open" => 7.2e3,
+            //             "price_band" => array(
+            //                 "lower_limit" => "5533.89814767",
+            //                 "upper_limit" => "11691.37688371"
+            //             ),
+            //             "product_id" => 129508,
+            //             "quotes" => array(
+            //                 "ask_iv" => "0.90180438",
+            //                 "ask_size" => "1898",
+            //                 "best_ask" => "7210",
+            //                 "best_bid" => "6913",
+            //                 "bid_iv" => "0.60881706",
+            //                 "bid_size" => "3163",
+            //                 "impact_mid_price" => null,
+            //                 "mark_iv" => "0.66973549"
+            //             ),
+            //             "size" => 5,
+            //             "spot_price" => "36839.58153868",
+            //             "strike_price" => "30000",
+            //             "symbol" => "C-BTC-30000-241123",
+            //             "timestamp" => 1699584998504530,
+            //             "turnover" => 184.41206804,
+            //             "turnover_symbol" => "USDT",
+            //             "turnover_usd" => 184.41206804,
+            //             "volume" => 0.005
+            //         ),
+            //         "success" => true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_greeks($result, $market);
+        }) ();
+    }
+
+    public function parse_greeks($greeks, ?array $market = null) {
+        //
+        //     {
+        //         "close" => 6793.0,
+        //         "contract_type" => "call_options",
+        //         "greeks" => array(
+        //             "delta" => "0.94739174",
+        //             "gamma" => "0.00002206",
+        //             "rho" => "11.00890725",
+        //             "spot" => "36839.58124652",
+        //             "theta" => "-18.18365310",
+        //             "vega" => "7.85209698"
+        //         ),
+        //         "high" => 7556.0,
+        //         "low" => 6793.0,
+        //         "mark_price" => "6955.70698909",
+        //         "mark_vol" => "0.66916863",
+        //         "oi" => "1.8980",
+        //         "oi_change_usd_6h" => "110.4600",
+        //         "oi_contracts" => "1898",
+        //         "oi_value" => "1.8980",
+        //         "oi_value_symbol" => "BTC",
+        //         "oi_value_usd" => "69940.7319",
+        //         "open" => 7.2e3,
+        //         "price_band" => array(
+        //             "lower_limit" => "5533.89814767",
+        //             "upper_limit" => "11691.37688371"
+        //         ),
+        //         "product_id" => 129508,
+        //         "quotes" => array(
+        //             "ask_iv" => "0.90180438",
+        //             "ask_size" => "1898",
+        //             "best_ask" => "7210",
+        //             "best_bid" => "6913",
+        //             "bid_iv" => "0.60881706",
+        //             "bid_size" => "3163",
+        //             "impact_mid_price" => null,
+        //             "mark_iv" => "0.66973549"
+        //         ),
+        //         "size" => 5,
+        //         "spot_price" => "36839.58153868",
+        //         "strike_price" => "30000",
+        //         "symbol" => "C-BTC-30000-241123",
+        //         "timestamp" => 1699584998504530,
+        //         "turnover" => 184.41206804,
+        //         "turnover_symbol" => "USDT",
+        //         "turnover_usd" => 184.41206804,
+        //         "volume" => 0.005
+        //     }
+        //
+        $timestamp = $this->safe_integer_product($greeks, 'timestamp', 0.001);
+        $marketId = $this->safe_string($greeks, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $stats = $this->safe_value($greeks, 'greeks', array());
+        $quotes = $this->safe_value($greeks, 'quotes', array());
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'delta' => $this->safe_number($stats, 'delta'),
+            'gamma' => $this->safe_number($stats, 'gamma'),
+            'theta' => $this->safe_number($stats, 'theta'),
+            'vega' => $this->safe_number($stats, 'vega'),
+            'rho' => $this->safe_number($stats, 'rho'),
+            'bidSize' => $this->safe_number($quotes, 'bid_size'),
+            'askSize' => $this->safe_number($quotes, 'ask_size'),
+            'bidImpliedVolatility' => $this->safe_number($quotes, 'bid_iv'),
+            'askImpliedVolatility' => $this->safe_number($quotes, 'ask_iv'),
+            'markImpliedVolatility' => $this->safe_number($quotes, 'mark_iv'),
+            'bidPrice' => $this->safe_number($quotes, 'best_bid'),
+            'askPrice' => $this->safe_number($quotes, 'best_ask'),
+            'markPrice' => $this->safe_number($greeks, 'mark_price'),
+            'lastPrice' => null,
+            'underlyingPrice' => $this->safe_number($greeks, 'spot_price'),
+            'info' => $greeks,
+        );
+    }
+
+    public function close_all_positions($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * closes all open positions for a market type
+             * @see https://docs.delta.exchange/#close-all-positions
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->user_id] the users id
+             * @return {array[]} A list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structures~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'close_all_portfolio' => true,
+                'close_all_isolated' => true,
+                // 'user_id' => 12345,
+            );
+            $response = Async\await($this->privatePostPositionsCloseAll (array_merge($request, $params)));
+            //
+            // array("result":array(),"success":true)
+            //
+            $position = $this->parse_position($this->safe_value($response, 'result', array()));
+            return array( $position );
+        }) ();
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches the margin mode of a trading pair
+             * @see https://docs.delta.exchange/#get-user
+             * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $response = Async\await($this->privateGetProfile ($params));
+            //
+            //     {
+            //         "result" => {
+            //             "is_password_set" => true,
+            //             "kyc_expiry_date" => null,
+            //             "phishing_code" => "12345",
+            //             "preferences" => array(
+            //                 "favorites" => array()
+            //             ),
+            //             "is_kyc_provisioned" => false,
+            //             "country" => "Canada",
+            //             "margin_mode" => "isolated",
+            //             "mfa_updated_at" => "2023-07-19T01:04:43Z",
+            //             "last_name" => "",
+            //             "oauth_apple_active" => false,
+            //             "pf_index_symbol" => null,
+            //             "proof_of_identity_status" => "approved",
+            //             "dob" => null,
+            //             "email" => "abc_123@gmail.com",
+            //             "force_change_password" => false,
+            //             "nick_name" => "still-breeze-123",
+            //             "oauth_google_active" => false,
+            //             "phone_verification_status" => "verified",
+            //             "id" => 12345678,
+            //             "last_seen" => null,
+            //             "is_withdrawal_enabled" => true,
+            //             "force_change_mfa" => false,
+            //             "enable_bots" => false,
+            //             "kyc_verified_on" => null,
+            //             "created_at" => "2023-07-19T01:02:32Z",
+            //             "withdrawal_blocked_till" => null,
+            //             "proof_of_address_status" => "approved",
+            //             "is_password_change_blocked" => false,
+            //             "is_mfa_enabled" => true,
+            //             "is_kyc_done" => true,
+            //             "oauth" => null,
+            //             "account_name" => "Main",
+            //             "sub_account_permissions" => null,
+            //             "phone_number" => null,
+            //             "tracking_info" => array(
+            //                 "ga_cid" => "1234.4321",
+            //                 "is_kyc_gtm_tracked" => true,
+            //                 "sub_account_config" => array(
+            //                     "cross" => 2,
+            //                     "isolated" => 2,
+            //                     "portfolio" => 2
+            //                 }
+            //             ),
+            //             "first_name" => "",
+            //             "phone_verified_on" => null,
+            //             "seen_intro" => false,
+            //             "password_updated_at" => null,
+            //             "is_login_enabled" => true,
+            //             "registration_date" => "2023-07-19T01:02:32Z",
+            //             "permissions" => array(),
+            //             "max_sub_accounts_limit" => 2,
+            //             "country_calling_code" => null,
+            //             "is_sub_account" => false,
+            //             "is_kyc_refresh_required" => false
+            //         ),
+            //         "success" => true
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            return $this->parse_margin_mode($result, $market);
+        }) ();
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        return array(
+            'info' => $marginMode,
+            'symbol' => $symbol,
+            'marginMode' => $this->safe_string($marginMode, 'margin_mode'),
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

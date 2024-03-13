@@ -192,6 +192,7 @@ interface Exchange {
     spotPrivatePostV2SubUserApiKeyModification(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV2SubUserApiKeyDeletion(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1SubuserTransfer(params?: {}): Promise<implicitReturnType>;
+    spotPrivatePostV1TrustUserActiveCredit(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderOrdersPlace(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderBatchOrders(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostV1OrderAutoPlace(params?: {}): Promise<implicitReturnType>;
@@ -220,6 +221,7 @@ interface Exchange {
     contractPublicGetHeartbeat(params?: {}): Promise<implicitReturnType>;
     contractPublicGetApiV1ContractContractInfo(params?: {}): Promise<implicitReturnType>;
     contractPublicGetApiV1ContractIndex(params?: {}): Promise<implicitReturnType>;
+    contractPublicGetApiV1ContractQueryElements(params?: {}): Promise<implicitReturnType>;
     contractPublicGetApiV1ContractPriceLimit(params?: {}): Promise<implicitReturnType>;
     contractPublicGetApiV1ContractOpenInterest(params?: {}): Promise<implicitReturnType>;
     contractPublicGetApiV1ContractDeliveryPrice(params?: {}): Promise<implicitReturnType>;
@@ -248,6 +250,7 @@ interface Exchange {
     contractPublicGetApiV3ContractLiquidationOrders(params?: {}): Promise<implicitReturnType>;
     contractPublicGetSwapApiV1SwapContractInfo(params?: {}): Promise<implicitReturnType>;
     contractPublicGetSwapApiV1SwapIndex(params?: {}): Promise<implicitReturnType>;
+    contractPublicGetSwapApiV1SwapQueryElements(params?: {}): Promise<implicitReturnType>;
     contractPublicGetSwapApiV1SwapPriceLimit(params?: {}): Promise<implicitReturnType>;
     contractPublicGetSwapApiV1SwapOpenInterest(params?: {}): Promise<implicitReturnType>;
     contractPublicGetSwapExMarketDepth(params?: {}): Promise<implicitReturnType>;
@@ -279,6 +282,7 @@ interface Exchange {
     contractPublicGetIndexMarketHistorySwapBasis(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapApiV1SwapContractInfo(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapApiV1SwapIndex(params?: {}): Promise<implicitReturnType>;
+    contractPublicGetLinearSwapApiV1SwapQueryElements(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapApiV1SwapPriceLimit(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapApiV1SwapOpenInterest(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapExMarketDepth(params?: {}): Promise<implicitReturnType>;
@@ -312,8 +316,11 @@ interface Exchange {
     contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline(params?: {}): Promise<implicitReturnType>;
     contractPublicGetIndexMarketHistoryLinearSwapBasis(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice(params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetApiV1ContractSubAuthList(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetApiV1ContractApiTradingStatus(params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetSwapApiV1SwapSubAuthList(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetSwapApiV1SwapApiTradingStatus(params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetLinearSwapApiV1SwapSubAuthList(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV1SwapApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV1SwapCrossPositionSide(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV1SwapPositionSide(params?: {}): Promise<implicitReturnType>;
@@ -344,7 +351,7 @@ interface Exchange {
     contractPrivatePostApiV3ContractFinancialRecordExact(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractCancelAfter(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractOrder(params?: {}): Promise<implicitReturnType>;
-    contractPrivatePostV1ContractBatchorder(params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostApiV1ContractBatchorder(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractCancel(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractCancelall(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractSwitchLeverRate(params?: {}): Promise<implicitReturnType>;

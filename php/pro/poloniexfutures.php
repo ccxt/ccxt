@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class poloniexfutures extends \ccxt\async\poloniexfutures {
 
@@ -17,6 +18,15 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'cancelAllOrdersWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelOrderWs' => false,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchBalanceWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'fetchTradesWs' => false,
                 'watchOHLCV' => false,
                 'watchOrderBook' => true,
                 'watchTicker' => true,
@@ -59,59 +69,71 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     }
 
     public function negotiate($privateChannel, $params = array ()) {
-        $connectId = $privateChannel ? 'private' : 'public';
-        $urls = $this->safe_value($this->options, 'urls', array());
-        if (is_array($urls) && array_key_exists($connectId, $urls)) {
-            return $urls[$connectId];
-        }
-        // we store an awaitable to the url
-        // so that multiple calls don't asynchronously
-        // fetch different $urls and overwrite each other
-        $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params);
-        $this->options['urls'] = $urls;
-        return $urls[$connectId];
+        return Async\async(function () use ($privateChannel, $params) {
+            $connectId = $privateChannel ? 'private' : 'public';
+            $urls = $this->safe_value($this->options, 'urls', array());
+            if (is_array($urls) && array_key_exists($connectId, $urls)) {
+                // return $urls[$connectId];
+                $storedFuture = $urls[$connectId];
+                return Async\await($storedFuture);
+            }
+            // we store an awaitable to the url
+            // so that multiple calls don't asynchronously
+            // fetch different $urls and overwrite each other
+            $urls[$connectId] = $this->spawn(array($this, 'negotiate_helper'), $privateChannel, $params);
+            $this->options['urls'] = $urls;
+            $future = $urls[$connectId];
+            return Async\await($future);
+        }) ();
     }
 
     public function negotiate_helper($privateChannel, $params = array ()) {
         return Async\async(function () use ($privateChannel, $params) {
             $response = null;
             $connectId = $privateChannel ? 'private' : 'public';
-            if ($privateChannel) {
-                $response = Async\await($this->privatePostBulletPrivate ($params));
-                //
-                //     {
-                //         "code" => "200000",
-                //         "data" => {
-                //             "instanceServers" => array(
-                //                 {
-                //                     "pingInterval" =>  50000,
-                //                     "endpoint" => "wss://push-private.kucoin.com/endpoint",
-                //                     "protocol" => "websocket",
-                //                     "encrypt" => true,
-                //                     "pingTimeout" => 10000
-                //                 }
-                //             ),
-                //             "token" => "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-                //         }
-                //     }
-                //
-            } else {
-                $response = Async\await($this->publicPostBulletPublic ($params));
+            try {
+                if ($privateChannel) {
+                    $response = Async\await($this->privatePostBulletPrivate ($params));
+                    //
+                    //     {
+                    //         "code" => "200000",
+                    //         "data" => {
+                    //             "instanceServers" => array(
+                    //                 {
+                    //                     "pingInterval" =>  50000,
+                    //                     "endpoint" => "wss://push-private.kucoin.com/endpoint",
+                    //                     "protocol" => "websocket",
+                    //                     "encrypt" => true,
+                    //                     "pingTimeout" => 10000
+                    //                 }
+                    //             ),
+                    //             "token" => "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                    //         }
+                    //     }
+                    //
+                } else {
+                    $response = Async\await($this->publicPostBulletPublic ($params));
+                }
+                $data = $this->safe_value($response, 'data', array());
+                $instanceServers = $this->safe_value($data, 'instanceServers', array());
+                $firstInstanceServer = $this->safe_value($instanceServers, 0);
+                $pingInterval = $this->safe_integer($firstInstanceServer, 'pingInterval');
+                $endpoint = $this->safe_string($firstInstanceServer, 'endpoint');
+                $token = $this->safe_string($data, 'token');
+                $result = $endpoint . '?' . $this->urlencode(array(
+                    'token' => $token,
+                    'privateChannel' => $privateChannel,
+                    'connectId' => $connectId,
+                ));
+                $client = $this->client($result);
+                $client->keepAlive = $pingInterval;
+                return $result;
+            } catch (Exception $e) {
+                $future = $this->safe_value($this->options['urls'], $connectId);
+                $future->reject ($e);
+                unset($this->options['urls'][$connectId]);
             }
-            $data = $this->safe_value($response, 'data', array());
-            $instanceServers = $this->safe_value($data, 'instanceServers', array());
-            $firstInstanceServer = $this->safe_value($instanceServers, 0);
-            $pingInterval = $this->safe_integer($firstInstanceServer, 'pingInterval');
-            $endpoint = $this->safe_string($firstInstanceServer, 'endpoint');
-            $token = $this->safe_string($data, 'token');
-            $result = $endpoint . '?' . $this->urlencode(array(
-                'token' => $token,
-                'privateChannel' => $privateChannel,
-                'connectId' => $connectId,
-            ));
-            $client = $this->client($result);
-            $client->keepAlive = $pingInterval;
-            return $result;
+            return null;
         }) ();
     }
 
@@ -129,9 +151,9 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @param {string} $name name of the channel and suscriptionHash
              * @param {bool} $isPrivate true for the authenticated $url, false for the public $url
              * @param {string} $symbol is required for all public channels, not required for private channels (except position)
-             * @param {Object} $subscription subscription parameters
-             * @param {Object} [$params] extra parameters specific to the poloniex api
-             * @return {Object} data from the websocket stream
+             * @param {array} $subscription subscription parameters
+             * @param {array} [$params] extra parameters specific to the poloniex api
+             * @return {array} data from the websocket stream
              */
             $url = Async\await($this->negotiate($isPrivate));
             if ($symbol !== null) {
@@ -232,14 +254,14 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         $client->resolve ($message, $messageHash);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://futures-docs.poloniex.com/#get-real-time-$symbol-ticker
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -248,7 +270,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         }) ();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -256,8 +278,8 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $options = $this->safe_value($this->options, 'watchTrades');
@@ -272,16 +294,16 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         }) ();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://futures-docs.poloniex.com/#level-2-market-data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] not used by poloniexfutures watchOrderBook
-             * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $options = $this->safe_value($this->options, 'watchOrderBook');
@@ -303,17 +325,17 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         }) ();
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @see https://futures-docs.poloniex.com/#private-messages
              * @param {string} $symbol filter by unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop $orders
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $options = $this->safe_value($this->options, 'watchOrders');
@@ -331,13 +353,13 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         }) ();
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://futures-docs.poloniex.com/#account-balance-events
-             * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $name = '/contractAccount/wallet';
@@ -722,7 +744,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         $messageHash = $this->safe_string($message, 'topic');
         $subject = $this->safe_string($message, 'subject');
         if ($subject === 'received') {
-            return $message;
+            return;
         }
         // At the time of writting this, there is no implementation to easily convert each order into the orderbook so raw messages are returned
         $client->resolve ($message, $messageHash);
@@ -742,9 +764,10 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         $topic = $this->safe_string($message, 'topic');
         $isSnapshot = mb_strpos($topic, 'Depth') !== false;
         if ($isSnapshot) {
-            return $this->hande_l2_snapshot($client, $message);
+            $this->hande_l2_snapshot($client, $message);
+            return;
         }
-        return $this->handle_l2_order_book($client, $message);
+        $this->handle_l2_order_book($client, $message);
     }
 
     public function handle_l2_order_book(Client $client, $message) {
@@ -782,7 +805,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
             if ($cacheLength === $snapshotDelay) {
                 $limit = 0;
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
             }
             $orderBook->cache[] = $data;
             return;
@@ -977,7 +1000,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         );
         $method = $this->safe_value($methods, $subject);
         if ($method !== null) {
-            return $method($client, $message);
+            $method($client, $message);
         }
     }
 
@@ -1017,7 +1040,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         );
         $method = $this->safe_value($methods, $type);
         if ($method !== null) {
-            return $method($client, $message);
+            $method($client, $message);
         }
     }
 

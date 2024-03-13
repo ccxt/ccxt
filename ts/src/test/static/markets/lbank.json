@@ -1,4 +1,39 @@
 {
+    "LBK/USDT": {
+        "id": "lbk_usdt",
+        "symbol": "LBK/USDT",
+        "base": "LBK",
+        "quote": "USDT",
+        "baseId": "lbk",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "precision": {
+            "amount": 1,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "lbk_usdt",
+            "quantityAccuracy": "0",
+            "minTranQua": "1",
+            "priceAccuracy": "6"
+        },
+        "taker": 0.001,
+        "maker": 0.001
+    },
     "BTC/USDT": {
         "id": "btc_usdt",
         "symbol": "BTC/USDT",
@@ -13,7 +48,6 @@
         "future": false,
         "option": false,
         "margin": false,
-        "contract": false,
         "precision": {
             "amount": 0.0001,
             "price": 0.01
@@ -26,7 +60,12 @@
             "cost": {},
             "leverage": {}
         },
-        "info": "btc_usdt",
+        "info": {
+            "symbol": "btc_usdt",
+            "quantityAccuracy": "4",
+            "minTranQua": "0.0001",
+            "priceAccuracy": "2"
+        },
         "taker": 0.001,
         "maker": 0.001
     },
@@ -44,7 +83,6 @@
         "future": false,
         "option": false,
         "margin": false,
-        "contract": false,
         "precision": {
             "amount": 0.0001,
             "price": 0.01
@@ -57,7 +95,12 @@
             "cost": {},
             "leverage": {}
         },
-        "info": "ltc_usdt",
+        "info": {
+            "symbol": "ltc_usdt",
+            "quantityAccuracy": "4",
+            "minTranQua": "0.0001",
+            "priceAccuracy": "2"
+        },
         "taker": 0.001,
         "maker": 0.001
     },
@@ -75,7 +118,6 @@
         "future": false,
         "option": false,
         "margin": false,
-        "contract": false,
         "precision": {
             "amount": 0.1,
             "price": 0.0001
@@ -88,7 +130,12 @@
             "cost": {},
             "leverage": {}
         },
-        "info": "ada_usdt",
+        "info": {
+            "symbol": "ada_usdt",
+            "quantityAccuracy": "1",
+            "minTranQua": "0.1",
+            "priceAccuracy": "4"
+        },
         "taker": 0.001,
         "maker": 0.001
     },
@@ -106,7 +153,6 @@
         "future": false,
         "option": false,
         "margin": false,
-        "contract": false,
         "precision": {
             "amount": 0.01,
             "price": 0.0001
@@ -119,7 +165,12 @@
             "cost": {},
             "leverage": {}
         },
-        "info": "xrp_usdt",
+        "info": {
+            "symbol": "xrp_usdt",
+            "quantityAccuracy": "2",
+            "minTranQua": "0.01",
+            "priceAccuracy": "4"
+        },
         "taker": 0.001,
         "maker": 0.001
     },
@@ -137,7 +188,6 @@
         "future": false,
         "option": false,
         "margin": false,
-        "contract": false,
         "precision": {
             "amount": 0.0001,
             "price": 0.01
@@ -150,7 +200,12 @@
             "cost": {},
             "leverage": {}
         },
-        "info": "sol_usdt",
+        "info": {
+            "symbol": "sol_usdt",
+            "quantityAccuracy": "4",
+            "minTranQua": "0.0001",
+            "priceAccuracy": "2"
+        },
         "taker": 0.001,
         "maker": 0.001
     },
@@ -168,7 +223,6 @@
         "future": false,
         "option": false,
         "margin": false,
-        "contract": false,
         "precision": {
             "amount": 1,
             "price": 0.00001
@@ -181,8 +235,399 @@
             "cost": {},
             "leverage": {}
         },
-        "info": "trx_usdt",
+        "info": {
+            "symbol": "trx_usdt",
+            "quantityAccuracy": "0",
+            "minTranQua": "1",
+            "priceAccuracy": "5"
+        },
         "taker": 0.001,
         "maker": 0.001
+    },
+    "LTC/USDT:USDT": {
+        "id": "LTCUSDT",
+        "symbol": "LTC/USDT:USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001,
+                "max": 10000
+            },
+            "price": {
+                "min": 0.05,
+                "max": 0.05
+            },
+            "cost": {
+                "min": 5
+            },
+            "leverage": {}
+        },
+        "info": {
+            "priceLimitUpperValue": "0.05",
+            "symbol": "LTCUSDT",
+            "volumeTick": "0.001",
+            "indexPrice": "73.49280000",
+            "minOrderVolume": "0.001",
+            "priceTick": "0.01",
+            "maxOrderVolume": "10000.0",
+            "baseCurrency": "LTC",
+            "volumeMultiple": "1.0",
+            "exchangeID": "Exchange",
+            "priceCurrency": "USDT",
+            "priceLimitLowerValue": "0.05",
+            "clearCurrency": "USDT",
+            "symbolName": "LTCUSDT",
+            "defaultLeverage": "20.0",
+            "minOrderCost": "5.0"
+        },
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 30
+            },
+            "price": {
+                "min": 0.2,
+                "max": 0.2
+            },
+            "cost": {
+                "min": 5
+            },
+            "leverage": {}
+        },
+        "info": {
+            "priceLimitUpperValue": "0.2",
+            "symbol": "BTCUSDT",
+            "volumeTick": "0.0001",
+            "indexPrice": "35241.74800000",
+            "minOrderVolume": "0.0001",
+            "priceTick": "0.1",
+            "maxOrderVolume": "30.0",
+            "baseCurrency": "BTC",
+            "volumeMultiple": "1.0",
+            "exchangeID": "Exchange",
+            "priceCurrency": "USDT",
+            "priceLimitLowerValue": "0.2",
+            "clearCurrency": "USDT",
+            "symbolName": "BTCUSDT",
+            "defaultLeverage": "20.0",
+            "minOrderCost": "5.0"
+        },
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "ADA/USDT:USDT": {
+        "id": "ADAUSDT",
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 800000
+            },
+            "price": {
+                "min": 0.2,
+                "max": 0.2
+            },
+            "cost": {
+                "min": 5
+            },
+            "leverage": {}
+        },
+        "info": {
+            "priceLimitUpperValue": "0.2",
+            "symbol": "ADAUSDT",
+            "volumeTick": "1.0",
+            "indexPrice": "0.35840000",
+            "minOrderVolume": "1.0",
+            "priceTick": "0.0001",
+            "maxOrderVolume": "800000.0",
+            "baseCurrency": "ADA",
+            "volumeMultiple": "1.0",
+            "exchangeID": "Exchange",
+            "priceCurrency": "USDT",
+            "priceLimitLowerValue": "0.2",
+            "clearCurrency": "USDT",
+            "symbolName": "ADAUSDT",
+            "defaultLeverage": "20.0",
+            "minOrderCost": "5.0"
+        },
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "XRP/USDT:USDT": {
+        "id": "XRPUSDT",
+        "symbol": "XRP/USDT:USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.1,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1,
+                "max": 650000
+            },
+            "price": {
+                "min": 0.05,
+                "max": 0.05
+            },
+            "cost": {
+                "min": 5
+            },
+            "leverage": {}
+        },
+        "info": {
+            "priceLimitUpperValue": "0.05",
+            "symbol": "XRPUSDT",
+            "volumeTick": "0.1",
+            "indexPrice": "0.68375600",
+            "minOrderVolume": "0.1",
+            "priceTick": "0.0001",
+            "maxOrderVolume": "650000.0",
+            "baseCurrency": "XRP",
+            "volumeMultiple": "1.0",
+            "exchangeID": "Exchange",
+            "priceCurrency": "USDT",
+            "priceLimitLowerValue": "0.05",
+            "clearCurrency": "USDT",
+            "symbolName": "XRPUSDT",
+            "defaultLeverage": "20.0",
+            "minOrderCost": "5.0"
+        },
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "TRX/USDT:USDT": {
+        "id": "TRXUSDT",
+        "symbol": "TRX/USDT:USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 10000000
+            },
+            "price": {
+                "min": 0.2,
+                "max": 0.2
+            },
+            "cost": {
+                "min": 5
+            },
+            "leverage": {}
+        },
+        "info": {
+            "priceLimitUpperValue": "0.2",
+            "symbol": "TRXUSDT",
+            "volumeTick": "1.0",
+            "indexPrice": "0.09755200",
+            "minOrderVolume": "1.0",
+            "priceTick": "0.00001",
+            "maxOrderVolume": "10000000.0",
+            "baseCurrency": "TRX",
+            "volumeMultiple": "1.0",
+            "exchangeID": "Exchange",
+            "priceCurrency": "USDT",
+            "priceLimitLowerValue": "0.2",
+            "clearCurrency": "USDT",
+            "symbolName": "TRXUSDT",
+            "defaultLeverage": "20.0",
+            "minOrderCost": "5.0"
+        },
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "ETH/USDT": {
+        "id": "eth_usdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "eth",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "eth_usdt",
+            "quantityAccuracy": "4",
+            "minTranQua": "0.0001",
+            "priceAccuracy": "2"
+        }
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "subType": "linear",
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.001,
+                "max": 500
+            },
+            "price": {
+                "min": 0.2,
+                "max": 0.2
+            },
+            "cost": {
+                "min": 5
+            }
+        },
+        "info": {
+            "priceLimitUpperValue": "0.2",
+            "symbol": "ETHUSDT",
+            "volumeTick": "0.001",
+            "indexPrice": "3911.12600000",
+            "minOrderVolume": "0.001",
+            "priceTick": "0.01",
+            "maxOrderVolume": "500.0",
+            "baseCurrency": "ETH",
+            "maxLeverage": "100",
+            "volumeMultiple": "1.0",
+            "exchangeID": "Exchange",
+            "priceCurrency": "USDT",
+            "priceLimitLowerValue": "0.2",
+            "clearCurrency": "USDT",
+            "symbolName": "ETHUSDT",
+            "defaultLeverage": "20.0",
+            "minOrderCost": "5.0"
+        }
     }
 }

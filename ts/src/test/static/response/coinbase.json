@@ -1,0 +1,219 @@
+{
+    "exchange": "coinbase",
+    "options": {},
+    "methods": {
+      "fetchMyTrades": [
+        {
+          "description": "Spot trade",
+          "method": "fetchMyTrades",
+          "input": [
+            "ADA/USDT",
+            null,
+            1
+          ],
+          "httpResponse": {
+            "fills": [
+              {
+                "entry_id": "dc7424ac5193601ae273cf704ece1667987d8c0b1077faa5fe3213e8e9efbd30",
+                "trade_id": "19fc7eee-f4b4-40a7-8104-033da1db5311",
+                "order_id": "01b6e467-b659-432f-9490-c7cefe949564",
+                "trade_time": "2023-11-26T10:19:47.504Z",
+                "trade_type": "FILL",
+                "price": "0.392",
+                "size": "10",
+                "commission": "0.03136",
+                "product_id": "ADA-USDT",
+                "sequence_timestamp": "2023-11-26T10:19:47.507001Z",
+                "liquidity_indicator": "TAKER",
+                "size_in_quote": false,
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "side": "SELL",
+                "cursor": "114994851"
+              }
+            ],
+            "cursor": "114994851"
+          },
+          "parsedResponse": [
+            {
+              "info": {
+                "entry_id": "dc7424ac5193601ae273cf704ece1667987d8c0b1077faa5fe3213e8e9efbd30",
+                "trade_id": "19fc7eee-f4b4-40a7-8104-033da1db5311",
+                "order_id": "01b6e467-b659-432f-9490-c7cefe949564",
+                "trade_time": "2023-11-26T10:19:47.504Z",
+                "trade_type": "FILL",
+                "price": "0.392",
+                "size": "10",
+                "commission": "0.03136",
+                "product_id": "ADA-USDT",
+                "sequence_timestamp": "2023-11-26T10:19:47.507001Z",
+                "liquidity_indicator": "TAKER",
+                "size_in_quote": false,
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "side": "SELL",
+                "cursor": "114994851"
+              },
+              "id": "19fc7eee-f4b4-40a7-8104-033da1db5311",
+              "order": "01b6e467-b659-432f-9490-c7cefe949564",
+              "timestamp": 1700993987504,
+              "datetime": "2023-11-26T10:19:47.504Z",
+              "symbol": "ADA/USDT",
+              "type": null,
+              "side": "sell",
+              "takerOrMaker": "taker",
+              "price": 0.392,
+              "amount": 10,
+              "cost": 3.92,
+              "fee": {
+                "cost": 0.03136,
+                "currency": "USDT"
+              },
+              "fees": [
+                {
+                  "cost": 0.03136,
+                  "currency": "USDT"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "fetchClosedOrders": [
+        {
+          "description": "Spot closed order",
+          "method": "fetchClosedOrders",
+          "input": [
+            "ADA/USDT",
+            null,
+            1
+          ],
+          "httpResponse": {
+            "orders": [
+              {
+                "order_id": "01b6e467-b659-432f-9490-c7cefe949564",
+                "product_id": "ADA-USDT",
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "order_configuration": {
+                  "market_market_ioc": {
+                    "base_size": "10"
+                  }
+                },
+                "side": "SELL",
+                "client_order_id": "a0f970a2-05fa-4e1f-9517-f6702c33cfd1",
+                "status": "FILLED",
+                "time_in_force": "IMMEDIATE_OR_CANCEL",
+                "created_time": "2023-11-26T10:19:47.423220Z",
+                "completion_percentage": "100.00",
+                "filled_size": "10",
+                "average_filled_price": "0.392",
+                "fee": "",
+                "number_of_fills": "1",
+                "filled_value": "3.92",
+                "pending_cancel": false,
+                "size_in_quote": false,
+                "total_fees": "0.03136",
+                "size_inclusive_of_fees": false,
+                "total_value_after_fees": "3.88864",
+                "trigger_status": "INVALID_ORDER_TYPE",
+                "order_type": "MARKET",
+                "reject_reason": "REJECT_REASON_UNSPECIFIED",
+                "settled": true,
+                "product_type": "SPOT",
+                "reject_message": "",
+                "cancel_message": "",
+                "order_placement_source": "RETAIL_ADVANCED",
+                "outstanding_hold_amount": "0",
+                "is_liquidation": false,
+                "last_fill_time": "2023-11-26T10:19:47.504Z",
+                "edit_history": [],
+                "leverage": "",
+                "margin_type": "UNKNOWN_MARGIN_TYPE",
+                "cursor": "748478308"
+              }
+            ],
+            "sequence": "0",
+            "has_next": true,
+            "cursor": "748478308"
+          },
+          "parsedResponse": [
+            {
+              "info": {
+                "order_id": "01b6e467-b659-432f-9490-c7cefe949564",
+                "product_id": "ADA-USDT",
+                "user_id": "dbcb91e7-2bc9-5152-bb6f-72d6677e6727",
+                "order_configuration": {
+                  "market_market_ioc": {
+                    "base_size": "10"
+                  }
+                },
+                "side": "SELL",
+                "client_order_id": "a0f970a2-05fa-4e1f-9517-f6702c33cfd1",
+                "status": "FILLED",
+                "time_in_force": "IMMEDIATE_OR_CANCEL",
+                "created_time": "2023-11-26T10:19:47.423220Z",
+                "completion_percentage": "100.00",
+                "filled_size": "10",
+                "average_filled_price": "0.392",
+                "fee": "",
+                "number_of_fills": "1",
+                "filled_value": "3.92",
+                "pending_cancel": false,
+                "size_in_quote": false,
+                "total_fees": "0.03136",
+                "size_inclusive_of_fees": false,
+                "total_value_after_fees": "3.88864",
+                "trigger_status": "INVALID_ORDER_TYPE",
+                "order_type": "MARKET",
+                "reject_reason": "REJECT_REASON_UNSPECIFIED",
+                "settled": true,
+                "product_type": "SPOT",
+                "reject_message": "",
+                "cancel_message": "",
+                "order_placement_source": "RETAIL_ADVANCED",
+                "outstanding_hold_amount": "0",
+                "is_liquidation": false,
+                "last_fill_time": "2023-11-26T10:19:47.504Z",
+                "edit_history": [],
+                "leverage": "",
+                "margin_type": "UNKNOWN_MARGIN_TYPE",
+                "cursor": "748478308"
+              },
+              "id": "01b6e467-b659-432f-9490-c7cefe949564",
+              "clientOrderId": "a0f970a2-05fa-4e1f-9517-f6702c33cfd1",
+              "timestamp": 1700993987423,
+              "datetime": "2023-11-26T10:19:47.423220Z",
+              "lastTradeTimestamp": null,
+              "symbol": "ADA/USDT",
+              "type": "market",
+              "timeInForce": "IOC",
+              "postOnly": false,
+              "side": "sell",
+              "price": 0.392,
+              "stopPrice": null,
+              "triggerPrice": null,
+              "amount": 10,
+              "filled": 10,
+              "remaining": 0,
+              "cost": 3.92,
+              "average": 0.392,
+              "status": "closed",
+              "fee": {
+                "cost": "0.03136",
+                "currency": "USDT"
+              },
+              "trades": [],
+              "fees": [
+                {
+                  "cost": 0.03136,
+                  "currency": "USDT"
+                }
+              ],
+              "lastUpdateTimestamp": null,
+              "reduceOnly": null,
+              "takeProfitPrice": null,
+              "stopLossPrice": null
+            }
+          ]
+        }
+      ]
+    }
+}

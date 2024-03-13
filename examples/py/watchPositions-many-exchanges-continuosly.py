@@ -10,9 +10,7 @@ sys.path.append(root + '/python')
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 # ----------------------------------------------------------------------------
-import asyncio
-import ccxt.async_support as ccxt  # noqa: E402
-
+undefined
 
 # AUTO-TRANSPILE #
 # watch and handle constinuosly
@@ -35,7 +33,8 @@ async def start_exchange(exchange_name, config):
     await ex.close()
 
 
-# main function
+# main function    await ex.close()
+
 async def example():
     exchanges = {
         'binanceusdm': {

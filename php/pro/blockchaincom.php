@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\AuthenticationError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class blockchaincom extends \ccxt\async\blockchaincom {
 
@@ -40,7 +41,6 @@ class blockchaincom extends \ccxt\async\blockchaincom {
                     ),
                     'noOriginHeader' => false,
                 ),
-                'sequenceNumbers' => array(),
             ),
             'streaming' => array(
             ),
@@ -57,13 +57,13 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ));
     }
 
-    public function watch_balance($params = array ()) {
+    public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://exchange.blockchain.com/api/#balances
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->authenticate($params));
             $messageHash = 'balance';
@@ -109,7 +109,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         $event = $this->safe_string($message, 'event');
         if ($event === 'subscribed') {
-            return $message;
+            return;
         }
         $result = array( 'info' => $message );
         $balances = $this->safe_value($message, 'balances', array());
@@ -118,16 +118,16 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($entry, 'available');
-            $account['total'] = $this->safe_number($entry, 'balance');
+            $account['free'] = $this->safe_string($entry, 'available');
+            $account['total'] = $this->safe_string($entry, 'balance');
             $result[$code] = $account;
         }
         $messageHash = 'balance';
-        $this->balance = $result;
+        $this->balance = $this->safe_balance($result);
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market->
@@ -136,7 +136,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
              * @param {string} $timeframe the length of time each candle represents. Allows '1m', '5m', '15m', '1h', '6h' '1d'. Can only watch one $timeframe per $symbol->
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -181,10 +181,9 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //     }
         //
         $event = $this->safe_string($message, 'event');
-        if ($event === 'subscribed') {
-            return $message;
-        } elseif ($event === 'rejected') {
-            throw new ExchangeError($this->id . ' ' . $this->json($message));
+        if ($event === 'rejected') {
+            $jsonMessage = $this->json($message);
+            throw new ExchangeError($this->id . ' ' . $jsonMessage);
         } elseif ($event === 'updated') {
             $marketId = $this->safe_string($message, 'symbol');
             $symbol = $this->safe_symbol($marketId, null, '-');
@@ -202,19 +201,19 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             }
             $stored->append ($ohlcv);
             $client->resolve ($stored, $messageHash);
-        } else {
+        } elseif ($event !== 'subscribed') {
             throw new NotSupported($this->id . ' ' . $this->json($message));
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://exchange.blockchain.com/api/#ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -266,7 +265,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $symbol = $market['symbol'];
         $ticker = null;
         if ($event === 'subscribed') {
-            return $message;
+            return;
         } elseif ($event === 'snapshot') {
             $ticker = $this->parse_ticker($message, $market);
         } elseif ($event === 'updated') {
@@ -315,7 +314,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ), $market);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -323,8 +322,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of    $trades to fetch
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -366,7 +365,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         $event = $this->safe_string($message, 'event');
         if ($event !== 'updated') {
-            return $message;
+            return;
         }
         $marketId = $this->safe_string($message, 'symbol');
         $symbol = $this->safe_symbol($marketId);
@@ -417,16 +416,16 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ), $market);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @see https://exchange.blockchain.com/api/#mass-order-status-$request-ordermassstatusrequest
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -531,7 +530,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         if ($event === 'subscribed') {
-            return $message;
+            return;
         } elseif ($event === 'rejected') {
             throw new ExchangeError($this->id . ' ' . $this->json($message));
         } elseif ($event === 'snapshot') {
@@ -632,16 +631,16 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://exchange.blockchain.com/api/#l2-order-book
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {arrayConstructor} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {arrayConstructor} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] accepts l2 or l3 for level 2 or level 3 order book
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -696,66 +695,37 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //     }
         //
         $event = $this->safe_string($message, 'event');
+        if ($event === 'subscribed') {
+            return;
+        }
         $type = $this->safe_string($message, 'channel');
         $marketId = $this->safe_string($message, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook:' . $symbol . ':' . $type;
         $datetime = $this->safe_string($message, 'timestamp');
         $timestamp = $this->parse8601($datetime);
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->counted_order_book(array());
-            $this->orderbooks[$symbol] = $storedOrderBook;
+        if ($this->safe_value($this->orderbooks, $symbol) === null) {
+            $this->orderbooks[$symbol] = $this->counted_order_book();
         }
-        if ($event === 'subscribed') {
-            return $message;
-        } elseif ($event === 'snapshot') {
-            $snapshot = $this->parse_counted_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
-            $storedOrderBook->reset ($snapshot);
+        $orderbook = $this->orderbooks[$symbol];
+        if ($event === 'snapshot') {
+            $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
+            $orderbook->reset ($snapshot);
         } elseif ($event === 'updated') {
             $asks = $this->safe_value($message, 'asks', array());
             $bids = $this->safe_value($message, 'bids', array());
-            $this->handle_deltas($storedOrderBook['asks'], $asks);
-            $this->handle_deltas($storedOrderBook['bids'], $bids);
-            $storedOrderBook['timestamp'] = $timestamp;
-            $storedOrderBook['datetime'] = $datetime;
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $datetime;
         } else {
             throw new NotSupported($this->id . ' watchOrderBook() does not support ' . $event . ' yet');
         }
-        $client->resolve ($storedOrderBook, $messageHash);
-    }
-
-    public function parse_counted_bid_ask($bidAsk, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $price = $this->safe_number($bidAsk, $priceKey);
-        $amount = $this->safe_number($bidAsk, $amountKey);
-        $count = $this->safe_number($bidAsk, $countKey);
-        return array( $price, $amount, $count );
-    }
-
-    public function parse_counted_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $bidasks = $this->to_array($bidasks);
-        $result = array();
-        for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->parse_counted_bid_ask($bidasks[$i], $priceKey, $amountKey, $countKey);
-        }
-        return $result;
-    }
-
-    public function parse_counted_order_book($orderbook, string $symbol, ?int $timestamp = null, int|string $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1, int|string $countKey = 2) {
-        $bids = $this->parse_counted_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countKey);
-        $asks = $this->parse_counted_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countKey);
-        return array(
-            'symbol' => $symbol,
-            'bids' => $this->sort_by($bids, 0, true),
-            'asks' => $this->sort_by($asks, 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'nonce' => null,
-        );
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
-        $bookArray = $this->parse_counted_bid_ask($delta, 'px', 'qty', 'num');
+        $bookArray = $this->parse_bid_ask($delta, 'px', 'qty', 'num');
         $bookside->storeArray ($bookArray);
     }
 
@@ -765,23 +735,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         }
     }
 
-    public function check_sequence_number(Client $client, $message) {
-        $seqnum = $this->safe_integer($message, 'seqnum', 0);
-        $channel = $this->safe_string($message, 'channel', '');
-        $sequenceNumbersByChannel = $this->safe_value($this->options, 'sequenceNumbers', array());
-        $lastSeqnum = $this->safe_integer($sequenceNumbersByChannel, $channel);
-        if ($lastSeqnum === null) {
-            $this->options['sequenceNumbers'][$channel] = $seqnum;
-        } else {
-            if ($seqnum !== $lastSeqnum + 1) {
-                throw new ExchangeError($this->id . ' ' . $channel . ' $seqnum ' . $seqnum . ' is not the expected ' . ($lastSeqnum + 1));
-            }
-            $this->options['sequenceNumbers'][$channel] = $seqnum;
-        }
-    }
-
     public function handle_message(Client $client, $message) {
-        $this->check_sequence_number($client, $message);
         $channel = $this->safe_string($message, 'channel');
         $handlers = array(
             'ticker' => array($this, 'handle_ticker'),
@@ -795,7 +749,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         );
         $handler = $this->safe_value($handlers, $channel);
         if ($handler !== null) {
-            return $handler($client, $message);
+            $handler($client, $message);
+            return;
         }
         throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
     }
