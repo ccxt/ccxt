@@ -573,8 +573,8 @@ export default class Exchange {
     socksProxyAgentModule: any;
     socksProxyAgentModuleChecked: boolean;
     proxyDictionaries: any;
-    proxyModulesLoaded: boolean;
-    loadProxyModules(): Promise<void>;
+    proxiesModulesLoading: Promise<any>;
+    loadProxyModules(): Promise<any>;
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
     loadHttpProxyAgent(): Promise<any>;
     getHttpAgentIfNeeded(url: any): any;
