@@ -1000,7 +1000,6 @@ class Transpiler {
             'MarketType': /: MarketType/,
             'Num': /: Num =/,
             'Order': /-> (?:List\[)?Order\]?:/,
-            'Order': /-> Order:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
             'OrderSide': /: OrderSide/,
