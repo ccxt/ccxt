@@ -113,19 +113,23 @@ const decimalToPrecision = (
     roundingMode,
     numPrecisionDigits,
     countingMode = DECIMAL_PLACES,
-    paddingMode = NO_PADDING
+    paddingMode = NO_PADDING,
+    disableThreshold = false
 ) => {
     // Turn precision value to an integer. ex: 1e-7 to 7
     let precision = numPrecisionDigits;
     if (typeof precision === 'string') {
         precision = parseFloat(precision)
     }
-    if (countingMode === TICK_SIZE) {
-        const precisionDigitsString = internalDecimalToPrecision (precision, ROUND, MINIMUM_PRECISION, DECIMAL_PLACES, NO_PADDING);
-        precision = precisionFromString (precisionDigitsString);
+
+    if (!disableThreshold) {
+        if (countingMode === TICK_SIZE) {
+            const precisionDigitsString = internalDecimalToPrecision (precision, ROUND, MINIMUM_PRECISION, DECIMAL_PLACES, NO_PADDING);
+            precision = precisionFromString (precisionDigitsString);
+        }
+        // Eliminate rounding errors
+        x = internalDecimalToPrecision (x, ROUND, precision+FIXED_POIND_ERROR_TOLERANCE, DECIMAL_PLACES, NO_PADDING);
     }
-    // Eliminate rounding errors
-    x = internalDecimalToPrecision (x, ROUND, precision+FIXED_POIND_ERROR_TOLERANCE, DECIMAL_PLACES, NO_PADDING);
     // Round the number
     return internalDecimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
 };
@@ -331,22 +335,10 @@ function omitZero (stringNumber) {
 /*  ------------------------------------------------------------------------ */
 
 export {
-    numberToString,
-    precisionFromString,
-    decimalToPrecision,
-    truncate_to_string,
-    truncate,
-    omitZero,
-    precisionConstants,
-    ROUND,
-    TRUNCATE,
-    ROUND_UP,
-    ROUND_DOWN,
-    DECIMAL_PLACES,
-    SIGNIFICANT_DIGITS,
-    TICK_SIZE,
-    NO_PADDING,
-    PAD_WITH_ZERO,
+    DECIMAL_PLACES, NO_PADDING,
+    PAD_WITH_ZERO, ROUND, ROUND_DOWN, ROUND_UP, SIGNIFICANT_DIGITS,
+    TICK_SIZE, TRUNCATE, decimalToPrecision, numberToString, omitZero,
+    precisionConstants, precisionFromString, truncate, truncate_to_string
 };
 
 /*  ------------------------------------------------------------------------ */

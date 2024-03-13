@@ -2521,15 +2521,6 @@ export default class binance extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
 
-    currencyToPrecision (code, fee, networkCode = undefined) {
-        // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
-            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
-        } else {
-            return this.numberToString (fee);
-        }
-    }
-
     nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
@@ -2694,6 +2685,7 @@ export default class binance extends Exchange {
                 let isTokenWithdrawable = false;
                 let isTokenDepositable = false;
                 const networkList = this.safeValue (entry, 'networkList', []);
+                const networksById = {};
                 const fees = {};
                 let fee = undefined;
                 for (let j = 0; j < networkList.length; j++) {
@@ -2703,6 +2695,7 @@ export default class binance extends Exchange {
                     const networks = this.safeDict (this.options, 'networks', {});
                     const ecid = this.safeString (networks, network, network); // handle ERC20>ETH alias
                     networkList[j]['network'] = ecid;
+                    const networkId = this.safeString (networkItem, 'name');
                     // const name = this.safeString (networkItem, 'name');
                     const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
                     const isDepositEnabled = this.safeValue (networkItem, 'depositEnable');
@@ -2720,6 +2713,30 @@ export default class binance extends Exchange {
                     if (!Precise.stringEq (precisionTick, '0')) {
                         minPrecision = (minPrecision === undefined) ? precisionTick : Precise.stringMin (minPrecision, precisionTick);
                     }
+                    const minNetworkWithdrawString = this.safeValue (networkItem, 'withdrawMin');
+                    const maxNetworkWithdrawString = this.safeValue (networkItem, 'withdrawMax');
+                    const precision = this.precisionFromString (this.safeString (networkItem, 'withdrawIntegerMultiple'));
+                    networksById[ecid] = {
+                        'info': networkList[j],
+                        'id': networkId,
+                        'name': networkId,
+                        'network': networkCode,
+                        'active': isDepositEnabled && isWithdrawalEnabled,
+                        'deposit': isDepositEnabled,
+                        'withdraw': isWithdrawalEnabled,
+                        'fee': withdrawFee,
+                        'precision': precision,
+                        'limits': {
+                            'withdraw': {
+                                'min': this.parseNumber (minNetworkWithdrawString),
+                                'max': this.parseNumber (maxNetworkWithdrawString),
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                    };
                 }
                 const trading = this.safeValue (entry, 'trading');
                 const active = (isTokenWithdrawable && isTokenDepositable && trading);
@@ -2736,7 +2753,7 @@ export default class binance extends Exchange {
                     'active': active,
                     'deposit': isTokenDepositable,
                     'withdraw': isTokenWithdrawable,
-                    'networks': networkList,
+                    'networks': networksById,
                     'fee': fee,
                     'fees': fees,
                     'limits': this.limits,

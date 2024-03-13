@@ -109,50 +109,49 @@ const {
 import {
     keys as keysFunc,
     values as valuesFunc,
-    inArray as inArrayFunc,
     vwap as vwapFunc
-} from './functions.js'
+} from './functions.js';
 // import exceptions from "./errors.js"
 
- import { // eslint-disable-line object-curly-newline
-    ExchangeError
-    , BadSymbol
-    , NullResponse
-    , InvalidAddress
-    , InvalidOrder
-    , NotSupported
-    , BadResponse
-    , AuthenticationError
-    , DDoSProtection
-    , RequestTimeout
-    , NetworkError
-    , ProxyError
-    , ExchangeNotAvailable
-    , ArgumentsRequired
-    , RateLimitExceeded,
+ import {
+    ArgumentsRequired,
+    AuthenticationError,
     BadRequest,
-    ExchangeClosedByUser} from "./errors.js"
+    BadResponse,
+    BadSymbol,
+    DDoSProtection,
+    ExchangeClosedByUser, // eslint-disable-line object-curly-newline
+    ExchangeError,
+    ExchangeNotAvailable,
+    InvalidAddress,
+    InvalidOrder,
+    NetworkError,
+    NotSupported,
+    NullResponse,
+    ProxyError,
+    RateLimitExceeded,
+    RequestTimeout
+} from "./errors.js";
 
-import { Precise } from './Precise.js'
+import { Precise } from './Precise.js';
 
 
 //-----------------------------------------------------------------------------
-import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
-import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+import { CountedOrderBook, IndexedOrderBook, OrderBook as WsOrderBook } from './ws/OrderBook.js';
+import WsClient from './ws/WsClient.js';
 
 // ----------------------------------------------------------------------------
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, BorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks,  Str, Num, MarketInterface, CurrencyInterface, Account} from './types.js';
+import type { Account, Balances, BorrowInterest, Currency, CurrencyInterface, DepositAddressResponse, DepositWithdrawFeeNetwork, Dictionary, FundingHistory, FundingRate, FundingRateHistory, Greeks, IndexType, Int, LedgerEntry, LeverageTier, Liquidation, MarginMode, Market, MarketInterface, MinMax, Num, OHLCV, OHLCVC, OpenInterest, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Ticker, Tickers, Trade, Transaction, TransferEntry } from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js'
+export type { Balance, Balances, Currency, DepositAddressResponse, Dictionary, Fee, FundingHistory, FundingRateHistory, Greeks, IndexType, Int, Liquidation, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OrderType, Position, Ticker, Trade, Transaction } from './types.js';
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
 import totp from './functions/totp.js';
 
 // ----------------------------------------------------------------------------
@@ -5028,7 +5027,7 @@ export default class Exchange {
         return this.decimalToPrecision (fee, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
 
-    currencyToPrecision (code: string, fee, networkCode = undefined) {
+    currencyToPrecision (code: string, fee, networkCode = undefined, disableThreshold = false) {
         const currency = this.currencies[code];
         let precision = this.safeValue (currency, 'precision');
         if (networkCode !== undefined) {
@@ -5039,7 +5038,7 @@ export default class Exchange {
         if (precision === undefined) {
             return this.forceString (fee);
         } else {
-            const result = this.decimalToPrecision (fee, TRUNCATE, precision, this.precisionMode, this.paddingMode);
+            const result = this.decimalToPrecision (fee, TRUNCATE, precision, this.precisionMode, this.paddingMode, disableThreshold);
             return result;
         }
     }
@@ -6068,5 +6067,6 @@ export default class Exchange {
 }
 
 export {
-    Exchange,
+    Exchange
 };
+
