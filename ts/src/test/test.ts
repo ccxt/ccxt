@@ -419,13 +419,32 @@ export default class testMainClass extends baseMainTestClass {
             const argsStringified = '(' + args.join (',') + ')';
             dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), methodName, argsStringified);
         }
-        const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
-        await callMethod (this.testFiles, methodName, exchange, skippedProperties, args);
+        await callMethod (this.testFiles, methodName, exchange, this.getSkips (exchange, methodName), args);
         // if it was passed successfully, add to the list of successfull tests
         if (isPublic) {
             this.checkedPublicTests[methodName] = true;
         }
         return;
+    }
+
+    getSkips (exchange, methodName) {
+        // get "method-specific" skips
+        const skipsForMethod = exchange.safeValue (this.skippedMethods, methodName, {});
+        // get "object-specific" skips
+        if (exchange.inArray (methodName, [ 'fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols' ])) {
+            const skips = exchange.safeValue (this.skippedMethods, 'orderBook', {});
+            return exchange.deepExtend (skipsForMethod, skips);
+        } else if (exchange.inArray (methodName, [ 'fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers' ])) {
+            const skips = exchange.safeValue (this.skippedMethods, 'ticker', {});
+            return exchange.deepExtend (skipsForMethod, skips);
+        } else if (exchange.inArray (methodName, [ 'fetchTrades', 'watchTrades', 'watchTradesForSymbols' ])) {
+            const skips = exchange.safeValue (this.skippedMethods, 'trade', {});
+            return exchange.deepExtend (skipsForMethod, skips);
+        } else if (exchange.inArray (methodName, [ 'fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols' ])) {
+            const skips = exchange.safeValue (this.skippedMethods, 'ohlcv', {});
+            return exchange.deepExtend (skipsForMethod, skips);
+        }
+        return skipsForMethod;
     }
 
     async testSafe (methodName, exchange, args = [], isPublic = false) {
