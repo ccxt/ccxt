@@ -2010,6 +2010,47 @@
                     }
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "id": -1,
+                    "method": "public/get-candlestick",
+                    "code": 0,
+                    "result": {
+                        "interval": "1h",
+                        "data": [
+                            {
+                                "o": "73251.26",
+                                "h": "73449.06",
+                                "l": "73235.16",
+                                "c": "73411.02",
+                                "v": "49.8762",
+                                "t": 1710327600000
+                            }
+                        ],
+                        "instrument_name": "BTC_USDT"
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73251.26,
+                        73449.06,
+                        73235.16,
+                        73411.02,
+                        49.8762
+                    ]
+                ]
+            }
         ]
     }
 }

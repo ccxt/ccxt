@@ -611,6 +611,45 @@
                     }
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "ch": "market.btcusdt.kline.60min",
+                    "status": "ok",
+                    "ts": "1710328421901",
+                    "data": [
+                        {
+                            "id": "1710327600",
+                            "open": "73239.67",
+                            "close": "73394.27",
+                            "low": "73225.45",
+                            "high": "73429.87",
+                            "amount": "7.878463990783707",
+                            "vol": "577530.94600318",
+                            "count": "497"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73239.67,
+                        73429.87,
+                        73225.45,
+                        73394.27,
+                        7.878463990783707
+                    ]
+                ]
+            }
         ]
     }
 }

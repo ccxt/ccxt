@@ -443,6 +443,39 @@
                     }
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "timestamp": "2024-03-13T11:00:00.000Z",
+                        "open": "73264.77",
+                        "close": "73435.86",
+                        "min": "73245.05",
+                        "max": "73436.75",
+                        "volume": "2.98510",
+                        "volume_quote": "218883.0328372"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73264.77,
+                        73436.75,
+                        73245.05,
+                        73435.86,
+                        2.9851
+                    ]
+                ]
+            }
         ]
     }
 }

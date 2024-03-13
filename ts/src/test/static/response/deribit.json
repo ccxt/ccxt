@@ -148,6 +148,59 @@
                     }
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "usOut": "1710328421483471",
+                    "usIn": "1710328421482111",
+                    "usDiff": "1360",
+                    "testnet": false,
+                    "result": {
+                        "volume": [
+                            0.008
+                        ],
+                        "ticks": [
+                            1710327600000
+                        ],
+                        "status": "ok",
+                        "open": [
+                            73427.75
+                        ],
+                        "low": [
+                            73427.75
+                        ],
+                        "high": [
+                            73448.39
+                        ],
+                        "cost": [
+                            587.580928
+                        ],
+                        "close": [
+                            73448.39
+                        ]
+                    },
+                    "jsonrpc": "2.0"
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73427.75,
+                        73448.39,
+                        73427.75,
+                        73448.39,
+                        0.008
+                    ]
+                ]
+            }
         ]
     }
 }

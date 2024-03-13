@@ -95,6 +95,40 @@
                     }
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  1
+                ],
+                "httpResponse": {
+                  "data": [
+                    {
+                      "timestamp": "1710327600000",
+                      "open": "73250",
+                      "high": "73250",
+                      "low": "73102.33",
+                      "close": "73102.33",
+                      "volume": "0.00828995"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  [
+                    1710327600000,
+                    73250,
+                    73250,
+                    73102.33,
+                    73102.33,
+                    0.00828995
+                  ]
+                ]
+              }
         ]
     }
 }

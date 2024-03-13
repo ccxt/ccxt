@@ -101,6 +101,38 @@
                     "quoteVolume": 3077.27262
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "time": "1710327600",
+                        "open": "73303.56",
+                        "close": "73400.07",
+                        "low": "73173.88",
+                        "high": "73439.01",
+                        "volume": "16.446269"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73303.56,
+                        73439.01,
+                        73173.88,
+                        73400.07,
+                        16.446269
+                    ]
+                ]
+            }
         ]
     }
 }

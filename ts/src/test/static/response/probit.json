@@ -103,6 +103,43 @@
                     }
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  1
+                ],
+                "httpResponse": {
+                  "data": [
+                    {
+                      "market_id": "BTC-USDT",
+                      "open": "73269.5",
+                      "close": "73399",
+                      "low": "73238.7",
+                      "high": "73459.6",
+                      "base_volume": "13.480878",
+                      "quote_volume": "988687.5240468",
+                      "start_time": "2024-03-13T11:00:00.000Z",
+                      "end_time": "2024-03-13T12:00:00.000Z"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  [
+                    1710327600000,
+                    73269.5,
+                    73459.6,
+                    73238.7,
+                    73399,
+                    13.480878
+                  ]
+                ]
+              }
         ]
     }
 }

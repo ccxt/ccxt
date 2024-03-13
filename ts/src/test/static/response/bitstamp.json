@@ -103,6 +103,43 @@
                     }
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "data": {
+                        "pair": "BTC/USDT",
+                        "ohlc": [
+                            {
+                                "timestamp": "1710327600",
+                                "open": "73241",
+                                "high": "73293",
+                                "low": "73240",
+                                "close": "73285",
+                                "volume": "0.01076655"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73241,
+                        73293,
+                        73240,
+                        73285,
+                        0.01076655
+                    ]
+                ]
+            }
         ]
     }
 }

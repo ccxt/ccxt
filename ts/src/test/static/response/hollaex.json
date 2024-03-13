@@ -93,6 +93,39 @@
                     "quoteVolume": null
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "time": "2024-03-13T11:00:00.000Z",
+                        "close": "73417.7",
+                        "high": "73417.7",
+                        "low": "73274.28",
+                        "open": "73282.95",
+                        "symbol": "btc-usdt",
+                        "volume": "0.19714"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73282.95,
+                        73417.7,
+                        73274.28,
+                        73417.7,
+                        0.19714
+                    ]
+                ]
+            }
         ]
     }
 }

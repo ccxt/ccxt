@@ -108,6 +108,41 @@
                     }
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "data": [
+                        [
+                            1710327600,
+                            114.77683,
+                            73426.86,
+                            73449.5,
+                            73238.69,
+                            73259.69
+                        ]
+                    ],
+                    "code": "0"
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73259.69,
+                        73449.5,
+                        73238.69,
+                        73426.86,
+                        114.77683
+                    ]
+                ]
+            }
         ]
     }
 }

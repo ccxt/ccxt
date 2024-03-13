@@ -113,6 +113,41 @@
                     }
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public swap ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        [
+                            1710327600000,
+                            73342.9,
+                            73527,
+                            73333,
+                            73525.6,
+                            4298
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73342.9,
+                        73527,
+                        73333,
+                        73525.6,
+                        4298
+                    ]
+                ]
+            }
         ]
     }
 }
