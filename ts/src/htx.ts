@@ -952,7 +952,7 @@ export default class htx extends Exchange {
                     },
                 },
                 'fetchOHLCV': {
-                    'useHistoricalEndpoint': false,
+                    'useHistoricalEndpoint': true,
                 },
                 'withdraw': {
                     'includeFee': false,
@@ -3028,18 +3028,21 @@ export default class htx extends Exchange {
                 }
             }
         } else {
-            if (since !== undefined) {
-                request['from'] = this.parseToInt (since / 1000);
-            }
-            if (limit !== undefined) {
-                request['size'] = limit; // max 2000
-            }
             request['symbol'] = market['id'];
             let useHistorical = undefined;
-            [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpoint', false);
+            [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpoint', true);
             if (!useHistorical) {
+                // `limit` only available for the this endpoint
+                if (limit !== undefined) {
+                    request['size'] = limit; // max 2000
+                }
                 response = await this.spotPublicGetMarketHistoryKline (this.extend (request, params));
             } else {
+                // `since` only available for the this endpoint
+                if (since !== undefined) {
+                    // default 150 bars
+                    request['from'] = this.parseToInt (since / 1000);
+                }
                 response = await this.spotPublicGetMarketHistoryCandles (this.extend (request, params));
             }
         }
