@@ -1526,8 +1526,7 @@ export default class testMainClass extends baseMainTestClass {
             // we expect an error here, we're only interested in the headers
             reqHeaders = exchange.last_request_headers;
         }
-        const reqHeadersString = reqHeaders !== undefined ? reqHeaders.toString () : 'undefined';
-        assert (reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers: ' + reqHeadersString);
+        assert (reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers.');
         await close (exchange);
         return true;
     }
@@ -1547,8 +1546,7 @@ export default class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         const id = 'ccxt';
-        const reqHeadersString = reqHeaders !== undefined ? reqHeaders.toString () : 'undefined';
-        assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers: ' + reqHeadersString);
+        assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers.');
         await close (exchange);
         return true;
     }
@@ -1567,8 +1565,7 @@ export default class testMainClass extends baseMainTestClass {
         } catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
-        const reqHeadersString = reqHeaders !== undefined ? reqHeaders.toString () : 'undefined';
-        assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers: ' + reqHeadersString);
+        assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
         await close (exchange);
         return true;
     }
@@ -1584,8 +1581,7 @@ export default class testMainClass extends baseMainTestClass {
         } catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
-        const reqHeadersString = reqHeaders !== undefined ? reqHeaders.toString () : 'undefined';
-        assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'bitget - id: ' + id + ' not in headers: ' + reqHeadersString);
+        assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'bitget - id: ' + id + ' not in headers.');
         await close (exchange);
         return true;
     }
@@ -1672,16 +1668,14 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange ('bitmart');
         let reqHeaders = undefined;
         const id = 'CCXTxBitmart000';
-        const optionsString = exchange.options.toString ();
-        assert (exchange.options['brokerId'] === id, 'bitmart - id: ' + id + ' not in options' + optionsString);
+        assert (exchange.options['brokerId'] === id, 'bitmart - id: ' + id + ' not in options');
         await exchange.loadMarkets ();
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
-        const reqHeadersString = reqHeaders !== undefined ? reqHeaders.toString () : 'undefined';
-        assert (reqHeaders['X-BM-BROKER-ID'] === id, 'bitmart - id: ' + id + ' not in headers' + reqHeadersString);
+        assert (reqHeaders['X-BM-BROKER-ID'] === id, 'bitmart - id: ' + id + ' not in headers');
         await close (exchange);
         return true;
     }
@@ -1689,8 +1683,7 @@ export default class testMainClass extends baseMainTestClass {
     async testCoinex () {
         const exchange = this.initOfflineExchange ('coinex');
         const id = 'x-167673045';
-        const optionsString = exchange.options.toString ();
-        assert (exchange.options['brokerId'] === id, 'coinex - id: ' + id + ' not in options: ' + optionsString);
+        assert (exchange.options['brokerId'] === id, 'coinex - id: ' + id + ' not in options');
         let spotOrderRequest = undefined;
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
