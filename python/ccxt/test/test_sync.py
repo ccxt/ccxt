@@ -1199,7 +1199,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1454,6 +1454,18 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         broker_id = request['brokerId']
         assert broker_id.startswith(str(id)), 'brokerId does not start with id'
+        close(exchange)
+
+    def test_hyperliquid(self):
+        exchange = self.init_offline_exchange('hyperliquid')
+        id = '1'
+        request = None
+        try:
+            exchange.create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        broker_id = str((request['action']['brokerCode']))
+        assert broker_id == id, 'brokerId does not start with id'
         close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****

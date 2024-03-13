@@ -82,6 +82,7 @@ class bitstamp extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -2088,6 +2089,72 @@ class bitstamp extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         return $this->parse_transaction($response, $currency);
+    }
+
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+        /**
+         * $transfer $currency internally between wallets on the same account
+         * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub
+         * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromSubToMain
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to $transfer
+         * @param {string} $fromAccount account to $transfer from
+         * @param {string} $toAccount account to $transfer to
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $amount = $this->currency_to_precision($code, $amount);
+        $amount = $this->parse_to_numeric($amount);
+        $request = array(
+            'amount' => $amount,
+            'currency' => strtoupper($currency['id']),
+        );
+        $response = null;
+        if ($fromAccount === 'main') {
+            $request['subAccount'] = $toAccount;
+            $response = $this->privatePostTransferFromMain (array_merge($request, $params));
+        } elseif ($toAccount === 'main') {
+            $request['subAccount'] = $fromAccount;
+            $response = $this->privatePostTransferToMain (array_merge($request, $params));
+        } else {
+            throw new BadRequest($this->id . ' $transfer() only supports from or to main');
+        }
+        //
+        //    array( status => 'ok' )
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        $transfer['amount'] = $amount;
+        $transfer['fromAccount'] = $fromAccount;
+        $transfer['toAccount'] = $toAccount;
+        return $transfer;
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //    array( $status => 'ok' )
+        //
+        $status = $this->safe_string($transfer, 'status');
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $currency['code'],
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'ok' => 'ok',
+            'error' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function nonce() {

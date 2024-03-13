@@ -2888,7 +2888,7 @@ class woo extends Exchange {
         return $this->safe_value($networkKeys, 0);
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
     }

@@ -39,6 +39,7 @@ async function testWatchTickersHelper (exchange, skippedProperties, argSymbols, 
         if (argSymbols !== undefined && argSymbols.length === 1) {
             checkedSymbol = argSymbols[0];
         }
+        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
         for (let i = 0; i < values.length; i++) {
             const ticker = values[i];
             testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);

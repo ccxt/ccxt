@@ -954,13 +954,16 @@ public partial class hyperliquid : Exchange
             }
             ((IList<object>)orderReq).Add(orderObj);
         }
+        object vaultAddress = this.safeString(parameters, "vaultAddress");
         object orderAction = new Dictionary<string, object>() {
             { "type", "order" },
             { "orders", orderReq },
             { "grouping", "na" },
-            { "brokerCode", 1 },
         };
-        object vaultAddress = this.safeString(parameters, "vaultAddress");
+        if (isTrue(isEqual(vaultAddress, null)))
+        {
+            ((IDictionary<string,object>)orderAction)["brokerCode"] = 1;
+        }
         object signature = this.signL1Action(orderAction, nonce, vaultAddress);
         object request = new Dictionary<string, object>() {
             { "action", orderAction },
