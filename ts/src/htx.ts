@@ -952,7 +952,7 @@ export default class htx extends Exchange {
                     },
                 },
                 'fetchOHLCV': {
-                    'useHistoricalEndpoint': true,
+                    'useHistoricalEndpointForSpot': true,
                 },
                 'withdraw': {
                     'includeFee': false,
@@ -2940,6 +2940,7 @@ export default class htx extends Exchange {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {string} [params.useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -3030,7 +3031,7 @@ export default class htx extends Exchange {
         } else {
             request['symbol'] = market['id'];
             let useHistorical = undefined;
-            [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpoint', true);
+            [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
             if (!useHistorical) {
                 // `limit` only available for the this endpoint
                 if (limit !== undefined) {
