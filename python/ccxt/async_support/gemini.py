@@ -42,7 +42,7 @@ class gemini(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'addMargin': False,
@@ -267,11 +267,11 @@ class gemini(Exchange, ImplicitAPI):
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_web',  # fetch_markets_from_api, fetch_markets_from_web
+                'fetchMarketsMethod': 'fetch_markets_from_api',  # fetch_markets_from_api, fetch_markets_from_web
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': False,
-                    'fetchDetailsForMarketIds': [],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': True,  # fetches from WEB
@@ -322,10 +322,7 @@ class gemini(Exchange, ImplicitAPI):
             return None
         #
         #    {
-        #        "tradingPairs": [
-        #            ["BTCAUD", 2, 8, "0.00001", 10, True],
-        #            ...
-        #        ],
+        #        "tradingPairs": [['BTCUSD', 2, 8, '0.00001', 10, True],  ...],
         #        "currencies": [
         #            ["ORCA", "Orca", 204, 6, 0, 6, 8, False, null, "solana"],  #, precisions seem to be the 5th index
         #            ["ATOM", "Cosmos", 44, 6, 0, 6, 8, False, null, "cosmos"],
@@ -344,6 +341,7 @@ class gemini(Exchange, ImplicitAPI):
         #    }
         #
         result = {}
+        self.options['tradingPairs'] = self.safe_list(data, 'tradingPairs')
         currenciesArray = self.safe_value(data, 'currencies', [])
         for i in range(0, len(currenciesArray)):
             currency = currenciesArray[i]
@@ -540,7 +538,7 @@ class gemini(Exchange, ImplicitAPI):
         return result
 
     async def fetch_markets_from_api(self, params={}):
-        response = await self.publicGetV1Symbols(params)
+        marketIdsRaw = await self.publicGetV1Symbols(params)
         #
         #     [
         #         "btcusd",
@@ -548,87 +546,166 @@ class gemini(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result = {}
-        for i in range(0, len(response)):
-            marketId = response[i]
-            market = {
-                'symbol': marketId,
-            }
-            result[marketId] = self.parse_market(market)
-        options = self.safe_value(self.options, 'fetchMarketsFromAPI', {})
-        fetchDetailsForAllSymbols = self.safe_bool(options, 'fetchDetailsForAllSymbols', False)
-        fetchDetailsForMarketIds = self.safe_value(options, 'fetchDetailsForMarketIds', [])
-        promises = []
+        result = []
+        options = self.safe_dict(self.options, 'fetchMarketsFromAPI', {})
+        bugSymbol = 'efilfil'  # we skip self inexistent test symbol, which bugs other functions
         marketIds = []
-        if fetchDetailsForAllSymbols:
-            marketIds = response
+        for i in range(0, len(marketIdsRaw)):
+            if marketIdsRaw[i] != bugSymbol:
+                marketIds.append(marketIdsRaw[i])
+        if self.safe_bool(options, 'fetchDetailsForAllSymbols', False):
+            promises = []
+            for i in range(0, len(marketIds)):
+                marketId = marketIds[i]
+                request = {
+                    'symbol': marketId,
+                }
+                promises.append(self.publicGetV1SymbolsDetailsSymbol(self.extend(request, params)))
+                #
+                #     {
+                #         "symbol": "BTCUSD",
+                #         "base_currency": "BTC",
+                #         "quote_currency": "USD",
+                #         "tick_size": 1E-8,
+                #         "quote_increment": 0.01,
+                #         "min_order_size": "0.00001",
+                #         "status": "open",
+                #         "wrap_enabled": False
+                #     }
+                #
+            responses = await asyncio.gather(*promises)
+            for i in range(0, len(responses)):
+                result.append(self.parse_market(responses[i]))
         else:
-            marketIds = fetchDetailsForMarketIds
-        for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
-            request = {
-                'symbol': marketId,
-            }
-            promises.append(self.publicGetV1SymbolsDetailsSymbol(self.extend(request, params)))
-            #
-            #     {
-            #         "symbol": "BTCUSD",
-            #         "base_currency": "BTC",
-            #         "quote_currency": "USD",
-            #         "tick_size": 1E-8,
-            #         "quote_increment": 0.01,
-            #         "min_order_size": "0.00001",
-            #         "status": "open",
-            #         "wrap_enabled": False
-            #     }
-            #
-        promises = await asyncio.gather(*promises)
-        for i in range(0, len(promises)):
-            responseInner = promises[i]
-            marketId = self.safe_string_lower(responseInner, 'symbol')
-            result[marketId] = self.parse_market(responseInner)
-        return self.to_array(result)
+            # use trading-pairs info, if it was fetched
+            tradingPairs = self.safe_list(self.options, 'tradingPairs')
+            if tradingPairs is not None:
+                indexedTradingPairs = self.index_by(tradingPairs, 0)
+                for i in range(0, len(marketIds)):
+                    marketId = marketIds[i]
+                    tradingPair = self.safe_list(indexedTradingPairs, marketId.upper())
+                    if tradingPair is not None:
+                        result.append(self.parse_market(tradingPair))
+            else:
+                for i in range(0, len(marketIds)):
+                    result.append(self.parse_market(marketIds[i]))
+        return result
 
     def parse_market(self, response) -> Market:
-        marketId = self.safe_string_lower(response, 'symbol')
-        baseId = self.safe_string(response, 'base_currency')
-        quoteId = self.safe_string(response, 'quote_currency')
-        if baseId is None:
-            idLength = len(marketId) - 0
-            isUSDT = marketId.find('usdt') >= 0
-            quoteSize = 4 if isUSDT else 3
-            baseId = marketId[0:idLength - quoteSize]  # Not True for all markets
-            quoteId = marketId[idLength - quoteSize:idLength]
+        #
+        # response might be:
+        #
+        #     btcusd
+        #
+        # or
+        #
+        #     [
+        #         'BTCUSD',   # symbol
+        #         2,          # priceTickDecimalPlaces
+        #         8,          # quantityTickDecimalPlaces
+        #         '0.00001',  # quantityMinimum
+        #         10,         # quantityRoundDecimalPlaces
+        #         True        # minimumsAreInclusive
+        #     ],
+        #
+        # or
+        #
+        #     {
+        #         "symbol": "BTCUSD",  # perpetuals have 'PERP' suffix, i.e. DOGEUSDPERP
+        #         "base_currency": "BTC",
+        #         "quote_currency": "USD",
+        #         "tick_size": 1E-8,
+        #         "quote_increment": 0.01,
+        #         "min_order_size": "0.00001",
+        #         "status": "open",
+        #         "wrap_enabled": False
+        #         "product_type": "swap",  # only in perps
+        #         "contract_type": "linear",  # only in perps
+        #         "contract_price_currency": "GUSD"  # only in perps
+        #     }
+        #
+        marketId = None
+        baseId = None
+        quoteId = None
+        settleId = None
+        tickSize = None
+        increment = None
+        minSize = None
+        status = None
+        swap = False
+        contractSize = None
+        linear = None
+        inverse = None
+        isString = (isinstance(response, str))
+        isArray = (isinstance(response, list))
+        if not isString and not isArray:
+            marketId = self.safe_string_lower(response, 'symbol')
+            minSize = self.safe_number(response, 'min_order_size')
+            tickSize = self.safe_number(response, 'tick_size')
+            increment = self.safe_number(response, 'quote_increment')
+            status = self.parse_market_active(self.safe_string(response, 'status'))
+            baseId = self.safe_string(response, 'base_currency')
+            quoteId = self.safe_string(response, 'quote_currency')
+            settleId = self.safe_string(response, 'contract_price_currency')
+        else:
+            # if no detailed API was called, then parse either string or array
+            if isString:
+                marketId = response
+            else:
+                marketId = self.safe_string_lower(response, 0)
+                minSize = self.safe_number(response, 3)
+                tickSize = self.parse_number(self.parse_precision(self.safe_string(response, 1)))
+                increment = self.parse_number(self.parse_precision(self.safe_string(response, 2)))
+            marketIdUpper = marketId.upper()
+            isPerp = (marketIdUpper.find('PERP') >= 0)
+            marketIdWithoutPerp = marketIdUpper.replace('PERP', '')
+            quoteQurrencies = self.handle_option('fetchMarketsFromAPI', 'quoteCurrencies', [])
+            for i in range(0, len(quoteQurrencies)):
+                quoteCurrency = quoteQurrencies[i]
+                if marketIdWithoutPerp.endswith(quoteCurrency):
+                    baseId = marketIdWithoutPerp.replace(quoteCurrency, '')
+                    quoteId = quoteCurrency
+                    if isPerp:
+                        settleId = quoteCurrency  # always same
+                    break
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        status = self.safe_string(response, 'status')
+        settle = self.safe_currency_code(settleId)
+        symbol = base + '/' + quote
+        if settleId is not None:
+            symbol = symbol + ':' + settle
+            swap = True
+            contractSize = tickSize  # always same
+            linear = True  # always linear
+            inverse = False
+        type = 'swap' if swap else 'spot'
         return {
             'id': marketId,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': None,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': None,
-            'type': 'spot',
-            'spot': True,
+            'settleId': settleId,
+            'type': type,
+            'spot': not swap,
             'margin': False,
-            'swap': False,
+            'swap': swap,
             'future': False,
             'option': False,
-            'active': self.parse_market_active(status),
-            'contract': False,
-            'linear': None,
-            'inverse': None,
-            'contractSize': None,
+            'active': status,
+            'contract': swap,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': contractSize,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
             'optionType': None,
             'precision': {
-                'price': self.safe_number(response, 'quote_increment'),
-                'amount': self.safe_number(response, 'tick_size'),
+                'price': increment,
+                'amount': tickSize,
             },
             'limits': {
                 'leverage': {
@@ -636,7 +713,7 @@ class gemini(Exchange, ImplicitAPI):
                     'max': None,
                 },
                 'amount': {
-                    'min': self.safe_number(response, 'min_order_size'),
+                    'min': minSize,
                     'max': None,
                 },
                 'price': {

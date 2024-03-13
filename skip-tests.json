@@ -327,6 +327,7 @@
                 "currencyIdAndCode": "broken currencies"
             },
             "fetchCurrencies": {
+                "currencyIdAndCode": "broken currencies",
                 "precision":"not provided",
                 "networks": "missing"
             },
@@ -887,6 +888,7 @@
         }
     },
     "gemini": {
+        "skipWs": "fixes needed",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
@@ -977,6 +979,18 @@
                 "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262963390#L3138"
             },
             "fetchTicker": {
+                "bid":"same",
+                "ask":"same",
+                "quoteVolume": "same",
+                "baseVolume": "same"
+            },
+            "watchTicker": {
+                "bid":"same",
+                "ask":"same",
+                "quoteVolume": "same",
+                "baseVolume": "same"
+            },
+            "watchTickers": {
                 "bid":"same",
                 "ask":"same",
                 "quoteVolume": "same",
@@ -1148,6 +1162,9 @@
             },
             "fetchPositions": {
                 "percentage": "percentage is not provided"
+            },
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
             }
         }
     },
