@@ -5024,11 +5024,15 @@ export default class Exchange {
             if (symbol.indexOf ('-') >= 0) {
                 const futureTypes  = [ 'W', 'BW', 'M', 'BM', 'Q', 'BQ' ]
                 for (let i = 0; i < futureTypes.length; i++) {
-                    const futureType = futureTypes[i];
-                    const newPrefix = '-' + futureType;
-                    const checkSymbol = symbol.replace ('-', newPrefix);
-                    if ((symbol.indexOf (newPrefix) < 0) && (checkSymbol in this.markets)) {
-                        return this.markets[checkSymbol];
+                    // if requested symbol is correct format (i.e. A/B:C-Wxxxxxx) then skip
+                    if (symbol.indexOf ('-' + futureTypes[i]) < 0) {
+                        continue;
+                    }
+                    // replace  A/B:C-xxxxxx  into  A/B:C-Wxxxxxx
+                    const symbolToCheck = symbol.replace ('-', '-' + futureTypes[i]);
+                    // check if A/B:C-Wxxxxxx exist
+                    if (symbolToCheck in this.markets) {
+                        return this.markets[symbolToCheck];
                     }
                 }
             }
