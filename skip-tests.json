@@ -1697,6 +1697,9 @@
                 "limits" : "not provided",
                 "deposit": "not provided",
                 "withdraw": "not provided"
+            },
+            "watchTrades": {
+                "currency": "not provided"
             }
         }
     }
