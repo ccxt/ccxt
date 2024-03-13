@@ -327,6 +327,7 @@
                 "currencyIdAndCode": "broken currencies"
             },
             "fetchCurrencies": {
+                "currencyIdAndCode": "broken currencies",
                 "precision":"not provided",
                 "networks": "missing"
             },
