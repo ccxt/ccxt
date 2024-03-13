@@ -198,6 +198,10 @@ export default class hyperliquid extends hyperliquidRest {
         const trades = this.myTrades;
         const symbols = {};
         const data = this.safeList (entry, 'fills', []);
+        const dataLength = data.length;
+        if (dataLength === 0) {
+            return;
+        }
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             const parsed = this.parseWsTrade (rawTrade);
