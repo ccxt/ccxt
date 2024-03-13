@@ -183,7 +183,7 @@ def test_market(exchange, skipped_properties, method, market):
             if min_string is not None:
                 test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, limit_entry, 'max', min_string)
     # check whether valid currency ID and CODE is used
-    if not ('currencyIdAndCode' in skipped_properties):
+    if not ('currency' in skipped_properties) and not ('currencyIdAndCode' in skipped_properties):
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])

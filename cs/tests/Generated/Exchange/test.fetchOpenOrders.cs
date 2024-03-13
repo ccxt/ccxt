@@ -11,13 +11,13 @@ public partial class testMainClass : BaseTest
     {
         object method = "fetchOpenOrders";
         object orders = await exchange.fetchOpenOrders(symbol);
-        assert(((orders is IList<object>) || (orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(orders)));
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
         object now = exchange.milliseconds();
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             testOrder(exchange, skippedProperties, method, order, symbol, now);
-            assert(isEqual(getValue(order, "status"), "open"), add(add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " returned an order with status "), getValue(order, "status")), " (expected \"open\")"));
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, order, "status", new List<object>() {"open"});
         }
         testSharedMethods.assertTimestampOrder(exchange, method, symbol, orders);
     }

@@ -150,7 +150,7 @@ function assertTimestampAndDatetime(exchange, skippedProperties, method, entry, 
     }
 }
 function assertCurrencyCode(exchange, skippedProperties, method, entry, actualCode, expectedCode = undefined) {
-    if ('currency' in skippedProperties) {
+    if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
     }
     const logText = logTemplate(exchange, method, entry);
@@ -164,7 +164,7 @@ function assertCurrencyCode(exchange, skippedProperties, method, entry, actualCo
 }
 function assertValidCurrencyIdAndCode(exchange, skippedProperties, method, entry, currencyId, currencyCode) {
     // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-    if ('currencyIdAndCode' in skippedProperties) {
+    if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
     }
     const logText = logTemplate(exchange, method, entry);
@@ -358,6 +358,17 @@ function setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, https
     exchange.httpsProxy = httpsProxy;
     exchange.socksProxy = socksProxy;
 }
+function assertNonEmtpyArray(exchange, skippedProperties, method, entry, hint = undefined) {
+    let logText = logTemplate(exchange, method, entry);
+    if (hint !== undefined) {
+        logText = logText + ' ' + hint;
+    }
+    assert(Array.isArray(entry), 'response is expected to be an array' + logText);
+    if (!('emptyResponse' in skippedProperties)) {
+        return;
+    }
+    assert(entry.length > 0, 'response is expected to be a non-empty array' + logText + ' (add "emptyResponse" in skip-tests.json to skip this check)');
+}
 export default {
     logTemplate,
     isTemporaryFailure,
@@ -382,4 +393,5 @@ export default {
     assertType,
     removeProxyOptions,
     setProxyOptions,
+    assertNonEmtpyArray,
 };

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Liquidation, Leverage, MarginMode, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, FundingHistory, Int, Leverage, Liquidation, MarginMode, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -5868,11 +5868,13 @@ class bitget(Exchange, ImplicitAPI):
         fetch all open positions
         :see: https://www.bitget.com/api-doc/contract/position/get-all-position
         :see: https://www.bitget.com/api-doc/contract/position/Get-History-Position
-        :param str[]|None symbols: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginCoin]: the settle currency of the positions, needs to match the productType
         :param str [params.productType]: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.useHistoryEndpoint]: default False, when True  will use the historic endpoint to fetch positions
+        :param str [params.method]: either(default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
@@ -5880,8 +5882,12 @@ class bitget(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchPositions', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchPositions', None, None, None, params, 'endId', 'idLessThan')
-        fetchPositionsOptions = self.safe_value(self.options, 'fetchPositions', {})
-        method = self.safe_string(fetchPositionsOptions, 'method', 'privateMixGetV2MixPositionAllPosition')
+        method = None
+        useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
+        if useHistoryEndpoint:
+            method = 'privateMixGetV2MixPositionHistoryPosition'
+        else:
+            method, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition')
         market = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
@@ -5984,10 +5990,10 @@ class bitget(Exchange, ImplicitAPI):
         #
         position = []
         if not isHistory:
-            position = self.safe_value(response, 'data', [])
+            position = self.safe_list(response, 'data', [])
         else:
-            data = self.safe_value(response, 'data', {})
-            position = self.safe_value(data, 'list', [])
+            data = self.safe_dict(response, 'data', {})
+            position = self.safe_list(data, 'list', [])
         result = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i], market))

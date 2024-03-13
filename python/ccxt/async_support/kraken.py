@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, IndexType, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1255,6 +1255,7 @@ class kraken(Exchange, ImplicitAPI):
         lastTrade = trades[length - 1]
         lastTradeId = self.safe_string(result, 'last')
         lastTrade.append(lastTradeId)
+        trades[length - 1] = lastTrade
         return self.parse_trades(trades, market, since, limit)
 
     def parse_balance(self, response) -> Balances:

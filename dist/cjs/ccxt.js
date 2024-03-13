@@ -152,6 +152,7 @@ var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
 var huobi$1 = require('./src/pro/huobi.js');
 var huobijp$1 = require('./src/pro/huobijp.js');
+var hyperliquid$1 = require('./src/pro/hyperliquid.js');
 var idex$1 = require('./src/pro/idex.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
@@ -322,6 +323,7 @@ const pro = {
     'htx': htx$1,
     'huobi': huobi$1,
     'huobijp': huobijp$1,
+    'hyperliquid': hyperliquid$1,
     'idex': idex$1,
     'independentreserve': independentreserve$1,
     'kraken': kraken$1,

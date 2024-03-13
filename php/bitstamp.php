@@ -2091,7 +2091,7 @@ class bitstamp extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub

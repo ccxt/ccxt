@@ -20,7 +20,7 @@ async def test_fetch_positions(exchange, skipped_properties, symbol):
     now = exchange.milliseconds()
     # without symbol
     positions = await exchange.fetch_positions()
-    assert isinstance(positions, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(positions)
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, positions, symbol)
     for i in range(0, len(positions)):
         test_position(exchange, skipped_properties, method, positions[i], None, now)
     # testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions); # currently order of positions does not make sense

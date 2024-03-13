@@ -4986,7 +4986,7 @@ class gate extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
@@ -6761,7 +6761,7 @@ class gate extends Exchange {
         ));
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): Greeks {
+    public function fetch_greeks(string $symbol, $params = array ()): array {
         /**
          * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
@@ -6875,7 +6875,7 @@ class gate extends Exchange {
         return $this->create_order($symbol, 'market', $side, 0, null, $params);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-unified-account-information
@@ -6981,7 +6981,7 @@ class gate extends Exchange {
         return $this->parse_leverage($response, $market);
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): Leverages {
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the set leverage for all leverage markets, only spot margin is supported on gate
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-lending-markets
@@ -7030,7 +7030,7 @@ class gate extends Exchange {
         return $this->parse_leverages($response, $symbols, $marketIdRequest, 'spot');
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string_2($leverage, 'currency_pair', 'id');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(

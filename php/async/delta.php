@@ -2875,7 +2875,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'index_symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -3339,7 +3339,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+    public function parse_margin_mode($marginMode, $market = null): array {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
