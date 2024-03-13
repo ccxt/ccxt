@@ -314,6 +314,7 @@ export default class hitbtc extends Exchange {
                     '2012': BadRequest,
                     '2020': BadRequest,
                     '2022': BadRequest,
+                    '2024': InvalidOrder, // Invalid margin mode.
                     '10001': BadRequest,
                     '10021': AccountSuspended,
                     '10022': BadRequest,
@@ -331,6 +332,7 @@ export default class hitbtc extends Exchange {
                     '20012': ExchangeError,
                     '20014': ExchangeError,
                     '20016': ExchangeError,
+                    '20018': ExchangeError, // Withdrawals are unavailable due to the current configuration. Any of: - internal withdrawals are disabled; - in-chain withdrawals are disabled.
                     '20031': ExchangeError,
                     '20032': ExchangeError,
                     '20033': ExchangeError,
@@ -341,10 +343,15 @@ export default class hitbtc extends Exchange {
                     '20043': ExchangeError,
                     '20044': PermissionDenied,
                     '20045': InvalidOrder,
+                    '20047': InvalidOrder, // Order placing exceeds the central counterparty balance limit.
+                    '20048': InvalidOrder, // Provided Time-In-Force instruction is invalid or the combination of the instruction and the order type is not allowed.
+                    '20049': InvalidOrder, // Provided order type is invalid.
                     '20080': ExchangeError,
                     '21001': ExchangeError,
                     '21003': AccountSuspended,
                     '21004': AccountSuspended,
+                    '22004': ExchangeError, // User is not found.
+                    '22008': ExchangeError, // Gateway timeout exceeded.
                 },
                 'broad': {},
             },

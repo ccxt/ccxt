@@ -76,7 +76,7 @@ build_and_test_all () {
       #   cd python
       #   if ! tox run-parallel; then
       #     exit 1
-      #   fi 
+      #   fi
       #   cd  ..
       # fi
     fi

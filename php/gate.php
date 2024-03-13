@@ -4407,7 +4407,10 @@ class gate extends Exchange {
         if ($lastTradeTimestamp === null) {
             $lastTradeTimestamp = $this->safe_timestamp_2($order, 'update_time', 'finish_time');
         }
-        $marketType = (is_array($order) && array_key_exists('currency_pair', $order)) ? 'spot' : 'contract';
+        $marketType = 'contract';
+        if ((is_array($order) && array_key_exists('currency_pair', $order)) || (is_array($order) && array_key_exists('market', $order))) {
+            $marketType = 'spot';
+        }
         $exchangeSymbol = $this->safe_string_2($order, 'currency_pair', 'market', $contract);
         $symbol = $this->safe_symbol($exchangeSymbol, $market, '_', $marketType);
         // Everything below this(above return) is related to $fees

@@ -4756,7 +4756,11 @@ public partial class gate : Exchange
         {
             lastTradeTimestamp = this.safeTimestamp2(order, "update_time", "finish_time");
         }
-        object marketType = ((bool) isTrue((inOp(order, "currency_pair")))) ? "spot" : "contract";
+        object marketType = "contract";
+        if (isTrue(isTrue((inOp(order, "currency_pair"))) || isTrue((inOp(order, "market")))))
+        {
+            marketType = "spot";
+        }
         object exchangeSymbol = this.safeString2(order, "currency_pair", "market", contract);
         object symbol = this.safeSymbol(exchangeSymbol, market, "_", marketType);
         // Everything below this(above return) is related to fees
