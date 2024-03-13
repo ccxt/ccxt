@@ -6235,7 +6235,12 @@ export default class bitget extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchPositions', undefined, undefined, undefined, params, 'endId', 'idLessThan') as Position[];
         }
         let method = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
+        const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
+        if (useHistoryEndpoint) {
+            method = 'privateMixGetV2MixPositionHistoryPosition';
+        } else {
+            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
+        }
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
