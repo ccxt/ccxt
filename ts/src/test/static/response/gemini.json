@@ -1,0 +1,62 @@
+{
+    "exchange": "gemini",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "timestamp": "1710325796",
+                        "timestampms": "1710325796526",
+                        "tid": "2840140831246421",
+                        "price": "73268.24",
+                        "amount": "0.00028921",
+                        "exchange": "gemini",
+                        "type": "buy"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "2840140831246421",
+                        "order": null,
+                        "info": {
+                            "timestamp": "1710325796",
+                            "timestampms": "1710325796526",
+                            "tid": "2840140831246421",
+                            "price": "73268.24",
+                            "amount": "0.00028921",
+                            "exchange": "gemini",
+                            "type": "buy"
+                        },
+                        "timestamp": 1710325796526,
+                        "datetime": "2024-03-13T10:29:56.526Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73268.24,
+                        "cost": 21.1899076904,
+                        "amount": 0.00028921,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

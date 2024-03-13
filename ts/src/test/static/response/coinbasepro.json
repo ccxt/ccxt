@@ -1,0 +1,60 @@
+{
+    "exchange": "coinbasepro",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "trade_id": "18502034",
+                        "side": "sell",
+                        "size": "0.00007448",
+                        "price": "73271.63000000",
+                        "time": "2024-03-13T11:00:17.710679Z"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "18502034",
+                        "order": null,
+                        "info": {
+                            "trade_id": "18502034",
+                            "side": "sell",
+                            "size": "0.00007448",
+                            "price": "73271.63000000",
+                            "time": "2024-03-13T11:00:17.710679Z"
+                        },
+                        "timestamp": 1710327617710,
+                        "datetime": "2024-03-13T11:00:17.710Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "buy",
+                        "price": 73271.63,
+                        "amount": 0.00007448,
+                        "fee": {
+                            "cost": null,
+                            "currency": "USDT",
+                            "rate": null
+                        },
+                        "cost": 5.4572710024,
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": "USDT",
+                                "rate": null
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,55 @@
+{
+    "exchange": "lykke",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "payload": [
+                        {
+                            "id": "e23fae98-2c39-42a0-bf27-4d1901027633",
+                            "assetPairId": "BTCUSDT",
+                            "timestamp": "1710321391220",
+                            "volume": "0.00244305",
+                            "price": "73231.366",
+                            "side": "sell"
+                        }
+                    ],
+                    "error": null
+                },
+                "parsedResponse": [
+                    {
+                        "id": "e23fae98-2c39-42a0-bf27-4d1901027633",
+                        "info": {
+                            "id": "e23fae98-2c39-42a0-bf27-4d1901027633",
+                            "assetPairId": "BTCUSDT",
+                            "timestamp": "1710321391220",
+                            "volume": "0.00244305",
+                            "price": "73231.366",
+                            "side": "sell"
+                        },
+                        "timestamp": 1710321391220,
+                        "datetime": "2024-03-13T09:16:31.220Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 73231.366,
+                        "amount": 0.00244305,
+                        "cost": 178.9078887063,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

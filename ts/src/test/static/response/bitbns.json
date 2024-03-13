@@ -1,0 +1,52 @@
+{
+    "exchange": "bitbns",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "spot trade",
+                "method": "fetchTrades",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  1
+                ],
+                "httpResponse": [
+                  {
+                    "tradeId": "2341425",
+                    "price": "70981.3624",
+                    "quote_volume": "29.44",
+                    "base_volume": "0.00041375",
+                    "timestamp": "1710325767000",
+                    "type": "sell"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "tradeId": "2341425",
+                      "price": "70981.3624",
+                      "quote_volume": "29.44",
+                      "base_volume": "0.00041375",
+                      "timestamp": "1710325767000",
+                      "type": "sell"
+                    },
+                    "timestamp": 1710325767000,
+                    "datetime": "2024-03-13T10:29:27.000Z",
+                    "symbol": "BTC/USDT",
+                    "id": "2341425",
+                    "order": "2341425",
+                    "type": null,
+                    "side": "sell",
+                    "takerOrMaker": null,
+                    "price": 70981.3624,
+                    "amount": 0.00041375,
+                    "cost": 29.44,
+                    "fee": null,
+                    "fees": []
+                  }
+                ]
+              }
+        ]
+    }
+}

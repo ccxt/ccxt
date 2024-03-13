@@ -1,0 +1,57 @@
+{
+    "exchange": "timex",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "498984",
+                        "timestamp": "2019-12-07T04:51:50.358Z",
+                        "direction": "BUY",
+                        "price": "7560.71",
+                        "quantity": "0.005",
+                        "feeQuantity": null,
+                        "feeSymbol": null,
+                        "ownerOrderId": null,
+                        "clientOrderId": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "498984",
+                            "timestamp": "2019-12-07T04:51:50.358Z",
+                            "direction": "BUY",
+                            "price": "7560.71",
+                            "quantity": "0.005",
+                            "feeQuantity": null,
+                            "feeSymbol": null,
+                            "ownerOrderId": null,
+                            "clientOrderId": null
+                        },
+                        "id": "498984",
+                        "timestamp": 1575694310358,
+                        "datetime": "2019-12-07T04:51:50.358Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 7560.71,
+                        "amount": 0.005,
+                        "cost": 37.80355,
+                        "takerOrMaker": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ]
+    }
+}

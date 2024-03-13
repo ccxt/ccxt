@@ -1,0 +1,50 @@
+{
+    "exchange": "bequant",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "2371822918",
+                        "price": "73265.87",
+                        "qty": "0.05094",
+                        "side": "buy",
+                        "timestamp": "2024-03-13T11:00:21.983Z"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "2371822918",
+                            "price": "73265.87",
+                            "qty": "0.05094",
+                            "side": "buy",
+                            "timestamp": "2024-03-13T11:00:21.983Z"
+                        },
+                        "id": "2371822918",
+                        "order": null,
+                        "timestamp": 1710327621983,
+                        "datetime": "2024-03-13T11:00:21.983Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 73265.87,
+                        "amount": 0.05094,
+                        "cost": 3732.1634178,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

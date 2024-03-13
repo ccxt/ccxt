@@ -1,0 +1,55 @@
+{
+    "exchange": "delta",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "buyer_role": "taker",
+                            "price": "73260.5",
+                            "seller_role": "maker",
+                            "size": "0.000635",
+                            "symbol": "BTC_USDT",
+                            "timestamp": "1710327528000000"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "order": null,
+                        "timestamp": 1710327528000,
+                        "datetime": "2024-03-13T10:58:48.000Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "price": 73260.5,
+                        "amount": 0.000635,
+                        "cost": 46.5204175,
+                        "takerOrMaker": null,
+                        "fee": null,
+                        "info": {
+                            "buyer_role": "taker",
+                            "price": "73260.5",
+                            "seller_role": "maker",
+                            "size": "0.000635",
+                            "symbol": "BTC_USDT",
+                            "timestamp": "1710327528000000"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

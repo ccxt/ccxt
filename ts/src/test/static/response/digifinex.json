@@ -1,0 +1,54 @@
+{
+    "exchange": "digifinex",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "date": "1710327662",
+                            "id": "18230819210",
+                            "amount": "0.00025",
+                            "type": "sell",
+                            "price": "73238.69"
+                        }
+                    ],
+                    "date": "1710327662",
+                    "code": "0"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "18230819210",
+                        "info": {
+                            "date": "1710327662",
+                            "id": "18230819210",
+                            "amount": "0.00025",
+                            "type": "sell",
+                            "price": "73238.69"
+                        },
+                        "timestamp": 1710327662000,
+                        "datetime": "2024-03-13T11:01:02.000Z",
+                        "symbol": "BTC/USDT",
+                        "type": "limit",
+                        "order": null,
+                        "side": "sell",
+                        "price": 73238.69,
+                        "amount": 0.00025,
+                        "cost": 18.3096725,
+                        "takerOrMaker": "taker",
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

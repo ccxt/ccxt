@@ -1,0 +1,58 @@
+{
+    "exchange": "latoken",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "a5f62ecb-c787-4c92-9d73-93b66eac0364",
+                        "isMakerBuyer": true,
+                        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+                        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                        "price": "73238.69",
+                        "quantity": "0.058701100000000000",
+                        "cost": "4299.191665559000000000",
+                        "timestamp": "1710327660248",
+                        "makerBuyer": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "a5f62ecb-c787-4c92-9d73-93b66eac0364",
+                            "isMakerBuyer": true,
+                            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+                            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                            "price": "73238.69",
+                            "quantity": "0.058701100000000000",
+                            "cost": "4299.191665559000000000",
+                            "timestamp": "1710327660248",
+                            "makerBuyer": true
+                        },
+                        "timestamp": 1710327660248,
+                        "datetime": "2024-03-13T11:01:00.248Z",
+                        "symbol": "BTC/USDT",
+                        "id": "a5f62ecb-c787-4c92-9d73-93b66eac0364",
+                        "order": null,
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "sell",
+                        "price": 73238.69,
+                        "amount": 0.0587011,
+                        "cost": 4299.191665559,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

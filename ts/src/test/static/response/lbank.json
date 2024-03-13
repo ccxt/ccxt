@@ -1,0 +1,55 @@
+{
+    "exchange": "lbank",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "result": "true",
+                    "data": [
+                        {
+                            "date_ms": "1710327656856",
+                            "amount": "0.0347",
+                            "price": "73238.2",
+                            "type": "sell",
+                            "tid": "448d76dfada24311899d7f8ee925c7f3"
+                        }
+                    ],
+                    "error_code": "0",
+                    "ts": "1710327657210"
+                },
+                "parsedResponse": [
+                    {
+                        "timestamp": 1710327656856,
+                        "datetime": "2024-03-13T11:00:56.856Z",
+                        "symbol": "BTC/USDT",
+                        "id": "448d76dfada24311899d7f8ee925c7f3",
+                        "order": null,
+                        "type": "limit",
+                        "takerOrMaker": "taker",
+                        "side": "sell",
+                        "price": 73238.2,
+                        "amount": 0.0347,
+                        "cost": 2541.36554,
+                        "fee": null,
+                        "info": {
+                            "date_ms": "1710327656856",
+                            "amount": "0.0347",
+                            "price": "73238.2",
+                            "type": "sell",
+                            "tid": "448d76dfada24311899d7f8ee925c7f3"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

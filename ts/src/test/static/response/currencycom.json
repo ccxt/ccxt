@@ -1,0 +1,50 @@
+{
+    "exchange": "currencycom",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "a": "1972588234",
+                        "p": "73243.3",
+                        "q": "0.0",
+                        "T": "1710327635775",
+                        "m": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1972588234",
+                        "order": null,
+                        "timestamp": 1710327635775,
+                        "datetime": "2024-03-13T11:00:35.775Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 73243.3,
+                        "amount": 0,
+                        "cost": 0,
+                        "fee": null,
+                        "info": {
+                            "a": "1972588234",
+                            "p": "73243.3",
+                            "q": "0.0",
+                            "T": "1710327635775",
+                            "m": false
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

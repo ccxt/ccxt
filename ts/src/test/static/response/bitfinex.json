@@ -1,0 +1,52 @@
+{
+    "exchange": "bitfinex",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "timestamp": "1710327665",
+                        "tid": "1560452105",
+                        "price": "73217.0",
+                        "amount": "0.00205645",
+                        "exchange": "bitfinex",
+                        "type": "sell"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1560452105",
+                        "info": {
+                            "timestamp": "1710327665",
+                            "tid": "1560452105",
+                            "price": "73217.0",
+                            "amount": "0.00205645",
+                            "exchange": "bitfinex",
+                            "type": "sell"
+                        },
+                        "timestamp": 1710327665000,
+                        "datetime": "2024-03-13T11:01:05.000Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "order": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 73217,
+                        "amount": 0.00205645,
+                        "cost": 150.56709965,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

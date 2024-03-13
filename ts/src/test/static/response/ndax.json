@@ -1,0 +1,62 @@
+{
+    "exchange": "ndax",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        22582,
+                        82,
+                        0.00294,
+                        29869.01,
+                        52925861845,
+                        20924703806,
+                        1683197061661,
+                        1,
+                        0,
+                        0,
+                        0
+                    ]
+                ],
+                "parsedResponse": [
+                    {
+                        "info": [
+                            22582,
+                            82,
+                            0.00294,
+                            29869.01,
+                            52925861845,
+                            20924703806,
+                            1683197061661,
+                            1,
+                            0,
+                            0,
+                            0
+                        ],
+                        "id": "22582",
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1683197061661,
+                        "datetime": "2023-05-04T10:44:21.661Z",
+                        "order": "52925861845",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 29869.01,
+                        "amount": 0.00294,
+                        "cost": 87.8148894,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

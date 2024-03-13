@@ -1,0 +1,50 @@
+{
+    "exchange": "bitstamp",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "amount": "0.00055284",
+                        "date": "1710327533",
+                        "price": "73254",
+                        "tid": "326595342",
+                        "type": "0"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "326595342",
+                        "info": {
+                            "amount": "0.00055284",
+                            "date": "1710327533",
+                            "price": "73254",
+                            "tid": "326595342",
+                            "type": "0"
+                        },
+                        "timestamp": 1710327533000,
+                        "datetime": "2024-03-13T10:58:53.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73254,
+                        "amount": 0.00055284,
+                        "cost": 40.49774136,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

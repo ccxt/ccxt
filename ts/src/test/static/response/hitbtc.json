@@ -1,353 +1,396 @@
 {
-  "exchange": "hitbtc",
-  "skipKeys": [],
-  "options": {
-  },
-  "methods": {
-    "fetchMyTrades": [
-      {
-        "description": "Spot trade",
-        "method": "fetchMyTrades",
-        "input": [
-          "TRX/USDT",
-          null,
-          1
-        ],
-        "httpResponse": [
-          {
-            "id": "2338127619",
-            "order_id": "1162784607158",
-            "client_order_id": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
-            "symbol": "TRXUSDT",
-            "side": "sell",
-            "quantity": "55",
-            "price": "0.1035696",
-            "fee": "0.014240820000",
-            "timestamp": "2024-01-07T02:45:32.642Z",
-            "taker": true
-          }
-        ],
-        "parsedResponse": [
-          {
-            "info": {
-              "id": "2338127619",
-              "order_id": "1162784607158",
-              "client_order_id": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
-              "symbol": "TRXUSDT",
-              "side": "sell",
-              "quantity": "55",
-              "price": "0.1035696",
-              "fee": "0.014240820000",
-              "timestamp": "2024-01-07T02:45:32.642Z",
-              "taker": true
+    "exchange": "hitbtc",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "Spot trade",
+                "method": "fetchMyTrades",
+                "input": [
+                    "TRX/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "2338127619",
+                        "order_id": "1162784607158",
+                        "client_order_id": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
+                        "symbol": "TRXUSDT",
+                        "side": "sell",
+                        "quantity": "55",
+                        "price": "0.1035696",
+                        "fee": "0.014240820000",
+                        "timestamp": "2024-01-07T02:45:32.642Z",
+                        "taker": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "2338127619",
+                            "order_id": "1162784607158",
+                            "client_order_id": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
+                            "symbol": "TRXUSDT",
+                            "side": "sell",
+                            "quantity": "55",
+                            "price": "0.1035696",
+                            "fee": "0.014240820000",
+                            "timestamp": "2024-01-07T02:45:32.642Z",
+                            "taker": true
+                        },
+                        "id": "2338127619",
+                        "order": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
+                        "timestamp": 1704595532642,
+                        "datetime": "2024-01-07T02:45:32.642Z",
+                        "symbol": "TRX/USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 0.1035696,
+                        "amount": 55,
+                        "cost": 5.696328,
+                        "fee": {
+                            "cost": 0.01424082,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.01424082,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
             },
-            "id": "2338127619",
-            "order": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
-            "timestamp": 1704595532642,
-            "datetime": "2024-01-07T02:45:32.642Z",
-            "symbol": "TRX/USDT",
-            "type": null,
-            "side": "sell",
-            "takerOrMaker": "taker",
-            "price": 0.1035696,
-            "amount": 55,
-            "cost": 5.696328,
-            "fee": {
-              "cost": 0.01424082,
-              "currency": "USDT"
-            },
-            "fees": [
-              {
-                "cost": 0.01424082,
-                "currency": "USDT"
-              }
-            ]
-          }
+            {
+                "description": "Swap trade",
+                "method": "fetchMyTrades",
+                "input": [
+                    "TRX/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "942515880",
+                        "order_id": "122184140181",
+                        "client_order_id": "03703c3c074c1c8d3d1eabde37736035",
+                        "symbol": "TRXUSDT_PERP",
+                        "side": "sell",
+                        "quantity": "1",
+                        "price": "0.1009391",
+                        "fee": "0.000070657370",
+                        "timestamp": "2023-12-19T09:45:17.794Z",
+                        "taker": true,
+                        "position_id": "235035720",
+                        "pnl": "-0.000045500000",
+                        "liquidation": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "942515880",
+                            "order_id": "122184140181",
+                            "client_order_id": "03703c3c074c1c8d3d1eabde37736035",
+                            "symbol": "TRXUSDT_PERP",
+                            "side": "sell",
+                            "quantity": "1",
+                            "price": "0.1009391",
+                            "fee": "0.000070657370",
+                            "timestamp": "2023-12-19T09:45:17.794Z",
+                            "taker": true,
+                            "position_id": "235035720",
+                            "pnl": "-0.000045500000",
+                            "liquidation": false
+                        },
+                        "id": "942515880",
+                        "order": "03703c3c074c1c8d3d1eabde37736035",
+                        "timestamp": 1702979117794,
+                        "datetime": "2023-12-19T09:45:17.794Z",
+                        "symbol": "TRX/USDT:USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 0.1009391,
+                        "amount": 1,
+                        "cost": 0.1009391,
+                        "fee": {
+                            "cost": 0.00007065737,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.00007065737,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "spot closed order",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "TRX/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "1162784607158",
+                        "client_order_id": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
+                        "symbol": "TRXUSDT",
+                        "side": "sell",
+                        "status": "filled",
+                        "type": "market",
+                        "time_in_force": "FOK",
+                        "quantity": "55",
+                        "quantity_cumulative": "55",
+                        "price": "0.1035696",
+                        "price_average": "0.1035696",
+                        "created_at": "2024-01-07T02:45:32.642Z",
+                        "updated_at": "2024-01-07T02:45:32.642Z"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1162784607158",
+                            "client_order_id": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
+                            "symbol": "TRXUSDT",
+                            "side": "sell",
+                            "status": "filled",
+                            "type": "market",
+                            "time_in_force": "FOK",
+                            "quantity": "55",
+                            "quantity_cumulative": "55",
+                            "price": "0.1035696",
+                            "price_average": "0.1035696",
+                            "created_at": "2024-01-07T02:45:32.642Z",
+                            "updated_at": "2024-01-07T02:45:32.642Z"
+                        },
+                        "id": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
+                        "clientOrderId": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
+                        "timestamp": 1704595532642,
+                        "datetime": "2024-01-07T02:45:32.642Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "TRX/USDT",
+                        "price": 0.1035696,
+                        "amount": 55,
+                        "type": "market",
+                        "side": "sell",
+                        "timeInForce": "FOK",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "filled": 55,
+                        "remaining": 0,
+                        "cost": 5.696328,
+                        "status": "closed",
+                        "average": 0.1035696,
+                        "trades": [],
+                        "fee": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create spot order",
+                "method": "createOrder",
+                "input": [
+                    "TRX/USDT",
+                    "limit",
+                    "buy",
+                    50,
+                    0.05
+                ],
+                "httpResponse": {
+                    "id": "1175851866285",
+                    "client_order_id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
+                    "symbol": "TRXUSDT",
+                    "side": "buy",
+                    "status": "new",
+                    "type": "limit",
+                    "time_in_force": "GTC",
+                    "quantity": "50",
+                    "quantity_cumulative": "0",
+                    "price": "0.0500000",
+                    "post_only": false,
+                    "created_at": "2024-01-31T11:51:23.748Z",
+                    "updated_at": "2024-01-31T11:51:23.748Z"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "1175851866285",
+                        "client_order_id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
+                        "symbol": "TRXUSDT",
+                        "side": "buy",
+                        "status": "new",
+                        "type": "limit",
+                        "time_in_force": "GTC",
+                        "quantity": "50",
+                        "quantity_cumulative": "0",
+                        "price": "0.0500000",
+                        "post_only": false,
+                        "created_at": "2024-01-31T11:51:23.748Z",
+                        "updated_at": "2024-01-31T11:51:23.748Z"
+                    },
+                    "id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
+                    "clientOrderId": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
+                    "timestamp": 1706701883748,
+                    "datetime": "2024-01-31T11:51:23.748Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "TRX/USDT",
+                    "price": 0.05,
+                    "amount": 50,
+                    "type": "limit",
+                    "side": "buy",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "filled": 0,
+                    "remaining": 50,
+                    "cost": 0,
+                    "status": "open",
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fees": []
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "spot open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "TRX/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "1175851866285",
+                        "client_order_id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
+                        "symbol": "TRXUSDT",
+                        "side": "buy",
+                        "status": "new",
+                        "type": "limit",
+                        "time_in_force": "GTC",
+                        "quantity": "50",
+                        "quantity_cumulative": "0",
+                        "price": "0.0500000",
+                        "post_only": false,
+                        "created_at": "2024-01-31T11:51:23.748Z",
+                        "updated_at": "2024-01-31T11:51:23.748Z"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1175851866285",
+                            "client_order_id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
+                            "symbol": "TRXUSDT",
+                            "side": "buy",
+                            "status": "new",
+                            "type": "limit",
+                            "time_in_force": "GTC",
+                            "quantity": "50",
+                            "quantity_cumulative": "0",
+                            "price": "0.0500000",
+                            "post_only": false,
+                            "created_at": "2024-01-31T11:51:23.748Z",
+                            "updated_at": "2024-01-31T11:51:23.748Z"
+                        },
+                        "id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
+                        "clientOrderId": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
+                        "timestamp": 1706701883748,
+                        "datetime": "2024-01-31T11:51:23.748Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "TRX/USDT",
+                        "price": 0.05,
+                        "amount": 50,
+                        "type": "limit",
+                        "side": "buy",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "filled": 0,
+                        "remaining": 50,
+                        "cost": 0,
+                        "status": "open",
+                        "average": null,
+                        "trades": [],
+                        "fee": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "2371822918",
+                        "price": "73265.87",
+                        "qty": "0.05094",
+                        "side": "buy",
+                        "timestamp": "2024-03-13T11:00:21.983Z"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "2371822918",
+                            "price": "73265.87",
+                            "qty": "0.05094",
+                            "side": "buy",
+                            "timestamp": "2024-03-13T11:00:21.983Z"
+                        },
+                        "id": "2371822918",
+                        "order": null,
+                        "timestamp": 1710327621983,
+                        "datetime": "2024-03-13T11:00:21.983Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 73265.87,
+                        "amount": 0.05094,
+                        "cost": 3732.1634178,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
         ]
-      },
-      {
-        "description": "Swap trade",
-        "method": "fetchMyTrades",
-        "input": [
-          "TRX/USDT:USDT",
-          null,
-          1
-        ],
-        "httpResponse": [
-          {
-            "id": "942515880",
-            "order_id": "122184140181",
-            "client_order_id": "03703c3c074c1c8d3d1eabde37736035",
-            "symbol": "TRXUSDT_PERP",
-            "side": "sell",
-            "quantity": "1",
-            "price": "0.1009391",
-            "fee": "0.000070657370",
-            "timestamp": "2023-12-19T09:45:17.794Z",
-            "taker": true,
-            "position_id": "235035720",
-            "pnl": "-0.000045500000",
-            "liquidation": false
-          }
-        ],
-        "parsedResponse": [
-          {
-            "info": {
-              "id": "942515880",
-              "order_id": "122184140181",
-              "client_order_id": "03703c3c074c1c8d3d1eabde37736035",
-              "symbol": "TRXUSDT_PERP",
-              "side": "sell",
-              "quantity": "1",
-              "price": "0.1009391",
-              "fee": "0.000070657370",
-              "timestamp": "2023-12-19T09:45:17.794Z",
-              "taker": true,
-              "position_id": "235035720",
-              "pnl": "-0.000045500000",
-              "liquidation": false
-            },
-            "id": "942515880",
-            "order": "03703c3c074c1c8d3d1eabde37736035",
-            "timestamp": 1702979117794,
-            "datetime": "2023-12-19T09:45:17.794Z",
-            "symbol": "TRX/USDT:USDT",
-            "type": null,
-            "side": "sell",
-            "takerOrMaker": "taker",
-            "price": 0.1009391,
-            "amount": 1,
-            "cost": 0.1009391,
-            "fee": {
-              "cost": 0.00007065737,
-              "currency": "USDT"
-            },
-            "fees": [
-              {
-                "cost": 0.00007065737,
-                "currency": "USDT"
-              }
-            ]
-          }
-        ]
-      }
-    ],
-    "fetchClosedOrders": [
-      {
-        "description": "spot closed order",
-        "method": "fetchClosedOrders",
-        "input": [
-          "TRX/USDT",
-          null,
-          1
-        ],
-        "httpResponse": [
-          {
-            "id": "1162784607158",
-            "client_order_id": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
-            "symbol": "TRXUSDT",
-            "side": "sell",
-            "status": "filled",
-            "type": "market",
-            "time_in_force": "FOK",
-            "quantity": "55",
-            "quantity_cumulative": "55",
-            "price": "0.1035696",
-            "price_average": "0.1035696",
-            "created_at": "2024-01-07T02:45:32.642Z",
-            "updated_at": "2024-01-07T02:45:32.642Z"
-          }
-        ],
-        "parsedResponse": [
-          {
-            "info": {
-              "id": "1162784607158",
-              "client_order_id": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
-              "symbol": "TRXUSDT",
-              "side": "sell",
-              "status": "filled",
-              "type": "market",
-              "time_in_force": "FOK",
-              "quantity": "55",
-              "quantity_cumulative": "55",
-              "price": "0.1035696",
-              "price_average": "0.1035696",
-              "created_at": "2024-01-07T02:45:32.642Z",
-              "updated_at": "2024-01-07T02:45:32.642Z"
-            },
-            "id": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
-            "clientOrderId": "XAO_g_2kfiRcNhOwtEz8YoTAcJGcsWjN",
-            "timestamp": 1704595532642,
-            "datetime": "2024-01-07T02:45:32.642Z",
-            "lastTradeTimestamp": null,
-            "lastUpdateTimestamp": null,
-            "symbol": "TRX/USDT",
-            "price": 0.1035696,
-            "amount": 55,
-            "type": "market",
-            "side": "sell",
-            "timeInForce": "FOK",
-            "postOnly": false,
-            "reduceOnly": null,
-            "filled": 55,
-            "remaining": 0,
-            "cost": 5.696328,
-            "status": "closed",
-            "average": 0.1035696,
-            "trades": [],
-            "fee": null,
-            "stopPrice": null,
-            "triggerPrice": null,
-            "takeProfitPrice": null,
-            "stopLossPrice": null,
-            "fees": []
-          }
-        ]
-      }
-    ],
-    "createOrder": [
-      {
-        "description": "create spot order",
-        "method": "createOrder",
-        "input": [
-          "TRX/USDT",
-          "limit",
-          "buy",
-          50,
-          0.05
-        ],
-        "httpResponse": {
-          "id": "1175851866285",
-          "client_order_id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
-          "symbol": "TRXUSDT",
-          "side": "buy",
-          "status": "new",
-          "type": "limit",
-          "time_in_force": "GTC",
-          "quantity": "50",
-          "quantity_cumulative": "0",
-          "price": "0.0500000",
-          "post_only": false,
-          "created_at": "2024-01-31T11:51:23.748Z",
-          "updated_at": "2024-01-31T11:51:23.748Z"
-        },
-        "parsedResponse": {
-          "info": {
-            "id": "1175851866285",
-            "client_order_id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
-            "symbol": "TRXUSDT",
-            "side": "buy",
-            "status": "new",
-            "type": "limit",
-            "time_in_force": "GTC",
-            "quantity": "50",
-            "quantity_cumulative": "0",
-            "price": "0.0500000",
-            "post_only": false,
-            "created_at": "2024-01-31T11:51:23.748Z",
-            "updated_at": "2024-01-31T11:51:23.748Z"
-          },
-          "id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
-          "clientOrderId": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
-          "timestamp": 1706701883748,
-          "datetime": "2024-01-31T11:51:23.748Z",
-          "lastTradeTimestamp": null,
-          "lastUpdateTimestamp": null,
-          "symbol": "TRX/USDT",
-          "price": 0.05,
-          "amount": 50,
-          "type": "limit",
-          "side": "buy",
-          "timeInForce": "GTC",
-          "postOnly": false,
-          "reduceOnly": null,
-          "filled": 0,
-          "remaining": 50,
-          "cost": 0,
-          "status": "open",
-          "average": null,
-          "trades": [],
-          "fee": null,
-          "stopPrice": null,
-          "triggerPrice": null,
-          "takeProfitPrice": null,
-          "stopLossPrice": null,
-          "fees": []
-        }
-      }
-    ],
-    "fetchOpenOrders": [
-      {
-        "description": "spot open orders",
-        "method": "fetchOpenOrders",
-        "input": [
-          "TRX/USDT",
-          null,
-          1
-        ],
-        "httpResponse": [
-          {
-            "id": "1175851866285",
-            "client_order_id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
-            "symbol": "TRXUSDT",
-            "side": "buy",
-            "status": "new",
-            "type": "limit",
-            "time_in_force": "GTC",
-            "quantity": "50",
-            "quantity_cumulative": "0",
-            "price": "0.0500000",
-            "post_only": false,
-            "created_at": "2024-01-31T11:51:23.748Z",
-            "updated_at": "2024-01-31T11:51:23.748Z"
-          }
-        ],
-        "parsedResponse": [
-          {
-            "info": {
-              "id": "1175851866285",
-              "client_order_id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
-              "symbol": "TRXUSDT",
-              "side": "buy",
-              "status": "new",
-              "type": "limit",
-              "time_in_force": "GTC",
-              "quantity": "50",
-              "quantity_cumulative": "0",
-              "price": "0.0500000",
-              "post_only": false,
-              "created_at": "2024-01-31T11:51:23.748Z",
-              "updated_at": "2024-01-31T11:51:23.748Z"
-            },
-            "id": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
-            "clientOrderId": "6JLM0TNi5bGneW_kRkeMvB8t_KUHJTTj",
-            "timestamp": 1706701883748,
-            "datetime": "2024-01-31T11:51:23.748Z",
-            "lastTradeTimestamp": null,
-            "lastUpdateTimestamp": null,
-            "symbol": "TRX/USDT",
-            "price": 0.05,
-            "amount": 50,
-            "type": "limit",
-            "side": "buy",
-            "timeInForce": "GTC",
-            "postOnly": false,
-            "reduceOnly": null,
-            "filled": 0,
-            "remaining": 50,
-            "cost": 0,
-            "status": "open",
-            "average": null,
-            "trades": [],
-            "fee": null,
-            "stopPrice": null,
-            "triggerPrice": null,
-            "takeProfitPrice": null,
-            "stopLossPrice": null,
-            "fees": []
-          }
-        ]
-      }
-    ]
-  }
+    }
 }

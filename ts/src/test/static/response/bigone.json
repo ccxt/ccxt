@@ -1,0 +1,55 @@
+{
+    "exchange": "bigone",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "id": "4107849607",
+                            "price": "73238.69",
+                            "amount": "0.05039",
+                            "taker_side": "BID",
+                            "inserted_at": "2024-03-13T11:01:00.792Z",
+                            "created_at": "2024-03-13T11:01:00.792Z"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "4107849607",
+                        "timestamp": 1710327660792,
+                        "datetime": "2024-03-13T11:01:00.792Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73238.69,
+                        "amount": 0.05039,
+                        "cost": 3690.4975891,
+                        "info": {
+                            "id": "4107849607",
+                            "price": "73238.69",
+                            "amount": "0.05039",
+                            "taker_side": "BID",
+                            "inserted_at": "2024-03-13T11:01:00.792Z",
+                            "created_at": "2024-03-13T11:01:00.792Z"
+                        },
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

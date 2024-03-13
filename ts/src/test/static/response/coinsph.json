@@ -1,0 +1,54 @@
+{
+    "exchange": "coinsph",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "price": "73247.300000000000000000",
+                        "id": "1640734866998845445",
+                        "qty": "0.006691200000000000",
+                        "quoteQty": "0.006691200000000000",
+                        "time": "1710326837836",
+                        "isBuyerMaker": true,
+                        "isBestMatch": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1640734866998845445",
+                        "order": null,
+                        "timestamp": 1710326837836,
+                        "datetime": "2024-03-13T10:47:17.836Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73247.3,
+                        "amount": 0.0066912,
+                        "cost": 490.11233376,
+                        "fee": null,
+                        "info": {
+                            "price": "73247.300000000000000000",
+                            "id": "1640734866998845445",
+                            "qty": "0.006691200000000000",
+                            "quoteQty": "0.006691200000000000",
+                            "time": "1710326837836",
+                            "isBuyerMaker": true,
+                            "isBestMatch": true
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

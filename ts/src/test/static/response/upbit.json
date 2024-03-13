@@ -1,0 +1,60 @@
+{
+    "exchange": "upbit",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "market": "USDT-BTC",
+                        "trade_date_utc": "2024-03-13",
+                        "trade_time_utc": "10:59:31",
+                        "timestamp": "1710327571922",
+                        "trade_price": "73249.66500000",
+                        "trade_volume": "0.00840925",
+                        "prev_closing_price": "71126.14598036",
+                        "change_price": "2123.51901964",
+                        "ask_bid": "ASK",
+                        "sequential_id": "17103275719220001"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "17103275719220001",
+                        "info": {
+                            "market": "USDT-BTC",
+                            "trade_date_utc": "2024-03-13",
+                            "trade_time_utc": "10:59:31",
+                            "timestamp": "1710327571922",
+                            "trade_price": "73249.66500000",
+                            "trade_volume": "0.00840925",
+                            "prev_closing_price": "71126.14598036",
+                            "change_price": "2123.51901964",
+                            "ask_bid": "ASK",
+                            "sequential_id": "17103275719220001"
+                        },
+                        "order": null,
+                        "timestamp": 1710327571922,
+                        "datetime": "2024-03-13T10:59:31.922Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 73249.665,
+                        "amount": 0.00840925,
+                        "cost": 615.97474540125,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

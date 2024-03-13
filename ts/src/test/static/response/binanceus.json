@@ -1,0 +1,56 @@
+{
+    "exchange": "binanceus",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "a": "26872407",
+                        "p": "73245.90000000",
+                        "q": "0.00132000",
+                        "f": "28407348",
+                        "l": "28407348",
+                        "T": "1710327551703",
+                        "m": false,
+                        "M": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "a": "26872407",
+                            "p": "73245.90000000",
+                            "q": "0.00132000",
+                            "f": "28407348",
+                            "l": "28407348",
+                            "T": "1710327551703",
+                            "m": false,
+                            "M": true
+                        },
+                        "timestamp": 1710327551703,
+                        "datetime": "2024-03-13T10:59:11.703Z",
+                        "symbol": "BTC/USDT",
+                        "id": "26872407",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73245.9,
+                        "amount": 0.00132,
+                        "cost": 96.684588,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,54 @@
+{
+    "exchange": "exmo",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "BTC_USDT": [
+                        {
+                            "trade_id": "590563006",
+                            "date": "1710327657",
+                            "type": "sell",
+                            "quantity": "0.00005",
+                            "price": "73230.91",
+                            "amount": "3.6615455"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "590563006",
+                        "info": {
+                            "trade_id": "590563006",
+                            "date": "1710327657",
+                            "type": "sell",
+                            "quantity": "0.00005",
+                            "price": "73230.91",
+                            "amount": "3.6615455"
+                        },
+                        "timestamp": 1710327657000,
+                        "datetime": "2024-03-13T11:00:57.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 73230.91,
+                        "amount": 0.00005,
+                        "cost": 3.6615455,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

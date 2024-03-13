@@ -1,0 +1,54 @@
+{
+    "exchange": "poloniex",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "88645019",
+                        "price": "73189.21",
+                        "quantity": "0.026675",
+                        "amount": "1952.32217675",
+                        "takerSide": "BUY",
+                        "ts": 1710327660748,
+                        "createTime": 1710327660737
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "88645019",
+                        "info": {
+                            "id": "88645019",
+                            "price": "73189.21",
+                            "quantity": "0.026675",
+                            "amount": "1952.32217675",
+                            "takerSide": "BUY",
+                            "ts": 1710327660748,
+                            "createTime": 1710327660737
+                        },
+                        "timestamp": 1710327660748,
+                        "datetime": "2024-03-13T11:01:00.748Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73189.21,
+                        "amount": 0.026675,
+                        "cost": 1952.32217675,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

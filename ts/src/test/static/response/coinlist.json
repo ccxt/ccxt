@@ -1,0 +1,56 @@
+{
+    "exchange": "coinlist",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "auctions": [
+                        {
+                            "symbol": "BTC-USDT",
+                            "auction_code": "BTC-USDT-2024-03-01T00:02:31.000Z",
+                            "price": "61165.70000000",
+                            "volume": "0.0012",
+                            "imbalance": "-0.4892",
+                            "logical_time": "2024-03-01T00:02:31.000Z",
+                            "call_time": "2024-03-01T00:02:31.080Z"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC-USDT-2024-03-01T00:02:31.000Z",
+                        "order": null,
+                        "timestamp": 1709251351000,
+                        "datetime": "2024-03-01T00:02:31.000Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 61165.7,
+                        "amount": 0.0012,
+                        "cost": 73.39884,
+                        "fee": null,
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "auction_code": "BTC-USDT-2024-03-01T00:02:31.000Z",
+                            "price": "61165.70000000",
+                            "volume": "0.0012",
+                            "imbalance": "-0.4892",
+                            "logical_time": "2024-03-01T00:02:31.000Z",
+                            "call_time": "2024-03-01T00:02:31.080Z"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

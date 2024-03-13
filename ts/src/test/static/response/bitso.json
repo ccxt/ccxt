@@ -1,0 +1,55 @@
+{
+    "exchange": "bitso",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "payload": [
+                        {
+                            "book": "btc_usdt",
+                            "created_at": "2024-03-13T10:59:59+0000",
+                            "amount": "0.00007045",
+                            "maker_side": "sell",
+                            "price": "73320",
+                            "tid": "119089863"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "119089863",
+                        "info": {
+                            "book": "btc_usdt",
+                            "created_at": "2024-03-13T10:59:59+0000",
+                            "amount": "0.00007045",
+                            "maker_side": "sell",
+                            "price": "73320",
+                            "tid": "119089863"
+                        },
+                        "timestamp": 1710327599000,
+                        "datetime": "2024-03-13T10:59:59.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73320,
+                        "amount": 0.00007045,
+                        "cost": 5.165394,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

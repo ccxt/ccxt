@@ -1,0 +1,8 @@
+{
+    "exchange": "indodax",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+        ]
+    }
+}

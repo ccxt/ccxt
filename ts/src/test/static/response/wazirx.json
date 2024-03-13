@@ -1,0 +1,52 @@
+{
+    "exchange": "wazirx",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "412933773",
+                        "price": "73250.00",
+                        "qty": "0.0003",
+                        "quoteQty": "21.975",
+                        "time": "1710327513000",
+                        "isBuyerMaker": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "412933773",
+                            "price": "73250.00",
+                            "qty": "0.0003",
+                            "quoteQty": "21.975",
+                            "time": "1710327513000",
+                            "isBuyerMaker": false
+                        },
+                        "id": "412933773",
+                        "timestamp": 1710327513000,
+                        "datetime": "2024-03-13T10:58:33.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": "412933773",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73250,
+                        "amount": 0.0003,
+                        "cost": 21.975,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

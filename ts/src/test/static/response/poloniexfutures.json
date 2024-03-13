@@ -1,0 +1,59 @@
+{
+    "exchange": "poloniexfutures",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public swap trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "sequence": "17727780",
+                            "side": "sell",
+                            "size": "1",
+                            "price": "73333.0000000000",
+                            "takerOrderId": "65f1876b0e340f0007944708",
+                            "makerOrderId": "65f18571c0cffc00077f56a6",
+                            "tradeId": "65f1876b5ac296000170b82d",
+                            "ts": "1710327659750513862"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequence": "17727780",
+                            "side": "sell",
+                            "size": "1",
+                            "price": "73333.0000000000",
+                            "takerOrderId": "65f1876b0e340f0007944708",
+                            "makerOrderId": "65f18571c0cffc00077f56a6",
+                            "tradeId": "65f1876b5ac296000170b82d",
+                            "ts": "1710327659750513862"
+                        },
+                        "id": "65f1876b5ac296000170b82d",
+                        "order": null,
+                        "timestamp": 1710327659750,
+                        "datetime": "2024-03-13T11:00:59.750Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 73333,
+                        "amount": 1,
+                        "cost": 73.333,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

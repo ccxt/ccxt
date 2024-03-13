@@ -1,0 +1,66 @@
+{
+    "exchange": "kuna",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "59babc69-d988-4c33-9047-c1d922991f6d",
+                            "pair": "BTC_USDT",
+                            "quoteQuantity": "2561.48799225",
+                            "matchPrice": "73250.25",
+                            "matchQuantity": "0.034969",
+                            "createdAt": "2024-03-13T11:00:44.840Z",
+                            "side": "Ask"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "59babc69-d988-4c33-9047-c1d922991f6d",
+                            "pair": "BTC_USDT",
+                            "quoteQuantity": "2561.48799225",
+                            "matchPrice": "73250.25",
+                            "matchQuantity": "0.034969",
+                            "createdAt": "2024-03-13T11:00:44.840Z",
+                            "side": "Ask"
+                        },
+                        "id": "59babc69-d988-4c33-9047-c1d922991f6d",
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1710327644840,
+                        "datetime": "2024-03-13T11:00:44.840Z",
+                        "type": null,
+                        "side": "ask",
+                        "order": null,
+                        "takerOrMaker": "maker",
+                        "price": 73250.25,
+                        "amount": 0.034969,
+                        "cost": 2561.48799225,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null,
+                                "rate": null
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,50 @@
+{
+    "exchange": "bitopro",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "timestamp": "1710326975",
+                            "price": "73210.53000000",
+                            "amount": "0.00010000",
+                            "isBuyer": true
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "info": {
+                            "timestamp": "1710326975",
+                            "price": "73210.53000000",
+                            "amount": "0.00010000",
+                            "isBuyer": true
+                        },
+                        "order": null,
+                        "timestamp": 1710326975000,
+                        "datetime": "2024-03-13T10:49:35.000Z",
+                        "symbol": "BTC/USDT",
+                        "takerOrMaker": null,
+                        "type": null,
+                        "side": "buy",
+                        "price": 73210.53,
+                        "amount": 0.0001,
+                        "cost": 7.321053,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

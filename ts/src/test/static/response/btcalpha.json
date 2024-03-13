@@ -1,0 +1,54 @@
+{
+    "exchange": "btcalpha",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "1725465174",
+                        "account_id": "412965",
+                        "price": "69817.52",
+                        "amount": "0.019",
+                        "timestamp": "1710264.956584",
+                        "pair": "BTC_USDT",
+                        "type": "buy"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1725465174",
+                        "info": {
+                            "id": "1725465174",
+                            "account_id": "412965",
+                            "price": "69817.52",
+                            "amount": "0.019",
+                            "timestamp": "1710264.956584",
+                            "pair": "BTC_USDT",
+                            "type": "buy"
+                        },
+                        "timestamp": 1710264956584,
+                        "datetime": "2024-03-12T17:35:56.584Z",
+                        "symbol": "BTC/USDT",
+                        "order": "1725465174",
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 69817.52,
+                        "amount": 0.019,
+                        "cost": 1326.53288,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

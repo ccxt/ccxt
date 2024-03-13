@@ -1,246 +1,296 @@
 {
-  "exchange": "mexc",
-  "options": {},
-  "methods": {
-    "fetchOrderBook": [
-      {
-        "description": "Spot orderbook",
-        "method": "fetchOrderBook",
-        "input": [
-          "BTC/USDT",
-          1
+    "exchange": "mexc",
+    "options": {},
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "Spot orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "lastUpdateId": "20453289489",
+                    "bids": [
+                        [
+                            "45995.47",
+                            "10.337165"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "45995.48",
+                            "13.457322"
+                        ]
+                    ],
+                    "timestamp": "1704908526228"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            45995.47,
+                            10.337165
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            45995.48,
+                            13.457322
+                        ]
+                    ],
+                    "timestamp": 1704908526228,
+                    "datetime": "2024-01-10T17:42:06.228Z",
+                    "nonce": 20453289489
+                }
+            }
         ],
-        "httpResponse": {
-          "lastUpdateId": "20453289489",
-          "bids": [
-            [
-              "45995.47",
-              "10.337165"
-            ]
-          ],
-          "asks": [
-            [
-              "45995.48",
-              "13.457322"
-            ]
-          ],
-          "timestamp": "1704908526228"
-        },
-        "parsedResponse": {
-          "symbol": "BTC/USDT",
-          "bids": [
-            [
-              45995.47,
-              10.337165
-            ]
-          ],
-          "asks": [
-            [
-              45995.48,
-              13.457322
-            ]
-          ],
-          "timestamp": 1704908526228,
-          "datetime": "2024-01-10T17:42:06.228Z",
-          "nonce": 20453289489
-        }
-      }
-    ],
-    "fetchDepositAddress": [
-      {
-        "description": "fetch USDT address (should return ERC20 address)",
-        "method": "fetchDepositAddress",
-        "input": [
-          "USDT"
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT address (should return ERC20 address)",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "coin": "USDT",
+                        "network": "BNB Smart Chain(BEP20)",
+                        "address": "XXXXXXXXXXXXYYY",
+                        "memo": null
+                    },
+                    {
+                        "coin": "USDT",
+                        "network": "Ethereum(ERC20)",
+                        "address": "XXXXXXXXXXXXYYY",
+                        "memo": null
+                    },
+                    {
+                        "coin": "USDT",
+                        "network": "Tron(TRC20)",
+                        "address": "YYYYEEEE",
+                        "memo": null
+                    }
+                ],
+                "parsedResponse": {
+                    "currency": "USDT",
+                    "address": "XXXXXXXXXXXXYYY",
+                    "tag": null,
+                    "network": "ERC20",
+                    "info": {
+                        "coin": "USDT",
+                        "network": "Ethereum(ERC20)",
+                        "address": "XXXXXXXXXXXXYYY",
+                        "memo": null
+                    }
+                }
+            }
         ],
-        "httpResponse": [
-          {
-            "coin": "USDT",
-            "network": "BNB Smart Chain(BEP20)",
-            "address": "XXXXXXXXXXXXYYY",
-            "memo": null
-          },
-          {
-            "coin": "USDT",
-            "network": "Ethereum(ERC20)",
-            "address": "XXXXXXXXXXXXYYY",
-            "memo": null
-          },
-          {
-            "coin": "USDT",
-            "network": "Tron(TRC20)",
-            "address": "YYYYEEEE",
-            "memo": null
-          }
+        "fetchMyTrades": [
+            {
+                "description": "user trade",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ATLAS/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ATLASUSDT",
+                        "id": "dd44f79dda764c2e927a190ac5e7a1e5",
+                        "orderId": "C02__385413065019117569043",
+                        "orderListId": "-1",
+                        "price": "0.004542",
+                        "qty": "1220",
+                        "quoteQty": "5.54124",
+                        "commission": "0",
+                        "commissionAsset": "USDT",
+                        "time": "1707671871000",
+                        "isBuyer": false,
+                        "isMaker": false,
+                        "isBestMatch": true,
+                        "isSelfTrade": false,
+                        "clientOrderId": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "dd44f79dda764c2e927a190ac5e7a1e5",
+                        "order": "C02__385413065019117569043",
+                        "timestamp": 1707671871000,
+                        "datetime": "2024-02-11T17:17:51.000Z",
+                        "symbol": "ATLAS/USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 0.004542,
+                        "amount": 1220,
+                        "cost": 5.54124,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "symbol": "ATLASUSDT",
+                            "id": "dd44f79dda764c2e927a190ac5e7a1e5",
+                            "orderId": "C02__385413065019117569043",
+                            "orderListId": "-1",
+                            "price": "0.004542",
+                            "qty": "1220",
+                            "quoteQty": "5.54124",
+                            "commission": "0",
+                            "commissionAsset": "USDT",
+                            "time": "1707671871000",
+                            "isBuyer": false,
+                            "isMaker": false,
+                            "isBestMatch": true,
+                            "isSelfTrade": false,
+                            "clientOrderId": null
+                        },
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            }
         ],
-        "parsedResponse": {
-          "currency": "USDT",
-          "address": "XXXXXXXXXXXXYYY",
-          "tag": null,
-          "network": "ERC20",
-          "info": {
-            "coin": "USDT",
-            "network": "Ethereum(ERC20)",
-            "address": "XXXXXXXXXXXXYYY",
-            "memo": null
-          }
-        }
-      }
-    ],
-    "fetchMyTrades": [
-      {
-        "description": "user trade",
-        "method": "fetchMyTrades",
-        "input": [
-          "ATLAS/USDT",
-          null,
-          1
+        "fetchOrders": [
+            {
+                "description": "fetch orders",
+                "method": "fetchOrders",
+                "input": [
+                    "ATLAS/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ATLASUSDT",
+                        "orderId": "C02__385413065019117569043",
+                        "orderListId": "-1",
+                        "clientOrderId": null,
+                        "price": "0.004327",
+                        "origQty": "1220",
+                        "executedQty": "1220",
+                        "cummulativeQuoteQty": "5.54124",
+                        "status": "FILLED",
+                        "timeInForce": null,
+                        "type": "MARKET",
+                        "side": "SELL",
+                        "stopPrice": null,
+                        "icebergQty": null,
+                        "time": "1707671871000",
+                        "updateTime": "1707671871000",
+                        "isWorking": true,
+                        "origQuoteOrderQty": "5.27894"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "C02__385413065019117569043",
+                        "clientOrderId": null,
+                        "timestamp": 1707671871000,
+                        "datetime": "2024-02-11T17:17:51.000Z",
+                        "lastTradeTimestamp": null,
+                        "status": "closed",
+                        "symbol": "ATLAS/USDT",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "side": "sell",
+                        "price": 0.004327,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "average": 0.004542,
+                        "amount": 1220,
+                        "cost": 5.54124,
+                        "filled": 1220,
+                        "remaining": 0,
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "symbol": "ATLASUSDT",
+                            "orderId": "C02__385413065019117569043",
+                            "orderListId": "-1",
+                            "clientOrderId": null,
+                            "price": "0.004327",
+                            "origQty": "1220",
+                            "executedQty": "1220",
+                            "cummulativeQuoteQty": "5.54124",
+                            "status": "FILLED",
+                            "timeInForce": null,
+                            "type": "MARKET",
+                            "side": "SELL",
+                            "stopPrice": null,
+                            "icebergQty": null,
+                            "time": "1707671871000",
+                            "updateTime": "1707671871000",
+                            "isWorking": true,
+                            "origQuoteOrderQty": "5.27894"
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
         ],
-        "httpResponse": [
-          {
-            "symbol": "ATLASUSDT",
-            "id": "dd44f79dda764c2e927a190ac5e7a1e5",
-            "orderId": "C02__385413065019117569043",
-            "orderListId": "-1",
-            "price": "0.004542",
-            "qty": "1220",
-            "quoteQty": "5.54124",
-            "commission": "0",
-            "commissionAsset": "USDT",
-            "time": "1707671871000",
-            "isBuyer": false,
-            "isMaker": false,
-            "isBestMatch": true,
-            "isSelfTrade": false,
-            "clientOrderId": null
-          }
-        ],
-        "parsedResponse": [
-          {
-            "id": "dd44f79dda764c2e927a190ac5e7a1e5",
-            "order": "C02__385413065019117569043",
-            "timestamp": 1707671871000,
-            "datetime": "2024-02-11T17:17:51.000Z",
-            "symbol": "ATLAS/USDT",
-            "type": null,
-            "side": "sell",
-            "takerOrMaker": "taker",
-            "price": 0.004542,
-            "amount": 1220,
-            "cost": 5.54124,
-            "fee": {
-              "cost": 0,
-              "currency": "USDT"
-            },
-            "info": {
-              "symbol": "ATLASUSDT",
-              "id": "dd44f79dda764c2e927a190ac5e7a1e5",
-              "orderId": "C02__385413065019117569043",
-              "orderListId": "-1",
-              "price": "0.004542",
-              "qty": "1220",
-              "quoteQty": "5.54124",
-              "commission": "0",
-              "commissionAsset": "USDT",
-              "time": "1707671871000",
-              "isBuyer": false,
-              "isMaker": false,
-              "isBestMatch": true,
-              "isSelfTrade": false,
-              "clientOrderId": null
-            },
-            "fees": [
-              {
-                "cost": 0,
-                "currency": "USDT"
-              }
-            ]
-          }
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "a": null,
+                        "f": null,
+                        "l": null,
+                        "p": "73238.7",
+                        "q": "0.000112",
+                        "T": "1710327661000",
+                        "m": false,
+                        "M": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1710327661000-BTCUSDT-buy-0.000112-73238.7-taker",
+                        "order": null,
+                        "timestamp": 1710327661000,
+                        "datetime": "2024-03-13T11:01:01.000Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 73238.7,
+                        "amount": 0.000112,
+                        "cost": 8.2027344,
+                        "fee": null,
+                        "info": {
+                            "a": null,
+                            "f": null,
+                            "l": null,
+                            "p": "73238.7",
+                            "q": "0.000112",
+                            "T": "1710327661000",
+                            "m": false,
+                            "M": true
+                        },
+                        "fees": []
+                    }
+                ]
+            }
         ]
-      }
-    ],
-    "fetchOrders": [
-      {
-        "description": "fetch orders",
-        "method": "fetchOrders",
-        "input": [
-          "ATLAS/USDT",
-          null,
-          1
-        ],
-        "httpResponse": [
-          {
-            "symbol": "ATLASUSDT",
-            "orderId": "C02__385413065019117569043",
-            "orderListId": "-1",
-            "clientOrderId": null,
-            "price": "0.004327",
-            "origQty": "1220",
-            "executedQty": "1220",
-            "cummulativeQuoteQty": "5.54124",
-            "status": "FILLED",
-            "timeInForce": null,
-            "type": "MARKET",
-            "side": "SELL",
-            "stopPrice": null,
-            "icebergQty": null,
-            "time": "1707671871000",
-            "updateTime": "1707671871000",
-            "isWorking": true,
-            "origQuoteOrderQty": "5.27894"
-          }
-        ],
-        "parsedResponse": [
-          {
-            "id": "C02__385413065019117569043",
-            "clientOrderId": null,
-            "timestamp": 1707671871000,
-            "datetime": "2024-02-11T17:17:51.000Z",
-            "lastTradeTimestamp": null,
-            "status": "closed",
-            "symbol": "ATLAS/USDT",
-            "type": "market",
-            "timeInForce": "IOC",
-            "side": "sell",
-            "price": 0.004327,
-            "stopPrice": null,
-            "triggerPrice": null,
-            "average": 0.004542,
-            "amount": 1220,
-            "cost": 5.54124,
-            "filled": 1220,
-            "remaining": 0,
-            "fee": null,
-            "trades": [],
-            "info": {
-              "symbol": "ATLASUSDT",
-              "orderId": "C02__385413065019117569043",
-              "orderListId": "-1",
-              "clientOrderId": null,
-              "price": "0.004327",
-              "origQty": "1220",
-              "executedQty": "1220",
-              "cummulativeQuoteQty": "5.54124",
-              "status": "FILLED",
-              "timeInForce": null,
-              "type": "MARKET",
-              "side": "SELL",
-              "stopPrice": null,
-              "icebergQty": null,
-              "time": "1707671871000",
-              "updateTime": "1707671871000",
-              "isWorking": true,
-              "origQuoteOrderQty": "5.27894"
-            },
-            "fees": [],
-            "lastUpdateTimestamp": null,
-            "postOnly": null,
-            "reduceOnly": null,
-            "takeProfitPrice": null,
-            "stopLossPrice": null
-          }
-        ]
-      } 
-    ]
-  }
+    }
 }

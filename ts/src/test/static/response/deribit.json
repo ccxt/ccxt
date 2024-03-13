@@ -1,0 +1,72 @@
+{
+    "exchange": "deribit",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "has_more": true,
+                        "trades": [
+                            {
+                                "trade_id": "BTC_USDT-1097032",
+                                "contracts": "1.0",
+                                "instrument_name": "BTC_USDT",
+                                "tick_direction": "3",
+                                "trade_seq": "53466",
+                                "mark_price": "73147.6867",
+                                "index_price": "73147.6867",
+                                "direction": "sell",
+                                "amount": "0.0001",
+                                "price": "73260.86",
+                                "timestamp": "1710326420359"
+                            }
+                        ]
+                    },
+                    "usIn": "1710327659195248",
+                    "usOut": "1710327659195489",
+                    "usDiff": "241",
+                    "testnet": false
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC_USDT-1097032",
+                        "info": {
+                            "trade_id": "BTC_USDT-1097032",
+                            "contracts": "1.0",
+                            "instrument_name": "BTC_USDT",
+                            "tick_direction": "3",
+                            "trade_seq": "53466",
+                            "mark_price": "73147.6867",
+                            "index_price": "73147.6867",
+                            "direction": "sell",
+                            "amount": "0.0001",
+                            "price": "73260.86",
+                            "timestamp": "1710326420359"
+                        },
+                        "timestamp": 1710326420359,
+                        "datetime": "2024-03-13T10:40:20.359Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 73260.86,
+                        "amount": 0.0001,
+                        "cost": 1.364985341e-9,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

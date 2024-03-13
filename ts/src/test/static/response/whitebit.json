@@ -1,0 +1,52 @@
+{
+    "exchange": "whitebit",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "tradeID": "3717193477",
+                        "price": "73236.67",
+                        "quote_volume": "0.003212",
+                        "base_volume": "235.23",
+                        "trade_timestamp": "1710327649",
+                        "type": "sell"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "tradeID": "3717193477",
+                            "price": "73236.67",
+                            "quote_volume": "0.003212",
+                            "base_volume": "235.23",
+                            "trade_timestamp": "1710327649",
+                            "type": "sell"
+                        },
+                        "timestamp": 1710327649000,
+                        "datetime": "2024-03-13T11:00:49.000Z",
+                        "symbol": "BTC/USDT",
+                        "id": "3717193477",
+                        "order": null,
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 73236.67,
+                        "amount": 0.003212,
+                        "cost": 0.00023523618404,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

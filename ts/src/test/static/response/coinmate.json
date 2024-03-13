@@ -1,0 +1,23 @@
+{
+    "exchange": "coinmate",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "error": false,
+                    "errorMessage": null,
+                    "data": []
+                },
+                "parsedResponse": []
+            }
+        ]
+    }
+}

@@ -1,0 +1,50 @@
+{
+    "exchange": "hollaex",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "btc-usdt": [
+                        {
+                            "size": "0.01752",
+                            "price": "73282.95",
+                            "side": "sell",
+                            "timestamp": "2024-03-13T11:00:24.803Z"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "size": "0.01752",
+                            "price": "73282.95",
+                            "side": "sell",
+                            "timestamp": "2024-03-13T11:00:24.803Z"
+                        },
+                        "id": null,
+                        "timestamp": 1710327624803,
+                        "datetime": "2024-03-13T11:00:24.803Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 73282.95,
+                        "amount": 0.01752,
+                        "cost": 1283.917284,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}
