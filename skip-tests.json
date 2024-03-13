@@ -1162,6 +1162,9 @@
             },
             "fetchPositions": {
                 "percentage": "percentage is not provided"
+            },
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
             }
         }
     },
