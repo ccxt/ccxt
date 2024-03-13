@@ -75,7 +75,7 @@
                         "bestAskPrice": "73474.0",
                         "tradeId": "65f189b35ac296000170eddb",
                         "bestAskSize": "24",
-                        "ts": "1710328243568622587"
+                        "ts": "1710328243568322587"
                     }
                 },
                 "parsedResponse": {
@@ -109,7 +109,7 @@
                         "bestAskPrice": "73474.0",
                         "tradeId": "65f189b35ac296000170eddb",
                         "bestAskSize": "24",
-                        "ts": "1710328243568622587"
+                        "ts": "1710328243568322587"
                     }
                 }
             }
@@ -121,7 +121,7 @@
                 "input": [
                   "BTC/USDT:USDT",
                   "1h",
-                  null,
+                  1710085130000,
                   1
                 ],
                 "httpResponse": {
