@@ -982,7 +982,7 @@
             {
                 "description": "spot 1m +since +limit",
                 "method": "fetchOHLCV",
-                "url": "https://api.huobi.pro/market/history/candles?period=1min&from=1620000000&size=5&symbol=btcusdt",      
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=btcusdt&from=1620000000",      
                 "input": [
                   "BTC/USDT",
                   "1m",
@@ -993,7 +993,7 @@
             {
                 "description": "spot 1m +since +limit +until",
                 "method": "fetchOHLCV",
-                "url": "https://api.huobi.pro/market/history/candles?period=1min&from=1620000000&size=5&symbol=btcusdt&until=1620000000900",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=btcusdt&from=1620000000&until=1620000000900",
                 "input": [
                   "BTC/USDT",
                   "1m",
@@ -1037,9 +1037,9 @@
                 ]
             },
             {
-                "description": "spot without useHistoricalEndpoint",
+                "description": "spot 1m +since +limit +until without useHistoricalEndpoint",
                 "method": "fetchOHLCV",
-                "url": "https://api.huobi.pro/market/history/kline?period=1min&from=1620000000&size=5&symbol=btcusdt",      
+                "url": "https://api.huobi.pro/market/history/kline?period=1min&size=5&symbol=btcusdt",      
                 "input": [
                   "BTC/USDT",
                   "1m",
