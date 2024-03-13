@@ -82,7 +82,7 @@ Welcome to the ccxt wiki!
 - [Error Handling](https://github.com/ccxt/ccxt/wiki/Manual#error-handling)
 - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
 - [How To Submit An Issue](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue)
-- [CCXT CLI: Command-Line Interface](https://github.com/ccxt/ccxt/wiki/Command-Line-Interface)
+- [CCXT CLI: Command-Line Interface](https://github.com/ccxt/ccxt/wiki/CLI)
 
 ## Examples
 
