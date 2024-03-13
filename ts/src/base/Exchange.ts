@@ -250,7 +250,6 @@ export default class Exchange {
     triggerOrders: ArrayCache = undefined
     trades: Dictionary<ArrayCache>
     transactions = {}
-    futureTypes  = []
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>
     myTrades: ArrayCache;
     positions: any;
@@ -784,7 +783,6 @@ export default class Exchange {
         this.ohlcvs       = {}
         this.myTrades     = undefined
         this.positions    = undefined
-        this.futureTypes  = [ 'W', 'BW', 'M', 'BM', 'Q', 'BQ' ]
         // web3 and cryptography flags
         this.requiresWeb3 = false
         this.requiresEddsa = false
@@ -5024,8 +5022,9 @@ export default class Exchange {
             }
             // temporary support for old futures
             if (symbol.indexOf ('-') >= 0) {
-                for (let i = 0; i < this.futureTypes.length; i++) {
-                    const futureType = this.futureTypes[i];
+                const futureTypes  = [ 'W', 'BW', 'M', 'BM', 'Q', 'BQ' ]
+                for (let i = 0; i < futureTypes.length; i++) {
+                    const futureType = futureTypes[i];
                     const newPrefix = '-' + futureType;
                     const checkSymbol = symbol.replace ('-', newPrefix);
                     if ((symbol.indexOf (newPrefix) < 0) && (checkSymbol in this.markets)) {
