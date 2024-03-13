@@ -3580,7 +3580,7 @@ export default class Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
+    parseOHLCV (ohlcv: object, market: Market = undefined) : OHLCV {
         if (Array.isArray (ohlcv)) {
             return [
                 this.safeInteger (ohlcv, 0), // timestamp
@@ -3591,7 +3591,7 @@ export default class Exchange {
                 this.safeNumber (ohlcv, 5), // volume
             ];
         }
-        return ohlcv;
+        return ohlcv as OHLCV;
     }
 
     networkCodeToId (networkCode: string, currencyCode: string = undefined): string {
