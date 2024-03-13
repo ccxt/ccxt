@@ -371,6 +371,8 @@ class bitget extends bitget$1 {
                             'v2/spot/wallet/transfer': 2,
                             'v2/spot/wallet/subaccount-transfer': 2,
                             'v2/spot/wallet/withdrawal': 2,
+                            'v2/spot/wallet/cancel-withdrawal': 2,
+                            'v2/spot/wallet/modify-deposit-account': 2,
                         },
                     },
                     'mix': {
@@ -715,9 +717,12 @@ class bitget extends bitget$1 {
                             'v2/convert/currencies': 2,
                             'v2/convert/quoted-price': 2,
                             'v2/convert/convert-record': 2,
+                            'v2/convert/bgb-convert-coin-list': 2,
+                            'v2/convert/bgb-convert-records': 2,
                         },
                         'post': {
                             'v2/convert/trade': 2,
+                            'v2/convert/bgb-convert': 2,
                         },
                     },
                     'earn': {
@@ -4922,6 +4927,7 @@ class bitget extends bitget$1 {
          * @name bitget#cancelAllOrders
          * @description cancel all open orders
          * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+         * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
          * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -4949,7 +4955,7 @@ class bitget extends bitget$1 {
         const request = {
             'symbol': market['id'],
         };
-        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const stop = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
         if (market['spot']) {
@@ -4962,7 +4968,15 @@ class bitget extends bitget$1 {
                 }
             }
             else {
-                response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, params));
+                if (stop) {
+                    const stopRequest = {
+                        'symbolList': [market['id']],
+                    };
+                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder(this.extend(stopRequest, params));
+                }
+                else {
+                    response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, params));
+                }
             }
         }
         else {

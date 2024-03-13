@@ -2540,6 +2540,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
         * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
         parameters ??= new Dictionary<string, object>();
@@ -3391,6 +3392,7 @@ public partial class binance : Exchange
         * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
         * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -4005,6 +4007,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    // future
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -4055,6 +4058,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of lastprices structures
         */
         parameters ??= new Dictionary<string, object>();
@@ -4141,6 +4145,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -6774,6 +6779,7 @@ public partial class binance : Exchange
         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account conditional orders
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -9039,6 +9045,7 @@ public partial class binance : Exchange
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -9118,6 +9125,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
@@ -9398,6 +9406,7 @@ public partial class binance : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest funding rate
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -9485,6 +9494,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
         */
         parameters ??= new Dictionary<string, object>();
@@ -10164,6 +10174,7 @@ public partial class binance : Exchange
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
@@ -10513,6 +10524,7 @@ public partial class binance : Exchange
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} data on account positions
         */
         parameters ??= new Dictionary<string, object>();
@@ -10578,6 +10590,7 @@ public partial class binance : Exchange
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} data on the positions risk
         */
         parameters ??= new Dictionary<string, object>();
@@ -10751,6 +10764,7 @@ public partial class binance : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest funding history entry
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -10974,6 +10988,7 @@ public partial class binance : Exchange
         * @param {string} symbol not used by binance setPositionMode ()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} response from the exchange
         */
         parameters ??= new Dictionary<string, object>();
@@ -11009,7 +11024,7 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivatePostPositionSideDual(this.extend(request, parameters));
             }
-        } else
+        } else if (isTrue(this.isLinear(type, subType)))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -11018,6 +11033,9 @@ public partial class binance : Exchange
             {
                 response = await this.fapiPrivatePostPositionSideDual(this.extend(request, parameters));
             }
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " setPositionMode() supports linear and inverse contracts only")) ;
         }
         //
         //     {
@@ -11040,6 +11058,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
         * @param {string[]} [symbols] a list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -11359,6 +11378,7 @@ public partial class binance : Exchange
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -12680,6 +12700,8 @@ public partial class binance : Exchange
         * @param {int} [params.until] timestamp in ms of the latest liquidation
         * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch liquidations in a portfolio margin account
+        * @param {string} [params.type] "spot"
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -13042,8 +13064,8 @@ public partial class binance : Exchange
         * @name binance#fetchPositionMode
         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
         * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {object} params extra parameters specific to the exchange API endpoint
-        * @param {string} params.subType "linear" or "inverse"
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} an object detailing whether the market is in hedged or one-way mode
         */
         parameters ??= new Dictionary<string, object>();
@@ -13088,6 +13110,7 @@ public partial class binance : Exchange
         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
         */
         parameters ??= new Dictionary<string, object>();

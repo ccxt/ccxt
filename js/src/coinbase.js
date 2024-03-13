@@ -3724,7 +3724,8 @@ export default class coinbase extends Exchange {
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
-        const pathPart = (version === 'v3') ? 'api/v3' : 'v2';
+        const isV3 = version === 'v3';
+        const pathPart = (isV3) ? 'api/v3' : 'v2';
         let fullPath = '/' + pathPart + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const savedPath = fullPath;
@@ -3768,8 +3769,17 @@ export default class coinbase extends Exchange {
                         payload = body;
                     }
                 }
-                // 'GET' doesn't need payload in the signature. inside url is enough
+                else {
+                    if (!isV3) {
+                        if (Object.keys(query).length) {
+                            payload += '?' + this.urlencode(query);
+                        }
+                    }
+                }
+                // v3: 'GET' doesn't need payload in the signature. inside url is enough
                 // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
+                // v2: 'GET' require payload in the signature
+                // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 const auth = timestampString + method + savedPath + payload;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = {

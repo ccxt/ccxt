@@ -583,4 +583,25 @@ public partial class bitstamp
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
     }
+    /// <summary>
+    /// transfer currency internally between wallets on the same account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub"/>  <br/>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromSubToMain"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
+        return new TransferEntry(res);
+    }
 }

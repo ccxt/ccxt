@@ -1867,6 +1867,7 @@ export default class bingx extends Exchange {
             const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
             const trailingAmount = this.safeString(params, 'trailingAmount');
             const trailingPercent = this.safeString2(params, 'trailingPercent', 'priceRate');
+            const trailingType = this.safeString(params, 'trailingType', 'TRAILING_STOP_MARKET');
             const isTriggerOrder = triggerPrice !== undefined;
             const isStopLossPriceOrder = stopLossPrice !== undefined;
             const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
@@ -1913,7 +1914,7 @@ export default class bingx extends Exchange {
                 }
             }
             else if (isTrailing) {
-                request['type'] = 'TRAILING_STOP_MARKET';
+                request['type'] = trailingType;
                 if (isTrailingAmountOrder) {
                     request['price'] = this.parseToNumeric(trailingAmount);
                 }
@@ -1968,7 +1969,7 @@ export default class bingx extends Exchange {
             }
             request['positionSide'] = positionSide;
             request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
-            params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss', 'clientOrderId']);
+            params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId']);
         }
         return this.extend(request, params);
     }
@@ -1999,14 +2000,22 @@ export default class bingx extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        const test = this.safeBool(params, 'test', false);
+        params = this.omit(params, 'test');
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['swap']) {
-            response = await this.swapV2PrivatePostTradeOrder(request);
+            if (test) {
+                response = await this.swapV2PrivatePostTradeOrderTest(request);
+            }
+            else {
+                response = await this.swapV2PrivatePostTradeOrder(request);
+            }
         }
         else {
             response = await this.spotV1PrivatePostTradeOrder(request);
@@ -4060,7 +4069,7 @@ export default class bingx extends Exchange {
          * @param {string} [params.newClientOrderId] custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
          * @param {string} [params.positionSide] *contract only* position direction, required for single position as BOTH, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
          * @param {string} [params.reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
-         * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market, Max = 1
+         * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
          * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

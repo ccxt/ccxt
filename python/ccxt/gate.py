@@ -879,7 +879,7 @@ class gate(Exchange, ImplicitAPI):
             },
         })
 
-    def set_sandbox_mode(self, enable):
+    def set_sandbox_mode(self, enable: bool):
         super(gate, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
@@ -2173,7 +2173,8 @@ class gate(Exchange, ImplicitAPI):
         request, requestParams = self.prepare_request(market, type, query)
         request['type'] = 'fund'  # 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if since is not None:
-            request['from'] = since / 1000
+            # from should be integer
+            request['from'] = self.parse_to_int(since / 1000)
         if limit is not None:
             request['limit'] = limit
         response = None
@@ -4197,7 +4198,9 @@ class gate(Exchange, ImplicitAPI):
         lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
         if lastTradeTimestamp is None:
             lastTradeTimestamp = self.safe_timestamp_2(order, 'update_time', 'finish_time')
-        marketType = 'spot' if ('currency_pair' in order) else 'contract'
+        marketType = 'contract'
+        if ('currency_pair' in order) or ('market' in order):
+            marketType = 'spot'
         exchangeSymbol = self.safe_string_2(order, 'currency_pair', 'market', contract)
         symbol = self.safe_symbol(exchangeSymbol, market, '_', marketType)
         # Everything below self(above return) is related to fees

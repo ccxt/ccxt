@@ -113,6 +113,77 @@
                     }
                 ]
             }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://futures-api.poloniex.com/api/v1/timestamp",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://futures-api.poloniex.com/api/v1/trade/history?symbol=BTCUSDTPERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://futures-api.poloniex.com/api/v1/level2/snapshot?symbol=BTCUSDTPERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://futures-api.poloniex.com/api/v2/ticker?symbol=BTCUSDTPERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://futures-api.poloniex.com/api/v2/tickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://futures-api.poloniex.com/api/v1/kline/query?symbol=BTCUSDTPERP&granularity=1",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://futures-api.poloniex.com/api/v1/funding-rate/BTCUSDTPERP/current",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

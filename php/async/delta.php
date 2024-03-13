@@ -55,7 +55,8 @@ class delta extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
-                'fetchMarginMode' => false,
+                'fetchMarginMode' => true,
+                'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -3253,6 +3254,101 @@ class delta extends Exchange {
             $position = $this->parse_position($this->safe_value($response, 'result', array()));
             return array( $position );
         }) ();
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches the margin mode of a trading pair
+             * @see https://docs.delta.exchange/#get-user
+             * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $response = Async\await($this->privateGetProfile ($params));
+            //
+            //     {
+            //         "result" => {
+            //             "is_password_set" => true,
+            //             "kyc_expiry_date" => null,
+            //             "phishing_code" => "12345",
+            //             "preferences" => array(
+            //                 "favorites" => array()
+            //             ),
+            //             "is_kyc_provisioned" => false,
+            //             "country" => "Canada",
+            //             "margin_mode" => "isolated",
+            //             "mfa_updated_at" => "2023-07-19T01:04:43Z",
+            //             "last_name" => "",
+            //             "oauth_apple_active" => false,
+            //             "pf_index_symbol" => null,
+            //             "proof_of_identity_status" => "approved",
+            //             "dob" => null,
+            //             "email" => "abc_123@gmail.com",
+            //             "force_change_password" => false,
+            //             "nick_name" => "still-breeze-123",
+            //             "oauth_google_active" => false,
+            //             "phone_verification_status" => "verified",
+            //             "id" => 12345678,
+            //             "last_seen" => null,
+            //             "is_withdrawal_enabled" => true,
+            //             "force_change_mfa" => false,
+            //             "enable_bots" => false,
+            //             "kyc_verified_on" => null,
+            //             "created_at" => "2023-07-19T01:02:32Z",
+            //             "withdrawal_blocked_till" => null,
+            //             "proof_of_address_status" => "approved",
+            //             "is_password_change_blocked" => false,
+            //             "is_mfa_enabled" => true,
+            //             "is_kyc_done" => true,
+            //             "oauth" => null,
+            //             "account_name" => "Main",
+            //             "sub_account_permissions" => null,
+            //             "phone_number" => null,
+            //             "tracking_info" => array(
+            //                 "ga_cid" => "1234.4321",
+            //                 "is_kyc_gtm_tracked" => true,
+            //                 "sub_account_config" => array(
+            //                     "cross" => 2,
+            //                     "isolated" => 2,
+            //                     "portfolio" => 2
+            //                 }
+            //             ),
+            //             "first_name" => "",
+            //             "phone_verified_on" => null,
+            //             "seen_intro" => false,
+            //             "password_updated_at" => null,
+            //             "is_login_enabled" => true,
+            //             "registration_date" => "2023-07-19T01:02:32Z",
+            //             "permissions" => array(),
+            //             "max_sub_accounts_limit" => 2,
+            //             "country_calling_code" => null,
+            //             "is_sub_account" => false,
+            //             "is_kyc_refresh_required" => false
+            //         ),
+            //         "success" => true
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            return $this->parse_margin_mode($result, $market);
+        }) ();
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        return array(
+            'info' => $marginMode,
+            'symbol' => $symbol,
+            'marginMode' => $this->safe_string($marginMode, 'margin_mode'),
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

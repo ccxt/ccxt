@@ -200,7 +200,7 @@ public partial class currencycom : ccxt.currencycom
         };
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message, object subscription)
+    public virtual void handleTrades(WebSocketClient client, object message)
     {
         //
         //     {

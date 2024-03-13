@@ -19,6 +19,7 @@ class ImplicitAPI:
     private_get_account_balance = privateGetAccountBalance = Entry('account/balance', 'private', 'GET', {'cost': 1})
     private_get_account_positions = privateGetAccountPositions = Entry('account/positions', 'private', 'GET', {'cost': 1})
     private_get_account_leverage_info = privateGetAccountLeverageInfo = Entry('account/leverage-info', 'private', 'GET', {'cost': 1})
+    private_get_account_margin_mode = privateGetAccountMarginMode = Entry('account/margin-mode', 'private', 'GET', {'cost': 1})
     private_get_account_batch_leverage_info = privateGetAccountBatchLeverageInfo = Entry('account/batch-leverage-info', 'private', 'GET', {'cost': 1})
     private_get_trade_orders_tpsl_pending = privateGetTradeOrdersTpslPending = Entry('trade/orders-tpsl-pending', 'private', 'GET', {'cost': 1})
     private_get_trade_orders_history = privateGetTradeOrdersHistory = Entry('trade/orders-history', 'private', 'GET', {'cost': 1})
