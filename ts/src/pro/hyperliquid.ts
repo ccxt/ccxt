@@ -486,6 +486,10 @@ export default class hyperliquid extends hyperliquidRest {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const dataLength = data.length;
+        if (dataLength === 0) {
+            return;
+        }
         const stored = this.orders;
         const messageHash = 'order';
         const marketSymbols = {};
