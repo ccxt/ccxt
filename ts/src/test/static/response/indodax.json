@@ -2,7 +2,58 @@
     "exchange": "indodax",
     "skipKeys": [],
     "methods": {
-        "fetchTrades": [
+        "fetchTrades": [],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "ticker": {
+                        "high": "73595.39",
+                        "low": "69500",
+                        "vol_btc": "1.58603722",
+                        "vol_usdt": "113619.71423736",
+                        "last": "73302",
+                        "buy": "73302",
+                        "sell": "73594.990001",
+                        "server_time": "1710328244"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328244000,
+                    "datetime": "2024-03-13T11:10:44.000Z",
+                    "high": 73595.39,
+                    "low": 69500,
+                    "bid": 73302,
+                    "bidVolume": null,
+                    "ask": 73594.990001,
+                    "askVolume": null,
+                    "vwap": 71637.48290683872,
+                    "open": null,
+                    "close": 73302,
+                    "last": 73302,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 1.58603722,
+                    "quoteVolume": 113619.71423736,
+                    "info": {
+                        "high": "73595.39",
+                        "low": "69500",
+                        "vol_btc": "1.58603722",
+                        "vol_usdt": "113619.71423736",
+                        "last": "73302",
+                        "buy": "73302",
+                        "sell": "73594.990001",
+                        "server_time": "1710328244"
+                    }
+                }
+            }
         ]
     }
 }

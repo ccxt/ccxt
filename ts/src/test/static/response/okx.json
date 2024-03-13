@@ -1231,6 +1231,78 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instType": "SPOT",
+                            "instId": "BTC-USDT",
+                            "last": "73384.8",
+                            "lastSz": "0.00007722",
+                            "askPx": "73384.8",
+                            "askSz": "0.40193728",
+                            "bidPx": "73384.7",
+                            "bidSz": "0.0655768",
+                            "open24h": "72166.8",
+                            "high24h": "73625.6",
+                            "low24h": "68600",
+                            "volCcy24h": "1519926359.597266598",
+                            "vol24h": "21266.19145051",
+                            "ts": "1710328243709",
+                            "sodUtc0": "71450",
+                            "sodUtc8": "71702"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328243709,
+                    "datetime": "2024-03-13T11:10:43.709Z",
+                    "high": 73625.6,
+                    "low": 68600,
+                    "bid": 73384.7,
+                    "bidVolume": 0.0655768,
+                    "ask": 73384.8,
+                    "askVolume": 0.40193728,
+                    "vwap": 71471.48858950088,
+                    "open": 72166.8,
+                    "close": 73384.8,
+                    "last": 73384.8,
+                    "previousClose": null,
+                    "change": 1218,
+                    "percentage": 1.6877566969853173,
+                    "average": 72775.8,
+                    "baseVolume": 21266.19145051,
+                    "quoteVolume": 1519926359.5972667,
+                    "info": {
+                        "instType": "SPOT",
+                        "instId": "BTC-USDT",
+                        "last": "73384.8",
+                        "lastSz": "0.00007722",
+                        "askPx": "73384.8",
+                        "askSz": "0.40193728",
+                        "bidPx": "73384.7",
+                        "bidSz": "0.0655768",
+                        "open24h": "72166.8",
+                        "high24h": "73625.6",
+                        "low24h": "68600",
+                        "volCcy24h": "1519926359.597266598",
+                        "vol24h": "21266.19145051",
+                        "ts": "1710328243709",
+                        "sodUtc0": "71450",
+                        "sodUtc8": "71702"
+                    }
+                }
+            }
         ]
     }
 }

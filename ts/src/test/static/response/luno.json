@@ -55,6 +55,54 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "pair": "XBTUSDT",
+                    "timestamp": "1710328244969",
+                    "bid": "72617.38000000",
+                    "ask": "73998.97000000",
+                    "last_trade": "73998.98000000",
+                    "rolling_24_hour_volume": "0.31110000",
+                    "status": "ACTIVE"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328244969,
+                    "datetime": "2024-03-13T11:10:44.969Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 72617.38,
+                    "bidVolume": null,
+                    "ask": 73998.97,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 73998.98,
+                    "last": 73998.98,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0.3111,
+                    "quoteVolume": null,
+                    "info": {
+                        "pair": "XBTUSDT",
+                        "timestamp": "1710328244969",
+                        "bid": "72617.38000000",
+                        "ask": "73998.97000000",
+                        "last_trade": "73998.98000000",
+                        "rolling_24_hour_volume": "0.31110000",
+                        "status": "ACTIVE"
+                    }
+                }
+            }
         ]
     }
 }

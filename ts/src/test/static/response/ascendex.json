@@ -274,6 +274,73 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "symbol": "BTC/USDT",
+                        "open": "71865",
+                        "close": "73374.18",
+                        "high": "73635.73",
+                        "low": "68700",
+                        "volume": "999.01458",
+                        "ask": [
+                            "73377.9",
+                            "0.0027"
+                        ],
+                        "bid": [
+                            "73358.53",
+                            "0.0023"
+                        ],
+                        "type": "spot"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 73635.73,
+                    "low": 68700,
+                    "bid": 73358.53,
+                    "bidVolume": 0.0023,
+                    "ask": 73377.9,
+                    "askVolume": 0.0027,
+                    "vwap": null,
+                    "open": 71865,
+                    "close": 73374.18,
+                    "last": 73374.18,
+                    "previousClose": null,
+                    "change": 1509.18,
+                    "percentage": 2.100020872469213,
+                    "average": 72619.59,
+                    "baseVolume": 999.01458,
+                    "quoteVolume": null,
+                    "info": {
+                        "symbol": "BTC/USDT",
+                        "open": "71865",
+                        "close": "73374.18",
+                        "high": "73635.73",
+                        "low": "68700",
+                        "volume": "999.01458",
+                        "ask": [
+                            "73377.9",
+                            "0.0027"
+                        ],
+                        "bid": [
+                            "73358.53",
+                            "0.0023"
+                        ],
+                        "type": "spot"
+                    }
+                }
+            }
         ]
     }
 }

@@ -197,6 +197,48 @@
                     "fee": null
                 }
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTC-USDT",
+                    "price_24h": "71400.89",
+                    "volume_24h": "0.71952468",
+                    "last_trade_price": "73193.79"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 71400.89,
+                    "close": 73193.79,
+                    "last": 73193.79,
+                    "previousClose": null,
+                    "change": 1792.9,
+                    "percentage": 2.5110331257775638,
+                    "average": 72297.34,
+                    "baseVolume": 0.71952468,
+                    "quoteVolume": null,
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "price_24h": "71400.89",
+                        "volume_24h": "0.71952468",
+                        "last_trade_price": "73193.79"
+                    }
+                }
+            }
         ]
     }
 }

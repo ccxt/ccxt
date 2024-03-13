@@ -45,6 +45,54 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "open": "72072.8",
+                    "close": "73327.01",
+                    "high": "73605.23",
+                    "low": "68882.03",
+                    "last": "73327.01",
+                    "volume": "28",
+                    "timestamp": "2024-03-13T11:10:43.422Z"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "info": {
+                        "open": "72072.8",
+                        "close": "73327.01",
+                        "high": "73605.23",
+                        "low": "68882.03",
+                        "last": "73327.01",
+                        "volume": "28",
+                        "timestamp": "2024-03-13T11:10:43.422Z"
+                    },
+                    "timestamp": 1710328243422,
+                    "datetime": "2024-03-13T11:10:43.422Z",
+                    "high": 73605.23,
+                    "low": 68882.03,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 72072.8,
+                    "close": 73327.01,
+                    "last": 73327.01,
+                    "previousClose": null,
+                    "change": 1254.21,
+                    "percentage": 1.7401987989921301,
+                    "average": 72699.905,
+                    "baseVolume": 28,
+                    "quoteVolume": null
+                }
+            }
         ]
     }
 }

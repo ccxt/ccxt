@@ -45,6 +45,64 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "timestamp": "1710328241",
+                    "open": "71448",
+                    "high": "73656",
+                    "low": "68626",
+                    "last": "73285",
+                    "volume": "135.29692054",
+                    "vwap": "70853",
+                    "bid": "73353",
+                    "ask": "73367",
+                    "side": "0",
+                    "open_24": "72144",
+                    "percent_change_24": "1.58"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328241000,
+                    "datetime": "2024-03-13T11:10:41.000Z",
+                    "high": 73656,
+                    "low": 68626,
+                    "bid": 73353,
+                    "bidVolume": null,
+                    "ask": 73367,
+                    "askVolume": null,
+                    "vwap": 70853,
+                    "open": 71448,
+                    "close": 73285,
+                    "last": 73285,
+                    "previousClose": null,
+                    "change": 1837,
+                    "percentage": 2.5711006606203113,
+                    "average": 72366.5,
+                    "baseVolume": 135.29692054,
+                    "quoteVolume": 9586192.71102062,
+                    "info": {
+                        "timestamp": "1710328241",
+                        "open": "71448",
+                        "high": "73656",
+                        "low": "68626",
+                        "last": "73285",
+                        "volume": "135.29692054",
+                        "vwap": "70853",
+                        "bid": "73353",
+                        "ask": "73367",
+                        "side": "0",
+                        "open_24": "72144",
+                        "percent_change_24": "1.58"
+                    }
+                }
+            }
         ]
     }
 }

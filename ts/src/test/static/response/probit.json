@@ -49,6 +49,60 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "last": "73369",
+                            "low": "69089",
+                            "high": "73618",
+                            "change": "1219.7",
+                            "base_volume": "1042.9499547",
+                            "quote_volume": "74982342.163428567",
+                            "market_id": "BTC-USDT",
+                            "time": "2024-03-13T11:10:26.000Z"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328226000,
+                    "datetime": "2024-03-13T11:10:26.000Z",
+                    "high": 73618,
+                    "low": 69089,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 71894.47760702661,
+                    "open": 72149.3,
+                    "close": 73369,
+                    "last": 73369,
+                    "previousClose": null,
+                    "change": 1219.7,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 1042.9499547,
+                    "quoteVolume": 74982342.16342856,
+                    "info": {
+                        "last": "73369",
+                        "low": "69089",
+                        "high": "73618",
+                        "change": "1219.7",
+                        "base_volume": "1042.9499547",
+                        "quote_volume": "74982342.163428567",
+                        "market_id": "BTC-USDT",
+                        "time": "2024-03-13T11:10:26.000Z"
+                    }
+                }
+            }
         ]
     }
 }

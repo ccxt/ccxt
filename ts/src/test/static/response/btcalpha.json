@@ -49,6 +49,58 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "timestamp": "1710328.217553",
+                    "pair": "BTC_USDT",
+                    "last": "73356.61",
+                    "diff": "1261.61",
+                    "vol": "3077.27262",
+                    "high": "73663.98",
+                    "low": "69348.14",
+                    "buy": "73365.77",
+                    "sell": "73422.95"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "timestamp": "1710328.217553",
+                        "pair": "BTC_USDT",
+                        "last": "73356.61",
+                        "diff": "1261.61",
+                        "vol": "3077.27262",
+                        "high": "73663.98",
+                        "low": "69348.14",
+                        "buy": "73365.77",
+                        "sell": "73422.95"
+                    },
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328217553,
+                    "datetime": "2024-03-13T11:10:17.553Z",
+                    "high": 73663.98,
+                    "low": 69348.14,
+                    "bid": 73365.77,
+                    "bidVolume": null,
+                    "ask": 73422.95,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 72095,
+                    "close": 73356.61,
+                    "last": 73356.61,
+                    "previousClose": null,
+                    "change": 1261.61,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": 3077.27262
+                }
+            }
         ]
     }
 }

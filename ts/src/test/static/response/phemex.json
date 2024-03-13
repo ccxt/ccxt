@@ -8549,6 +8549,66 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "error": null,
+                    "id": "0",
+                    "result": {
+                        "askEp": "7333309000000",
+                        "bidEp": "7333308000000",
+                        "highEp": "7365097000000",
+                        "indexEp": "7341073140000",
+                        "lastEp": "7332757000000",
+                        "lowEp": "6899979000000",
+                        "openEp": "7208000000000",
+                        "symbol": "sBTCUSDT",
+                        "timestamp": "1710328245236138597",
+                        "turnoverEv": "2787473830482084",
+                        "volumeEv": "38813663600"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328245236,
+                    "datetime": "2024-03-13T11:10:45.236Z",
+                    "high": 73650.97,
+                    "low": 68999.79,
+                    "bid": 73333.08,
+                    "bidVolume": null,
+                    "ask": 73333.09,
+                    "askVolume": null,
+                    "vwap": 71816.81840727048,
+                    "open": 72080,
+                    "close": 73327.57,
+                    "last": 73327.57,
+                    "previousClose": null,
+                    "change": 1247.57,
+                    "percentage": 1.730812985571587,
+                    "average": 72703.785,
+                    "baseVolume": 388.136636,
+                    "quoteVolume": 27874738.30482084,
+                    "info": {
+                        "askEp": "7333309000000",
+                        "bidEp": "7333308000000",
+                        "highEp": "7365097000000",
+                        "indexEp": "7341073140000",
+                        "lastEp": "7332757000000",
+                        "lowEp": "6899979000000",
+                        "openEp": "7208000000000",
+                        "symbol": "sBTCUSDT",
+                        "timestamp": "1710328245236138597",
+                        "turnoverEv": "2787473830482084",
+                        "volumeEv": "38813663600"
+                    }
+                }
+            }
         ]
     }
 }

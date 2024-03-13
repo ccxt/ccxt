@@ -817,6 +817,72 @@
                     "status": null
                 }
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT",
+                            "last": "73355.3",
+                            "lastSize": "4",
+                            "askPrice": "73355.5",
+                            "askSize": "486",
+                            "bidPrice": "73355.3",
+                            "bidSize": "7304",
+                            "high24h": "73613.1",
+                            "open24h": "72154",
+                            "low24h": "68600",
+                            "volCurrency24h": "50493.822",
+                            "vol24h": "50493822",
+                            "ts": "1710328244013"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1710328244013,
+                    "datetime": "2024-03-13T11:10:44.013Z",
+                    "high": 73613.1,
+                    "low": 68600,
+                    "bid": 73355.3,
+                    "bidVolume": 7304,
+                    "ask": 73355.5,
+                    "askVolume": 486,
+                    "vwap": null,
+                    "open": 72154,
+                    "close": 73355.3,
+                    "last": 73355.3,
+                    "previousClose": null,
+                    "change": 1201.3,
+                    "percentage": 1.6649111622363277,
+                    "average": 72754.65,
+                    "baseVolume": 50493822,
+                    "quoteVolume": null,
+                    "info": {
+                        "instId": "BTC-USDT",
+                        "last": "73355.3",
+                        "lastSize": "4",
+                        "askPrice": "73355.5",
+                        "askSize": "486",
+                        "bidPrice": "73355.3",
+                        "bidSize": "7304",
+                        "high24h": "73613.1",
+                        "open24h": "72154",
+                        "low24h": "68600",
+                        "volCurrency24h": "50493.822",
+                        "vol24h": "50493822",
+                        "ts": "1710328244013"
+                    }
+                }
+            }
         ]
     }
 }

@@ -49,6 +49,77 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTC_USDT",
+                    "open": "72144.71",
+                    "low": "68715.75",
+                    "high": "73562.48",
+                    "close": "73380.47",
+                    "quantity": "2626.111269",
+                    "amount": "188276700.82567151",
+                    "tradeCount": 143700,
+                    "startTime": 1710241800000,
+                    "closeTime": 1710328237713,
+                    "displayName": "BTC/USDT",
+                    "dailyChange": "0.0171",
+                    "bid": "73354.86",
+                    "bidQuantity": "0.022699",
+                    "ask": "73392.83",
+                    "askQuantity": "0.266277",
+                    "ts": 1710328238600,
+                    "markPrice": "73370.07"
+                },
+                "parsedResponse": {
+                    "id": "BTC_USDT",
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328238600,
+                    "datetime": "2024-03-13T11:10:38.600Z",
+                    "high": 73562.48,
+                    "low": 68715.75,
+                    "bid": 73354.86,
+                    "bidVolume": 0.022699,
+                    "ask": 73392.83,
+                    "askVolume": 0.266277,
+                    "vwap": 71694.1064334131,
+                    "open": 72144.71,
+                    "close": 73380.47,
+                    "last": 73380.47,
+                    "previousClose": null,
+                    "change": 1235.76,
+                    "percentage": 1.71,
+                    "average": 72762.59,
+                    "baseVolume": 2626.111269,
+                    "quoteVolume": 188276700.82567152,
+                    "info": {
+                        "symbol": "BTC_USDT",
+                        "open": "72144.71",
+                        "low": "68715.75",
+                        "high": "73562.48",
+                        "close": "73380.47",
+                        "quantity": "2626.111269",
+                        "amount": "188276700.82567151",
+                        "tradeCount": 143700,
+                        "startTime": 1710241800000,
+                        "closeTime": 1710328237713,
+                        "displayName": "BTC/USDT",
+                        "dailyChange": "0.0171",
+                        "bid": "73354.86",
+                        "bidQuantity": "0.022699",
+                        "ask": "73392.83",
+                        "askQuantity": "0.266277",
+                        "ts": 1710328238600,
+                        "markPrice": "73370.07"
+                    }
+                }
+            }
         ]
     }
 }

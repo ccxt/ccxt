@@ -476,6 +476,65 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": {
+                        "date": 1710328243607,
+                        "ticker": {
+                            "vol": "600.74970699",
+                            "low": "68500.00",
+                            "open": "72157.52",
+                            "high": "73635.77",
+                            "last": "73376.39",
+                            "buy": "73376.00",
+                            "buy_amount": "0.00591774",
+                            "sell": "73376.01",
+                            "sell_amount": "0.47142081"
+                        }
+                    },
+                    "message": "OK"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328243607,
+                    "datetime": "2024-03-13T11:10:43.607Z",
+                    "high": 73635.77,
+                    "low": 68500,
+                    "bid": 73376,
+                    "bidVolume": 0.00591774,
+                    "ask": 73376.01,
+                    "askVolume": 0.47142081,
+                    "vwap": null,
+                    "open": 72157.52,
+                    "close": 73376.39,
+                    "last": 73376.39,
+                    "previousClose": null,
+                    "change": 1218.87,
+                    "percentage": 1.689179450735003,
+                    "average": 72766.955,
+                    "baseVolume": 600.74970699,
+                    "quoteVolume": null,
+                    "info": {
+                        "vol": "600.74970699",
+                        "low": "68500.00",
+                        "open": "72157.52",
+                        "high": "73635.77",
+                        "last": "73376.39",
+                        "buy": "73376.00",
+                        "buy_amount": "0.00591774",
+                        "sell": "73376.01",
+                        "sell_amount": "0.47142081"
+                    }
+                }
+            }
         ]
     }
 }

@@ -50,6 +50,77 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "asset_pair_name": "BTC-USDT",
+                        "bid": {
+                            "price": "73364.66",
+                            "order_count": "1",
+                            "quantity": "0.014291"
+                        },
+                        "ask": {
+                            "price": "73379.68",
+                            "order_count": "1",
+                            "quantity": "0.018454"
+                        },
+                        "open": "72164.48",
+                        "high": "73624.77",
+                        "low": "68677.64",
+                        "close": "73368.3",
+                        "volume": "7094.1242",
+                        "daily_change": "1203.82"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 73624.77,
+                    "low": 68677.64,
+                    "bid": 73364.66,
+                    "bidVolume": 0.014291,
+                    "ask": 73379.68,
+                    "askVolume": 0.018454,
+                    "vwap": null,
+                    "open": 72164.48,
+                    "close": 73368.3,
+                    "last": 73368.3,
+                    "previousClose": null,
+                    "change": 1203.82,
+                    "percentage": 1.6681614001791463,
+                    "average": 72766.39,
+                    "baseVolume": 7094.1242,
+                    "quoteVolume": null,
+                    "info": {
+                        "asset_pair_name": "BTC-USDT",
+                        "bid": {
+                            "price": "73364.66",
+                            "order_count": "1",
+                            "quantity": "0.014291"
+                        },
+                        "ask": {
+                            "price": "73379.68",
+                            "order_count": "1",
+                            "quantity": "0.018454"
+                        },
+                        "open": "72164.48",
+                        "high": "73624.77",
+                        "low": "68677.64",
+                        "close": "73368.3",
+                        "volume": "7094.1242",
+                        "daily_change": "1203.82"
+                    }
+                }
+            }
         ]
     }
 }

@@ -50,6 +50,67 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "result": "true",
+                    "data": [
+                        {
+                            "symbol": "btc_usdt",
+                            "ticker": {
+                                "high": "73640.51",
+                                "vol": "12127.5132",
+                                "low": "68677.55",
+                                "change": "1.77",
+                                "turnover": "869993132.77",
+                                "latest": "73380.29"
+                            },
+                            "timestamp": "1710328237047"
+                        }
+                    ],
+                    "error_code": "0",
+                    "ts": "1710328244598"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328237047,
+                    "datetime": "2024-03-13T11:10:37.047Z",
+                    "high": 73640.51,
+                    "low": 68677.55,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 71737.14168952625,
+                    "open": null,
+                    "close": 73380.29,
+                    "last": 73380.29,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": 1.77,
+                    "average": null,
+                    "baseVolume": 12127.5132,
+                    "quoteVolume": 869993132.77,
+                    "info": {
+                        "symbol": "btc_usdt",
+                        "ticker": {
+                            "high": "73640.51",
+                            "vol": "12127.5132",
+                            "low": "68677.55",
+                            "change": "1.77",
+                            "turnover": "869993132.77",
+                            "latest": "73380.29"
+                        },
+                        "timestamp": "1710328237047"
+                    }
+                }
+            }
         ]
     }
 }

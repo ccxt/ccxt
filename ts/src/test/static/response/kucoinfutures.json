@@ -500,6 +500,65 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "sequence": 1699691075217,
+                        "symbol": "XBTUSDTM",
+                        "side": "buy",
+                        "size": 8,
+                        "tradeId": "1738234702866",
+                        "price": "73400",
+                        "bestBidPrice": "73399.9",
+                        "bestBidSize": 2146,
+                        "bestAskPrice": "73400",
+                        "bestAskSize": 4,
+                        "ts": 1710328243260000000
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1710328243260,
+                    "datetime": "2024-03-13T11:10:43.260Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 73399.9,
+                    "bidVolume": 2146,
+                    "ask": 73400,
+                    "askVolume": 4,
+                    "vwap": null,
+                    "open": null,
+                    "close": 73400,
+                    "last": 73400,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "info": {
+                        "sequence": 1699691075217,
+                        "symbol": "XBTUSDTM",
+                        "side": "buy",
+                        "size": 8,
+                        "tradeId": "1738234702866",
+                        "price": "73400",
+                        "bestBidPrice": "73399.9",
+                        "bestBidSize": 2146,
+                        "bestAskPrice": "73400",
+                        "bestAskSize": 4,
+                        "ts": 1710328243260000000
+                    }
+                }
+            }
         ]
     }
 }

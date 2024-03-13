@@ -271,6 +271,60 @@
                     }
                 }
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "btc_usdt": {
+                        "high": "73333",
+                        "low": "69000",
+                        "avg": "71166.5",
+                        "vol": "151292.61340729",
+                        "vol_cur": "2.10398282",
+                        "last": "73049",
+                        "buy": "73049.00000000",
+                        "sell": "73333.00000000",
+                        "updated": "1710328237"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328237000,
+                    "datetime": "2024-03-13T11:10:37.000Z",
+                    "high": 73333,
+                    "low": 69000,
+                    "bid": 73049,
+                    "bidVolume": null,
+                    "ask": 73333,
+                    "askVolume": null,
+                    "vwap": 71907.72280511777,
+                    "open": null,
+                    "close": 73049,
+                    "last": 73049,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": 71166.5,
+                    "baseVolume": 2.10398282,
+                    "quoteVolume": 151292.61340729,
+                    "info": {
+                        "high": "73333",
+                        "low": "69000",
+                        "avg": "71166.5",
+                        "vol": "151292.61340729",
+                        "vol_cur": "2.10398282",
+                        "last": "73049",
+                        "buy": "73049.00000000",
+                        "sell": "73333.00000000",
+                        "updated": "1710328237"
+                    }
+                }
+            }
         ]
     }
 }

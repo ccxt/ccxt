@@ -732,6 +732,79 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "message": "OK",
+                    "code": "1000",
+                    "trace": "81a9d57b63be4819b65d3065e6a4682b.107.17103282467416495",
+                    "data": {
+                        "tickers": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "last_price": "73390.00",
+                                "quote_volume_24h": "1887544518.36",
+                                "base_volume_24h": "26284.12196",
+                                "high_24h": "73638.95",
+                                "low_24h": "68649.22",
+                                "open_24h": "72149.27",
+                                "close_24h": "73390.00",
+                                "best_ask": "73368.31",
+                                "best_ask_size": "0.00027",
+                                "best_bid": "73368.29",
+                                "best_bid_size": "0.00032",
+                                "fluctuation": "+0.0172",
+                                "url": "https://www.bitmart.com/trade?symbol=BTC_USDT",
+                                "timestamp": "1710328205593"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328205593,
+                    "datetime": "2024-03-13T11:10:05.593Z",
+                    "high": 73638.95,
+                    "low": 68649.22,
+                    "bid": 73368.29,
+                    "bidVolume": 0.00032,
+                    "ask": 73368.31,
+                    "askVolume": 0.00027,
+                    "vwap": 71813.10911707548,
+                    "open": 72149.27,
+                    "close": 73390,
+                    "last": 73390,
+                    "previousClose": null,
+                    "change": 1240.73,
+                    "percentage": 1.72,
+                    "average": 72769.635,
+                    "baseVolume": 26284.12196,
+                    "quoteVolume": 1887544518.36,
+                    "info": {
+                        "symbol": "BTC_USDT",
+                        "last_price": "73390.00",
+                        "quote_volume_24h": "1887544518.36",
+                        "base_volume_24h": "26284.12196",
+                        "high_24h": "73638.95",
+                        "low_24h": "68649.22",
+                        "open_24h": "72149.27",
+                        "close_24h": "73390.00",
+                        "best_ask": "73368.31",
+                        "best_ask_size": "0.00027",
+                        "best_bid": "73368.29",
+                        "best_bid_size": "0.00032",
+                        "fluctuation": "+0.0172",
+                        "url": "https://www.bitmart.com/trade?symbol=BTC_USDT",
+                        "timestamp": "1710328205593"
+                    }
+                }
+            }
         ]
     }
 }

@@ -45,6 +45,56 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "data": {
+                        "pair": "btc_usdt",
+                        "lastPrice": "73102.33000000",
+                        "isBuyer": false,
+                        "priceChange24hr": "1.38",
+                        "volume24hr": "43.57255310",
+                        "high24hr": "73254.55000000",
+                        "low24hr": "69500.00000000"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 73254.55,
+                    "low": 69500,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 73102.33,
+                    "last": 73102.33,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": 1.38,
+                    "average": null,
+                    "baseVolume": 43.5725531,
+                    "quoteVolume": null,
+                    "info": {
+                        "pair": "btc_usdt",
+                        "lastPrice": "73102.33000000",
+                        "isBuyer": false,
+                        "priceChange24hr": "1.38",
+                        "volume24hr": "43.57255310",
+                        "high24hr": "73254.55000000",
+                        "low24hr": "69500.00000000"
+                    }
+                }
+            }
         ]
     }
 }

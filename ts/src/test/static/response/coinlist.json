@@ -51,6 +51,72 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "type": "spot",
+                    "last_price": "73366.28000000",
+                    "lowest_ask": "73398.89000000",
+                    "highest_bid": "73333.67000000",
+                    "last_trade": {
+                        "price": "73263.95000000",
+                        "volume": "0.0001",
+                        "imbalance": "-0.4093",
+                        "logicalTime": "2024-03-13T11:01:13.000Z",
+                        "auctionCode": "BTC-USDT-2024-03-13T11:01:13.000Z"
+                    },
+                    "volume_base_24h": "2.5014",
+                    "volume_quote_24h": "179840.0702",
+                    "price_change_percent_24h": "1.67313941",
+                    "highest_price_24h": "73638.26000000",
+                    "lowest_price_24h": "68679.78000000"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710327673000,
+                    "datetime": "2024-03-13T11:01:13.000Z",
+                    "open": null,
+                    "high": 73638.26,
+                    "low": 68679.78,
+                    "close": 73366.28,
+                    "bid": 73333.67,
+                    "bidVolume": null,
+                    "ask": 73398.89,
+                    "askVolume": null,
+                    "vwap": 71895.76645078756,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": 1.67313941,
+                    "average": null,
+                    "baseVolume": 2.5014,
+                    "quoteVolume": 179840.0702,
+                    "info": {
+                        "type": "spot",
+                        "last_price": "73366.28000000",
+                        "lowest_ask": "73398.89000000",
+                        "highest_bid": "73333.67000000",
+                        "last_trade": {
+                            "price": "73263.95000000",
+                            "volume": "0.0001",
+                            "imbalance": "-0.4093",
+                            "logicalTime": "2024-03-13T11:01:13.000Z",
+                            "auctionCode": "BTC-USDT-2024-03-13T11:01:13.000Z"
+                        },
+                        "volume_base_24h": "2.5014",
+                        "volume_quote_24h": "179840.0702",
+                        "price_change_percent_24h": "1.67313941",
+                        "highest_price_24h": "73638.26000000",
+                        "lowest_price_24h": "68679.78000000"
+                    },
+                    "last": 73366.28
+                }
+            }
         ]
     }
 }

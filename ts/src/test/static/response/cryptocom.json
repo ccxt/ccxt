@@ -1947,6 +1947,69 @@
                     "nonce": null
                 }
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "id": -1,
+                    "method": "public/get-tickers",
+                    "code": 0,
+                    "result": {
+                        "data": [
+                            {
+                                "i": "BTC_USDT",
+                                "h": "73632.60",
+                                "l": "68600.00",
+                                "a": "73375.26",
+                                "v": "6921.5068",
+                                "vv": "495479911.35",
+                                "c": "0.0171",
+                                "b": "73375.25",
+                                "k": "73375.26",
+                                "t": 1710328243533
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328243533,
+                    "datetime": "2024-03-13T11:10:43.533Z",
+                    "high": 73632.6,
+                    "low": 68600,
+                    "bid": 73375.25,
+                    "bidVolume": null,
+                    "ask": 73375.26,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 73375.26,
+                    "last": 73375.26,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": 0.0171,
+                    "average": null,
+                    "baseVolume": 6921.5068,
+                    "quoteVolume": null,
+                    "info": {
+                        "i": "BTC_USDT",
+                        "h": "73632.60",
+                        "l": "68600.00",
+                        "a": "73375.26",
+                        "v": "6921.5068",
+                        "vv": "495479911.35",
+                        "c": "0.0171",
+                        "b": "73375.25",
+                        "k": "73375.26",
+                        "t": 1710328243533
+                    }
+                }
+            }
         ]
     }
 }

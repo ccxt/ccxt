@@ -538,6 +538,79 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "ch": "market.btcusdt.detail.merged",
+                    "status": "ok",
+                    "ts": "1710328245889",
+                    "tick": {
+                        "id": "338582949929",
+                        "version": "338582949929",
+                        "open": "72150.14",
+                        "close": "73360.54",
+                        "low": "68640.0",
+                        "high": "73635.99",
+                        "amount": "2314.593946077937",
+                        "vol": "1.6575393849546936E8",
+                        "count": "104640",
+                        "bid": [
+                            73360.53,
+                            0.595189
+                        ],
+                        "ask": [
+                            73360.54,
+                            0.566063
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328245889,
+                    "datetime": "2024-03-13T11:10:45.889Z",
+                    "high": 73635.99,
+                    "low": 68640,
+                    "bid": 73360.53,
+                    "bidVolume": 0.595189,
+                    "ask": 73360.54,
+                    "askVolume": 0.566063,
+                    "vwap": 71612.53436108663,
+                    "open": 72150.14,
+                    "close": 73360.54,
+                    "last": 73360.54,
+                    "previousClose": null,
+                    "change": 1210.4,
+                    "percentage": 1.6776128223729019,
+                    "average": 72755.34,
+                    "baseVolume": 2314.593946077937,
+                    "quoteVolume": 165753938.49546936,
+                    "info": {
+                        "id": "338582949929",
+                        "version": "338582949929",
+                        "open": "72150.14",
+                        "close": "73360.54",
+                        "low": "68640.0",
+                        "high": "73635.99",
+                        "amount": "2314.593946077937",
+                        "vol": "1.6575393849546936E8",
+                        "count": "104640",
+                        "bid": [
+                            73360.53,
+                            0.595189
+                        ],
+                        "ask": [
+                            73360.54,
+                            0.566063
+                        ]
+                    }
+                }
+            }
         ]
     }
 }

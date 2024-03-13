@@ -50,6 +50,61 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "payload": [
+                        {
+                            "assetPairId": "BTCUSDT",
+                            "volumeBase": "0.15272551",
+                            "volumeQuote": "11072.026873",
+                            "priceChange": "0.0162676957104533457453621769",
+                            "lastPrice": "73231.366",
+                            "high": "73231.366",
+                            "low": "70758.57998",
+                            "timestamp": "1710321391220"
+                        }
+                    ],
+                    "error": null
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 73231.366,
+                    "low": 70758.57998,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 72496.25077696581,
+                    "open": 73231.34973230428,
+                    "close": 73231.366,
+                    "last": 73231.366,
+                    "previousClose": null,
+                    "change": 0.016267695710453344,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0.15272551,
+                    "quoteVolume": 11072.026873,
+                    "info": {
+                        "assetPairId": "BTCUSDT",
+                        "volumeBase": "0.15272551",
+                        "volumeQuote": "11072.026873",
+                        "priceChange": "0.0162676957104533457453621769",
+                        "lastPrice": "73231.366",
+                        "high": "73231.366",
+                        "low": "70758.57998",
+                        "timestamp": "1710321391220"
+                    }
+                }
+            }
         ]
     }
 }

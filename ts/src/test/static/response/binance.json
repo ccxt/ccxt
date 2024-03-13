@@ -2058,6 +2058,82 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCUSDT",
+                    "priceChange": "1188.75000000",
+                    "priceChangePercent": "1.647",
+                    "weightedAvgPrice": "71624.65401064",
+                    "prevClosePrice": "72180.93000000",
+                    "lastPrice": "73369.84000000",
+                    "lastQty": "0.23925000",
+                    "bidPrice": "73369.83000000",
+                    "bidQty": "6.27086000",
+                    "askPrice": "73369.84000000",
+                    "askQty": "0.03321000",
+                    "openPrice": "72181.09000000",
+                    "highPrice": "73650.25000000",
+                    "lowPrice": "68620.82000000",
+                    "volume": "72140.34862800",
+                    "quoteVolume": "5167027510.68728707",
+                    "openTime": "1710241845391",
+                    "closeTime": "1710328245391",
+                    "firstId": "3476288989",
+                    "lastId": "3479476926",
+                    "count": "3187938"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328245391,
+                    "datetime": "2024-03-13T11:10:45.391Z",
+                    "high": 73650.25,
+                    "low": 68620.82,
+                    "bid": 73369.83,
+                    "bidVolume": 6.27086,
+                    "ask": 73369.84,
+                    "askVolume": 0.03321,
+                    "vwap": 71624.65401064,
+                    "open": 72181.09,
+                    "close": 73369.84,
+                    "last": 73369.84,
+                    "previousClose": 72180.93,
+                    "change": 1188.75,
+                    "percentage": 1.647,
+                    "average": 72775.465,
+                    "baseVolume": 72140.348628,
+                    "quoteVolume": 5167027510.687287,
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "priceChange": "1188.75000000",
+                        "priceChangePercent": "1.647",
+                        "weightedAvgPrice": "71624.65401064",
+                        "prevClosePrice": "72180.93000000",
+                        "lastPrice": "73369.84000000",
+                        "lastQty": "0.23925000",
+                        "bidPrice": "73369.83000000",
+                        "bidQty": "6.27086000",
+                        "askPrice": "73369.84000000",
+                        "askQty": "0.03321000",
+                        "openPrice": "72181.09000000",
+                        "highPrice": "73650.25000000",
+                        "lowPrice": "68620.82000000",
+                        "volume": "72140.34862800",
+                        "quoteVolume": "5167027510.68728707",
+                        "openTime": "1710241845391",
+                        "closeTime": "1710328245391",
+                        "firstId": "3476288989",
+                        "lastId": "3479476926",
+                        "count": "3187938"
+                    }
+                }
+            }
         ]
     }
 }

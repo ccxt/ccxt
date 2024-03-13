@@ -50,6 +50,69 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "payload": {
+                        "high": "73681",
+                        "last": "73440",
+                        "created_at": "2024-03-13T11:10:45+00:00",
+                        "book": "btc_usdt",
+                        "volume": "33.96216034",
+                        "vwap": "71004.0822715099",
+                        "low": "68696",
+                        "ask": "73440",
+                        "bid": "73288",
+                        "change_24": "1239",
+                        "rolling_average_change": {
+                            "6": "0.2759"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328245000,
+                    "datetime": "2024-03-13T11:10:45.000Z",
+                    "high": 73681,
+                    "low": 68696,
+                    "bid": 73288,
+                    "bidVolume": null,
+                    "ask": 73440,
+                    "askVolume": null,
+                    "vwap": 71004.0822715099,
+                    "open": null,
+                    "close": 73440,
+                    "last": 73440,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 33.96216034,
+                    "quoteVolume": 2411452.0268995706,
+                    "info": {
+                        "high": "73681",
+                        "last": "73440",
+                        "created_at": "2024-03-13T11:10:45+00:00",
+                        "book": "btc_usdt",
+                        "volume": "33.96216034",
+                        "vwap": "71004.0822715099",
+                        "low": "68696",
+                        "ask": "73440",
+                        "bid": "73288",
+                        "change_24": "1239",
+                        "rolling_average_change": {
+                            "6": "0.2759"
+                        }
+                    }
+                }
+            }
         ]
     }
 }

@@ -52,6 +52,64 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "market": "BTCUSDT",
+                        "period": "D1",
+                        "timestamp": "2024-03-13T11:10:46.615922825Z",
+                        "ask": "73621",
+                        "bid": "73101",
+                        "open": "66665",
+                        "high": null,
+                        "low": null,
+                        "last": "73322",
+                        "volume": "22.3857",
+                        "volumeQuote": "1543992.8584"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "info": {
+                        "market": "BTCUSDT",
+                        "period": "D1",
+                        "timestamp": "2024-03-13T11:10:46.615922825Z",
+                        "ask": "73621",
+                        "bid": "73101",
+                        "open": "66665",
+                        "high": null,
+                        "low": null,
+                        "last": "73322",
+                        "volume": "22.3857",
+                        "volumeQuote": "1543992.8584"
+                    },
+                    "timestamp": 1710328246615,
+                    "datetime": "2024-03-13T11:10:46.615Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 73101,
+                    "bidVolume": null,
+                    "ask": 73621,
+                    "askVolume": null,
+                    "vwap": 68972.28402060244,
+                    "open": 66665,
+                    "close": 73322,
+                    "last": 73322,
+                    "previousClose": null,
+                    "change": 6657,
+                    "percentage": 9.985749643741093,
+                    "average": 69993.5,
+                    "baseVolume": 22.3857,
+                    "quoteVolume": 1543992.8584
+                }
+            }
         ]
     }
 }

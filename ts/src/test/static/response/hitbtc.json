@@ -391,6 +391,58 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "ask": "73369.04",
+                    "bid": "73369.03",
+                    "last": "73386.24",
+                    "low": "68555.00",
+                    "high": "73619.97",
+                    "open": "72173.99",
+                    "volume": "1319.26278",
+                    "volume_quote": "94847393.3889236",
+                    "timestamp": "2024-03-13T11:10:43.612Z"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328243612,
+                    "datetime": "2024-03-13T11:10:43.612Z",
+                    "high": 73619.97,
+                    "low": 68555,
+                    "bid": 73369.03,
+                    "bidVolume": null,
+                    "ask": 73369.04,
+                    "askVolume": null,
+                    "vwap": 71894.23883308798,
+                    "open": 72173.99,
+                    "close": 73386.24,
+                    "last": 73386.24,
+                    "previousClose": null,
+                    "change": 1212.25,
+                    "percentage": 1.6796217030539673,
+                    "average": 72780.115,
+                    "baseVolume": 1319.26278,
+                    "quoteVolume": 94847393.3889236,
+                    "info": {
+                        "ask": "73369.04",
+                        "bid": "73369.03",
+                        "last": "73386.24",
+                        "low": "68555.00",
+                        "high": "73619.97",
+                        "open": "72173.99",
+                        "volume": "1319.26278",
+                        "volume_quote": "94847393.3889236",
+                        "timestamp": "2024-03-13T11:10:43.612Z"
+                    }
+                }
+            }
         ]
     }
 }

@@ -18,6 +18,62 @@
                 },
                 "parsedResponse": []
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "error": false,
+                    "errorMessage": null,
+                    "data": {
+                        "last": "73722.8",
+                        "high": "73726.3",
+                        "low": "69000",
+                        "amount": "0.15487888",
+                        "bid": "73017.7",
+                        "ask": "73667.9",
+                        "change": "3.05116019",
+                        "open": "71540",
+                        "timestamp": "1710328244"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328244000,
+                    "datetime": "2024-03-13T11:10:44.000Z",
+                    "high": 73726.3,
+                    "low": 69000,
+                    "bid": 73017.7,
+                    "bidVolume": null,
+                    "ask": 73667.9,
+                    "vwap": null,
+                    "askVolume": null,
+                    "open": null,
+                    "close": 73722.8,
+                    "last": 73722.8,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0.15487888,
+                    "quoteVolume": null,
+                    "info": {
+                        "last": "73722.8",
+                        "high": "73726.3",
+                        "low": "69000",
+                        "amount": "0.15487888",
+                        "bid": "73017.7",
+                        "ask": "73667.9",
+                        "change": "3.05116019",
+                        "open": "71540",
+                        "timestamp": "1710328244"
+                    }
+                }
+            }
         ]
     }
 }

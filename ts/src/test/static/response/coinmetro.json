@@ -145,46 +145,46 @@
                 "description": "Spot trade",
                 "method": "fetchTrades",
                 "input": [
-                  "BTC/USDT",
-                  null,
-                  1
+                    "BTC/USDT",
+                    null,
+                    1
                 ],
                 "httpResponse": {
-                  "tickHistory": [
-                    {
-                      "pair": "BTCUSDT",
-                      "price": "69485.92",
-                      "qty": "0.008454",
-                      "timestamp": "1710264195235",
-                      "seqNum": "11918112871"
-                    }
-                  ]
+                    "tickHistory": [
+                        {
+                            "pair": "BTCUSDT",
+                            "price": "69485.92",
+                            "qty": "0.008454",
+                            "timestamp": "1710264195235",
+                            "seqNum": "11918112871"
+                        }
+                    ]
                 },
                 "parsedResponse": [
-                  {
-                    "id": "11918112871",
-                    "order": null,
-                    "timestamp": 1710264195235,
-                    "datetime": "2024-03-12T17:23:15.235Z",
-                    "symbol": "BTC/USDT",
-                    "type": null,
-                    "side": null,
-                    "takerOrMaker": null,
-                    "price": 69485.92,
-                    "amount": 0.008454,
-                    "cost": 587.43396768,
-                    "fee": null,
-                    "info": {
-                      "pair": "BTCUSDT",
-                      "price": "69485.92",
-                      "qty": "0.008454",
-                      "timestamp": "1710264195235",
-                      "seqNum": "11918112871"
-                    },
-                    "fees": []
-                  }
+                    {
+                        "id": "11918112871",
+                        "order": null,
+                        "timestamp": 1710264195235,
+                        "datetime": "2024-03-12T17:23:15.235Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": null,
+                        "takerOrMaker": null,
+                        "price": 69485.92,
+                        "amount": 0.008454,
+                        "cost": 587.43396768,
+                        "fee": null,
+                        "info": {
+                            "pair": "BTCUSDT",
+                            "price": "69485.92",
+                            "qty": "0.008454",
+                            "timestamp": "1710264195235",
+                            "seqNum": "11918112871"
+                        },
+                        "fees": []
+                    }
                 ]
-              }
+            }
         ]
     }
 }

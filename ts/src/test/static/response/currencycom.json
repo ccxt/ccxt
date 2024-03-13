@@ -45,6 +45,72 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTC/USDT",
+                    "priceChange": "2352.50",
+                    "priceChangePercent": "3.312069",
+                    "weightedAvgPrice": "73380.69",
+                    "prevClosePrice": "71445.70",
+                    "lastPrice": "73380.60",
+                    "lastQty": "0.022",
+                    "bidPrice": "73380.60",
+                    "askPrice": "73380.70",
+                    "openPrice": "71445.70",
+                    "highPrice": "73579.9",
+                    "lowPrice": "70649.7",
+                    "volume": "0",
+                    "quoteVolume": "0",
+                    "openTime": "1710288000000",
+                    "closeTime": "1710328240886"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328240886,
+                    "datetime": "2024-03-13T11:10:40.886Z",
+                    "high": 73579.9,
+                    "low": 70649.7,
+                    "bid": 73380.6,
+                    "bidVolume": null,
+                    "ask": 73380.7,
+                    "askVolume": null,
+                    "vwap": 73380.69,
+                    "open": 71445.7,
+                    "close": 73380.6,
+                    "last": 73380.6,
+                    "previousClose": 71445.7,
+                    "change": 2352.5,
+                    "percentage": 3.312069,
+                    "average": 72413.15,
+                    "baseVolume": 0,
+                    "quoteVolume": 0,
+                    "info": {
+                        "symbol": "BTC/USDT",
+                        "priceChange": "2352.50",
+                        "priceChangePercent": "3.312069",
+                        "weightedAvgPrice": "73380.69",
+                        "prevClosePrice": "71445.70",
+                        "lastPrice": "73380.60",
+                        "lastQty": "0.022",
+                        "bidPrice": "73380.60",
+                        "askPrice": "73380.70",
+                        "openPrice": "71445.70",
+                        "highPrice": "73579.9",
+                        "lowPrice": "70649.7",
+                        "volume": "0",
+                        "quoteVolume": "0",
+                        "openTime": "1710288000000",
+                        "closeTime": "1710328240886"
+                    }
+                }
+            }
         ]
     }
 }

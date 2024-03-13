@@ -57,6 +57,92 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "OMSId": "1",
+                    "InstrumentId": "82",
+                    "BestBid": "1",
+                    "BestOffer": "0",
+                    "LastTradedPx": "29869.01",
+                    "LastTradedQty": "0.0029400000000000000000000000",
+                    "LastTradeTime": "1683197061661",
+                    "SessionOpen": "0",
+                    "SessionHigh": "0",
+                    "SessionLow": "0",
+                    "SessionClose": "29869.01",
+                    "Volume": "0.0029400000000000000000000000",
+                    "CurrentDayVolume": "0",
+                    "CurrentDayNotional": "0",
+                    "CurrentDayNumTrades": "0",
+                    "CurrentDayPxChange": "0",
+                    "Rolling24HrVolume": "0.0000000000000000000000000000",
+                    "Rolling24HrNotional": "0.00000000000000000000000000",
+                    "Rolling24NumTrades": "0",
+                    "Rolling24HrPxChange": "0",
+                    "TimeStamp": "1709340037407",
+                    "BidQty": "62.34",
+                    "AskQty": "0.14888",
+                    "BidOrderCt": "0",
+                    "AskOrderCt": "0",
+                    "Rolling24HrPxChangePercent": 0
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1709340037407,
+                    "datetime": "2024-03-02T00:40:37.407Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 1,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 29869.01,
+                    "last": 29869.01,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0,
+                    "quoteVolume": 0,
+                    "info": {
+                        "OMSId": "1",
+                        "InstrumentId": "82",
+                        "BestBid": "1",
+                        "BestOffer": "0",
+                        "LastTradedPx": "29869.01",
+                        "LastTradedQty": "0.0029400000000000000000000000",
+                        "LastTradeTime": "1683197061661",
+                        "SessionOpen": "0",
+                        "SessionHigh": "0",
+                        "SessionLow": "0",
+                        "SessionClose": "29869.01",
+                        "Volume": "0.0029400000000000000000000000",
+                        "CurrentDayVolume": "0",
+                        "CurrentDayNotional": "0",
+                        "CurrentDayNumTrades": "0",
+                        "CurrentDayPxChange": "0",
+                        "Rolling24HrVolume": "0.0000000000000000000000000000",
+                        "Rolling24HrNotional": "0.00000000000000000000000000",
+                        "Rolling24NumTrades": "0",
+                        "Rolling24HrPxChange": "0",
+                        "TimeStamp": "1709340037407",
+                        "BidQty": "62.34",
+                        "AskQty": "0.14888",
+                        "BidOrderCt": "0",
+                        "AskOrderCt": "0",
+                        "Rolling24HrPxChangePercent": 0
+                    }
+                }
+            }
         ]
     }
 }

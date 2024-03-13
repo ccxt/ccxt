@@ -47,6 +47,62 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "message": null,
+                    "result": {
+                        "open": "72165.04",
+                        "bid": "73368.43",
+                        "ask": "73371.13",
+                        "low": "68701.12",
+                        "high": "73636.72",
+                        "last": "73363.07",
+                        "volume": "17340.923796",
+                        "deal": "1237525361.99814163",
+                        "change": "1.66"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 73636.72,
+                    "low": 68701.12,
+                    "bid": 73368.43,
+                    "bidVolume": null,
+                    "ask": 73371.13,
+                    "askVolume": null,
+                    "vwap": 71364.44266502108,
+                    "open": 72165.04,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": 1197.939664,
+                    "percentage": 1.66,
+                    "average": null,
+                    "baseVolume": 17340.923796,
+                    "quoteVolume": 1237525361.9981415,
+                    "info": {
+                        "open": "72165.04",
+                        "bid": "73368.43",
+                        "ask": "73371.13",
+                        "low": "68701.12",
+                        "high": "73636.72",
+                        "last": "73363.07",
+                        "volume": "17340.923796",
+                        "deal": "1237525361.99814163",
+                        "change": "1.66"
+                    }
+                }
+            }
         ]
     }
 }

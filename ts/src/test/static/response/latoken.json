@@ -53,6 +53,72 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                    "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+                    "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                    "volume24h": "666480039.950870978000000000",
+                    "volume7d": "3276529367.605970685000000000",
+                    "change24h": "1.6500",
+                    "change7d": "10.4300",
+                    "amount24h": "9295.377471800000000000",
+                    "amount7d": "47115.787801100000000000",
+                    "lastPrice": "73369.83",
+                    "lastQuantity": "0.033666100000000000",
+                    "bestBid": "73366.45",
+                    "bestBidQuantity": "0.1929318",
+                    "bestAsk": "73371.68",
+                    "bestAskQuantity": "0.0638319",
+                    "updateTimestamp": "1710328246345"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328246345,
+                    "datetime": "2024-03-13T11:10:46.345Z",
+                    "low": null,
+                    "high": null,
+                    "bid": 73366.45,
+                    "bidVolume": 0.1929318,
+                    "ask": 73371.68,
+                    "askVolume": 0.0638319,
+                    "vwap": 71700.1587049924,
+                    "open": null,
+                    "close": 73369.83,
+                    "last": 73369.83,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": 1.65,
+                    "average": null,
+                    "baseVolume": 9295.3774718,
+                    "quoteVolume": 666480039.950871,
+                    "info": {
+                        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+                        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                        "volume24h": "666480039.950870978000000000",
+                        "volume7d": "3276529367.605970685000000000",
+                        "change24h": "1.6500",
+                        "change7d": "10.4300",
+                        "amount24h": "9295.377471800000000000",
+                        "amount7d": "47115.787801100000000000",
+                        "lastPrice": "73369.83",
+                        "lastQuantity": "0.033666100000000000",
+                        "bestBid": "73366.45",
+                        "bestBidQuantity": "0.1929318",
+                        "bestAsk": "73371.68",
+                        "bestAskQuantity": "0.0638319",
+                        "updateTimestamp": "1710328246345"
+                    }
+                }
+            }
         ]
     }
 }

@@ -627,6 +627,60 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "currency_pair": "BTC_USDT",
+                        "last": "73373.9",
+                        "lowest_ask": "73364.2",
+                        "highest_bid": "73364.1",
+                        "change_percentage": "1.71",
+                        "base_volume": "3410.0783503636",
+                        "quote_volume": "243764368.46418",
+                        "high_24h": "73636.3",
+                        "low_24h": "68629.9"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 73636.3,
+                    "low": 68629.9,
+                    "bid": 73364.1,
+                    "bidVolume": null,
+                    "ask": 73364.2,
+                    "askVolume": null,
+                    "vwap": 71483.5095909713,
+                    "open": null,
+                    "close": 73373.9,
+                    "last": 73373.9,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": 1.71,
+                    "average": null,
+                    "baseVolume": 3410.0783503636,
+                    "quoteVolume": 243764368.46418,
+                    "info": {
+                        "currency_pair": "BTC_USDT",
+                        "last": "73373.9",
+                        "lowest_ask": "73364.2",
+                        "highest_bid": "73364.1",
+                        "change_percentage": "1.71",
+                        "base_volume": "3410.0783503636",
+                        "quote_volume": "243764368.46418",
+                        "high_24h": "73636.3",
+                        "low_24h": "68629.9"
+                    }
+                }
+            }
         ]
     }
 }

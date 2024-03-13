@@ -50,6 +50,95 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "result": {
+                        "close": "73394.0",
+                        "contract_type": "spot",
+                        "greeks": null,
+                        "high": "73612.0",
+                        "low": "68796.5",
+                        "mark_change_24h": "0.0000",
+                        "mark_price": "48000",
+                        "oi": "0.0000",
+                        "oi_change_usd_6h": "0.0000",
+                        "oi_contracts": "0",
+                        "oi_value": "0.0000",
+                        "oi_value_symbol": "BTC",
+                        "oi_value_usd": "0.0000",
+                        "open": "72135.5",
+                        "price_band": null,
+                        "product_id": "8320",
+                        "quotes": {},
+                        "size": "1.4971349999999992",
+                        "spot_price": "73368.4",
+                        "symbol": "BTC_USDT",
+                        "timestamp": "1710328245495283",
+                        "turnover": "1.4971349999999992",
+                        "turnover_symbol": "BTC",
+                        "turnover_usd": "107155.2020148999",
+                        "underlying_asset_symbol": "BTC",
+                        "volume": "1.4971349999999992"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328245495,
+                    "datetime": "2024-03-13T11:10:45.495Z",
+                    "high": 73612,
+                    "low": 68796.5,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 1,
+                    "open": 72135.5,
+                    "close": 73394,
+                    "last": 73394,
+                    "previousClose": null,
+                    "change": 1258.5,
+                    "percentage": 1.7446333636004463,
+                    "average": 72764.75,
+                    "baseVolume": 1.4971349999999992,
+                    "quoteVolume": 1.4971349999999992,
+                    "info": {
+                        "close": "73394.0",
+                        "contract_type": "spot",
+                        "greeks": null,
+                        "high": "73612.0",
+                        "low": "68796.5",
+                        "mark_change_24h": "0.0000",
+                        "mark_price": "48000",
+                        "oi": "0.0000",
+                        "oi_change_usd_6h": "0.0000",
+                        "oi_contracts": "0",
+                        "oi_value": "0.0000",
+                        "oi_value_symbol": "BTC",
+                        "oi_value_usd": "0.0000",
+                        "open": "72135.5",
+                        "price_band": null,
+                        "product_id": "8320",
+                        "quotes": {},
+                        "size": "1.4971349999999992",
+                        "spot_price": "73368.4",
+                        "symbol": "BTC_USDT",
+                        "timestamp": "1710328245495283",
+                        "turnover": "1.4971349999999992",
+                        "turnover_symbol": "BTC",
+                        "turnover_usd": "107155.2020148999",
+                        "underlying_asset_symbol": "BTC",
+                        "volume": "1.4971349999999992"
+                    }
+                }
+            }
         ]
     }
 }

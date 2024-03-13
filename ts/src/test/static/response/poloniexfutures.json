@@ -54,6 +54,65 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "sequence": "16769039",
+                        "symbol": "BTCUSDTPERP",
+                        "side": "buy",
+                        "size": "14",
+                        "price": "73462.5",
+                        "bestBidSize": "217",
+                        "bestBidPrice": "73465.6",
+                        "bestAskPrice": "73474.0",
+                        "tradeId": "65f189b35ac296000170eddb",
+                        "bestAskSize": "24",
+                        "ts": "1710328243568622587"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1710328243568,
+                    "datetime": "2024-03-13T11:10:43.568Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 73465.6,
+                    "bidVolume": 217,
+                    "ask": 73474,
+                    "askVolume": 24,
+                    "vwap": null,
+                    "open": null,
+                    "close": 73462.5,
+                    "last": 73462.5,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 14,
+                    "quoteVolume": null,
+                    "info": {
+                        "sequence": "16769039",
+                        "symbol": "BTCUSDTPERP",
+                        "side": "buy",
+                        "size": "14",
+                        "price": "73462.5",
+                        "bestBidSize": "217",
+                        "bestBidPrice": "73465.6",
+                        "bestAskPrice": "73474.0",
+                        "tradeId": "65f189b35ac296000170eddb",
+                        "bestAskSize": "24",
+                        "ts": "1710328243568622587"
+                    }
+                }
+            }
         ]
     }
 }
