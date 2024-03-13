@@ -2414,6 +2414,13 @@ export default class coinbase extends Exchange {
                             'post_only': postOnly,
                         },
                     };
+                } else if (timeInForce === 'IOC') {
+                    request['order_configuration'] = {
+                        'sor_limit_ioc': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                        },
+                    };
                 } else {
                     request['order_configuration'] = {
                         'limit_limit_gtc': {
@@ -2594,17 +2601,25 @@ export default class coinbase extends Exchange {
         const orderConfiguration = this.safeValue (order, 'order_configuration', {});
         const limitGTC = this.safeValue (orderConfiguration, 'limit_limit_gtc');
         const limitGTD = this.safeValue (orderConfiguration, 'limit_limit_gtd');
+        const limitIOC = this.safeValue (orderConfiguration, 'sor_limit_ioc');
         const stopLimitGTC = this.safeValue (orderConfiguration, 'stop_limit_stop_limit_gtc');
         const stopLimitGTD = this.safeValue (orderConfiguration, 'stop_limit_stop_limit_gtd');
         const marketIOC = this.safeValue (orderConfiguration, 'market_market_ioc');
-        const isLimit = ((limitGTC !== undefined) || (limitGTD !== undefined));
+        const isLimit = ((limitGTC !== undefined) || (limitGTD !== undefined) || (limitIOC !== undefined));
         const isStop = ((stopLimitGTC !== undefined) || (stopLimitGTD !== undefined));
         let price = undefined;
         let amount = undefined;
         let postOnly = undefined;
         let triggerPrice = undefined;
         if (isLimit) {
-            const target = (limitGTC !== undefined) ? limitGTC : limitGTD;
+            let target = undefined;
+            if (limitGTC !== undefined) {
+                target = limitGTC;
+            } else if (limitGTD !== undefined) {
+                target = limitGTD;
+            } else {
+                target = limitIOC;
+            }
             price = this.safeString (target, 'limit_price');
             amount = this.safeString (target, 'base_size');
             postOnly = this.safeValue (target, 'post_only');
