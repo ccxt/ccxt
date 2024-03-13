@@ -1044,7 +1044,7 @@ export default class testMainClass extends baseMainTestClass {
         return res;
     }
 
-    urlencodedToDict (url: string) {
+    urlencodedToDict (url: string = '') {
         const result = {};
         const parts = url.split ('&');
         for (let i = 0; i < parts.length; i++) {
