@@ -5264,7 +5264,7 @@ class Exchange(object):
     def safe_open_interest(self, interest, market: Market = None):
         return self.extend(interest, {
             'symbol': self.safe_string(market, 'symbol'),
-            'baseVolume': self.safe_number(interest, 'baseVolume'),  # deprecated
+            'baseVolume': self.safe_number(interest, 'baseVolume'),  # deprecated2
             'quoteVolume': self.safe_number(interest, 'quoteVolume'),  # deprecated
             'openInterestAmount': self.safe_number(interest, 'openInterestAmount'),
             'openInterestValue': self.safe_number(interest, 'openInterestValue'),
