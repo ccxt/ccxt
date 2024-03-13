@@ -526,13 +526,29 @@
     "blockchaincom": {
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode": "inexistent ones",
                 "taker":"not provided",
                 "maker":"not provided"
             },
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same",
+            "fetchCurrencies": {
+                "currencyIdAndCode": "inexistent ones",
+                "deposit":"not provided",
+                "withdraw":"not provided",
+                "precision":"not provided"
+            },
+            "fetchOrderBook": {
+                "bid": "bid should be greater than next bid"
+            },
+            "fetchOL2rderBook": {
+                "bid": "same"
+            },
             "watchOrderBook": {
+                "bid": "same",
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4517 and https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4562"
+            },
+            "watchOrderBookForSymbols": {
+                "bid": "same",
+                "nonce": "same"
             }
         }
     },
