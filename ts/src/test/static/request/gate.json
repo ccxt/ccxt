@@ -706,43 +706,203 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "Fetch OHLCV - spot",
+                "description": "spot +1m",
                 "method": "fetchOHLCV",
                 "url": "https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1m&limit=1000",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT",
+                  "1m"
                 ]
             },
             {
-                "description": "Fetch OHLCV - swap",
+                "description": "spot +1d",
                 "method": "fetchOHLCV",
-                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1m&limit=1000",
+                "url": "https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1d&limit=1000",
                 "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT",
+                  "1d"
                 ]
             },
             {
-                "description": "Fetch OHLCV - future",
+                "description": "spot +1d +since",
                 "method": "fetchOHLCV",
-                "url": "https://api.gateio.ws/api/v4/delivery/usdt/candlesticks?contract=BTC_USDT_20240329&interval=1m&limit=1000",
+                "url": "https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1d&from=1540000000&to=1626313600",
                 "input": [
-                    "BTC/USDT:USDT-240329"
+                  "BTC/USDT",
+                  "1d",
+                  1540000000000
                 ]
             },
             {
-                "description": "spot ohlcv",
+                "description": "spot +1d +since +limit",
                 "method": "fetchOHLCV",
-                "url": "https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1m&limit=1000",
+                "url": "https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1d&from=1540000000&to=1626313600",
                 "input": [
-                    "BTC/USDT"
+                  "BTC/USDT",
+                  "1d",
+                  1540000000000,
+                  2000
                 ]
             },
             {
-                "description": "swap ohlcv",
+                "description": "spot +1d +since +limit +until (until beyond permitted)",
                 "method": "fetchOHLCV",
-                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1m&limit=1000",
+                "url": "https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1d&from=1540000000&to=1626313600",
                 "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT",
+                  "1d",
+                  1540000000000,
+                  2000,
+                  {
+                    "until": 1670000000000
+                  }
+                ]
+            },
+            {
+                "description": "spot +1d +since +limit +until (until under permitted)",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1d&from=1540000000&to=1610000000",
+                "input": [
+                  "BTC/USDT",
+                  "1d",
+                  1540000000000,
+                  2000,
+                  {
+                    "until": 1610000000000
+                  }
+                ]
+            },
+            {
+                "description": "spot +1d +since +limit +until (limit under until)",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1d&from=1540000000&to=1544233600",
+                "input": [
+                  "BTC/USDT",
+                  "1d",
+                  1540000000000,
+                  50,
+                  {
+                    "until": 1610000000000
+                  }
+                ]
+            },
+            {
+                "description": "spot +1d +since -limit +until (until under permitted)",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1d&from=1540000000&to=1610000000",
+                "input": [
+                  "BTC/USDT",
+                  "1d",
+                  1540000000000,
+                  null,
+                  {
+                    "until": 1610000000000
+                  }
+                ]
+            },
+            {
+                "description": "swap +1m",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1m&limit=1999",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m"
+                ]
+            },
+            {
+                "description": "swap +1m +since",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1m&from=1660000000&to=1660119880",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  1660000000000
+                ]
+            },
+            {
+                "description": "swap +1d",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1d&limit=1999",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1d"
+                ]
+            },
+            {
+                "description": "swap +1d +since",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1d&from=1500000000&to=1672627200",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1d",
+                  1500000000000
+                ]
+            },
+            {
+                "description": "swap +1d +since +limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1d&from=1500000000&to=1672627200",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1d",
+                  1500000000000,
+                  2000
+                ]
+            },
+            {
+                "description": "swap +1d +since +limit +until (until beyond permitted)",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1d&from=1540000000&to=1690000000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1d",
+                  1460000000000,
+                  3000,
+                  {
+                    "until": 1690000000000
+                  }
+                ]
+            },
+            {
+                "description": "swap +1d +since +limit +until (until under permitted)",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1d&from=1540000000&to=1690000000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1d",
+                  1540000000000,
+                  3000,
+                  {
+                    "until": 1690000000000
+                  }
+                ]
+            },
+            {
+                "description": "swap +1d +since +limit +until (limit under until)",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1d&from=1540000000&to=1544233600",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1d",
+                  1540000000000,
+                  50,
+                  {
+                    "until": 1690000000000
+                  }
+                ]
+            },
+            {
+                "description": "swap +1d +since -limit +until (until under permitted)",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1d&from=1540000000&to=1690000000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1d",
+                  1540000000000,
+                  null,
+                  {
+                    "until": 1690000000000
+                  }
                 ]
             }
         ],
