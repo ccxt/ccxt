@@ -160,7 +160,7 @@ export default class commex extends Exchange {
                         'openOrders',
                         'allOrders',
                         'order',
-                        'captial/deposit/histsory',
+                        'capital/deposit/history',
                     ],
                     'delete': [
                         'order',
@@ -1410,7 +1410,7 @@ export default class commex extends Exchange {
         return this.extend (request, requestParams);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
          * @name binance#createOrder
@@ -1499,7 +1499,7 @@ export default class commex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        response = await this.privateGetCaptialDepositHistsory (this.extend (request, params));
+        response = await this.privateGetCapitalDepositHistory (this.extend (request, params));
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'deposit';
         }
