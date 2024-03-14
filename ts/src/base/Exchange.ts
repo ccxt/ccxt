@@ -300,7 +300,7 @@ export default class Exchange {
         walletAddress: boolean;
         token: boolean;
     };
-    rateLimit: number = undefined; // milliseconds
+    rateLimit: Num = undefined; // milliseconds
     tokenBucket = undefined
     throttler = undefined
     enableRateLimit: boolean = undefined;
@@ -334,7 +334,7 @@ export default class Exchange {
 
     hostname: Str = undefined;
 
-    precisionMode: number = undefined;
+    precisionMode: Num = undefined;
     paddingMode = undefined
 
     exceptions = {}
@@ -1314,7 +1314,7 @@ export default class Exchange {
         return
     }
 
-    parseNumber (value, d: number = undefined): number {
+    parseNumber (value, d: Num = undefined): number {
         if (value === undefined) {
             return d
         } else {
@@ -4064,24 +4064,24 @@ export default class Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    async editLimitBuyOrder (id: string, symbol: string, amount: number, price: number = undefined, params = {}) {
+    async editLimitBuyOrder (id: string, symbol: string, amount: number, price: Num = undefined, params = {}) {
         return await this.editLimitOrder (id, symbol, 'buy', amount, price, params);
     }
 
-    async editLimitSellOrder (id: string, symbol: string, amount: number, price: number = undefined, params = {}) {
+    async editLimitSellOrder (id: string, symbol: string, amount: number, price: Num = undefined, params = {}) {
         return await this.editLimitOrder (id, symbol, 'sell', amount, price, params);
     }
 
-    async editLimitOrder (id: string, symbol: string, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async editLimitOrder (id: string, symbol: string, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         return await this.editOrder (id, symbol, 'limit', side, amount, price, params);
     }
 
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}): Promise<Order> {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.cancelOrder (id, symbol);
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.cancelOrderWs (id, symbol);
         return await this.createOrderWs (symbol, type, side, amount, price, params);
     }
@@ -4552,11 +4552,11 @@ export default class Exchange {
         return await this.fetchOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
-    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingAmountOrder
@@ -4584,7 +4584,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createTrailingAmountOrder() is not supported yet');
     }
 
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingPercentOrder
@@ -4661,7 +4661,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createMarketSellOrderWithCost() is not supported yet');
     }
 
-    async createTriggerOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, triggerPrice = undefined, params = {}): Promise<Order> {
+    async createTriggerOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, triggerPrice: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTriggerOrder
@@ -4685,7 +4685,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createTriggerOrder() is not supported yet');
     }
 
-    async createStopLossOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, stopLossPrice: number = undefined, params = {}): Promise<Order> {
+    async createStopLossOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, stopLossPrice: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createStopLossOrder
@@ -4709,7 +4709,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createStopLossOrder() is not supported yet');
     }
 
-    async createTakeProfitOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, takeProfitPrice: number = undefined, params = {}): Promise<Order> {
+    async createTakeProfitOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, takeProfitPrice: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTakeProfitOrder
@@ -4733,7 +4733,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createTakeProfitOrder() is not supported yet');
     }
 
-    async createOrderWithTakeProfitAndStopLoss (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, takeProfit: number = undefined, stopLoss: number = undefined, params = {}): Promise<Order> {
+    async createOrderWithTakeProfitAndStopLoss (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, takeProfit: Num = undefined, stopLoss: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createOrderWithTakeProfitAndStopLoss
@@ -4812,7 +4812,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrders() is not supported yet');
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' createOrderWs() is not supported yet');
     }
 
@@ -5071,7 +5071,7 @@ export default class Exchange {
         return await this.createOrder (symbol, 'limit', side, amount, price, params);
     }
 
-    async createMarketOrder (symbol: string, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async createMarketOrder (symbol: string, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         return await this.createOrder (symbol, 'market', side, amount, price, params);
     }
 
@@ -5153,12 +5153,12 @@ export default class Exchange {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
-    safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): Num {
+    safeNumber (obj: object, key: IndexType, defaultNumber: Num = undefined): Num {
         const value = this.safeString (obj, key);
         return this.parseNumber (value, defaultNumber);
     }
 
-    safeNumberN (obj: object, arr: IndexType[], defaultNumber: number = undefined): Num {
+    safeNumberN (obj: object, arr: IndexType[], defaultNumber: Num = undefined): Num {
         const value = this.safeStringN (obj, arr);
         return this.parseNumber (value, defaultNumber);
     }
@@ -5208,7 +5208,7 @@ export default class Exchange {
         }
     }
 
-    async createPostOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createPostOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (!this.has['createPostOnlyOrder']) {
             throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
         }
@@ -5216,7 +5216,7 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
-    async createReduceOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createReduceOnlyOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (!this.has['createReduceOnlyOrder']) {
             throw new NotSupported (this.id + 'createReduceOnlyOrder() is not supported yet');
         }
@@ -5224,7 +5224,7 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
-    async createStopOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, stopPrice: number = undefined, params = {}) {
+    async createStopOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, stopPrice: Num = undefined, params = {}) {
         if (!this.has['createStopOrder']) {
             throw new NotSupported (this.id + ' createStopOrder() is not supported yet');
         }

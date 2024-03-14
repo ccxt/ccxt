@@ -34,7 +34,7 @@ export default class binance extends Exchange {
     }>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    fetchLastPrices(symbols?: Strings, params?: {}): Promise<any>;
+    fetchLastPrices(symbols?: Strings, params?: {}): Promise<import("./base/types.js").LastPrices>;
     parseLastPrice(entry: any, market?: Market): {
         symbol: string;
         timestamp: number;

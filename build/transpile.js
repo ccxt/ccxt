@@ -1654,6 +1654,7 @@ class Transpiler {
                 'string': 'string',
                 'MarketType': 'string',
                 'Str': '?string',
+                'Num': '?float',
                 'Strings': '?array',
                 'number': 'float',
                 'boolean': 'bool',

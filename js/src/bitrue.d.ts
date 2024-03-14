@@ -39,7 +39,7 @@ export default class bitrue extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -70,9 +70,9 @@ export default class bitrue extends Exchange {
         toAccount: any;
         status: string;
     };
-    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    setLeverage(leverage: Int, symbol?: string, params?: {}): Promise<any>;
+    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     parseMarginModification(data: any, market?: any): {
         info: any;
         type: any;

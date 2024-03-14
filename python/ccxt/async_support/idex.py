@@ -1650,7 +1650,7 @@ class idex(Exchange, ImplicitAPI):
         authenticated = hasApiKey and hasSecret and hasWalletAddress and hasPrivateKey
         return(defaultCost / 2) if authenticated else defaultCost
 
-    async def fetch_deposit_address(self, code: str = None, params={}):
+    async def fetch_deposit_address(self, code: Str = None, params={}):
         """
         fetch the Polygon address of the wallet
         :see: https://api-docs-v3.idex.io/#get-wallets
