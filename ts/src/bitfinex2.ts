@@ -3551,7 +3551,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchOrder
