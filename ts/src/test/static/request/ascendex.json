@@ -455,6 +455,14 @@
                 ]
             }
         ],
+        "fetchMarginModes": [
+            {
+                "description": "Fetch all of the set margin modes",
+                "method": "fetchMarginModes",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
+                "input": []
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fundingRate",
