@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { Exchange } from '../../ccxt.js';
+import { Str } from '../base/types.js';
 declare class baseMainTestClass {
     lang: string;
     isSynchronous: boolean;
@@ -55,7 +56,7 @@ export default class testMainClass extends baseMainTestClass {
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: any): void;
     loadMarketsFromFile(id: string): any;
     loadCurrenciesFromFile(id: string): any;
-    loadStaticData(folder: string, targetExchange?: string): {};
+    loadStaticData(folder: string, targetExchange?: Str): {};
     removeHostnamefromUrl(url: string): string;
     urlencodedToDict(url: string): {};
     assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: any): boolean;
@@ -65,11 +66,11 @@ export default class testMainClass extends baseMainTestClass {
     testMethodStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<void>;
     testResponseStatically(exchange: any, method: string, skipKeys: string[], data: object): Promise<void>;
     initOfflineExchange(exchangeName: string): Exchange;
-    testExchangeRequestStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<boolean>;
-    testExchangeResponseStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<boolean>;
-    getNumberOfTestsFromExchange(exchange: any, exchangeData: object, testName?: string): number;
-    runStaticRequestTests(targetExchange?: string, testName?: string): Promise<void>;
-    runStaticTests(type: string, targetExchange?: string, testName?: string): Promise<void>;
+    testExchangeRequestStatically(exchangeName: string, exchangeData: object, testName?: Str): Promise<boolean>;
+    testExchangeResponseStatically(exchangeName: string, exchangeData: object, testName?: Str): Promise<boolean>;
+    getNumberOfTestsFromExchange(exchange: any, exchangeData: object, testName?: Str): number;
+    runStaticRequestTests(targetExchange?: Str, testName?: Str): Promise<void>;
+    runStaticTests(type: string, targetExchange?: Str, testName?: Str): Promise<void>;
     runStaticResponseTests(exchangeName?: any, test?: any): Promise<void>;
     runBrokerIdTests(): Promise<void>;
     testBinance(): Promise<boolean>;

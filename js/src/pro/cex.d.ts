@@ -16,7 +16,7 @@ export default class cex extends cexRest {
     handleTicker(client: Client, message: any): void;
     parseWsTicker(ticker: any, market?: any): Ticker;
     fetchBalanceWs(params?: {}): Promise<Balances>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTransaction(client: Client, message: any): void;
     handleMyTrades(client: Client, message: any): void;
@@ -37,12 +37,12 @@ export default class cex extends cexRest {
     handleOHLCV24(client: Client, message: any): any;
     handleOHLCV1m(client: Client, message: any): void;
     handleOHLCV(client: Client, message: any): void;
-    fetchOrderWs(id: string, symbol?: string, params?: {}): Promise<Order>;
-    fetchOpenOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
-    cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<Order>;
-    cancelOrdersWs(ids: string[], symbol?: string, params?: {}): Promise<Order[]>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     resolveData(client: Client, message: any): void;
     handleConnected(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): void;

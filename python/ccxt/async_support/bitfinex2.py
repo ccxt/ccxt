@@ -3319,7 +3319,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'status': marginStatus,
         }
 
-    async def fetch_order(self, id: str, symbol: str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders

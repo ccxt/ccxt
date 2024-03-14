@@ -464,7 +464,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbols = self.market_symbols(symbols)
         marketIds = self.market_ids(symbols)
         url = await self.negotiate(False)
-        method: str = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', '/market/level2')
         if (limit == 5) or (limit == 50):
             method = '/spotMarket/level2Depth' + str(limit)
