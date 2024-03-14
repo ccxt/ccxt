@@ -920,7 +920,7 @@ export default class mexc extends Exchange {
                     'Combination of optional parameters invalid': BadRequest, // code:-2011
                     'api market order is disabled': BadRequest, //
                     'Contract not allow place order!': InvalidOrder, // code:1002
-                    'Oversold': InvalidOrder, // code:30005
+                    'Oversold': InsufficientFunds, // code:30005
                     'Insufficient position': InsufficientFunds, // code:30004
                     'Insufficient balance!': InsufficientFunds, // code:2005
                     'Bid price is great than max allow price': InvalidOrder, // code:2003
