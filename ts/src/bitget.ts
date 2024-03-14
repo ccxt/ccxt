@@ -6860,7 +6860,7 @@ export default class bitget extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-structure}
          */
         if (amount > 0) {
             throw new BadRequest (this.id + ' reduceMargin() amount parameter must be a negative value');
@@ -6881,7 +6881,7 @@ export default class bitget extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to add
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-structure}
          */
         const holdSide = this.safeString (params, 'holdSide');
         if (holdSide === undefined) {

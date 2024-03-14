@@ -11012,7 +11012,7 @@ export default class binance extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
@@ -11027,7 +11027,7 @@ export default class binance extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
