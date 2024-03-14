@@ -1037,7 +1037,7 @@
                 ]
             },
             {
-                "description": "spot 1m +since +limit +until without useHistoricalEndpoint",
+                "description": "spot 1m +since +limit +until without useHistoricalEndpointForSpot",
                 "method": "fetchOHLCV",
                 "url": "https://api.huobi.pro/market/history/kline?period=1min&size=5&symbol=btcusdt",      
                 "input": [
@@ -1046,7 +1046,7 @@
                   1620000000000,
                   5,
                   {
-                    "useHistoricalEndpoint": false
+                    "useHistoricalEndpointForSpot": false
                   }
                 ]
             },
