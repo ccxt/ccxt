@@ -1,9 +1,8 @@
 import Transpiler from "ast-transpiler";
-import ts from "typescript";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
-import { basename, join, resolve } from 'path'
-import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
+import { basename, resolve } from 'path'
+import { createFolderRecursively, overwriteFile } from './fsLocal.js'
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
@@ -13,7 +12,6 @@ import { promisify } from 'util';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
-import { unCamelCase } from "../js/src/base/functions.js";
 
 ansi.nice
 const promisedWriteFile = promisify (fs.writeFile);
@@ -109,6 +107,7 @@ class NewTranspiler {
             [/\(stream,/g, '(stream as Stream,'],
             [/\(object stream,/gm, '(Stream stream,'],
             [/\(object stream\)/gm, '(Stream stream)'],
+            [/object stream =/gm, 'ccxt.pro.Stream stream ='],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
         ]
@@ -720,6 +719,7 @@ class NewTranspiler {
 
         // WS fixes
         baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
+        baseClass = baseClass.replace(/object stream/gm, 'ccxt.pro.Stream stream');
         baseClass = baseClass.replace(/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
         baseClass = baseClass.replaceAll (/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe");
 

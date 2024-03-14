@@ -16,7 +16,7 @@ public partial class Exchange
     {
         return (Message message) =>
         {
-            var payload = message.Payload;
+            var payload = message.Payload as dict;
             if (payload.TryGetValue("symbol", out object symbolObj))
             {
                 var symbol = symbolObj as string;
