@@ -4154,7 +4154,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function create_order_request($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $market = null;
         if ($sandboxMode) {

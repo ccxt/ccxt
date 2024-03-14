@@ -788,7 +788,7 @@ public partial class mexc : Exchange
                     { "Combination of optional parameters invalid", typeof(BadRequest) },
                     { "api market order is disabled", typeof(BadRequest) },
                     { "Contract not allow place order!", typeof(InvalidOrder) },
-                    { "Oversold", typeof(InvalidOrder) },
+                    { "Oversold", typeof(InsufficientFunds) },
                     { "Insufficient position", typeof(InsufficientFunds) },
                     { "Insufficient balance!", typeof(InsufficientFunds) },
                     { "Bid price is great than max allow price", typeof(InvalidOrder) },
