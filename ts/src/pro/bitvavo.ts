@@ -1027,7 +1027,7 @@ export default class bitvavo extends bitvavoRest {
          * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
         await this.authenticate ();
