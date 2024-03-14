@@ -851,7 +851,7 @@
             },
             "ticker": {
                 "bid":"messed bid-ask",
-                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262963390#L3138",
+                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262963390#L3138"
             },
             "fetchPositions":  "currently returns a lot of default/non open positions",
             "fetchLedger": {
