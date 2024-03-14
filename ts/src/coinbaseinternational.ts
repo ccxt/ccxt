@@ -20,6 +20,7 @@ export default class coinbaseinternational extends Exchange {
             'id': 'coinbaseinternational',
             'name': 'coinbase International',
             'countries': [ 'US' ],
+            'certified': true,
             'pro': true,
             'rateLimit': 100, // 10 requests per second
             'version': 'v1',
@@ -109,7 +110,7 @@ export default class coinbaseinternational extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/866ae638-6ab5-4ebf-ab2c-cdcce9545625',
                 'api': {
                     'rest': 'https://api.international.coinbase.com/api',
                 },
