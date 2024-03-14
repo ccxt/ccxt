@@ -1342,10 +1342,10 @@ export default class bitget extends Exchange {
                 },
                 'fetchOHLCV': {
                     'spot': {
-                        'method': 'publicSpotGetV2SpotMarketCandles', // or publicSpotGetV2SpotMarketHistoryCandles
+                        'method': 'publicSpotGetV2SpotMarketCandles', // publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
                     },
                     'swap': {
-                        'method': 'publicMixGetV2MixMarketCandles', // or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
+                        'method': 'publicMixGetV2MixMarketCandles', // publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     },
                     'maxDaysPerTimeframe': {
                         '1m': 30,
@@ -3305,101 +3305,112 @@ export default class bitget extends Exchange {
          * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        await this.loadMarkets ();
-        const maxLimit = 1000; // max 1000
+        await this.loadMarkets();
+        const defaultLimit = 100; // default 100, max 1000
+        const maxLimitForRecentEndpoint = 1000;
+        const maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForHistoryEndpoint);
         }
-        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
-            const sandboxSymbol = this.convertSymbolForSandbox (symbol);
-            market = this.market (sandboxSymbol);
-        } else {
-            market = this.market (symbol);
+            const sandboxSymbol = this.convertSymbolForSandbox(symbol);
+            market = this.market(sandboxSymbol);
+        }
+        else {
+            market = this.market(symbol);
         }
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
-        const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
-        const duration = this.parseTimeframe (timeframe) * 1000;
+        const msInDay = 86400000;
+        const duration = this.parseTimeframe(timeframe) * 1000;
         const request = {
             'symbol': market['id'],
-            'granularity': selectedTimeframe,
+            'granularity': this.safeString (timeframes, timeframe, timeframe),
         };
-        const defaultLimit = 100; // by default, exchange returns 100 items
-        const msInDay = 1000 * 60 * 60 * 24;
-        if (limit !== undefined) {
-            limit = Math.min (limit, maxLimit);
-            request['limit'] = limit;
-        }
-        const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'until', 'till' ]);
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-            if (market['spot'] && (until === undefined)) {
-                // for spot we need to send "entTime" too
-                const limitForEnd = (limit !== undefined) ? limit : defaultLimit;
-                const calculatedEnd = this.sum (since, duration * limitForEnd);
-                request['endTime'] = calculatedEnd;
-            }
-        }
+        const until = this.safeInteger2(params, 'until', 'till');
+        const limitDefined = limit !== undefined;
+        const sinceDefined = since !== undefined;
+        const untilDefined = until !== undefined;
+        params = this.omit(params, ['until', 'till']);
         let response = undefined;
-        const now = this.milliseconds ();
+        const now = this.milliseconds();
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        const ohlcOptions = this.safeDict (this.options, 'fetchOHLCV', {});
-        const retrievableDaysMap = this.safeDict (ohlcOptions, 'maxDaysPerTimeframe', {});
-        const maxRetrievableDaysForNonHistory = this.safeInteger (retrievableDaysMap, timeframe, 30); // default to safe minimum
-        const endpointTsBoundary = now - maxRetrievableDaysForNonHistory * msInDay;
-        // checks if we need history endpoint
-        let needsHistoryEndpoint = false;
-        const displaceByLimit = (limit === undefined) ? 0 : limit * duration;
-        if (since !== undefined && since < endpointTsBoundary) {
-            // if since it earlier than the allowed diapason
-            needsHistoryEndpoint = true;
-        } else if (until !== undefined && until - displaceByLimit < endpointTsBoundary) {
-            // if until is earlier than the allowed diapason
-            needsHistoryEndpoint = true;
-        }
-        if (market['spot']) {
-            if (needsHistoryEndpoint) {
-                response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
-            } else {
-                response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
-            }
+        const ohlcOptions = this.safeDict(this.options, 'fetchOHLCV', {});
+        const retrievableDaysMap = this.safeDict(ohlcOptions, 'maxDaysPerTimeframe', {});
+        const maxRetrievableDaysForRecent = this.safeInteger(retrievableDaysMap, timeframe, 30); // default to safe minimum
+        const endpointTsBoundary = now - maxRetrievableDaysForRecent * msInDay;
+        if (limitDefined) {
+            limit = Math.min(limit, maxLimitForRecentEndpoint);
+            request['limit'] = limit;
         } else {
-            const maxDistanceDaysForContracts = 90; // maximum 90 days allowed between start-end times
-            let distanceError = false;
-            if (limit !== undefined && limit * duration > maxDistanceDaysForContracts * msInDay) {
-                distanceError = true;
-            } else if (since !== undefined && until !== undefined && until - since > maxDistanceDaysForContracts * msInDay) {
-                distanceError = true;
+            limit = defaultLimit;
+        }
+        const limitMultipliedDuration = limit * duration;
+        // if since or until is used, then both "startTime & entTime" are needed in request
+        // otherwise "Parameter endTime cannot be empty" error triggers
+        let calculatedStartTime = undefined;
+        let calculatedEndTime = undefined;
+        if (sinceDefined) {
+            calculatedStartTime = since;
+            if (!untilDefined) {
+                calculatedEndTime = calculatedStartTime + limitMultipliedDuration;
             }
-            if (distanceError) {
-                throw new BadRequest (this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDaysForContracts.toString () + ' days');
+            request['startTime'] = since; // supported for "recent-candles" endpoint, other endpoint just ingores
+        }
+        if (untilDefined) {
+            calculatedEndTime = until;
+            if (!sinceDefined) {
+                calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
             }
-            const priceType = this.safeString (params, 'price');
-            params = this.omit (params, [ 'price' ]);
+            request['endTime'] = calculatedEnd; // supported for both endpoints
+        }
+        const historicalEndpointNeeded = (calculatedStartTime !== undefined) && (calculatedStartTime <= endpointTsBoundary);
+        if (historicalEndpointNeeded) {
+            // only for "historical-candles" - ensure we use correct max limit
+            if (limitDefined) {
+                request['limit'] = Math.min(limit, maxLimitForHistoryEndpoint);
+            }
+        }
+        // make request
+        if (market['spot']) {
+            // checks if we need history endpoint
+            if (historicalEndpointNeeded) {
+                response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, params));
+            }
+            else {
+                response = await this.publicSpotGetV2SpotMarketCandles(this.extend(request, params));
+            }
+        }
+        else {
+            const maxDistanceDaysForContracts = 90; // for contract, maximum 90 days allowed between start-end times
+            if ((calculatedStartTime !== undefined) && (calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay)) {
+                throw new BadRequest(this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDaysForContracts.toString() + ' days');
+            }
+            let priceType =
+            [ priceType , params ] = this.handleParamString (params, 'price');
             let productType = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            [productType, params] = this.handleProductTypeAndParams(market, params);
             request['productType'] = productType;
-            const extended = this.extend (request, params);
+            const extended = this.extend(request, params);
             // todo: mark & index also have their "recent" endpoints, but not priority now.
             if (priceType === 'mark') {
-                response = await this.publicMixGetV2MixMarketHistoryMarkCandles (extended);
-            } else if (priceType === 'index') {
-                response = await this.publicMixGetV2MixMarketHistoryIndexCandles (extended);
-            } else {
+                response = await this.publicMixGetV2MixMarketHistoryMarkCandles(extended);
+            }
+            else if (priceType === 'index') {
+                response = await this.publicMixGetV2MixMarketHistoryIndexCandles(extended);
+            }
+            else {
                 if (needsHistoryEndpoint) {
-                    response = await this.publicMixGetV2MixMarketHistoryCandles (extended);
-                } else {
-                    response = await this.publicMixGetV2MixMarketCandles (extended);
+                    response = await this.publicMixGetV2MixMarketHistoryCandles(extended);
+                }
+                else {
+                    response = await this.publicMixGetV2MixMarketCandles(extended);
                 }
             }
         }
