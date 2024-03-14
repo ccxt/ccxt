@@ -48,12 +48,12 @@ The source code of the CLI is available here:
 
 4. Run the script:
     - Node.js: `node examples/js/cli okx fetchTicker ETH/USDT`
-    - Python: `python3 examples/py/cli.py okx fetc_ticker ETH/USDT`
-    - PHP: `php -f examples/php/cli.php okx fetc_ticker ETH/USDT`
+    - Python: `python3 examples/py/cli.py okx fetch_ticker ETH/USDT`
+    - PHP: `php -f examples/php/cli.php okx fetch_ticker ETH/USDT`
 
 ## Usage
 
-The CLI script requires at least one argument, that is, the exchange id ([the list of supported excanges and their ids](https://github.com/ccxt/ccxt#supported-cryptocurrency-exchange-markets)). If you don't specify the exchange id, the script will print the list of all exchange ids for reference.
+The CLI script requires at least one argument, that is, the exchange id ([the list of supported exchanges and their ids](https://github.com/ccxt/ccxt#supported-cryptocurrency-exchange-markets)). If you don't specify the exchange id, the script will print the list of all exchange ids for reference.
 
 Upon launch, CLI will create and initialize the exchange instance and will also call [exchange.loadMarkets()](https://github.com/ccxt/ccxt/wiki/Manual#loading-markets) on that exchange.
 If you don't specify any other command-line arguments to CLI except the exchange id argument, then the CLI script will print out all the contents of the exchange object, including the list of all the methods and properties and all the loaded markets (the output may be extremely long in that case).
