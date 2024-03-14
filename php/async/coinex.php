@@ -5418,7 +5418,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'market');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(

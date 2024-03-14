@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages } from './base/types.js';
 
 /**
  * @class gate
@@ -115,7 +115,8 @@ export default class gate extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
                 'fetchMarginMode': false,
@@ -862,7 +863,7 @@ export default class gate extends Exchange {
         });
     }
 
-    setSandboxMode (enable) {
+    setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }
@@ -2260,7 +2261,8 @@ export default class gate extends Exchange {
         const [ request, requestParams ] = this.prepareRequest (market, type, query);
         request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (since !== undefined) {
-            request['from'] = since / 1000;
+            // from should be integer
+            request['from'] = this.parseToInt (since / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -4466,7 +4468,10 @@ export default class gate extends Exchange {
         if (lastTradeTimestamp === undefined) {
             lastTradeTimestamp = this.safeTimestamp2 (order, 'update_time', 'finish_time');
         }
-        const marketType = ('currency_pair' in order) ? 'spot' : 'contract';
+        let marketType = 'contract';
+        if (('currency_pair' in order) || ('market' in order)) {
+            marketType = 'spot';
+        }
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
         const symbol = this.safeSymbol (exchangeSymbol, market, '_', marketType);
         // Everything below this(above return) is related to fees
@@ -6619,7 +6624,7 @@ export default class gate extends Exchange {
         return this.safeString (ledgerType, type, type);
     }
 
-    async setPositionMode (hedged: boolean, symbol: string = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name gate#setPositionMode
@@ -6982,6 +6987,177 @@ export default class gate extends Exchange {
             side = ''; // side is not used but needs to be present, otherwise crashes in php
         }
         return await this.createOrder (symbol, 'market', side, 0, undefined, params);
+    }
+
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        /**
+         * @method
+         * @name gate#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-unified-account-information
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-detail-of-lending-market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-one-single-margin-currency-pair-deprecated
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.unified] default false, set to true for fetching the unified accounts leverage
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            // unified account does not require a symbol
+            market = this.market (symbol);
+        }
+        const request = {};
+        let response = undefined;
+        const isUnified = this.safeBool (params, 'unified');
+        params = this.omit (params, 'unified');
+        if (market['spot']) {
+            request['currency_pair'] = market['id'];
+            if (isUnified) {
+                response = await this.publicMarginGetUniCurrencyPairsCurrencyPair (this.extend (request, params));
+                //
+                //     {
+                //         "currency_pair": "BTC_USDT",
+                //         "base_min_borrow_amount": "0.0001",
+                //         "quote_min_borrow_amount": "1",
+                //         "leverage": "10"
+                //     }
+                //
+            } else {
+                response = await this.publicMarginGetCurrencyPairsCurrencyPair (this.extend (request, params));
+                //
+                //     {
+                //         "id": "BTC_USDT",
+                //         "base": "BTC",
+                //         "quote": "USDT",
+                //         "leverage": 10,
+                //         "min_base_amount": "0.0001",
+                //         "min_quote_amount": "1",
+                //         "max_quote_amount": "40000000",
+                //         "status": 1
+                //     }
+                //
+            }
+        } else if (isUnified) {
+            response = await this.privateUnifiedGetAccounts (this.extend (request, params));
+            //
+            //     {
+            //         "user_id": 10001,
+            //         "locked": false,
+            //         "balances": {
+            //             "ETH": {
+            //                 "available": "0",
+            //                 "freeze": "0",
+            //                 "borrowed": "0.075393666654",
+            //                 "negative_liab": "0",
+            //                 "futures_pos_liab": "0",
+            //                 "equity": "1016.1",
+            //                 "total_freeze": "0",
+            //                 "total_liab": "0"
+            //             },
+            //             "POINT": {
+            //                 "available": "9999999999.017023138734",
+            //                 "freeze": "0",
+            //                 "borrowed": "0",
+            //                 "negative_liab": "0",
+            //                 "futures_pos_liab": "0",
+            //                 "equity": "12016.1",
+            //                 "total_freeze": "0",
+            //                 "total_liab": "0"
+            //             },
+            //             "USDT": {
+            //                 "available": "0.00000062023",
+            //                 "freeze": "0",
+            //                 "borrowed": "0",
+            //                 "negative_liab": "0",
+            //                 "futures_pos_liab": "0",
+            //                 "equity": "16.1",
+            //                 "total_freeze": "0",
+            //                 "total_liab": "0"
+            //             }
+            //         },
+            //         "total": "230.94621713",
+            //         "borrowed": "161.66395521",
+            //         "total_initial_margin": "1025.0524665088",
+            //         "total_margin_balance": "3382495.944473949183",
+            //         "total_maintenance_margin": "205.01049330176",
+            //         "total_initial_margin_rate": "3299.827135672679",
+            //         "total_maintenance_margin_rate": "16499.135678363399",
+            //         "total_available_margin": "3381470.892007440383",
+            //         "unified_account_total": "3381470.892007440383",
+            //         "unified_account_total_liab": "0",
+            //         "unified_account_total_equity": "100016.1",
+            //         "leverage": "2"
+            //     }
+            //
+        } else {
+            throw new NotSupported (this.id + ' fetchLeverage() does not support ' + market['type'] + ' markets');
+        }
+        return this.parseLeverage (response, market);
+    }
+
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+        /**
+         * @method
+         * @name gate#fetchLeverages
+         * @description fetch the set leverage for all leverage markets, only spot margin is supported on gate
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-lending-markets
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated
+         * @param {string[]} symbols a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.unified] default false, set to true for fetching unified account leverages
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let response = undefined;
+        const isUnified = this.safeBool (params, 'unified');
+        params = this.omit (params, 'unified');
+        let marketIdRequest = 'id';
+        if (isUnified) {
+            marketIdRequest = 'currency_pair';
+            response = await this.publicMarginGetUniCurrencyPairs (params);
+            //
+            //     [
+            //         {
+            //             "currency_pair": "1INCH_USDT",
+            //             "base_min_borrow_amount": "8",
+            //             "quote_min_borrow_amount": "1",
+            //             "leverage": "3"
+            //         },
+            //     ]
+            //
+        } else {
+            response = await this.publicMarginGetCurrencyPairs (params);
+            //
+            //     [
+            //         {
+            //             "id": "1CAT_USDT",
+            //             "base": "1CAT",
+            //             "quote": "USDT",
+            //             "leverage": 3,
+            //             "min_base_amount": "71",
+            //             "min_quote_amount": "1",
+            //             "max_quote_amount": "10000",
+            //             "status": 1
+            //         },
+            //     ]
+            //
+        }
+        return this.parseLeverages (response, symbols, marketIdRequest, 'spot');
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const marketId = this.safeString2 (leverage, 'currency_pair', 'id');
+        const leverageValue = this.safeInteger (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market, '_', 'spot'),
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

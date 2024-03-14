@@ -13,6 +13,7 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 from ccxt.test.base import test_currency  # noqa E402
+from ccxt.test.base import test_shared_methods  # noqa E402
 
 def test_fetch_currencies(exchange, skipped_properties):
     method = 'fetchCurrencies'
@@ -21,5 +22,6 @@ def test_fetch_currencies(exchange, skipped_properties):
     # todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     if currencies is not None:
         values = list(currencies.values())
+        test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values)
         for i in range(0, len(values)):
             test_currency(exchange, skipped_properties, method, values[i])

@@ -2812,7 +2812,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
             'info' => $leverage,
@@ -2975,7 +2975,7 @@ class woo extends Exchange {
         return $this->safe_value($networkKeys, 0);
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
     }

@@ -281,15 +281,15 @@ class yobit extends yobit$1 {
         });
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'return', {});
+        const balances = this.safeDict(response, 'return', {});
         const timestamp = this.safeInteger(balances, 'server_time');
         const result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
-        const free = this.safeValue(balances, 'funds', {});
-        const total = this.safeValue(balances, 'funds_incl_orders', {});
+        const free = this.safeDict(balances, 'funds', {});
+        const total = this.safeDict(balances, 'funds_incl_orders', {});
         const currencyIds = Object.keys(this.extend(free, total));
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -367,7 +367,7 @@ class yobit extends yobit$1 {
         //         },
         //     }
         //
-        const markets = this.safeValue(response, 'pairs', {});
+        const markets = this.safeDict(response, 'pairs', {});
         const keys = Object.keys(markets);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -655,7 +655,7 @@ class yobit extends yobit$1 {
                 'currency': feeCurrencyCode,
             };
         }
-        const isYourOrder = this.safeValue(trade, 'is_your_order');
+        const isYourOrder = this.safeString(trade, 'is_your_order');
         if (isYourOrder !== undefined) {
             if (fee === undefined) {
                 const feeInNumbers = this.calculateFee(symbol, type, side, amount, price, 'taker');
@@ -722,7 +722,7 @@ class yobit extends yobit$1 {
                 return [];
             }
         }
-        const result = this.safeValue(response, market['id'], []);
+        const result = this.safeList(response, market['id'], []);
         return this.parseTrades(result, market, since, limit);
     }
     async fetchTradingFees(params = {}) {
@@ -755,12 +755,12 @@ class yobit extends yobit$1 {
         //         },
         //     }
         //
-        const pairs = this.safeValue(response, 'pairs', {});
+        const pairs = this.safeDict(response, 'pairs', {});
         const marketIds = Object.keys(pairs);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const pair = this.safeValue(pairs, marketId, {});
+            const pair = this.safeDict(pairs, marketId, {});
             const symbol = this.safeSymbol(marketId, undefined, '_');
             const takerString = this.safeString(pair, 'fee_buyer');
             const makerString = this.safeString(pair, 'fee_seller');
@@ -824,7 +824,7 @@ class yobit extends yobit$1 {
         //           }
         //       }
         //
-        const result = this.safeValue(response, 'return');
+        const result = this.safeDict(response, 'return');
         return this.parseOrder(result, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -862,7 +862,7 @@ class yobit extends yobit$1 {
         //          }
         //      }
         //
-        const result = this.safeValue(response, 'return', {});
+        const result = this.safeDict(response, 'return', {});
         return this.parseOrder(result);
     }
     parseOrderStatus(status) {
@@ -993,7 +993,7 @@ class yobit extends yobit$1 {
         };
         const response = await this.privatePostOrderInfo(this.extend(request, params));
         id = id.toString();
-        const orders = this.safeValue(response, 'return', {});
+        const orders = this.safeDict(response, 'return', {});
         //
         //      {
         //          "success":1,
@@ -1058,7 +1058,7 @@ class yobit extends yobit$1 {
         //          }
         //      }
         //
-        const result = this.safeValue(response, 'return', {});
+        const result = this.safeDict(response, 'return', {});
         return this.parseOrders(result, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1112,7 +1112,7 @@ class yobit extends yobit$1 {
         //          }
         //      }
         //
-        const trades = this.safeValue(response, 'return', {});
+        const trades = this.safeDict(response, 'return', {});
         const ids = Object.keys(trades);
         const result = [];
         for (let i = 0; i < ids.length; i++) {
@@ -1160,7 +1160,7 @@ class yobit extends yobit$1 {
         await this.loadMarkets();
         const currency = this.currency(code);
         let currencyId = currency['id'];
-        const networks = this.safeValue(this.options, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
@@ -1327,7 +1327,7 @@ class yobit extends yobit$1 {
             //
             // To cover points 1, 2, 3 and 4 combined this handler should work like this:
             //
-            let success = this.safeBool(response, 'success', false);
+            let success = this.safeValue(response, 'success'); // don't replace with safeBool here
             if (typeof success === 'string') {
                 if ((success === 'true') || (success === '1')) {
                     success = true;

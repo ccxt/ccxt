@@ -573,8 +573,8 @@ export default class Exchange {
     socksProxyAgentModule: any;
     socksProxyAgentModuleChecked: boolean;
     proxyDictionaries: any;
-    proxyModulesLoaded: boolean;
-    loadProxyModules(): Promise<void>;
+    proxiesModulesLoading: Promise<any>;
+    loadProxyModules(): Promise<any>;
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
     loadHttpProxyAgent(): Promise<any>;
     getHttpAgentIfNeeded(url: any): any;
@@ -795,7 +795,8 @@ export default class Exchange {
     setHeaders(headers: any): any;
     marketId(symbol: string): string;
     symbol(symbol: string): string;
-    handleParamString(params: object, paramName: string, defaultValue?: any): [string, object];
+    handleParamString(params: object, paramName: string, defaultValue?: Str): [string, object];
+    handleParamInteger(params: object, paramName: string, defaultValue?: Int): [Int, object];
     resolvePath(path: any, params: any): any[];
     getListFromObjectValues(objects: any, key: IndexType): any[];
     getSymbolsForMarketType(marketType?: string, subType?: string, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): any[];

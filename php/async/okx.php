@@ -5160,7 +5160,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = null;
         $marginMode = null;
         $longLeverage = null;
@@ -6990,7 +6990,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
         if ($enable) {

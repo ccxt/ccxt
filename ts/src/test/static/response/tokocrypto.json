@@ -1,0 +1,92 @@
+{
+    "exchange": "tokocrypto",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "3479463563",
+                        "price": "73238.69000000",
+                        "qty": "0.00300000",
+                        "quoteQty": "219.71607000",
+                        "time": "1710327662491",
+                        "isBuyerMaker": true,
+                        "isBestMatch": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "3479463563",
+                            "price": "73238.69000000",
+                            "qty": "0.00300000",
+                            "quoteQty": "219.71607000",
+                            "time": "1710327662491",
+                            "isBuyerMaker": true,
+                            "isBestMatch": true
+                        },
+                        "timestamp": 1710327662491,
+                        "datetime": "2024-03-13T11:01:02.491Z",
+                        "symbol": "BTC/USDT",
+                        "id": "3479463563",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 73238.69,
+                        "amount": 0.003,
+                        "cost": 219.71607,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        1710327600000,
+                        "73256.01000000",
+                        "73442.95000000",
+                        "73238.68000000",
+                        "73414.21000000",
+                        "417.28959000",
+                        1710331199999,
+                        "30602000.96809090",
+                        19577,
+                        "224.32362000",
+                        "16450706.27488880",
+                        "0"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73256.01,
+                        73442.95,
+                        73238.68,
+                        73414.21,
+                        417.28959
+                    ]
+                ]
+            }
+        ]
+    }
+}

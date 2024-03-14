@@ -8,7 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Liquidation, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, FundingHistory, Int, Leverage, Liquidation, MarginMode, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -106,7 +106,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': False,
-                'fetchMarginMode': False,
+                'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -393,6 +393,8 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/spot/wallet/transfer': 2,
                             'v2/spot/wallet/subaccount-transfer': 2,
                             'v2/spot/wallet/withdrawal': 2,
+                            'v2/spot/wallet/cancel-withdrawal': 2,
+                            'v2/spot/wallet/modify-deposit-account': 2,
                         },
                     },
                     'mix': {
@@ -737,9 +739,12 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/convert/currencies': 2,
                             'v2/convert/quoted-price': 2,
                             'v2/convert/convert-record': 2,
+                            'v2/convert/bgb-convert-coin-list': 2,
+                            'v2/convert/bgb-convert-records': 2,
                         },
                         'post': {
                             'v2/convert/trade': 2,
+                            'v2/convert/bgb-convert': 2,
                         },
                     },
                     'earn': {
@@ -4611,6 +4616,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         cancel all open orders
         :see: https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+        :see: https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
         :see: https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -4635,7 +4641,7 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
         if market['spot']:
@@ -4645,7 +4651,13 @@ class bitget(Exchange, ImplicitAPI):
                 else:
                     response = await self.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(self.extend(request, params))
             else:
-                response = await self.privateSpotPostV2SpotTradeCancelSymbolOrder(self.extend(request, params))
+                if stop:
+                    stopRequest = {
+                        'symbolList': [market['id']],
+                    }
+                    response = await self.privateSpotPostV2SpotTradeBatchCancelPlanOrder(self.extend(stopRequest, params))
+                else:
+                    response = await self.privateSpotPostV2SpotTradeCancelSymbolOrder(self.extend(request, params))
         else:
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
@@ -5857,11 +5869,13 @@ class bitget(Exchange, ImplicitAPI):
         fetch all open positions
         :see: https://www.bitget.com/api-doc/contract/position/get-all-position
         :see: https://www.bitget.com/api-doc/contract/position/Get-History-Position
-        :param str[]|None symbols: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginCoin]: the settle currency of the positions, needs to match the productType
         :param str [params.productType]: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.useHistoryEndpoint]: default False, when True  will use the historic endpoint to fetch positions
+        :param str [params.method]: either(default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
@@ -5869,8 +5883,12 @@ class bitget(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchPositions', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchPositions', None, None, None, params, 'endId', 'idLessThan')
-        fetchPositionsOptions = self.safe_value(self.options, 'fetchPositions', {})
-        method = self.safe_string(fetchPositionsOptions, 'method', 'privateMixGetV2MixPositionAllPosition')
+        method = None
+        useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
+        if useHistoryEndpoint:
+            method = 'privateMixGetV2MixPositionHistoryPosition'
+        else:
+            method, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition')
         market = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
@@ -5973,10 +5991,10 @@ class bitget(Exchange, ImplicitAPI):
         #
         position = []
         if not isHistory:
-            position = self.safe_value(response, 'data', [])
+            position = self.safe_list(response, 'data', [])
         else:
-            data = self.safe_value(response, 'data', {})
-            position = self.safe_value(data, 'list', [])
+            data = self.safe_dict(response, 'data', {})
+            position = self.safe_list(data, 'list', [])
         result = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i], market))
@@ -7726,6 +7744,70 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         orderInfo = self.safe_value(data, 'successList', [])
         return self.parse_positions(orderInfo, None, params)
+
+    async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the margin mode of a trading pair
+        :see: https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+        :param str symbol: unified symbol of the market to fetch the margin mode for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        """
+        await self.load_markets()
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        market = None
+        if sandboxMode:
+            sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
+            market = self.market(sandboxSymbol)
+        else:
+            market = self.market(symbol)
+        productType = None
+        productType, params = self.handle_product_type_and_params(market, params)
+        request = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+            'productType': productType,
+        }
+        response = await self.privateMixGetV2MixAccountAccount(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1709791216652,
+        #         "data": {
+        #             "marginCoin": "USDT",
+        #             "locked": "0",
+        #             "available": "19.88811074",
+        #             "crossedMaxAvailable": "19.88811074",
+        #             "isolatedMaxAvailable": "19.88811074",
+        #             "maxTransferOut": "19.88811074",
+        #             "accountEquity": "19.88811074",
+        #             "usdtEquity": "19.888110749166",
+        #             "btcEquity": "0.000302183391",
+        #             "crossedRiskRate": "0",
+        #             "crossedMarginLeverage": 20,
+        #             "isolatedLongLever": 20,
+        #             "isolatedShortLever": 20,
+        #             "marginMode": "crossed",
+        #             "posMode": "hedge_mode",
+        #             "unrealizedPL": "0",
+        #             "coupon": "0",
+        #             "crossedUnrealizedPL": "0",
+        #             "isolatedUnrealizedPL": ""
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_margin_mode(data, market)
+
+    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+        marginType = self.safe_string(marginMode, 'marginMode')
+        marginType = 'cross' if (marginType == 'crossed') else marginType
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginType,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

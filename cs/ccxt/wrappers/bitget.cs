@@ -852,6 +852,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders"/>  <br/>
     /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders"/>  <br/>
     /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order"/>  <br/>
@@ -1312,6 +1313,18 @@ public partial class bitget
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.useHistoryEndpoint</term>
+    /// <description>
+    /// boolean : default false, when true  will use the historic endpoint to fetch positions
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
     /// </description>
     /// </item>
     /// </list>
@@ -1789,5 +1802,25 @@ public partial class bitget
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetches the margin mode of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitget.com/api-doc/contract/account/Get-Single-Account"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
+    public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginMode(symbol, parameters);
+        return new MarginMode(res);
     }
 }

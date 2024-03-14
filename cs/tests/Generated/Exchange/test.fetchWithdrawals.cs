@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     {
         object method = "fetchWithdrawals";
         object transactions = await exchange.fetchWithdrawals(code);
-        assert(((transactions is IList<object>) || (transactions.GetType().IsGenericType && transactions.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), code), " must return an array. "), exchange.json(transactions)));
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, transactions, code);
         object now = exchange.milliseconds();
         for (object i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
         {

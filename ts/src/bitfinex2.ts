@@ -1400,9 +1400,11 @@ export default class bitfinex2 extends Exchange {
             'symbol': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
             'sort': 1,
-            'start': since,
             'limit': limit,
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
         [ request, params ] = this.handleUntilOption ('end', request, params);
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         //
@@ -2986,7 +2988,7 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
-        return this.fetchFundingRates ([ symbol ], params) as any;
+        return await this.fetchFundingRates ([ symbol ], params) as any;
     }
 
     async fetchFundingRates (symbols: Strings = undefined, params = {}) {
@@ -3111,10 +3113,10 @@ export default class bitfinex2 extends Exchange {
         }
         const reversedArray = [];
         const rawRates = this.filterBySymbolSinceLimit (rates, symbol, since, limit);
-        const rawRatesLength = rawRates.length;
-        const ratesLength = Math.max (rawRatesLength - 1, 0);
-        for (let i = ratesLength; i >= 0; i--) {
-            const valueAtIndex = rawRates[i];
+        const ratesLength = rawRates.length;
+        for (let i = 0; i < ratesLength; i++) {
+            const index = ratesLength - i - 1;
+            const valueAtIndex = rawRates[index];
             reversedArray.push (valueAtIndex);
         }
         return reversedArray as FundingRateHistory[];
@@ -3549,7 +3551,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchOrder

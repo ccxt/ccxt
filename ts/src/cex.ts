@@ -870,7 +870,7 @@ export default class cex extends Exchange {
         return this.extend (this.parseOrder ({}), { 'info': response, 'type': undefined, 'id': id, 'status': 'canceled' });
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name cex#cancelAllOrders

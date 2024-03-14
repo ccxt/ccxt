@@ -173,5 +173,5 @@ export default class woo extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     defaultNetworkCodeForCurrency(code: any): any;
-    setSandboxMode(enable: any): void;
+    setSandboxMode(enable: boolean): void;
 }

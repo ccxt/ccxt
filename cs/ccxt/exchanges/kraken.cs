@@ -1353,6 +1353,7 @@ public partial class kraken : Exchange
         object lastTrade = getValue(trades, subtract(length, 1));
         object lastTradeId = this.safeString(result, "last");
         ((IList<object>)lastTrade).Add(lastTradeId);
+        ((List<object>)trades)[Convert.ToInt32(subtract(length, 1))] = lastTrade;
         return this.parseTrades(trades, market, since, limit);
     }
 

@@ -396,13 +396,34 @@ export default class testMainClass extends baseMainTestClass {
             const argsStringified = '(' + args.join(',') + ')';
             dump(this.addPadding('[INFO] TESTING', 25), this.exchangeHint(exchange), methodName, argsStringified);
         }
-        const skippedProperties = exchange.safeValue(this.skippedMethods, methodName, {});
-        await callMethod(this.testFiles, methodName, exchange, skippedProperties, args);
+        await callMethod(this.testFiles, methodName, exchange, this.getSkips(exchange, methodName), args);
         // if it was passed successfully, add to the list of successfull tests
         if (isPublic) {
             this.checkedPublicTests[methodName] = true;
         }
         return;
+    }
+    getSkips(exchange, methodName) {
+        // get "method-specific" skips
+        const skipsForMethod = exchange.safeValue(this.skippedMethods, methodName, {});
+        // get "object-specific" skips
+        if (exchange.inArray(methodName, ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'])) {
+            const skips = exchange.safeValue(this.skippedMethods, 'orderBook', {});
+            return exchange.deepExtend(skipsForMethod, skips);
+        }
+        else if (exchange.inArray(methodName, ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'])) {
+            const skips = exchange.safeValue(this.skippedMethods, 'ticker', {});
+            return exchange.deepExtend(skipsForMethod, skips);
+        }
+        else if (exchange.inArray(methodName, ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'])) {
+            const skips = exchange.safeValue(this.skippedMethods, 'trade', {});
+            return exchange.deepExtend(skipsForMethod, skips);
+        }
+        else if (exchange.inArray(methodName, ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'])) {
+            const skips = exchange.safeValue(this.skippedMethods, 'ohlcv', {});
+            return exchange.deepExtend(skipsForMethod, skips);
+        }
+        return skipsForMethod;
     }
     async testSafe(methodName, exchange, args = [], isPublic = false) {
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
@@ -1396,7 +1417,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testCoinex(),
             this.testBingx(),
             this.testPhemex(),
-            this.testBlofin()
+            this.testBlofin(),
+            this.testHyperliquid(),
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1414,7 +1436,8 @@ export default class testMainClass extends baseMainTestClass {
             spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest['newClientOrderId'];
-        assert(clientOrderId.startsWith(spotId.toString()), 'spot clientOrderId does not start with spotId');
+        const spotIdString = spotId.toString();
+        assert(clientOrderId.startsWith(spotIdString), 'binance - spot clientOrderId: ' + clientOrderId + ' does not start with spotId' + spotIdString);
         const swapId = 'x-xcKtGhcu';
         let swapOrderRequest = undefined;
         try {
@@ -1430,10 +1453,11 @@ export default class testMainClass extends baseMainTestClass {
         catch (e) {
             swapInverseOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
-        const clientOrderIdSpot = swapOrderRequest['newClientOrderId'];
-        assert(clientOrderIdSpot.startsWith(swapId.toString()), 'swap clientOrderId does not start with swapId');
+        const clientOrderIdSwap = swapOrderRequest['newClientOrderId'];
+        const swapIdString = swapId.toString();
+        assert(clientOrderIdSwap.startsWith(swapIdString), 'binance - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with swapId' + swapIdString);
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
-        assert(clientOrderIdInverse.startsWith(swapId.toString()), 'swap clientOrderIdInverse does not start with swapId');
+        assert(clientOrderIdInverse.startsWith(swapIdString), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + swapIdString);
         await close(exchange);
         return true;
     }
@@ -1448,8 +1472,10 @@ export default class testMainClass extends baseMainTestClass {
             spotOrderRequest = jsonParse(exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest[0]['clOrdId']; // returns order inside array
-        assert(clientOrderId.startsWith(id.toString()), 'spot clientOrderId does not start with id');
-        assert(spotOrderRequest[0]['tag'] === id, 'id different from spot tag');
+        const idString = id.toString();
+        assert(clientOrderId.startsWith(idString), 'okx - spot clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
+        const spotTag = spotOrderRequest[0]['tag'];
+        assert(spotTag === id, 'okx - id: ' + id + ' different from spot tag: ' + spotTag);
         let swapOrderRequest = undefined;
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
@@ -1457,9 +1483,10 @@ export default class testMainClass extends baseMainTestClass {
         catch (e) {
             swapOrderRequest = jsonParse(exchange.last_request_body);
         }
-        const clientOrderIdSpot = swapOrderRequest[0]['clOrdId'];
-        assert(clientOrderIdSpot.startsWith(id.toString()), 'swap clientOrderId does not start with id');
-        assert(swapOrderRequest[0]['tag'] === id, 'id different from swap tag');
+        const clientOrderIdSwap = swapOrderRequest[0]['clOrdId'];
+        assert(clientOrderIdSwap.startsWith(idString), 'okx - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with id: ' + idString);
+        const swapTag = swapOrderRequest[0]['tag'];
+        assert(swapTag === id, 'okx - id: ' + id + ' different from swap tag: ' + swapTag);
         await close(exchange);
         return true;
     }
@@ -1474,7 +1501,8 @@ export default class testMainClass extends baseMainTestClass {
         catch (e) {
             request = jsonParse(exchange.last_request_body);
         }
-        assert(request['params']['broker_id'] === id, 'id different from  broker_id');
+        const brokerId = request['params']['broker_id'];
+        assert(brokerId === id, 'cryptocom - id: ' + id + ' different from  broker_id: ' + brokerId);
         await close(exchange);
         return true;
     }
@@ -1490,15 +1518,18 @@ export default class testMainClass extends baseMainTestClass {
             // we expect an error here, we're only interested in the headers
             reqHeaders = exchange.last_request_headers;
         }
-        assert(reqHeaders['Referer'] === id, 'id not in headers');
+        assert(reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers.');
         await close(exchange);
         return true;
     }
     async testKucoin() {
         const exchange = this.initOfflineExchange('kucoin');
         let reqHeaders = undefined;
-        assert(exchange.options['partner']['spot']['id'] === 'ccxt', 'id not in options');
-        assert(exchange.options['partner']['spot']['key'] === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options');
+        const optionsString = exchange.options.toString();
+        const spotId = exchange.options['partner']['spot']['id'];
+        const spotKey = exchange.options['partner']['spot']['key'];
+        assert(spotId === 'ccxt', 'kucoin - id: ' + spotId + ' not in options: ' + optionsString);
+        assert(spotKey === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spotKey + ' not in options: ' + optionsString);
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1507,7 +1538,7 @@ export default class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         const id = 'ccxt';
-        assert(reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
+        assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers.');
         await close(exchange);
         return true;
     }
@@ -1515,15 +1546,18 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange('kucoinfutures');
         let reqHeaders = undefined;
         const id = 'ccxtfutures';
-        assert(exchange.options['partner']['future']['id'] === id, 'id not in options');
-        assert(exchange.options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
+        const optionsString = exchange.options['partner']['future'].toString();
+        const futureId = exchange.options['partner']['future']['id'];
+        const futureKey = exchange.options['partner']['future']['key'];
+        assert(futureId === id, 'kucoinfutures - id: ' + futureId + ' not in options: ' + optionsString);
+        assert(futureKey === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + futureKey + ' not in options: ' + optionsString);
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
-        assert(reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
+        assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
         await close(exchange);
         return true;
     }
@@ -1531,14 +1565,15 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange('bitget');
         let reqHeaders = undefined;
         const id = 'p4sve';
-        assert(exchange.options['broker'] === id, 'id not in options');
+        const optionsString = exchange.options.toString();
+        assert(exchange.options['broker'] === id, 'bitget - id: ' + id + ' not in options: ' + optionsString);
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
-        assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'id not in headers');
+        assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'bitget - id: ' + id + ' not in headers.');
         await close(exchange);
         return true;
     }
@@ -1546,7 +1581,8 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange('mexc');
         let reqHeaders = undefined;
         const id = 'CCXT';
-        assert(exchange.options['broker'] === id, 'id not in options');
+        const optionsString = exchange.options.toString();
+        assert(exchange.options['broker'] === id, 'mexc - id: ' + id + ' not in options: ' + optionsString);
         await exchange.loadMarkets();
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -1554,7 +1590,8 @@ export default class testMainClass extends baseMainTestClass {
         catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
-        assert(reqHeaders['source'] === id, 'id not in headers');
+        const reqHeadersString = reqHeaders !== undefined ? reqHeaders.toString() : 'undefined';
+        assert(reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers: ' + reqHeadersString);
         await close(exchange);
         return true;
     }
@@ -1570,7 +1607,8 @@ export default class testMainClass extends baseMainTestClass {
             spotOrderRequest = jsonParse(exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest['client-order-id'];
-        assert(clientOrderId.startsWith(id.toString()), 'spot clientOrderId does not start with id');
+        const idString = id.toString();
+        assert(clientOrderId.startsWith(idString), 'htx - spot clientOrderId ' + clientOrderId + ' does not start with id: ' + idString);
         // swap test
         let swapOrderRequest = undefined;
         try {
@@ -1586,10 +1624,10 @@ export default class testMainClass extends baseMainTestClass {
         catch (e) {
             swapInverseOrderRequest = jsonParse(exchange.last_request_body);
         }
-        const clientOrderIdSpot = swapOrderRequest['channel_code'];
-        assert(clientOrderIdSpot.startsWith(id.toString()), 'swap channel_code does not start with id');
+        const clientOrderIdSwap = swapOrderRequest['channel_code'];
+        assert(clientOrderIdSwap.startsWith(idString), 'htx - swap channel_code ' + clientOrderIdSwap + ' does not start with id: ' + idString);
         const clientOrderIdInverse = swapInverseOrderRequest['channel_code'];
-        assert(clientOrderIdInverse.startsWith(id.toString()), 'swap inverse channel_code does not start with id');
+        assert(clientOrderIdInverse.startsWith(idString), 'htx - swap inverse channel_code ' + clientOrderIdInverse + ' does not start with id: ' + idString);
         await close(exchange);
         return true;
     }
@@ -1605,7 +1643,8 @@ export default class testMainClass extends baseMainTestClass {
             spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
         const brokerId = spotOrderRequest['broker_id'];
-        assert(brokerId.startsWith(id.toString()), 'broker_id does not start with id');
+        const idString = id.toString();
+        assert(brokerId.startsWith(idString), 'woo - broker_id: ' + brokerId + ' does not start with id: ' + idString);
         // swap test
         let stopOrderRequest = undefined;
         try {
@@ -1614,8 +1653,8 @@ export default class testMainClass extends baseMainTestClass {
         catch (e) {
             stopOrderRequest = jsonParse(exchange.last_request_body);
         }
-        const clientOrderIdSpot = stopOrderRequest['brokerId'];
-        assert(clientOrderIdSpot.startsWith(id.toString()), 'brokerId does not start with id');
+        const clientOrderIdStop = stopOrderRequest['brokerId'];
+        assert(clientOrderIdStop.startsWith(idString), 'woo - brokerId: ' + clientOrderIdStop + ' does not start with id: ' + idString);
         await close(exchange);
         return true;
     }
@@ -1623,7 +1662,7 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange('bitmart');
         let reqHeaders = undefined;
         const id = 'CCXTxBitmart000';
-        assert(exchange.options['brokerId'] === id, 'id not in options');
+        assert(exchange.options['brokerId'] === id, 'bitmart - id: ' + id + ' not in options');
         await exchange.loadMarkets();
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -1631,14 +1670,14 @@ export default class testMainClass extends baseMainTestClass {
         catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
-        assert(reqHeaders['X-BM-BROKER-ID'] === id, 'id not in headers');
+        assert(reqHeaders['X-BM-BROKER-ID'] === id, 'bitmart - id: ' + id + ' not in headers');
         await close(exchange);
         return true;
     }
     async testCoinex() {
         const exchange = this.initOfflineExchange('coinex');
         const id = 'x-167673045';
-        assert(exchange.options['brokerId'] === id, 'id not in options');
+        assert(exchange.options['brokerId'] === id, 'coinex - id: ' + id + ' not in options');
         let spotOrderRequest = undefined;
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -1647,7 +1686,8 @@ export default class testMainClass extends baseMainTestClass {
             spotOrderRequest = jsonParse(exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest['client_id'];
-        assert(clientOrderId.startsWith(id.toString()), 'clientOrderId does not start with id');
+        const idString = id.toString();
+        assert(clientOrderId.startsWith(idString), 'coinex - clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
         await close(exchange);
         return true;
     }
@@ -1655,7 +1695,8 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange('bingx');
         let reqHeaders = undefined;
         const id = 'CCXT';
-        assert(exchange.options['broker'] === id, 'id not in options');
+        const optionsString = exchange.options.toString();
+        assert(exchange.options['broker'] === id, 'bingx - id: ' + id + ' not in options: ' + optionsString);
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1663,7 +1704,8 @@ export default class testMainClass extends baseMainTestClass {
             // we expect an error here, we're only interested in the headers
             reqHeaders = exchange.last_request_headers;
         }
-        assert(reqHeaders['X-SOURCE-KEY'] === id, 'id not in headers');
+        const reqHeadersString = reqHeaders !== undefined ? reqHeaders.toString() : 'undefined';
+        assert(reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers: ' + reqHeadersString);
         await close(exchange);
     }
     async testPhemex() {
@@ -1677,7 +1719,8 @@ export default class testMainClass extends baseMainTestClass {
             request = jsonParse(exchange.last_request_body);
         }
         const clientOrderId = request['clOrdID'];
-        assert(clientOrderId.startsWith(id.toString()), 'clOrdID does not start with id');
+        const idString = id.toString();
+        assert(clientOrderId.startsWith(idString), 'phemex - clOrdID: ' + clientOrderId + ' does not start with id: ' + idString);
         await close(exchange);
     }
     async testBlofin() {
@@ -1691,7 +1734,22 @@ export default class testMainClass extends baseMainTestClass {
             request = jsonParse(exchange.last_request_body);
         }
         const brokerId = request['brokerId'];
-        assert(brokerId.startsWith(id.toString()), 'brokerId does not start with id');
+        const idString = id.toString();
+        assert(brokerId.startsWith(idString), 'blofin - brokerId: ' + brokerId + ' does not start with id: ' + idString);
+        await close(exchange);
+    }
+    async testHyperliquid() {
+        const exchange = this.initOfflineExchange('hyperliquid');
+        const id = '1';
+        let request = undefined;
+        try {
+            await exchange.createOrder('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const brokerId = (request['action']['brokerCode']).toString();
+        assert(brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
         await close(exchange);
     }
 }

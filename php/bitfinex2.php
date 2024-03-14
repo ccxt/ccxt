@@ -877,7 +877,7 @@ class bitfinex2 extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.bitfinex.com/reference/rest-auth-transfer
@@ -1377,9 +1377,11 @@ class bitfinex2 extends Exchange {
             'symbol' => $market['id'],
             'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'sort' => 1,
-            'start' => $since,
             'limit' => $limit,
         );
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
         list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = $this->publicGetCandlesTradeTimeframeSymbolHist (array_merge($request, $params));
         //
@@ -3044,10 +3046,10 @@ class bitfinex2 extends Exchange {
         }
         $reversedArray = array();
         $rawRates = $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
-        $rawRatesLength = count($rawRates);
-        $ratesLength = max ($rawRatesLength - 1, 0);
-        for ($i = $ratesLength; $i >= 0; $i--) {
-            $valueAtIndex = $rawRates[$i];
+        $ratesLength = count($rawRates);
+        for ($i = 0; $i < $ratesLength; $i++) {
+            $index = $ratesLength - $i - 1;
+            $valueAtIndex = $rawRates[$index];
             $reversedArray[] = $valueAtIndex;
         }
         return $reversedArray;
