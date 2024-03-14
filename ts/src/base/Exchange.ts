@@ -3205,7 +3205,7 @@ export default class Exchange {
         return trade as Trade;
     }
 
-    invertFlatStringDictionary (dict) {
+    invertFlatStringDictionary (dict: any) {
         const reversed = {};
         const keys = Object.keys (dict);
         for (let i = 0; i < keys.length; i++) {
@@ -3218,7 +3218,7 @@ export default class Exchange {
         return reversed;
     }
 
-    reduceFeesByCurrency (fees) {
+    reduceFeesByCurrency (fees: any) {
         //
         // this function takes a list of fee structures having the following format
         //
@@ -3499,7 +3499,7 @@ export default class Exchange {
         }
     }
 
-    marketIds (symbols) {
+    marketIds (symbols: string[]) {
         if (symbols === undefined) {
             return symbols;
         }
@@ -3510,7 +3510,7 @@ export default class Exchange {
         return result;
     }
 
-    marketSymbols (symbols, type: Str = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
+    marketSymbols (symbols: string[], type: Str = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
                 throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
@@ -3552,7 +3552,7 @@ export default class Exchange {
         return result;
     }
 
-    marketCodes (codes) {
+    marketCodes (codes: string[]) {
         if (codes === undefined) {
             return codes;
         }
@@ -3594,7 +3594,7 @@ export default class Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
+    parseOHLCV (ohlcv: any, market: Market = undefined) : OHLCV {
         if (Array.isArray (ohlcv)) {
             return [
                 this.safeInteger (ohlcv, 0), // timestamp
@@ -3694,7 +3694,7 @@ export default class Exchange {
         return networkCode;
     }
 
-    handleNetworkCodeAndParams (params) {
+    handleNetworkCodeAndParams (params: any = {}) {
         const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
         if (networkCodeInParams !== undefined) {
             params = this.omit (params, [ 'networkCode', 'network' ]);
@@ -3815,7 +3815,7 @@ export default class Exchange {
         return this.markets;
     }
 
-    safePosition (position): Position {
+    safePosition (position: any): Position {
         // simplified version of: /pull/12765/
         const unrealizedPnlString = this.safeString (position, 'unrealisedPnl');
         const initialMarginString = this.safeString (position, 'initialMargin');
@@ -3954,7 +3954,7 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    resolvePath (path, params) {
+    resolvePath (path: string, params: any = {}) {
         return [
             this.implodeParams (path, params),
             this.omit (params, this.extractParams (path)),
@@ -3990,7 +3990,7 @@ export default class Exchange {
         return this.getListFromObjectValues (filteredMarkets, 'symbol');
     }
 
-    filterByArray (objects, key: IndexType, values = undefined, indexed = true) {
+    filterByArray (objects: any, key: IndexType, values = undefined, indexed = true) {
         objects = this.toArray (objects);
         // return all of them if no values were passed
         if (values === undefined || !values) {
@@ -4085,7 +4085,7 @@ export default class Exchange {
         return ohlcvs;
     }
 
-    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
+    parseTradingViewOHLCV (ohlcvs: number[][], market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
         const result = this.convertTradingViewToOHLCV (ohlcvs);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
@@ -4281,7 +4281,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchBalanceWs() is not supported yet');
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: any): Balances {
         throw new NotSupported (this.id + ' parseBalance() is not supported yet');
     }
 
@@ -5001,7 +5001,7 @@ export default class Exchange {
         throw new BadRequest (this.id + ' fetchL3OrderBook() is not supported yet');
     }
 
-    parseLastPrice (price, market: Market = undefined): LastPrice {
+    parseLastPrice (price: any, market: Market = undefined): LastPrice {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
 
