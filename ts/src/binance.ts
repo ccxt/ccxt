@@ -2757,7 +2757,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#exchange-information     // future
          * @see https://binance-docs.github.io/apidocs/voptions/en/#exchange-information     // option
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
+         * @returns {object[]} a list of [market structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#market-structure}
          */
         const promisesRaw = [];
         const rawFetchMarkets = this.safeList (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);

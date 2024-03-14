@@ -204,7 +204,7 @@ export default class idex extends Exchange {
          * @description retrieves data on all markets for idex
          * @see https://api-docs-v3.idex.io/#get-markets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
+         * @returns {object[]} a list of [market structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#market-structure}
          */
         const response = await this.publicGetMarkets (params);
         //

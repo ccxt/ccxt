@@ -962,7 +962,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2                                          // future
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  // option
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
+         * @returns {object[]} a list of [market structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#market-structure}
          */
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let rawPromises = [

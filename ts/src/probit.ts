@@ -251,7 +251,7 @@ export default class probit extends Exchange {
          * @see https://docs-en.probit.com/reference/market
          * @description retrieves data on all markets for probit
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
+         * @returns {object[]} a list of [market structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#market-structure}
          */
         const response = await this.publicGetMarket (params);
         //

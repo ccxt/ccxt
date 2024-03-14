@@ -506,7 +506,7 @@ export default class bitfinex2 extends Exchange {
          * @description retrieves data on all markets for bitfinex2
          * @see https://docs.bitfinex.com/reference/rest-public-conf
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [market structures]{@link https://docs.ccxt.com/#/?id=market-structure}
+         * @returns {object[]} a list of [market structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#market-structure}
          */
         let spotMarketsInfo = await this.publicGetConfPubInfoPair (params);
         let futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures (params);
