@@ -206,6 +206,13 @@ export interface Account {
     total: Str,
 }
 
+export interface AccountStructure {
+    id: Str,
+    type: Str,
+    code: Str,
+    info: any,
+}
+
 export interface PartialBalances extends Dictionary<number> {
 }
 

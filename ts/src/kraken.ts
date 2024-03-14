@@ -2794,7 +2794,7 @@ export default class kraken extends Exchange {
         return result;
     }
 
-    parseAccount (account) {
+    parseAccountType (account) {
         const accountByType = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',
@@ -2830,8 +2830,8 @@ export default class kraken extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        fromAccount = this.parseAccount (fromAccount);
-        toAccount = this.parseAccount (toAccount);
+        fromAccount = this.parseAccountType (fromAccount);
+        toAccount = this.parseAccountType (toAccount);
         const request = {
             'amount': this.currencyToPrecision (code, amount),
             'from': fromAccount,

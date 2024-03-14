@@ -77,6 +77,13 @@ class Account(TypedDict):
     total: Str
 
 
+class AccountStructure(TypedDict):
+    id: Str
+    type: Str
+    code: Str
+    info: Dict[str, Any]
+
+
 class Trade(TypedDict):
     info: Dict[str, Any]
     amount: Num
