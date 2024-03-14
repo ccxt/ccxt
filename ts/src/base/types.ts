@@ -442,10 +442,10 @@ export interface Leverage {
     shortLeverage: number;
 }
 
-export interface Leverages extends Dictionary<Leverage> {
+export interface Leverages extends Dictionary<Leverage[]> {
 }
 
-export interface MarginModes extends Dictionary<MarginMode> {
+export interface MarginModes extends Dictionary<MarginMode[]> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

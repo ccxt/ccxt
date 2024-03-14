@@ -1210,11 +1210,11 @@ public struct Network
 public struct MarginModes
 {
     public Dictionary<string, object> info;
-    public Dictionary<string, MarginMode> marginModes;
+    public Dictionary<string, MarginMode[]> marginModes;
 
     public MarginModes(object marginMode2)
     {
-        var marginModes = (Dictionary<string, object>)marginMode2;
+        var marginModes = (Dictionary<string, object[]>)marginMode2;
 
         info = marginModes.ContainsKey("info") ? (Dictionary<string, object>)marginModes["info"] : null;
         this.marginModes = new Dictionary<string, MarginMode>();
@@ -1249,11 +1249,11 @@ public struct MarginModes
 public struct Leverages
 {
     public Dictionary<string, object> info;
-    public Dictionary<string, Leverage> leverages;
+    public Dictionary<string, Leverage[]> leverages;
 
     public Leverages(object leverage2)
     {
-        var leverages = (Dictionary<string, object>)leverage2;
+        var leverages = (Dictionary<string, object[]>)leverage2;
 
         info = leverages.ContainsKey("info") ? (Dictionary<string, object>)leverages["info"] : null;
         this.leverages = new Dictionary<string, Leverage>();

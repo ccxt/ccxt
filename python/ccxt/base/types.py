@@ -258,7 +258,7 @@ class MarginMode(TypedDict):
     marginMode: Str
 
 
-MarginModes = Dict[str, MarginMode]
+MarginModes = Dict[str, List[MarginMode]]
 
 
 class Leverage(TypedDict):
@@ -269,7 +269,7 @@ class Leverage(TypedDict):
     shortLeverage: Num
 
 
-Leverages = Dict[str, Leverage]
+Leverages = Dict[str, List[Leverage]]
 
 
 class Greeks(TypedDict):
