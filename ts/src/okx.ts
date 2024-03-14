@@ -1279,7 +1279,7 @@ export default class okx extends Exchange {
          * @description fetch all the accounts associated with a profile
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=accounts-structure} indexed by the account type
          */
         const response = await this.privateGetAccountConfig (params);
         //

@@ -3062,7 +3062,7 @@ export default class htx extends Exchange {
          * @name huobi#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=accounts-structure} indexed by the account type
          */
         await this.loadMarkets ();
         const response = await this.spotPrivateGetV1AccountAccounts (params);

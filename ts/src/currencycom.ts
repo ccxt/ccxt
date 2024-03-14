@@ -591,7 +591,7 @@ export default class currencycom extends Exchange {
          * @description fetch all the accounts associated with a profile
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=accounts-structure} indexed by the account type
          */
         const response = await this.privateGetV2Account (params);
         //
