@@ -122,6 +122,34 @@
             }
           ],
           "output": "{\"client_order_id\":\"ccxt3dc5d350-1921-\",\"side\":\"BUY\",\"instrument\":\"ETH-PERP\",\"size\":\"0.1\",\"stop_price\":5000,\"type\":\"STOP_LIMIT\",\"price\":5001,\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"GTC\",\"triggerPrice\":5000}"
+        },
+        {
+          "description": "spot market order",
+          "method": "createOrder",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
+          "input": [
+            "ETH/USDC",
+            "market",
+            "buy",
+            0.1
+          ],
+          "output": "{\"client_order_id\":\"nfqkvdjp-4b03ab8a\",\"side\":\"BUY\",\"instrument\":\"ETH-USDC\",\"size\":\"0.1\",\"type\":\"MARKET\",\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"IOC\"}"
+        },
+        {
+          "description": "spot postOnly limit order",
+          "method": "createOrder",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
+          "input": [
+            "ETH/USDC",
+            "limit",
+            "buy",
+            0.1,
+            3500,
+            {
+              "postOnly": true
+            }
+          ],
+          "output": "{\"client_order_id\":\"nfqkvdjp-5f13356c\",\"side\":\"BUY\",\"instrument\":\"ETH-USDC\",\"size\":\"0.1\",\"type\":\"LIMIT\",\"price\":3500,\"portfolio\":\"1wp37qsc-1-0\",\"post_only\":true,\"tif\":\"GTC\"}"
         }
        ],
        "fetchOpenOrders": [

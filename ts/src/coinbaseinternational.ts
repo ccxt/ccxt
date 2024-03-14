@@ -284,8 +284,7 @@ export default class coinbaseinternational extends Exchange {
         if (networkId === undefined) {
             await this.loadCurrencyNetworks (currencyCode);
             const networks = this.currencies[currencyCode]['networks'];
-            let network = undefined;
-            [ network, params ] = this.handleOptionAndParams2 (params, 'createDepositAddress', 'networkCode', 'network');
+            const network = this.safeString2 (params, 'networkCode', 'network');
             if (network === undefined) {
                 // find default network
                 if (this.isEmpty (networks)) {
@@ -1406,7 +1405,7 @@ export default class coinbaseinternational extends Exchange {
          * @param {float} [params.triggerPrice] price to trigger stop orders
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
          * @param {bool} [params.postOnly] true or false
-         * @param {string} [params.tif] 'GTC', 'IOC', 'GTD'
+         * @param {string} [params.tif] 'GTC', 'IOC', 'GTD' default is 'GTC' for limit orders and 'IOC' for market orders
          * @param {string} [params.expire_time] The expiration time required for orders with the time in force set to GTT. Must not go beyond 30 days of the current time. Uses ISO-8601 format (e.g., 2023-03-16T23:59:53Z)
          * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1444,26 +1443,22 @@ export default class coinbaseinternational extends Exchange {
         if (portfolio !== undefined) {
             request['portfolio'] = portfolio;
         }
-        let postOnly = undefined;
-        [ postOnly, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'postOnly', 'post_only');
-        let tif = undefined;
-        [ tif, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'tif', 'timeInForce');
+        const postOnly = this.safeBool2 (params, 'postOnly', 'post_only');
+        let tif = this.safeString2 (params, 'tif', 'timeInForce');
         // market orders must be IOC
         if (typeId === 'MARKET') {
             if (tif !== undefined && tif !== 'IOC') {
                 throw new InvalidOrder (this.id + 'createOrder() market orders must have tif set to "IOC"');
             }
             tif = 'IOC';
-        }
-        if (postOnly !== undefined || tif === 'PO') {
-            request['post_only'] = postOnly;
         } else {
-            if (tif === undefined) {
-                tif = 'GTC';
-            }
-            request['tif'] = tif;
+            tif = (tif === undefined) ? 'GTC' : tif;
         }
-        params = this.omit (params, [ 'client_order_id', 'user' ]);
+        if (postOnly !== undefined) {
+            request['post_only'] = postOnly;
+        }
+        request['tif'] = tif;
+        params = this.omit (params, [ 'client_order_id', 'user', 'postOnly', 'timeInForce' ]);
         const response = await this.v1PrivatePostOrders (this.extend (request, params));
         //
         //    {
@@ -1940,7 +1935,6 @@ export default class coinbaseinternational extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        address = '0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB';
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
