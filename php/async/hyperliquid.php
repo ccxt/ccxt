@@ -24,7 +24,7 @@ class hyperliquid extends Exchange {
             'version' => 'v1',
             'rateLimit' => 50, // 1200 requests per minute, 20 request per second
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => false,

@@ -5,7 +5,7 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended

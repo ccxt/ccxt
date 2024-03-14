@@ -1,6 +1,7 @@
 {
     "ace": {
         "skip": "temp",
+        "until": "2024-03-15",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
@@ -26,15 +27,16 @@
                 "currencyIdAndCode": "broken currencies"
             },
             "fetchCurrencies": {
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269432480#L3364",
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-            "fetchTickers": {
+            "ticker": {
                 "low":"16 Aug - happened weird negative 24hr low",
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask"
             },
-            "watchOrderBook": {
+            "orderBook": {
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask"
             }
@@ -45,21 +47,12 @@
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
             },
-            "fetchTickers": {
+            "ticker": {
                 "bid":"broken bid-ask",
                 "ask":"broken bid-ask"
             },
-            "fetchOrderBook": {
+            "orderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3841"
-            },
-            "fetchL2OrderBook": {
-                "spread": "same"
-            },
-            "watchOrderBook": {
-                "spread": "same" 
-            },
-            "watchOrderBookForSymbols": {
-                "spread": "same"
             }
         }
     },
@@ -67,17 +60,14 @@
         "httpsProxy": "http://5.75.153.75:8002",
         "wsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
-            "fetchStatus": "temporarily failing",
             "loadMarkets": {
-                "currencyIdAndCode": "i.e. binance does not have currency code BCC",
-                "expiry": "expiry not set for future markets",
-                "expiryDatetime": "expiry not set for future markets"
+                "currencyIdAndCode": "i.e. binance does not have currency code BCC"
             },
             "fetchCurrencies": {
                 "precision": "not provided in public api",
                 "networks": "not yet unified"
             },
-            "watchTicker": {
+            "ticker": {
                 "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
             }
         }
@@ -86,11 +76,8 @@
         "httpsProxy": "http://5.75.153.75:8002",
         "wsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
-            "watchOrderBook": {
+            "orderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3463"
-            },
-            "watchOrderBookForSymbols": {
-                "spread": "same"
             }
         }
     },
@@ -100,18 +87,11 @@
                 "expiry": "expiry not set for future markets",
                 "expiryDatetime": "expiry not set for future markets"
             },
-            "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+            "ticker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
-            "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchStatus": "private endpoints",
-            "watchTicker": {
-                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
-            }
+            "fetchStatus": "private endpoints"
         }
     },
     "binancecoinm": {
@@ -121,19 +101,9 @@
                 "expiry": "expiry not set for future markets",
                 "expiryDatetime": "expiry not set for future markets"
             },
-            "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+            "ticker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "watchTicker": {
-                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
-            },
-            "watchTickers": {
-                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
             },
             "watchOrderBook": "out of order update"
         }
@@ -141,12 +111,8 @@
     "binanceusdm": {
         "httpsProxy": "http://5.75.153.75:8002",
         "skipMethods": {
-            "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+            "ticker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "fetchPositions": "currently returns a lot of default/non open positions",
@@ -159,10 +125,7 @@
                 "code": "not provided",
                 "referenceId": "not provided"
             },
-            "fetchBalance": "tmp skip",
-            "watchTicker": {
-                "quoteVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
-            }
+            "fetchBalance": "tmp skip"
         }
     },
     "bit2c": {
@@ -327,6 +290,7 @@
                 "currencyIdAndCode": "broken currencies"
             },
             "fetchCurrencies": {
+                "currencyIdAndCode": "broken currencies",
                 "precision":"not provided",
                 "networks": "missing"
             },
@@ -887,6 +851,7 @@
         }
     },
     "gemini": {
+        "skipWs": "fixes needed",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
@@ -977,6 +942,18 @@
                 "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262963390#L3138"
             },
             "fetchTicker": {
+                "bid":"same",
+                "ask":"same",
+                "quoteVolume": "same",
+                "baseVolume": "same"
+            },
+            "watchTicker": {
+                "bid":"same",
+                "ask":"same",
+                "quoteVolume": "same",
+                "baseVolume": "same"
+            },
+            "watchTickers": {
                 "bid":"same",
                 "ask":"same",
                 "quoteVolume": "same",
@@ -1148,6 +1125,9 @@
             },
             "fetchPositions": {
                 "percentage": "percentage is not provided"
+            },
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
             }
         }
     },
@@ -1187,10 +1167,13 @@
             "watchTrades": {
                 "timestamp": "ts several hours ahead in in future :)"
             },
-            "watchOHLCV": "some timestamp issues",
             "watchOrderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612"
-            }
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
+            },
+            "watchOHLCV": "some timestamp issues"
         }
     },
     "lykke": {
@@ -1201,8 +1184,14 @@
             "fetchCurrencies": {
                 "fee":"not provided"
             },
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same",
+            "fetchOrderBook": {
+                "bid": "bid should be greater than next bid",
+                "ask": "similar"
+            },
+            "fetchL2OrderBook": {
+                "bid": "same",
+                "ask": "same"
+            },
             "fetchTickers": "negative values",
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -1680,6 +1669,9 @@
                 "limits" : "not provided",
                 "deposit": "not provided",
                 "withdraw": "not provided"
+            },
+            "watchTrades": {
+                "currency": "not provided"
             }
         }
     }

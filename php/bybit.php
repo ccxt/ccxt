@@ -6318,7 +6318,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://bybit-exchange.github.io/docs/v5/position
@@ -6332,7 +6332,7 @@ class bybit extends Exchange {
         return $this->parse_leverage($position, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -6827,7 +6827,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://bybit-exchange.github.io/docs/v5/asset/create-inter-$transfer
@@ -7620,7 +7620,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): Greeks {
+    public function fetch_greeks(string $symbol, $params = array ()): array {
         /**
          * fetches an option contracts $greeks, financial metrics used to measure the factors that affect the price of an options contract
          * @see https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers

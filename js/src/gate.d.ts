@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
@@ -361,5 +361,8 @@ export default class gate extends Exchange {
         info: any;
     };
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
+    parseLeverage(leverage: any, market?: any): Leverage;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

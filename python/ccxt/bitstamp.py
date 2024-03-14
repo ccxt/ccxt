@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -98,6 +98,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'urls': {
@@ -1982,6 +1983,68 @@ class bitstamp(Exchange, ImplicitAPI):
             request['account_currency'] = currency['id']
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_transaction(response, currency)
+
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+        """
+        transfer currency internally between wallets on the same account
+        :see: https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub
+        :see: https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromSubToMain
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        amount = self.currency_to_precision(code, amount)
+        amount = self.parse_to_numeric(amount)
+        request = {
+            'amount': amount,
+            'currency': currency['id'].upper(),
+        }
+        response = None
+        if fromAccount == 'main':
+            request['subAccount'] = toAccount
+            response = self.privatePostTransferFromMain(self.extend(request, params))
+        elif toAccount == 'main':
+            request['subAccount'] = fromAccount
+            response = self.privatePostTransferToMain(self.extend(request, params))
+        else:
+            raise BadRequest(self.id + ' transfer() only supports from or to main')
+        #
+        #    {status: 'ok'}
+        #
+        transfer = self.parse_transfer(response, currency)
+        transfer['amount'] = amount
+        transfer['fromAccount'] = fromAccount
+        transfer['toAccount'] = toAccount
+        return transfer
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #    {status: 'ok'}
+        #
+        status = self.safe_string(transfer, 'status')
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': None,
+            'datetime': None,
+            'currency': currency['code'],
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': self.parse_transfer_status(status),
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'ok': 'ok',
+            'error': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
 
     def nonce(self):
         return self.milliseconds()

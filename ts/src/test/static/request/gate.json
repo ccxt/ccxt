@@ -1106,6 +1106,46 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Spot margin unified fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://api.gateio.ws/api/v4/margin/uni/currency_pairs/BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  {
+                    "unified": true
+                  }
+                ]
+            },
+            {
+                "description": "Spot margin fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://api.gateio.ws/api/v4/margin/currency_pairs/BTC_USDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "Spot margin unified fetch all leverages",
+                "method": "fetchLeverages",
+                "url": "https://api.gateio.ws/api/v4/margin/uni/currency_pairs",
+                "input": [
+                  null,
+                  {
+                    "unified": true
+                  }
+                ]
+            },
+            {
+                "description": "Spot margin fetch all leverages",
+                "method": "fetchLeverages",
+                "url": "https://api.gateio.ws/api/v4/margin/currency_pairs",
+                "input": []
+            }
         ]
     }
 }

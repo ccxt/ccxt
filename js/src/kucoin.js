@@ -413,6 +413,7 @@ export default class kucoin extends Exchange {
                 '12h': '12hour',
                 '1d': '1day',
                 '1w': '1week',
+                '1M': '1month',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -4462,7 +4463,7 @@ export default class kucoin extends Exchange {
         url = url + endpoint;
         const isFuturePrivate = (api === 'futuresPrivate');
         const isPrivate = (api === 'private');
-        const isBroker = (api === 'private');
+        const isBroker = (api === 'broker');
         if (isPrivate || isFuturePrivate || isBroker) {
             this.checkRequiredCredentials();
             const timestamp = this.nonce().toString();
@@ -4494,7 +4495,9 @@ export default class kucoin extends Exchange {
             }
             if (isBroker) {
                 const brokerName = this.safeString(partner, 'name');
-                headers['KC-BROKER-NAME'] = brokerName;
+                if (brokerName !== undefined) {
+                    headers['KC-BROKER-NAME'] = brokerName;
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
-from ccxt.base.types import Balances, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -27,7 +27,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'version': 'v1',
             'rateLimit': 50,  # 1200 requests per minute, 20 request per second
             'certified': False,
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': False,

@@ -28,7 +28,7 @@ function test_watch_orders($exchange, $skipped_properties, $symbol) {
                 $now = $exchange->milliseconds();
                 continue;
             }
-            assert(gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an array. ' . $exchange->json($response));
+            assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
             $now = $exchange->milliseconds();
             for ($i = 0; $i < count($response); $i++) {
                 test_order($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);

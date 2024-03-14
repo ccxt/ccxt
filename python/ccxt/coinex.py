@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Order, TransferEntry, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Order, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied

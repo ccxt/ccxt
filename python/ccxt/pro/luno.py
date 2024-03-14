@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Int, OrderBook, IndexType, Trade
+from ccxt.base.types import IndexType, Int, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
