@@ -19,6 +19,12 @@ interface Exchange {
     publicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
     privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
     privateGetAccount (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetOrder (params?: {}): Promise<implicitReturnType>;
+    privateGetCapitalDepositHistory (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostOrder (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
