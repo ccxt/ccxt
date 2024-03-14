@@ -852,7 +852,7 @@
             {
                 "description": "swap +1d +since +limit +until (until beyond permitted)",
                 "method": "fetchOHLCV",
-                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1d&from=1540000000&to=1690000000",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1d&from=1460000000&to=1632627200",
                 "input": [
                   "BTC/USDT:USDT",
                   "1d",
