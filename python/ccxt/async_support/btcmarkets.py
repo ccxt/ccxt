@@ -870,6 +870,15 @@ class btcmarkets(Exchange, ImplicitAPI):
         return await self.privateDeleteOrdersId(self.extend(request, params))
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        """
+        calculates the presumptive fee that would be charged for an order
+        :param str symbol: unified market symbol
+        :param str type: not used by btcmarkets.calculate_fee        :param string side: not used by btcmarkets.calculate_fee        :param float amount: how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+        :param float price: the price for the order to be filled at, in units of the quote currency
+        :param str takerOrMaker: 'taker' or 'maker'
+        :param dict params:
+        :returns dict: contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+        """
         market = self.markets[symbol]
         currency = None
         cost = None

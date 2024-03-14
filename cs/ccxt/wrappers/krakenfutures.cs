@@ -85,6 +85,7 @@ public partial class krakenfutures
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history"/>  <br/>
+    /// See <see href="https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -114,6 +115,12 @@ public partial class krakenfutures
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : The method to use to fetch trades. Can be 'historyGetMarketSymbolExecutions' or 'publicGetHistory' default is 'historyGetMarketSymbolExecutions'
     /// </description>
     /// </item>
     /// </list>
@@ -616,6 +623,26 @@ public partial class krakenfutures
     {
         var res = await this.setLeverage(leverage, symbol, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch the set leverage for all contract and margin markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverages(symbols, parameters);
+        return new Leverages(res);
     }
     /// <summary>
     /// fetch the set leverage for a market

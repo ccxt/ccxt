@@ -2912,8 +2912,24 @@ public partial class binance : ccxt.binance
         //     }
         //
         object marketId = this.safeString(position, "s");
+        object contracts = this.safeString(position, "pa");
+        object contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
         object positionSide = this.safeStringLower(position, "ps");
-        object hedged = !isEqual(positionSide, "both");
+        object hedged = true;
+        if (isTrue(isEqual(positionSide, "both")))
+        {
+            hedged = false;
+            if (!isTrue(Precise.stringEq(contracts, "0")))
+            {
+                if (isTrue(Precise.stringLt(contracts, "0")))
+                {
+                    positionSide = "short";
+                } else
+                {
+                    positionSide = "long";
+                }
+            }
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -2924,7 +2940,7 @@ public partial class binance : ccxt.binance
             { "entryPrice", this.safeNumber(position, "ep") },
             { "unrealizedPnl", this.safeNumber(position, "up") },
             { "percentage", null },
-            { "contracts", this.safeNumber(position, "pa") },
+            { "contracts", this.parseNumber(contractsAbs) },
             { "contractSize", null },
             { "markPrice", null },
             { "side", positionSide },

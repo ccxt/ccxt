@@ -1008,7 +1008,7 @@ class coinex(ccxt.async_support.coinex):
             messageHash = 'authenticated:spot'
             future = self.safe_value(client.subscriptions, messageHash)
             if future is not None:
-                return future
+                return await future
             requestId = self.request_id()
             subscribe = {
                 'id': requestId,
@@ -1027,12 +1027,12 @@ class coinex(ccxt.async_support.coinex):
             }
             future = self.watch(url, messageHash, request, requestId, subscribe)
             client.subscriptions[messageHash] = future
-            return future
+            return await future
         else:
             messageHash = 'authenticated:swap'
             future = self.safe_value(client.subscriptions, messageHash)
             if future is not None:
-                return future
+                return await future
             requestId = self.request_id()
             subscribe = {
                 'id': requestId,
@@ -1051,4 +1051,4 @@ class coinex(ccxt.async_support.coinex):
             }
             future = self.watch(url, messageHash, request, requestId, subscribe)
             client.subscriptions[messageHash] = future
-            return future
+            return await future

@@ -13,13 +13,11 @@ public partial class testMainClass : BaseTest
         object marginModes = await exchange.fetchMarginModes(symbol);
         assert((marginModes is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(marginModes)));
         object marginModeKeys = new List<object>(((IDictionary<string,object>)marginModes).Keys);
-        object arrayLength = getArrayLength(marginModeKeys);
-        assert(isGreaterThanOrEqual(arrayLength, 1), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must have at least one entry. "), exchange.json(marginModes)));
-        for (object i = 0; isLessThan(i, arrayLength); postFixIncrement(ref i))
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
+        for (object i = 0; isLessThan(i, getArrayLength(marginModeKeys)); postFixIncrement(ref i))
         {
             object marginModesForSymbol = getValue(marginModes, getValue(marginModeKeys, i));
-            object arrayLengthSymbol = getArrayLength(marginModesForSymbol);
-            assert(isGreaterThanOrEqual(arrayLengthSymbol, 1), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must have at least one entry. "), exchange.json(marginModes)));
+            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginModesForSymbol, symbol);
             for (object j = 0; isLessThan(j, getArrayLength(marginModesForSymbol)); postFixIncrement(ref j))
             {
                 testMarginMode(exchange, skippedProperties, method, getValue(marginModesForSymbol, j));

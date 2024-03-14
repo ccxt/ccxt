@@ -854,9 +854,9 @@ class bitmart extends \ccxt\async\bitmart {
         $isSwap = (is_array($message) && array_key_exists('group', $message));
         if ($isSwap) {
             // in swap, chronologically decreasing => 1709536849322, 1709536848954,
-            $maxLen = max ($length - 1, 0);
-            for ($i = $maxLen; $i >= 0; $i--) {
-                $symbol = $this->handle_trade_loop($data[$i]);
+            for ($i = 0; $i < $length; $i++) {
+                $index = $length - $i - 1;
+                $symbol = $this->handle_trade_loop($data[$index]);
             }
         } else {
             // in spot, chronologically increasing => 1709536771200, 1709536771226,
@@ -1506,7 +1506,17 @@ class bitmart extends \ccxt\async\bitmart {
         }
         //
         //     array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
-        //     array("event":"subscribe","channel":"spot/depth:BTC-USDT")
+        //
+        // subscribe events on spot:
+        //
+        //     array("event":"subscribe", "topic":"spot/kline1m:BTC_USDT" )
+        //
+        // subscribe on contracts:
+        //
+        //     array("action":"subscribe", "group":"futures/klineBin1m:BTCUSDT", "success":true, "request":array("action":"subscribe", "args":array( "futures/klineBin1m:BTCUSDT" ) ) )
+        //
+        // regular updates - spot
+        //
         //     {
         //         "table" => "spot/depth",
         //         "action" => "partial",
@@ -1527,10 +1537,21 @@ class bitmart extends \ccxt\async\bitmart {
         //         ]
         //     }
         //
+        // regular updates - contracts
+        //
+        //     {
+        //         group => "futures/klineBin1m:BTCUSDT",
+        //         data => array(
+        //           symbol => "BTCUSDT",
+        //           items => array( array( o => "67944.7", "h" => .... ) ),
+        //         ),
+        //       }
+        //
         //     array( data => '', table => "spot/user/order" )
         //
-        $channel = $this->safe_string_2($message, 'table', 'group');
-        if ($channel === null) {
+        // the only realiable way (for both spot & swap) is to check 'data' $key
+        $isDataUpdate = (is_array($message) && array_key_exists('data', $message));
+        if (!$isDataUpdate) {
             $event = $this->safe_string_2($message, 'event', 'action');
             if ($event !== null) {
                 $methods = array(
@@ -1545,6 +1566,7 @@ class bitmart extends \ccxt\async\bitmart {
                 }
             }
         } else {
+            $channel = $this->safe_string_2($message, 'table', 'group');
             $methods = array(
                 'depth' => array($this, 'handle_order_book'),
                 'ticker' => array($this, 'handle_ticker'),

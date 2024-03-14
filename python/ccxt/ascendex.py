@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Num, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -751,11 +751,10 @@ class ascendex(Exchange, ImplicitAPI):
         ]
 
     def parse_balance(self, response) -> Balances:
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -768,11 +767,10 @@ class ascendex(Exchange, ImplicitAPI):
         return self.safe_balance(result)
 
     def parse_margin_balance(self, response):
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -788,11 +786,10 @@ class ascendex(Exchange, ImplicitAPI):
         return self.safe_balance(result)
 
     def parse_swap_balance(self, response):
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         data = self.safe_value(response, 'data', {})
         collaterals = self.safe_value(data, 'collaterals', [])
@@ -811,6 +808,8 @@ class ascendex(Exchange, ImplicitAPI):
         :see: https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
         :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: wallet type, 'spot', 'margin', or 'swap'
+        :param str [params.marginMode]: 'cross' or None, for spot margin trading, value of 'isolated' is invalid
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
@@ -3011,12 +3010,11 @@ class ascendex(Exchange, ImplicitAPI):
         #
         status = self.safe_integer(transfer, 'code')
         currencyCode = self.safe_currency_code(None, currency)
-        timestamp = self.milliseconds()
         return {
             'info': transfer,
             'id': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'currency': currencyCode,
             'amount': None,
             'fromAccount': None,

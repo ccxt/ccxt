@@ -77,7 +77,7 @@ public partial class bitget : Exchange
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", false },
                 { "fetchLiquidations", false },
-                { "fetchMarginMode", false },
+                { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -352,6 +352,8 @@ public partial class bitget : Exchange
                             { "v2/spot/wallet/transfer", 2 },
                             { "v2/spot/wallet/subaccount-transfer", 2 },
                             { "v2/spot/wallet/withdrawal", 2 },
+                            { "v2/spot/wallet/cancel-withdrawal", 2 },
+                            { "v2/spot/wallet/modify-deposit-account", 2 },
                         } },
                     } },
                     { "mix", new Dictionary<string, object>() {
@@ -696,9 +698,12 @@ public partial class bitget : Exchange
                             { "v2/convert/currencies", 2 },
                             { "v2/convert/quoted-price", 2 },
                             { "v2/convert/convert-record", 2 },
+                            { "v2/convert/bgb-convert-coin-list", 2 },
+                            { "v2/convert/bgb-convert-records", 2 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v2/convert/trade", 2 },
+                            { "v2/convert/bgb-convert", 2 },
                         } },
                     } },
                     { "earn", new Dictionary<string, object>() {
@@ -1297,6 +1302,23 @@ public partial class bitget : Exchange
                     } },
                     { "swap", new Dictionary<string, object>() {
                         { "method", "publicMixGetV2MixMarketCandles" },
+                    } },
+                    { "maxDaysPerTimeframe", new Dictionary<string, object>() {
+                        { "1m", 30 },
+                        { "3m", 30 },
+                        { "5m", 30 },
+                        { "10m", 52 },
+                        { "15m", 52 },
+                        { "30m", 52 },
+                        { "1h", 83 },
+                        { "2h", 120 },
+                        { "4h", 240 },
+                        { "6h", 360 },
+                        { "12h", 360 },
+                        { "1d", 360 },
+                        { "3d", 1000 },
+                        { "1w", 1000 },
+                        { "1M", 1000 },
                     } },
                 } },
                 { "fetchTrades", new Dictionary<string, object>() {
@@ -3024,8 +3046,16 @@ public partial class bitget : Exchange
             object currencyCode = this.safeCurrencyCode(this.safeString(feeStructure, "feeCoin"));
             fee = new Dictionary<string, object>() {
                 { "currency", currencyCode },
-                { "cost", Precise.stringAbs(this.safeString(feeStructure, "totalFee")) },
             };
+            object feeCostString = this.safeString(feeStructure, "totalFee");
+            object deduction = ((bool) isTrue(isEqual(this.safeString(feeStructure, "deduction"), "yes"))) ? true : false;
+            if (isTrue(deduction))
+            {
+                ((IDictionary<string,object>)fee)["cost"] = feeCostString;
+            } else
+            {
+                ((IDictionary<string,object>)fee)["cost"] = Precise.stringNeg(feeCostString);
+            }
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -3420,13 +3450,14 @@ public partial class bitget : Exchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object maxLimit = 1000; // max 1000
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000);
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit);
         }
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object market = null;
@@ -3441,40 +3472,59 @@ public partial class bitget : Exchange
         object marketType = ((bool) isTrue(getValue(market, "spot"))) ? "spot" : "swap";
         object timeframes = getValue(getValue(this.options, "timeframes"), marketType);
         object selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
+        object duration = multiply(this.parseTimeframe(timeframe), 1000);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "granularity", selectedTimeframe },
         };
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object defaultLimit = 100; // by default, exchange returns 100 items
+        object msInDay = multiply(multiply(multiply(1000, 60), 60), 24);
         if (isTrue(!isEqual(limit, null)))
         {
+            limit = mathMin(limit, maxLimit);
             ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object until = this.safeInteger2(parameters, "until", "till");
+        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
         }
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
-        }
-        if (isTrue(!isEqual(since, null)))
-        {
-            if (isTrue(isEqual(limit, null)))
+            if (isTrue(isTrue(getValue(market, "spot")) && isTrue((isEqual(until, null)))))
             {
-                limit = 100; // exchange default
+                // for spot we need to send "entTime" too
+                object limitForEnd = ((bool) isTrue((!isEqual(limit, null)))) ? limit : defaultLimit;
+                object calculatedEnd = this.sum(since, multiply(duration, limitForEnd));
+                ((IDictionary<string,object>)request)["endTime"] = calculatedEnd;
             }
-            object duration = multiply(this.parseTimeframe(timeframe), 1000);
-            ((IDictionary<string,object>)request)["endTime"] = subtract(this.sum(since, multiply(duration, (add(limit, 1)))), 1); // limit + 1)) - 1 is needed for when since is not the exact timestamp of a candle
-        } else if (isTrue(!isEqual(until, null)))
-        {
-            ((IDictionary<string,object>)request)["endTime"] = until;
-        } else
-        {
-            ((IDictionary<string,object>)request)["endTime"] = this.milliseconds();
         }
         object response = null;
-        object thirtyOneDaysAgo = subtract(this.milliseconds(), 2678400000);
+        object now = this.milliseconds();
+        // retrievable periods listed here:
+        // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
+        // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
+        object ohlcOptions = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
+        object retrievableDaysMap = this.safeDict(ohlcOptions, "maxDaysPerTimeframe", new Dictionary<string, object>() {});
+        object maxRetrievableDaysForNonHistory = this.safeInteger(retrievableDaysMap, timeframe, 30); // default to safe minimum
+        object endpointTsBoundary = subtract(now, multiply(maxRetrievableDaysForNonHistory, msInDay));
+        // checks if we need history endpoint
+        object needsHistoryEndpoint = false;
+        object displaceByLimit = ((bool) isTrue((isEqual(limit, null)))) ? 0 : multiply(limit, duration);
+        if (isTrue(isTrue(!isEqual(since, null)) && isTrue(isLessThan(since, endpointTsBoundary))))
+        {
+            // if since it earlier than the allowed diapason
+            needsHistoryEndpoint = true;
+        } else if (isTrue(isTrue(!isEqual(until, null)) && isTrue(isLessThan(subtract(until, displaceByLimit), endpointTsBoundary))))
+        {
+            // if until is earlier than the allowed diapason
+            needsHistoryEndpoint = true;
+        }
         if (isTrue(getValue(market, "spot")))
         {
-            if (isTrue(isTrue((!isEqual(since, null))) && isTrue((isLessThan(since, thirtyOneDaysAgo)))))
+            if (isTrue(needsHistoryEndpoint))
             {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, parameters));
             } else
@@ -3483,6 +3533,19 @@ public partial class bitget : Exchange
             }
         } else
         {
+            object maxDistanceDaysForContracts = 90; // maximum 90 days allowed between start-end times
+            object distanceError = false;
+            if (isTrue(isTrue(!isEqual(limit, null)) && isTrue(isGreaterThan(multiply(limit, duration), multiply(maxDistanceDaysForContracts, msInDay)))))
+            {
+                distanceError = true;
+            } else if (isTrue(isTrue(isTrue(!isEqual(since, null)) && isTrue(!isEqual(until, null))) && isTrue(isGreaterThan(subtract(until, since), multiply(maxDistanceDaysForContracts, msInDay)))))
+            {
+                distanceError = true;
+            }
+            if (isTrue(distanceError))
+            {
+                throw new BadRequest ((string)add(add(add(this.id, " fetchOHLCV() between start and end must be less than "), ((object)maxDistanceDaysForContracts).ToString()), " days")) ;
+            }
             object priceType = this.safeString(parameters, "price");
             parameters = this.omit(parameters, new List<object>() {"price"});
             object productType = null;
@@ -3490,18 +3553,23 @@ public partial class bitget : Exchange
             productType = ((IList<object>)productTypeparametersVariable)[0];
             parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
+            object extended = this.extend(request, parameters);
+            // todo: mark & index also have their "recent" endpoints, but not priority now.
             if (isTrue(isEqual(priceType, "mark")))
             {
-                response = await this.publicMixGetV2MixMarketHistoryMarkCandles(this.extend(request, parameters));
+                response = await this.publicMixGetV2MixMarketHistoryMarkCandles(extended);
             } else if (isTrue(isEqual(priceType, "index")))
             {
-                response = await this.publicMixGetV2MixMarketHistoryIndexCandles(this.extend(request, parameters));
-            } else if (isTrue(isTrue((!isEqual(since, null))) && isTrue((isLessThan(since, thirtyOneDaysAgo)))))
-            {
-                response = await this.publicMixGetV2MixMarketHistoryCandles(this.extend(request, parameters));
+                response = await this.publicMixGetV2MixMarketHistoryIndexCandles(extended);
             } else
             {
-                response = await this.publicMixGetV2MixMarketCandles(this.extend(request, parameters));
+                if (isTrue(needsHistoryEndpoint))
+                {
+                    response = await this.publicMixGetV2MixMarketHistoryCandles(extended);
+                } else
+                {
+                    response = await this.publicMixGetV2MixMarketCandles(extended);
+                }
             }
         }
         if (isTrue(isEqual(response, "")))
@@ -4214,7 +4282,7 @@ public partial class bitget : Exchange
         * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
+        * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5170,6 +5238,7 @@ public partial class bitget : Exchange
         * @name bitget#cancelAllOrders
         * @description cancel all open orders
         * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+        * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
         * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -5202,7 +5271,7 @@ public partial class bitget : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
         if (isTrue(getValue(market, "spot")))
@@ -5218,7 +5287,16 @@ public partial class bitget : Exchange
                 }
             } else
             {
-                response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, parameters));
+                if (isTrue(stop))
+                {
+                    object stopRequest = new Dictionary<string, object>() {
+                        { "symbolList", new List<object>() {getValue(market, "id")} },
+                    };
+                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder(this.extend(stopRequest, parameters));
+                } else
+                {
+                    response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, parameters));
+                }
             }
         } else
         {
@@ -6688,11 +6766,13 @@ public partial class bitget : Exchange
         * @description fetch all open positions
         * @see https://www.bitget.com/api-doc/contract/position/get-all-position
         * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
-        * @param {string[]|undefined} symbols list of unified market symbols
+        * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
         * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
+        * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -6705,8 +6785,17 @@ public partial class bitget : Exchange
         {
             return await this.fetchPaginatedCallCursor("fetchPositions", null, null, null, parameters, "endId", "idLessThan");
         }
-        object fetchPositionsOptions = this.safeValue(this.options, "fetchPositions", new Dictionary<string, object>() {});
-        object method = this.safeString(fetchPositionsOptions, "method", "privateMixGetV2MixPositionAllPosition");
+        object method = null;
+        object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
+        if (isTrue(useHistoryEndpoint))
+        {
+            method = "privateMixGetV2MixPositionHistoryPosition";
+        } else
+        {
+            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method", "privateMixGetV2MixPositionAllPosition");
+            method = ((IList<object>)methodparametersVariable)[0];
+            parameters = ((IList<object>)methodparametersVariable)[1];
+        }
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -6831,11 +6920,11 @@ public partial class bitget : Exchange
         object position = new List<object>() {};
         if (!isTrue(isHistory))
         {
-            position = this.safeValue(response, "data", new List<object>() {});
+            position = this.safeList(response, "data", new List<object>() {});
         } else
         {
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-            position = this.safeValue(data, "list", new List<object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            position = this.safeList(data, "list", new List<object>() {});
         }
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(position)); postFixIncrement(ref i))
@@ -8920,6 +9009,82 @@ public partial class bitget : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object orderInfo = this.safeValue(data, "successList", new List<object>() {});
         return this.parsePositions(orderInfo, null, parameters);
+    }
+
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#fetchMarginMode
+        * @description fetches the margin mode of a trading pair
+        * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+        * @param {string} symbol unified symbol of the market to fetch the margin mode for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object market = null;
+        if (isTrue(sandboxMode))
+        {
+            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
+            market = this.market(sandboxSymbol);
+        } else
+        {
+            market = this.market(symbol);
+        }
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "marginCoin", getValue(market, "settleId") },
+            { "productType", productType },
+        };
+        object response = await this.privateMixGetV2MixAccountAccount(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1709791216652,
+        //         "data": {
+        //             "marginCoin": "USDT",
+        //             "locked": "0",
+        //             "available": "19.88811074",
+        //             "crossedMaxAvailable": "19.88811074",
+        //             "isolatedMaxAvailable": "19.88811074",
+        //             "maxTransferOut": "19.88811074",
+        //             "accountEquity": "19.88811074",
+        //             "usdtEquity": "19.888110749166",
+        //             "btcEquity": "0.000302183391",
+        //             "crossedRiskRate": "0",
+        //             "crossedMarginLeverage": 20,
+        //             "isolatedLongLever": 20,
+        //             "isolatedShortLever": 20,
+        //             "marginMode": "crossed",
+        //             "posMode": "hedge_mode",
+        //             "unrealizedPL": "0",
+        //             "coupon": "0",
+        //             "crossedUnrealizedPL": "0",
+        //             "isolatedUnrealizedPL": ""
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseMarginMode(data, market);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marginType = this.safeString(marginMode, "marginMode");
+        marginType = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : marginType;
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", marginType },
+        };
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

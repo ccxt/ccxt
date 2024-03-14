@@ -2152,7 +2152,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         return array(
             'info' => $leverage,
@@ -2572,7 +2572,9 @@ class bitmex extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $this->iso8601($until);
             }
-            $request['reverse'] = true;
+            if (($since === null) && ($until === null)) {
+                $request['reverse'] = true;
+            }
             $response = Async\await($this->publicGetFunding (array_merge($request, $params)));
             //
             //    array(

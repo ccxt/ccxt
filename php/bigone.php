@@ -1513,7 +1513,11 @@ class bigone extends Exchange {
             }
         }
         $request['type'] = $uppercaseType;
-        $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce' ));
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['client_order_id'] = $clientOrderId;
+        }
+        $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ));
         $response = $this->privatePostOrders (array_merge($request, $params));
         //
         //    {
@@ -1788,7 +1792,7 @@ class bigone extends Exchange {
                 }
             } elseif ($method === 'POST') {
                 $headers['Content-Type'] = 'application/json';
-                $body = $query;
+                $body = $this->json($query);
             }
         }
         $headers['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
@@ -2049,7 +2053,7 @@ class bigone extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://open.big.one/docs/spot_transfer.html#$transfer-of-user

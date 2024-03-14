@@ -1046,7 +1046,7 @@ class coinex extends coinex$1 {
             const messageHash = 'authenticated:spot';
             let future = this.safeValue(client.subscriptions, messageHash);
             if (future !== undefined) {
-                return future;
+                return await future;
             }
             const requestId = this.requestId();
             const subscribe = {
@@ -1066,13 +1066,13 @@ class coinex extends coinex$1 {
             };
             future = this.watch(url, messageHash, request, requestId, subscribe);
             client.subscriptions[messageHash] = future;
-            return future;
+            return await future;
         }
         else {
             const messageHash = 'authenticated:swap';
             let future = this.safeValue(client.subscriptions, messageHash);
             if (future !== undefined) {
-                return future;
+                return await future;
             }
             const requestId = this.requestId();
             const subscribe = {
@@ -1092,7 +1092,7 @@ class coinex extends coinex$1 {
             };
             future = this.watch(url, messageHash, request, requestId, subscribe);
             client.subscriptions[messageHash] = future;
-            return future;
+            return await future;
         }
     }
 }

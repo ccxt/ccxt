@@ -206,7 +206,7 @@ function testMarket(exchange, skippedProperties, method, market) {
         }
     }
     // check whether valid currency ID and CODE is used
-    if (!('currencyIdAndCode' in skippedProperties)) {
+    if (!('currency' in skippedProperties) && !('currencyIdAndCode' in skippedProperties)) {
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['baseId'], market['base']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['settleId'], market['settle']);

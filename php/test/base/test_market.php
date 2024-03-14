@@ -195,7 +195,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         }
     }
     // check whether valid currency ID and CODE is used
-    if (!(is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
+    if (!(is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['baseId'], $market['base']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['quoteId'], $market['quote']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);

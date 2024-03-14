@@ -39,6 +39,7 @@ export default class testMainClass extends baseMainTestClass {
     addPadding(message: string, size: any): string;
     exchangeHint(exchange: any, market?: any): string;
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<void>;
+    getSkips(exchange: any, methodName: any): any;
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<boolean>;
     runPublicTests(exchange: any, symbol: any): Promise<void>;
     runTests(exchange: any, tests: any, isPublicTest: boolean): Promise<void>;
@@ -86,5 +87,6 @@ export default class testMainClass extends baseMainTestClass {
     testBingx(): Promise<void>;
     testPhemex(): Promise<void>;
     testBlofin(): Promise<void>;
+    testHyperliquid(): Promise<void>;
 }
 export {};

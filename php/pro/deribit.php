@@ -780,7 +780,7 @@ class deribit extends \ccxt\async\deribit {
         );
     }
 
-    public function watch_multiple_wrapper(string $channelName, string $channelDescriptor, $symbolsArray = null, $params = array ()) {
+    public function watch_multiple_wrapper(string $channelName, ?string $channelDescriptor, $symbolsArray = null, $params = array ()) {
         return Async\async(function () use ($channelName, $channelDescriptor, $symbolsArray, $params) {
             Async\await($this->load_markets());
             $url = $this->urls['api']['ws'];
