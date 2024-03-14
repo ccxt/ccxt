@@ -10,6 +10,9 @@
       "require": "./dist/ccxt.cjs"
     }
   },
+  "bin": {
+    "ccxt": "examples/js/cli.js"
+  },
   "engines": {
     "node": ">=15.0.0"
   },
