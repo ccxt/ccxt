@@ -1041,10 +1041,10 @@ export default class Exchange {
 
     httpProxyAgentModule:any = undefined;
     httpsProxyAgentModule:any = undefined;
+    proxiesModulesLoading:Promise<any> = undefined
+    proxyDictionaries:any = {};
     socksProxyAgentModule:any = undefined;
     socksProxyAgentModuleChecked:boolean = false;
-    proxyDictionaries:any = {};
-    proxiesModulesLoading:Promise<any> = undefined
 
     async loadProxyModules () {
         // when loading markets, multiple parallel calls are made, so need one promise
@@ -1212,9 +1212,9 @@ export default class Exchange {
                     }
                 }
             } else {
-                this.fetchImplementation = self.fetch;
                 this.AbortError = DOMException;
                 this.FetchError = TypeError;
+                this.fetchImplementation = self.fetch;
             }
         }
         // fetchImplementation cannot be called on this. in browsers:
@@ -2517,9 +2517,9 @@ export default class Exchange {
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {
+                'CRO': { 'CRC20': 'CRONOS' },
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
-                'CRO': { 'CRC20': 'CRONOS' },
             },
         };
     }
@@ -2554,21 +2554,21 @@ export default class Exchange {
         const timestamp = this.safeInteger (entry, 'timestamp');
         const info = this.safeDict (entry, 'info', {});
         return {
-            'id': this.safeString (entry, 'id'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'direction': direction,
             'account': this.safeString (entry, 'account'),
-            'referenceId': this.safeString (entry, 'referenceId'),
-            'referenceAccount': this.safeString (entry, 'referenceAccount'),
-            'type': this.safeString (entry, 'type'),
-            'currency': currency['code'],
+            'after': this.parseNumber (after),
             'amount': this.parseNumber (amount),
             'before': this.parseNumber (before),
-            'after': this.parseNumber (after),
-            'status': this.safeString (entry, 'status'),
+            'currency': currency['code'],
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
             'fee': fee,
+            'id': this.safeString (entry, 'id'),
             'info': info,
+            'referenceAccount': this.safeString (entry, 'referenceAccount'),
+            'referenceId': this.safeString (entry, 'referenceId'),
+            'status': this.safeString (entry, 'status'),
+            'timestamp': timestamp,
+            'type': this.safeString (entry, 'type'),
         };
     }
 
@@ -2583,12 +2583,12 @@ export default class Exchange {
             'info': undefined,
             'limits': {
                 'deposit': {
-                    'min': undefined,
                     'max': undefined,
+                    'min': undefined,
                 },
                 'withdraw': {
-                    'min': undefined,
                     'max': undefined,
+                    'min': undefined,
                 },
             },
             'name': undefined,
@@ -2607,26 +2607,28 @@ export default class Exchange {
             'baseId': undefined,
             'contract': undefined,
             'contractSize': undefined,
+            'created': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'future': undefined,
             'id': undefined,
             'index': undefined,
+            'info': undefined,
             'inverse': undefined,
             'limits': {
-                'leverage': {
-                    'max': undefined,
-                    'min': undefined,
-                },
                 'amount': {
                     'max': undefined,
                     'min': undefined,
                 },
-                'price': {
+                'cost': {
                     'max': undefined,
                     'min': undefined,
                 },
-                'cost': {
+                'leverage': {
+                    'max': undefined,
+                    'min': undefined,
+                },
+                'price': {
                     'max': undefined,
                     'min': undefined,
                 },
@@ -2655,8 +2657,6 @@ export default class Exchange {
             'symbol': undefined,
             'taker': undefined,
             'type': undefined,
-            'created': undefined,
-            'info': undefined,
         };
         if (market !== undefined) {
             const result = this.extend (cleanStructure, market);
