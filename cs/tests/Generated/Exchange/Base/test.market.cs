@@ -221,7 +221,7 @@ public partial class testMainClass : BaseTest
             }
         }
         // check whether valid currency ID and CODE is used
-        if (!isTrue((inOp(skippedProperties, "currencyIdAndCode"))))
+        if (isTrue(!isTrue((inOp(skippedProperties, "currency"))) && !isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
         {
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "baseId"), getValue(market, "base"));
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "quoteId"), getValue(market, "quote"));

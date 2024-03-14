@@ -1287,6 +1287,7 @@ class kraken extends Exchange {
         $lastTrade = $trades[$length - 1];
         $lastTradeId = $this->safe_string($result, 'last');
         $lastTrade[] = $lastTradeId;
+        $trades[$length - 1] = $lastTrade;
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -2749,7 +2750,7 @@ class kraken extends Exchange {
         return $this->transfer($code, $amount, 'spot', 'swap', $params);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
          * transfers currencies between sub-accounts (only spot->swap direction is supported)

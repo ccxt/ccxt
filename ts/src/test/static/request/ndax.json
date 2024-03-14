@@ -2,5 +2,46 @@
     "exchange": "ndax",
     "skipKeys": [],
     "outputType": "json",
-    "methods": {}
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.ndax.io:8443/AP/GetLastTrades?omsId=1&InstrumentId=82",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.ndax.io:8443/AP/GetL2Snapshot?omsId=1&InstrumentId=82&Depth=100",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.ndax.io:8443/AP/GetLevel1?omsId=1&InstrumentId=82",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.ndax.io:8443/AP/GetTickerHistory?omsId=1&InstrumentId=82&Interval=60",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ]
+    }
 }

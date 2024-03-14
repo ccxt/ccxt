@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.65'
+__version__ = '4.2.71'
 
 # -----------------------------------------------------------------------------
 
@@ -1527,7 +1527,9 @@ class Exchange(BaseExchange):
                     response = await getattr(self, method)(symbol, None, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp
+                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        if paginationTimestamp is not None:
+                            backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
                     if responseLength == 0:
                         break
@@ -1542,7 +1544,9 @@ class Exchange(BaseExchange):
                     response = await getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp
+                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        if paginationTimestamp is not None:
+                            forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
                     if responseLength == 0:
                         break

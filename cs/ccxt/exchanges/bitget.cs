@@ -352,6 +352,8 @@ public partial class bitget : Exchange
                             { "v2/spot/wallet/transfer", 2 },
                             { "v2/spot/wallet/subaccount-transfer", 2 },
                             { "v2/spot/wallet/withdrawal", 2 },
+                            { "v2/spot/wallet/cancel-withdrawal", 2 },
+                            { "v2/spot/wallet/modify-deposit-account", 2 },
                         } },
                     } },
                     { "mix", new Dictionary<string, object>() {
@@ -696,9 +698,12 @@ public partial class bitget : Exchange
                             { "v2/convert/currencies", 2 },
                             { "v2/convert/quoted-price", 2 },
                             { "v2/convert/convert-record", 2 },
+                            { "v2/convert/bgb-convert-coin-list", 2 },
+                            { "v2/convert/bgb-convert-records", 2 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v2/convert/trade", 2 },
+                            { "v2/convert/bgb-convert", 2 },
                         } },
                     } },
                     { "earn", new Dictionary<string, object>() {
@@ -5233,6 +5238,7 @@ public partial class bitget : Exchange
         * @name bitget#cancelAllOrders
         * @description cancel all open orders
         * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+        * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
         * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -5265,7 +5271,7 @@ public partial class bitget : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
         if (isTrue(getValue(market, "spot")))
@@ -5281,7 +5287,16 @@ public partial class bitget : Exchange
                 }
             } else
             {
-                response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, parameters));
+                if (isTrue(stop))
+                {
+                    object stopRequest = new Dictionary<string, object>() {
+                        { "symbolList", new List<object>() {getValue(market, "id")} },
+                    };
+                    response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder(this.extend(stopRequest, parameters));
+                } else
+                {
+                    response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, parameters));
+                }
             }
         } else
         {
@@ -6751,11 +6766,13 @@ public partial class bitget : Exchange
         * @description fetch all open positions
         * @see https://www.bitget.com/api-doc/contract/position/get-all-position
         * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
-        * @param {string[]|undefined} symbols list of unified market symbols
+        * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
         * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
+        * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -6768,8 +6785,17 @@ public partial class bitget : Exchange
         {
             return await this.fetchPaginatedCallCursor("fetchPositions", null, null, null, parameters, "endId", "idLessThan");
         }
-        object fetchPositionsOptions = this.safeValue(this.options, "fetchPositions", new Dictionary<string, object>() {});
-        object method = this.safeString(fetchPositionsOptions, "method", "privateMixGetV2MixPositionAllPosition");
+        object method = null;
+        object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
+        if (isTrue(useHistoryEndpoint))
+        {
+            method = "privateMixGetV2MixPositionHistoryPosition";
+        } else
+        {
+            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method", "privateMixGetV2MixPositionAllPosition");
+            method = ((IList<object>)methodparametersVariable)[0];
+            parameters = ((IList<object>)methodparametersVariable)[1];
+        }
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -6894,11 +6920,11 @@ public partial class bitget : Exchange
         object position = new List<object>() {};
         if (!isTrue(isHistory))
         {
-            position = this.safeValue(response, "data", new List<object>() {});
+            position = this.safeList(response, "data", new List<object>() {});
         } else
         {
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-            position = this.safeValue(data, "list", new List<object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            position = this.safeList(data, "list", new List<object>() {});
         }
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(position)); postFixIncrement(ref i))

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, MarketType, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Num, Str, Bool, Strings, Trade, Transaction
+from ccxt.base.types import Balances, Bool, Currency, Int, Leverage, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired

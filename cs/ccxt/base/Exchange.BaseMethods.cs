@@ -2692,6 +2692,16 @@ public partial class Exchange
         return new List<object>() {value, parameters};
     }
 
+    public virtual object handleParamInteger(object parameters, object paramName, object defaultValue = null)
+    {
+        object value = this.safeInteger(parameters, paramName, defaultValue);
+        if (isTrue(!isEqual(value, null)))
+        {
+            parameters = this.omit(parameters, paramName);
+        }
+        return new List<object>() {value, parameters};
+    }
+
     public virtual object resolvePath(object path, object parameters)
     {
         return new List<object> {this.implodeParams(path, parameters), this.omit(parameters, this.extractParams(path))};
@@ -5188,7 +5198,11 @@ public partial class Exchange
                     object responseLength = getArrayLength(response);
                     if (isTrue(this.verbose))
                     {
-                        object backwardMessage = add(add(add(add(add(add(add("Dynamic pagination call ", calls), " method "), method), " response length "), responseLength), " timestamp "), paginationTimestamp);
+                        object backwardMessage = add(add(add(add(add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
+                        if (isTrue(!isEqual(paginationTimestamp, null)))
+                        {
+                            backwardMessage = add(backwardMessage, add(" timestamp ", this.numberToString(paginationTimestamp)));
+                        }
                         this.log(backwardMessage);
                     }
                     if (isTrue(isEqual(responseLength, 0)))
@@ -5210,7 +5224,11 @@ public partial class Exchange
                     object responseLength = getArrayLength(response);
                     if (isTrue(this.verbose))
                     {
-                        object forwardMessage = add(add(add(add(add(add(add("Dynamic pagination call ", calls), " method "), method), " response length "), responseLength), " timestamp "), paginationTimestamp);
+                        object forwardMessage = add(add(add(add(add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
+                        if (isTrue(!isEqual(paginationTimestamp, null)))
+                        {
+                            forwardMessage = add(forwardMessage, add(" timestamp ", this.numberToString(paginationTimestamp)));
+                        }
                         this.log(forwardMessage);
                     }
                     if (isTrue(isEqual(responseLength, 0)))

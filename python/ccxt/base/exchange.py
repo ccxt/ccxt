@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.65'
+__version__ = '4.2.71'
 
 # -----------------------------------------------------------------------------
 
@@ -3514,8 +3514,14 @@ class Exchange(object):
         market = self.market(symbol)
         return self.safe_string(market, 'symbol', symbol)
 
-    def handle_param_string(self, params: object, paramName: str, defaultValue=None):
+    def handle_param_string(self, params: object, paramName: str, defaultValue: Str = None):
         value = self.safe_string(params, paramName, defaultValue)
+        if value is not None:
+            params = self.omit(params, paramName)
+        return [value, params]
+
+    def handle_param_integer(self, params: object, paramName: str, defaultValue: Int = None):
+        value = self.safe_integer(params, paramName, defaultValue)
         if value is not None:
             params = self.omit(params, paramName)
         return [value, params]
@@ -5060,7 +5066,9 @@ class Exchange(object):
                     response = getattr(self, method)(symbol, None, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp
+                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        if paginationTimestamp is not None:
+                            backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
                     if responseLength == 0:
                         break
@@ -5075,7 +5083,9 @@ class Exchange(object):
                     response = getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequest, params)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp
+                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        if paginationTimestamp is not None:
+                            forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
                     if responseLength == 0:
                         break

@@ -1,0 +1,179 @@
+{
+    "exchange": "delta",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "buyer_role": "taker",
+                            "price": "73260.5",
+                            "seller_role": "maker",
+                            "size": "0.000635",
+                            "symbol": "BTC_USDT",
+                            "timestamp": "1710327528000000"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "order": null,
+                        "timestamp": 1710327528000,
+                        "datetime": "2024-03-13T10:58:48.000Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "price": 73260.5,
+                        "amount": 0.000635,
+                        "cost": 46.5204175,
+                        "takerOrMaker": null,
+                        "fee": null,
+                        "info": {
+                            "buyer_role": "taker",
+                            "price": "73260.5",
+                            "seller_role": "maker",
+                            "size": "0.000635",
+                            "symbol": "BTC_USDT",
+                            "timestamp": "1710327528000000"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "result": {
+                        "close": "73394.0",
+                        "contract_type": "spot",
+                        "greeks": null,
+                        "high": "73612.0",
+                        "low": "68796.5",
+                        "mark_change_24h": "0.0000",
+                        "mark_price": "48000",
+                        "oi": "0.0000",
+                        "oi_change_usd_6h": "0.0000",
+                        "oi_contracts": "0",
+                        "oi_value": "0.0000",
+                        "oi_value_symbol": "BTC",
+                        "oi_value_usd": "0.0000",
+                        "open": "72135.5",
+                        "price_band": null,
+                        "product_id": "8320",
+                        "quotes": {},
+                        "size": "1.4971349999999992",
+                        "spot_price": "73368.4",
+                        "symbol": "BTC_USDT",
+                        "timestamp": "1710328245495283",
+                        "turnover": "1.4971349999999992",
+                        "turnover_symbol": "BTC",
+                        "turnover_usd": "107155.2020148999",
+                        "underlying_asset_symbol": "BTC",
+                        "volume": "1.4971349999999992"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328245495,
+                    "datetime": "2024-03-13T11:10:45.495Z",
+                    "high": 73612,
+                    "low": 68796.5,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 1,
+                    "open": 72135.5,
+                    "close": 73394,
+                    "last": 73394,
+                    "previousClose": null,
+                    "change": 1258.5,
+                    "percentage": 1.7446333636004463,
+                    "average": 72764.75,
+                    "baseVolume": 1.4971349999999992,
+                    "quoteVolume": 1.4971349999999992,
+                    "info": {
+                        "close": "73394.0",
+                        "contract_type": "spot",
+                        "greeks": null,
+                        "high": "73612.0",
+                        "low": "68796.5",
+                        "mark_change_24h": "0.0000",
+                        "mark_price": "48000",
+                        "oi": "0.0000",
+                        "oi_change_usd_6h": "0.0000",
+                        "oi_contracts": "0",
+                        "oi_value": "0.0000",
+                        "oi_value_symbol": "BTC",
+                        "oi_value_usd": "0.0000",
+                        "open": "72135.5",
+                        "price_band": null,
+                        "product_id": "8320",
+                        "quotes": {},
+                        "size": "1.4971349999999992",
+                        "spot_price": "73368.4",
+                        "symbol": "BTC_USDT",
+                        "timestamp": "1710328245495283",
+                        "turnover": "1.4971349999999992",
+                        "turnover_symbol": "BTC",
+                        "turnover_usd": "107155.2020148999",
+                        "underlying_asset_symbol": "BTC",
+                        "volume": "1.4971349999999992"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "close": "73381",
+                            "high": "73394",
+                            "low": "73243",
+                            "open": "73243",
+                            "time": "1710327600",
+                            "volume": "0.0076549999999999995"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73243,
+                        73394,
+                        73243,
+                        73381,
+                        0.0076549999999999995
+                    ]
+                ]
+            }
+        ]
+    }
+}

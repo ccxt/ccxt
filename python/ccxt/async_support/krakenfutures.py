@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -262,6 +262,9 @@ class krakenfutures(Exchange, ImplicitAPI):
                             'accountlogcsv': 'v2',
                         },
                     },
+                },
+                'fetchTrades': {
+                    'method': 'historyGetMarketSymbolExecutions',  # historyGetMarketSymbolExecutions, publicGetHistory
                 },
             },
             'timeframes': {
@@ -685,6 +688,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
+        :see: https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events
         Fetch a history of filled trades that self account has made
         :param str symbol: Unified CCXT market symbol
         :param int [since]: Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -692,6 +696,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param dict [params]: Exchange specific params
         :param int [params.until]: Timestamp in ms of latest trade
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.method]: The method to use to fetch trades. Can be 'historyGetMarketSymbolExecutions' or 'publicGetHistory' default is 'historyGetMarketSymbolExecutions'
         :returns: An array of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
@@ -703,34 +708,105 @@ class krakenfutures(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        until = self.safe_integer(params, 'until')
-        if until is not None:
-            request['lastTime'] = self.iso8601(until)
-        #
-        #    {
-        #        "result": "success",
-        #        "history": [
-        #            {
-        #                "time": "2022-03-18T04:55:37.692Z",
-        #                "trade_id": 100,
-        #                "price": 0.7921,
-        #                "size": 1068,
-        #                "side": "sell",
-        #                "type": "fill",
-        #                "uid": "6c5da0b0-f1a8-483f-921f-466eb0388265"
-        #            },
-        #            ...
-        #        ],
-        #        "serverTime": "2022-03-18T06:39:18.056Z"
-        #    }
-        #
-        response = await self.publicGetHistory(self.extend(request, params))
-        history = self.safe_value(response, 'history')
-        return self.parse_trades(history, market, since, limit)
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions')
+        rawTrades = None
+        isFullHistoryEndpoint = (method == 'historyGetMarketSymbolExecutions')
+        if isFullHistoryEndpoint:
+            request, params = self.handle_until_option('before', request, params)
+            if since is not None:
+                request['since'] = since
+                request['sort'] = 'asc'
+            if limit is not None:
+                request['count'] = limit
+            response = await self.historyGetMarketSymbolExecutions(self.extend(request, params))
+            #
+            #    {
+            #        "elements": [
+            #            {
+            #                "uid": "a5105030-f054-44cc-98ab-30d5cae96bef",
+            #                "timestamp": "1710150778607",
+            #                "event": {
+            #                    "Execution": {
+            #                        "execution": {
+            #                            "uid": "2d485b71-cd28-4a1e-9364-371a127550d2",
+            #                            "makerOrder": {
+            #                                "uid": "0a25f66b-1109-49ec-93a3-d17bf9e9137e",
+            #                                "tradeable": "PF_XBTUSD",
+            #                                "direction": "Buy",
+            #                                "quantity": "0.26500",
+            #                                "timestamp": "1710150778570",
+            #                                "limitPrice": "71907",
+            #                                "orderType": "Post",
+            #                                "reduceOnly": False,
+            #                                "lastUpdateTimestamp": "1710150778570"
+            #                            },
+            #                            "takerOrder": {
+            #                                "uid": "04de3ee0-9125-4960-bf8f-f63b577b6790",
+            #                                "tradeable": "PF_XBTUSD",
+            #                                "direction": "Sell",
+            #                                "quantity": "0.0002",
+            #                                "timestamp": "1710150778607",
+            #                                "limitPrice": "71187.00",
+            #                                "orderType": "Market",
+            #                                "reduceOnly": False,
+            #                                "lastUpdateTimestamp": "1710150778607"
+            #                            },
+            #                            "timestamp": "1710150778607",
+            #                            "quantity": "0.0002",
+            #                            "price": "71907",
+            #                            "markPrice": "71903.32715463147",
+            #                            "limitFilled": False,
+            #                            "usdValue": "14.38"
+            #                        },
+            #                        "takerReducedQuantity": ""
+            #                    }
+            #                }
+            #            },
+            #            ... followed by older items
+            #        ],
+            #        "len": "1000",
+            #        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
+            #    }
+            #
+            elements = self.safe_list(response, 'elements', [])
+            # we need to reverse the list to fix chronology
+            rawTrades = []
+            length = len(elements)
+            for i in range(0, length):
+                index = length - 1 - i
+                element = elements[index]
+                event = self.safe_dict(element, 'event', {})
+                executionContainer = self.safe_dict(event, 'Execution', {})
+                rawTrade = self.safe_dict(executionContainer, 'execution', {})
+                rawTrades.append(rawTrade)
+        else:
+            request, params = self.handle_until_option('lastTime', request, params)
+            response = await self.publicGetHistory(self.extend(request, params))
+            #
+            #    {
+            #        "result": "success",
+            #        "history": [
+            #            {
+            #                "time": "2022-03-18T04:55:37.692Z",
+            #                "trade_id": 100,
+            #                "price": 0.7921,
+            #                "size": 1068,
+            #                "side": "sell",
+            #                "type": "fill",
+            #                "uid": "6c5da0b0-f1a8-483f-921f-466eb0388265"
+            #            },
+            #            ...
+            #        ],
+            #        "serverTime": "2022-03-18T06:39:18.056Z"
+            #    }
+            #
+            rawTrades = self.safe_list(response, 'history', [])
+        return self.parse_trades(rawTrades, market, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades(recent trades)
         #
         #    {
         #        "time": "2019-02-14T09:25:33.920Z",
@@ -738,8 +814,22 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "price": 3574,
         #        "size": 100,
         #        "side": "buy",
-        #        "type": "fill"                                          # fill, liquidation, assignment, termination
+        #        "type": "fill"  # fill, liquidation, assignment, termination
         #        "uid": "11c3d82c-9e70-4fe9-8115-f643f1b162d4"
+        #    }
+        #
+        # fetchTrades(executions history)
+        #
+        #    {
+        #        "timestamp": "1710152516830",
+        #        "price": "71927.0",
+        #        "quantity": "0.0695",
+        #        "markPrice": "71936.38701675525",
+        #        "limitFilled": True,
+        #        "usdValue": "4998.93",
+        #        "uid": "116ae634-253f-470b-bd20-fa9d429fb8b1",
+        #        "makerOrder": {"uid": "17bfe4de-c01e-4938-926c-617d2a2d0597", "tradeable": "PF_XBTUSD", "direction": "Buy", "quantity": "0.0695", "timestamp": "1710152515836", "limitPrice": "71927.0", "orderType": "Post", "reduceOnly": False, "lastUpdateTimestamp": "1710152515836"},
+        #        "takerOrder": {"uid": "d3e437b4-aa70-4108-b5cf-b1eecb9845b5", "tradeable": "PF_XBTUSD", "direction": "Sell", "quantity": "0.940100", "timestamp": "1710152516830", "limitPrice": "71915", "orderType": "IoC", "reduceOnly": False, "lastUpdateTimestamp": "1710152516830"}
         #    }
         #
         # fetchMyTrades(private)
@@ -782,7 +872,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #
         timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'fillTime'))
         price = self.safe_string(trade, 'price')
-        amount = self.safe_string_2(trade, 'size', 'amount', '0.0')
+        amount = self.safe_string_n(trade, ['size', 'amount', 'quantity'], '0.0')
         id = self.safe_string_2(trade, 'uid', 'fill_id')
         if id is None:
             id = self.safe_string(trade, 'executionId')
@@ -821,6 +911,13 @@ class krakenfutures(Exchange, ImplicitAPI):
                 takerOrMaker = 'taker'
             elif fillType.find('maker') >= 0:
                 takerOrMaker = 'maker'
+        isHistoricalExecution = ('takerOrder' in trade)
+        if isHistoricalExecution:
+            timestamp = self.safe_integer(trade, 'timestamp')
+            taker = self.safe_dict(trade, 'takerOrder', {})
+            if taker is not None:
+                side = self.safe_string_lower(taker, 'direction')
+                takerOrMaker = 'taker'
         return self.safe_trade({
             'info': trade,
             'id': id,

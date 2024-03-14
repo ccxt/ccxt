@@ -2777,7 +2777,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://docs.delta.exchange/#get-order-leverage
@@ -2808,7 +2808,7 @@ class delta extends Exchange {
         return $this->parse_leverage($result, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'index_symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -3011,7 +3011,7 @@ class delta extends Exchange {
         return $result;
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): Greeks {
+    public function fetch_greeks(string $symbol, $params = array ()): array {
         /**
          * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
@@ -3181,7 +3181,7 @@ class delta extends Exchange {
         return array( $position );
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): MarginMode {
+    public function fetch_margin_mode(string $symbol, $params = array ()): array {
         /**
          * fetches the margin mode of a trading pair
          * @see https://docs.delta.exchange/#get-user
@@ -3262,7 +3262,7 @@ class delta extends Exchange {
         return $this->parse_margin_mode($result, $market);
     }
 
-    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+    public function parse_margin_mode($marginMode, $market = null): array {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
