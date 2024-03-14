@@ -537,7 +537,6 @@ export default class coinbaseinternational extends Exchange {
         //    ]
         //
         currency['networks'] = this.parseNetworks (rawNetworks);
-        return;
     }
 
     parseNetworks (networks: List, params = {}) {
