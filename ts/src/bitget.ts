@@ -3305,48 +3305,47 @@ export default class bitget extends Exchange {
          * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        await this.loadMarkets();
+        await this.loadMarkets ();
         const defaultLimit = 100; // default 100, max 1000
         const maxLimitForRecentEndpoint = 1000;
         const maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForHistoryEndpoint);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForHistoryEndpoint);
         }
-        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
-            const sandboxSymbol = this.convertSymbolForSandbox(symbol);
-            market = this.market(sandboxSymbol);
-        }
-        else {
-            market = this.market(symbol);
+            const sandboxSymbol = this.convertSymbolForSandbox (symbol);
+            market = this.market (sandboxSymbol);
+        } else {
+            market = this.market (symbol);
         }
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const msInDay = 86400000;
-        const duration = this.parseTimeframe(timeframe) * 1000;
+        const duration = this.parseTimeframe (timeframe) * 1000;
         const request = {
             'symbol': market['id'],
             'granularity': this.safeString (timeframes, timeframe, timeframe),
         };
-        const until = this.safeInteger2(params, 'until', 'till');
+        const until = this.safeInteger2 (params, 'until', 'till');
         const limitDefined = limit !== undefined;
         const sinceDefined = since !== undefined;
         const untilDefined = until !== undefined;
-        params = this.omit(params, ['until', 'till']);
+        params = this.omit (params, [ 'until', 'till' ]);
         let response = undefined;
-        const now = this.milliseconds();
+        const now = this.milliseconds ();
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        const ohlcOptions = this.safeDict(this.options, 'fetchOHLCV', {});
-        const retrievableDaysMap = this.safeDict(ohlcOptions, 'maxDaysPerTimeframe', {});
-        const maxRetrievableDaysForRecent = this.safeInteger(retrievableDaysMap, timeframe, 30); // default to safe minimum
+        const ohlcOptions = this.safeDict (this.options, 'fetchOHLCV', {});
+        const retrievableDaysMap = this.safeDict (ohlcOptions, 'maxDaysPerTimeframe', {});
+        const maxRetrievableDaysForRecent = this.safeInteger (retrievableDaysMap, timeframe, 30); // default to safe minimum
         const endpointTsBoundary = now - maxRetrievableDaysForRecent * msInDay;
         if (limitDefined) {
-            limit = Math.min(limit, maxLimitForRecentEndpoint);
+            limit = Math.min (limit, maxLimitForRecentEndpoint);
             request['limit'] = limit;
         } else {
             limit = defaultLimit;
@@ -3361,56 +3360,55 @@ export default class bitget extends Exchange {
             if (!untilDefined) {
                 calculatedEndTime = calculatedStartTime + limitMultipliedDuration;
             }
-            request['startTime'] = since; // supported for "recent-candles" endpoint, other endpoint just ingores
         }
         if (untilDefined) {
             calculatedEndTime = until;
             if (!sinceDefined) {
                 calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
             }
-            request['endTime'] = calculatedEnd; // supported for both endpoints
+            request['endTime'] = calculatedEndTime; // supported for both endpoints
+        }
+        // exchange aligns from endTime
+        if (calculatedEndTime !== undefined) {
+            request['startTime'] = since; // supported on "recent-candles" endpoint, other endpoint just ingores
+            request['endTime'] = calculatedEndTime;
         }
         const historicalEndpointNeeded = (calculatedStartTime !== undefined) && (calculatedStartTime <= endpointTsBoundary);
         if (historicalEndpointNeeded) {
             // only for "historical-candles" - ensure we use correct max limit
             if (limitDefined) {
-                request['limit'] = Math.min(limit, maxLimitForHistoryEndpoint);
+                request['limit'] = Math.min (limit, maxLimitForHistoryEndpoint);
             }
         }
         // make request
         if (market['spot']) {
             // checks if we need history endpoint
             if (historicalEndpointNeeded) {
-                response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, params));
+                response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
+            } else {
+                response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             }
-            else {
-                response = await this.publicSpotGetV2SpotMarketCandles(this.extend(request, params));
-            }
-        }
-        else {
+        } else {
             const maxDistanceDaysForContracts = 90; // for contract, maximum 90 days allowed between start-end times
             if ((calculatedStartTime !== undefined) && (calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay)) {
-                throw new BadRequest(this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDaysForContracts.toString() + ' days');
+                throw new BadRequest (this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDaysForContracts.toString () + ' days');
             }
-            let priceType =
-            [ priceType , params ] = this.handleParamString (params, 'price');
+            let priceType = undefined;
+            [ priceType, params ] = this.handleParamString (params, 'price');
             let productType = undefined;
-            [productType, params] = this.handleProductTypeAndParams(market, params);
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            const extended = this.extend(request, params);
+            const extended = this.extend (request, params);
             // todo: mark & index also have their "recent" endpoints, but not priority now.
             if (priceType === 'mark') {
-                response = await this.publicMixGetV2MixMarketHistoryMarkCandles(extended);
-            }
-            else if (priceType === 'index') {
-                response = await this.publicMixGetV2MixMarketHistoryIndexCandles(extended);
-            }
-            else {
-                if (needsHistoryEndpoint) {
-                    response = await this.publicMixGetV2MixMarketHistoryCandles(extended);
-                }
-                else {
-                    response = await this.publicMixGetV2MixMarketCandles(extended);
+                response = await this.publicMixGetV2MixMarketHistoryMarkCandles (extended);
+            } else if (priceType === 'index') {
+                response = await this.publicMixGetV2MixMarketHistoryIndexCandles (extended);
+            } else {
+                if (historicalEndpointNeeded) {
+                    response = await this.publicMixGetV2MixMarketHistoryCandles (extended);
+                } else {
+                    response = await this.publicMixGetV2MixMarketCandles (extended);
                 }
             }
         }
