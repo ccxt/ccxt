@@ -256,7 +256,8 @@ export default class hitbtc extends hitbtcRest {
         //
         const snapshot = this.safeValue (message, 'snapshot', null);
         const update = this.safeValue (message, 'update', null);
-        const data = snapshot || update;
+        const data = snapshot ? snapshot : update;
+        const type = snapshot ? 'snapshot' : 'update';
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -264,7 +265,7 @@ export default class hitbtc extends hitbtcRest {
             const symbol = market['symbol'];
             const item = data[marketId];
             const messageHash = 'orderbooks::' + symbol;
-            if (snapshot || !(symbol in this.orderbooks)) {
+            if (type == 'snapshot' || !(symbol in this.orderbooks)) {
                 const subscription = this.safeValue (client.subscriptions, messageHash, {});
                 const limit = this.safeInteger (subscription, 'limit');
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
