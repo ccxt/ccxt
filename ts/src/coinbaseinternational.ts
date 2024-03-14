@@ -540,7 +540,7 @@ export default class coinbaseinternational extends Exchange {
         currency['networks'] = this.parseNetworks (rawNetworks);
     }
 
-    parseNetworks (networks: List, params = {}) {
+    parseNetworks (networks, params = {}) {
         const result = {};
         for (let i = 0; i < networks.length; i++) {
             const network = this.extend (this.parseNetwork (networks[i]), params);
@@ -1984,12 +1984,13 @@ export default class coinbaseinternational extends Exchange {
             depositEnabled = (depositMax > 0);
         }
         const networkId = this.safeString (network, 'id');
+        const isEnabled = (withdrawEnabled && depositEnabled);
         return {
             'info': network['info'],
             'id': networkId,
             'name': this.safeString (network, 'name'),
             'network': this.safeString (network, 'network'),
-            'active': this.safeBool (network, 'active', (withdrawEnabled && depositEnabled)),
+            'active': this.safeBool (network, 'active', isEnabled),
             'deposit': depositEnabled,
             'withdraw': withdrawEnabled,
             'fee': this.safeNumber (network, 'fee'),
