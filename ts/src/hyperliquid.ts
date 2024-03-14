@@ -8,7 +8,7 @@ import { TICK_SIZE, ROUND } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -764,7 +764,7 @@ export default class hyperliquid extends Exchange {
         return this.buildSig (chainId, messageTypes, message);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name hyperliquid#createOrder
@@ -1036,7 +1036,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    async editOrder (id: string, symbol: string, type: string, side: string, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name hyperliquid#editOrder
