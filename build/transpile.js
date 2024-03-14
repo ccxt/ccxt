@@ -353,6 +353,7 @@ class Transpiler {
     getPythonRegexes () {
 
         return [
+            [ /(, .+)\?(\: [^,]+),/g, '$1$2 = None,' ], // optionals
             [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, 'isinstance($1, int)' ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
@@ -589,6 +590,7 @@ class Transpiler {
             // That is done at the very last regex steps.
             // All of that is a workaround for PHP-arrays vs dictionaries vs url-imploded params in other langs.
             //
+            [ /(, .+)\?(\: [^,]+),/g, '$1$2 = null,' ], // optionals
             [ /\{([\]\[\|a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
             [ /\[([^\]\[]*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
             [ /\s+\* @method/g, '' ], // docstring @method
