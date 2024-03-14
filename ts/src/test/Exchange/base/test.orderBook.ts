@@ -28,6 +28,7 @@ function testOrderBook (exchange, skippedProperties, method, orderbook, symbol) 
     if (('bid' in skippedProperties) || ('ask' in skippedProperties)) {
         return;
     }
+    // todo: check non-emtpy arrays for bids/asks for toptier exchanges
     const bids = orderbook['bids'];
     const bidsLength = bids.length;
     for (let i = 0; i < bidsLength; i++) {

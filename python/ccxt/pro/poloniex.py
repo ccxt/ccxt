@@ -241,7 +241,7 @@ class poloniex(ccxt.async_support.poloniex):
                 request['price'] = self.price_to_precision(symbol, price)
         return await self.trade_request('createOrder', self.extend(request, params))
 
-    async def cancel_order_ws(self, id: str, symbol: str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
         cancel multiple orders
@@ -257,7 +257,7 @@ class poloniex(ccxt.async_support.poloniex):
             params['clientOrderIds'] = self.array_concat(clientOrderIds, [clientOrderId])
         return await self.cancel_orders_ws([id], symbol, params)
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: str = None, params={}):
+    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
         :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
         cancel multiple orders
@@ -274,7 +274,7 @@ class poloniex(ccxt.async_support.poloniex):
         }
         return await self.trade_request('cancelOrders', self.extend(request, params))
 
-    async def cancel_all_orders_ws(self, symbol: str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
         :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.

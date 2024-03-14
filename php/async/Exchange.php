@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.67';
+$version = '4.2.72';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.67';
+    const VERSION = '4.2.72';
 
     public $browser;
     public $marketsLoading = null;
@@ -2485,8 +2485,16 @@ class Exchange extends \ccxt\Exchange {
         return $this->safe_string($market, 'symbol', $symbol);
     }
 
-    public function handle_param_string(array $params, string $paramName, $defaultValue = null) {
+    public function handle_param_string(array $params, string $paramName, ?string $defaultValue = null) {
         $value = $this->safe_string($params, $paramName, $defaultValue);
+        if ($value !== null) {
+            $params = $this->omit ($params, $paramName);
+        }
+        return array( $value, $params );
+    }
+
+    public function handle_param_integer(array $params, string $paramName, ?int $defaultValue = null) {
+        $value = $this->safe_integer($params, $paramName, $defaultValue);
         if ($value !== null) {
             $params = $this->omit ($params, $paramName);
         }

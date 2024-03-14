@@ -162,7 +162,7 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
 
 
 function assert_currency_code($exchange, $skipped_properties, $method, $entry, $actual_code, $expected_code = null) {
-    if (is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) {
+    if ((is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
@@ -178,7 +178,7 @@ function assert_currency_code($exchange, $skipped_properties, $method, $entry, $
 
 function assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $entry, $currency_id, $currency_code) {
     // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-    if (is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties)) {
+    if ((is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('currencyIdAndCode', $skipped_properties))) {
         return;
     }
     $log_text = log_template($exchange, $method, $entry);
@@ -397,4 +397,17 @@ function set_proxy_options($exchange, $skipped_properties, $proxy_url, $http_pro
     $exchange->http_proxy = $http_proxy;
     $exchange->https_proxy = $https_proxy;
     $exchange->socks_proxy = $socks_proxy;
+}
+
+
+function assert_non_emtpy_array($exchange, $skipped_properties, $method, $entry, $hint = null) {
+    $log_text = log_template($exchange, $method, $entry);
+    if ($hint !== null) {
+        $log_text = $log_text . ' ' . $hint;
+    }
+    assert(gettype($entry) === 'array' && array_keys($entry) === array_keys(array_keys($entry)), 'response is expected to be an array' . $log_text);
+    if (!(is_array($skipped_properties) && array_key_exists('emptyResponse', $skipped_properties))) {
+        return;
+    }
+    assert(count($entry) > 0, 'response is expected to be a non-empty array' . $log_text . ' (add \"emptyResponse\" in skip-tests.json to skip this check)');
 }

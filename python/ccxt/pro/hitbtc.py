@@ -242,7 +242,10 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        }
         #    }
         #
-        data = self.safe_value_2(message, 'snapshot', 'update', {})
+        snapshot = self.safe_dict(message, 'snapshot')
+        update = self.safe_dict(message, 'update')
+        data = snapshot if snapshot else update
+        type = 'snapshot' if snapshot else 'update'
         marketIds = list(data.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -251,16 +254,20 @@ class hitbtc(ccxt.async_support.hitbtc):
             item = data[marketId]
             messageHash = 'orderbooks::' + symbol
             if not (symbol in self.orderbooks):
-                subscription = self.safe_value(client.subscriptions, messageHash, {})
+                subscription = self.safe_dict(client.subscriptions, messageHash, {})
                 limit = self.safe_integer(subscription, 'limit')
                 self.orderbooks[symbol] = self.order_book({}, limit)
+            orderbook = self.orderbooks[symbol]
             timestamp = self.safe_integer(item, 't')
             nonce = self.safe_integer(item, 's')
-            orderbook = self.orderbooks[symbol]
-            asks = self.safe_value(item, 'a', [])
-            bids = self.safe_value(item, 'b', [])
-            self.handle_deltas(orderbook['asks'], asks)
-            self.handle_deltas(orderbook['bids'], bids)
+            if type == 'snapshot':
+                parsedSnapshot = self.parse_order_book(item, symbol, timestamp, 'b', 'a')
+                orderbook.reset(parsedSnapshot)
+            else:
+                asks = self.safe_list(item, 'a', [])
+                bids = self.safe_list(item, 'b', [])
+                self.handle_deltas(orderbook['asks'], asks)
+                self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
             orderbook['nonce'] = nonce

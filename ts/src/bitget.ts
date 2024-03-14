@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4060,7 +4060,7 @@ export default class bitget extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitget#createOrder
@@ -4149,7 +4149,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol, type, side, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
@@ -4463,7 +4463,7 @@ export default class bitget extends Exchange {
         return this.parseOrders (both, market);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitget#editOrder
@@ -6219,11 +6219,13 @@ export default class bitget extends Exchange {
          * @description fetch all open positions
          * @see https://www.bitget.com/api-doc/contract/position/get-all-position
          * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
          * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
+         * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
@@ -6232,8 +6234,13 @@ export default class bitget extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchPositions', undefined, undefined, undefined, params, 'endId', 'idLessThan') as Position[];
         }
-        const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
-        const method = this.safeString (fetchPositionsOptions, 'method', 'privateMixGetV2MixPositionAllPosition');
+        let method = undefined;
+        const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
+        if (useHistoryEndpoint) {
+            method = 'privateMixGetV2MixPositionHistoryPosition';
+        } else {
+            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
+        }
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
@@ -6342,10 +6349,10 @@ export default class bitget extends Exchange {
         //
         let position = [];
         if (!isHistory) {
-            position = this.safeValue (response, 'data', []);
+            position = this.safeList (response, 'data', []);
         } else {
-            const data = this.safeValue (response, 'data', {});
-            position = this.safeValue (data, 'list', []);
+            const data = this.safeDict (response, 'data', {});
+            position = this.safeList (data, 'list', []);
         }
         const result = [];
         for (let i = 0; i < position.length; i++) {

@@ -236,7 +236,7 @@ class Exchange {
         this.socksProxyAgentModule = undefined;
         this.socksProxyAgentModuleChecked = false;
         this.proxyDictionaries = {};
-        this.proxyModulesLoaded = false;
+        this.proxiesModulesLoading = undefined;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -731,36 +731,38 @@ class Exchange {
         console.log(...args);
     }
     async loadProxyModules() {
-        if (this.proxyModulesLoaded) {
-            return;
+        // when loading markets, multiple parallel calls are made, so need one promise
+        if (this.proxiesModulesLoading === undefined) {
+            this.proxiesModulesLoading = (async () => {
+                // we have to handle it with below nested way, because of dynamic
+                // import issues (https://github.com/ccxt/ccxt/pull/20687)
+                try {
+                    // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+                    this.httpProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js'); });
+                    this.httpsProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js'); });
+                }
+                catch (e) {
+                    // if several users are using those frameworks which cause exceptions,
+                    // let them to be able to load modules still, by installing them
+                    try {
+                        // @ts-ignore
+                        this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'http-proxy-agent')); });
+                        // @ts-ignore
+                        this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); });
+                    }
+                    catch (e) { }
+                }
+                if (this.socksProxyAgentModuleChecked === false) {
+                    try {
+                        // @ts-ignore
+                        this.socksProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'socks-proxy-agent')); });
+                    }
+                    catch (e) { }
+                    this.socksProxyAgentModuleChecked = true;
+                }
+            })();
         }
-        this.proxyModulesLoaded = true;
-        // we have to handle it with below nested way, because of dynamic
-        // import issues (https://github.com/ccxt/ccxt/pull/20687)
-        try {
-            // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-            this.httpProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js'); });
-            this.httpsProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js'); });
-        }
-        catch (e) {
-            // if several users are using those frameworks which cause exceptions,
-            // let them to be able to load modules still, by installing them
-            try {
-                // @ts-ignore
-                this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'http-proxy-agent')); });
-                // @ts-ignore
-                this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); });
-            }
-            catch (e) { }
-        }
-        if (this.socksProxyAgentModuleChecked === false) {
-            this.socksProxyAgentModuleChecked = true;
-            try {
-                // @ts-ignore
-                this.socksProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'socks-proxy-agent')); });
-            }
-            catch (e) { }
-        }
+        return await this.proxiesModulesLoading;
     }
     setProxyAgents(httpProxy, httpsProxy, socksProxy) {
         let chosenAgent = undefined;
@@ -3530,6 +3532,13 @@ class Exchange {
     }
     handleParamString(params, paramName, defaultValue = undefined) {
         const value = this.safeString(params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit(params, paramName);
+        }
+        return [value, params];
+    }
+    handleParamInteger(params, paramName, defaultValue = undefined) {
+        const value = this.safeInteger(params, paramName, defaultValue);
         if (value !== undefined) {
             params = this.omit(params, paramName);
         }

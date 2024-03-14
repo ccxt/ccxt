@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bl3p import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, IndexType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Currency, IndexType, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from typing import List
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise

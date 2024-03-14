@@ -1696,7 +1696,7 @@ class blofin extends Exchange {
         return $this->parse_orders($ordersData, $market, null, null, $params);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://blofin.com/docs#funds-transfer
@@ -1866,7 +1866,7 @@ class blofin extends Exchange {
         ));
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): Leverages {
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the set leverage for all contract markets
          * @see https://docs.blofin.com/index.html#get-multiple-leverage
@@ -1920,7 +1920,7 @@ class blofin extends Exchange {
         return $this->parse_leverages($leverages, $symbols, 'instId');
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://docs.blofin.com/index.html#get-leverage
@@ -1959,7 +1959,7 @@ class blofin extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'instId');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -2083,7 +2083,7 @@ class blofin extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): MarginMode {
+    public function fetch_margin_mode(string $symbol, $params = array ()): array {
         /**
          * fetches the margin mode of a trading pair
          * @see https://docs.blofin.com/index.html#get-margin-mode
@@ -2107,7 +2107,7 @@ class blofin extends Exchange {
         return $this->parse_margin_mode($data, $market);
     }
 
-    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+    public function parse_margin_mode($marginMode, $market = null): array {
         return array(
             'info' => $marginMode,
             'symbol' => $market['symbol'],

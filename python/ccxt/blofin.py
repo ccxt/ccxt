@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginMode, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginMode, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -1053,7 +1053,7 @@ class blofin(Exchange, ImplicitAPI):
         leverage = self.safe_string(order, 'leverage', '1')
         contractSize = self.safe_string(market, 'contractSize')
         baseAmount = Precise.string_mul(contractSize, filled)
-        cost: str = None
+        cost: Str = None
         if average is not None:
             cost = Precise.string_mul(average, baseAmount)
             cost = Precise.string_div(cost, leverage)
@@ -1265,7 +1265,7 @@ class blofin(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         isStop = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
-        method: str = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response = None
@@ -1946,7 +1946,7 @@ class blofin(Exchange, ImplicitAPI):
         if since is not None:
             request['begin'] = since
         isStop = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
-        method: str = None
+        method: Str = None
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response = None

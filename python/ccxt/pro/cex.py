@@ -405,7 +405,7 @@ class cex(ccxt.async_support.cex):
         }, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         get the list of orders associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods(~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
         :see: https://docs.cex.io/#ws-api-open-orders
@@ -1111,7 +1111,7 @@ class cex(ccxt.async_support.cex):
         if dataLength > 0:
             client.resolve(stored, messageHash)
 
-    async def fetch_order_ws(self, id: str, symbol: str = None, params={}):
+    async def fetch_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.cex.io/#ws-api-get-order
@@ -1137,7 +1137,7 @@ class cex(ccxt.async_support.cex):
         response = await self.watch(url, messageHash, request, messageHash)
         return self.parse_order(response, market)
 
-    async def fetch_open_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.cex.io/#ws-api-open-orders
         fetch all unfilled currently open orders
@@ -1236,7 +1236,7 @@ class cex(ccxt.async_support.cex):
         response = await self.watch(url, messageHash, request, messageHash, messageHash)
         return self.parse_order(response, market)
 
-    async def cancel_order_ws(self, id: str, symbol: str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.cex.io/#ws-api-order-cancel
         cancels an open order
@@ -1263,7 +1263,7 @@ class cex(ccxt.async_support.cex):
         response = await self.watch(url, messageHash, request, messageHash, messageHash)
         return self.parse_order(response, market)
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: str = None, params={}):
+    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://docs.cex.io/#ws-api-mass-cancel-place

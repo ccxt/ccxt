@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -412,6 +412,7 @@ export default class kucoin extends Exchange {
                 '12h': '12hour',
                 '1d': '1day',
                 '1w': '1week',
+                '1M': '1month',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1907,7 +1908,7 @@ export default class kucoin extends Exchange {
         return [ triggerPrice, stopLossPrice, takeProfitPrice ];
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#createOrder
@@ -2122,7 +2123,7 @@ export default class kucoin extends Exchange {
         return this.parseOrders (data);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
@@ -2188,7 +2189,7 @@ export default class kucoin extends Exchange {
         return this.extend (request, params);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#editOrder
@@ -4467,7 +4468,7 @@ export default class kucoin extends Exchange {
         url = url + endpoint;
         const isFuturePrivate = (api === 'futuresPrivate');
         const isPrivate = (api === 'private');
-        const isBroker = (api === 'private');
+        const isBroker = (api === 'broker');
         if (isPrivate || isFuturePrivate || isBroker) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
@@ -4498,7 +4499,9 @@ export default class kucoin extends Exchange {
             }
             if (isBroker) {
                 const brokerName = this.safeString (partner, 'name');
-                headers['KC-BROKER-NAME'] = brokerName;
+                if (brokerName !== undefined) {
+                    headers['KC-BROKER-NAME'] = brokerName;
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

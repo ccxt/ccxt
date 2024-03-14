@@ -2812,7 +2812,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
             'info' => $leverage,

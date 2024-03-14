@@ -1323,6 +1323,7 @@ class kraken extends Exchange {
             $lastTrade = $trades[$length - 1];
             $lastTradeId = $this->safe_string($result, 'last');
             $lastTrade[] = $lastTradeId;
+            $trades[$length - 1] = $lastTrade;
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }

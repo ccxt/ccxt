@@ -21,6 +21,7 @@ declare function assertInteger(exchange: any, skippedProperties: any, method: an
 declare function checkPrecisionAccuracy(exchange: any, skippedProperties: any, method: any, entry: any, key: any): void;
 declare function removeProxyOptions(exchange: any, skippedProperties: any): any[];
 declare function setProxyOptions(exchange: any, skippedProperties: any, proxyUrl: any, httpProxy: any, httpsProxy: any, socksProxy: any): void;
+declare function assertNonEmtpyArray(exchange: any, skippedProperties: any, method: any, entry: any, hint?: any): void;
 declare const _default: {
     logTemplate: typeof logTemplate;
     isTemporaryFailure: typeof isTemporaryFailure;
@@ -45,5 +46,6 @@ declare const _default: {
     assertType: typeof assertType;
     removeProxyOptions: typeof removeProxyOptions;
     setProxyOptions: typeof setProxyOptions;
+    assertNonEmtpyArray: typeof assertNonEmtpyArray;
 };
 export default _default;

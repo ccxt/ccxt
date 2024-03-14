@@ -744,6 +744,17 @@
                 "method": "fetchPositions",
                 "url": "https://api.bitget.com/api/v2/mix/position/all-position?marginCoin=USDT&productType=USDT-FUTURES",
                 "input": []
+            },
+            {
+                "description": "fetchPositions using the history endpoint",
+                "method": "fetchPositions",
+                "url": "https://api.bitget.com/api/v2/mix/position/history-position?productType=USDT-FUTURES&useHistoryEndpoint=true",
+                "input": [
+                  null,
+                  {
+                    "useHistoryEndpoint": true
+                  }
+                ]
             }
         ],
         "setLeverage": [

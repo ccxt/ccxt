@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import math
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -429,6 +429,7 @@ class kucoin(Exchange, ImplicitAPI):
                 '12h': '12hour',
                 '1d': '1day',
                 '1w': '1week',
+                '1M': '1month',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -4183,7 +4184,7 @@ class kucoin(Exchange, ImplicitAPI):
         url = url + endpoint
         isFuturePrivate = (api == 'futuresPrivate')
         isPrivate = (api == 'private')
-        isBroker = (api == 'private')
+        isBroker = (api == 'broker')
         if isPrivate or isFuturePrivate or isBroker:
             self.check_required_credentials()
             timestamp = str(self.nonce())
@@ -4212,7 +4213,8 @@ class kucoin(Exchange, ImplicitAPI):
                 headers['KC-API-PARTNER'] = partnerId
             if isBroker:
                 brokerName = self.safe_string(partner, 'name')
-                headers['KC-BROKER-NAME'] = brokerName
+                if brokerName is not None:
+                    headers['KC-BROKER-NAME'] = brokerName
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
