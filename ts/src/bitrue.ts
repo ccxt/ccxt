@@ -2341,7 +2341,7 @@ export default class bitrue extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#cancelAllOrders
@@ -2902,7 +2902,7 @@ export default class bitrue extends Exchange {
         };
     }
 
-    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchTransfers
@@ -2995,7 +2995,7 @@ export default class bitrue extends Exchange {
         return this.parseTransfer (data, currency);
     }
 
-    async setLeverage (leverage: Int, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#setLeverage
