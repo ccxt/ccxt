@@ -343,5 +343,16 @@ class CurrencyInterface(TypedDict):
     precision: Num
 
 
+class LastPrice(TypedDict):
+    symbol: Str
+    timestamp: Int
+    datetime: Str
+    price: Num
+    side: OrderSide
+    info: Dict[str, Any]
+
+
+LastPrices = Dict[Str, LastPrice]
+
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
