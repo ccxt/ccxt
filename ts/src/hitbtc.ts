@@ -2296,7 +2296,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (market: object, marketType: string, type: OrderType, side: OrderSide, amount, price = undefined, marginMode: Str = undefined, params = {}) {
+    createOrderRequest (market: object, marketType: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         const isLimit = (type === 'limit');
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const timeInForce = this.safeString (params, 'timeInForce');

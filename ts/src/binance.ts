@@ -4645,7 +4645,7 @@ export default class binance extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async editSpotOrder (id: string, symbol, type, side, amount: number, price: Num = undefined, params = {}) {
+    async editSpotOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name binance#editSpotOrder
@@ -4712,7 +4712,7 @@ export default class binance extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    editSpotOrderRequest (id: string, symbol, type, side, amount: number, price: Num = undefined, params = {}) {
+    editSpotOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -4839,7 +4839,7 @@ export default class binance extends Exchange {
         return this.extend (request, params);
     }
 
-    async editContractOrder (id: string, symbol, type, side, amount: number, price: Num = undefined, params = {}) {
+    async editContractOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name binance#editContractOrder

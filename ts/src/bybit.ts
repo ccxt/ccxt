@@ -3812,7 +3812,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data);
     }
 
-    async createUsdcOrder (symbol, type, side, amount: number, price: Num = undefined, params = {}) {
+    async createUsdcOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type === 'market') {

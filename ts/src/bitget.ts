@@ -4149,7 +4149,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol, type, side, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {

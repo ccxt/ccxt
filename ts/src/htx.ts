@@ -5028,7 +5028,7 @@ export default class htx extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name htx#createTrailingPercentOrder

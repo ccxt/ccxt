@@ -1974,7 +1974,7 @@ export default class coinex extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    createOrderRequest (symbol, type, side, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');

@@ -4556,7 +4556,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
-    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingAmountOrder
@@ -4584,7 +4584,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createTrailingAmountOrder() is not supported yet');
     }
 
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingPercentOrder
@@ -4661,7 +4661,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createMarketSellOrderWithCost() is not supported yet');
     }
 
-    async createTriggerOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, triggerPrice = undefined, params = {}): Promise<Order> {
+    async createTriggerOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, triggerPrice: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTriggerOrder
