@@ -463,6 +463,16 @@
                 "input": []
             }
         ],
+        "fetchMarginMode": [
+            {
+                "description": "Fetch the set margin mode of a specified market",
+                "method": "fetchMarginMode",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fundingRate",
