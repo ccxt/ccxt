@@ -1939,7 +1939,7 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         let portfolio = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchOpenOrders', params);
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('withdraw', params);
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
         let networkId = undefined;
