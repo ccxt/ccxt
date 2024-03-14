@@ -335,7 +335,7 @@ export default class hitbtc extends hitbtcRest {
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @param {string} params.method 'ticker/{speed}' (default),'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
          * @param {string} params.speed '1s' (default), or '3s'
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'watchTicker');
@@ -746,7 +746,7 @@ export default class hitbtc extends hitbtcRest {
          * @param {int} [since] timestamp in ms of the earliest order to fetch
          * @param {int} [limit] the maximum amount of orders to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         let marketType = undefined;

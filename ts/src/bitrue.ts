@@ -3052,7 +3052,7 @@ export default class bitrue extends Exchange {
          * @param {string} symbol unified market symbol of the market to set margin in
          * @param {float} amount the amount to set the margin to
          * @param {object} [params] parameters specific to the exchange API endpoint
-         * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+         * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);

@@ -228,7 +228,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @see https://docs.kucoin.com/futures/#position-change-events
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {object} a [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchPosition() requires a symbol argument');
