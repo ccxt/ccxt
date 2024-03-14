@@ -1,0 +1,436 @@
+{
+    "exchange": "hyperliquid",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "user trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "SOL/USDC:USDC",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "cloid": "0x1234567890abcdef1234567890abcdef",
+                        "closedPnl": "0.0",
+                        "coin": "SOL",
+                        "crossed": true,
+                        "dir": "Open Long",
+                        "fee": "0.023154",
+                        "hash": "0x15da87c3e05b83745fc3040add877e011a002956f66ac116e249b862dc71f07f",
+                        "liquidationMarkPx": null,
+                        "oid": "6928122855",
+                        "px": "132.31",
+                        "side": "B",
+                        "startPosition": "2.84",
+                        "sz": "0.5",
+                        "tid": "566849930446139",
+                        "time": "1709643346297"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "cloid": "0x1234567890abcdef1234567890abcdef",
+                            "closedPnl": "0.0",
+                            "coin": "SOL",
+                            "crossed": true,
+                            "dir": "Open Long",
+                            "fee": "0.023154",
+                            "hash": "0x15da87c3e05b83745fc3040add877e011a002956f66ac116e249b862dc71f07f",
+                            "liquidationMarkPx": null,
+                            "oid": "6928122855",
+                            "px": "132.31",
+                            "side": "B",
+                            "startPosition": "2.84",
+                            "sz": "0.5",
+                            "tid": "566849930446139",
+                            "time": "1709643346297"
+                        },
+                        "timestamp": 1709643346297,
+                        "datetime": "2024-03-05T12:55:46.297Z",
+                        "symbol": "SOL/USDC:USDC",
+                        "id": "566849930446139",
+                        "order": "6928122855",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 132.31,
+                        "amount": 0.5,
+                        "cost": 66.155,
+                        "fee": {
+                            "cost": 0.023154,
+                            "currency": "USDC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.023154,
+                                "currency": "USDC"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "SOL/USDC:USDC",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "order": {
+                            "children": [],
+                            "cloid": null,
+                            "coin": "SOL",
+                            "isPositionTpsl": false,
+                            "isTrigger": false,
+                            "limitPx": "60.0",
+                            "oid": "6928553534",
+                            "orderType": "Limit",
+                            "origSz": "0.1",
+                            "reduceOnly": false,
+                            "side": "B",
+                            "sz": "0.1",
+                            "tif": "Gtc",
+                            "timestamp": "1709643776949",
+                            "triggerCondition": "N/A",
+                            "triggerPx": "0.0"
+                        },
+                        "status": "open",
+                        "statusTimestamp": "1709643776949"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "order": {
+                                "children": [],
+                                "cloid": null,
+                                "coin": "SOL",
+                                "isPositionTpsl": false,
+                                "isTrigger": false,
+                                "limitPx": "60.0",
+                                "oid": "6928553534",
+                                "orderType": "Limit",
+                                "origSz": "0.1",
+                                "reduceOnly": false,
+                                "side": "B",
+                                "sz": "0.1",
+                                "tif": "Gtc",
+                                "timestamp": "1709643776949",
+                                "triggerCondition": "N/A",
+                                "triggerPx": "0.0"
+                            },
+                            "status": "open",
+                            "statusTimestamp": "1709643776949"
+                        },
+                        "id": "6928553534",
+                        "clientOrderId": null,
+                        "timestamp": 1709643776949,
+                        "datetime": "2024-03-05T13:02:56.949Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "SOL/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 60,
+                        "triggerPrice": null,
+                        "amount": 0.1,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "SOL/USDC:USDC",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "coin": "SOL",
+                        "limitPx": "60.0",
+                        "oid": "6928553534",
+                        "origSz": "0.1",
+                        "side": "B",
+                        "sz": "0.1",
+                        "timestamp": "1709643776949"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "coin": "SOL",
+                            "limitPx": "60.0",
+                            "oid": "6928553534",
+                            "origSz": "0.1",
+                            "side": "B",
+                            "sz": "0.1",
+                            "timestamp": "1709643776949"
+                        },
+                        "id": "6928553534",
+                        "clientOrderId": null,
+                        "timestamp": 1709643776949,
+                        "datetime": "2024-03-05T13:02:56.949Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "SOL/USDC:USDC",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 60,
+                        "triggerPrice": null,
+                        "amount": 0.1,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order",
+                "method": "fetchOrder",
+                "input": [
+                    6463065738
+                ],
+                "httpResponse": {
+                    "order": {
+                        "order": {
+                            "children": [],
+                            "cloid": null,
+                            "coin": "ETH",
+                            "isPositionTpsl": false,
+                            "isTrigger": false,
+                            "limitPx": "1100.0",
+                            "oid": "6463065738",
+                            "orderType": "Limit",
+                            "origSz": "0.2",
+                            "reduceOnly": false,
+                            "side": "B",
+                            "sz": "0.0",
+                            "tif": "Gtc",
+                            "timestamp": "1709141516884",
+                            "triggerCondition": "N/A",
+                            "triggerPx": "0.0"
+                        },
+                        "status": "filled",
+                        "statusTimestamp": "1709141541609"
+                    },
+                    "status": "order"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order": {
+                            "children": [],
+                            "cloid": null,
+                            "coin": "ETH",
+                            "isPositionTpsl": false,
+                            "isTrigger": false,
+                            "limitPx": "1100.0",
+                            "oid": "6463065738",
+                            "orderType": "Limit",
+                            "origSz": "0.2",
+                            "reduceOnly": false,
+                            "side": "B",
+                            "sz": "0.0",
+                            "tif": "Gtc",
+                            "timestamp": "1709141516884",
+                            "triggerCondition": "N/A",
+                            "triggerPx": "0.0"
+                        },
+                        "status": "filled",
+                        "statusTimestamp": "1709141541609"
+                    },
+                    "id": "6463065738",
+                    "clientOrderId": null,
+                    "timestamp": 1709141541609,
+                    "datetime": "2024-02-28T17:32:21.609Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 1100,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "SOL/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "assetPositions": [
+                        {
+                            "position": {
+                                "coin": "SOL",
+                                "cumFunding": {
+                                    "allTime": "8.357218",
+                                    "sinceChange": "0.267363",
+                                    "sinceOpen": "8.357218"
+                                },
+                                "entryPx": "112.0945",
+                                "leverage": {
+                                    "type": "cross",
+                                    "value": "20"
+                                },
+                                "liquidationPx": null,
+                                "marginUsed": "23.19797",
+                                "maxLeverage": "50",
+                                "positionValue": "463.9594",
+                                "returnOnEquity": "4.78442786",
+                                "szi": "3.34",
+                                "unrealizedPnl": "89.563507"
+                            },
+                            "type": "oneWay"
+                        },
+                        {
+                            "position": {
+                                "coin": "ETH",
+                                "cumFunding": {
+                                    "allTime": "161.431624",
+                                    "sinceChange": "161.431624",
+                                    "sinceOpen": "161.431624"
+                                },
+                                "entryPx": "1100.0",
+                                "leverage": {
+                                    "type": "cross",
+                                    "value": "20"
+                                },
+                                "liquidationPx": null,
+                                "marginUsed": "684.702",
+                                "maxLeverage": "50",
+                                "positionValue": "13694.04",
+                                "returnOnEquity": "49.16181818",
+                                "szi": "3.6",
+                                "unrealizedPnl": "9734.04"
+                            },
+                            "type": "oneWay"
+                        }
+                    ],
+                    "crossMaintenanceMarginUsed": "141.579994",
+                    "crossMarginSummary": {
+                        "accountValue": "19762.483455",
+                        "totalMarginUsed": "707.89997",
+                        "totalNtlPos": "14157.9994",
+                        "totalRawUsd": "5604.484055"
+                    },
+                    "marginSummary": {
+                        "accountValue": "19762.483455",
+                        "totalMarginUsed": "707.89997",
+                        "totalNtlPos": "14157.9994",
+                        "totalRawUsd": "5604.484055"
+                    },
+                    "time": "1709652410317",
+                    "withdrawable": "19047.685485"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "position": {
+                                "coin": "SOL",
+                                "cumFunding": {
+                                    "allTime": "8.357218",
+                                    "sinceChange": "0.267363",
+                                    "sinceOpen": "8.357218"
+                                },
+                                "entryPx": "112.0945",
+                                "leverage": {
+                                    "type": "cross",
+                                    "value": "20"
+                                },
+                                "liquidationPx": null,
+                                "marginUsed": "23.19797",
+                                "maxLeverage": "50",
+                                "positionValue": "463.9594",
+                                "returnOnEquity": "4.78442786",
+                                "szi": "3.34",
+                                "unrealizedPnl": "89.563507"
+                            },
+                            "type": "oneWay"
+                        },
+                        "id": null,
+                        "symbol": "SOL/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": false,
+                        "hedged": null,
+                        "side": null,
+                        "contracts": null,
+                        "contractSize": null,
+                        "entryPrice": 112.0945,
+                        "markPrice": null,
+                        "notional": 463.9594,
+                        "leverage": 20,
+                        "collateral": null,
+                        "initialMargin": 23.19797,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": 89.563507,
+                        "liquidationPrice": null,
+                        "marginMode": null,
+                        "percentage": 386.0833814338065
+                    }
+                ]
+            }
+        ]
+    }
+}

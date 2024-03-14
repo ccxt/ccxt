@@ -548,7 +548,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
         return await self.watch_request('privateUpdateOrder', request)
 
-    async def cancel_order_ws(self, id: str, symbol: str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
         cancels an open order
@@ -562,7 +562,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         request = self.cancelOrderRequest(id, symbol, params)
         return await self.watch_request('privateCancelOrder', request)
 
-    async def cancel_all_orders_ws(self, symbol: str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
         cancel all open orders
@@ -598,7 +598,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.build_message_hash(action, message)
         client.resolve(orders, messageHash)
 
-    async def fetch_order_ws(self, id: str, symbol: str = None, params={}) -> Order:
+    async def fetch_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
         fetches information on an order made by the user
@@ -617,7 +617,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         }
         return await self.watch_request('privateGetOrder', self.extend(request, params))
 
-    async def fetch_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
         fetches information on multiple orders made by the user
@@ -642,7 +642,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         url = self.urls['api']['ws']
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def fetch_open_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -663,7 +663,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         orders = await self.watch_request('privateGetOrdersOpen', self.extend(request, params))
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    async def fetch_my_trades_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_my_trades_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://docs.bitvavo.com/#tag/Trades
         fetch all trades made by the user
@@ -745,7 +745,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         withdraw = self.parse_transaction(response)
         client.resolve(withdraw, messageHash)
 
-    async def fetch_withdrawals_ws(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_withdrawals_ws(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
         fetch all withdrawals made from an account
@@ -800,7 +800,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         ohlcv = await self.watch_request(action, request)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def fetch_deposits_ws(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_deposits_ws(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
         fetch all deposits made to an account
@@ -1020,7 +1020,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         return messageHash
 
     def check_message_hash_does_not_exist(self, messageHash):
-        supressMultipleWsRequestsError = self.safe_value(self.options, 'supressMultipleWsRequestsError', False)
+        supressMultipleWsRequestsError = self.safe_bool(self.options, 'supressMultipleWsRequestsError', False)
         if not supressMultipleWsRequestsError:
             client = self.safe_value(self.clients, self.urls['api']['ws'])
             if client is not None:

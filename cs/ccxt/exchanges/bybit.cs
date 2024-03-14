@@ -3957,9 +3957,9 @@ public partial class bybit : Exchange
         var categoryparametersVariable = this.getBybitType("createOrders", market, parameters);
         category = ((IList<object>)categoryparametersVariable)[0];
         parameters = ((IList<object>)categoryparametersVariable)[1];
-        if (isTrue(isTrue((isEqual(category, "spot"))) || isTrue((isEqual(category, "inverse")))))
+        if (isTrue(isEqual(category, "inverse")))
         {
-            throw new NotSupported ((string)add(this.id, " createOrders does not allow spot or inverse orders")) ;
+            throw new NotSupported ((string)add(this.id, " createOrders does not allow inverse orders")) ;
         }
         object request = new Dictionary<string, object>() {
             { "category", category },
@@ -4468,6 +4468,96 @@ public partial class bybit : Exchange
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result, market);
+    }
+
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#cancelOrders
+        * @description cancel multiple orders
+        * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+        * @param {string[]} ids order ids
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string[]} [params.clientOrderIds] client order ids
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("cancelOrders", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        if (isTrue(isEqual(category, "inverse")))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrders does not allow inverse orders")) ;
+        }
+        object ordersRequests = new List<object>() {};
+        object clientOrderIds = this.safeList2(parameters, "clientOrderIds", "clientOids", new List<object>() {});
+        parameters = this.omit(parameters, new List<object>() {"clientOrderIds", "clientOids"});
+        for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+        {
+            ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "orderLinkId", this.safeString(clientOrderIds, i) },
+            });
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "orderId", this.safeString(ids, i) },
+            });
+        }
+        object request = new Dictionary<string, object>() {
+            { "category", category },
+            { "request", ordersRequests },
+        };
+        object response = await this.privatePostV5OrderCancelBatch(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800896",
+        //                     "orderLinkId": "1636282505818800897"
+        //                 },
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800898",
+        //                     "orderLinkId": "1636282505818800899"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {
+        //             "list": [
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 },
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 }
+        //             ]
+        //         },
+        //         "time": "1709796158501"
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object row = this.safeList(result, "list", new List<object>() {});
+        return this.parseOrders(row, market);
     }
 
     public async virtual Task<object> cancelAllUsdcOrders(object symbol = null, object parameters = null)
@@ -6767,11 +6857,21 @@ public partial class bybit : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object market = this.market(symbol);
         object position = await this.fetchPosition(symbol, parameters);
+        return this.parseLeverage(position, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        object leverageValue = this.safeInteger(leverage, "leverage");
         return new Dictionary<string, object>() {
-            { "info", position },
-            { "leverage", this.safeInteger(position, "leverage") },
-            { "marginMode", this.safeNumber(position, "marginMode") },
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", this.safeStringLower(leverage, "marginMode") },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
         };
     }
 
@@ -7736,7 +7836,8 @@ public partial class bybit : Exchange
         //     }
         //
         object marketId = this.safeString(fee, "symbol");
-        object symbol = this.safeSymbol(marketId, null, null, "contract");
+        object defaultType = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "type") : "contract";
+        object symbol = this.safeSymbol(marketId, market, null, defaultType);
         return new Dictionary<string, object>() {
             { "info", fee },
             { "symbol", symbol },
@@ -7759,13 +7860,24 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (isTrue(getValue(market, "spot")))
-        {
-            throw new NotSupported ((string)add(this.id, " fetchTradingFee() is not supported for spot market")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
+        object category = null;
+        if (isTrue(getValue(market, "linear")))
+        {
+            category = "linear";
+        } else if (isTrue(getValue(market, "inverse")))
+        {
+            category = "inverse";
+        } else if (isTrue(getValue(market, "spot")))
+        {
+            category = "spot";
+        } else
+        {
+            category = "option";
+        }
+        ((IDictionary<string,object>)request)["category"] = category;
         object response = await this.privateGetV5AccountFeeRate(this.extend(request, parameters));
         //
         //     {
@@ -7787,7 +7899,7 @@ public partial class bybit : Exchange
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object fees = this.safeValue(result, "list", new List<object>() {});
         object first = this.safeValue(fees, 0, new Dictionary<string, object>() {});
-        return this.parseTradingFee(first);
+        return this.parseTradingFee(first, market);
     }
 
     public async override Task<object> fetchTradingFees(object parameters = null)

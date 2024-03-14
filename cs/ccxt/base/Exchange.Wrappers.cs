@@ -163,15 +163,15 @@ public partial class Exchange
         var res = await this.setLeverage(leverage, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Int64> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);
-        return (Int64)res;
+        return new Leverage(res);
     }
-    public async Task<Dictionary<string, object>> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverages(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Leverages(res);
     }
     public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
     {
@@ -814,10 +814,10 @@ public partial class Exchange
         var res = await this.createStopMarketOrder(symbol, side, amount, stopPrice, parameters);
         return new Order(res);
     }
-    public async Task<Dictionary<string, object>> FetchLastPrices(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LastPrices> FetchLastPrices(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLastPrices(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LastPrices(res);
     }
     public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
@@ -963,6 +963,7 @@ public class  Hollaex: hollaex { public Hollaex(object args = null) : base(args)
 public class  Htx: htx { public Htx(object args = null) : base(args) { } }
 public class  Huobi: huobi { public Huobi(object args = null) : base(args) { } }
 public class  Huobijp: huobijp { public Huobijp(object args = null) : base(args) { } }
+public class  Hyperliquid: hyperliquid { public Hyperliquid(object args = null) : base(args) { } }
 public class  Idex: idex { public Idex(object args = null) : base(args) { } }
 public class  Independentreserve: independentreserve { public Independentreserve(object args = null) : base(args) { } }
 public class  Indodax: indodax { public Indodax(object args = null) : base(args) { } }

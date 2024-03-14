@@ -76,6 +76,7 @@ var hollaex = require('./src/hollaex.js');
 var htx = require('./src/htx.js');
 var huobi = require('./src/huobi.js');
 var huobijp = require('./src/huobijp.js');
+var hyperliquid = require('./src/hyperliquid.js');
 var idex = require('./src/idex.js');
 var independentreserve = require('./src/independentreserve.js');
 var indodax = require('./src/indodax.js');
@@ -151,6 +152,7 @@ var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
 var huobi$1 = require('./src/pro/huobi.js');
 var huobijp$1 = require('./src/pro/huobijp.js');
+var hyperliquid$1 = require('./src/pro/hyperliquid.js');
 var idex$1 = require('./src/pro/idex.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
@@ -176,7 +178,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.57';
+const version = '4.2.72';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -243,6 +245,7 @@ const exchanges = {
     'htx': htx,
     'huobi': huobi,
     'huobijp': huobijp,
+    'hyperliquid': hyperliquid,
     'idex': idex,
     'independentreserve': independentreserve,
     'indodax': indodax,
@@ -320,6 +323,7 @@ const pro = {
     'htx': htx$1,
     'huobi': huobi$1,
     'huobijp': huobijp$1,
+    'hyperliquid': hyperliquid$1,
     'idex': idex$1,
     'independentreserve': independentreserve$1,
     'kraken': kraken$1,
@@ -448,6 +452,7 @@ exports.hollaex = hollaex;
 exports.htx = htx;
 exports.huobi = huobi;
 exports.huobijp = huobijp;
+exports.hyperliquid = hyperliquid;
 exports.idex = idex;
 exports.independentreserve = independentreserve;
 exports.indodax = indodax;

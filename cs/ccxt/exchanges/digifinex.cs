@@ -1508,7 +1508,8 @@ public partial class digifinex : Exchange
             {
                 object endTime = this.seconds();
                 object duration = this.parseTimeframe(timeframe);
-                ((IDictionary<string,object>)request)["start_time"] = this.sum(endTime, multiply(prefixUnaryNeg(ref limit), duration));
+                object auxLimit = limit; // in c# -limit is mutating the arg
+                ((IDictionary<string,object>)request)["start_time"] = this.sum(endTime, multiply(prefixUnaryNeg(ref auxLimit), duration));
             }
             response = await this.publicSpotGetKline(this.extend(request, parameters));
         }

@@ -261,6 +261,17 @@ class MarginMode(TypedDict):
 MarginModes = Dict[str, MarginMode]
 
 
+class Leverage(TypedDict):
+    info: Dict[str, Any]
+    symbol: Str
+    marginMode: Str
+    longLeverage: Num
+    shortLeverage: Num
+
+
+Leverages = Dict[str, Leverage]
+
+
 class Greeks(TypedDict):
     symbol: Str
     timestamp: Int
@@ -324,6 +335,17 @@ class CurrencyInterface(TypedDict):
     code: Str
     precision: Num
 
+
+class LastPrice(TypedDict):
+    symbol: Str
+    timestamp: Int
+    datetime: Str
+    price: Num
+    side: OrderSide
+    info: Dict[str, Any]
+
+
+LastPrices = Dict[Str, LastPrice]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

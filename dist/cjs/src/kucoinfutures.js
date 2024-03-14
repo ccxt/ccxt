@@ -33,6 +33,7 @@ class kucoinfutures extends kucoinfutures$1 {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
                 'closePosition': true,
                 'closePositions': false,
                 'createDepositAddress': true,
@@ -2070,8 +2071,8 @@ class kucoinfutures extends kucoinfutures$1 {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
-        const trades = this.safeValue(data, 'items', {});
+        const data = this.safeDict(response, 'data', {});
+        const trades = this.safeList(data, 'items', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {

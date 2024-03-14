@@ -2264,7 +2264,7 @@ class binance(ccxt.async_support.binance):
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, symbols, isPortfolioMargin)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.safe_value(self.positions, type)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
             snapshot = await client.future(type + ':fetchPositionsSnapshot')
@@ -2382,8 +2382,17 @@ class binance(ccxt.async_support.binance):
         #     }
         #
         marketId = self.safe_string(position, 's')
+        contracts = self.safe_string(position, 'pa')
+        contractsAbs = Precise.string_abs(self.safe_string(position, 'pa'))
         positionSide = self.safe_string_lower(position, 'ps')
-        hedged = positionSide != 'both'
+        hedged = True
+        if positionSide == 'both':
+            hedged = False
+            if not Precise.string_eq(contracts, '0'):
+                if Precise.string_lt(contracts, '0'):
+                    positionSide = 'short'
+                else:
+                    positionSide = 'long'
         return self.safe_position({
             'info': position,
             'id': None,
@@ -2394,7 +2403,7 @@ class binance(ccxt.async_support.binance):
             'entryPrice': self.safe_number(position, 'ep'),
             'unrealizedPnl': self.safe_number(position, 'up'),
             'percentage': None,
-            'contracts': self.safe_number(position, 'pa'),
+            'contracts': self.parse_number(contractsAbs),
             'contractSize': None,
             'markPrice': None,
             'side': positionSide,

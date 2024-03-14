@@ -34,6 +34,7 @@ public partial class mexc : Exchange
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createOrders", true },
+                { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "deposit", null },
                 { "editOrder", null },
@@ -2108,6 +2109,14 @@ public partial class mexc : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+        * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+        * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
+        * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
+        * @param {string} [params.externalOid] *contract only* external order ID
+        * @param {int} [params.positionMode] *contract only*  1:hedge, 2:one-way, default: the user's current config
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -5463,32 +5472,34 @@ public partial class mexc : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object longLeverage = this.safeDict(data, 0);
-        return this.parseLeverage(longLeverage, market);
+        return this.parseLeverage(data, market);
     }
 
-    public virtual object parseLeverage(object leverage, object market = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
-        //
-        //     {
-        //         "level": 1,
-        //         "maxVol": 463300,
-        //         "mmr": 0.004,
-        //         "imr": 0.005,
-        //         "positionType": 1,
-        //         "openType": 1,
-        //         "leverage": 20,
-        //         "limitBySys": false,
-        //         "currentMmr": 0.004
-        //     }
-        //
-        object marketId = this.safeString(leverage, "symbol");
-        market = this.safeMarket(marketId, market, null, "contract");
+        object marginMode = null;
+        object longLeverage = null;
+        object shortLeverage = null;
+        for (object i = 0; isLessThan(i, getArrayLength(leverage)); postFixIncrement(ref i))
+        {
+            object entry = getValue(leverage, i);
+            object openType = this.safeInteger(entry, "openType");
+            object positionType = this.safeInteger(entry, "positionType");
+            if (isTrue(isEqual(positionType, 1)))
+            {
+                longLeverage = this.safeInteger(entry, "leverage");
+            } else if (isTrue(isEqual(positionType, 2)))
+            {
+                shortLeverage = this.safeInteger(entry, "leverage");
+            }
+            marginMode = ((bool) isTrue((isEqual(openType, 1)))) ? "isolated" : "cross";
+        }
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", getValue(market, "symbol") },
-            { "leverage", this.safeInteger(leverage, "leverage") },
-            { "marginMode", null },
+            { "marginMode", marginMode },
+            { "longLeverage", longLeverage },
+            { "shortLeverage", shortLeverage },
         };
     }
 
@@ -5557,7 +5568,7 @@ public partial class mexc : Exchange
                     { "source", this.safeString(this.options, "broker", "CCXT") },
                 };
             }
-            if (isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))))
+            if (isTrue(isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))) || isTrue((isEqual(method, "DELETE")))))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }

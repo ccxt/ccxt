@@ -2236,7 +2236,7 @@ class okcoin extends Exchange {
         return $this->index_by($parsed, 'network');
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
          * transfer $currency internally between wallets on the same account

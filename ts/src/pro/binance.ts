@@ -5,7 +5,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -1662,7 +1662,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name binance#createOrderWs
@@ -1806,7 +1806,7 @@ export default class binance extends binanceRest {
         client.resolve (orders, messageHash);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name binance#editOrderWs
@@ -2480,7 +2480,7 @@ export default class binance extends binanceRest {
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, symbols, isPortfolioMargin);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.safeValue (this.positions, type);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');
@@ -2617,8 +2617,20 @@ export default class binance extends binanceRest {
         //     }
         //
         const marketId = this.safeString (position, 's');
-        const positionSide = this.safeStringLower (position, 'ps');
-        const hedged = positionSide !== 'both';
+        const contracts = this.safeString (position, 'pa');
+        const contractsAbs = Precise.stringAbs (this.safeString (position, 'pa'));
+        let positionSide = this.safeStringLower (position, 'ps');
+        let hedged = true;
+        if (positionSide === 'both') {
+            hedged = false;
+            if (!Precise.stringEq (contracts, '0')) {
+                if (Precise.stringLt (contracts, '0')) {
+                    positionSide = 'short';
+                } else {
+                    positionSide = 'long';
+                }
+            }
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -2629,7 +2641,7 @@ export default class binance extends binanceRest {
             'entryPrice': this.safeNumber (position, 'ep'),
             'unrealizedPnl': this.safeNumber (position, 'up'),
             'percentage': undefined,
-            'contracts': this.safeNumber (position, 'pa'),
+            'contracts': this.parseNumber (contractsAbs),
             'contractSize': undefined,
             'markPrice': undefined,
             'side': positionSide,

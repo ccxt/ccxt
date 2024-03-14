@@ -970,14 +970,11 @@ public partial class whitebit : ccxt.whitebit
         {
             return;
         }
-        object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
-        if (isTrue(!isEqual(result, null)))
+        object result = this.safeString(message, "result");
+        if (isTrue(isEqual(result, "pong")))
         {
-            if (isTrue(isEqual(result, "pong")))
-            {
-                this.handlePong(client as WebSocketClient, message);
-                return;
-            }
+            this.handlePong(client as WebSocketClient, message);
+            return;
         }
         object id = this.safeInteger(message, "id");
         if (isTrue(!isEqual(id, null)))

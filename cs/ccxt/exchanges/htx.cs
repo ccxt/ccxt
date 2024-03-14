@@ -418,6 +418,7 @@ public partial class htx : Exchange
                             { "v2/sub-user/api-key-modification", 1 },
                             { "v2/sub-user/api-key-deletion", 1 },
                             { "v1/subuser/transfer", 10 },
+                            { "v1/trust/user/active/credit", 10 },
                             { "v1/order/orders/place", 0.2 },
                             { "v1/order/batch-orders", 0.4 },
                             { "v1/order/auto/place", 0.2 },
@@ -2527,7 +2528,11 @@ public partial class htx : Exchange
         amountString = this.safeString(trade, "trade_volume", amountString);
         object costString = this.safeString(trade, "trade_turnover");
         object fee = null;
-        object feeCost = this.safeString2(trade, "filled-fees", "trade_fee");
+        object feeCost = this.safeString(trade, "filled-fees");
+        if (isTrue(isEqual(feeCost, null)))
+        {
+            feeCost = Precise.stringNeg(this.safeString(trade, "trade_fee"));
+        }
         object feeCurrencyId = this.safeString2(trade, "fee-currency", "fee_asset");
         object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         object filledPoints = this.safeString(trade, "filled-points");

@@ -60,7 +60,8 @@ public partial class coinex : Exchange
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", true },
                 { "fetchIsolatedBorrowRates", true },
-                { "fetchLeverage", false },
+                { "fetchLeverage", "emulated" },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
@@ -5741,6 +5742,74 @@ public partial class coinex : Exchange
             ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
         }
         return depositWithdrawFees;
+    }
+
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinex#fetchLeverages
+        * @description fetch the set leverage for all contract and margin markets
+        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+        * @param {string[]} [symbols] a list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbol = this.safeValue(symbols, 0);
+            market = this.market(symbol);
+        }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLeverages", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(!isEqual(marketType, "spot")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchLeverages() supports spot margin markets only")) ;
+        }
+        object response = await this.privateGetMarginConfig(parameters);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "market": "BTCUSDT",
+        //                 "leverage": 10,
+        //                 "BTC": {
+        //                     "min_amount": "0.0008",
+        //                     "max_amount": "200",
+        //                     "day_rate": "0.0015"
+        //                 },
+        //                 "USDT": {
+        //                     "min_amount": "50",
+        //                     "max_amount": "500000",
+        //                     "day_rate": "0.001"
+        //                 }
+        //             },
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        object leverages = this.safeList(response, "data", new List<object>() {});
+        return this.parseLeverages(leverages, symbols, "market", marketType);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "market");
+        object leverageValue = this.safeInteger(leverage, "leverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market, null, "spot") },
+            { "marginMode", null },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
     }
 
     public override object handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)

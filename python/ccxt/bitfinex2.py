@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -46,8 +46,8 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': True,
                 'swap': True,
-                'future': None,
-                'option': None,
+                'future': False,
+                'option': False,
                 'addMargin': False,
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
@@ -58,6 +58,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -68,8 +69,11 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrder': True,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
@@ -98,6 +102,8 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
@@ -117,6 +123,8 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'setMargin': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'signIn': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -1339,9 +1347,10 @@ class bitfinex2(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
-            'start': since,
             'limit': limit,
         }
+        if since is not None:
+            request['start'] = since
         request, params = self.handle_until_option('end', request, params)
         response = self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         #
@@ -1484,7 +1493,16 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price of the order, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: request to be sent to the exchange
+        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
+        :param bool [params.postOnly]:
+        :param bool [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
+        :param int [params.flags]: additional order parameters: 4096(Post Only), 1024(Reduce Only), 16384(OCO), 64(Hidden), 512(Close), 524288(No Var Rates)
+        :param int [params.lev]: leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+        :param str [params.price_traling]: The trailing price for a trailing stop order
+        :param str [params.price_aux_limit]: Order price for stop limit orders
+        :param str [params.price_oco_stop]: OCO stop price
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         market = self.market(symbol)
         amountString = self.amount_to_precision(symbol, amount)
@@ -2889,10 +2907,10 @@ class bitfinex2(Exchange, ImplicitAPI):
             rates.append(rate)
         reversedArray = []
         rawRates = self.filter_by_symbol_since_limit(rates, symbol, since, limit)
-        rawRatesLength = len(rawRates)
-        ratesLength = max(rawRatesLength - 1, 0)
-        for i in range(ratesLength, 0):
-            valueAtIndex = rawRates[i]
+        ratesLength = len(rawRates)
+        for i in range(0, ratesLength):
+            index = ratesLength - i - 1
+            valueAtIndex = rawRates[index]
             reversedArray.append(valueAtIndex)
         return reversedArray
 
@@ -3301,7 +3319,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'status': marginStatus,
         }
 
-    def fetch_order(self, id: str, symbol: str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders

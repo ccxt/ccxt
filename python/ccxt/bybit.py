@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -3563,8 +3563,8 @@ class bybit(Exchange, ImplicitAPI):
         market = self.market(symbols[0])
         category = None
         category, params = self.get_bybit_type('createOrders', market, params)
-        if (category == 'spot') or (category == 'inverse'):
-            raise NotSupported(self.id + ' createOrders does not allow spot or inverse orders')
+        if category == 'inverse':
+            raise NotSupported(self.id + ' createOrders does not allow inverse orders')
         request = {
             'category': category,
             'request': ordersRequests,
@@ -3984,6 +3984,81 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
+
+    def cancel_orders(self, ids, symbol: Str = None, params={}):
+        """
+        cancel multiple orders
+        :see: https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+        :param str[] ids: order ids
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: client order ids
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        category = None
+        category, params = self.get_bybit_type('cancelOrders', market, params)
+        if category == 'inverse':
+            raise NotSupported(self.id + ' cancelOrders does not allow inverse orders')
+        ordersRequests = []
+        clientOrderIds = self.safe_list_2(params, 'clientOrderIds', 'clientOids', [])
+        params = self.omit(params, ['clientOrderIds', 'clientOids'])
+        for i in range(0, len(clientOrderIds)):
+            ordersRequests.append({
+                'symbol': market['id'],
+                'orderLinkId': self.safe_string(clientOrderIds, i),
+            })
+        for i in range(0, len(ids)):
+            ordersRequests.append({
+                'symbol': market['id'],
+                'orderId': self.safe_string(ids, i),
+            })
+        request = {
+            'category': category,
+            'request': ordersRequests,
+        }
+        response = self.privatePostV5OrderCancelBatch(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": "0",
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "list": [
+        #                 {
+        #                     "category": "spot",
+        #                     "symbol": "BTCUSDT",
+        #                     "orderId": "1636282505818800896",
+        #                     "orderLinkId": "1636282505818800897"
+        #                 },
+        #                 {
+        #                     "category": "spot",
+        #                     "symbol": "BTCUSDT",
+        #                     "orderId": "1636282505818800898",
+        #                     "orderLinkId": "1636282505818800899"
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {
+        #             "list": [
+        #                 {
+        #                     "code": "0",
+        #                     "msg": "OK"
+        #                 },
+        #                 {
+        #                     "code": "0",
+        #                     "msg": "OK"
+        #                 }
+        #             ]
+        #         },
+        #         "time": "1709796158501"
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        row = self.safe_list(result, 'list', [])
+        return self.parse_orders(row, market)
 
     def cancel_all_usdc_orders(self, symbol: Str = None, params={}):
         if symbol is None:
@@ -5909,7 +5984,7 @@ class bybit(Exchange, ImplicitAPI):
             'takeProfitPrice': self.safe_number_2(position, 'take_profit', 'takeProfit'),
         })
 
-    def fetch_leverage(self, symbol: str, params={}):
+    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
         :see: https://bybit-exchange.github.io/docs/v5/position
@@ -5918,11 +5993,19 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         position = self.fetch_position(symbol, params)
+        return self.parse_leverage(position, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'symbol')
+        leverageValue = self.safe_integer(leverage, 'leverage')
         return {
-            'info': position,
-            'leverage': self.safe_integer(position, 'leverage'),
-            'marginMode': self.safe_number(position, 'marginMode'),
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': self.safe_string_lower(leverage, 'marginMode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
         }
 
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
@@ -6706,7 +6789,8 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(fee, 'symbol')
-        symbol = self.safe_symbol(marketId, None, None, 'contract')
+        defaultType = market['type'] if (market is not None) else 'contract'
+        symbol = self.safe_symbol(marketId, market, None, defaultType)
         return {
             'info': fee,
             'symbol': symbol,
@@ -6724,11 +6808,19 @@ class bybit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
-            raise NotSupported(self.id + ' fetchTradingFee() is not supported for spot market')
         request = {
             'symbol': market['id'],
         }
+        category = None
+        if market['linear']:
+            category = 'linear'
+        elif market['inverse']:
+            category = 'inverse'
+        elif market['spot']:
+            category = 'spot'
+        else:
+            category = 'option'
+        request['category'] = category
         response = self.privateGetV5AccountFeeRate(self.extend(request, params))
         #
         #     {
@@ -6750,7 +6842,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         fees = self.safe_value(result, 'list', [])
         first = self.safe_value(fees, 0, {})
-        return self.parse_trading_fee(first)
+        return self.parse_trading_fee(first, market)
 
     def fetch_trading_fees(self, params={}):
         """

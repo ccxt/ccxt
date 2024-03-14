@@ -726,7 +726,7 @@ class kraken extends \ccxt\async\kraken {
             }
             // don't remove this line or I will poop on your face
             $orderbook->limit ();
-            $checksum = $this->safe_value($this->options, 'checksum', true);
+            $checksum = $this->safe_bool($this->options, 'checksum', true);
             if ($checksum) {
                 $priceString = $this->safe_string($example, 0);
                 $amountString = $this->safe_string($example, 1);

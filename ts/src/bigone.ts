@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -1455,7 +1455,7 @@ export default class bigone extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bigone#createOrder
@@ -1541,7 +1541,11 @@ export default class bigone extends Exchange {
             }
         }
         request['type'] = uppercaseType;
-        params = this.omit (params, [ 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce' ]);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //    {
@@ -1830,7 +1834,7 @@ export default class bigone extends Exchange {
                 }
             } else if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
-                body = query;
+                body = this.json (query);
             }
         }
         headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;

@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -110,7 +110,8 @@ export default class bingx extends Exchange {
     parseTransactionStatus(status: string): string;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setMargin(symbol: string, amount: number, params?: {}): Promise<any>;
-    fetchLeverage(symbol: string, params?: {}): Promise<any>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    parseLeverage(leverage: any, market?: any): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
@@ -138,6 +139,8 @@ export default class bingx extends Exchange {
     }>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    parseMarginMode(marginMode: any, market?: any): MarginMode;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

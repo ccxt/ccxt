@@ -1523,7 +1523,8 @@ class digifinex extends digifinex$1 {
             else if (limit !== undefined) {
                 const endTime = this.seconds();
                 const duration = this.parseTimeframe(timeframe);
-                request['start_time'] = this.sum(endTime, -limit * duration);
+                const auxLimit = limit; // in c# -limit is mutating the arg
+                request['start_time'] = this.sum(endTime, -auxLimit * duration);
             }
             response = await this.publicSpotGetKline(this.extend(request, params));
         }

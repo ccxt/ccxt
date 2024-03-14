@@ -109,7 +109,8 @@ public partial class gate : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchLedger", true },
-                { "fetchLeverage", false },
+                { "fetchLeverage", true },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", true },
                 { "fetchMarginMode", false },
@@ -888,7 +889,7 @@ public partial class gate : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object sandboxMode = this.safeValue(this.options, "sandboxMode", false);
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
         if (!isTrue(sandboxMode))
         {
@@ -2293,7 +2294,8 @@ public partial class gate : Exchange
         ((IDictionary<string,object>)request)["type"] = "fund"; // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["from"] = divide(since, 1000);
+            // from should be integer
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -4755,7 +4757,11 @@ public partial class gate : Exchange
         {
             lastTradeTimestamp = this.safeTimestamp2(order, "update_time", "finish_time");
         }
-        object marketType = ((bool) isTrue((inOp(order, "currency_pair")))) ? "spot" : "contract";
+        object marketType = "contract";
+        if (isTrue(isTrue((inOp(order, "currency_pair"))) || isTrue((inOp(order, "market")))))
+        {
+            marketType = "spot";
+        }
         object exchangeSymbol = this.safeString2(order, "currency_pair", "market", contract);
         object symbol = this.safeSymbol(exchangeSymbol, market, "_", marketType);
         // Everything below this(above return) is related to fees
@@ -7565,6 +7571,96 @@ public partial class gate : Exchange
             side = ""; // side is not used but needs to be present, otherwise crashes in php
         }
         return await this.createOrder(symbol, "market", side, 0, null, parameters);
+    }
+
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://www.gate.io/docs/developers/apiv4/en/#get-unified-account-information
+        * @see https://www.gate.io/docs/developers/apiv4/en/#get-detail-of-lending-market
+        * @see https://www.gate.io/docs/developers/apiv4/en/#query-one-single-margin-currency-pair-deprecated
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.unified] default false, set to true for fetching the unified accounts leverage
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            // unified account does not require a symbol
+            market = this.market(symbol);
+        }
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        object isUnified = this.safeBool(parameters, "unified");
+        parameters = this.omit(parameters, "unified");
+        if (isTrue(getValue(market, "spot")))
+        {
+            ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
+            if (isTrue(isUnified))
+            {
+                response = await this.publicMarginGetUniCurrencyPairsCurrencyPair(this.extend(request, parameters));
+            } else
+            {
+                response = await this.publicMarginGetCurrencyPairsCurrencyPair(this.extend(request, parameters));
+            }
+        } else if (isTrue(isUnified))
+        {
+            response = await this.privateUnifiedGetAccounts(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchLeverage() does not support "), getValue(market, "type")), " markets")) ;
+        }
+        return this.parseLeverage(response, market);
+    }
+
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#fetchLeverages
+        * @description fetch the set leverage for all leverage markets, only spot margin is supported on gate
+        * @see https://www.gate.io/docs/developers/apiv4/en/#list-lending-markets
+        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated
+        * @param {string[]} symbols a list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.unified] default false, set to true for fetching unified account leverages
+        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object response = null;
+        object isUnified = this.safeBool(parameters, "unified");
+        parameters = this.omit(parameters, "unified");
+        object marketIdRequest = "id";
+        if (isTrue(isUnified))
+        {
+            marketIdRequest = "currency_pair";
+            response = await this.publicMarginGetUniCurrencyPairs(parameters);
+        } else
+        {
+            response = await this.publicMarginGetCurrencyPairs(parameters);
+        }
+        return this.parseLeverages(response, symbols, marketIdRequest, "spot");
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString2(leverage, "currency_pair", "id");
+        object leverageValue = this.safeInteger(leverage, "leverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market, "_", "spot") },
+            { "marginMode", null },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

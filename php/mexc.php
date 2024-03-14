@@ -38,6 +38,7 @@ class mexc extends Exchange {
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'deposit' => null,
                 'editOrder' => null,
@@ -2182,6 +2183,14 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+         * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
+         * @param {bool} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [$params->leverage] *contract only* leverage is necessary on isolated margin
+         * @param {long} [$params->positionId] *contract only* it is recommended to property_exists($this, fill) parameter when closing a position
+         * @param {string} [$params->externalOid] *contract only* external order ID
+         * @param {int} [$params->positionMode] *contract only*  1:hedge, 2:one-way, default => the user's current config
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -4907,7 +4916,7 @@ class mexc extends Exchange {
         return $this->parse_transfers($resultList, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
@@ -5298,7 +5307,7 @@ class mexc extends Exchange {
         return $this->assign_default_deposit_withdraw_fees($result);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
@@ -5343,31 +5352,30 @@ class mexc extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $longLeverage = $this->safe_dict($data, 0);
-        return $this->parse_leverage($longLeverage, $market);
+        return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, ?array $market = null) {
-        //
-        //     {
-        //         "level" => 1,
-        //         "maxVol" => 463300,
-        //         "mmr" => 0.004,
-        //         "imr" => 0.005,
-        //         "positionType" => 1,
-        //         "openType" => 1,
-        //         "leverage" => 20,
-        //         "limitBySys" => false,
-        //         "currentMmr" => 0.004
-        //     }
-        //
-        $marketId = $this->safe_string($leverage, 'symbol');
-        $market = $this->safe_market($marketId, $market, null, 'contract');
+    public function parse_leverage($leverage, $market = null): array {
+        $marginMode = null;
+        $longLeverage = null;
+        $shortLeverage = null;
+        for ($i = 0; $i < count($leverage); $i++) {
+            $entry = $leverage[$i];
+            $openType = $this->safe_integer($entry, 'openType');
+            $positionType = $this->safe_integer($entry, 'positionType');
+            if ($positionType === 1) {
+                $longLeverage = $this->safe_integer($entry, 'leverage');
+            } elseif ($positionType === 2) {
+                $shortLeverage = $this->safe_integer($entry, 'leverage');
+            }
+            $marginMode = ($openType === 1) ? 'isolated' : 'cross';
+        }
         return array(
             'info' => $leverage,
             'symbol' => $market['symbol'],
-            'leverage' => $this->safe_integer($leverage, 'leverage'),
-            'marginMode' => null,
+            'marginMode' => $marginMode,
+            'longLeverage' => $longLeverage,
+            'shortLeverage' => $shortLeverage,
         );
     }
 
@@ -5418,7 +5426,7 @@ class mexc extends Exchange {
                     'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
                 );
             }
-            if (($method === 'POST') || ($method === 'PUT')) {
+            if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
                 $headers['Content-Type'] = 'application/json';
             }
         } elseif ($section === 'contract' || $section === 'spot2') {

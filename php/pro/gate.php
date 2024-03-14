@@ -845,7 +845,7 @@ class gate extends \ccxt\async\gate {
             $client = $this->client($url);
             $this->set_positions_cache($client, $type, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_value('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
             $cache = $this->safe_value($this->positions, $type);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
                 return Async\await($client->future ($type . ':fetchPositionsSnapshot'));

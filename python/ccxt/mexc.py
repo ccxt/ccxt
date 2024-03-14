@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, IndexType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, IndexType, Int, Leverage, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -55,6 +55,7 @@ class mexc(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'deposit': None,
                 'editOrder': None,
@@ -2122,6 +2123,14 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: only 'isolated' is supported for spot-margin trading
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
+        :param bool [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int [params.leverage]: *contract only* leverage is necessary on isolated margin
+        :param long [params.positionId]: *contract only* it is recommended to hasattr(self, fill) parameter when closing a position
+        :param str [params.externalOid]: *contract only* external order ID
+        :param int [params.positionMode]: *contract only*  1:hedge, 2:one-way, default: the user's current config
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -5039,7 +5048,7 @@ class mexc(Exchange, ImplicitAPI):
             }
         return self.assign_default_deposit_withdraw_fees(result)
 
-    def fetch_leverage(self, symbol: str, params={}):
+    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
         :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
@@ -5084,30 +5093,27 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        longLeverage = self.safe_dict(data, 0)
-        return self.parse_leverage(longLeverage, market)
+        return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market: Market = None):
-        #
-        #     {
-        #         "level": 1,
-        #         "maxVol": 463300,
-        #         "mmr": 0.004,
-        #         "imr": 0.005,
-        #         "positionType": 1,
-        #         "openType": 1,
-        #         "leverage": 20,
-        #         "limitBySys": False,
-        #         "currentMmr": 0.004
-        #     }
-        #
-        marketId = self.safe_string(leverage, 'symbol')
-        market = self.safe_market(marketId, market, None, 'contract')
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marginMode = None
+        longLeverage = None
+        shortLeverage = None
+        for i in range(0, len(leverage)):
+            entry = leverage[i]
+            openType = self.safe_integer(entry, 'openType')
+            positionType = self.safe_integer(entry, 'positionType')
+            if positionType == 1:
+                longLeverage = self.safe_integer(entry, 'leverage')
+            elif positionType == 2:
+                shortLeverage = self.safe_integer(entry, 'leverage')
+            marginMode = 'isolated' if (openType == 1) else 'cross'
         return {
             'info': leverage,
             'symbol': market['symbol'],
-            'leverage': self.safe_integer(leverage, 'leverage'),
-            'marginMode': None,
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
         }
 
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
@@ -5151,7 +5157,7 @@ class mexc(Exchange, ImplicitAPI):
                     'X-MEXC-APIKEY': self.apiKey,
                     'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
-            if (method == 'POST') or (method == 'PUT'):
+            if (method == 'POST') or (method == 'PUT') or (method == 'DELETE'):
                 headers['Content-Type'] = 'application/json'
         elif section == 'contract' or section == 'spot2':
             url = self.urls['api'][section][access] + '/' + self.implode_params(path, params)

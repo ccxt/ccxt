@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.currencycom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -1714,7 +1714,7 @@ class currencycom(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_leverage(self, symbol: str, params={}):
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/leverageSettingsUsingGET
@@ -1729,12 +1729,22 @@ class currencycom(Exchange, ImplicitAPI):
         }
         response = await self.privateGetV2LeverageSettings(self.extend(request, params))
         #
-        # {
-        #     "values": [1, 2, 5, 10,],
-        #     "value": "10",
-        # }
+        #     {
+        #         "values": [1, 2, 5, 10,],
+        #         "value": "10",
+        #     }
         #
-        return self.safe_number(response, 'value')
+        return self.parse_leverage(response, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        leverageValue = self.safe_integer(leverage, 'value')
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': None,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
 
     async def fetch_deposit_address(self, code: str, params={}):
         """

@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1567,7 +1567,7 @@ export default class okx extends Exchange {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        const isSandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials (false) || isSandboxMode) {
             return undefined;
         }
@@ -2588,7 +2588,7 @@ export default class okx extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
@@ -2831,7 +2831,7 @@ export default class okx extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name okx#createOrder
@@ -3037,7 +3037,7 @@ export default class okx extends Exchange {
         return this.extend (request, params);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrder
@@ -5108,7 +5108,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async fetchLeverage (symbol: string, params = {}) {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name okx#fetchLeverage
@@ -5148,7 +5148,36 @@ export default class okx extends Exchange {
         //        "msg": ""
         //     }
         //
-        return response;
+        const data = this.safeList (response, 'data', []);
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        let marketId = undefined;
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            marginMode = this.safeStringLower (entry, 'mgnMode');
+            marketId = this.safeString (entry, 'instId');
+            const positionSide = this.safeStringLower (entry, 'posSide');
+            if (positionSide === 'long') {
+                longLeverage = this.safeInteger (entry, 'lever');
+            } else if (positionSide === 'short') {
+                shortLeverage = this.safeInteger (entry, 'lever');
+            } else {
+                longLeverage = this.safeInteger (entry, 'lever');
+                shortLeverage = this.safeInteger (entry, 'lever');
+            }
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        } as Leverage;
     }
 
     async fetchPosition (symbol: string, params = {}) {
@@ -5624,7 +5653,7 @@ export default class okx extends Exchange {
         const fromAccountId = this.safeString (transfer, 'from');
         const toAccountId = this.safeString (transfer, 'to');
         const accountsById = this.safeValue (this.options, 'accountsById', {});
-        const timestamp = this.safeInteger (transfer, 'ts', this.milliseconds ());
+        const timestamp = this.safeInteger (transfer, 'ts');
         const balanceChange = this.safeString (transfer, 'sz');
         if (balanceChange !== undefined) {
             amount = this.parseNumber (Precise.stringAbs (balanceChange));
@@ -6950,7 +6979,7 @@ export default class okx extends Exchange {
         }, market);
     }
 
-    setSandboxMode (enable) {
+    setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
         if (enable) {
