@@ -469,7 +469,7 @@
             {
                 "description": "Fetch all set leverages",
                 "method": "fetchLeverages",
-                "url": "https://ascendex.com/6/api/pro/v2/futures/position",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
                 "input": []
             }
         ],
@@ -477,7 +477,7 @@
             {
                 "description": "Fetch the set leverage of a specified market",
                 "method": "fetchLeverage",
-                "url": "https://ascendex.com/6/api/pro/v2/futures/position",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
                 "input": [
                   "BTC/USDT:USDT"
                 ]
