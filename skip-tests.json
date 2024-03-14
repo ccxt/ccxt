@@ -547,8 +547,8 @@
         }
     },
     "coinbase": {
-        "skipWs": "needs auth",
         "skip": "private endpoints",
+        "skipWs": "needs auth",
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided"
@@ -579,10 +579,7 @@
             "loadMarkets": {
                 "active":"is undefined"
             },
-            "fetchTicker": {
-                "quoteVolume": "quote scale isn't right"
-            },
-            "fetchTickers": {
+            "ticker": {
                 "quoteVolume": "quote scale isn't right"
             }
         }
@@ -590,8 +587,12 @@
     "coinspot": {
         "skip":"temp",
         "skipMethods": {
-            "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)",
-            "fetchTickers": {
+            "loadMarkets": {
+                "precision":"not provided",
+                "taker":"is undefined",
+                "makert":"is undefined"
+            },
+            "ticker": {
                 "ask": "broken bid-ask",
                 "bid": "broken bid-ask",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing"
@@ -599,20 +600,13 @@
         }
     },
     "coinsph": {
-        "skip": true,
-        "until": "2024-02-20",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"messed",
                 "maker":"messed"
             },
-            "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            "ticker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
     },
@@ -624,13 +618,13 @@
                 "active":"is undefined",
                 "currencyIdAndCode": "messes codes"
             },
-            "fetchOHLCV": "unexpected issue",
             "fetchCurrencies": {
                 "limits": "min is negative",
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "networks": "missing"
-            }
+            },
+            "fetchOHLCV": "unexpected issue"
         }
     },
     "coinex": {
@@ -661,14 +655,9 @@
                 "active":"is undefined",
                 "currencyIdAndCode": "from travis location (USA) these webapi endpoints cant be loaded"
             },
-            "fetchTickers": {
+            "ticker": {
                 "timestamp": "timestamp might be of 1970-01-01T00:00:00.000Z",
                 "quoteVolume": "can't be infered"
-            },
-            "fetchTicker": {
-                "timestamp": "timestamp might be of 1970-01-01T00:00:00.000Z",
-                "quoteVolume": "can't be infered"
-
             },
             "fetchPositions": {
                 "entryPrice": "entryPrice is not provided",
@@ -705,12 +694,7 @@
                 "settle": "not defined when contract",
                 "settleId": "not defined when contract"
             },
-            "fetchTickers": {
-                "ask": "not above bid https://app.travis-ci.com/github/ccxt/ccxt/builds/263871244#L2163",
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchTicker": {
+            "ticker": {
                 "ask": "not above bid https://app.travis-ci.com/github/ccxt/ccxt/builds/263871244#L2163",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
@@ -722,27 +706,28 @@
     },
     "delta": {
         "skip": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4301",
-        "until": "2024-03-15",
+        "until": "2024-03-19",
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
-            "fetchOrderBook": "ask crossing bids test failing",
-            "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
+            "fetchOrderBook": {
+                "bid": "bid more than ask"
+            },
+            "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "ask": "failing the test",
                 "bid": "failing the test"
             },
             "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "ask": "failing the test",
                 "bid": "failing the test"
             }
         }
     },
     "deribit": {
         "skipMethods": {
-            "fetchCurrencies": "deposit/withdraw not provided",
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            },
             "loadMarkets": "strike is set when option is not true",
             "fetchTickers": "something wrong",
             "fetchBalance": "does not add up",
