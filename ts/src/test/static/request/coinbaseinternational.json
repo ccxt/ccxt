@@ -215,5 +215,22 @@
             "input": []
           }
        ]
-    }
+    },
+    "withdraw": [
+      {
+        "description": "withdraw USDC",
+        "method": "withdraw",
+        "url": "https://api.international.coinbase.com/api/v1/transfers/withdraw",
+        "input": [
+          "USDC",
+          5,
+          "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
+          null,
+          {
+            "network": "ARBITRUM"
+          }
+        ],
+        "output": "{\"portfolio\":\"1yun54bb-1-6\",\"type\":\"send\",\"asset\":\"USDC\",\"address\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"amount\":5,\"currency\":\"USDC\",\"network_arn_id\":\"networks/arbitrum-mainnet/assets/5f9ba01c-4cfe-5519-977e-21af64a3a2a8\",\"nonce\":1710440664,\"network\":\"ARBITRUM\"}"
+      }
+    ]
 }
