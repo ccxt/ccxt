@@ -288,7 +288,7 @@ export default class bitmex extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
+         * @returns {object} an associative dictionary of [currency structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#currency-structure}
          */
         const response = await this.publicGetWalletAssets (params);
         //

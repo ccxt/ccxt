@@ -207,7 +207,7 @@ export default class hyperliquid extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-exchange-metadata
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
+         * @returns {object} an associative dictionary of [currency structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#currency-structure}
          */
         const request = {
             'type': 'meta',

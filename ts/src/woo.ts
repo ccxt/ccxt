@@ -698,7 +698,7 @@ export default class woo extends Exchange {
          * @name woo#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
+         * @returns {object} an associative dictionary of [currency structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#currency-structure}
          */
         const result = {};
         const tokenResponse = await this.v1PublicGetToken (params);

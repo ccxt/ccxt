@@ -1002,7 +1002,7 @@ export default class mexc extends Exchange {
          * @description fetches all available currencies on an exchange
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
+         * @returns {object} an associative dictionary of [currency structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#currency-structure}
          */
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
