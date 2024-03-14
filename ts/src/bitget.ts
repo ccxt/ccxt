@@ -3359,7 +3359,7 @@ export default class bitget extends Exchange {
             calculatedStartTime = since;
             request['startTime'] = since;
             if (!untilDefined) {
-                calculatedEndTime = calculatedStartTime + limitMultipliedDuration;
+                calculatedEndTime = this.sum (calculatedStartTime, limitMultipliedDuration);
                 request['endTime'] = calculatedEndTime;
             }
         }
@@ -3389,11 +3389,12 @@ export default class bitget extends Exchange {
         } else {
             const maxDistanceDaysForContracts = 90; // for contract, maximum 90 days allowed between start-end times
             // only correct the request to fix 90 days if until was auto-calculated
-            if (sinceDefined && !untilDefined) {
-                request['endTime'] = Math.min (calculatedEndTime, since + maxDistanceDaysForContracts * msInDay);
-            }
-            if (sinceDefined && untilDefined && (calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay)) {
-                throw new BadRequest (this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDaysForContracts.toString () + ' days');
+            if (sinceDefined) {
+                if (!untilDefined) {
+                    request['endTime'] = Math.min (calculatedEndTime, this.sum (since, maxDistanceDaysForContracts * msInDay));
+                } else if (calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay) {
+                    throw new BadRequest (this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDaysForContracts.toString () + ' days');
+                }
             }
             let priceType = undefined;
             [ priceType, params ] = this.handleParamString (params, 'price');
