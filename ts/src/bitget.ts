@@ -3351,27 +3351,25 @@ export default class bitget extends Exchange {
             limit = defaultLimit;
         }
         const limitMultipliedDuration = limit * duration;
-        // if since or until is used, then both "startTime & entTime" are needed in request
-        // otherwise "Parameter endTime cannot be empty" error triggers
+        // exchange aligns from endTime, so it's important, not startTime
+        // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         let calculatedStartTime = undefined;
         let calculatedEndTime = undefined;
         if (sinceDefined) {
             calculatedStartTime = since;
+            request['startTime'] = since;
             if (!untilDefined) {
                 calculatedEndTime = calculatedStartTime + limitMultipliedDuration;
+                request['endTime'] = calculatedEndTime;
             }
         }
         if (untilDefined) {
             calculatedEndTime = until;
+            request['endTime'] = calculatedEndTime;
             if (!sinceDefined) {
                 calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
+                // we do not need to set "startTime" here
             }
-            request['endTime'] = calculatedEndTime; // supported for both endpoints
-        }
-        // exchange aligns from endTime
-        if (calculatedEndTime !== undefined) {
-            request['startTime'] = since; // supported on "recent-candles" endpoint, other endpoint just ingores
-            request['endTime'] = calculatedEndTime;
         }
         const historicalEndpointNeeded = (calculatedStartTime !== undefined) && (calculatedStartTime <= endpointTsBoundary);
         if (historicalEndpointNeeded) {
@@ -3390,7 +3388,11 @@ export default class bitget extends Exchange {
             }
         } else {
             const maxDistanceDaysForContracts = 90; // for contract, maximum 90 days allowed between start-end times
-            if ((calculatedStartTime !== undefined) && (calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay)) {
+            // only correct the request to fix 90 days if until was auto-calculated
+            if (sinceDefined && !untilDefined) {
+                request['endTime'] = Math.min (calculatedEndTime, since + maxDistanceDaysForContracts * msInDay);
+            }
+            if (sinceDefined && untilDefined && (calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay)) {
                 throw new BadRequest (this.id + ' fetchOHLCV() between start and end must be less than ' + maxDistanceDaysForContracts.toString () + ' days');
             }
             let priceType = undefined;
