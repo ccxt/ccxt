@@ -472,6 +472,16 @@
                 "url": "https://ascendex.com/6/api/pro/v2/futures/position",
                 "input": []
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Fetch the set leverage of a specified market",
+                "method": "fetchLeverage",
+                "url": "https://ascendex.com/6/api/pro/v2/futures/position",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
