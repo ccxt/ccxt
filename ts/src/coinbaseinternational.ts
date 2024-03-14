@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionD
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory } from './base/types.js';
+import type { Int, List, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -241,6 +241,15 @@ export default class coinbaseinternational extends Exchange {
                 'withdraw': {
                     'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 },
+                'networksById': {
+                    'ethereum': 'ETH',
+                    'arbitrum': 'ARBITRUM',
+                    'avacchain': 'AVAX',
+                    'optimism': 'OPTIMISM',
+                    'polygon': 'MATIC',
+                    'solana': 'SOL',
+                    'bitcoin': 'BTC',
+                },
             },
         });
     }
@@ -266,6 +275,28 @@ export default class coinbaseinternational extends Exchange {
             }
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with this.options["portfolio"]');
+    }
+
+    async handleNetworkIdAndParams (currencyCode: string, methodName: string, params) {
+        let networkId = undefined;
+        [ networkId, params ] = this.handleOptionAndParams (params, methodName, 'network_arn_id');
+        if (networkId === undefined) {
+            await this.loadCurrencyNetworks (currencyCode);
+            const networks = this.currencies[currencyCode]['networks'];
+            let network = undefined;
+            [ network, params ] = this.handleOptionAndParams2 (params, 'createDepositAddress', 'networkCode', 'network');
+            if (network === undefined) {
+                // find default network
+                if (this.isEmpty (networks)) {
+                    throw new BadRequest (this.id + ' createDepositAddress network not found for currency ' + currencyCode + ' please specify networkId in params');
+                }
+                const defaultNetwork = this.findDefaultNetwork (networks);
+                networkId = defaultNetwork['id'];
+            } else {
+                networkId = this.networkCodeToId (network, currencyCode);
+            }
+        }
+        return [ networkId, params ];
     }
 
     async fetchAccounts (params = {}) {
@@ -422,6 +453,8 @@ export default class coinbaseinternational extends Exchange {
          * @see https://docs.cloud.coinbase.com/intx/reference/createcounterpartyid
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a) if not provided will pick default
+         * @param {string} [params.network] unified network code to identify the blockchain network
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
@@ -434,26 +467,127 @@ export default class coinbaseinternational extends Exchange {
         };
         if (method === 'v1PrivatePostTransfersAddress') {
             const currency = this.currency (code);
-            let network = undefined;
-            [ network, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'network');
-            request['asset'] = currency;
-            if (network !== undefined) {
-                const networkId = this.networkCodeToId (network);
-                request['network'] = networkId;
-            }
+            request['asset'] = currency['id'];
+            let networkId = undefined;
+            [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'createDepositAddress', params);
+            request['network_arn_id'] = networkId;
         }
-        const response = await this.v1PrivatePostTransfersAddress (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
+        // v1PrivatePostTransfersAddress
+        //    {
+        //        address: "3LkwYscRyh6tUR1XTqXSJQoJnK7ucC1F4n",
+        //        network_arn_id: "networks/bitcoin-mainnet/assets/6ecc0dcc-10a2-500e-b315-a3b9abae19ce",
+        //        destination_tag: "",
+        //    }
+        // v1PrivatePostTransfersCreateCounterpartyId
+        //    {
+        //        "portfolio_uuid":"018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
+        //        "counterparty_id":"CB2ZPUCZBE"
+        //    }
         //
-        const data = this.safeDict (response, 'data', {});
-        const tag = this.safeString (data, 'destination_tag');
-        const address = this.safeString2 (data, 'address', 'counterparty_id');
+        const tag = this.safeString (response, 'destination_tag');
+        const address = this.safeString2 (response, 'address', 'counterparty_id');
         return {
             'currency': code,
             'tag': tag,
             'address': address,
             'info': response,
         };
+    }
+
+    findDefaultNetwork (networks) {
+        const networksArray = this.toArray (networks);
+        for (let i = 0; i < networksArray.length; i++) {
+            const info = networksArray[i]['info'];
+            const is_default = this.safeBool (info, 'is_default', false);
+            if (is_default === true) {
+                return networksArray[i];
+            }
+        }
+        return networksArray[0];
+    }
+
+    async loadCurrencyNetworks (code, params = {}) {
+        const currency = this.currency (code);
+        const networks = this.safeDict (currency, 'networks');
+        if (networks !== undefined) {
+            return;
+        }
+        const request = {
+            'asset': currency['id'],
+        };
+        const rawNetworks = await this.v1PublicGetAssetsAssetNetworks (request);
+        //
+        //    [
+        //        {
+        //            "asset_id":"1",
+        //            "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+        //            "asset_name":"USDC",
+        //            "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
+        //            "min_withdrawal_amt":"1",
+        //            "max_withdrawal_amt":"100000000",
+        //            "network_confirms":35,
+        //            "processing_time":485,
+        //            "is_default":true,
+        //            "network_name":"ethereum",
+        //            "display_name":"Ethereum"
+        //        },
+        //        ....
+        //    ]
+        //
+        currency['networks'] = this.parseNetworks (rawNetworks);
+    }
+
+    parseNetworks (networks: List, params = {}) {
+        const result = {};
+        for (let i = 0; i < networks.length; i++) {
+            const network = this.extend (this.parseNetwork (networks[i]), params);
+            result[network['network']] = network;
+        }
+        return result;
+    }
+
+    parseNetwork (network, params = {}) {
+        //
+        //    {
+        //        "asset_id":"1",
+        //        "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+        //        "asset_name":"USDC",
+        //        "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
+        //        "min_withdrawal_amt":"1",
+        //        "max_withdrawal_amt":"100000000",
+        //        "network_confirms":35,
+        //        "processing_time":485,
+        //        "is_default":true,
+        //        "network_name":"ethereum",
+        //        "display_name":"Ethereum"
+        //    }
+        //
+        const currencyId = this.safeString (network, 'asset_name');
+        const currencyCode = this.safeCurrencyCode (currencyId);
+        const networkId = this.safeString (network, 'network_arn_id');
+        return this.safeNetwork ({
+            'info': network,
+            'id': networkId,
+            'name': this.safeString (network, 'display_name'),
+            'network': this.networkIdToCode (this.safeStringN (network, [ 'network_name', 'display_name', 'network_arn_id' ], ''), currencyCode),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'precision': undefined,
+            'fee': undefined,
+            'limits': {
+                'withdraw': {
+                    'min': this.safeNumber (network, 'min_withdrawal_amt'),
+                    'max': this.safeNumber (network, 'max_withdrawal_amt'),
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        });
     }
 
     async setMargin (symbol: string, amount: number, params = {}): Promise<any> {
@@ -529,6 +663,32 @@ export default class coinbaseinternational extends Exchange {
             request['time_to'] = this.iso8601 (until);
         }
         const response = await this.v1PrivateGetTransfers (this.extend (request, params));
+        //
+        //    {
+        //        "pagination":{
+        //           "result_limit":25,
+        //           "result_offset":0
+        //        },
+        //        "results":[
+        //           {
+        //              "transfer_uuid":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3",
+        //              "transfer_type":"WITHDRAW",
+        //              "amount":"1.000000",
+        //              "asset":"USDC",
+        //              "status":"PROCESSED",
+        //              "network_name":"ethereum",
+        //              "created_at":"2024-03-14T02:32:18.497795Z",
+        //              "updated_at":"2024-03-14T02:35:38.514588Z",
+        //              "from_portfolio":{
+        //                 "id":"1yun54bb-1-6",
+        //                 "uuid":"018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
+        //                 "name":"fungus technology o?Portfolio"
+        //              },
+        //              "to_address":"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB"
+        //           }
+        //        ]
+        //    }
+        //
         const rawTransactions = this.safeList (response, 'results', []);
         return this.parseTransactions (rawTransactions);
     }
@@ -717,6 +877,10 @@ export default class coinbaseinternational extends Exchange {
     }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
+        //
+        //    {
+        //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
+        //    }
         // const transactionType = this.safeString (transaction, 'type');
         const datetime = this.safeString (transaction, 'updated_at');
         const fromPorfolio = this.safeDict (transaction, 'from_portfolio', {});
@@ -1771,30 +1935,77 @@ export default class coinbaseinternational extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string} [tag] an optional tag for the withdrawal
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.add_network_fee_to_total] if true, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal
+         * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
+         * @param {string} [params.nonce] a unique integer representing the withdrawal request
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        address = '0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB';
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let network = undefined;
-        [ network, params ] = this.handleOptionAndParams (params, 'withdraw', 'network');
+        let portfolio = undefined;
+        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchOpenOrders', params);
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
+        let networkId = undefined;
+        [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'withdraw', params);
         const request = {
+            'portfolio': portfolio,
             'type': 'send',
             'asset': currency['id'],
-            'to': address,
+            'address': address,
             'amount': amount,
             'currency': currency['id'],
+            'network_arn_id': networkId,
+            'nonce': this.nonce (),
         };
-        if (network !== undefined) {
-            request['network_arn_id'] = network;
-        }
         const response = await this[method] (this.extend (request, params));
         //
+        //    {
+        //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
+        //    }
         //
         return this.parseTransaction (response, currency);
+    }
+
+    safeNetwork (network) {  // TODO: Move to exchange.ts
+        let withdrawEnabled = this.safeBool (network, 'withdraw');
+        let depositEnabled = this.safeBool (network, 'deposit');
+        const limits = this.safeDict (network, 'limits');
+        const withdraw = this.safeDict (limits, 'withdraw');
+        const withdrawMax = this.safeNumber (withdraw, 'max');
+        const deposit = this.safeDict (limits, 'deposit');
+        const depositMax = this.safeNumber (deposit, 'max');
+        if (withdrawEnabled === undefined && withdrawMax !== undefined) {
+            withdrawEnabled = (withdrawMax > 0);
+        }
+        if (depositEnabled === undefined && depositMax !== undefined) {
+            depositEnabled = (depositMax > 0);
+        }
+        const networkId = this.safeString (network, 'id');
+        return {
+            'info': network['info'],
+            'id': networkId,
+            'name': this.safeString (network, 'name'),
+            'network': this.safeString (network, 'network'),
+            'active': this.safeBool (network, 'active', (withdrawEnabled && depositEnabled)),
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': this.safeNumber (network, 'fee'),
+            'precision': this.safeNumber (network, 'precision'),
+            'limits': {
+                'withdraw': {
+                    'min': this.safeNumber (withdraw, 'min'),
+                    'max': withdrawMax,
+                },
+                'deposit': {
+                    'min': this.safeNumber (deposit, 'min'),
+                    'max': depositMax,
+                },
+            },
+        };
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
