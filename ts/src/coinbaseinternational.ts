@@ -1341,6 +1341,9 @@ export default class coinbaseinternational extends Exchange {
         //       "loan_collateral_requirement":"0.0"
         //    }
         //
+        const result = {
+            'info': response,
+        };
         for (let i = 0; i < response.length; i++) {
             const rawBalance = response[i];
             const currencyId = this.safeString (rawBalance, 'asset_name');
@@ -1348,9 +1351,9 @@ export default class coinbaseinternational extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (rawBalance, 'quantity');
             account['used'] = this.safeString (rawBalance, 'hold');
-            this.balance[code] = account;
+            result[code] = account;
         }
-        return this.safeBalance (this.balance);
+        return this.safeBalance (result);
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {

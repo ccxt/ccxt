@@ -514,7 +514,7 @@
       ],
       "fetchBalance": [
         {
-          "description": "fetchBalance",
+          "description": "fetch balance",
           "method": "fetchBalance",
           "input": [],
           "httpResponse": [
@@ -522,30 +522,113 @@
               "asset_id": "0-0-1",
               "asset_name": "USDC",
               "asset_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
-              "quantity": "499999.4142000000",
+              "quantity": "500006.2138000000",
+              "hold": "3678.160200000000",
+              "hold_available_for_collateral": "0",
+              "transfer_hold": "0",
+              "collateral_value": "496328.0536",
+              "max_withdraw_amount": "496284.8857000000",
+              "loan": "0",
+              "loan_collateral_requirement": "0.0"
+            },
+            {
+              "asset_id": "t6umqck-1-0",
+              "asset_name": "BTC",
+              "asset_uuid": "5b71fc48-3dd3-540c-809b-f8c94d0e68b5",
+              "quantity": "0",
               "hold": "0",
               "hold_available_for_collateral": "0",
               "transfer_hold": "0",
-              "collateral_value": "499999.4142",
-              "max_withdraw_amount": "499997.4102000000",
+              "collateral_value": "0.0",
+              "max_withdraw_amount": "0",
+              "loan": "0",
+              "loan_collateral_requirement": "0.0"
+            },
+            {
+              "asset_id": "t6umqcw-1-0",
+              "asset_name": "ETH",
+              "asset_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+              "quantity": "0.1000000000000000",
+              "hold": "0",
+              "hold_available_for_collateral": "0",
+              "transfer_hold": "0",
+              "collateral_value": "0.0",
+              "max_withdraw_amount": "0.1000000000000000",
               "loan": "0",
               "loan_collateral_requirement": "0.0"
             }
           ],
           "parsedResponse": {
+            "info": [
+              {
+                "asset_id": "0-0-1",
+                "asset_name": "USDC",
+                "asset_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+                "quantity": "500006.2138000000",
+                "hold": "3678.160200000000",
+                "hold_available_for_collateral": "0",
+                "transfer_hold": "0",
+                "collateral_value": "496328.0536",
+                "max_withdraw_amount": "496284.8857000000",
+                "loan": "0",
+                "loan_collateral_requirement": "0.0"
+              },
+              {
+                "asset_id": "t6umqck-1-0",
+                "asset_name": "BTC",
+                "asset_uuid": "5b71fc48-3dd3-540c-809b-f8c94d0e68b5",
+                "quantity": "0",
+                "hold": "0",
+                "hold_available_for_collateral": "0",
+                "transfer_hold": "0",
+                "collateral_value": "0.0",
+                "max_withdraw_amount": "0",
+                "loan": "0",
+                "loan_collateral_requirement": "0.0"
+              },
+              {
+                "asset_id": "t6umqcw-1-0",
+                "asset_name": "ETH",
+                "asset_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+                "quantity": "0.1000000000000000",
+                "hold": "0",
+                "hold_available_for_collateral": "0",
+                "transfer_hold": "0",
+                "collateral_value": "0.0",
+                "max_withdraw_amount": "0.1000000000000000",
+                "loan": "0",
+                "loan_collateral_requirement": "0.0"
+              }
+            ],
             "USDC": {
-              "free": 499999.4142,
+              "free": 496328.0536,
+              "used": 3678.1602,
+              "total": 500006.2138
+            },
+            "BTC": {
+              "free": 0,
               "used": 0,
-              "total": 499999.4142
+              "total": 0
+            },
+            "ETH": {
+              "free": 0.1,
+              "used": 0,
+              "total": 0.1
             },
             "free": {
-              "USDC": 499999.4142
+              "USDC": 496328.0536,
+              "BTC": 0,
+              "ETH": 0.1
             },
             "used": {
-              "USDC": 0
+              "USDC": 3678.1602,
+              "BTC": 0,
+              "ETH": 0
             },
             "total": {
-              "USDC": 499999.4142
+              "USDC": 500006.2138,
+              "BTC": 0,
+              "ETH": 0.1
             }
           }
         }
