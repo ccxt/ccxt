@@ -6,6 +6,7 @@ import assert from 'assert';
 import ccxt, { Exchange } from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
 import { unCamelCase } from '../base/functions/string.js';
+import { Str } from '../base/types.js';
 
 // js specific codes //
 const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
@@ -1018,7 +1019,7 @@ export default class testMainClass extends baseMainTestClass {
         return content;
     }
 
-    loadStaticData (folder: string, targetExchange: string = undefined) {
+    loadStaticData (folder: string, targetExchange: Str = undefined) {
         const result = {};
         if (targetExchange) {
             // read a single exchange
@@ -1293,7 +1294,7 @@ export default class testMainClass extends baseMainTestClass {
         return exchange;
     }
 
-    async testExchangeRequestStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
+    async testExchangeRequestStatically (exchangeName: string, exchangeData: object, testName: Str = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange (exchangeName);
         const methods = exchange.safeValue (exchangeData, 'methods', {});
@@ -1325,7 +1326,7 @@ export default class testMainClass extends baseMainTestClass {
         return true; // in c# methods that will be used with promiseAll need to return something
     }
 
-    async testExchangeResponseStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
+    async testExchangeResponseStatically (exchangeName: string, exchangeData: object, testName: Str = undefined) {
         const exchange = this.initOfflineExchange (exchangeName);
         const methods = exchange.safeValue (exchangeData, 'methods', {});
         const options = exchange.safeValue (exchangeData, 'options', {});
@@ -1365,7 +1366,7 @@ export default class testMainClass extends baseMainTestClass {
         return true; // in c# methods that will be used with promiseAll need to return something
     }
 
-    getNumberOfTestsFromExchange (exchange, exchangeData: object, testName: string = undefined) {
+    getNumberOfTestsFromExchange (exchange, exchangeData: object, testName: Str = undefined) {
         if (testName !== undefined) {
             return 1;
         }
@@ -1381,11 +1382,11 @@ export default class testMainClass extends baseMainTestClass {
         return sum;
     }
 
-    async runStaticRequestTests (targetExchange: string = undefined, testName: string = undefined) {
+    async runStaticRequestTests (targetExchange: Str = undefined, testName: Str = undefined) {
         await this.runStaticTests ('request', targetExchange, testName);
     }
 
-    async runStaticTests (type: string, targetExchange: string = undefined, testName: string = undefined) {
+    async runStaticTests (type: string, targetExchange: Str = undefined, testName: Str = undefined) {
         const folder = this.rootDir + './ts/src/test/static/' + type + '/';
         const staticData = this.loadStaticData (folder, targetExchange);
         if (staticData === undefined) {

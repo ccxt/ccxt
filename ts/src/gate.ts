@@ -6624,7 +6624,7 @@ export default class gate extends Exchange {
         return this.safeString (ledgerType, type, type);
     }
 
-    async setPositionMode (hedged: boolean, symbol: string = undefined, params = {}) {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name gate#setPositionMode

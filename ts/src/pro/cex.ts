@@ -440,7 +440,7 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name cex#watchOrders
@@ -1206,7 +1206,7 @@ export default class cex extends cexRest {
         }
     }
 
-    async fetchOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOrderWs
@@ -1236,7 +1236,7 @@ export default class cex extends cexRest {
         return this.parseOrder (response, market);
     }
 
-    async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOpenOrdersWs
@@ -1348,7 +1348,7 @@ export default class cex extends cexRest {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name cex#cancelOrderWs
@@ -1379,7 +1379,7 @@ export default class cex extends cexRest {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}) {
+    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name cex#cancelOrdersWs

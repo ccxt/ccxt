@@ -1111,7 +1111,7 @@ export default class blofin extends Exchange {
         const leverage = this.safeString (order, 'leverage', '1');
         const contractSize = this.safeString (market, 'contractSize');
         const baseAmount = Precise.stringMul (contractSize, filled);
-        let cost: string = undefined;
+        let cost: Str = undefined;
         if (average !== undefined) {
             cost = Precise.stringMul (average, baseAmount);
             cost = Precise.stringDiv (cost, leverage);
@@ -1351,7 +1351,7 @@ export default class blofin extends Exchange {
             request['limit'] = limit; // default 100, max 100
         }
         const isStop = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl', 'TPSL' ], false);
-        let method: string = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response = undefined;
@@ -2129,7 +2129,7 @@ export default class blofin extends Exchange {
             request['begin'] = since;
         }
         const isStop = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl', 'TPSL' ], false);
-        let method: string = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response = undefined;

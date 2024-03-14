@@ -252,7 +252,7 @@ export default class poloniex extends poloniexRest {
         return await this.tradeRequest ('createOrder', this.extend (request, params));
     }
 
-    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#cancelOrderWs
@@ -272,7 +272,7 @@ export default class poloniex extends poloniexRest {
         return await this.cancelOrdersWs ([ id ], symbol, params);
     }
 
-    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}) {
+    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#cancelOrdersWs
@@ -292,7 +292,7 @@ export default class poloniex extends poloniexRest {
         return await this.tradeRequest ('cancelOrders', this.extend (request, params));
     }
 
-    async cancelAllOrdersWs (symbol: string = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#cancelAllOrdersWs

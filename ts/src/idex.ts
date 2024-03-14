@@ -1779,7 +1779,7 @@ export default class idex extends Exchange {
         return authenticated ? (defaultCost / 2) : defaultCost;
     }
 
-    async fetchDepositAddress (code: string = undefined, params = {}) {
+    async fetchDepositAddress (code: Str = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchDepositAddress
