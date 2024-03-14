@@ -97,7 +97,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
-                'fetchTrades': true,
+                'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
@@ -647,10 +647,8 @@ export default class coinbaseinternational extends Exchange {
             request['time_from'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            if (limit > 100) {
-                throw new BadRequest (this.id + ' fetchDepositsWithdrawals() accepts a limit of 100 or less');
-            }
-            request['result_limit'] = limit;
+            const newLimit = Math.min (limit, 100);
+            request['result_limit'] = newLimit;
         }
         let portfolios = undefined;
         [ portfolios, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'portfolios');

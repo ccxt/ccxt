@@ -930,6 +930,237 @@
             }
           ]
         }
+      ],
+      "fetchDepositsWithdrawals": [
+        {
+          "description": "Fill this with a description of the method call",
+          "method": "fetchDepositsWithdrawals",
+          "input": [
+            "ETH"
+          ],
+          "httpResponse": {
+            "pagination": {
+              "result_limit": "25",
+              "result_offset": "0"
+            },
+            "results": [
+              {
+                "transfer_uuid": "9e9fb352-f7f1-45b9-ad26-f9c15a21c59e",
+                "transfer_type": "DEPOSIT",
+                "amount": "1.000000",
+                "asset": "USDC",
+                "status": "PROCESSED",
+                "network_name": "polygon",
+                "created_at": "2024-03-14T02:51:11.473358Z",
+                "updated_at": "2024-03-14T03:05:19.164374Z",
+                "to_portfolio": {
+                  "id": "1yun54bb-1-6",
+                  "uuid": "018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
+                  "name": "fungus technology o?Portfolio"
+                }
+              },
+              {
+                "transfer_uuid": "1affd796-b39c-461e-8db1-6f8045681942",
+                "transfer_type": "WITHDRAW",
+                "amount": "1.000000",
+                "asset": "USDC",
+                "status": "PROCESSED",
+                "network_name": "polygon",
+                "created_at": "2024-03-14T02:38:42.763171Z",
+                "updated_at": "2024-03-14T02:49:52.540890Z",
+                "from_portfolio": {
+                  "id": "1yun54bb-1-6",
+                  "uuid": "018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
+                  "name": "fungus technology o?Portfolio"
+                },
+                "to_address": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB"
+              },
+              {
+                "transfer_uuid": "8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3",
+                "transfer_type": "WITHDRAW",
+                "amount": "1.000000",
+                "asset": "USDC",
+                "status": "PROCESSED",
+                "network_name": "ethereum",
+                "created_at": "2024-03-14T02:32:18.497795Z",
+                "updated_at": "2024-03-14T02:35:38.514588Z",
+                "from_portfolio": {
+                  "id": "1yun54bb-1-6",
+                  "uuid": "018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
+                  "name": "fungus technology o?Portfolio"
+                },
+                "to_address": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB"
+              },
+              {
+                "transfer_uuid": "44945306-26ea-4c04-9ec8-3d8f04592ffc",
+                "transfer_type": "DEPOSIT",
+                "amount": "194.000000",
+                "asset": "USDC",
+                "status": "PROCESSED",
+                "network_name": "arbitrum",
+                "created_at": "2024-03-12T10:14:06.892785Z",
+                "updated_at": "2024-03-12T10:14:11.451495Z",
+                "to_portfolio": {
+                  "id": "1yun54bb-1-6",
+                  "uuid": "018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
+                  "name": "fungus technology o?Portfolio"
+                }
+              }
+            ]
+          },
+          "parsedResponse": [
+            {
+              "info": {
+                "transfer_uuid": "44945306-26ea-4c04-9ec8-3d8f04592ffc",
+                "transfer_type": "DEPOSIT",
+                "amount": "194.000000",
+                "asset": "USDC",
+                "status": "PROCESSED",
+                "network_name": "arbitrum",
+                "created_at": "2024-03-12T10:14:06.892785Z",
+                "updated_at": "2024-03-12T10:14:11.451495Z",
+                "to_portfolio": {
+                  "id": "1yun54bb-1-6",
+                  "uuid": "018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
+                  "name": "fungus technology o?Portfolio"
+                }
+              },
+              "id": "44945306-26ea-4c04-9ec8-3d8f04592ffc",
+              "txid": null,
+              "timestamp": 1710238451451,
+              "datetime": "2024-03-12T10:14:11.451495Z",
+              "network": "ARBITRUM",
+              "address": null,
+              "addressTo": null,
+              "addressFrom": null,
+              "tag": null,
+              "tagTo": null,
+              "tagFrom": null,
+              "type": null,
+              "amount": 194,
+              "currency": "USDC",
+              "status": "ok",
+              "updated": 1710238451451,
+              "fee": {
+                "cost": null,
+                "currency": null
+              }
+            },
+            {
+              "info": {
+                "transfer_uuid": "8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3",
+                "transfer_type": "WITHDRAW",
+                "amount": "1.000000",
+                "asset": "USDC",
+                "status": "PROCESSED",
+                "network_name": "ethereum",
+                "created_at": "2024-03-14T02:32:18.497795Z",
+                "updated_at": "2024-03-14T02:35:38.514588Z",
+                "from_portfolio": {
+                  "id": "1yun54bb-1-6",
+                  "uuid": "018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
+                  "name": "fungus technology o?Portfolio"
+                },
+                "to_address": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB"
+              },
+              "id": "8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3",
+              "txid": null,
+              "timestamp": 1710383738514,
+              "datetime": "2024-03-14T02:35:38.514588Z",
+              "network": "ETH",
+              "address": null,
+              "addressTo": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
+              "addressFrom": null,
+              "tag": null,
+              "tagTo": null,
+              "tagFrom": null,
+              "type": null,
+              "amount": 1,
+              "currency": "USDC",
+              "status": "ok",
+              "updated": 1710383738514,
+              "fee": {
+                "cost": null,
+                "currency": null
+              }
+            },
+            {
+              "info": {
+                "transfer_uuid": "1affd796-b39c-461e-8db1-6f8045681942",
+                "transfer_type": "WITHDRAW",
+                "amount": "1.000000",
+                "asset": "USDC",
+                "status": "PROCESSED",
+                "network_name": "polygon",
+                "created_at": "2024-03-14T02:38:42.763171Z",
+                "updated_at": "2024-03-14T02:49:52.540890Z",
+                "from_portfolio": {
+                  "id": "1yun54bb-1-6",
+                  "uuid": "018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
+                  "name": "fungus technology o?Portfolio"
+                },
+                "to_address": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB"
+              },
+              "id": "1affd796-b39c-461e-8db1-6f8045681942",
+              "txid": null,
+              "timestamp": 1710384592540,
+              "datetime": "2024-03-14T02:49:52.540890Z",
+              "network": "MATIC",
+              "address": null,
+              "addressTo": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
+              "addressFrom": null,
+              "tag": null,
+              "tagTo": null,
+              "tagFrom": null,
+              "type": null,
+              "amount": 1,
+              "currency": "USDC",
+              "status": "ok",
+              "updated": 1710384592540,
+              "fee": {
+                "cost": null,
+                "currency": null
+              }
+            },
+            {
+              "info": {
+                "transfer_uuid": "9e9fb352-f7f1-45b9-ad26-f9c15a21c59e",
+                "transfer_type": "DEPOSIT",
+                "amount": "1.000000",
+                "asset": "USDC",
+                "status": "PROCESSED",
+                "network_name": "polygon",
+                "created_at": "2024-03-14T02:51:11.473358Z",
+                "updated_at": "2024-03-14T03:05:19.164374Z",
+                "to_portfolio": {
+                  "id": "1yun54bb-1-6",
+                  "uuid": "018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
+                  "name": "fungus technology o?Portfolio"
+                }
+              },
+              "id": "9e9fb352-f7f1-45b9-ad26-f9c15a21c59e",
+              "txid": null,
+              "timestamp": 1710385519164,
+              "datetime": "2024-03-14T03:05:19.164374Z",
+              "network": "MATIC",
+              "address": null,
+              "addressTo": null,
+              "addressFrom": null,
+              "tag": null,
+              "tagTo": null,
+              "tagFrom": null,
+              "type": null,
+              "amount": 1,
+              "currency": "USDC",
+              "status": "ok",
+              "updated": 1710385519164,
+              "fee": {
+                "cost": null,
+                "currency": null
+              }
+            }
+          ]
+        }
       ]
     }
 }

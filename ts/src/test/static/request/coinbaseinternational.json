@@ -178,6 +178,14 @@
           ],
           "output": "{\"portfolio\":\"1wp37qsc-1-0\",\"size\":\"101\",\"price\":\"0.35\",\"client_order_id\":\"ccxtaf8edcec-ce94-\",\"clientOrderId\":\"ccxtaf8edcec-ce94-\"}"
         }
+       ],
+       "fetchDepositsWithdrawals": [
+          {
+            "description": "fetch deposit withdrawals",
+            "method": "fetchDepositsWithdrawals",
+            "url": "https://api.international.coinbase.com/api/v1/transfers?result_offset=0",
+            "input": []
+          }
        ]
     }
 }
