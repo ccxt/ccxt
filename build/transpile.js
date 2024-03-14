@@ -982,37 +982,37 @@ class Transpiler {
         }
         const matchObject = {
             'Account': /-> Account:/,
+            'Any': /: Any =/,
             'Balances': /-> Balances:/,
+            'Bool': /: Bool =/,
             'Currency': /(-> Currency:|: Currency)/,
+            'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
+            'IndexType': /: IndexType/,
             'Int': /: Int =/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
+            'Liquidation': /-> (?:List\[)?Liquidation/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
-            'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
-            'Order': /-> Order:/,
-            'TransferEntry': /-> TransferEntry:/,
+            'MarketInterface': /-> MarketInterface:/,
+            'MarketType': /: MarketType/,
+            'Num': /: Num =/,
+            'Order': /-> (?:List\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
-            'SubType': /: SubType/,
-            'IndexType': /: IndexType/,
-            'FundingHistory': /\[FundingHistory/,
-            'Num': /: Num =/,
-            'Any': /: Any =/,
             'Str': /: Str =/,
-            'Bool': /: Bool =/,
             'Strings': /: Strings =/,
+            'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'Trade': /-> (?:List\[)?Trade/,
-            'Order': /-> (?:List\[)?Order\]?:/,
             'Transaction': /-> (?:List\[)?Transaction/,
+            'TransferEntry': /-> TransferEntry:/,
         }
         const matches = []
         let match
@@ -1663,7 +1663,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {

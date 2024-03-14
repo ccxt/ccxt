@@ -5160,7 +5160,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = null;
         $marginMode = null;
         $longLeverage = null;

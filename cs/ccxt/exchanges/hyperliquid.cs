@@ -14,7 +14,7 @@ public partial class hyperliquid : Exchange
             { "version", "v1" },
             { "rateLimit", 50 },
             { "certified", false },
-            { "pro", false },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", false },

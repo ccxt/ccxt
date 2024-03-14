@@ -18,7 +18,7 @@ function test_fetch_positions($exchange, $skipped_properties, $symbol) {
         $now = $exchange->milliseconds();
         // without symbol
         $positions = Async\await($exchange->fetch_positions());
-        assert(gettype($positions) === 'array' && array_keys($positions) === array_keys(array_keys($positions)), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($positions));
+        assert_non_emtpy_array($exchange, $skipped_properties, $method, $positions, $symbol);
         for ($i = 0; $i < count($positions); $i++) {
             test_position($exchange, $skipped_properties, $method, $positions[$i], null, $now);
         }

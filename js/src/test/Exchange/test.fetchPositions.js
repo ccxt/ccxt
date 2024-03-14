@@ -5,13 +5,14 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
+import testSharedMethods from './base/test.sharedMethods.js';
 import testPosition from './base/test.position.js';
 async function testFetchPositions(exchange, skippedProperties, symbol) {
     const method = 'fetchPositions';
     const now = exchange.milliseconds();
     // without symbol
     const positions = await exchange.fetchPositions();
-    assert(Array.isArray(positions), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(positions));
+    testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol);
     for (let i = 0; i < positions.length; i++) {
         testPosition(exchange, skippedProperties, method, positions[i], undefined, now);
     }
