@@ -443,6 +443,15 @@ export default class testMainClass extends baseMainTestClass {
         } else if (exchange.inArray (methodName, [ 'fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols' ])) {
             const skips = exchange.safeValue (this.skippedMethods, 'ohlcv', {});
             return exchange.deepExtend (skipsForMethod, skips);
+        } else if (exchange.inArray (methodName, [ 'fetchLedger', 'fetchLedgerEntry' ])) {
+            const skips = exchange.safeValue (this.skippedMethods, 'ledger', {});
+            return exchange.deepExtend (skipsForMethod, skips);
+        } else if (exchange.inArray (methodName, [ 'fetchDepositsWithdrawals', 'fetchDeposits', 'fetchWithdrawals' ])) {
+            const skips = exchange.safeValue (this.skippedMethods, 'depositWithdraw', {});
+            return exchange.deepExtend (skipsForMethod, skips);
+        } else if (exchange.inArray (methodName, [ 'fetchDepositWithdrawFee', 'fetchDepositWithdrawFees' ])) {
+            const skips = exchange.safeValue (this.skippedMethods, 'depositWithdrawFee', {});
+            return exchange.deepExtend (skipsForMethod, skips);
         }
         return skipsForMethod;
     }
