@@ -33,11 +33,9 @@
             },
             "ticker": {
                 "low":"16 Aug - happened weird negative 24hr low",
-                "bid":"messed bid-ask",
                 "bid":"messed bid-ask"
             },
             "orderBook": {
-                "bid":"messed bid-ask",
                 "bid":"messed bid-ask"
             }
         }
@@ -48,7 +46,6 @@
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
             },
             "ticker": {
-                "bid":"broken bid-ask",
                 "bid":"broken bid-ask"
             },
             "orderBook": {
@@ -88,8 +85,7 @@
                 "expiryDatetime": "expiry not set for future markets"
             },
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
             },
             "fetchStatus": "private endpoints"
         }
@@ -138,8 +134,7 @@
                 "info":"null"
             },
             "orderBook": {
-                "bid":"sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540",
-                "bid":"same"
+                "bid":"sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
             }
         }
     },
@@ -178,8 +173,7 @@
             "loadMarkets": "linear and inverse values are same",
             "ticker": {
                 "symbol": "something broken with symbol",
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262965121#L3179",
-                "bid": "same"
+                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262965121#L3179"
             },
             "orderBook":{
                 "symbol": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L3846"
@@ -230,7 +224,6 @@
                 "deposit": "not provided"
             },
             "ticker": {
-                "bid":"broken bid-ask",
                 "bid":"broken bid-ask",
                 "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269099593#L3833",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
@@ -471,7 +464,6 @@
             "ticker": {
                 "symbol": "https://app.travis-ci.com/github/ccxt/ccxt/builds/265171549#L2518",
                 "percentage": "broken",
-                "bid": "messed bid-ask",
                 "bid": "messed bid-ask"
             }
         }
@@ -531,7 +523,6 @@
                 "deposit": "not provided"
             },
             "ticker": {
-                "bid": "broken bid-ask",
                 "bid": "broken bid-ask",
                 "baseVolume": "negative value"
             }
@@ -609,7 +600,6 @@
                 "makert":"is undefined"
             },
             "ticker": {
-                "bid": "broken bid-ask",
                 "bid": "broken bid-ask",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             }
@@ -712,7 +702,6 @@
             },
             "ticker": {
                 "bid": "not above bid https://app.travis-ci.com/github/ccxt/ccxt/builds/263871244#L2163",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "watchTrades": {
@@ -772,7 +761,6 @@
                 "fee": "not provided"
             },
             "ticker": {
-                "bid":"messed bid-ask",
                 "bid":"messed bid-ask"
             }
         }
