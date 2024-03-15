@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.72'
+__version__ = '4.2.73'
 
 # -----------------------------------------------------------------------------
 
@@ -645,6 +645,15 @@ class Exchange(BaseExchange):
 
     async def fetch_funding_rates(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
+
+    async def watch_funding_rate(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' watchFundingRate() is not supported yet')
+
+    async def watch_funding_rates(self, symbols: List[str], params={}):
+        raise NotSupported(self.id + ' watchFundingRates() is not supported yet')
+
+    async def watch_funding_rates_for_symbols(self, symbols: List[str], params={}):
+        return await self.watchFundingRates(symbols, params)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}):
         raise NotSupported(self.id + ' transfer() is not supported yet')

@@ -364,8 +364,8 @@ class hyperliquid extends hyperliquid$1 {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': 0.00000001,
-                'price': 0.00000001,
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'szDecimals'))),
+                'price': this.parseNumber('5'), // significant digits
             },
             'limits': {
                 'leverage': {
@@ -623,6 +623,12 @@ class hyperliquid extends hyperliquid$1 {
     }
     amountToPrecision(symbol, amount) {
         return this.decimalToPrecision(amount, number.ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
+    }
+    priceToPrecision(symbol, price) {
+        const market = this.market(symbol);
+        const result = this.decimalToPrecision(price, number.ROUND, market['precision']['price'], number.SIGNIFICANT_DIGITS, this.paddingMode);
+        const decimalParsedResult = this.decimalToPrecision(result, number.ROUND, 6, number.DECIMAL_PLACES, this.paddingMode);
+        return decimalParsedResult;
     }
     hashMessage(message) {
         return '0x' + this.hash(message, sha3.keccak_256, 'hex');

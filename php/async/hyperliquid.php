@@ -374,8 +374,8 @@ class hyperliquid extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => 0.00000001,
-                'price' => 0.00000001,
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'szDecimals'))), // decimal places
+                'price' => $this->parse_number('5'), // significant digits
             ),
             'limits' => array(
                 'leverage' => array(
@@ -638,6 +638,13 @@ class hyperliquid extends Exchange {
 
     public function amount_to_precision($symbol, $amount) {
         return $this->decimal_to_precision($amount, ROUND, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
+    }
+
+    public function price_to_precision(string $symbol, $price): string {
+        $market = $this->market($symbol);
+        $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], SIGNIFICANT_DIGITS, $this->paddingMode);
+        $decimalParsedResult = $this->decimal_to_precision($result, ROUND, 6, DECIMAL_PLACES, $this->paddingMode);
+        return $decimalParsedResult;
     }
 
     public function hash_message($message) {

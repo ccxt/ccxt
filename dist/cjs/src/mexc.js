@@ -918,7 +918,7 @@ class mexc extends mexc$1 {
                     'Combination of optional parameters invalid': errors.BadRequest,
                     'api market order is disabled': errors.BadRequest,
                     'Contract not allow place order!': errors.InvalidOrder,
-                    'Oversold': errors.InvalidOrder,
+                    'Oversold': errors.InsufficientFunds,
                     'Insufficient position': errors.InsufficientFunds,
                     'Insufficient balance!': errors.InsufficientFunds,
                     'Bid price is great than max allow price': errors.InvalidOrder,

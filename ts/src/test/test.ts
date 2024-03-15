@@ -1297,6 +1297,8 @@ export default class testMainClass extends baseMainTestClass {
     async testExchangeRequestStatically (exchangeName: string, exchangeData: object, testName: Str = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange (exchangeName);
+        const globalOptions = exchange.safeDict (exchangeData, 'options', {});
+        exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         const methods = exchange.safeValue (exchangeData, 'methods', {});
         const methodsNames = Object.keys (methods);
         for (let i = 0; i < methodsNames.length; i++) {
@@ -1450,6 +1452,7 @@ export default class testMainClass extends baseMainTestClass {
             this.testPhemex (),
             this.testBlofin (),
             this.testHyperliquid (),
+            this.testCoinbaseinternational (),
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1776,6 +1779,23 @@ export default class testMainClass extends baseMainTestClass {
         const brokerId = (request['action']['brokerCode']).toString ();
         assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
         await close (exchange);
+    }
+
+    async testCoinbaseinternational () {
+        const exchange = this.initOfflineExchange ('coinbaseinternational');
+        exchange.options['portfolio'] = 'random';
+        const id = 'nfqkvdjp';
+        assert (exchange.options['brokerId'] === id, 'id not in options');
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const clientOrderId = request['client_order_id'];
+        assert (clientOrderId.startsWith (id.toString ()), 'clientOrderId does not start with id');
+        await close (exchange);
+        return true;
     }
 }
 // ***** AUTO-TRANSPILER-END *****

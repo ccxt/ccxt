@@ -32,6 +32,12 @@ The source code of the CLI is available here:
 - https://github.com/ccxt/ccxt/blob/master/examples/py/cli.py
 - https://github.com/ccxt/ccxt/blob/master/examples/php/cli.php
 
+## Install globally
+```js
+npm -g ccxt
+```
+- Update using `npm update ccxt -g`
+
 ## Install
 
 1. Clone the CCXT repository:
@@ -98,3 +104,31 @@ For private API calls, by default the CLI script will look for API keys in the `
 ## Unified API vs Exchange-Specific API
 
 CLI supports all possible methods and properties that exist on the exchange instance.
+
+### Run with jq
+Install jq 
+
+<!-- tabs:start -->
+#### **Ubuntu**
+```bash
+sudo apt-get install jq
+```
+#### **Brew (Mac)**
+```bash
+brew install jq
+```
+#### **Choco (Windows)**
+```bash
+choco install jq -y
+```
+<!-- tabs:end -->
+
+#### Examples
+- Get ticker price of BTC/USDT: `ccxt binance fetchTicker BTC/USDT | jq '.price'
+- watch price and amount of trades:
+`ccxt binance watchTrades BTC/USDT --raw | jq -c '[.[] | {price: .price, amount: .amount}]'`
+
+- fuzzy search between trades (requires fzf):
+`ccxt binance fetchTrades --raw | jq -c '.[]' | fzf`
+
+![render1710459605924](https://github.com/ccxt/ccxt/assets/12142844/39b22383-42d5-4ebd-8b09-617008b7e4f0)
