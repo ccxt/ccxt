@@ -368,8 +368,8 @@ public partial class hyperliquid : Exchange
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
-                { "amount", 1e-8 },
-                { "price", 1e-8 },
+                { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "szDecimals"))) },
+                { "price", this.parseNumber("5") },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -645,6 +645,14 @@ public partial class hyperliquid : Exchange
     public override object amountToPrecision(object symbol, object amount)
     {
         return this.decimalToPrecision(amount, ROUND, getValue(getValue(getValue(this.markets, symbol), "precision"), "amount"), this.precisionMode);
+    }
+
+    public override object priceToPrecision(object symbol, object price)
+    {
+        object market = this.market(symbol);
+        object result = this.decimalToPrecision(price, ROUND, getValue(getValue(market, "precision"), "price"), SIGNIFICANT_DIGITS, this.paddingMode);
+        object decimalParsedResult = this.decimalToPrecision(result, ROUND, 6, DECIMAL_PLACES, this.paddingMode);
+        return decimalParsedResult;
     }
 
     public virtual object hashMessage(object message)

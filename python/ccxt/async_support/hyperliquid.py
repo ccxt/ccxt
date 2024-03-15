@@ -13,6 +13,8 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -365,8 +367,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': 0.00000001,
-                'price': 0.00000001,
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'szDecimals'))),  # decimal places
+                'price': self.parse_number('5'),  # significant digits
             },
             'limits': {
                 'leverage': {
@@ -611,6 +613,12 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def amount_to_precision(self, symbol, amount):
         return self.decimal_to_precision(amount, ROUND, self.markets[symbol]['precision']['amount'], self.precisionMode)
+
+    def price_to_precision(self, symbol: str, price) -> str:
+        market = self.market(symbol)
+        result = self.decimal_to_precision(price, ROUND, market['precision']['price'], SIGNIFICANT_DIGITS, self.paddingMode)
+        decimalParsedResult = self.decimal_to_precision(result, ROUND, 6, DECIMAL_PLACES, self.paddingMode)
+        return decimalParsedResult
 
     def hash_message(self, message):
         return '0x' + self.hash(message, 'keccak', 'hex')

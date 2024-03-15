@@ -16,6 +16,7 @@ export default class hyperliquid extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     amountToPrecision(symbol: any, amount: any): any;
+    priceToPrecision(symbol: string, price: any): string;
     hashMessage(message: any): string;
     signHash(hash: any, privateKey: any): {
         r: string;

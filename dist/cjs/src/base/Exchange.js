@@ -1998,6 +1998,15 @@ class Exchange {
     async fetchFundingRates(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingRates() is not supported yet');
     }
+    async watchFundingRate(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchFundingRate() is not supported yet');
+    }
+    async watchFundingRates(symbols, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchFundingRates() is not supported yet');
+    }
+    async watchFundingRatesForSymbols(symbols, params = {}) {
+        return await this.watchFundingRates(symbols, params);
+    }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         throw new errors.NotSupported(this.id + ' transfer() is not supported yet');
     }
@@ -3248,11 +3257,19 @@ class Exchange {
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
         if (networkId === undefined) {
             if (currencyCode === undefined) {
-                // if currencyCode was not provided, then we just set passed value to networkId
-                networkId = networkCode;
+                const currencies = Object.values(this.currencies);
+                for (let i = 0; i < currencies.length; i++) {
+                    const currency = [i];
+                    const networks = this.safeDict(currency, 'networks');
+                    const network = this.safeDict(networks, networkCode);
+                    networkId = this.safeString(network, 'id');
+                    if (networkId !== undefined) {
+                        break;
+                    }
+                }
             }
             else {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
+                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH) or is in the currency
                 const defaultNetworkCodeReplacements = this.safeValue(this.options, 'defaultNetworkCodeReplacements', {});
                 if (currencyCode in defaultNetworkCodeReplacements) {
                     // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
@@ -3268,10 +3285,17 @@ class Exchange {
                         }
                     }
                 }
-                // if it wasn't found, we just set the provided value to network-id
-                if (networkId === undefined) {
-                    networkId = networkCode;
+                else {
+                    // serach for network inside currency
+                    const currency = this.safeDict(this.currencies, currencyCode);
+                    const networks = this.safeDict(currency, 'networks');
+                    const network = this.safeDict(networks, networkCode);
+                    networkId = this.safeString(network, 'id');
                 }
+            }
+            // if it wasn't found, we just set the provided value to network-id
+            if (networkId === undefined) {
+                networkId = networkCode;
             }
         }
         return networkId;

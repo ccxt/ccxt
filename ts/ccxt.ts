@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.72';
+const version = '4.2.73';
 
 (Exchange as any).ccxtVersion = version
 
@@ -214,7 +214,6 @@ import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
-import zondaPro from  './src/pro/zonda.js'
 
 const exchanges = {
     'ace':                    ace,
@@ -385,7 +384,6 @@ const pro = {
     'wazirx':                 wazirxPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
-    'zonda':                  zondaPro,
 }
 
 for (const exchange in pro) {

@@ -89,5 +89,6 @@ export default class testMainClass extends baseMainTestClass {
     testPhemex(): Promise<void>;
     testBlofin(): Promise<void>;
     testHyperliquid(): Promise<void>;
+    testCoinbaseinternational(): Promise<boolean>;
 }
 export {};
