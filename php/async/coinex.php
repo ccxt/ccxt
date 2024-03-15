@@ -1992,7 +1992,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function create_order_request($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $swap = $market['swap'];
         $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');

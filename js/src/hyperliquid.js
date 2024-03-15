@@ -8,7 +8,7 @@
 import Exchange from './abstract/hyperliquid.js';
 import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE, ROUND } from './base/functions/number.js';
+import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -367,8 +367,8 @@ export default class hyperliquid extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': 0.00000001,
-                'price': 0.00000001,
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'szDecimals'))),
+                'price': 5, // significant digits
             },
             'limits': {
                 'leverage': {
@@ -627,6 +627,12 @@ export default class hyperliquid extends Exchange {
     amountToPrecision(symbol, amount) {
         return this.decimalToPrecision(amount, ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
     }
+    priceToPrecision(symbol, price) {
+        const market = this.market(symbol);
+        const result = this.decimalToPrecision(price, ROUND, market['precision']['price'], SIGNIFICANT_DIGITS, this.paddingMode);
+        const decimalParsedResult = this.decimalToPrecision(result, ROUND, 6, DECIMAL_PLACES, this.paddingMode);
+        return decimalParsedResult;
+    }
     hashMessage(message) {
         return '0x' + this.hash(message, keccak, 'hex');
     }
@@ -844,6 +850,7 @@ export default class hyperliquid extends Exchange {
                     throw new ArgumentsRequired(this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
                 }
                 px = (isBuy) ? Precise.stringMul(price, Precise.stringAdd('1', slippage)) : Precise.stringMul(price, Precise.stringSub('1', slippage));
+                px = this.priceToPrecision(symbol, px); // round after adding slippage
             }
             else {
                 px = this.priceToPrecision(symbol, price);

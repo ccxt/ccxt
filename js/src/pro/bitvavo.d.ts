@@ -1,5 +1,5 @@
 import bitvavoRest from '../bitvavo.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitvavo extends bitvavoRest {
     describe(): any;
@@ -22,8 +22,8 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookSubscriptions(client: Client, message: any, marketIds: any): void;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
     handleMultipleOrders(client: Client, message: any): void;

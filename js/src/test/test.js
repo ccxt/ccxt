@@ -407,21 +407,23 @@ export default class testMainClass extends baseMainTestClass {
         // get "method-specific" skips
         const skipsForMethod = exchange.safeValue(this.skippedMethods, methodName, {});
         // get "object-specific" skips
-        if (exchange.inArray(methodName, ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'orderBook', {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        }
-        else if (exchange.inArray(methodName, ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'ticker', {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        }
-        else if (exchange.inArray(methodName, ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'trade', {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        }
-        else if (exchange.inArray(methodName, ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'ohlcv', {});
-            return exchange.deepExtend(skipsForMethod, skips);
+        const objectSkips = {
+            'orderBook': ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
+            'ticker': ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'],
+            'trade': ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'],
+            'ohlcv': ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'],
+            'ledger': ['fetchLedger', 'fetchLedgerEntry'],
+            'depositWithdraw': ['fetchDepositsWithdrawals', 'fetchDeposits', 'fetchWithdrawals'],
+            'depositWithdrawFee': ['fetchDepositWithdrawFee', 'fetchDepositWithdrawFees'],
+        };
+        const objectNames = Object.keys(objectSkips);
+        for (let i = 0; i < objectNames.length; i++) {
+            const objectName = objectNames[i];
+            const objectMethods = objectSkips[objectName];
+            if (exchange.inArray(methodName, objectMethods)) {
+                const extraSkips = exchange.safeDict(this.skippedMethods, objectName, {});
+                return exchange.deepExtend(skipsForMethod, extraSkips);
+            }
         }
         return skipsForMethod;
     }
@@ -1270,6 +1272,8 @@ export default class testMainClass extends baseMainTestClass {
     async testExchangeRequestStatically(exchangeName, exchangeData, testName = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange(exchangeName);
+        const globalOptions = exchange.safeDict(exchangeData, 'options', {});
+        exchange.options = exchange.deepExtend(exchange.options, globalOptions); // custom options to be used in the tests
         const methods = exchange.safeValue(exchangeData, 'methods', {});
         const methodsNames = Object.keys(methods);
         for (let i = 0; i < methodsNames.length; i++) {
@@ -1419,6 +1423,7 @@ export default class testMainClass extends baseMainTestClass {
             this.testPhemex(),
             this.testBlofin(),
             this.testHyperliquid(),
+            this.testCoinbaseinternational(),
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1751,6 +1756,23 @@ export default class testMainClass extends baseMainTestClass {
         const brokerId = (request['action']['brokerCode']).toString();
         assert(brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
         await close(exchange);
+    }
+    async testCoinbaseinternational() {
+        const exchange = this.initOfflineExchange('coinbaseinternational');
+        exchange.options['portfolio'] = 'random';
+        const id = 'nfqkvdjp';
+        assert(exchange.options['brokerId'] === id, 'id not in options');
+        let request = undefined;
+        try {
+            await exchange.createOrder('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const clientOrderId = request['client_order_id'];
+        assert(clientOrderId.startsWith(id.toString()), 'clientOrderId does not start with id');
+        await close(exchange);
+        return true;
     }
 }
 // ***** AUTO-TRANSPILER-END *****
