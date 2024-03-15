@@ -110,6 +110,19 @@
                   3500.12345
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":1,\"b\":true,\"p\":\"3500.1\",\"s\":\"0.0135\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710503941098,\"signature\":{\"r\":\"0x9f9ed0bac32450e14214db21ab8fca2e0bc88e42abfddd6988199a55bd6d2b1b\",\"s\":\"0x6e5739314381a73080436bae1ca2269e59847366bb0f7b3ba912aa12e0f90036\",\"v\":27}}"
+            },
+            {
+                "description": "MEME order with unformatted price and amount",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "MEME/USDC:USDC",
+                  "limit",
+                  "buy",
+                  1000.543543,
+                  0.043423423434
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":75,\"b\":true,\"p\":\"0.043423\",\"s\":\"1001\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710504463822,\"signature\":{\"r\":\"0x5b667d58d29e6d20e4bb69a6c8f876e8c588813caadb3177dc6a70cb8583ccd6\",\"s\":\"0x4187e4f7919bf8b564499f047796894bc4cf59fa5bf10f4c7894439e5adf2b48\",\"v\":28}}"
             }
         ],
         "createOrders": [
