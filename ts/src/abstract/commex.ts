@@ -23,6 +23,7 @@ interface Exchange {
     privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
     privateGetOrder (params?: {}): Promise<implicitReturnType>;
     privateGetCapitalDepositHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
     privatePostOrder (params?: {}): Promise<implicitReturnType>;
 }
