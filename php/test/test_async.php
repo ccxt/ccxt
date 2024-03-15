@@ -1357,6 +1357,8 @@ class testMainClass extends baseMainTestClass {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
             $exchange = $this->init_offline_exchange($exchange_name);
+            $global_options = $exchange->safe_dict($exchange_data, 'options', array());
+            $exchange->options = $exchange->deep_extend($exchange->options, $global_options); // custom options to be used in the tests
             $methods = $exchange->safe_value($exchange_data, 'methods', array());
             $methods_names = is_array($methods) ? array_keys($methods) : array();
             for ($i = 0; $i < count($methods_names); $i++) {
@@ -1505,7 +1507,7 @@ class testMainClass extends baseMainTestClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1865,6 +1867,25 @@ class testMainClass extends baseMainTestClass {
             $broker_id = ((string) ($request['action']['brokerCode']));
             assert($broker_id === $id, 'hyperliquid - brokerId: ' . $broker_id . ' does not start with id: ' . $id);
             Async\await(close($exchange));
+        }) ();
+    }
+
+    public function test_coinbaseinternational() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('coinbaseinternational');
+            $exchange->options['portfolio'] = 'random';
+            $id = 'nfqkvdjp';
+            assert($exchange->options['brokerId'] === $id, 'id not in options');
+            $request = null;
+            try {
+                Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $request['client_order_id'];
+            assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 }

@@ -3776,7 +3776,7 @@ class bybit extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function create_usdc_order($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_usdc_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($type === 'market') {
