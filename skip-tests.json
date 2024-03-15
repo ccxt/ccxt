@@ -712,14 +712,10 @@
         "until": "2024-03-19",
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
-            "fetchOrderBook": {
+            "orderBook": {
                 "bid": "bid more than ask"
             },
             "ticker": {
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid": "failing the test"
-            },
-            "fetchTicker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "bid": "failing the test"
             }
@@ -733,7 +729,6 @@
                 "deposit": "not provided"
             },
             "loadMarkets": "strike is set when option is not true",
-            "fetchTickers": "something wrong",
             "fetchBalance": "does not add up",
             "fetchPositions": {
                 "percentage": "undefined",
@@ -1011,7 +1006,15 @@
                 "withdraw":"not provided",
                 "deposit":"not provided"
             },
-            "fetchTickers": "negative values"
+            "ticker":{
+                "open": "negative values",
+                "high": "negative values",
+                "low": "negative values",
+                "close": "negative values",
+                "bid": "negative values",
+                "ask": "negative values",
+                "average": "negative values"
+            }
         }
     },
     "luno": {
@@ -1247,16 +1250,11 @@
         }
     },
     "krakenfutures": {
-        "skip": "continious timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2431",
         "skipMethods": {
-            "loadMarkets": "skip loadMarkets",
             "fetchCurrencies": {
                 "withdraw": "undefined",
                 "deposit": "undefined"
-            },
-            "fetchTickers": "timeouts this call specifically",
-            "fetchTicker": "timeouts this call specifically",
-            "watchTrades": "reverse timestamps"
+            }
         },
         "timeout": 120000
     },
