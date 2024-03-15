@@ -28,7 +28,7 @@ var _stringify = require('string.ify').configure({
             var indent = '    ',
                 why = stringify.limit((x.message || '').replace(/\r|\n/g, '').trim(), stringify.state.maxErrorMessageLength || 120),
                 // stack = new StackTracey(x).withSources().asTable(),
-                stack = (new Error()).stack;
+                stack = (new Error()).stack,
                 stackIndented = stack.split('\n').map(function (x) {
                 return indent + x;
             }).join('\n'),

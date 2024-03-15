@@ -135,6 +135,9 @@
     "id-tests-cs": "dotnet run --project cs/tests/tests.csproj --idTests",
     "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs"
   },
+  "bin": {
+    "ccxt-cli": "./js/cli/cli.js"
+  },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.3",
