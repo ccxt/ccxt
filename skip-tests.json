@@ -357,8 +357,6 @@
         }
     },
     "bitrue": {
-        "skip":"temp",
-        "until":"2024-03-18",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -730,6 +728,7 @@
     "deribit": {
         "skipMethods": {
             "fetchCurrencies": {
+                "networks": "not provided",
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
@@ -1049,7 +1048,7 @@
             "orderBook": {
                 "bid": "bid should be greater than next bid"
             },
-            "fetchTicker": {
+            "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
