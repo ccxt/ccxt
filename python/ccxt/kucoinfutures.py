@@ -5,7 +5,7 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -1061,7 +1061,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         Create an order on the exchange
         :see: https://docs.kucoin.com/futures/#place-an-order
@@ -1155,7 +1155,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data)
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
@@ -1545,7 +1545,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             return self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
 
-    def fetch_order(self, id: str = None, symbol: Str = None, params={}):
+    def fetch_order(self, id: Str = None, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.kucoin.com/futures/#get-details-of-a-single-order

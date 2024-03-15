@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Num, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -2342,7 +2342,7 @@ class phemex(Exchange, ImplicitAPI):
             return self.parse_swap_order(order, market)
         return self.parse_spot_order(order, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
@@ -2590,7 +2590,7 @@ class phemex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType = None, side: OrderSide = None, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType = None, side: OrderSide = None, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid

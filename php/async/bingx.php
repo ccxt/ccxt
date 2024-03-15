@@ -3530,7 +3530,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         return array(
             'info' => $leverage,
@@ -4235,7 +4235,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+    public function parse_margin_mode($marginMode, $market = null): array {
         $marginType = $this->safe_string_lower($marginMode, 'marginType');
         $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
         return array(

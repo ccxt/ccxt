@@ -1,5 +1,5 @@
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, OrderBook, Transaction, Strings, Market, Currency, Num } from './base/types.js';
 /**
  * @class kucoinfutures
  * @augments Exchange
@@ -31,9 +31,9 @@ export default class kucoinfutures extends kucoin {
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createContractOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
+    createContractOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
@@ -48,7 +48,7 @@ export default class kucoinfutures extends kucoin {
     };
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrder(id?: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id?: Str, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;

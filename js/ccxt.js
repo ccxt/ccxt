@@ -38,7 +38,7 @@ import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.68';
+const version = '4.2.72';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import ace from './src/ace.js';
@@ -182,6 +182,7 @@ import hollaexPro from './src/pro/hollaex.js';
 import htxPro from './src/pro/htx.js';
 import huobiPro from './src/pro/huobi.js';
 import huobijpPro from './src/pro/huobijp.js';
+import hyperliquidPro from './src/pro/hyperliquid.js';
 import idexPro from './src/pro/idex.js';
 import independentreservePro from './src/pro/independentreserve.js';
 import krakenPro from './src/pro/kraken.js';
@@ -347,6 +348,7 @@ const pro = {
     'htx': htxPro,
     'huobi': huobiPro,
     'huobijp': huobijpPro,
+    'hyperliquid': hyperliquidPro,
     'idex': idexPro,
     'independentreserve': independentreservePro,
     'kraken': krakenPro,

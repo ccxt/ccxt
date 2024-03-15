@@ -1,5 +1,5 @@
 import Exchange from './abstract/bybit.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num } from './base/types.js';
 /**
  * @class bybit
  * @augments Exchange
@@ -58,12 +58,12 @@ export default class bybit extends Exchange {
     parseOrder(order: any, market?: Market): Order;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}, isUTA?: boolean): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}, isUTA?: boolean): any;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createUsdcOrder(symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): Promise<Order>;
+    createUsdcOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editUsdcOrder(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelUsdcOrder(id: any, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;

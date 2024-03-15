@@ -2087,7 +2087,7 @@ class bitmex extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): Leverages {
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the set leverage for all contract markets
          * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
@@ -2100,7 +2100,7 @@ class bitmex extends Exchange {
         return $this->parse_leverages($leverages, $symbols, 'symbol');
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         return array(
             'info' => $leverage,

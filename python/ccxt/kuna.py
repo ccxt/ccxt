@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.kuna import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -916,7 +916,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_balance(data)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.kuna.io/docs/create-a-new-order-private

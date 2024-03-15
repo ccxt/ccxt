@@ -12,7 +12,7 @@ include_once PATH_TO_CCXT . '/test/base/test_deposit_withdrawal.php';
 function test_fetch_deposits($exchange, $skipped_properties, $code) {
     $method = 'fetchDeposits';
     $transactions = $exchange->fetch_deposits($code);
-    assert(gettype($transactions) === 'array' && array_keys($transactions) === array_keys(array_keys($transactions)), $exchange->id . ' ' . $method . ' ' . $code . ' must return an array. ' . $exchange->json($transactions));
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $transactions, $code);
     $now = $exchange->milliseconds();
     for ($i = 0; $i < count($transactions); $i++) {
         test_deposit_withdrawal($exchange, $skipped_properties, $method, $transactions[$i], $code, $now);

@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.68';
+$version = '4.2.72';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.68';
+    const VERSION = '4.2.72';
 
     public $browser;
     public $marketsLoading = null;
@@ -3170,7 +3170,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
-    public function create_trailing_amount_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingAmount, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
@@ -3198,7 +3198,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
@@ -3275,7 +3275,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_trigger_order(string $symbol, string $type, string $side, $amount, $price = null, $triggerPrice = null, $params = array ()) {
+    public function create_trigger_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $triggerPrice, $params) {
             /**
              * create a trigger stop order ($type 1)

@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num } from './base/types.js';
 /**
  * @class coinbase
  * @augments Exchange
@@ -70,14 +70,14 @@ export default class coinbase extends Exchange {
     };
     prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{}[]>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): string;
     parseOrderType(type: any): string;
     parseTimeInForce(timeInForce: any): string;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -3315,7 +3315,7 @@ class bybit(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         return self.create_order(symbol, 'market', 'sell', cost, 1, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://bybit-exchange.github.io/docs/v5/order/create-order
@@ -3375,7 +3375,7 @@ class bybit(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}, isUTA=True):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}, isUTA=True):
         market = self.market(symbol)
         symbol = market['symbol']
         lowerCaseType = type.lower()
@@ -3619,7 +3619,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(data)
 
-    def create_usdc_order(self, symbol, type, side, amount: float, price: float = None, params={}):
+    def create_usdc_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         if type == 'market':
@@ -3778,7 +3778,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://bybit-exchange.github.io/docs/v5/order/amend-order

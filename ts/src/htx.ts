@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency } from './base/types.js';
+import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -5035,7 +5035,7 @@ export default class htx extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name htx#createTrailingPercentOrder
@@ -5061,7 +5061,7 @@ export default class htx extends Exchange {
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
-    async createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -5179,7 +5179,7 @@ export default class htx extends Exchange {
         return this.extend (request, params);
     }
 
-    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -5275,7 +5275,7 @@ export default class htx extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name huobi#createOrder

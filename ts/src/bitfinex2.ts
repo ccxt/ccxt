@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1550,7 +1550,7 @@ export default class bitfinex2 extends Exchange {
         }, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -1642,7 +1642,7 @@ export default class bitfinex2 extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#createOrder
@@ -3551,7 +3551,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchOrder
@@ -3618,7 +3618,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#editOrder

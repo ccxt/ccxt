@@ -38,7 +38,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.68';
+$version = '4.2.72';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -57,7 +57,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.68';
+    const VERSION = '4.2.72';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4977,7 +4977,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
-    public function create_trailing_amount_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -5003,7 +5003,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createTrailingAmountOrder() is not supported yet');
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -5072,7 +5072,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createMarketSellOrderWithCost() is not supported yet');
     }
 
-    public function create_trigger_order(string $symbol, string $type, string $side, $amount, $price = null, $triggerPrice = null, $params = array ()) {
+    public function create_trigger_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array ()) {
         /**
          * create a trigger stop order ($type 1)
          * @param {string} $symbol unified $symbol of the market to create an order in

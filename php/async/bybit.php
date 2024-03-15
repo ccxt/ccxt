@@ -3826,7 +3826,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function create_usdc_order($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_usdc_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -6448,7 +6448,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(

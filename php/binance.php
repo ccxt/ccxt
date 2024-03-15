@@ -4613,7 +4613,7 @@ class binance extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function edit_spot_order(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_spot_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * edit a trade order
@@ -4678,7 +4678,7 @@ class binance extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function edit_spot_order_request(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_spot_order_request(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request for editSpotOrder
@@ -4803,7 +4803,7 @@ class binance extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function edit_contract_order(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_contract_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
@@ -7837,7 +7837,7 @@ class binance extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
@@ -10118,7 +10118,7 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): Leverages {
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the set leverage for all markets
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
@@ -10158,7 +10158,7 @@ class binance extends Exchange {
         return $this->parse_leverages($leverages, $symbols, 'symbol');
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $marginModeRaw = $this->safe_bool($leverage, 'isolated');
         $marginMode = null;
@@ -11733,7 +11733,7 @@ class binance extends Exchange {
         ));
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): Greeks {
+    public function fetch_greeks(string $symbol, $params = array ()): array {
         /**
          * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          * @see https://binance-docs.github.io/apidocs/voptions/en/#option-mark-price
@@ -11856,7 +11856,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_margin_modes(?array $symbols = null, $params = array ()): MarginModes {
+    public function fetch_margin_modes(?array $symbols = null, $params = array ()): array {
         /**
          * fetches margin modes ("isolated" or "cross") that the $market for the symbol in in, with symbol=null all markets for a $subType (linear/inverse) are returned
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
@@ -11997,7 +11997,7 @@ class binance extends Exchange {
         return $this->parse_margin_modes($assets, $symbols, 'symbol', 'swap');
     }
 
-    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+    public function parse_margin_mode($marginMode, $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $isIsolated = $this->safe_bool($marginMode, 'isolated');

@@ -2906,7 +2906,7 @@ class bitrue extends Exchange {
         return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
