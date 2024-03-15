@@ -2,11 +2,13 @@
 
 import fs from 'fs'
 import path from 'path'
+import ansi from 'ansicolor'
+import asTable from 'as-table'
+import ololog from 'ololog'
+import util from 'util'
+import { execSync } from 'child_process'
+import ccxt from '../../ts/ccxt.js'
 import { Agent } from 'https'
-import ccxt from '../ccxt.js'
-import ansi from './static_dependencies/ansicolor.cjs'
-import asTable from './static_dependencies/as-table.cjs'
-import ololog from './static_dependencies/ololog.cjs'
 
 const fsPromises = fs.promises;
 ansi.nice
