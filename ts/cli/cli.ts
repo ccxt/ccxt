@@ -4,9 +4,9 @@ import fs from 'fs'
 import path from 'path'
 import { Agent } from 'https'
 import ccxt from '../ccxt.js'
-import ansi from './static_dependencies/ansicolor'
-import asTable from './static_dependencies/as-table'
-import ololog from './static_dependencies/ololog'
+import ansi from './static_dependencies/ansicolor.js'
+import asTable from './static_dependencies/as-table.js'
+import ololog from './static_dependencies/ololog.js'
 
 const fsPromises = fs.promises;
 ansi.nice
