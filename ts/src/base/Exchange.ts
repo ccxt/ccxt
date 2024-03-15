@@ -2336,6 +2336,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
+    async watchFundingRate (symbol: string, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' watchFundingRate() is not supported yet');
+    }
+
+    async watchFundingRates (symbols: string[], params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' watchFundingRates() is not supported yet');
+    }
+
+    async watchFundingRatesForSymbols (symbols: string[], params = {}): Promise<{}> {
+        return await this.watchFundingRates (symbols, params);
+    }
+
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         throw new NotSupported (this.id + ' transfer() is not supported yet');
     }
@@ -3614,10 +3626,18 @@ export default class Exchange {
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
         if (networkId === undefined) {
             if (currencyCode === undefined) {
-                // if currencyCode was not provided, then we just set passed value to networkId
-                networkId = networkCode;
+                const currencies = Object.values (this.currencies);
+                for (let i = 0; i < currencies.length; i++) {
+                    const currency = [ i ];
+                    const networks = this.safeDict (currency, 'networks');
+                    const network = this.safeDict (networks, networkCode);
+                    networkId = this.safeString (network, 'id');
+                    if (networkId !== undefined) {
+                        break;
+                    }
+                }
             } else {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
+                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH) or is in the currency
                 const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
                 if (currencyCode in defaultNetworkCodeReplacements) {
                     // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
@@ -3632,11 +3652,17 @@ export default class Exchange {
                             break;
                         }
                     }
+                } else {
+                    // serach for network inside currency
+                    const currency = this.safeDict (this.currencies, currencyCode);
+                    const networks = this.safeDict (currency, 'networks');
+                    const network = this.safeDict (networks, networkCode);
+                    networkId = this.safeString (network, 'id');
                 }
-                // if it wasn't found, we just set the provided value to network-id
-                if (networkId === undefined) {
-                    networkId = networkCode;
-                }
+            }
+            // if it wasn't found, we just set the provided value to network-id
+            if (networkId === undefined) {
+                networkId = networkCode;
             }
         }
         return networkId;
