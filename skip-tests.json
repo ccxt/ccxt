@@ -1118,6 +1118,7 @@
                 "currencyIdAndCode": "messed"
             },
             "fetchCurrencies":{
+                "limits": "max above min",
                 "precision":"is undefined"
             },
             "fetchTrades": {
