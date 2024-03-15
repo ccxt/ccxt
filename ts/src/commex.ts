@@ -1,7 +1,7 @@
 /* eslint-disable indent */
 import Exchange from './abstract/commex.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
-import type { Int, OHLCV, Trade, Market, Ticker, Str, Tickers, Strings, Balances, Order, OrderType, OrderSide, Transaction } from './base/types.js';
+import type { Currency, Int, OHLCV, Trade, Market, Ticker, Str, Tickers, Strings, Balances, Order, OrderType, OrderSide, Transaction } from './base/types.js';
 import { TRUNCATE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -31,7 +31,7 @@ export default class commex extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': true,
+                'cancelOrders': false,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
@@ -85,6 +85,7 @@ export default class commex extends Exchange {
             'options': {
                 'recvWindow': 5 * 1000, // 5 sec,
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'warnOnFetchOpenOrdersWithoutSymbol': true,
             },
             // https://www.commex.com/api-docs/en/?shell#public-api-definitions
             'timeframes': {
@@ -161,6 +162,7 @@ export default class commex extends Exchange {
                         'allOrders',
                         'order',
                         'capital/deposit/history',
+                        'capital/withdraw/history',
                     ],
                     'delete': [
                         'order',
@@ -718,7 +720,6 @@ export default class commex extends Exchange {
         }
         const request = {};
         let market = undefined;
-        // let method = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -728,24 +729,10 @@ export default class commex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         [ params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        // method = 'privateGetMyTrades';
-        let endTime = this.safeInteger2 (params, 'until', 'endTime');
-        // ????
+        const endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
             const startTime = since;
             request['startTime'] = startTime;
-            // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
-            // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
-            // The time between startTime and endTime cannot be longer than 7 days.
-            // The parameter fromId cannot be sent with startTime or endTime.
-            const currentTimestamp = this.milliseconds ();
-            const oneWeek = 7 * 24 * 60 * 60 * 1000;
-            if ((currentTimestamp - startTime) >= oneWeek) {
-                if ((endTime === undefined) && market['linear']) {
-                    endTime = this.sum (startTime, oneWeek);
-                    endTime = Math.min (endTime, currentTimestamp);
-                }
-            }
         }
         if (endTime !== undefined) {
             request['endTime'] = endTime;
@@ -759,26 +746,6 @@ export default class commex extends Exchange {
         // [  {    "symbol": "LTCBTC",    "orderId": 1,    "clientOrderId": "myOrder1",    "price": "0.1",    "origQty": "1.0",    "executedQty": "0.0",
         //    "cumulativeQuoteQty": "0.0",    "status": "NEW",    "timeInForce": "GTC",    "type": "LIMIT",    "side": "BUY",    "stopPrice": "0.0",
         //  "time": 1499827319559,    "updateTime": 1499827319559,    "isWorking": true,    "origQuoteOrderQty": "0.000000"  }]
-        //
-        // Binance
-        // spot trade
-        //
-        //     [
-        //         {
-        //             "symbol": "BNBBTC",
-        //             "id": 28457,
-        //             "orderId": 100234,
-        //             "price": "4.00000100",
-        //             "qty": "12.00000000",
-        //             "commission": "10.10000000",
-        //             "commissionAsset": "BNB",
-        //             "time": 1499865549590,
-        //             "isBuyer": true,
-        //             "isMaker": false,
-        //             "isBestMatch": true,
-        //         }
-        //     ]
-        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -862,7 +829,7 @@ export default class commex extends Exchange {
          * @method
          * @name commex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://www.commex.com/api-docs/en/#symbol-price-ticker                  // spot
+         * @see https://www.commex.com/api-docs/en/#account-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -898,62 +865,26 @@ export default class commex extends Exchange {
         /**
          * @method
          * @name commex#fetchOpenOrders
-         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+         * @see https://www.commex.com/api-docs/en/#current-open-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
-        let type = undefined;
         const request = {};
-        let marginMode = undefined;
         let query = undefined;
-        [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        [ query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            const marketType = ('type' in market) ? market['type'] : defaultType;
-            type = this.safeString (query, 'type', marketType);
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            const symbols = this.symbols;
-            const numSymbols = symbols.length;
-            const fetchOpenOrdersRateLimit = this.parseToInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
-        } else {
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString (query, 'type', defaultType);
+            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
-        let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, query);
-        const requestParams = this.omit (query, 'type');
-        let method = 'privateGetOpenOrders';
-        if (type === 'option') {
-            method = 'eapiPrivateGetOpenOrders';
-            if (since !== undefined) {
-                request['startTime'] = since;
-            }
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-        } else if (this.isLinear (type, subType)) {
-            method = 'fapiPrivateGetOpenOrders';
-        } else if (this.isInverse (type, subType)) {
-            method = 'dapiPrivateGetOpenOrders';
-        } else if (type === 'margin' || marginMode !== undefined) {
-            method = 'sapiGetMarginOpenOrders';
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for isolated markets');
-                }
-            }
-        }
-        const response = await this[method] (this.extend (request, requestParams));
+        [ query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, query);
+        const response = await this.privateGetAllOrders (this.extend (request, query));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1065,8 +996,9 @@ export default class commex extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed') as Order[];
+        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const filteredOrders = this.filterBy (orders, 'status', 'closed');
+        return this.filterBySinceLimit (filteredOrders, since, limit) as Order[];
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1079,7 +1011,6 @@ export default class commex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1094,25 +1025,10 @@ export default class commex extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
         }
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', params);
+        const [ query ] = this.handleMarginModeAndParams ('fetchOrders', params);
         const request = {
             'symbol': market['id'],
         };
-        let method = 'privateGetAllOrders';
-        if (market['option']) {
-            method = 'eapiPrivateGetHistoryOrders';
-        } else if (market['linear']) {
-            method = 'fapiPrivateGetAllOrders';
-        } else if (market['inverse']) {
-            method = 'dapiPrivateGetAllOrders';
-        } else if (type === 'margin' || marginMode !== undefined) {
-            method = 'sapiGetMarginAllOrders';
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
-            }
-        }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, 'until');
@@ -1124,7 +1040,7 @@ export default class commex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.privateGetAllOrders (this.extend (request, query));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1147,8 +1063,6 @@ export default class commex extends Exchange {
         const [ query ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const request = {
             'symbol': market['id'],
-            // 'orderId': id,
-            // 'origClientOrderId': id,
         };
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1164,12 +1078,11 @@ export default class commex extends Exchange {
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name binance#fetchOrder
+         * @name commex#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://www.commex.com/api-docs/en/#query-order
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -1196,7 +1109,7 @@ export default class commex extends Exchange {
         /**
          * @method
          * @ignore
-         * @name binance#createOrderRequest
+         * @name commex#createOrderRequest
          * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
@@ -1204,7 +1117,6 @@ export default class commex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the exchange API endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
@@ -1413,63 +1325,203 @@ export default class commex extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
         /**
          * @method
-         * @name binance#createOrder
+         * @name commex#createOrder
          * @description create a trade order
-         * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
+         * @see https://www.commex.com/api-docs/en/#new-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-         * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
-         * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = this.safeString (params, 'type', market['type']);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
-        const sor = this.safeValue2 (params, 'sor', 'SOR', false);
-        params = this.omit (params, 'sor', 'SOR');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let method = 'privatePostOrder';
-        if (sor) {
-            method = 'privatePostSorOrder';
-        } else if (market['linear']) {
-            method = 'fapiPrivatePostOrder';
-        } else if (market['inverse']) {
-            method = 'dapiPrivatePostOrder';
-        } else if (marketType === 'margin' || marginMode !== undefined) {
-            method = 'sapiPostMarginOrder';
-        }
-        if (market['option']) {
-            method = 'eapiPrivatePostOrder';
-        }
-        // support for testing orders
-        if (market['spot'] || marketType === 'margin') {
-            const test = this.safeValue (query, 'test', false);
-            if (test) {
-                method += 'Test';
+        const response = await this.privatePostOrder (request);
+        return this.parseOrder (response, market);
+    }
+
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //       "amount": "4500",
+        //       "coin": "USDT",
+        //       "network": "BSC",
+        //       "status": 1,
+        //       "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+        //       "addressTag": "",
+        //       "txId": "Internal transfer 51376627901",
+        //       "insertTime": 1618394381000,
+        //       "transferType": 1,
+        //       "confirmTimes": "1/15"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //       "id": "69e53ad305124b96b43668ceab158a18",
+        //       "amount": "28.75",
+        //       "transactionFee": "0.25",
+        //       "coin": "XRP",
+        //       "status": 6,
+        //       "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+        //       "addressTag": "101286922",
+        //       "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+        //       "applyTime": "2021-04-15 12:09:16",
+        //       "network": "XRP",
+        //       "transferType": 0
+        //     }
+        //
+        // fiat transaction
+        // withdraw
+        //     {
+        //       "orderNo": "CJW684897551397171200",
+        //       "fiatCurrency": "GBP",
+        //       "indicatedAmount": "29.99",
+        //       "amount": "28.49",
+        //       "totalFee": "1.50",
+        //       "method": "bank transfer",
+        //       "status": "Successful",
+        //       "createTime": 1614898701000,
+        //       "updateTime": 1614898820000
+        //     }
+        //
+        // deposit
+        //     {
+        //       "orderNo": "25ced37075c1470ba8939d0df2316e23",
+        //       "fiatCurrency": "EUR",
+        //       "transactionType": 0,
+        //       "indicatedAmount": "15.00",
+        //       "amount": "15.00",
+        //       "totalFee": "0.00",
+        //       "method": "card",
+        //       "status": "Failed",
+        //       "createTime": "1627501026000",
+        //       "updateTime": "1627501027000"
+        //     }
+        //
+        // withdraw
+        //
+        //    { id: "9a67628b16ba4988ae20d329333f16bc" }
+        //
+        const id = this.safeString2 (transaction, 'id', 'orderNo');
+        const address = this.safeString (transaction, 'address');
+        let tag = this.safeString (transaction, 'addressTag'); // set but unused
+        if (tag !== undefined) {
+            if (tag.length < 1) {
+                tag = undefined;
             }
         }
-        const response = await this[method] (request);
-        return this.parseOrder (response, market);
+        let txid = this.safeString (transaction, 'txId');
+        if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
+            txid = txid.slice (18);
+        }
+        const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
+        let code = this.safeCurrencyCode (currencyId, currency);
+        let timestamp = undefined;
+        timestamp = this.safeInteger2 (transaction, 'insertTime', 'createTime');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (transaction, 'applyTime'));
+        }
+        const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
+        let type = this.safeString (transaction, 'type');
+        if (type === undefined) {
+            const txType = this.safeString (transaction, 'transactionType');
+            if (txType !== undefined) {
+                type = (txType === '0') ? 'deposit' : 'withdrawal';
+            }
+            const legalMoneyCurrenciesById = this.safeValue (this.options, 'legalMoneyCurrenciesById');
+            code = this.safeString (legalMoneyCurrenciesById, code, code);
+        }
+        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        const amount = this.safeNumber (transaction, 'amount');
+        const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost };
+        }
+        const internalInteger = this.safeInteger (transaction, 'transferType');
+        let internal = undefined;
+        if (internalInteger !== undefined) {
+            internal = internalInteger ? true : false;
+        }
+        const network = this.safeString (transaction, 'network');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': network,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'internal': internal,
+            'comment': undefined,
+            'fee': fee,
+        };
+    }
+
+    parseTransactionStatusByType (status, type = undefined) {
+        const statusesByType = {
+            'deposit': {
+                '0': 'pending',
+                '1': 'ok',
+                '6': 'ok',
+                // Fiat
+                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing': 'pending',
+                'Failed': 'failed',
+                'Successful': 'ok',
+                'Refunding': 'canceled',
+                'Refunded': 'canceled',
+                'Refund Failed': 'failed',
+            },
+            'withdrawal': {
+                '0': 'pending', // Email Sent
+                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
+                '2': 'pending', // Awaiting Approval
+                '3': 'failed', // Rejected
+                '4': 'pending', // Processing
+                '5': 'failed', // Failure
+                '6': 'ok', // Completed
+                // Fiat
+                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing': 'pending',
+                'Failed': 'failed',
+                'Successful': 'ok',
+                'Refunding': 'canceled',
+                'Refunded': 'canceled',
+                'Refund Failed': 'failed',
+            },
+        };
+        const statuses = this.safeDict (statusesByType, type, {});
+        return this.safeString (statuses, status, status);
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name binance#fetchDeposits
+         * @name commex#fetchDeposits
          * @see https://www.commex.com/api-docs/en/#user-deposit-history
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.fiat] if true, only fiat deposits will be returned
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
@@ -1481,7 +1533,6 @@ export default class commex extends Exchange {
         let currency = undefined;
         let response = undefined;
         const request = {};
-        params = this.omit (params, 'fiatOnly');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         if (code !== undefined) {
@@ -1505,4 +1556,101 @@ export default class commex extends Exchange {
         }
         return this.parseTransactions (response, currency, since, limit);
     }
+
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name binance#fetchWithdrawals
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
+         * @description fetch all withdrawals made from an account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.fiat] if true, only fiat withdrawals will be returned
+         * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
+        }
+        const request = {};
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        request['transactionType'] = 1;
+        if (since !== undefined) {
+            request['beginTime'] = since;
+        }
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = this.sum (since, 7776000000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        response = await this.privateGetCapitalWithdrawHistory (this.extend (request, params));
+        //     [
+        //       {
+        //         "id": "69e53ad305124b96b43668ceab158a18",
+        //         "amount": "28.75",
+        //         "transactionFee": "0.25",
+        //         "coin": "XRP",
+        //         "status": 6,
+        //         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+        //         "addressTag": "101286922",
+        //         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+        //         "applyTime": "2021-04-15 12:09:16",
+        //         "network": "XRP",
+        //         "transferType": 0
+        //       },
+        //       {
+        //         "id": "9a67628b16ba4988ae20d329333f16bc",
+        //         "amount": "20",
+        //         "transactionFee": "20",
+        //         "coin": "USDT",
+        //         "status": 6,
+        //         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
+        //         "applyTime": "2021-04-15 12:06:53",
+        //         "network": "ETH",
+        //         "transferType": 0
+        //       },
+        //       {
+        //         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
+        //         "amount": "51",
+        //         "transactionFee": "1",
+        //         "coin": "USDT",
+        //         "status": 6,
+        //         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
+        //         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
+        //         "applyTime": "2021-04-13 12:46:59",
+        //         "network": "TRX",
+        //         "transferType": 0
+        //       }
+        //     ]
+        for (let i = 0; i < response.length; i++) {
+            response[i]['type'] = 'withdrawal';
+        }
+        return this.parseTransactions (response, currency, since, limit);
+  }
 }
