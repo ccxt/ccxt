@@ -755,7 +755,7 @@ export default class coinbaseinternational extends Exchange {
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': market['symbol'],
             'entryPrice': undefined,
             'markPrice': this.safeNumber (position, 'mark_price'),
             'notional': undefined,
@@ -818,7 +818,8 @@ export default class coinbaseinternational extends Exchange {
         if (this.isEmpty (symbols)) {
             return positions;
         }
-        return this.filterBy (positions, 'symbol', symbols);
+        symbols = this.marketSymbols (symbols);
+        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
     }
 
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
