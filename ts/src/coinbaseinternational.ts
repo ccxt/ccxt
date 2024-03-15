@@ -258,11 +258,11 @@ export default class coinbaseinternational extends Exchange {
     async handlePortfolioAndParams (methodName: string, params = {}) {
         let portfolio = undefined;
         [ portfolio, params ] = this.handleOptionAndParams (params, methodName, 'portfolio');
-        if (portfolio !== undefined) {
+        if ((portfolio !== undefined) && (portfolio !== '')) {
             return [ portfolio, params ];
         }
         const defaultPortfolio = this.safeString (this.options, 'portfolio');
-        if (defaultPortfolio !== undefined) {
+        if ((defaultPortfolio !== undefined) && (defaultPortfolio !== '')) {
             return [ defaultPortfolio, params ];
         }
         const accounts = await this.fetchAccounts ();
