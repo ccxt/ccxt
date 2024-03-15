@@ -524,7 +524,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         const orderbook = this.orderbooks[symbol];
         if (type === 'SNAPSHOT') {
-            orderbook.reset (message);
+            const parsedSnapshot = this.parseOrderBook (message, symbol, undefined, 'bids', 'asks');
+            orderbook.reset (parsedSnapshot);
             orderbook['symbol'] = symbol;
         } else {
             const changes = this.safeList (message, 'changes', []);
