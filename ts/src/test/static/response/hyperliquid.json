@@ -414,7 +414,7 @@
                         "hedged": null,
                         "side": null,
                         "contracts": null,
-                        "contractSize": null,
+                        "contractSize": 1,
                         "entryPrice": 112.0945,
                         "markPrice": null,
                         "notional": 463.9594,

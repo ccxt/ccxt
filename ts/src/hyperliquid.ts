@@ -4,7 +4,7 @@
 import Exchange from './abstract/hyperliquid.js';
 import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE, ROUND } from './base/functions/number.js';
+import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -375,8 +375,8 @@ export default class hyperliquid extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': 0.00000001,
-                'price': 0.00000001,
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'szDecimals'))), // decimal places
+                'price': this.parseNumber ('5'), // significant digits
             },
             'limits': {
                 'leverage': {
@@ -639,6 +639,13 @@ export default class hyperliquid extends Exchange {
 
     amountToPrecision (symbol, amount) {
         return this.decimalToPrecision (amount, ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
+    }
+
+    priceToPrecision (symbol: string, price): string {
+        const market = this.market (symbol);
+        const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], SIGNIFICANT_DIGITS, this.paddingMode);
+        const decimalParsedResult = this.decimalToPrecision (result, ROUND, 6, DECIMAL_PLACES, this.paddingMode);
+        return decimalParsedResult;
     }
 
     hashMessage (message) {
