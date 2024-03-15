@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.idex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -1102,7 +1102,7 @@ class idex(Exchange, ImplicitAPI):
         result = await self.privatePostWallets(request)
         return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order, https://docs.idex.io/#create-order
         :see: https://api-docs-v3.idex.io/#create-order
@@ -1650,7 +1650,7 @@ class idex(Exchange, ImplicitAPI):
         authenticated = hasApiKey and hasSecret and hasWalletAddress and hasPrivateKey
         return(defaultCost / 2) if authenticated else defaultCost
 
-    async def fetch_deposit_address(self, code: str = None, params={}):
+    async def fetch_deposit_address(self, code: Str = None, params={}):
         """
         fetch the Polygon address of the wallet
         :see: https://api-docs-v3.idex.io/#get-wallets

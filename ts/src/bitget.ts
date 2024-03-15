@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4060,7 +4060,7 @@ export default class bitget extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitget#createOrder
@@ -4149,7 +4149,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol, type, side, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let market = undefined;
         if (sandboxMode) {
@@ -4463,7 +4463,7 @@ export default class bitget extends Exchange {
         return this.parseOrders (both, market);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitget#editOrder

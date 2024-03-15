@@ -2,7 +2,7 @@ import Exchange from './abstract/timex.js';
 import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 /**
  * @class timex
@@ -745,7 +745,7 @@ export default class timex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name timex#createOrder
@@ -821,7 +821,7 @@ export default class timex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

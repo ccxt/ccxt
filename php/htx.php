@@ -4985,7 +4985,7 @@ class htx extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
          * @param {string} $symbol unified $symbol of the market to create an order in

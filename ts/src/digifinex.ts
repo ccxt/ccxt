@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1562,7 +1562,7 @@ export default class digifinex extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#createOrder
@@ -1716,7 +1716,7 @@ export default class digifinex extends Exchange {
         return this.parseOrders (result, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore

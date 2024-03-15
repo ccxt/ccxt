@@ -566,6 +566,19 @@
             }
         }
     },
+    "coinbaseinternational": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "i.e. coinbase does not have currency code TIA"
+            },
+            "fetchCurrencies": {
+                "precision": "not provided",
+                "networks": "not provided",
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            }
+        }
+    },
     "coinmetro": {
         "skipMethods": {
             "fetchTrades": {

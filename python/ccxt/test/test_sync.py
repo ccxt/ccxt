@@ -1104,6 +1104,8 @@ class testMainClass(baseMainTestClass):
     def test_exchange_request_statically(self, exchange_name, exchange_data, test_name=None):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
         exchange = self.init_offline_exchange(exchange_name)
+        global_options = exchange.safe_dict(exchange_data, 'options', {})
+        exchange.options = exchange.deep_extend(exchange.options, global_options)  # custom options to be used in the tests
         methods = exchange.safe_value(exchange_data, 'methods', {})
         methods_names = list(methods.keys())
         for i in range(0, len(methods_names)):
@@ -1216,7 +1218,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1506,6 +1508,21 @@ class testMainClass(baseMainTestClass):
         broker_id = str((request['action']['brokerCode']))
         assert broker_id == id, 'hyperliquid - brokerId: ' + broker_id + ' does not start with id: ' + id
         close(exchange)
+
+    def test_coinbaseinternational(self):
+        exchange = self.init_offline_exchange('coinbaseinternational')
+        exchange.options['portfolio'] = 'random'
+        id = 'nfqkvdjp'
+        assert exchange.options['brokerId'] == id, 'id not in options'
+        request = None
+        try:
+            exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['client_order_id']
+        assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
+        close(exchange)
+        return True
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

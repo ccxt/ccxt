@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1483,7 +1483,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build an order request
@@ -1561,7 +1561,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create an order on the exchange
         :see: https://docs.bitfinex.com/reference/rest-auth-submit-order
@@ -3319,7 +3319,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'status': marginStatus,
         }
 
-    async def fetch_order(self, id: str, symbol: str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -3382,7 +3382,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         order = self.safe_list(response, 0)
         return self.parse_order(order, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.bitfinex.com/reference/rest-auth-update-order

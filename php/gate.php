@@ -2875,7 +2875,7 @@ class gate extends Exchange {
         $request = array();
         list($request, $params) = $this->prepare_request($market, null, $params);
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $maxLimit = 1000;
+        $maxLimit = $market['contract'] ? 1999 : 1000;
         $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {

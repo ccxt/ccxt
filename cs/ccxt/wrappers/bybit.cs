@@ -485,7 +485,7 @@ public partial class bybit
         var res = await this.createOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<Order> CreateUsdcOrder(object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateUsdcOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createUsdcOrder(symbol, type, side, amount, price, parameters);
@@ -1475,7 +1475,7 @@ public partial class bybit
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.tokocrypto.com/apidocs/#withdraw-signed"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.btcbox import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -286,7 +286,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://blog.btcbox.jp/en/archives/8762#toc18

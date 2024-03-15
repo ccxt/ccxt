@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1346,7 +1346,7 @@ export default class zonda extends Exchange {
         return this.parseTrades (items, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name zonda#createOrder

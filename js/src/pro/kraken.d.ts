@@ -1,11 +1,11 @@
 import krakenRest from '../kraken.js';
-import type { Int, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, OHLCV } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, OHLCV, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kraken extends krakenRest {
     describe(): any;
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     handleCreateEditOrder(client: any, message: any): void;
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     handleCancelOrder(client: any, message: any): void;

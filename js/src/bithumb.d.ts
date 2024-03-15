@@ -1,5 +1,5 @@
 import Exchange from './abstract/bithumb.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bithumb
  * @augments Exchange
@@ -19,7 +19,7 @@ export default class bithumb extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btcmarkets import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -749,7 +749,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.btcmarkets.net/v3/#tag/Order-Placement-APIs/paths/~1v3~1orders/post

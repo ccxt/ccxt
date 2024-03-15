@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Int, Order, OrderBook, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 
@@ -251,7 +251,7 @@ class coinbase(ccxt.async_support.coinbase):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel

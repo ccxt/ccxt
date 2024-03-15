@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, Insuffic
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -797,7 +797,7 @@ export default class btcmarkets extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#createOrder
