@@ -280,7 +280,8 @@
             "fetchOHLCV": "https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862",
             "watchOHLCV": "same as above, needs key fix",
             "ticker": {
-                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269367056#L3473"
+                "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269367056#L3473",
+                "close": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L3862"
             },
             "fetchPositions": {
                 "stopLossPrice": "undefined",
@@ -356,6 +357,8 @@
         }
     },
     "bitrue": {
+        "skip":"temp",
+        "until":"2024-03-18",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -1134,6 +1137,7 @@
     },
     "phemex": {
         "skipPhpAsync": true,
+        "skipCSharp": true,
         "skipMethods": {
             "loadMarkets": {
                 "contractSize": "broken for some markets",
