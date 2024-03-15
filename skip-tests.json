@@ -1277,7 +1277,7 @@
     },
     "krakenfutures": {
         "skipMethods": {
-            "loadMarkets:" :{
+            "loadMarkets" :{
                 "active": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4502"
             },
             "fetchCurrencies": {
