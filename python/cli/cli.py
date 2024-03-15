@@ -108,8 +108,10 @@ async def main():
     keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
     # load the api keys and other settings from a JSON config
-    with open(keys_file, encoding="utf-8") as file:
-        keys = json.load(file)
+    keys = {}
+    if os.path.isfile(keys_file):
+        with open(keys_file, encoding="utf-8") as file:
+            keys = json.load(file)
 
     config = {
         # 'verbose': argv.verbose,  # set later, after load_markets
