@@ -96,7 +96,7 @@
                   0.001409324,
                   70956.12312321
                 ],
-                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":3,\"b\":true,\"p\":\"70956\",\"s\":\"0.00141\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710503852928,\"signature\":{\"r\":\"0xc3b83528452492118d90f6f9ed0cae8bd975d7eba4f2d64e61abb47590ee2889\",\"s\":\"0x2f85d2ce05b88eef6d2546cdba280785ec2ef3e7ff0b389c7dcb7d4ed8adc3d3\",\"v\":27}}"
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":true,\"p\":\"70956\",\"s\":\"0.00141\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710503852928,\"signature\":{\"r\":\"0xc3b83528452492118d90f6f9ed0cae8bd975d7eba4f2d64e61abb47590ee2889\",\"s\":\"0x2f85d2ce05b88eef6d2546cdba280785ec2ef3e7ff0b389c7dcb7d4ed8adc3d3\",\"v\":27}}"
             },
             {
                 "description": "ETH order with unformatted price and amount",
@@ -109,7 +109,7 @@
                   0.01349234,
                   3500.12345
                 ],
-                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":4,\"b\":true,\"p\":\"3500.1\",\"s\":\"0.0135\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710503941098,\"signature\":{\"r\":\"0x9f9ed0bac32450e14214db21ab8fca2e0bc88e42abfddd6988199a55bd6d2b1b\",\"s\":\"0x6e5739314381a73080436bae1ca2269e59847366bb0f7b3ba912aa12e0f90036\",\"v\":27}}"
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":1,\"b\":true,\"p\":\"3500.1\",\"s\":\"0.0135\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710503941098,\"signature\":{\"r\":\"0x9f9ed0bac32450e14214db21ab8fca2e0bc88e42abfddd6988199a55bd6d2b1b\",\"s\":\"0x6e5739314381a73080436bae1ca2269e59847366bb0f7b3ba912aa12e0f90036\",\"v\":27}}"
             }
         ],
         "createOrders": [
