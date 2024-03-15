@@ -130,8 +130,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const productIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const marketId = this.marketId (symbols[i]);
+            const symbol = this.symbol (marketId);
             productIds.push (marketId);
-            messageHashes.push (name + '::' + marketId);
+            messageHashes.push (name + '::' + symbol);
         }
         const url = this.urls['api']['ws'];
         if (url === undefined) {
@@ -361,7 +362,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
