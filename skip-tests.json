@@ -1278,9 +1278,11 @@
     "krakenfutures": {
         "skipMethods": {
             "loadMarkets" :{
-                "active": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4502"
+                "active": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4502",
+                "currencyIdAndCode": "messed"
             },
             "fetchCurrencies": {
+                "currencyIdAndCode": "messed",
                 "withdraw": "undefined",
                 "deposit": "undefined"
             },
