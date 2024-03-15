@@ -430,7 +430,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //       "channel": "MATCH",
         //       "type": "UPDATE"
         //    }
-        const marketId = this.safeString (trade, 'symbol');
+        const marketId = this.safeString2 (trade, 'symbol', 'product_id');
         const datetime = this.safeString (trade, 'time');
         return this.safeTrade ({
             'info': trade,
