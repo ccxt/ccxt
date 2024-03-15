@@ -599,6 +599,7 @@ export default class okx extends okxRest {
             if (responseChecksum !== localChecksum) {
                 const error = new InvalidNonce (this.id + ' invalid checksum');
                 client.reject (error, messageHash);
+                return;
             }
         }
         const timestamp = this.safeInteger (message, 'ts');
