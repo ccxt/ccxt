@@ -739,6 +739,7 @@ export default class kraken extends krakenRest {
                 if (localChecksum !== c) {
                     const error = new InvalidNonce (this.id + ' invalid checksum');
                     client.reject (error, messageHash);
+                    return;
                 }
             }
             orderbook['symbol'] = symbol;
