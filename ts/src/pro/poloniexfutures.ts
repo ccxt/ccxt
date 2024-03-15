@@ -1015,7 +1015,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "type": "error"
         //    }
         //
-        client.reject (message); // todo: maybe exception
+        client.reject (message); // todo: maybe exception instead of string
     }
 
     handleMessage (client: Client, message) {
