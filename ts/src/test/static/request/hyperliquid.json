@@ -148,7 +148,7 @@
                   0.0014646006034154486,
                   70000.234234324
                 ],
-                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":3,\"b\":true,\"p\":\"73500\",\"s\":\"0.00146\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710527621347,\"signature\":{\"r\":\"0xba8575938a44e3e291085efb8e9682af3e9da54d5fbcbf49316c89b4ae84dba4\",\"s\":\"0x1d20dc5973f66161f4cd856d50611543d11f65f59a1bc53e33b01e1a4874b555\",\"v\":28}}"
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":true,\"p\":\"73500\",\"s\":\"0.00146\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710527621347,\"signature\":{\"r\":\"0xba8575938a44e3e291085efb8e9682af3e9da54d5fbcbf49316c89b4ae84dba4\",\"s\":\"0x1d20dc5973f66161f4cd856d50611543d11f65f59a1bc53e33b01e1a4874b555\",\"v\":28}}"
             }
         ],
         "createOrders": [
