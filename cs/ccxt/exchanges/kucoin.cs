@@ -371,6 +371,7 @@ public partial class kucoin : Exchange
                 { "12h", "12hour" },
                 { "1d", "1day" },
                 { "1w", "1week" },
+                { "1M", "1month" },
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
@@ -4661,7 +4662,7 @@ public partial class kucoin : Exchange
         url = add(url, endpoint);
         object isFuturePrivate = (isEqual(api, "futuresPrivate"));
         object isPrivate = (isEqual(api, "private"));
-        object isBroker = (isEqual(api, "private"));
+        object isBroker = (isEqual(api, "broker"));
         if (isTrue(isTrue(isTrue(isPrivate) || isTrue(isFuturePrivate)) || isTrue(isBroker)))
         {
             this.checkRequiredCredentials();
@@ -4697,7 +4698,10 @@ public partial class kucoin : Exchange
             if (isTrue(isBroker))
             {
                 object brokerName = this.safeString(partner, "name");
-                ((IDictionary<string,object>)headers)["KC-BROKER-NAME"] = brokerName;
+                if (isTrue(!isEqual(brokerName, null)))
+                {
+                    ((IDictionary<string,object>)headers)["KC-BROKER-NAME"] = brokerName;
+                }
             }
         }
         return new Dictionary<string, object>() {

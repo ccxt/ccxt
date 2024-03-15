@@ -2934,7 +2934,7 @@ class bingx extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
@@ -3421,7 +3421,7 @@ class bingx extends Exchange {
         return $response;
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
@@ -3449,7 +3449,7 @@ class bingx extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         return array(
             'info' => $leverage,
@@ -4105,7 +4105,7 @@ class bingx extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): MarginMode {
+    public function fetch_margin_mode(string $symbol, $params = array ()): array {
         /**
          * fetches the margin mode of the trading pair
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode
@@ -4132,7 +4132,7 @@ class bingx extends Exchange {
         return $this->parse_margin_mode($data, $market);
     }
 
-    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+    public function parse_margin_mode($marginMode, $market = null): array {
         $marginType = $this->safe_string_lower($marginMode, 'marginType');
         $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
         return array(

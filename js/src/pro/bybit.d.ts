@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
     requestId(): any;
-    getUrlByMarketType(symbol?: Str, isPrivate?: boolean, method?: string, params?: {}): any;
+    getUrlByMarketType(symbol?: Str, isPrivate?: boolean, method?: Str, params?: {}): any;
     cleanParams(params: any): any;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;

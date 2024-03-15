@@ -1,0 +1,144 @@
+{
+    "exchange": "lbank",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "result": "true",
+                    "data": [
+                        {
+                            "date_ms": "1710327656856",
+                            "amount": "0.0347",
+                            "price": "73238.2",
+                            "type": "sell",
+                            "tid": "448d76dfada24311899d7f8ee925c7f3"
+                        }
+                    ],
+                    "error_code": "0",
+                    "ts": "1710327657210"
+                },
+                "parsedResponse": [
+                    {
+                        "timestamp": 1710327656856,
+                        "datetime": "2024-03-13T11:00:56.856Z",
+                        "symbol": "BTC/USDT",
+                        "id": "448d76dfada24311899d7f8ee925c7f3",
+                        "order": null,
+                        "type": "limit",
+                        "takerOrMaker": "taker",
+                        "side": "sell",
+                        "price": 73238.2,
+                        "amount": 0.0347,
+                        "cost": 2541.36554,
+                        "fee": null,
+                        "info": {
+                            "date_ms": "1710327656856",
+                            "amount": "0.0347",
+                            "price": "73238.2",
+                            "type": "sell",
+                            "tid": "448d76dfada24311899d7f8ee925c7f3"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "result": "true",
+                    "data": [
+                        {
+                            "symbol": "btc_usdt",
+                            "ticker": {
+                                "high": "73640.51",
+                                "vol": "12127.5132",
+                                "low": "68677.55",
+                                "change": "1.77",
+                                "turnover": "869993132.77",
+                                "latest": "73380.29"
+                            },
+                            "timestamp": "1710328237047"
+                        }
+                    ],
+                    "error_code": "0",
+                    "ts": "1710328244598"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328237047,
+                    "datetime": "2024-03-13T11:10:37.047Z",
+                    "high": 73640.51,
+                    "low": 68677.55,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 71737.14168952625,
+                    "open": null,
+                    "close": 73380.29,
+                    "last": 73380.29,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": 1.77,
+                    "average": null,
+                    "baseVolume": 12127.5132,
+                    "quoteVolume": 869993132.77,
+                    "info": {
+                        "symbol": "btc_usdt",
+                        "ticker": {
+                            "high": "73640.51",
+                            "vol": "12127.5132",
+                            "low": "68677.55",
+                            "change": "1.77",
+                            "turnover": "869993132.77",
+                            "latest": "73380.29"
+                        },
+                        "timestamp": "1710328237047"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "result": "true",
+                    "data": [
+                        [
+                            1710324000,
+                            73306.1,
+                            73386.61,
+                            73138.1,
+                            73259.91,
+                            376.3878
+                        ]
+                    ],
+                    "error_code": "0",
+                    "ts": "1710328419894"
+                },
+                "parsedResponse": []
+            }
+        ]
+    }
+}

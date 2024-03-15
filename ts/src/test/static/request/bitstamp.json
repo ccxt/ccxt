@@ -195,6 +195,20 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from main to subAccount or from subAccount to main",
+                "method": "transfer",
+                "url": "https://www.bitstamp.net/api/v2/transfer-from-main/",
+                "input": [
+                    "USDT",
+                    1,
+                    "main",
+                    93482781
+                ],
+                "output": "amount=1&currency=USDT&subAccount=93482781"
+            }
         ]
     }
 }

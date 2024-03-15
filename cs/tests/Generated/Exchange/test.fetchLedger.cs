@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     {
         object method = "fetchLedger";
         object items = await exchange.fetchLedger(code);
-        assert(((items is IList<object>) || (items.GetType().IsGenericType && items.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), code), " must return an array. "), exchange.json(items)));
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         object now = exchange.milliseconds();
         for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
         {

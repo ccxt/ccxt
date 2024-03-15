@@ -215,7 +215,7 @@ export default class Exchange {
         this.socksProxyAgentModule = undefined;
         this.socksProxyAgentModuleChecked = false;
         this.proxyDictionaries = {};
-        this.proxyModulesLoaded = false;
+        this.proxiesModulesLoading = undefined;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -716,36 +716,38 @@ export default class Exchange {
         console.log(...args);
     }
     async loadProxyModules() {
-        if (this.proxyModulesLoaded) {
-            return;
+        // when loading markets, multiple parallel calls are made, so need one promise
+        if (this.proxiesModulesLoading === undefined) {
+            this.proxiesModulesLoading = (async () => {
+                // we have to handle it with below nested way, because of dynamic
+                // import issues (https://github.com/ccxt/ccxt/pull/20687)
+                try {
+                    // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+                    this.httpProxyAgentModule = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+                    this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+                }
+                catch (e) {
+                    // if several users are using those frameworks which cause exceptions,
+                    // let them to be able to load modules still, by installing them
+                    try {
+                        // @ts-ignore
+                        this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'http-proxy-agent');
+                        // @ts-ignore
+                        this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent');
+                    }
+                    catch (e) { }
+                }
+                if (this.socksProxyAgentModuleChecked === false) {
+                    try {
+                        // @ts-ignore
+                        this.socksProxyAgentModule = await import(/* webpackIgnore: true */ 'socks-proxy-agent');
+                    }
+                    catch (e) { }
+                    this.socksProxyAgentModuleChecked = true;
+                }
+            })();
         }
-        this.proxyModulesLoaded = true;
-        // we have to handle it with below nested way, because of dynamic
-        // import issues (https://github.com/ccxt/ccxt/pull/20687)
-        try {
-            // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-            this.httpProxyAgentModule = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-            this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
-        }
-        catch (e) {
-            // if several users are using those frameworks which cause exceptions,
-            // let them to be able to load modules still, by installing them
-            try {
-                // @ts-ignore
-                this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'http-proxy-agent');
-                // @ts-ignore
-                this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent');
-            }
-            catch (e) { }
-        }
-        if (this.socksProxyAgentModuleChecked === false) {
-            this.socksProxyAgentModuleChecked = true;
-            try {
-                // @ts-ignore
-                this.socksProxyAgentModule = await import(/* webpackIgnore: true */ 'socks-proxy-agent');
-            }
-            catch (e) { }
-        }
+        return await this.proxiesModulesLoading;
     }
     setProxyAgents(httpProxy, httpsProxy, socksProxy) {
         let chosenAgent = undefined;
@@ -3522,6 +3524,13 @@ export default class Exchange {
         }
         return [value, params];
     }
+    handleParamInteger(params, paramName, defaultValue = undefined) {
+        const value = this.safeInteger(params, paramName, defaultValue);
+        if (value !== undefined) {
+            params = this.omit(params, paramName);
+        }
+        return [value, params];
+    }
     resolvePath(path, params) {
         return [
             this.implodeParams(path, params),
@@ -5317,7 +5326,10 @@ export default class Exchange {
                     const response = await this[method](symbol, undefined, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        const backwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        let backwardMessage = 'Dynamic pagination call ' + this.numberToString(calls) + ' method ' + method + ' response length ' + this.numberToString(responseLength);
+                        if (paginationTimestamp !== undefined) {
+                            backwardMessage += ' timestamp ' + this.numberToString(paginationTimestamp);
+                        }
                         this.log(backwardMessage);
                     }
                     if (responseLength === 0) {
@@ -5336,7 +5348,10 @@ export default class Exchange {
                     const response = await this[method](symbol, paginationTimestamp, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        const forwardMessage = 'Dynamic pagination call ' + calls + ' method ' + method + ' response length ' + responseLength + ' timestamp ' + paginationTimestamp;
+                        let forwardMessage = 'Dynamic pagination call ' + this.numberToString(calls) + ' method ' + method + ' response length ' + this.numberToString(responseLength);
+                        if (paginationTimestamp !== undefined) {
+                            forwardMessage += ' timestamp ' + this.numberToString(paginationTimestamp);
+                        }
                         this.log(forwardMessage);
                     }
                     if (responseLength === 0) {

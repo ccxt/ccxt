@@ -1298,6 +1298,7 @@ export default class kraken extends Exchange {
         const lastTrade = trades[length - 1];
         const lastTradeId = this.safeString(result, 'last');
         lastTrade.push(lastTradeId);
+        trades[length - 1] = lastTrade;
         return this.parseTrades(trades, market, since, limit);
     }
     parseBalance(response) {

@@ -407,6 +407,7 @@ class kucoin extends Exchange {
                 '12h' => '12hour',
                 '1d' => '1day',
                 '1w' => '1week',
+                '1M' => '1month',
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -3545,7 +3546,7 @@ class kucoin extends Exchange {
         return $returnType;
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.kucoin.com/#inner-transfer
@@ -4378,7 +4379,7 @@ class kucoin extends Exchange {
         $url = $url . $endpoint;
         $isFuturePrivate = ($api === 'futuresPrivate');
         $isPrivate = ($api === 'private');
-        $isBroker = ($api === 'private');
+        $isBroker = ($api === 'broker');
         if ($isPrivate || $isFuturePrivate || $isBroker) {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();
@@ -4409,7 +4410,9 @@ class kucoin extends Exchange {
             }
             if ($isBroker) {
                 $brokerName = $this->safe_string($partner, 'name');
-                $headers['KC-BROKER-NAME'] = $brokerName;
+                if ($brokerName !== null) {
+                    $headers['KC-BROKER-NAME'] = $brokerName;
+                }
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

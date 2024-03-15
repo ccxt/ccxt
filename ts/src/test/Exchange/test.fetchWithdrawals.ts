@@ -6,7 +6,7 @@ import testDepositWithdrawal from './base/test.depositWithdrawal.js';
 async function testFetchWithdrawals (exchange, skippedProperties, code) {
     const method = 'fetchWithdrawals';
     const transactions = await exchange.fetchWithdrawals (code);
-    assert (Array.isArray (transactions), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json (transactions));
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, transactions, code);
     const now = exchange.milliseconds ();
     for (let i = 0; i < transactions.length; i++) {
         testDepositWithdrawal (exchange, skippedProperties, method, transactions[i], code, now);

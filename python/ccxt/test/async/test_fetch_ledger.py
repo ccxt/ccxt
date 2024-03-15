@@ -18,7 +18,7 @@ from ccxt.test.base import test_ledger_entry  # noqa E402
 async def test_fetch_ledger(exchange, skipped_properties, code):
     method = 'fetchLedger'
     items = await exchange.fetch_ledger(code)
-    assert isinstance(items, list), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(items)
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, items, code)
     now = exchange.milliseconds()
     for i in range(0, len(items)):
         test_ledger_entry(exchange, skipped_properties, method, items[i], code, now)

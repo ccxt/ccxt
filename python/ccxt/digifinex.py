@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.digifinex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1463,7 +1463,8 @@ class digifinex(Exchange, ImplicitAPI):
             elif limit is not None:
                 endTime = self.seconds()
                 duration = self.parse_timeframe(timeframe)
-                request['start_time'] = self.sum(endTime, -limit * duration)
+                auxLimit = limit  # in c# -limit is mutating the arg
+                request['start_time'] = self.sum(endTime, -auxLimit * duration)
             response = self.publicSpotGetKline(self.extend(request, params))
         #
         # spot
@@ -1500,7 +1501,7 @@ class digifinex(Exchange, ImplicitAPI):
             candles = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
@@ -1637,7 +1638,7 @@ class digifinex(Exchange, ImplicitAPI):
             result.append(individualOrder)
         return self.parse_orders(result, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build request

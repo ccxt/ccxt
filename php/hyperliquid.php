@@ -18,7 +18,7 @@ class hyperliquid extends Exchange {
             'version' => 'v1',
             'rateLimit' => 50, // 1200 requests per minute, 20 request per second
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -882,13 +882,16 @@ class hyperliquid extends Exchange {
             }
             $orderReq[] = $orderObj;
         }
+        $vaultAddress = $this->safe_string($params, 'vaultAddress');
         $orderAction = array(
             'type' => 'order',
             'orders' => $orderReq,
             'grouping' => 'na',
-            'brokerCode' => 1,
+            // 'brokerCode' => 1, // cant
         );
-        $vaultAddress = $this->safe_string($params, 'vaultAddress');
+        if ($vaultAddress === null) {
+            $orderAction['brokerCode'] = 1;
+        }
         $signature = $this->sign_l1_action($orderAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $orderAction,
@@ -1875,7 +1878,7 @@ class hyperliquid extends Exchange {
         // ));
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer currency internally between wallets on the same account
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer

@@ -488,13 +488,15 @@ public partial class Exchange
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateTrailingAmountOrder(string symbol, string type, string side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateTrailingAmountOrder(string symbol, string type, string side, double amount, double? price2 = 0, object trailingAmount = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createTrailingAmountOrder(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateTrailingPercentOrder(string symbol, string type, string side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price2 = 0, object trailingPercent = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters);
         return new Order(res);
     }
@@ -513,8 +515,10 @@ public partial class Exchange
         var res = await this.createMarketSellOrderWithCost(symbol, cost, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateTriggerOrder(string symbol, string type, string side, object amount, object price = null, object triggerPrice = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateTriggerOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? triggerPrice2 = 0, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
+        var triggerPrice = triggerPrice2 == 0 ? null : (object)triggerPrice2;
         var res = await this.createTriggerOrder(symbol, type, side, amount, price, triggerPrice, parameters);
         return new Order(res);
     }
@@ -814,10 +818,10 @@ public partial class Exchange
         var res = await this.createStopMarketOrder(symbol, side, amount, stopPrice, parameters);
         return new Order(res);
     }
-    public async Task<Dictionary<string, object>> FetchLastPrices(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LastPrices> FetchLastPrices(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLastPrices(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LastPrices(res);
     }
     public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
     {

@@ -8,7 +8,7 @@ from ccxt.abstract.kucoin import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -428,6 +428,7 @@ class kucoin(Exchange, ImplicitAPI):
                 '12h': '12hour',
                 '1d': '1day',
                 '1w': '1week',
+                '1M': '1month',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1843,7 +1844,7 @@ class kucoin(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice')
         return [triggerPrice, stopLossPrice, takeProfitPrice]
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         Create an order on the exchange
         :see: https://docs.kucoin.com/spot#place-a-new-order
@@ -2036,7 +2037,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(data, 'data', [])
         return self.parse_orders(data)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
@@ -2093,7 +2094,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['postOnly'] = True
         return self.extend(request, params)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit an order, kucoin currently only supports the modification of HF orders
         :see: https://docs.kucoin.com/spot-hf/#modify-order
@@ -4182,7 +4183,7 @@ class kucoin(Exchange, ImplicitAPI):
         url = url + endpoint
         isFuturePrivate = (api == 'futuresPrivate')
         isPrivate = (api == 'private')
-        isBroker = (api == 'private')
+        isBroker = (api == 'broker')
         if isPrivate or isFuturePrivate or isBroker:
             self.check_required_credentials()
             timestamp = str(self.nonce())
@@ -4211,7 +4212,8 @@ class kucoin(Exchange, ImplicitAPI):
                 headers['KC-API-PARTNER'] = partnerId
             if isBroker:
                 brokerName = self.safe_string(partner, 'name')
-                headers['KC-BROKER-NAME'] = brokerName
+                if brokerName is not None:
+                    headers['KC-BROKER-NAME'] = brokerName
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

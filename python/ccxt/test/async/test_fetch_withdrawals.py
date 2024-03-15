@@ -18,7 +18,7 @@ from ccxt.test.base import test_deposit_withdrawal  # noqa E402
 async def test_fetch_withdrawals(exchange, skipped_properties, code):
     method = 'fetchWithdrawals'
     transactions = await exchange.fetch_withdrawals(code)
-    assert isinstance(transactions, list), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(transactions)
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, transactions, code)
     now = exchange.milliseconds()
     for i in range(0, len(transactions)):
         test_deposit_withdrawal(exchange, skipped_properties, method, transactions[i], code, now)
