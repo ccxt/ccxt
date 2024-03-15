@@ -874,6 +874,7 @@ export default class hyperliquid extends Exchange {
                     throw new ArgumentsRequired (this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
                 }
                 px = (isBuy) ? Precise.stringMul (price, Precise.stringAdd ('1', slippage)) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
+                px = this.priceToPrecision (symbol, px); // round after adding slippage
             } else {
                 px = this.priceToPrecision (symbol, price);
             }
