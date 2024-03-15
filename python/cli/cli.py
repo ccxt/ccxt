@@ -241,6 +241,8 @@ async def main():
     else:
         pprint(dir(exchange))
 
+def main_async():
+    asyncio.run(main())
 
 if __name__ ==  '__main__':
     asyncio.run(main())
