@@ -490,8 +490,10 @@ export default class krakenfutures extends krakenfuturesRest {
             const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
                 const trades = this.safeList (message, 'trades', []);
-                for (let i = 0; i < trades.length; i++) {
-                    const item = trades[i];
+                const length = trades.length;
+                for (let i = 0; i < length; i++) {
+                    const index = length - 1 - i; // need reverse to correct chronology
+                    const item = trades[index];
                     const trade = this.parseWsTrade (item);
                     tradesArray.append (trade);
                 }
