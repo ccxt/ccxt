@@ -526,7 +526,7 @@ export default class probit extends probitRest {
         if (result === 'ok') {
             future.resolve (true);
         } else {
-            future.reject (message);
+            future.reject (message); // todo: maybe exception instead of string
             delete client.subscriptions['authenticated'];
         }
     }
