@@ -552,18 +552,23 @@ class testMainClass extends baseMainTestClass {
         // get "method-specific" skips
         $skips_for_method = $exchange->safe_value($this->skipped_methods, $method_name, array());
         // get "object-specific" skips
-        if ($exchange->in_array($method_name, ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'])) {
-            $skips = $exchange->safe_value($this->skipped_methods, 'orderBook', array());
-            return $exchange->deep_extend($skips_for_method, $skips);
-        } elseif ($exchange->in_array($method_name, ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'])) {
-            $skips = $exchange->safe_value($this->skipped_methods, 'ticker', array());
-            return $exchange->deep_extend($skips_for_method, $skips);
-        } elseif ($exchange->in_array($method_name, ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'])) {
-            $skips = $exchange->safe_value($this->skipped_methods, 'trade', array());
-            return $exchange->deep_extend($skips_for_method, $skips);
-        } elseif ($exchange->in_array($method_name, ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'])) {
-            $skips = $exchange->safe_value($this->skipped_methods, 'ohlcv', array());
-            return $exchange->deep_extend($skips_for_method, $skips);
+        $object_skips = array(
+            'orderBook' => ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
+            'ticker' => ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'],
+            'trade' => ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'],
+            'ohlcv' => ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'],
+            'ledger' => ['fetchLedger', 'fetchLedgerEntry'],
+            'depositWithdraw' => ['fetchDepositsWithdrawals', 'fetchDeposits', 'fetchWithdrawals'],
+            'depositWithdrawFee' => ['fetchDepositWithdrawFee', 'fetchDepositWithdrawFees'],
+        );
+        $object_names = is_array($object_skips) ? array_keys($object_skips) : array();
+        for ($i = 0; $i < count($object_names); $i++) {
+            $object_name = $object_names[$i];
+            $object_methods = $object_skips[$object_name];
+            if ($exchange->in_array($method_name, $object_methods)) {
+                $extra_skips = $exchange->safe_dict($this->skipped_methods, $object_name, array());
+                return $exchange->deep_extend($skips_for_method, $extra_skips);
+            }
         }
         return $skips_for_method;
     }

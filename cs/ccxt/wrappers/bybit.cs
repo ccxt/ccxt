@@ -2145,4 +2145,30 @@ public partial class bybit
         var res = await this.fetchMyLiquidations(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
     }
+    /// <summary>
+    /// retrieve information on the maximum leverage, for different trade sizes
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/market/risk-limit"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : market subType, ['linear', 'inverse'], default is 'linear'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
+    public async Task<Dictionary<string, object>> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverageTiers(symbols, parameters);
+        return ((Dictionary<string, object>)res);
+    }
 }

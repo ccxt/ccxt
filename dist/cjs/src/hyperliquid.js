@@ -365,7 +365,7 @@ class hyperliquid extends hyperliquid$1 {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'szDecimals'))),
-                'price': this.parseNumber('5'), // significant digits
+                'price': 5, // significant digits
             },
             'limits': {
                 'leverage': {
@@ -847,6 +847,7 @@ class hyperliquid extends hyperliquid$1 {
                     throw new errors.ArgumentsRequired(this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
                 }
                 px = (isBuy) ? Precise["default"].stringMul(price, Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(price, Precise["default"].stringSub('1', slippage));
+                px = this.priceToPrecision(symbol, px); // round after adding slippage
             }
             else {
                 px = this.priceToPrecision(symbol, price);

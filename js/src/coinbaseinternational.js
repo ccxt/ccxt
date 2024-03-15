@@ -118,7 +118,7 @@ export default class coinbaseinternational extends Exchange {
                 'test': {
                     'rest': 'https://api-n5e1.coinbase.com/api',
                 },
-                'www': 'https://www.coinbaseinternational.com/international-exchange',
+                'www': 'https://international.coinbase.com',
                 'doc': [
                     'https://docs.cloud.coinbaseinternational.com/intx/docs',
                 ],

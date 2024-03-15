@@ -4,7 +4,7 @@ ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotA
 import WsClient from './ws/WsClient.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks, Leverage, Leverages } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks, Leverage, Leverages, Str } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { OrderBook as Ob } from './ws/OrderBook.js';
 /**
@@ -111,7 +111,7 @@ export default class Exchange {
     last_request_body: any;
     last_request_url: any;
     last_request_path: any;
-    id: Str;
+    id: string;
     markets: Dictionary<any>;
     has: Dictionary<boolean | 'emulated'>;
     status: any;

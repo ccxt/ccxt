@@ -294,22 +294,25 @@ public partial class testMainClass : BaseTest
         // get "method-specific" skips
         object skipsForMethod = exchange.safeValue(this.skippedMethods, methodName, new Dictionary<string, object>() {});
         // get "object-specific" skips
-        if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchOrderBook", "fetchOrderBooks", "fetchL2OrderBook", "watchOrderBook", "watchOrderBookForSymbols"})))
+        object objectSkips = new Dictionary<string, object>() {
+            { "orderBook", new List<object>() {"fetchOrderBook", "fetchOrderBooks", "fetchL2OrderBook", "watchOrderBook", "watchOrderBookForSymbols"} },
+            { "ticker", new List<object>() {"fetchTicker", "fetchTickers", "watchTicker", "watchTickers"} },
+            { "trade", new List<object>() {"fetchTrades", "watchTrades", "watchTradesForSymbols"} },
+            { "ohlcv", new List<object>() {"fetchOHLCV", "watchOHLCV", "watchOHLCVForSymbols"} },
+            { "ledger", new List<object>() {"fetchLedger", "fetchLedgerEntry"} },
+            { "depositWithdraw", new List<object>() {"fetchDepositsWithdrawals", "fetchDeposits", "fetchWithdrawals"} },
+            { "depositWithdrawFee", new List<object>() {"fetchDepositWithdrawFee", "fetchDepositWithdrawFees"} },
+        };
+        object objectNames = new List<object>(((IDictionary<string,object>)objectSkips).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(objectNames)); postFixIncrement(ref i))
         {
-            object skips = exchange.safeValue(this.skippedMethods, "orderBook", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        } else if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchTicker", "fetchTickers", "watchTicker", "watchTickers"})))
-        {
-            object skips = exchange.safeValue(this.skippedMethods, "ticker", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        } else if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchTrades", "watchTrades", "watchTradesForSymbols"})))
-        {
-            object skips = exchange.safeValue(this.skippedMethods, "trade", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        } else if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchOHLCV", "watchOHLCV", "watchOHLCVForSymbols"})))
-        {
-            object skips = exchange.safeValue(this.skippedMethods, "ohlcv", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
+            object objectName = getValue(objectNames, i);
+            object objectMethods = getValue(objectSkips, objectName);
+            if (isTrue(exchange.inArray(methodName, objectMethods)))
+            {
+                object extraSkips = exchange.safeDict(this.skippedMethods, objectName, new Dictionary<string, object>() {});
+                return exchange.deepExtend(skipsForMethod, extraSkips);
+            }
         }
         return skipsForMethod;
     }

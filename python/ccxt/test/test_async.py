@@ -459,18 +459,22 @@ class testMainClass(baseMainTestClass):
         # get "method-specific" skips
         skips_for_method = exchange.safe_value(self.skipped_methods, method_name, {})
         # get "object-specific" skips
-        if exchange.in_array(method_name, ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols']):
-            skips = exchange.safe_value(self.skipped_methods, 'orderBook', {})
-            return exchange.deep_extend(skips_for_method, skips)
-        elif exchange.in_array(method_name, ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers']):
-            skips = exchange.safe_value(self.skipped_methods, 'ticker', {})
-            return exchange.deep_extend(skips_for_method, skips)
-        elif exchange.in_array(method_name, ['fetchTrades', 'watchTrades', 'watchTradesForSymbols']):
-            skips = exchange.safe_value(self.skipped_methods, 'trade', {})
-            return exchange.deep_extend(skips_for_method, skips)
-        elif exchange.in_array(method_name, ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols']):
-            skips = exchange.safe_value(self.skipped_methods, 'ohlcv', {})
-            return exchange.deep_extend(skips_for_method, skips)
+        object_skips = {
+            'orderBook': ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
+            'ticker': ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'],
+            'trade': ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'],
+            'ohlcv': ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'],
+            'ledger': ['fetchLedger', 'fetchLedgerEntry'],
+            'depositWithdraw': ['fetchDepositsWithdrawals', 'fetchDeposits', 'fetchWithdrawals'],
+            'depositWithdrawFee': ['fetchDepositWithdrawFee', 'fetchDepositWithdrawFees'],
+        }
+        object_names = list(object_skips.keys())
+        for i in range(0, len(object_names)):
+            object_name = object_names[i]
+            object_methods = object_skips[object_name]
+            if exchange.in_array(method_name, object_methods):
+                extra_skips = exchange.safe_dict(self.skipped_methods, object_name, {})
+                return exchange.deep_extend(skips_for_method, extra_skips)
         return skips_for_method
 
     async def test_safe(self, method_name, exchange, args=[], is_public=False):
