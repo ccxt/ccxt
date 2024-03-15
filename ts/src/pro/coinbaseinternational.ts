@@ -539,9 +539,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     }
 
     handleDelta (orderbook, delta) {
-        const side = this.safeStringLower (delta, 0);
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
+        const rawSide = this.safeStringLower (delta, 0);
+        const side = (rawSide === 'buy') ? 'bids' : 'asks';
+        const price = this.safeFloat (delta, 1);
+        const amount = this.safeFloat (delta, 2);
         const bookside = orderbook[side];
         bookside.store (price, amount);
     }
