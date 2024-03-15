@@ -130,3 +130,5 @@ choco install jq -y
 
 - fuzzy search between trades (requires fzf):
 `ccxt binance fetchTrades --raw | jq -c '.[]' | fzf`
+
+![render1710459605924](https://github.com/ccxt/ccxt/assets/12142844/39b22383-42d5-4ebd-8b09-617008b7e4f0)
