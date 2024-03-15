@@ -133,7 +133,7 @@ public static class Program
         // instance.setSandboxMode(true);
         try
         {
-            Console.WriteLine(JsonConvert.SerializeObject(parameters, Formatting.Indented));
+            // Console.WriteLine(JsonConvert.SerializeObject(parameters, Formatting.Indented));
             var task = instance.loadMarkets();
             task.Wait();
             if (verbose)
