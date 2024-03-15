@@ -136,7 +136,7 @@
     "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs"
   },
   "bin": {
-    "ccxt-cli": "./js/cli/cli.js"
+    "ccxt-js": "./js/cli/cli.js"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
