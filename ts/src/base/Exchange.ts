@@ -282,7 +282,7 @@ export default class Exchange {
     last_request_url      = undefined
     last_request_path     = undefined
 
-    id: Str = undefined
+    id: string = 'Exchange';
 
     markets: Dictionary<any> = undefined
     has: Dictionary<boolean | 'emulated'>
