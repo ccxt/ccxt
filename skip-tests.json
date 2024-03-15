@@ -1056,11 +1056,15 @@
     "mercado": {
         "skipMethods": {
             "loadMarkets": "needs migration to v4, as raw info is not being used. granular can be used for skipping 'info'",
-            "fetchOrderBook": "bid > ask",
-            "fetchL2OrderBook": "bid > ask",
-            "fetchTickers": "bid > ask",
-            "fetchTicker": "bid > ask",
-            "fetchCurrencies": "info key is missing"
+            "orderBook": {
+                "spread": "bid-ask crossing"
+            },
+            "ticker": {
+                "bid": "bid-ask crossing"
+            },
+            "fetchCurrencies": {
+                "info":"key is missing"
+            }
         }
     },
     "novadax": {
