@@ -376,7 +376,7 @@ export default class hyperliquid extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'szDecimals'))), // decimal places
-                'price': this.parseNumber ('5'), // significant digits
+                'price': 5, // significant digits
             },
             'limits': {
                 'leverage': {

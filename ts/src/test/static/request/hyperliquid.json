@@ -123,6 +123,19 @@
                   0.043423423434
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":75,\"b\":true,\"p\":\"0.043423\",\"s\":\"1001\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710504463822,\"signature\":{\"r\":\"0x5b667d58d29e6d20e4bb69a6c8f876e8c588813caadb3177dc6a70cb8583ccd6\",\"s\":\"0x4187e4f7919bf8b564499f047796894bc4cf59fa5bf10f4c7894439e5adf2b48\",\"v\":28}}"
+            },
+            {
+                "description": "btc order with long amount",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "BTC/USDC:USDC",
+                  "limit",
+                  "buy",
+                  0.0014646006034154486,
+                  70000
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":true,\"p\":\"70000\",\"s\":\"0.00146\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1710520063328,\"signature\":{\"r\":\"0xe2bb3f1a26776cab9c49b7e874e5fc07a4ab2cf80b24beed2958be41c2189e3a\",\"s\":\"0x582b3d4ba87cec02d16aa74c16e7b19b465b7d4e454f7e0b543e19a4e8c87ef7\",\"v\":27}}"
             }
         ],
         "createOrders": [
