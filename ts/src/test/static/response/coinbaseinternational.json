@@ -220,7 +220,7 @@
           "description": "fetchPositions with symbol",
           "method": "fetchPositions",
           "input": [
-            "BTC/USDC:USDC"
+            ["BTC/USDC:USDC"]
           ],
           "httpResponse": [
             {
