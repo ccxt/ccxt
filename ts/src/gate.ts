@@ -2913,7 +2913,7 @@ export default class gate extends Exchange {
         let request = {};
         [ request, params ] = this.prepareRequest (market, undefined, params);
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-        let maxLimit = 1000;
+        let maxLimit = market['contract'] ? 1999 : 1000;
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         let until = this.safeInteger (params, 'until');
         if (until !== undefined) {
