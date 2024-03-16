@@ -95,6 +95,12 @@ node examples/js/cli bitget fetchTickers --table  # will fetch all tickers and w
 
 ### Calling An Exchange-Specific Method By Name
 
+Here's an example of fetching the order book on okx in sandbox mode using the implicit API and the exchange specific instId and sz parameters:
+
+```
+node examples/js/cli okx publicGetMarketBooks '{"instId":"BTC-USDT","sz":"3"}' --sandbox
+```
+
 ## Authentication And Overrides
 
 Public exchange APIs don't require authentication. You can use the CLI to call any method of a public API. The difference between public APIs and private APIs is described in the Manual, here: [Public/Private API](https://github.com/ccxt/ccxt/wiki/Manual#publicprivate-api).
