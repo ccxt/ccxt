@@ -7,8 +7,6 @@ public partial class Exchange
     public Dictionary<string, WebSocketClient> clients = new Dictionary<string, WebSocketClient>();
     public static ClientWebSocket ws = null;
 
-    public ccxt.pro.Stream stream = new Stream();
-
     public ccxt.pro.OrderBook orderBook(object snapshot = null, object depth = null)
     {
         return new ccxt.pro.OrderBook(snapshot, depth);

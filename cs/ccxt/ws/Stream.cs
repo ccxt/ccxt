@@ -6,7 +6,7 @@ using System.Linq;
 
 public class Stream : IBaseStream
 {
-    public int MaxMessagesPerTopic { get; set; }
+    public int maxMessagesPerTopic { get; set; }
 
     private Dictionary<string, List<Message>> topics;
     private Dictionary<string, List<Consumer>> consumers;
@@ -18,7 +18,7 @@ public class Stream : IBaseStream
 
     private void Init(int? maxMessagesPerTopic = null)
     {
-        MaxMessagesPerTopic = maxMessagesPerTopic ?? 0;
+        maxMessagesPerTopic = maxMessagesPerTopic ?? 0;
         topics = new Dictionary<string, List<Message>>();
         consumers = new Dictionary<string, List<Consumer>>();
     }
@@ -36,18 +36,18 @@ public class Stream : IBaseStream
 
         var message = new Message
         {
-            Payload = payload,
-            Error = error,
-            Metadata = new Metadata
+            payload = payload,
+            error = error,
+            metadata = new Metadata
             {
-                Stream = this,
-                Topic = topic,
-                Index = index,
-                History = messages.ToList(), // Creates a shallow copy
+                stream = this,
+                topic = topic,
+                index = index,
+                history = messages.ToList(), // Creates a shallow copy
             },
         };
 
-        if (MaxMessagesPerTopic > 0 && messages.Count >= MaxMessagesPerTopic)
+        if (maxMessagesPerTopic > 0 && messages.Count >= maxMessagesPerTopic)
         {
             messages.RemoveAt(0);
         }
@@ -69,6 +69,7 @@ public class Stream : IBaseStream
         var topic = topic2 as String;
         var consumerFn = consumerFn2 as ConsumerFunction;
         if (consumerFn == null) {
+            Console.WriteLine("Consumer function is required");
             throw new Exception("Consumer function is required");   
         }
         var consumer = new Consumer(consumerFn, synchronous, GetLastIndex(topic));
@@ -79,6 +80,7 @@ public class Stream : IBaseStream
         }
 
         consumers[topic].Add(consumer);
+        Console.WriteLine($"Subscribed Consumer ${consumerFn.Method.Name} to ${topic}");
     }
 
     public void unsubscribe(object topic2, ConsumerFunction consumerFn)
@@ -86,7 +88,7 @@ public class Stream : IBaseStream
         string topic = topic2 as String;
         if (consumers.ContainsKey(topic))
         {
-            consumers[topic] = consumers[topic].Where(consumer => !consumer.Fn.Equals(consumerFn)).ToList();
+            consumers[topic] = consumers[topic].Where(consumer => !consumer.fn.Equals(consumerFn)).ToList();
         }
     }
 
@@ -99,7 +101,7 @@ public class Stream : IBaseStream
     {
         if (topics.ContainsKey(topic) && topics[topic].Count > 0)
         {
-            return topics[topic].Last().Metadata.Index;
+            return topics[topic].Last().metadata.index;
         }
 
         return -1;
@@ -107,6 +109,6 @@ public class Stream : IBaseStream
 
     public void close()
     {
-        Init(MaxMessagesPerTopic);
+        Init(maxMessagesPerTopic);
     }
 }

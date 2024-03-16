@@ -8,60 +8,54 @@ public static class Program
 {
 // AUTO-TRANSPILE //
 
-    public static Exchange exchange = new ccxt.pro.poloniex(new Dictionary<string, object>() {});
+    public static Exchange exchange = new ccxt.pro.binance(new Dictionary<string, object>() {});
 
-    public static async Task CreateSubscriptions(Exchange exchange)
+    public static async Task PrintMessage(ccxt.pro.Message message)
     {
-        exchange.verbose = true;
-        await exchange.watchTrades("BTC/USDT");
+        Console.WriteLine($"Received message from: {message.metadata.topic}, index: ${message.metadata.index}");
+        /// return Task.CompletedTask;
     }
 
-    public static void PrintMessage(ccxt.pro.Message message)
+    public static async Task StoreInDb(Message message)
     {
-        Console.WriteLine($"Received message: {JsonConvert.SerializeObject(message)}");
-        //Console.WriteLine($"Received message from: {message.metadata.topic} : {message.payload.symbol} : {message.payload.last}");
+        await Task.Delay(1000); // Simulate asynchronous database storage operation
+        Console.WriteLine($"Stored message from : {message.metadata.topic}, index: ${message.metadata.index} in the database.");
     }
 
-    // public async Task StoreInDb(Message message)
+    // public static async Task PriceAlert(Message message)
     // {
-    //     await Task.Delay(1000); // Simulate asynchronous database storage operation
-    //     Console.WriteLine($"Received message: {JsonConvert.SerializeObject(message)}");
+    //     var payload = (IDictionary<string, object>)payload;
+    //     var last = payload["last"] as int;
+    //     if (last > 10000)
+    //     {
+    //         Console.WriteLine("Price is over 10000!!!!!!!!!!");
+    //     }
     // }
 
-    public static void PriceAlert(Message message)
-    {
-        // var last = exchange.safeNumber (message.Payload, "last", 0) as int;
-        // if (last > 10000)
-        // {
-        //     Console.WriteLine("Price is over 10000!!!!!!!!!!");
-        //     exchange.stream.unsubscribe("tickers", PriceAlert);
-        // }
-    }
     public static async Task Main(string[] args)
     {
         Console.WriteLine("strating program!");
-        exchange = new ccxt.pro.poloniex(new Dictionary<string, object>() {});
+        exchange = new ccxt.pro.binance(new Dictionary<string, object>() {});
+        // exchange.verbose = true;
         var symbols = new List<string>() {"BTC/USDT", "ETH/USDT", "DOGE/USDT"};
 
-        // Example subscription and message handling setup
-        await CreateSubscriptions(exchange);
-
+        ConsumerFunction printMessage = PrintMessage;
+        ConsumerFunction storeInDb = StoreInDb;
 
         // subscribe synchronously to all tickers with a sync function
-        //exchange.stream.subscribe("tickers", PrintMessage, true);
-        // subscribe synchronously to check for errors
-        // exchange.stream.subscribe("tickers", CheckForErrors, true);
+        await exchange.subscribeTrades ("BTC/USDT", printMessage, false);
         // subscribe asynchronously to all tickers with a sync function
-        //exchange.stream.subscribe("tickers", PriceAlert, false);
         // subscribe synchronously to a single ticker with an async function
-        // exchange.stream.subscribe("tickers.BTC/USDT", StoreInDb, true);
+        await exchange.subscribeTrades ("BTC/USDT", storeInDb, true);
         // subscribe to exchange wide errors
-        // exchange.stream.subscribe("errors", CheckForErrors, true);
+        exchange.stream.subscribe("errors", printMessage, true);
+        exchange.stream.unsubscribe ("trades::BTC/USDT", printMessage);
 
         await exchange.sleep(10000);
         // get history length
-        //var history = exchange.stream.GetMessageHistory ("tickers");
-        // Console.WriteLine("History Length:", len(history));
+        var history = exchange.stream.GetMessageHistory ("trades");
+        Console.WriteLine("History Length:" + history.Count);
+        // close exchange
         await exchange.close();
     }
 
