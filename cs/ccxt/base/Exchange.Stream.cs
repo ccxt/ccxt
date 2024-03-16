@@ -12,7 +12,7 @@ public partial class Exchange
 
     public ccxt.pro.Stream stream;
 
-    public Action<Message> StreamToSymbol(string topic)
+    public ConsumerFunction streamToSymbol(string topic)
     {
         return (Message message) =>
         {
@@ -26,6 +26,7 @@ public partial class Exchange
                     this.streamProduce(newTopic, payload);
                 }
             }
+            return Task.CompletedTask;
         };
     }
 }

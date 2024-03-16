@@ -1,10 +1,13 @@
 namespace ccxt;
 using System.Net.WebSockets;
+using ccxt.pro;
 
 public partial class Exchange
 {
     public Dictionary<string, WebSocketClient> clients = new Dictionary<string, WebSocketClient>();
     public static ClientWebSocket ws = null;
+
+    public ccxt.pro.Stream stream = new Stream();
 
     public ccxt.pro.OrderBook orderBook(object snapshot = null, object depth = null)
     {

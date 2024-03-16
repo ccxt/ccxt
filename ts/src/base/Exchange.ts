@@ -2211,7 +2211,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
-    async subscribeTrades (symbol: string, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeTrades (symbol: string, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeTrades
@@ -2233,7 +2233,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
     }
 
-    async subscribeTradesForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeTradesForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeTradesForSymbols
@@ -2261,7 +2261,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMyTradesForSymbols() is not supported yet');
     }
 
-    async subscribeMyTradesForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeMyTradesForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeMyTradesForSymbols
@@ -2290,7 +2290,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrdersForSymbols() is not supported yet');
     }
 
-    async subscribeOrdersForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeOrdersForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeOrdersForSymbols
@@ -2318,7 +2318,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
     }
 
-    async subscribeOHLCVForSymbols (symbolsAndTimeframes: string[][], callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeOHLCVForSymbols (symbolsAndTimeframes: string[][], callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeOHLCVForSymbols
@@ -2347,7 +2347,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
     }
 
-    async subscribeOrderBookForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeOrderBookForSymbols (symbols: string[], callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeOrderBookForSymbols
@@ -2412,7 +2412,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
 
-    async subscribeOrderBook (symbol: string, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeOrderBook (symbol: string, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeOrderBook
@@ -3596,7 +3596,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOHLCV() is not supported yet');
     }
 
-    async subscribeOHLCV (symbol: string, timeframe = '1m', callback: ConsumerFunction = undefined, synchronous = true, params = {}) {
+    async subscribeOHLCV (symbol: string, timeframe = '1m', callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}) {
         /**
          * @method
          * @name subscribeOHLCV
@@ -4335,7 +4335,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchPosition() is not supported yet');
     }
 
-    async subscribePosition (symbol: string, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribePosition (symbol: string, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const stream = this.stream;
@@ -4349,7 +4349,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchPositions() is not supported yet');
     }
 
-    async subscribePositions (symbols: string[] = undefined, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribePositions (symbols: string[] = undefined, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         if (callback !== undefined) {
@@ -4369,7 +4369,7 @@ export default class Exchange {
         return await this.watchPositions (symbols, since, limit, params);
     }
 
-    async subscribePositionForSymbols (symbols: string[] = undefined, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribePositionForSymbols (symbols: string[] = undefined, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         return await this.subscribePositions (symbols, callback, synchronous, params);
     }
 
@@ -4524,7 +4524,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchBalance() is not supported yet');
     }
 
-    async subscribeBalance (callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeBalance (callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         const stream = this.stream;
         if (callback !== undefined) {
             stream.subscribe ('balances', callback, synchronous);
@@ -4796,7 +4796,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTicker() is not supported yet');
     }
 
-    async subscribeTicker (symbol: string, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeTicker (symbol: string, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeTicker
@@ -4827,7 +4827,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
 
-    async subscribeTickers (symbols: string[] = undefined, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeTickers (symbols: string[] = undefined, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeTicker
@@ -5178,7 +5178,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrders() is not supported yet');
     }
 
-    subscribeRaw (callback: ConsumerFunction, synchronous = true): void {
+    subscribeRaw (callback: ConsumerFunction, synchronous: boolean = true): void {
         /**
          * @method
          * @name subscribeRaw
@@ -5191,7 +5191,7 @@ export default class Exchange {
         stream.subscribe ('raw', callback, synchronous);
     }
 
-    subscribeErrors (callback: ConsumerFunction, synchronous = true): void {
+    subscribeErrors (callback: ConsumerFunction, synchronous: boolean = true): void {
         /**
          * @method
          * @name subscribeErrors
@@ -5204,7 +5204,7 @@ export default class Exchange {
         stream.subscribe ('errors', callback, synchronous);
     }
 
-    async subscribeOrders (symbol: string = undefined, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeOrders (symbol: string = undefined, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeOrders
@@ -5283,7 +5283,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMyTrades() is not supported yet');
     }
 
-    async subscribeMyTrades (symbol: string = undefined, callback: ConsumerFunction = undefined, synchronous = true, params = {}): Promise<void> {
+    async subscribeMyTrades (symbol: string = undefined, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
         /**
          * @method
          * @name subscribeMyTrades

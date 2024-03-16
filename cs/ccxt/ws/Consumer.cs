@@ -8,8 +8,8 @@ namespace ccxt.pro
     public interface IBaseStream
     {
         int MaxMessagesPerTopic { get; set; }
-        void Produce(string topic, object payload, object error = null);
-        void Close();
+        void produce(object topic, object payload, object error = null);
+        void close();
     }
     
     public class Metadata
@@ -46,7 +46,7 @@ namespace ccxt.pro
             Backlog = new Queue<Message>();
         }
 
-        public void Publish(Message message)
+        public void publish(Message message)
         {
             Backlog.Enqueue(message);
             Run();
