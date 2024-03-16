@@ -283,7 +283,7 @@ export default class delta extends deltaRest {
         const action = this.safeString (message, 'action');
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
-        const timestamp = this.safeInteger (message, 'timestamp');
+        const timestamp = this.safeIntegerProduct (message, 'timestamp', 0.001);
         const messageHash = 'book:' + symbol;
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ({});
