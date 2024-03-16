@@ -113,11 +113,10 @@ export default class delta extends deltaRest {
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         for (let i = 0; i < trades.length; i++) {
             const trade = this.parseTrade (trades[i], market);
-            let stored = this.safeDict (this.trades, symbol) as any;
-            if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
-                this.trades[symbol] = stored;
+            if (!(symbol in this.trades)) {
+                this.trades[symbol] = new ArrayCache (tradesLimit);
             }
+            const stored = this.trades[symbol];
             stored.append (trade);
             client.resolve (stored, messageHash);
         }
@@ -133,8 +132,12 @@ export default class delta extends deltaRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const ticker = await this.watchTickers ([ symbol ], params);
-        return this.safeDict (ticker, symbol, {}) as Ticker;
+        const tickers = await this.watchTickers ([ symbol ], params);
+        if (!(symbol in tickers)) {
+            return {} as Ticker;
+        } else {
+            return tickers[symbol];
+        }
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -282,10 +285,10 @@ export default class delta extends deltaRest {
         const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeInteger (message, 'timestamp');
         const messageHash = 'book:' + symbol;
-        let orderbook = this.safeDict (this.orderbooks, symbol) as any;
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
         }
+        const orderbook = this.orderbooks[symbol];
         if (action === 'snapshot') {
             const snapshot = this.parseOrderBook (message, symbol, timestamp);
             orderbook.reset (snapshot);
