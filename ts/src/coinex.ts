@@ -136,7 +136,7 @@ export default class coinex extends Exchange {
                     'perpetualPrivate': 'https://api.coinex.com/perpetual',
                 },
                 'www': 'https://www.coinex.com',
-                'doc': 'https://viabtc.github.io/coinex_api_en_doc/general',
+                'doc': 'https://viabtc.github.io/coinex_api_en_doc',
                 'fees': 'https://www.coinex.com/fees',
                 'referral': 'https://www.coinex.com/register?refer_code=yw5fz',
             },

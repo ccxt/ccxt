@@ -295,7 +295,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - coinex
      - `CoinEx <https://www.coinex.com/register?refer_code=yw5fz>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://viabtc.github.io/coinex_api_en_doc/general
+          :target: https://viabtc.github.io/coinex_api_en_doc
           :alt: API Version 1
      
    * - China
