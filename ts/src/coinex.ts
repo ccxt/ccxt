@@ -350,6 +350,7 @@ export default class coinex extends Exchange {
                 },
                 'broad': {
                     'ip not allow visit': PermissionDenied,
+                    'service too busy': ExchangeNotAvailable,
                 },
             },
         });
