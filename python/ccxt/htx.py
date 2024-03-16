@@ -967,9 +967,6 @@ class htx(Exchange, ImplicitAPI):
                         },
                     },
                 },
-                'fetchOHLCV': {
-                    'useHistoricalEndpointForSpot': True,
-                },
                 'withdraw': {
                     'includeFee': False,
                 },
@@ -2831,7 +2828,6 @@ class htx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :param str [params.useHistoricalEndpointForSpot]: True/false - whether use the historical candles endpoint for spot markets or default klines endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -2909,19 +2905,16 @@ class htx(Exchange, ImplicitAPI):
                 else:
                     response = self.contractPublicGetLinearSwapExMarketHistoryKline(self.extend(request, params))
         else:
+            if since is not None:
+                request['from'] = self.parse_to_int(since / 1000)
+            if limit is not None:
+                request['size'] = limit  # max 2000
             request['symbol'] = market['id']
-            useHistorical = None
-            useHistorical, params = self.handle_option_and_params(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', True)
-            if not useHistorical:
-                # `limit` only available for the self endpoint
-                if limit is not None:
-                    request['size'] = limit  # max 2000
+            if timeframe == '1M' or timeframe == '1y':
+                # for some reason 1M and 1Y does not work with the regular endpoint
+                # https://github.com/ccxt/ccxt/issues/18006
                 response = self.spotPublicGetMarketHistoryKline(self.extend(request, params))
             else:
-                # `since` only available for the self endpoint
-                if since is not None:
-                    # default 150 bars
-                    request['from'] = self.parse_to_int(since / 1000)
                 response = self.spotPublicGetMarketHistoryCandles(self.extend(request, params))
         #
         #     {

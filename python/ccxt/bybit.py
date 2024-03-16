@@ -93,7 +93,6 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRates': False,
                 'fetchLedger': True,
                 'fetchLeverage': True,
-                'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -6752,6 +6751,35 @@ class bybit(Exchange, ImplicitAPI):
         request['symbol'] = market['id']
         return self.fetch_derivatives_market_leverage_tiers(symbol, params)
 
+    def parse_market_leverage_tiers(self, info, market: Market = None):
+        #
+        #     {
+        #         "id": 1,
+        #         "symbol": "BTCUSD",
+        #         "riskLimitValue": "150",
+        #         "maintenanceMargin": "0.5",
+        #         "initialMargin": "1",
+        #         "isLowestRisk": 1,
+        #         "maxLeverage": "100.00"
+        #     }
+        #
+        minNotional = 0
+        tiers = []
+        for i in range(0, len(info)):
+            item = info[i]
+            maxNotional = self.safe_number(item, 'riskLimitValue')
+            tiers.append({
+                'tier': self.sum(i, 1),
+                'currency': market['base'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': self.safe_number(item, 'maintenanceMargin'),
+                'maxLeverage': self.safe_number(item, 'maxLeverage'),
+                'info': item,
+            })
+            minNotional = maxNotional
+        return tiers
+
     def parse_trading_fee(self, fee, market: Market = None):
         #
         #     {
@@ -7418,89 +7446,6 @@ class bybit(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
-
-    def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
-        """
-        :see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
-        retrieve information on the maximum leverage, for different trade sizes
-        :param str[] [symbols]: a list of unified market symbols
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.subType]: market subType, ['linear', 'inverse'], default is 'linear'
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
-        """
-        self.load_markets()
-        market = None
-        if symbols is not None:
-            market = self.market(symbols[0])
-            if market['spot']:
-                raise NotSupported(self.id + ' fetchLeverageTiers() is not supported for spot market')
-        subType = None
-        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params, 'linear')
-        request = {
-            'category': subType,
-        }
-        response = self.publicGetV5MarketRiskLimit(self.extend(request, params))
-        result = self.safe_dict(response, 'result', {})
-        data = self.safe_list(result, 'list', [])
-        symbols = self.market_symbols(symbols)
-        return self.parse_leverage_tiers(data, symbols, 'symbol')
-
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
-        #
-        #  [
-        #      {
-        #          "id": 1,
-        #          "symbol": "BTCUSD",
-        #          "riskLimitValue": "150",
-        #          "maintenanceMargin": "0.5",
-        #          "initialMargin": "1",
-        #          "isLowestRisk": 1,
-        #          "maxLeverage": "100.00"
-        #      }
-        #  ]
-        #
-        tiers = {}
-        marketIds = self.market_ids(symbols)
-        filteredResults = self.filter_by_array(response, marketIdKey, marketIds, False)
-        grouped = self.group_by(filteredResults, marketIdKey)
-        keys = list(grouped.keys())
-        for i in range(0, len(keys)):
-            marketId = keys[i]
-            entry = grouped[marketId]
-            market = self.safe_market(marketId, None, None, 'contract')
-            symbol = market['symbol']
-            tiers[symbol] = self.parse_market_leverage_tiers(entry, market)
-        return tiers
-
-    def parse_market_leverage_tiers(self, info, market: Market = None):
-        #
-        #  [
-        #      {
-        #          "id": 1,
-        #          "symbol": "BTCUSD",
-        #          "riskLimitValue": "150",
-        #          "maintenanceMargin": "0.5",
-        #          "initialMargin": "1",
-        #          "isLowestRisk": 1,
-        #          "maxLeverage": "100.00"
-        #      }
-        #  ]
-        #
-        tiers = []
-        for i in range(0, len(info)):
-            tier = info[i]
-            marketId = self.safe_string(info, 'symbol')
-            market = self.safe_market(marketId)
-            tiers.append({
-                'tier': self.safe_integer(tier, 'id'),
-                'currency': market['settle'],
-                'minNotional': None,
-                'maxNotional': None,
-                'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMargin'),
-                'maxLeverage': self.safe_number(tier, 'maxLeverage'),
-                'info': tier,
-            })
-        return tiers
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
