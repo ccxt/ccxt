@@ -91,6 +91,13 @@ node examples/js/cli okx fetchOrderBook BTC/USDT  # will fetch the orderbook fro
 node examples/js/cli binance fetchTrades ETH/USDT  # will fetch a list of most recent public trades and will print a table of them
 node examples/js/cli bitget fetchTickers  # will fetch all tickers one by one
 node examples/js/cli bitget fetchTickers --table  # will fetch all tickers and will print them out as a table
+node examples/js/cli bitget fetchTickers '["BTC/USDT","ETH/USDT"]' # will fetch the tickers specified in the array argument
+```
+
+Exchange specific parameters can be set in the last argument of every unified method:
+
+```
+node examples/js/cli bybit setMarginMode isolated BTC/USDT '{"leverage":"8"}' # set the margin mode while specifying the exchange specific leverage parameter
 ```
 
 ### Calling An Exchange-Specific Method By Name
