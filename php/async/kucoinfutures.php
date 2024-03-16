@@ -37,6 +37,7 @@ class kucoinfutures extends kucoin {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
                 'closePosition' => true,
                 'closePositions' => false,
                 'createDepositAddress' => true,
@@ -2088,8 +2089,8 @@ class kucoinfutures extends kucoin {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $trades = $this->safe_value($data, 'items', array());
+            $data = $this->safe_dict($response, 'data', array());
+            $trades = $this->safe_list($data, 'items', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }

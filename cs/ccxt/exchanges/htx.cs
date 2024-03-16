@@ -418,6 +418,7 @@ public partial class htx : Exchange
                             { "v2/sub-user/api-key-modification", 1 },
                             { "v2/sub-user/api-key-deletion", 1 },
                             { "v1/subuser/transfer", 10 },
+                            { "v1/trust/user/active/credit", 10 },
                             { "v1/order/orders/place", 0.2 },
                             { "v1/order/batch-orders", 0.4 },
                             { "v1/order/auto/place", 0.2 },
@@ -877,6 +878,9 @@ public partial class htx : Exchange
                         } },
                     } },
                 } },
+                { "fetchOHLCV", new Dictionary<string, object>() {
+                    { "useHistoricalEndpointForSpot", true },
+                } },
                 { "withdraw", new Dictionary<string, object>() {
                     { "includeFee", false },
                 } },
@@ -1137,11 +1141,12 @@ public partial class htx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", null, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object enabledForContracts = this.handleOption("fetchStatus", "enableForContracts", false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
         object response = null;
-        if (isTrue(!isEqual(marketType, "spot")))
+        if (isTrue(isTrue(!isEqual(marketType, "spot")) && isTrue(enabledForContracts)))
         {
             object subType = this.safeString(parameters, "subType", getValue(this.options, "defaultSubType"));
             if (isTrue(isEqual(marketType, "swap")))
@@ -1166,7 +1171,7 @@ public partial class htx : Exchange
             {
                 response = await this.contractPublicGetHeartbeat();
             }
-        } else
+        } else if (isTrue(isEqual(marketType, "spot")))
         {
             response = await this.statusPublicSpotGetApiV2SummaryJson();
         }
@@ -1337,7 +1342,13 @@ public partial class htx : Exchange
         if (isTrue(isEqual(marketType, "contract")))
         {
             object statusRaw = this.safeString(response, "status");
-            status = ((bool) isTrue((isEqual(statusRaw, "ok")))) ? "ok" : "maintenance"; // 'ok', 'error'
+            if (isTrue(isEqual(statusRaw, null)))
+            {
+                status = null;
+            } else
+            {
+                status = ((bool) isTrue((isEqual(statusRaw, "ok")))) ? "ok" : "maintenance"; // 'ok', 'error'
+            }
             updated = this.safeString(response, "ts");
         } else
         {
@@ -2520,7 +2531,11 @@ public partial class htx : Exchange
         amountString = this.safeString(trade, "trade_volume", amountString);
         object costString = this.safeString(trade, "trade_turnover");
         object fee = null;
-        object feeCost = this.safeString2(trade, "filled-fees", "trade_fee");
+        object feeCost = this.safeString(trade, "filled-fees");
+        if (isTrue(isEqual(feeCost, null)))
+        {
+            feeCost = Precise.stringNeg(this.safeString(trade, "trade_fee"));
+        }
         object feeCurrencyId = this.safeString2(trade, "fee-currency", "fee_asset");
         object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         object filledPoints = this.safeString(trade, "filled-points");
@@ -2905,6 +2920,7 @@ public partial class htx : Exchange
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {string} [params.useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
         timeframe ??= "1m";
@@ -3021,22 +3037,27 @@ public partial class htx : Exchange
             }
         } else
         {
-            if (isTrue(!isEqual(since, null)))
-            {
-                ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
-            }
-            if (isTrue(!isEqual(limit, null)))
-            {
-                ((IDictionary<string,object>)request)["size"] = limit; // max 2000
-            }
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            if (isTrue(isTrue(isEqual(timeframe, "1M")) || isTrue(isEqual(timeframe, "1y"))))
+            object useHistorical = null;
+            var useHistoricalparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
+            useHistorical = ((IList<object>)useHistoricalparametersVariable)[0];
+            parameters = ((IList<object>)useHistoricalparametersVariable)[1];
+            if (!isTrue(useHistorical))
             {
-                // for some reason 1M and 1Y does not work with the regular endpoint
-                // https://github.com/ccxt/ccxt/issues/18006
+                // `limit` only available for the this endpoint
+                if (isTrue(!isEqual(limit, null)))
+                {
+                    ((IDictionary<string,object>)request)["size"] = limit; // max 2000
+                }
                 response = await this.spotPublicGetMarketHistoryKline(this.extend(request, parameters));
             } else
             {
+                // `since` only available for the this endpoint
+                if (isTrue(!isEqual(since, null)))
+                {
+                    // default 150 bars
+                    ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+                }
                 response = await this.spotPublicGetMarketHistoryCandles(this.extend(request, parameters));
             }
         }

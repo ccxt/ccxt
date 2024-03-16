@@ -32,6 +32,7 @@ def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
     #
     if ('bid' in skipped_properties) or ('ask' in skipped_properties):
         return
+    # todo: check non-emtpy arrays for bids/asks for toptier exchanges
     bids = orderbook['bids']
     bids_length = len(bids)
     for i in range(0, bids_length):
@@ -54,10 +55,9 @@ def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
             assert has_correct_order, 'current ask should be < than the next one: ' + current_ask_string + '<' + next_ask_string + log_text
         test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 0, '0')
         test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 1, '0')
-    if 'spread' in skipped_properties:
-        return
-    if bids_length and asks_length:
-        first_bid = exchange.safe_string(bids[0], 0)
-        first_ask = exchange.safe_string(asks[0], 0)
-        # check bid-ask spread
-        assert Precise.string_lt(first_bid, first_ask), 'bids[0][0] (' + first_ask + ') should be < than asks[0][0] (' + first_ask + ')' + log_text
+    if not ('spread' in skipped_properties):
+        if bids_length and asks_length:
+            first_bid = exchange.safe_string(bids[0], 0)
+            first_ask = exchange.safe_string(asks[0], 0)
+            # check bid-ask spread
+            assert Precise.string_lt(first_bid, first_ask), 'bids[0][0] (' + first_ask + ') should be < than asks[0][0] (' + first_ask + ')' + log_text

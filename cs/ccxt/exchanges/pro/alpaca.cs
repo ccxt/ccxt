@@ -679,7 +679,7 @@ public partial class alpaca : ccxt.alpaca
         {
             object data = getValue(message, i);
             object T = this.safeString(data, "T");
-            object msg = this.safeValue(data, "msg", new Dictionary<string, object>() {});
+            object msg = this.safeString(data, "msg");
             if (isTrue(isEqual(T, "subscription")))
             {
                 this.handleSubscription(client as WebSocketClient, data);

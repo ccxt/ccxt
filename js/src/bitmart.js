@@ -515,6 +515,7 @@ export default class bitmart extends Exchange {
                 },
                 'networks': {
                     'ERC20': 'ERC20',
+                    'SOL': 'SOL',
                     'BTC': 'BTC',
                     'TRC20': 'TRC20',
                     // todo: should be TRX after unification
@@ -537,7 +538,6 @@ export default class bitmart extends Exchange {
                     'FIO': 'FIO',
                     'SCRT': 'SCRT',
                     'IOTX': 'IOTX',
-                    'SOL': 'SOL',
                     'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
                     'DOT': 'DOT',
@@ -1126,7 +1126,7 @@ export default class bitmart extends Exchange {
     }
     parseTicker(ticker, market = undefined) {
         //
-        // spot
+        // spot (REST)
         //
         //      {
         //          "symbol": "SOLAR_USDT",
@@ -1146,6 +1146,17 @@ export default class bitmart extends Exchange {
         //          "timestamp": 1667403439367
         //      }
         //
+        // spot (WS)
+        //      {
+        //          "symbol":"BTC_USDT",
+        //          "last_price":"146.24",
+        //          "open_24h":"147.17",
+        //          "high_24h":"147.48",
+        //          "low_24h":"143.88",
+        //          "base_volume_24h":"117387.58", // NOT base, but quote currency!!!
+        //          "s_t": 1610936002
+        //      }
+        //
         // swap
         //
         //      {
@@ -1161,7 +1172,11 @@ export default class bitmart extends Exchange {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        const timestamp = this.safeInteger(ticker, 'timestamp');
+        let timestamp = this.safeInteger(ticker, 'timestamp');
+        if (timestamp === undefined) {
+            // ticker from WS has a different field (in seconds)
+            timestamp = this.safeIntegerProduct(ticker, 's_t', 1000);
+        }
         const marketId = this.safeString2(ticker, 'symbol', 'contract_symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
@@ -1177,9 +1192,20 @@ export default class bitmart extends Exchange {
                 percentage = '0';
             }
         }
-        const baseVolume = this.safeString(ticker, 'base_volume_24h');
+        let baseVolume = this.safeString(ticker, 'base_volume_24h');
         let quoteVolume = this.safeString(ticker, 'quote_volume_24h');
-        quoteVolume = this.safeString(ticker, 'volume_24h', quoteVolume);
+        if (quoteVolume === undefined) {
+            if (baseVolume === undefined) {
+                // this is swap
+                quoteVolume = this.safeString(ticker, 'volume_24h', quoteVolume);
+            }
+            else {
+                // this is a ticker from websockets
+                // contrary to name and documentation, base_volume_24h is actually the quote volume
+                quoteVolume = baseVolume;
+                baseVolume = undefined;
+            }
+        }
         const average = this.safeString2(ticker, 'avg_price', 'index_price');
         const high = this.safeString2(ticker, 'high_24h', 'high_price');
         const low = this.safeString2(ticker, 'low_24h', 'low_price');
@@ -3064,6 +3090,7 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -3086,40 +3113,57 @@ export default class bitmart extends Exchange {
         }
         const response = await this.privateGetAccountV1DepositAddress(this.extend(request, params));
         //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
-        //         "data":{
-        //             "currency":"USDT-TRC20",
-        //             "chain":"USDT-TRC20",
-        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
-        //             "address_memo":""
-        //         }
-        //     }
+        //    {
+        //        "message": "OK",
+        //        "code": 1000,
+        //        "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //        "data": {
+        //            currency: 'ETH',
+        //            chain: 'Ethereum',
+        //            address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //            address_memo: ''
+        //        }
+        //    }
         //
         const data = this.safeValue(response, 'data', {});
-        const address = this.safeString(data, 'address');
-        const tag = this.safeString(data, 'address_memo');
-        const chain = this.safeString(data, 'chain');
+        return this.parseDepositAddress(data, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //    {
+        //        currency: 'ETH',
+        //        chain: 'Ethereum',
+        //        address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //        address_memo: ''
+        //    }
+        //
+        const currencyId = this.safeString(depositAddress, 'currency');
+        const address = this.safeString(depositAddress, 'address');
+        const chain = this.safeString(depositAddress, 'chain');
         let network = undefined;
+        currency = this.safeCurrency(currencyId, currency);
         if (chain !== undefined) {
             const parts = chain.split('-');
-            const networkId = this.safeString(parts, 1);
-            network = this.safeNetwork(networkId);
+            const partsLength = parts.length;
+            const networkId = this.safeString(parts, partsLength - 1);
+            network = this.safeNetworkCode(networkId, currency);
         }
         this.checkAddress(address);
         return {
-            'currency': code,
+            'info': depositAddress,
+            'currency': this.safeString(currency, 'code'),
             'address': address,
-            'tag': tag,
+            'tag': this.safeString(depositAddress, 'address_memo'),
             'network': network,
-            'info': response,
         };
     }
-    safeNetwork(networkId) {
-        // TODO: parse
-        return networkId;
+    safeNetworkCode(networkId, currency = undefined) {
+        const name = this.safeString(currency, 'name');
+        if (networkId === name) {
+            const code = this.safeString(currency, 'code');
+            return code;
+        }
+        return this.networkIdToCode(networkId);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**

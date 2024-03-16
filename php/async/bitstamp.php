@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\bitstamp as Exchange;
 use ccxt\ExchangeError;
+use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
@@ -88,6 +89,7 @@ class bitstamp extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -351,6 +353,14 @@ class bitstamp extends Exchange {
                         'eurcv_address/' => 1,
                         'pyusd_withdrawal/' => 1,
                         'pyusd_address/' => 1,
+                        'lmwr_withdrawal/' => 1,
+                        'lmwr_address/' => 1,
+                        'pepe_withdrawal/' => 1,
+                        'pepe_address/' => 1,
+                        'blur_withdrawal/' => 1,
+                        'blur_address/' => 1,
+                        'vext_withdrawal/' => 1,
+                        'vext_address/' => 1,
                     ),
                 ),
             ),
@@ -2136,6 +2146,74 @@ class bitstamp extends Exchange {
             $response = Async\await($this->$method (array_merge($request, $params)));
             return $this->parse_transaction($response, $currency);
         }) ();
+    }
+
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
+            /**
+             * $transfer $currency internally between wallets on the same account
+             * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub
+             * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromSubToMain
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount amount to $transfer
+             * @param {string} $fromAccount account to $transfer from
+             * @param {string} $toAccount account to $transfer to
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $amount = $this->currency_to_precision($code, $amount);
+            $amount = $this->parse_to_numeric($amount);
+            $request = array(
+                'amount' => $amount,
+                'currency' => strtoupper($currency['id']),
+            );
+            $response = null;
+            if ($fromAccount === 'main') {
+                $request['subAccount'] = $toAccount;
+                $response = Async\await($this->privatePostTransferFromMain (array_merge($request, $params)));
+            } elseif ($toAccount === 'main') {
+                $request['subAccount'] = $fromAccount;
+                $response = Async\await($this->privatePostTransferToMain (array_merge($request, $params)));
+            } else {
+                throw new BadRequest($this->id . ' $transfer() only supports from or to main');
+            }
+            //
+            //    array( status => 'ok' )
+            //
+            $transfer = $this->parse_transfer($response, $currency);
+            $transfer['amount'] = $amount;
+            $transfer['fromAccount'] = $fromAccount;
+            $transfer['toAccount'] = $toAccount;
+            return $transfer;
+        }) ();
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //    array( $status => 'ok' )
+        //
+        $status = $this->safe_string($transfer, 'status');
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $currency['code'],
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->parse_transfer_status($status),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'ok' => 'ok',
+            'error' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function nonce() {

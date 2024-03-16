@@ -100,6 +100,9 @@ abstract class krakenfutures extends \ccxt\Exchange {
     public function history_get_accountlogcsv($params = array()) {
         return $this->request('accountlogcsv', 'history', 'GET', $params, null, null, array());
     }
+    public function history_get_account_log($params = array()) {
+        return $this->request('account-log', 'history', 'GET', $params, null, null, array());
+    }
     public function history_get_market_symbol_orders($params = array()) {
         return $this->request('market/{symbol}/orders', 'history', 'GET', $params, null, null, array());
     }
@@ -198,6 +201,9 @@ abstract class krakenfutures extends \ccxt\Exchange {
     }
     public function historyGetAccountlogcsv($params = array()) {
         return $this->request('accountlogcsv', 'history', 'GET', $params, null, null, array());
+    }
+    public function historyGetAccountLog($params = array()) {
+        return $this->request('account-log', 'history', 'GET', $params, null, null, array());
     }
     public function historyGetMarketSymbolOrders($params = array()) {
         return $this->request('market/{symbol}/orders', 'history', 'GET', $params, null, null, array());

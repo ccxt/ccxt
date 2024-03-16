@@ -470,6 +470,7 @@ export default class htx extends Exchange {
                             'v2/sub-user/api-key-modification': 1,
                             'v2/sub-user/api-key-deletion': 1,
                             'v1/subuser/transfer': 10,
+                            'v1/trust/user/active/credit': 10,
                             // Trading
                             'v1/order/orders/place': 0.2,
                             'v1/order/batch-orders': 0.4,
@@ -951,6 +952,9 @@ export default class htx extends Exchange {
                         },
                     },
                 },
+                'fetchOHLCV': {
+                    'useHistoricalEndpointForSpot': true,
+                },
                 'withdraw': {
                     'includeFee': false,
                 },
@@ -1234,9 +1238,10 @@ export default class htx extends Exchange {
     async fetchStatus(params = {}) {
         await this.loadMarkets();
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', undefined, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchStatus', undefined, params);
+        const enabledForContracts = this.handleOption('fetchStatus', 'enableForContracts', false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
         let response = undefined;
-        if (marketType !== 'spot') {
+        if (marketType !== 'spot' && enabledForContracts) {
             const subType = this.safeString(params, 'subType', this.options['defaultSubType']);
             if (marketType === 'swap') {
                 if (subType === 'linear') {
@@ -1258,7 +1263,7 @@ export default class htx extends Exchange {
                 response = await this.contractPublicGetHeartbeat();
             }
         }
-        else {
+        else if (marketType === 'spot') {
             response = await this.statusPublicSpotGetApiV2SummaryJson();
         }
         //
@@ -1427,7 +1432,12 @@ export default class htx extends Exchange {
         let url = undefined;
         if (marketType === 'contract') {
             const statusRaw = this.safeString(response, 'status');
-            status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            if (statusRaw === undefined) {
+                status = undefined;
+            }
+            else {
+                status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            }
             updated = this.safeString(response, 'ts');
         }
         else {
@@ -2588,7 +2598,10 @@ export default class htx extends Exchange {
         amountString = this.safeString(trade, 'trade_volume', amountString);
         const costString = this.safeString(trade, 'trade_turnover');
         let fee = undefined;
-        let feeCost = this.safeString2(trade, 'filled-fees', 'trade_fee');
+        let feeCost = this.safeString(trade, 'filled-fees');
+        if (feeCost === undefined) {
+            feeCost = Precise.stringNeg(this.safeString(trade, 'trade_fee'));
+        }
         const feeCurrencyId = this.safeString2(trade, 'fee-currency', 'fee_asset');
         let feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         const filledPoints = this.safeString(trade, 'filled-points');
@@ -2949,6 +2962,7 @@ export default class htx extends Exchange {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {string} [params.useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -3055,19 +3069,22 @@ export default class htx extends Exchange {
             }
         }
         else {
-            if (since !== undefined) {
-                request['from'] = this.parseToInt(since / 1000);
-            }
-            if (limit !== undefined) {
-                request['size'] = limit; // max 2000
-            }
             request['symbol'] = market['id'];
-            if (timeframe === '1M' || timeframe === '1y') {
-                // for some reason 1M and 1Y does not work with the regular endpoint
-                // https://github.com/ccxt/ccxt/issues/18006
+            let useHistorical = undefined;
+            [useHistorical, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
+            if (!useHistorical) {
+                // `limit` only available for the this endpoint
+                if (limit !== undefined) {
+                    request['size'] = limit; // max 2000
+                }
                 response = await this.spotPublicGetMarketHistoryKline(this.extend(request, params));
             }
             else {
+                // `since` only available for the this endpoint
+                if (since !== undefined) {
+                    // default 150 bars
+                    request['from'] = this.parseToInt(since / 1000);
+                }
                 response = await this.spotPublicGetMarketHistoryCandles(this.extend(request, params));
             }
         }

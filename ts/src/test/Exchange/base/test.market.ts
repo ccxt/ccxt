@@ -58,7 +58,7 @@ function testMarket (exchange, skippedProperties, method, market) {
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate (exchange, method, market);
     //
-    const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
+    const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option', 'index' ];
     testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'type', validTypes);
     const hasIndex = ('index' in market); // todo: add in all
     // check if string is consistent with 'type'
@@ -121,13 +121,13 @@ function testMarket (exchange, skippedProperties, method, market) {
         assert (!market['spot'], '"spot" must be false when "contract" is true' + logText);
     } else {
         // linear & inverse needs to be undefined
-        assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is true' + logText);
+        assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is false' + logText);
         // contract size should be undefined
         if (!('contractSize' in skippedProperties)) {
             assert (contractSize === undefined, '"contractSize" must be undefined when "contract" is false' + logText);
         }
         // settle should be undefined
-        assert ((market['settle'] === undefined) && (market['settleId'] === undefined), '"settle" must be undefined when "contract" is true' + logText);
+        assert ((market['settle'] === undefined) && (market['settleId'] === undefined), '"settle" must be undefined when "contract" is false' + logText);
         // spot should be true
         assert (market['spot'], '"spot" must be true when "contract" is false' + logText);
     }
@@ -190,7 +190,7 @@ function testMarket (exchange, skippedProperties, method, market) {
         }
     }
     // check whether valid currency ID and CODE is used
-    if (!('currencyIdAndCode' in skippedProperties)) {
+    if (!('currency' in skippedProperties) && !('currencyIdAndCode' in skippedProperties)) {
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);

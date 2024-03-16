@@ -5,7 +5,7 @@ import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1208,7 +1208,7 @@ export default class probit extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name probit#createOrder
@@ -1572,7 +1572,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1013,8 +1013,28 @@ class tokocrypto(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             responseInner = self.publicGetOpenV1MarketTrades(self.extend(request, params))
-            data = self.safe_value(responseInner, 'data', {})
-            return self.parse_trades(data, market, since, limit)
+            #
+            #    {
+            #       "code": 0,
+            #       "msg": "success",
+            #       "data": {
+            #           "list": [
+            #                {
+            #                    "id": 28457,
+            #                    "price": "4.00000100",
+            #                    "qty": "12.00000000",
+            #                    "time": 1499865549590,
+            #                    "isBuyerMaker": True,
+            #                    "isBestMatch": True
+            #                }
+            #            ]
+            #        },
+            #        "timestamp": 1571921637091
+            #    }
+            #
+            data = self.safe_dict(responseInner, 'data', {})
+            list = self.safe_list(data, 'list', [])
+            return self.parse_trades(list, market, since, limit)
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
         defaultMethod = 'binanceGetTrades'
@@ -1537,7 +1557,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://www.tokocrypto.com/apidocs/#new-order--signed

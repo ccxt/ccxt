@@ -6,7 +6,7 @@ import { BadRequest, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import Precise from '../base/Precise.js';
+import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -566,6 +566,7 @@ export default class bingx extends bingxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         const url = this.safeValue (this.urls['api']['ws'], marketType);
@@ -776,21 +777,44 @@ export default class bingx extends bingxRest {
         return true;
     }
 
-    async authenticate (params = {}) {
-        const time = this.milliseconds ();
+    async keepAliveListenKey (params = {}) {
         const listenKey = this.safeString (this.options, 'listenKey');
         if (listenKey === undefined) {
-            const response = await this.userAuthPrivatePostUserDataStream ();
-            this.options['listenKey'] = this.safeString (response, 'listenKey');
-            this.options['lastAuthenticatedTime'] = time;
+            // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
+        try {
+            await this.userAuthPrivatePutUserDataStream ({ 'listenKey': listenKey }); // extend the expiry
+        } catch (error) {
+            const types = [ 'spot', 'swap' ];
+            for (let i = 0; i < types.length; i++) {
+                const type = types[i];
+                const url = this.urls['api']['ws'][type] + '?listenKey=' + listenKey;
+                const client = this.client (url);
+                const messageHashes = Object.keys (client.futures);
+                for (let j = 0; j < messageHashes.length; j++) {
+                    const messageHash = messageHashes[j];
+                    client.reject (error, messageHash);
+                }
+            }
+            this.options['listenKey'] = undefined;
+            this.options['lastAuthenticatedTime'] = 0;
+            return;
+        }
+        // whether or not to schedule another listenKey keepAlive request
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000);
+        this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+    }
+
+    async authenticate (params = {}) {
+        const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            const response = await this.userAuthPrivatePutUserDataStream ({ 'listenKey': listenKey }); // extend the expiry
+            const response = await this.userAuthPrivatePostUserDataStream ();
             this.options['listenKey'] = this.safeString (response, 'listenKey');
             this.options['lastAuthenticatedTime'] = time;
+            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }
 

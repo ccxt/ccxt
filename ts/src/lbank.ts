@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1308,7 +1308,7 @@ export default class lbank extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name lbank#createOrder
@@ -2711,7 +2711,7 @@ export default class lbank extends Exchange {
             const uppercaseHash = hash.toUpperCase ();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
-                const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
+                const cacheSecretAsPem = this.safeBool (this.options, 'cacheSecretAsPem', true);
                 let pem = undefined;
                 if (cacheSecretAsPem) {
                     pem = this.safeValue (this.options, 'pem');

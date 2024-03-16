@@ -34,7 +34,6 @@ export default class bitget extends bitgetRest {
     parseWsOrderStatus(status: any): string;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrades(client: Client, message: any): void;
-    parseWsMyTrade(trade: any, market?: any): Trade;
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     watchPublic(messageHash: any, args: any, params?: {}): Promise<any>;

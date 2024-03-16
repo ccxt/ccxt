@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num } from './base/types.js';
 /**
  * @class coinex
  * @augments Exchange
@@ -44,11 +44,11 @@ export default class coinex extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): any;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -207,6 +207,8 @@ export default class coinex extends Exchange {
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
+    parseLeverage(leverage: any, market?: any): Leverage;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

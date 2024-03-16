@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
@@ -35,8 +35,8 @@ export default class delta extends Exchange {
     parsePosition(position: any, market?: Market): Position;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -153,7 +153,8 @@ export default class delta extends Exchange {
     };
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
-    fetchLeverage(symbol: string, params?: {}): Promise<any>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    parseLeverage(leverage: any, market?: any): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
@@ -187,6 +188,8 @@ export default class delta extends Exchange {
         info: any;
     };
     closeAllPositions(params?: {}): Promise<Position[]>;
+    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    parseMarginMode(marginMode: any, market?: any): MarginMode;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

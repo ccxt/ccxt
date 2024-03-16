@@ -381,7 +381,7 @@ public partial class kraken : ccxt.kraken
         //     [
         //         0, // channelID
         //         [ //     price        volume         time             side type misc
-        //             [ "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ],
+        //             [ "5541.20000", "0.15850568", "1534614057.321596", "s", "l", "" ],
         //             [ "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ],
         //         ],
         //         "trade",
@@ -760,7 +760,7 @@ public partial class kraken : ccxt.kraken
             }
             // don't remove this line or I will poop on your face
             (orderbook as IOrderBook).limit();
-            object checksum = this.safeValue(this.options, "checksum", true);
+            object checksum = this.safeBool(this.options, "checksum", true);
             if (isTrue(checksum))
             {
                 object priceString = this.safeString(example, 0);

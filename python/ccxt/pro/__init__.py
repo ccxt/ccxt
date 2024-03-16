@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.2.48'
+__version__ = '4.2.74'
 
 # ----------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ from ccxt.pro.blockchaincom import blockchaincom                          # noqa
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
+from ccxt.pro.coinbaseinternational import coinbaseinternational          # noqa: F401
 from ccxt.pro.coinbasepro import coinbasepro                              # noqa: F401
 from ccxt.pro.coincheck import coincheck                                  # noqa: F401
 from ccxt.pro.coinex import coinex                                        # noqa: F401
@@ -51,6 +52,7 @@ from ccxt.pro.hollaex import hollaex                                      # noqa
 from ccxt.pro.htx import htx                                              # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
 from ccxt.pro.huobijp import huobijp                                      # noqa: F401
+from ccxt.pro.hyperliquid import hyperliquid                              # noqa: F401
 from ccxt.pro.idex import idex                                            # noqa: F401
 from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
@@ -98,6 +100,7 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
+    'coinbaseinternational',
     'coinbasepro',
     'coincheck',
     'coinex',
@@ -114,6 +117,7 @@ exchanges = [
     'htx',
     'huobi',
     'huobijp',
+    'hyperliquid',
     'idex',
     'independentreserve',
     'kraken',

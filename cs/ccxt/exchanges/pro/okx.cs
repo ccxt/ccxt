@@ -608,7 +608,7 @@ public partial class okx : ccxt.okx
         object storedBids = getValue(orderbook, "bids");
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
-        object checksum = this.safeValue(this.options, "checksum", true);
+        object checksum = this.safeBool(this.options, "checksum", true);
         if (isTrue(checksum))
         {
             object asksLength = getArrayLength(storedAsks);
@@ -995,10 +995,6 @@ public partial class okx : ccxt.okx
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(this.isEmpty(symbols)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " watchPositions requires a list of symbols")) ;
-        }
         await this.loadMarkets();
         await this.authenticate(parameters);
         symbols = this.marketSymbols(symbols);
@@ -1006,7 +1002,24 @@ public partial class okx : ccxt.okx
             { "instType", "ANY" },
         };
         object channel = "positions";
-        object newPositions = await this.subscribeMultiple("private", channel, symbols, this.extend(request, parameters));
+        object newPositions = null;
+        if (isTrue(isEqual(symbols, null)))
+        {
+            object arg = new Dictionary<string, object>() {
+                { "channel", "positions" },
+                { "instType", "ANY" },
+            };
+            object args = new List<object>() {arg};
+            object nonSymbolRequest = new Dictionary<string, object>() {
+                { "op", "subscribe" },
+                { "args", args },
+            };
+            object url = this.getUrl(channel, "private");
+            newPositions = await this.watch(url, channel, nonSymbolRequest, channel);
+        } else
+        {
+            newPositions = await this.subscribeMultiple("private", channel, symbols, this.extend(request, parameters));
+        }
         if (isTrue(this.newUpdates))
         {
             return newPositions;
@@ -1111,6 +1124,7 @@ public partial class okx : ccxt.okx
                 callDynamically(client as WebSocketClient, "resolve", new object[] {positions, messageHash});
             }
         }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, channel});
     }
 
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)

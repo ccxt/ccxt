@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -405,7 +405,7 @@ class cex(ccxt.async_support.cex):
         }, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         get the list of orders associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods(~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
         :see: https://docs.cex.io/#ws-api-open-orders
@@ -1034,7 +1034,9 @@ class cex(ccxt.async_support.cex):
         sorted = self.sort_by(data, 0)
         for i in range(0, len(sorted)):
             stored.append(self.parse_ohlcv(sorted[i], market))
-        self.ohlcvs[symbol] = stored
+        if not (symbol in self.ohlcvs):
+            self.ohlcvs[symbol] = {}
+        self.ohlcvs[symbol]['unknown'] = stored
         client.resolve(stored, messageHash)
 
     def handle_ohlcv24(self, client: Client, message):
@@ -1093,7 +1095,8 @@ class cex(ccxt.async_support.cex):
         pair = self.safe_string(message, 'pair')
         symbol = self.pair_to_symbol(pair)
         messageHash = 'ohlcv:' + symbol
-        stored = self.safe_value(self.ohlcvs, symbol)
+        # stored = self.safe_value(self.ohlcvs, symbol)
+        stored = self.ohlcvs[symbol]['unknown']
         for i in range(0, len(data)):
             ohlcv = [
                 self.safe_timestamp(data[i], 0),
@@ -1108,7 +1111,7 @@ class cex(ccxt.async_support.cex):
         if dataLength > 0:
             client.resolve(stored, messageHash)
 
-    async def fetch_order_ws(self, id: str, symbol: str = None, params={}):
+    async def fetch_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.cex.io/#ws-api-get-order
@@ -1134,7 +1137,7 @@ class cex(ccxt.async_support.cex):
         response = await self.watch(url, messageHash, request, messageHash)
         return self.parse_order(response, market)
 
-    async def fetch_open_orders_ws(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.cex.io/#ws-api-open-orders
         fetch all unfilled currently open orders
@@ -1162,7 +1165,7 @@ class cex(ccxt.async_support.cex):
         response = await self.watch(url, messageHash, request, messageHash)
         return self.parse_orders(response, market, since, limit, params)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         :see: https://docs.cex.io/#ws-api-order-placement
         create a trade order
@@ -1196,7 +1199,7 @@ class cex(ccxt.async_support.cex):
         rawOrder = await self.watch(url, messageHash, request, messageHash)
         return self.parse_order(rawOrder, market)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}) -> Order:
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
         edit a trade order
         :see: https://docs.cex.io/#ws-api-cancel-replace
@@ -1233,7 +1236,7 @@ class cex(ccxt.async_support.cex):
         response = await self.watch(url, messageHash, request, messageHash, messageHash)
         return self.parse_order(response, market)
 
-    async def cancel_order_ws(self, id: str, symbol: str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.cex.io/#ws-api-order-cancel
         cancels an open order
@@ -1260,7 +1263,7 @@ class cex(ccxt.async_support.cex):
         response = await self.watch(url, messageHash, request, messageHash, messageHash)
         return self.parse_order(response, market)
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: str = None, params={}):
+    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://docs.cex.io/#ws-api-mass-cancel-place

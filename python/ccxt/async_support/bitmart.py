@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -530,6 +530,7 @@ class bitmart(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'ERC20': 'ERC20',
+                    'SOL': 'SOL',
                     'BTC': 'BTC',
                     'TRC20': 'TRC20',
                     # todo: should be TRX after unification
@@ -552,7 +553,6 @@ class bitmart(Exchange, ImplicitAPI):
                     'FIO': 'FIO',
                     'SCRT': 'SCRT',
                     'IOTX': 'IOTX',
-                    'SOL': 'SOL',
                     'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
                     'DOT': 'DOT',
@@ -1121,7 +1121,7 @@ class bitmart(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
-        # spot
+        # spot(REST)
         #
         #      {
         #          "symbol": "SOLAR_USDT",
@@ -1141,6 +1141,17 @@ class bitmart(Exchange, ImplicitAPI):
         #          "timestamp": 1667403439367
         #      }
         #
+        # spot(WS)
+        #      {
+        #          "symbol":"BTC_USDT",
+        #          "last_price":"146.24",
+        #          "open_24h":"147.17",
+        #          "high_24h":"147.48",
+        #          "low_24h":"143.88",
+        #          "base_volume_24h":"117387.58",  # NOT base, but quote currencynot !!
+        #          "s_t": 1610936002
+        #      }
+        #
         # swap
         #
         #      {
@@ -1157,6 +1168,9 @@ class bitmart(Exchange, ImplicitAPI):
         #      }
         #
         timestamp = self.safe_integer(ticker, 'timestamp')
+        if timestamp is None:
+            # ticker from WS has a different field(in seconds)
+            timestamp = self.safe_integer_product(ticker, 's_t', 1000)
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -1171,7 +1185,15 @@ class bitmart(Exchange, ImplicitAPI):
                 percentage = '0'
         baseVolume = self.safe_string(ticker, 'base_volume_24h')
         quoteVolume = self.safe_string(ticker, 'quote_volume_24h')
-        quoteVolume = self.safe_string(ticker, 'volume_24h', quoteVolume)
+        if quoteVolume is None:
+            if baseVolume is None:
+                # self is swap
+                quoteVolume = self.safe_string(ticker, 'volume_24h', quoteVolume)
+            else:
+                # self is a ticker from websockets
+                # contrary to name and documentation, base_volume_24h is actually the quote volume
+                quoteVolume = baseVolume
+                baseVolume = None
         average = self.safe_string_2(ticker, 'avg_price', 'index_price')
         high = self.safe_string_2(ticker, 'high_24h', 'high_price')
         low = self.safe_string_2(ticker, 'low_24h', 'low_price')
@@ -2197,7 +2219,7 @@ class bitmart(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
@@ -2265,7 +2287,7 @@ class bitmart(Exchange, ImplicitAPI):
         order['price'] = price
         return order
 
-    def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         create a trade order
@@ -2359,7 +2381,7 @@ class bitmart(Exchange, ImplicitAPI):
         request['leverage'] = self.number_to_string(leverage)
         return self.extend(request, params)
 
-    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         create a spot order request
@@ -2864,6 +2886,7 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        :see: https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -2884,39 +2907,55 @@ class bitmart(Exchange, ImplicitAPI):
                 params = self.omit(params, 'network')
         response = await self.privateGetAccountV1DepositAddress(self.extend(request, params))
         #
-        #     {
-        #         "message":"OK",
-        #         "code":1000,
-        #         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
-        #         "data":{
-        #             "currency":"USDT-TRC20",
-        #             "chain":"USDT-TRC20",
-        #             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
-        #             "address_memo":""
-        #         }
-        #     }
+        #    {
+        #        "message": "OK",
+        #        "code": 1000,
+        #        "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        #        "data": {
+        #            currency: 'ETH',
+        #            chain: 'Ethereum',
+        #            address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        #            address_memo: ''
+        #        }
+        #    }
         #
         data = self.safe_value(response, 'data', {})
-        address = self.safe_string(data, 'address')
-        tag = self.safe_string(data, 'address_memo')
-        chain = self.safe_string(data, 'chain')
+        return self.parse_deposit_address(data, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #    {
+        #        currency: 'ETH',
+        #        chain: 'Ethereum',
+        #        address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        #        address_memo: ''
+        #    }
+        #
+        currencyId = self.safe_string(depositAddress, 'currency')
+        address = self.safe_string(depositAddress, 'address')
+        chain = self.safe_string(depositAddress, 'chain')
         network = None
+        currency = self.safe_currency(currencyId, currency)
         if chain is not None:
             parts = chain.split('-')
-            networkId = self.safe_string(parts, 1)
-            network = self.safe_network(networkId)
+            partsLength = len(parts)
+            networkId = self.safe_string(parts, partsLength - 1)
+            network = self.safe_network_code(networkId, currency)
         self.check_address(address)
         return {
-            'currency': code,
+            'info': depositAddress,
+            'currency': self.safe_string(currency, 'code'),
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(depositAddress, 'address_memo'),
             'network': network,
-            'info': response,
         }
 
-    def safe_network(self, networkId):
-        # TODO: parse
-        return networkId
+    def safe_network_code(self, networkId, currency=None):
+        name = self.safe_string(currency, 'name')
+        if networkId == name:
+            code = self.safe_string(currency, 'code')
+            return code
+        return self.network_id_to_code(networkId)
 
     async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
         """

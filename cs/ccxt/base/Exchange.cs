@@ -150,7 +150,7 @@ public partial class Exchange
         var body = body2 as String;
 
         if (this.verbose)
-            this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.stringifyObject(body) + "\n");
+            this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.json(body) + "\n");
 
         // to do: add all proxies support
         this.checkProxySettings();
@@ -779,9 +779,23 @@ public partial class Exchange
         return new Currency(genericCurrency);
     }
 
-    public async Task LoadMarkets()
+    /// <summary>
+    /// Returns a dictionary of market objects for all markets.
+    /// </summary>
+    /// <remarks>
+    /// </remarks>
+    /// <returns> <term>Dictionary</term>string, MarketInterface</returns>
+    public async Task<Dictionary<string, MarketInterface>> LoadMarkets()
     {
-        await this.loadMarkets();
+        var res = await this.loadMarkets();
+        var dictRest = res as Dictionary<string, object>;
+        var returnRest = new Dictionary<string, MarketInterface>();
+        foreach (var item in dictRest)
+        {
+            returnRest.Add(item.Key, new MarketInterface(item.Value));
+        }
+        return returnRest;
+        // return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
 
     public class DynamicInvoker

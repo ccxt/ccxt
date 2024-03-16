@@ -77,6 +77,7 @@ public partial class bitstamp : Exchange
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
+                { "transfer", true },
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -339,6 +340,14 @@ public partial class bitstamp : Exchange
                         { "eurcv_address/", 1 },
                         { "pyusd_withdrawal/", 1 },
                         { "pyusd_address/", 1 },
+                        { "lmwr_withdrawal/", 1 },
+                        { "lmwr_address/", 1 },
+                        { "pepe_withdrawal/", 1 },
+                        { "pepe_address/", 1 },
+                        { "blur_withdrawal/", 1 },
+                        { "blur_address/", 1 },
+                        { "vext_withdrawal/", 1 },
+                        { "vext_address/", 1 },
                     } },
                 } },
             } },
@@ -2245,6 +2254,81 @@ public partial class bitstamp : Exchange
         }
         object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         return this.parseTransaction(response, currency);
+    }
+
+    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitstamp#transfer
+        * @description transfer currency internally between wallets on the same account
+        * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub
+        * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromSubToMain
+        * @param {string} code unified currency code
+        * @param {float} amount amount to transfer
+        * @param {string} fromAccount account to transfer from
+        * @param {string} toAccount account to transfer to
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        amount = this.currencyToPrecision(code, amount);
+        amount = this.parseToNumeric(amount);
+        object request = new Dictionary<string, object>() {
+            { "amount", amount },
+            { "currency", ((string)getValue(currency, "id")).ToUpper() },
+        };
+        object response = null;
+        if (isTrue(isEqual(fromAccount, "main")))
+        {
+            ((IDictionary<string,object>)request)["subAccount"] = toAccount;
+            response = await this.privatePostTransferFromMain(this.extend(request, parameters));
+        } else if (isTrue(isEqual(toAccount, "main")))
+        {
+            ((IDictionary<string,object>)request)["subAccount"] = fromAccount;
+            response = await this.privatePostTransferToMain(this.extend(request, parameters));
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " transfer() only supports from or to main")) ;
+        }
+        //
+        //    { status: 'ok' }
+        //
+        object transfer = this.parseTransfer(response, currency);
+        ((IDictionary<string,object>)transfer)["amount"] = amount;
+        ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
+        ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
+        return transfer;
+    }
+
+    public override object parseTransfer(object transfer, object currency = null)
+    {
+        //
+        //    { status: 'ok' }
+        //
+        object status = this.safeString(transfer, "status");
+        return new Dictionary<string, object>() {
+            { "info", transfer },
+            { "id", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "currency", getValue(currency, "code") },
+            { "amount", null },
+            { "fromAccount", null },
+            { "toAccount", null },
+            { "status", this.parseTransferStatus(status) },
+        };
+    }
+
+    public virtual object parseTransferStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "ok", "ok" },
+            { "error", "failed" },
+        };
+        return this.safeString(statuses, status, status);
     }
 
     public override object nonce()

@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmart.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num } from './base/types.js';
 /**
  * @class bitmart
  * @augments Exchange
@@ -65,9 +65,9 @@ export default class bitmart extends Exchange {
     parseOrderSide(side: any): string;
     parseOrderStatusByType(type: any, status: any): string;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    createSwapOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
-    createSpotOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createSwapOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createSpotOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -76,13 +76,20 @@ export default class bitmart extends Exchange {
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
+        info: any;
         currency: string;
         address: string;
         tag: string;
         network: any;
-        info: any;
     }>;
-    safeNetwork(networkId: any): any;
+    parseDepositAddress(depositAddress: any, currency?: any): {
+        info: any;
+        currency: string;
+        address: string;
+        tag: string;
+        network: any;
+    };
+    safeNetworkCode(networkId: any, currency?: any): string;
     withdraw(code: string, amount: number, address: any, tag?: any, params?: {}): Promise<any>;
     fetchTransactionsByType(type: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;

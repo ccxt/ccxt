@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, MarginModes, Leverage, Num } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -62,7 +62,8 @@ export default class hitbtc extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': false,
-                'fetchMarginMode': true,
+                'fetchMarginMode': 'emulated',
+                'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -313,6 +314,7 @@ export default class hitbtc extends Exchange {
                     '2012': BadRequest,
                     '2020': BadRequest,
                     '2022': BadRequest,
+                    '2024': InvalidOrder, // Invalid margin mode.
                     '10001': BadRequest,
                     '10021': AccountSuspended,
                     '10022': BadRequest,
@@ -330,6 +332,7 @@ export default class hitbtc extends Exchange {
                     '20012': ExchangeError,
                     '20014': ExchangeError,
                     '20016': ExchangeError,
+                    '20018': ExchangeError, // Withdrawals are unavailable due to the current configuration. Any of: - internal withdrawals are disabled; - in-chain withdrawals are disabled.
                     '20031': ExchangeError,
                     '20032': ExchangeError,
                     '20033': ExchangeError,
@@ -340,10 +343,15 @@ export default class hitbtc extends Exchange {
                     '20043': ExchangeError,
                     '20044': PermissionDenied,
                     '20045': InvalidOrder,
+                    '20047': InvalidOrder, // Order placing exceeds the central counterparty balance limit.
+                    '20048': InvalidOrder, // Provided Time-In-Force instruction is invalid or the combination of the instruction and the order type is not allowed.
+                    '20049': InvalidOrder, // Provided order type is invalid.
                     '20080': ExchangeError,
                     '21001': ExchangeError,
                     '21003': AccountSuspended,
                     '21004': AccountSuspended,
+                    '22004': ExchangeError, // User is not found.
+                    '22008': ExchangeError, // Gateway timeout exceeded.
                 },
                 'broad': {},
             },
@@ -1729,10 +1737,10 @@ export default class hitbtc extends Exchange {
             'symbol': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        [ request, params ] = this.handleUntilOption ('till', request, params);
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
         }
+        [ request, params ] = this.handleUntilOption ('till', request, params);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2210,7 +2218,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -2248,7 +2256,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#createOrder
@@ -2288,7 +2296,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (market: object, marketType: string, type: OrderType, side: OrderSide, amount, price = undefined, marginMode: Str = undefined, params = {}) {
+    createOrderRequest (market: object, marketType: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         const isLimit = (type === 'limit');
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const timeInForce = this.safeString (params, 'timeInForce');
@@ -2491,7 +2499,7 @@ export default class hitbtc extends Exchange {
         }, market);
     }
 
-    async fetchMarginMode (symbol: Str = undefined, params = {}): Promise<MarginMode> {
+    async fetchMarginModes (symbols: Str[] = undefined, params = {}): Promise<MarginModes> {
         /**
          * @method
          * @name hitbtc#fetchMarginMode
@@ -2500,72 +2508,69 @@ export default class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#get-futures-position-parameters
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} Struct of MarginMode
+         * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            market = this.market (symbols[0]);
         }
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMarginMode', market, params);
         let response = undefined;
         if (marketType === 'margin') {
             response = await this.privateGetMarginConfig (params);
+            //
+            //     {
+            //         "config": [{
+            //             "symbol": "BTCUSD",
+            //             "margin_call_leverage_mul": "1.50",
+            //             "liquidation_leverage_mul": "2.00",
+            //             "max_initial_leverage": "10.00",
+            //             "margin_mode": "Isolated",
+            //             "force_close_fee": "0.05",
+            //             "enabled": true,
+            //             "active": true,
+            //             "limit_base": "50000.00",
+            //             "limit_power": "2.2",
+            //             "unlimited_threshold": "10.0"
+            //         }]
+            //     }
+            //
         } else if (marketType === 'swap') {
             response = await this.privateGetFuturesConfig (params);
+            //
+            //     {
+            //         "config": [{
+            //             "symbol": "BTCUSD_PERP",
+            //             "margin_call_leverage_mul": "1.20",
+            //             "liquidation_leverage_mul": "2.00",
+            //             "max_initial_leverage": "100.00",
+            //             "margin_mode": "Isolated",
+            //             "force_close_fee": "0.001",
+            //             "enabled": true,
+            //             "active": false,
+            //             "limit_base": "5000000.000000000000",
+            //             "limit_power": "1.25",
+            //             "unlimited_threshold": "2.00"
+            //         }]
+            //     }
+            //
         } else {
-            throw new BadSymbol (this.id + ' fetchMarginMode() supports swap contracts and margin only');
+            throw new BadSymbol (this.id + ' fetchMarginModes () supports swap contracts and margin only');
         }
-        //
-        // margin
-        //     {
-        //         "config": [{
-        //             "symbol": "BTCUSD",
-        //             "margin_call_leverage_mul": "1.50",
-        //             "liquidation_leverage_mul": "2.00",
-        //             "max_initial_leverage": "10.00",
-        //             "margin_mode": "Isolated",
-        //             "force_close_fee": "0.05",
-        //             "enabled": true,
-        //             "active": true,
-        //             "limit_base": "50000.00",
-        //             "limit_power": "2.2",
-        //             "unlimited_threshold": "10.0"
-        //         }]
-        //     }
-        //
-        // swap
-        //     {
-        //         "config": [{
-        //             "symbol": "BTCUSD_PERP",
-        //             "margin_call_leverage_mul": "1.20",
-        //             "liquidation_leverage_mul": "2.00",
-        //             "max_initial_leverage": "100.00",
-        //             "margin_mode": "Isolated",
-        //             "force_close_fee": "0.001",
-        //             "enabled": true,
-        //             "active": false,
-        //             "limit_base": "5000000.000000000000",
-        //             "limit_power": "1.25",
-        //             "unlimited_threshold": "2.00"
-        //         }]
-        //     }
-        //
-        const config = this.safeValue (response, 'config', []);
-        const marginModes = [];
-        for (let i = 0; i < config.length; i++) {
-            const data = this.safeValue (config, i);
-            const marketId = this.safeString (data, 'symbol');
-            const marketInner = this.safeMarket (marketId);
-            marginModes.push ({
-                'info': data,
-                'symbol': this.safeString (marketInner, 'symbol'),
-                'marginMode': this.safeStringLower (data, 'margin_mode'),
-            });
-        }
-        const filteredMargin = this.filterBySymbol (marginModes, symbol);
-        return this.safeValue (filteredMargin, 0) as MarginMode;
+        const config = this.safeList (response, 'config', []);
+        return this.parseMarginModes (config, symbols, 'symbol');
+    }
+
+    parseMarginMode (marginMode, market = undefined): MarginMode {
+        const marketId = this.safeString (marginMode, 'symbol');
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (marginMode, 'margin_mode'),
+        } as MarginMode;
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
@@ -2688,7 +2693,7 @@ export default class hitbtc extends Exchange {
         if ((network !== undefined) && (code === 'USDT')) {
             const parsedNetwork = this.safeString (networks, network);
             if (parsedNetwork !== undefined) {
-                request['currency'] = parsedNetwork;
+                request['network_code'] = parsedNetwork;
             }
             params = this.omit (params, 'network');
         }
@@ -3324,7 +3329,7 @@ export default class hitbtc extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    async fetchLeverage (symbol: string, params = {}) {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name hitbtc#fetchLeverage
@@ -3389,7 +3394,19 @@ export default class hitbtc extends Exchange {
         //         ]
         //     }
         //
-        return this.safeNumber (response, 'leverage');
+        return this.parseLeverage (response, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        const leverageValue = this.safeInteger (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverage, 'type'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {

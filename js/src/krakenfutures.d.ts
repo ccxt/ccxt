@@ -1,5 +1,5 @@
 import Exchange from './abstract/krakenfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num } from './base/types.js';
 /**
  * @class krakenfutures
  * @augments Exchange
@@ -14,10 +14,10 @@ export default class krakenfutures extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: Market): Trade;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
@@ -94,7 +94,9 @@ export default class krakenfutures extends Exchange {
     transferOut(code: string, amount: any, params?: {}): Promise<TransferEntry>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
-    fetchLeverage(symbol?: Str, params?: {}): Promise<any>;
+    fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    parseLeverage(leverage: any, market?: any): Leverage;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

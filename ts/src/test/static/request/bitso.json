@@ -42,6 +42,36 @@
                     "USDT"
                 ]
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitso.com/v3/trades?book=btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitso.com/v3/order_book?book=btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.bitso.com/v3/ticker?book=btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
         ]
     }
 }

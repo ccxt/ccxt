@@ -41,11 +41,16 @@ class binance extends binance$1 {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
+                'createMarketSellOrder': true,
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -62,6 +67,7 @@ class binance extends binance$1 {
                 'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': true,
+                'fetchCanceledAndClosedOrders': 'emulated',
                 'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
@@ -87,9 +93,13 @@ class binance extends binance$1 {
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLedgerEntry': true,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
+                'fetchMarginMode': 'emulated',
+                'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -107,6 +117,7 @@ class binance extends binance$1 {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -118,10 +129,11 @@ class binance extends binance$1 {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined,
-                'fetchTransactionFee': undefined,
+                'fetchTradingLimits': 'emulated',
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
+                'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
@@ -285,8 +297,6 @@ class binance extends binance$1 {
                         'loan/flexible/borrow/history': 40,
                         'loan/flexible/repay/history': 40,
                         'loan/flexible/ltv/adjustment/history': 40,
-                        'loan/flexible/loanable/data': 40,
-                        'loan/flexible/collateral/data': 40,
                         'loan/vip/ongoing/orders': 40,
                         'loan/vip/repay/history': 40,
                         'loan/vip/collateral/account': 600,
@@ -471,6 +481,10 @@ class binance extends binance$1 {
                         'simple-earn/flexible/history/rewardsRecord': 15,
                         'simple-earn/locked/history/rewardsRecord': 15,
                         'simple-earn/flexible/history/collateralRecord': 0.1,
+                        // Convert
+                        'dci/product/list': 0.1,
+                        'dci/product/positions': 0.1,
+                        'dci/product/accounts': 0.1,
                     },
                     'post': {
                         'asset/dust': 0.06667,
@@ -574,7 +588,6 @@ class binance extends binance$1 {
                         'loan/repay': 40.002,
                         'loan/adjust/ltv': 40.002,
                         'loan/customize/margin_call': 40.002,
-                        'loan/flexible/borrow': 40.002,
                         'loan/flexible/repay': 40.002,
                         'loan/flexible/adjust/ltv': 40.002,
                         'loan/vip/repay': 40.002,
@@ -599,6 +612,9 @@ class binance extends binance$1 {
                         'simple-earn/locked/redeem': 0.1,
                         'simple-earn/flexible/setAutoSubscribe': 15,
                         'simple-earn/locked/setAutoSubscribe': 15,
+                        // convert
+                        'dci/product/subscribe': 0.1,
+                        'dci/product/auto_compound/edit': 0.1,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -626,10 +642,19 @@ class binance extends binance$1 {
                         'sub-account/futures/account': 0.1,
                         'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
+                        'loan/flexible/ongoing/orders': 30,
+                        'loan/flexible/borrow/history': 40,
+                        'loan/flexible/repay/history': 40,
+                        'loan/flexible/ltv/adjustment/history': 40,
+                        'loan/flexible/loanable/data': 40,
+                        'loan/flexible/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                     },
                     'post': {
                         'eth-staking/eth/stake': 15,
-                        'sub-account/subAccountApi/ipRestriction': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'sub-account/subAccountApi/ipRestriction': 20.001,
+                        'loan/flexible/borrow': 40.002,
+                        'loan/flexible/repay': 40.002,
+                        'loan/flexible/adjust/ltv': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                     },
                 },
                 'sapiV3': {
@@ -2500,6 +2525,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const defaultType = this.safeString2(this.options, 'fetchTime', 'defaultType', 'spot');
@@ -2760,14 +2786,12 @@ class binance extends binance$1 {
             }
         }
         const promises = await Promise.all(promisesRaw);
-        const spotMarkets = this.safeValue(this.safeValue(promises, 0), 'symbols', []);
-        const futureMarkets = this.safeValue(this.safeValue(promises, 1), 'symbols', []);
-        const deliveryMarkets = this.safeValue(this.safeValue(promises, 2), 'symbols', []);
-        const optionMarkets = this.safeValue(this.safeValue(promises, 3), 'optionSymbols', []);
-        let markets = spotMarkets;
-        markets = this.arrayConcat(markets, futureMarkets);
-        markets = this.arrayConcat(markets, deliveryMarkets);
-        markets = this.arrayConcat(markets, optionMarkets);
+        let markets = [];
+        for (let i = 0; i < fetchMarkets.length; i++) {
+            const promise = this.safeDict(promises, i);
+            const promiseMarkets = this.safeList2(promise, 'symbols', 'optionSymbols', []);
+            markets = this.arrayConcat(markets, promiseMarkets);
+        }
         //
         // spot / margin
         //
@@ -3017,7 +3041,7 @@ class binance extends binance$1 {
         let fees = this.fees;
         let linear = undefined;
         let inverse = undefined;
-        const strike = this.safeInteger(market, 'strikePrice');
+        const strike = this.safeString(market, 'strikePrice');
         let symbol = base + '/' + quote;
         if (contract) {
             if (swap) {
@@ -3027,7 +3051,7 @@ class binance extends binance$1 {
                 symbol = symbol + ':' + settle + '-' + this.yymmdd(expiry);
             }
             else if (option) {
-                symbol = symbol + ':' + settle + '-' + this.yymmdd(expiry) + '-' + this.numberToString(strike) + '-' + this.safeString(optionParts, 3);
+                symbol = symbol + ':' + settle + '-' + this.yymmdd(expiry) + '-' + strike + '-' + this.safeString(optionParts, 3);
             }
             contractSize = this.safeNumber2(market, 'contractSize', 'unit', this.parseNumber('1'));
             linear = settle === quote;
@@ -3060,6 +3084,10 @@ class binance extends binance$1 {
             unifiedType = 'option';
             active = undefined;
         }
+        let parsedStrike = undefined;
+        if (strike !== undefined) {
+            parsedStrike = this.parseToNumeric(strike);
+        }
         const entry = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -3085,7 +3113,7 @@ class binance extends binance$1 {
             'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
-            'strike': strike,
+            'strike': parsedStrike,
             'optionType': this.safeStringLower(market, 'side'),
             'precision': {
                 'amount': this.safeInteger2(market, 'quantityPrecision', 'quantityScale'),
@@ -3293,6 +3321,7 @@ class binance extends binance$1 {
          * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
@@ -3871,6 +3900,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    // future
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -3911,6 +3941,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of lastprices structures
          */
         await this.loadMarkets();
@@ -4016,6 +4047,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -4101,7 +4133,8 @@ class binance extends binance$1 {
         //         "closeTime": 1677097200000
         //     }
         //
-        const volumeIndex = (market['inverse']) ? 7 : 5;
+        const inverse = this.safeBool(market, 'inverse');
+        const volumeIndex = inverse ? 7 : 5;
         return [
             this.safeInteger2(ohlcv, 0, 'closeTime'),
             this.safeNumber2(ohlcv, 1, 'open'),
@@ -4780,7 +4813,7 @@ class binance extends binance$1 {
         let stopPriceIsRequired = false;
         let quantityIsRequired = false;
         if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
+            const quoteOrderQty = this.safeBool(this.options, 'quoteOrderQty', true);
             if (quoteOrderQty) {
                 const quoteOrderQtyNew = this.safeValue2(params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
@@ -6441,6 +6474,7 @@ class binance extends binance$1 {
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
          * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account conditional orders
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -6803,6 +6837,38 @@ class binance extends binance$1 {
         const orders = await this.fetchOrders(symbol, since, undefined, params);
         const filteredOrders = this.filterBy(orders, 'status', 'canceled');
         return this.filterBySinceLimit(filteredOrders, since, limit);
+    }
+    async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchCanceledAndClosedOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
+         * @param {string} symbol unified market symbol of the market the orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
+        }
+        const orders = await this.fetchOrders(symbol, since, undefined, params);
+        const canceledOrders = this.filterBy(orders, 'status', 'canceled');
+        const closedOrders = this.filterBy(orders, 'status', 'closed');
+        const filteredOrders = this.arrayConcat(canceledOrders, closedOrders);
+        const sortedOrders = this.sortBy(filteredOrders, 'timestamp');
+        return this.filterBySinceLimit(sortedOrders, since, limit);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -8087,7 +8153,6 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#fetchTransfers
-         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
          * @description fetch a history of internal transfers made on an account
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
          * @param {string} code unified currency code of the currency transferred
@@ -8553,6 +8618,7 @@ class binance extends binance$1 {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
@@ -8621,6 +8687,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -8878,6 +8945,7 @@ class binance extends binance$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding rate
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
         await this.loadMarkets();
@@ -8951,6 +9019,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets();
@@ -9574,6 +9643,7 @@ class binance extends binance$1 {
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
@@ -9888,6 +9958,7 @@ class binance extends binance$1 {
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} data on account positions
          */
         if (symbols !== undefined) {
@@ -9941,6 +10012,7 @@ class binance extends binance$1 {
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} data on the positions risk
          */
         if (symbols !== undefined) {
@@ -10100,6 +10172,7 @@ class binance extends binance$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding history entry
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets();
@@ -10257,7 +10330,7 @@ class binance extends binance$1 {
             // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
             // binanceusdm
             if (e instanceof errors.MarginModeAlreadySet) {
-                const throwMarginModeAlreadySet = this.safeValue(this.options, 'throwMarginModeAlreadySet', false);
+                const throwMarginModeAlreadySet = this.safeBool(this.options, 'throwMarginModeAlreadySet', false);
                 if (throwMarginModeAlreadySet) {
                     throw e;
                 }
@@ -10284,6 +10357,7 @@ class binance extends binance$1 {
          * @param {string} symbol not used by binance setPositionMode ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} response from the exchange
          */
         const defaultType = this.safeString(this.options, 'defaultType', 'future');
@@ -10312,13 +10386,16 @@ class binance extends binance$1 {
                 response = await this.dapiPrivatePostPositionSideDual(this.extend(request, params));
             }
         }
-        else {
+        else if (this.isLinear(type, subType)) {
             if (isPortfolioMargin) {
                 response = await this.papiPostUmPositionSideDual(this.extend(request, params));
             }
             else {
                 response = await this.fapiPrivatePostPositionSideDual(this.extend(request, params));
             }
+        }
+        else {
+            throw new errors.BadRequest(this.id + ' setPositionMode() supports linear and inverse contracts only');
         }
         //
         //     {
@@ -10327,6 +10404,80 @@ class binance extends binance$1 {
         //     }
         //
         return response;
+    }
+    async fetchLeverages(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchLeverages
+         * @description fetch the set leverage for all markets
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        await this.loadLeverageBrackets(false, params);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchLeverages', undefined, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchLeverages', undefined, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchLeverages', 'papi', 'portfolioMargin', false);
+        let response = undefined;
+        if (this.isLinear(type, subType)) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmAccount(params);
+            }
+            else {
+                response = await this.fapiPrivateV2GetAccount(params);
+            }
+        }
+        else if (this.isInverse(type, subType)) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmAccount(params);
+            }
+            else {
+                response = await this.dapiPrivateGetAccount(params);
+            }
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchLeverages() supports linear and inverse contracts only');
+        }
+        const leverages = this.safeList(response, 'positions', []);
+        return this.parseLeverages(leverages, symbols, 'symbol');
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        const marginModeRaw = this.safeBool(leverage, 'isolated');
+        let marginMode = undefined;
+        if (marginModeRaw !== undefined) {
+            marginMode = marginModeRaw ? 'isolated' : 'cross';
+        }
+        const side = this.safeStringLower(leverage, 'positionSide');
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        const leverageValue = this.safeInteger(leverage, 'leverage');
+        if (side === 'both') {
+            longLeverage = leverageValue;
+            shortLeverage = leverageValue;
+        }
+        else if (side === 'long') {
+            longLeverage = leverageValue;
+        }
+        else if (side === 'short') {
+            shortLeverage = leverageValue;
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
     }
     async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -10510,6 +10661,19 @@ class binance extends binance$1 {
         }
         return result;
     }
+    async fetchLedgerEntry(id, code = undefined, params = {}) {
+        await this.loadMarkets();
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchLedgerEntry', undefined, params);
+        const query = {
+            'recordId': id,
+            'type': type,
+        };
+        if (type !== 'option') {
+            throw new errors.BadRequest(this.id + ' fetchLedgerEntry () can only be used for type option');
+        }
+        return await this.fetchLedger(code, undefined, undefined, this.extend(query, params));
+    }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -10527,6 +10691,7 @@ class binance extends binance$1 {
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -11670,6 +11835,8 @@ class binance extends binance$1 {
          * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch liquidations in a portfolio margin account
+         * @param {string} [params.type] "spot"
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets();
@@ -11974,6 +12141,210 @@ class binance extends binance$1 {
             'lastPrice': undefined,
             'underlyingPrice': undefined,
             'info': greeks,
+        };
+    }
+    async fetchTradingLimits(symbols = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
+        const markets = await this.fetchMarkets();
+        const tradingLimits = {};
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const symbol = market['symbol'];
+            if ((symbols === undefined) || (this.inArray(symbol, symbols))) {
+                tradingLimits[symbol] = market['limits']['amount'];
+            }
+        }
+        return tradingLimits;
+    }
+    async fetchPositionMode(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchPositionMode
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchPositionMode', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.fapiPrivateGetPositionSideDual(params);
+        }
+        else if (subType === 'inverse') {
+            response = await this.dapiPrivateGetPositionSideDual(params);
+        }
+        else {
+            throw new errors.BadRequest(this.id + ' fetchPositionMode requires either a symbol argument or params["subType"]');
+        }
+        //
+        //    {
+        //        dualSidePosition: false
+        //    }
+        //
+        const dualSidePosition = this.safeBool(response, 'dualSidePosition');
+        return {
+            'info': response,
+            'hedged': dualSidePosition,
+        };
+    }
+    async fetchMarginModes(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchMarginMode
+         * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols(symbols);
+            market = this.market(symbols[0]);
+        }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchMarginMode', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.fapiPrivateV2GetAccount(params);
+            //
+            //    {
+            //        feeTier: '0',
+            //        canTrade: true,
+            //        canDeposit: true,
+            //        canWithdraw: true,
+            //        tradeGroupId: '-1',
+            //        updateTime: '0',
+            //        multiAssetsMargin: true,
+            //        totalInitialMargin: '438.31134352',
+            //        totalMaintMargin: '5.90847101',
+            //        totalWalletBalance: '4345.15626338',
+            //        totalUnrealizedProfit: '376.45220224',
+            //        totalMarginBalance: '4721.60846562',
+            //        totalPositionInitialMargin: '425.45252687',
+            //        totalOpenOrderInitialMargin: '12.85881664',
+            //        totalCrossWalletBalance: '4345.15626338',
+            //        totalCrossUnPnl: '376.45220224',
+            //        availableBalance: '4281.84764041',
+            //        maxWithdrawAmount: '4281.84764041',
+            //        assets: [
+            //            {
+            //                asset: 'ETH',
+            //                walletBalance: '0.00000000',
+            //                unrealizedProfit: '0.00000000',
+            //                marginBalance: '0.00000000',
+            //                maintMargin: '0.00000000',
+            //                initialMargin: '0.00000000',
+            //                positionInitialMargin: '0.00000000',
+            //                openOrderInitialMargin: '0.00000000',
+            //                maxWithdrawAmount: '0.00000000',
+            //                crossWalletBalance: '0.00000000',
+            //                crossUnPnl: '0.00000000',
+            //                availableBalance: '1.26075574',
+            //                marginAvailable: true,
+            //                updateTime: '0'
+            //            },
+            //        ...
+            //        ],
+            //        positions: [
+            //            {
+            //              symbol: 'SNTUSDT',
+            //              initialMargin: '0',
+            //              maintMargin: '0',
+            //              unrealizedProfit: '0.00000000',
+            //              positionInitialMargin: '0',
+            //              openOrderInitialMargin: '0',
+            //              leverage: '20',
+            //              isolated: false,
+            //              entryPrice: '0.0',
+            //              breakEvenPrice: '0.0',
+            //              maxNotional: '25000',
+            //              positionSide: 'BOTH',
+            //              positionAmt: '0',
+            //              notional: '0',
+            //              isolatedWallet: '0',
+            //              updateTime: '0',
+            //              bidNotional: '0',
+            //              askNotional: '0'
+            //            },
+            //            ...
+            //        ]
+            //    }
+            //
+        }
+        else if (subType === 'inverse') {
+            response = await this.dapiPrivateGetAccount(params);
+            //
+            //    {
+            //        feeTier: '0',
+            //        canTrade: true,
+            //        canDeposit: true,
+            //        canWithdraw: true,
+            //        updateTime: '0',
+            //        assets: [
+            //            {
+            //                asset: 'APT',
+            //                walletBalance: '0.00000000',
+            //                unrealizedProfit: '0.00000000',
+            //                marginBalance: '0.00000000',
+            //                maintMargin: '0.00000000',
+            //                initialMargin: '0.00000000',
+            //                positionInitialMargin: '0.00000000',
+            //                openOrderInitialMargin: '0.00000000',
+            //                maxWithdrawAmount: '0.00000000',
+            //                crossWalletBalance: '0.00000000',
+            //                crossUnPnl: '0.00000000',
+            //                availableBalance: '0.00000000',
+            //                updateTime: '0'
+            //            },
+            //            ...
+            //        ],
+            //        positions: [
+            //            {
+            //                symbol: 'BCHUSD_240329',
+            //                initialMargin: '0',
+            //                maintMargin: '0',
+            //                unrealizedProfit: '0.00000000',
+            //                positionInitialMargin: '0',
+            //                openOrderInitialMargin: '0',
+            //                leverage: '20',
+            //                isolated: false,
+            //                positionSide: 'BOTH',
+            //                entryPrice: '0.00000000',
+            //                maxQty: '1000',
+            //                notionalValue: '0',
+            //                isolatedWallet: '0',
+            //                updateTime: '0',
+            //                positionAmt: '0',
+            //                breakEvenPrice: '0.00000000'
+            //            },
+            //            ...
+            //        ]
+            //    }
+            //
+        }
+        else {
+            throw new errors.BadRequest(this.id + ' fetchMarginModes () supports linear and inverse subTypes only');
+        }
+        const assets = this.safeValue(response, 'positions', []);
+        return this.parseMarginModes(assets, symbols, 'symbol', 'swap');
+    }
+    parseMarginMode(marginMode, market = undefined) {
+        const marketId = this.safeString(marginMode, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const isIsolated = this.safeBool(marginMode, 'isolated');
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': isIsolated ? 'isolated' : 'cross',
         };
     }
 }

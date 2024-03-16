@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -8,7 +8,7 @@ export default class binance extends Exchange {
     describe(): any;
     isInverse(type: any, subType?: any): boolean;
     isLinear(type: any, subType?: any): boolean;
-    setSandboxMode(enable: any): void;
+    setSandboxMode(enable: boolean): void;
     convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     market(symbol: any): any;
@@ -34,7 +34,7 @@ export default class binance extends Exchange {
     }>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    fetchLastPrices(symbols?: Strings, params?: {}): Promise<any>;
+    fetchLastPrices(symbols?: Strings, params?: {}): Promise<import("./base/types.js").LastPrices>;
     parseLastPrice(entry: any, market?: Market): {
         symbol: string;
         timestamp: number;
@@ -48,15 +48,15 @@ export default class binance extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    editSpotOrder(id: string, symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): Promise<Order>;
-    editSpotOrderRequest(id: string, symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): any;
-    editContractOrder(id: string, symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    editSpotOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editSpotOrderRequest(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    editContractOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
@@ -66,6 +66,7 @@ export default class binance extends Exchange {
     fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
@@ -263,6 +264,8 @@ export default class binance extends Exchange {
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    fetchLeverages(symbols?: string[], params?: {}): Promise<Leverages>;
+    parseLeverage(leverage: any, market?: any): Leverage;
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
@@ -273,6 +276,7 @@ export default class binance extends Exchange {
         datetime: string;
     };
     parseSettlements(settlements: any, market: any): any[];
+    fetchLedgerEntry(id: string, code?: Str, params?: {}): Promise<any>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: Currency): {
         id: string;
@@ -425,4 +429,11 @@ export default class binance extends Exchange {
         underlyingPrice: any;
         info: any;
     };
+    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<{
+        info: any;
+        hedged: boolean;
+    }>;
+    fetchMarginModes(symbols?: string[], params?: {}): Promise<MarginModes>;
+    parseMarginMode(marginMode: any, market?: any): MarginMode;
 }

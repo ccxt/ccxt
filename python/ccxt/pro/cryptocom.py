@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NetworkError
@@ -22,7 +22,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 'ws': True,
                 'watchBalance': True,
                 'watchTicker': True,
-                'watchTickers': False,  # for now
+                'watchTickers': False,
                 'watchMyTrades': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
@@ -515,7 +515,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
@@ -671,7 +671,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHashRequest = self.safe_string(message, 'id')
         client.resolve(self.balance, messageHashRequest)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
         create a trade order

@@ -43,7 +43,8 @@ public partial class delta : Exchange
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", false },
-                { "fetchMarginMode", false },
+                { "fetchMarginMode", true },
+                { "fetchMarginModes", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -2866,6 +2867,7 @@ public partial class delta : Exchange
         object request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "numericId") },
         };
+        object response = await this.privateGetProductsProductIdOrdersLeverage(this.extend(request, parameters));
         //
         //     {
         //         "result": {
@@ -2879,7 +2881,21 @@ public partial class delta : Exchange
         //         "success": true
         //     }
         //
-        return await this.privateGetProductsProductIdOrdersLeverage(this.extend(request, parameters));
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseLeverage(result, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "index_symbol");
+        object leverageValue = this.safeInteger(leverage, "leverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", this.safeStringLower(leverage, "margin_mode") },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
     }
 
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -3263,6 +3279,106 @@ public partial class delta : Exchange
         //
         object position = this.parsePosition(this.safeValue(response, "result", new Dictionary<string, object>() {}));
         return new List<object>() {position};
+    }
+
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name delta#fetchMarginMode
+        * @description fetches the margin mode of a trading pair
+        * @see https://docs.delta.exchange/#get-user
+        * @param {string} symbol unified symbol of the market to fetch the margin mode for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object response = await this.privateGetProfile(parameters);
+        //
+        //     {
+        //         "result": {
+        //             "is_password_set": true,
+        //             "kyc_expiry_date": null,
+        //             "phishing_code": "12345",
+        //             "preferences": {
+        //                 "favorites": []
+        //             },
+        //             "is_kyc_provisioned": false,
+        //             "country": "Canada",
+        //             "margin_mode": "isolated",
+        //             "mfa_updated_at": "2023-07-19T01:04:43Z",
+        //             "last_name": "",
+        //             "oauth_apple_active": false,
+        //             "pf_index_symbol": null,
+        //             "proof_of_identity_status": "approved",
+        //             "dob": null,
+        //             "email": "abc_123@gmail.com",
+        //             "force_change_password": false,
+        //             "nick_name": "still-breeze-123",
+        //             "oauth_google_active": false,
+        //             "phone_verification_status": "verified",
+        //             "id": 12345678,
+        //             "last_seen": null,
+        //             "is_withdrawal_enabled": true,
+        //             "force_change_mfa": false,
+        //             "enable_bots": false,
+        //             "kyc_verified_on": null,
+        //             "created_at": "2023-07-19T01:02:32Z",
+        //             "withdrawal_blocked_till": null,
+        //             "proof_of_address_status": "approved",
+        //             "is_password_change_blocked": false,
+        //             "is_mfa_enabled": true,
+        //             "is_kyc_done": true,
+        //             "oauth": null,
+        //             "account_name": "Main",
+        //             "sub_account_permissions": null,
+        //             "phone_number": null,
+        //             "tracking_info": {
+        //                 "ga_cid": "1234.4321",
+        //                 "is_kyc_gtm_tracked": true,
+        //                 "sub_account_config": {
+        //                     "cross": 2,
+        //                     "isolated": 2,
+        //                     "portfolio": 2
+        //                 }
+        //             },
+        //             "first_name": "",
+        //             "phone_verified_on": null,
+        //             "seen_intro": false,
+        //             "password_updated_at": null,
+        //             "is_login_enabled": true,
+        //             "registration_date": "2023-07-19T01:02:32Z",
+        //             "permissions": {},
+        //             "max_sub_accounts_limit": 2,
+        //             "country_calling_code": null,
+        //             "is_sub_account": false,
+        //             "is_kyc_refresh_required": false
+        //         },
+        //         "success": true
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseMarginMode(result, market);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object symbol = null;
+        if (isTrue(!isEqual(market, null)))
+        {
+            symbol = getValue(market, "symbol");
+        }
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", symbol },
+            { "marginMode", this.safeString(marginMode, "margin_mode") },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

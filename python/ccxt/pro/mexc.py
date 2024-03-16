@@ -9,7 +9,6 @@ import hashlib
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
 
@@ -241,7 +240,7 @@ class mexc(ccxt.async_support.mexc):
         #        "d": {
         #            "e": "spot@public.kline.v3.api",
         #            "k": {
-        #                "t": 1678642260,
+        #                "t": 1678642261,
         #                "o": 20626.94,
         #                "c": 20599.69,
         #                "h": 20626.94,
@@ -439,18 +438,19 @@ class mexc(ccxt.async_support.mexc):
         symbol = self.safe_symbol(marketId)
         messageHash = 'orderbook:' + symbol
         subscription = self.safe_value(client.subscriptions, messageHash)
+        limit = self.safe_integer(subscription, 'limit')
         if subscription is True:
             # we set client.subscriptions[messageHash] to 1
             # once we have received the first delta and initialized the orderbook
             client.subscriptions[messageHash] = 1
             self.orderbooks[symbol] = self.counted_order_book({})
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
+        storedOrderBook = self.orderbooks[symbol]
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol)
+                self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
             storedOrderBook.cache.append(data)
             return
         try:
@@ -480,10 +480,12 @@ class mexc(ccxt.async_support.mexc):
                 bookside.store(price, amount)
 
     def handle_delta(self, orderbook, delta):
-        nonce = self.safe_integer(orderbook, 'nonce')
+        existingNonce = self.safe_integer(orderbook, 'nonce')
         deltaNonce = self.safe_integer_2(delta, 'r', 'version')
-        if deltaNonce != nonce and deltaNonce != nonce + 1:
-            raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
+        if deltaNonce < existingNonce:
+            # even when doing < comparison, self happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            # so, we just skip old updates
+            return
         orderbook['nonce'] = deltaNonce
         asks = self.safe_value(delta, 'asks', [])
         bids = self.safe_value(delta, 'bids', [])

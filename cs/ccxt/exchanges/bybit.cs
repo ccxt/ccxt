@@ -70,9 +70,12 @@ public partial class bybit : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchLedger", true },
+                { "fetchLeverage", true },
+                { "fetchLeverageTiers", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
+                { "fetchMyLiquidations", true },
                 { "fetchMySettlementHistory", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
@@ -3955,9 +3958,9 @@ public partial class bybit : Exchange
         var categoryparametersVariable = this.getBybitType("createOrders", market, parameters);
         category = ((IList<object>)categoryparametersVariable)[0];
         parameters = ((IList<object>)categoryparametersVariable)[1];
-        if (isTrue(isTrue((isEqual(category, "spot"))) || isTrue((isEqual(category, "inverse")))))
+        if (isTrue(isEqual(category, "inverse")))
         {
-            throw new NotSupported ((string)add(this.id, " createOrders does not allow spot or inverse orders")) ;
+            throw new NotSupported ((string)add(this.id, " createOrders does not allow inverse orders")) ;
         }
         object request = new Dictionary<string, object>() {
             { "category", category },
@@ -4468,6 +4471,96 @@ public partial class bybit : Exchange
         return this.parseOrder(result, market);
     }
 
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#cancelOrders
+        * @description cancel multiple orders
+        * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+        * @param {string[]} ids order ids
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string[]} [params.clientOrderIds] client order ids
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("cancelOrders", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        if (isTrue(isEqual(category, "inverse")))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrders does not allow inverse orders")) ;
+        }
+        object ordersRequests = new List<object>() {};
+        object clientOrderIds = this.safeList2(parameters, "clientOrderIds", "clientOids", new List<object>() {});
+        parameters = this.omit(parameters, new List<object>() {"clientOrderIds", "clientOids"});
+        for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+        {
+            ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "orderLinkId", this.safeString(clientOrderIds, i) },
+            });
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "orderId", this.safeString(ids, i) },
+            });
+        }
+        object request = new Dictionary<string, object>() {
+            { "category", category },
+            { "request", ordersRequests },
+        };
+        object response = await this.privatePostV5OrderCancelBatch(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800896",
+        //                     "orderLinkId": "1636282505818800897"
+        //                 },
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800898",
+        //                     "orderLinkId": "1636282505818800899"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {
+        //             "list": [
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 },
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 }
+        //             ]
+        //         },
+        //         "time": "1709796158501"
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object row = this.safeList(result, "list", new List<object>() {});
+        return this.parseOrders(row, market);
+    }
+
     public async virtual Task<object> cancelAllUsdcOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4820,7 +4913,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "nextPageCursor", "nextPageCursor", null, 50);
+            return await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
         }
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
@@ -5025,7 +5118,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, "nextPageCursor", "nextPageCursor", null, 50);
+            return await this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
         }
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
@@ -5446,7 +5539,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "nextPageCursor", "nextPageCursor", null, 100);
+            return await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 100);
         }
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
@@ -5675,7 +5768,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "nextPageCursor", "nextPageCursor", null, 50);
+            return await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
         }
         object request = new Dictionary<string, object>() {};
         object currency = null;
@@ -5750,7 +5843,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "nextPageCursor", "nextPageCursor", null, 50);
+            return await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
         }
         object request = new Dictionary<string, object>() {};
         object currency = null;
@@ -6752,6 +6845,37 @@ public partial class bybit : Exchange
         });
     }
 
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://bybit-exchange.github.io/docs/v5/position
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object position = await this.fetchPosition(symbol, parameters);
+        return this.parseLeverage(position, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        object leverageValue = this.safeInteger(leverage, "leverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", this.safeStringLower(leverage, "marginMode") },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
+    }
+
     public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
         /**
@@ -7400,7 +7524,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "nextPageCursor", "nextPageCursor", null, 50);
+            return await this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
         }
         object currency = null;
         object request = new Dictionary<string, object>() {};
@@ -7670,39 +7794,6 @@ public partial class bybit : Exchange
         return await this.fetchDerivativesMarketLeverageTiers(symbol, parameters);
     }
 
-    public override object parseMarketLeverageTiers(object info, object market = null)
-    {
-        //
-        //     {
-        //         "id": 1,
-        //         "symbol": "BTCUSD",
-        //         "riskLimitValue": "150",
-        //         "maintenanceMargin": "0.5",
-        //         "initialMargin": "1",
-        //         "isLowestRisk": 1,
-        //         "maxLeverage": "100.00"
-        //     }
-        //
-        object minNotional = 0;
-        object tiers = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
-        {
-            object item = getValue(info, i);
-            object maxNotional = this.safeNumber(item, "riskLimitValue");
-            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
-                { "tier", this.sum(i, 1) },
-                { "currency", getValue(market, "base") },
-                { "minNotional", minNotional },
-                { "maxNotional", maxNotional },
-                { "maintenanceMarginRate", this.safeNumber(item, "maintenanceMargin") },
-                { "maxLeverage", this.safeNumber(item, "maxLeverage") },
-                { "info", item },
-            });
-            minNotional = maxNotional;
-        }
-        return tiers;
-    }
-
     public virtual object parseTradingFee(object fee, object market = null)
     {
         //
@@ -7713,7 +7804,8 @@ public partial class bybit : Exchange
         //     }
         //
         object marketId = this.safeString(fee, "symbol");
-        object symbol = this.safeSymbol(marketId, null, null, "contract");
+        object defaultType = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "type") : "contract";
+        object symbol = this.safeSymbol(marketId, market, null, defaultType);
         return new Dictionary<string, object>() {
             { "info", fee },
             { "symbol", symbol },
@@ -7736,13 +7828,24 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (isTrue(getValue(market, "spot")))
-        {
-            throw new NotSupported ((string)add(this.id, " fetchTradingFee() is not supported for spot market")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
+        object category = null;
+        if (isTrue(getValue(market, "linear")))
+        {
+            category = "linear";
+        } else if (isTrue(getValue(market, "inverse")))
+        {
+            category = "inverse";
+        } else if (isTrue(getValue(market, "spot")))
+        {
+            category = "spot";
+        } else
+        {
+            category = "option";
+        }
+        ((IDictionary<string,object>)request)["category"] = category;
         object response = await this.privateGetV5AccountFeeRate(this.extend(request, parameters));
         //
         //     {
@@ -7764,7 +7867,7 @@ public partial class bybit : Exchange
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object fees = this.safeValue(result, "list", new List<object>() {});
         object first = this.safeValue(fees, 0, new Dictionary<string, object>() {});
-        return this.parseTradingFee(first);
+        return this.parseTradingFee(first, market);
     }
 
     public async override Task<object> fetchTradingFees(object parameters = null)
@@ -8321,6 +8424,254 @@ public partial class bybit : Exchange
             { "underlyingPrice", this.safeNumber(greeks, "underlyingPrice") },
             { "info", greeks },
         };
+    }
+
+    public async override Task<object> fetchMyLiquidations(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchMyLiquidations
+        * @description retrieves the users liquidated positions
+        * @see https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+        * @param {string} [symbol] unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the exchange API endpoint
+        * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+        * @param {string} [params.subType] market subType, ['linear', 'inverse']
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyLiquidations", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 100);
+        }
+        object request = new Dictionary<string, object>() {
+            { "execType", "BustTrade" },
+        };
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        object type = null;
+        var typeparametersVariable = this.getBybitType("fetchMyLiquidations", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = type;
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.privateGetV5ExecutionList(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "nextPageCursor": "132766%3A2%2C132766%3A2",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "ETHPERP",
+        //                     "orderType": "Market",
+        //                     "underlyingPrice": "",
+        //                     "orderLinkId": "",
+        //                     "side": "Buy",
+        //                     "indexPrice": "",
+        //                     "orderId": "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
+        //                     "stopOrderType": "UNKNOWN",
+        //                     "leavesQty": "0",
+        //                     "execTime": "1672282722429",
+        //                     "isMaker": false,
+        //                     "execFee": "0.071409",
+        //                     "feeRate": "0.0006",
+        //                     "execId": "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
+        //                     "tradeIv": "",
+        //                     "blockTradeId": "",
+        //                     "markPrice": "1183.54",
+        //                     "execPrice": "1190.15",
+        //                     "markIv": "",
+        //                     "orderQty": "0.1",
+        //                     "orderPrice": "1236.9",
+        //                     "execValue": "119.015",
+        //                     "execType": "Trade",
+        //                     "execQty": "0.1"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672283754510
+        //     }
+        //
+        object liquidations = this.addPaginationCursorToResult(response);
+        return this.parseLiquidations(liquidations, market, since, limit);
+    }
+
+    public override object parseLiquidation(object liquidation, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "ETHPERP",
+        //         "orderType": "Market",
+        //         "underlyingPrice": "",
+        //         "orderLinkId": "",
+        //         "side": "Buy",
+        //         "indexPrice": "",
+        //         "orderId": "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
+        //         "stopOrderType": "UNKNOWN",
+        //         "leavesQty": "0",
+        //         "execTime": "1672282722429",
+        //         "isMaker": false,
+        //         "execFee": "0.071409",
+        //         "feeRate": "0.0006",
+        //         "execId": "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
+        //         "tradeIv": "",
+        //         "blockTradeId": "",
+        //         "markPrice": "1183.54",
+        //         "execPrice": "1190.15",
+        //         "markIv": "",
+        //         "orderQty": "0.1",
+        //         "orderPrice": "1236.9",
+        //         "execValue": "119.015",
+        //         "execType": "Trade",
+        //         "execQty": "0.1"
+        //     }
+        //
+        object marketId = this.safeString(liquidation, "symbol");
+        object timestamp = this.safeInteger(liquidation, "execTime");
+        object contractsString = this.safeString(liquidation, "execQty");
+        object contractSizeString = this.safeString(market, "contractSize");
+        object priceString = this.safeString(liquidation, "execPrice");
+        object baseValueString = Precise.stringMul(contractsString, contractSizeString);
+        object quoteValueString = Precise.stringMul(baseValueString, priceString);
+        return this.safeLiquidation(new Dictionary<string, object>() {
+            { "info", liquidation },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "contracts", this.parseNumber(contractsString) },
+            { "contractSize", this.parseNumber(contractSizeString) },
+            { "price", this.parseNumber(priceString) },
+            { "baseValue", this.parseNumber(baseValueString) },
+            { "quoteValue", this.parseNumber(quoteValueString) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        });
+    }
+
+    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchLeverageTiers
+        * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
+        * @description retrieve information on the maximum leverage, for different trade sizes
+        * @param {string[]} [symbols] a list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
+        * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            market = this.market(getValue(symbols, 0));
+            if (isTrue(getValue(market, "spot")))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchLeverageTiers() is not supported for spot market")) ;
+            }
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "category", subType },
+        };
+        object response = await this.publicGetV5MarketRiskLimit(this.extend(request, parameters));
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "list", new List<object>() {});
+        symbols = this.marketSymbols(symbols);
+        return this.parseLeverageTiers(data, symbols, "symbol");
+    }
+
+    public override object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
+    {
+        //
+        //  [
+        //      {
+        //          "id": 1,
+        //          "symbol": "BTCUSD",
+        //          "riskLimitValue": "150",
+        //          "maintenanceMargin": "0.5",
+        //          "initialMargin": "1",
+        //          "isLowestRisk": 1,
+        //          "maxLeverage": "100.00"
+        //      }
+        //  ]
+        //
+        object tiers = new Dictionary<string, object>() {};
+        object marketIds = this.marketIds(symbols);
+        object filteredResults = this.filterByArray(response, marketIdKey, marketIds, false);
+        object grouped = this.groupBy(filteredResults, marketIdKey);
+        object keys = new List<object>(((IDictionary<string,object>)grouped).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(keys, i);
+            object entry = getValue(grouped, marketId);
+            object market = this.safeMarket(marketId, null, null, "contract");
+            object symbol = getValue(market, "symbol");
+            ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(entry, market);
+        }
+        return tiers;
+    }
+
+    public override object parseMarketLeverageTiers(object info, object market = null)
+    {
+        //
+        //  [
+        //      {
+        //          "id": 1,
+        //          "symbol": "BTCUSD",
+        //          "riskLimitValue": "150",
+        //          "maintenanceMargin": "0.5",
+        //          "initialMargin": "1",
+        //          "isLowestRisk": 1,
+        //          "maxLeverage": "100.00"
+        //      }
+        //  ]
+        //
+        object tiers = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        {
+            object tier = getValue(info, i);
+            object marketId = this.safeString(info, "symbol");
+            market = this.safeMarket(marketId);
+            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+                { "tier", this.safeInteger(tier, "id") },
+                { "currency", getValue(market, "settle") },
+                { "minNotional", null },
+                { "maxNotional", null },
+                { "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin") },
+                { "maxLeverage", this.safeNumber(tier, "maxLeverage") },
+                { "info", tier },
+            });
+        }
+        return tiers;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

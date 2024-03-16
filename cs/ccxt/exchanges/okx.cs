@@ -534,6 +534,7 @@ public partial class okx : Exchange
                     { "50027", typeof(PermissionDenied) },
                     { "50028", typeof(ExchangeError) },
                     { "50044", typeof(BadRequest) },
+                    { "50062", typeof(ExchangeError) },
                     { "50100", typeof(ExchangeError) },
                     { "50101", typeof(AuthenticationError) },
                     { "50102", typeof(InvalidNonce) },
@@ -586,6 +587,15 @@ public partial class okx : Exchange
                     { "51072", typeof(InvalidOrder) },
                     { "51073", typeof(InvalidOrder) },
                     { "51074", typeof(InvalidOrder) },
+                    { "51090", typeof(InvalidOrder) },
+                    { "51091", typeof(InvalidOrder) },
+                    { "51092", typeof(InvalidOrder) },
+                    { "51093", typeof(InvalidOrder) },
+                    { "51094", typeof(InvalidOrder) },
+                    { "51095", typeof(InvalidOrder) },
+                    { "51096", typeof(InvalidOrder) },
+                    { "51098", typeof(InvalidOrder) },
+                    { "51099", typeof(InvalidOrder) },
                     { "51100", typeof(InvalidOrder) },
                     { "51101", typeof(InvalidOrder) },
                     { "51102", typeof(InvalidOrder) },
@@ -1518,7 +1528,7 @@ public partial class okx : Exchange
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         parameters ??= new Dictionary<string, object>();
-        object isSandboxMode = this.safeValue(this.options, "sandboxMode", false);
+        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(!isTrue(this.checkRequiredCredentials(false)) || isTrue(isSandboxMode)))
         {
             return null;
@@ -2257,7 +2267,7 @@ public partial class okx : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters);
+            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100);
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -2832,7 +2842,7 @@ public partial class okx : Exchange
                 }
                 ((IDictionary<string,object>)request)["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 object takeProfitLimitPrice = this.safeValueN(takeProfit, new List<object>() {"price", "takeProfitPrice", "tpOrdPx"});
-                object takeProfitOrderType = this.safeString(takeProfit, "type");
+                object takeProfitOrderType = this.safeString2(takeProfit, "type", "tpOrdKind");
                 if (isTrue(!isEqual(takeProfitOrderType, null)))
                 {
                     object takeProfitLimitOrderType = (isEqual(takeProfitOrderType, "limit"));
@@ -2847,6 +2857,7 @@ public partial class okx : Exchange
                             throw new InvalidOrder ((string)add(this.id, " createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order")) ;
                         } else
                         {
+                            ((IDictionary<string,object>)request)["tpOrdKind"] = takeProfitOrderType;
                             ((IDictionary<string,object>)request)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice);
                         }
                     } else if (isTrue(isEqual(takeProfitOrderType, "market")))
@@ -2855,6 +2866,7 @@ public partial class okx : Exchange
                     }
                 } else if (isTrue(!isEqual(takeProfitLimitPrice, null)))
                 {
+                    ((IDictionary<string,object>)request)["tpOrdKind"] = "limit";
                     ((IDictionary<string,object>)request)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
                 } else
                 {
@@ -2881,6 +2893,7 @@ public partial class okx : Exchange
             object twoWayCondition = (isTrue((!isEqual(takeProfitPrice, null))) && isTrue((!isEqual(stopLossPrice, null))));
             // if TP and SL are sent together
             // as ordType 'conditional' only stop-loss order will be applied
+            // tpOrdKind is 'condition' which is the default
             if (isTrue(twoWayCondition))
             {
                 ((IDictionary<string,object>)request)["ordType"] = "oco";
@@ -2941,6 +2954,7 @@ public partial class okx : Exchange
         * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
         * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+        * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -3132,6 +3146,7 @@ public partial class okx : Exchange
                 takeProfitTriggerPrice = this.safeValue(takeProfit, "triggerPrice");
                 takeProfitPrice = this.safeValue(takeProfit, "price");
                 object takeProfitType = this.safeString(takeProfit, "type");
+                ((IDictionary<string,object>)request)["newTpOrdKind"] = ((bool) isTrue((isEqual(takeProfitType, "limit")))) ? takeProfitType : "condition";
                 ((IDictionary<string,object>)request)["newTpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 ((IDictionary<string,object>)request)["newTpOrdPx"] = ((bool) isTrue((isEqual(takeProfitType, "market")))) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
                 ((IDictionary<string,object>)request)["newTpTriggerPxType"] = takeProfitTriggerPriceType;
@@ -3182,6 +3197,7 @@ public partial class okx : Exchange
         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
         * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
         * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+        * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -5390,7 +5406,41 @@ public partial class okx : Exchange
         //        "msg": ""
         //     }
         //
-        return response;
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = null;
+        object marginMode = null;
+        object longLeverage = null;
+        object shortLeverage = null;
+        for (object i = 0; isLessThan(i, getArrayLength(leverage)); postFixIncrement(ref i))
+        {
+            object entry = getValue(leverage, i);
+            marginMode = this.safeStringLower(entry, "mgnMode");
+            marketId = this.safeString(entry, "instId");
+            object positionSide = this.safeStringLower(entry, "posSide");
+            if (isTrue(isEqual(positionSide, "long")))
+            {
+                longLeverage = this.safeInteger(entry, "lever");
+            } else if (isTrue(isEqual(positionSide, "short")))
+            {
+                shortLeverage = this.safeInteger(entry, "lever");
+            } else
+            {
+                longLeverage = this.safeInteger(entry, "lever");
+                shortLeverage = this.safeInteger(entry, "lever");
+            }
+        }
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", marginMode },
+            { "longLeverage", longLeverage },
+            { "shortLeverage", shortLeverage },
+        };
     }
 
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
@@ -5737,7 +5787,7 @@ public partial class okx : Exchange
         object liquidationPrice = this.safeNumber(position, "liqPx");
         object percentageString = this.safeString(position, "uplRatio");
         object percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
-        object timestamp = this.safeInteger(position, "uTime");
+        object timestamp = this.safeInteger(position, "cTime");
         object marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
@@ -5893,7 +5943,7 @@ public partial class okx : Exchange
         object fromAccountId = this.safeString(transfer, "from");
         object toAccountId = this.safeString(transfer, "to");
         object accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(transfer, "ts", this.milliseconds());
+        object timestamp = this.safeInteger(transfer, "ts");
         object balanceChange = this.safeString(transfer, "sz");
         if (isTrue(!isEqual(balanceChange, null)))
         {

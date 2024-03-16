@@ -305,7 +305,7 @@ public partial class coinex
         var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
         return new Order(res);
     }
-    public Dictionary<string, object> CreateOrderRequest(object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
@@ -1132,5 +1132,25 @@ public partial class coinex
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch the set leverage for all contract and margin markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverages(symbols, parameters);
+        return new Leverages(res);
     }
 }

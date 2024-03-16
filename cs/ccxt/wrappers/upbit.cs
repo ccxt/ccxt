@@ -253,6 +253,7 @@ public partial class upbit
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -270,6 +271,12 @@ public partial class upbit
     /// <term>params.cost</term>
     /// <description>
     /// float : for market buy orders, the quote quantity that can be used as an alternative for the amount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : 'IOC' or 'FOK'
     /// </description>
     /// </item>
     /// </list>

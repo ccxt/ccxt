@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num } from './base/types.js';
 /**
  * @class okx
  * @augments Exchange
@@ -53,11 +53,11 @@ export default class okx extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): any;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     parseIds(ids: any): any;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
@@ -104,7 +104,8 @@ export default class okx extends Exchange {
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    fetchLeverage(symbol: string, params?: {}): Promise<any>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    parseLeverage(leverage: any, market?: any): Leverage;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPositionsForSymbol(symbol: string, params?: {}): Promise<import("./base/types.js").Position[]>;
@@ -279,7 +280,7 @@ export default class okx extends Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OpenInterest[]>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
-    setSandboxMode(enable: any): void;
+    setSandboxMode(enable: boolean): void;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;

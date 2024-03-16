@@ -28,7 +28,7 @@ public static class Program
             // instance.verbose = true;
             verbose = true;
         }
-        if (args.Contains("--sandbox"))
+        if (args.Contains("--sandbox") || args.Contains("--test") || args.Contains("--testnet"))
         {
             instance.setSandboxMode(true);
         }

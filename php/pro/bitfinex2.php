@@ -61,7 +61,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 'symbol' => $marketId,
             );
             $result = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, array( 'checksum' => false )));
-            $checksum = $this->safe_value($this->options, 'checksum', true);
+            $checksum = $this->safe_bool($this->options, 'checksum', true);
             if ($checksum && !$client->subscriptions[$messageHash]['checksum'] && ($channel === 'book')) {
                 $client->subscriptions[$messageHash]['checksum'] = true;
                 Async\await($client->send (array(
@@ -338,9 +338,12 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $messageLength = count($message);
         if ($messageLength === 2) {
             // initial snapshot
-            $trades = $this->safe_value($message, 1, array());
-            for ($i = 0; $i < count($trades); $i++) {
-                $parsed = $this->parse_ws_trade($trades[$i], $market);
+            $trades = $this->safe_list($message, 1, array());
+            // needs to be reversed to make chronological order
+            $length = count($trades);
+            for ($i = 0; $i < $length; $i++) {
+                $index = $length - $i - 1;
+                $parsed = $this->parse_ws_trade($trades[$index], $market);
                 $stored->append ($parsed);
             }
         } else {
