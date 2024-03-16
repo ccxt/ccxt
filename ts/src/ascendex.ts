@@ -2744,7 +2744,8 @@ export default class ascendex extends Exchange {
         if (Precise.stringEq (notional, '0')) {
             notional = this.safeString (position, 'sellOpenOrderNotional');
         }
-        const marginMode = this.safeString (position, 'marginType');
+        const marginType = this.safeString (position, 'marginType');
+        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
         let collateral = undefined;
         if (marginMode === 'isolated') {
             collateral = this.safeString (position, 'isolatedMargin');
