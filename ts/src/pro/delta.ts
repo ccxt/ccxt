@@ -62,7 +62,10 @@ export default class delta extends deltaRest {
         };
         const messageHash = 'trades:' + symbol;
         const url = this.urls['api']['ws'];
-        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        let trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (trades !== undefined) {
+            trades = this.sortBy (trades, 'timestamp');
+        }
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0, {});
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -133,11 +136,7 @@ export default class delta extends deltaRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const tickers = await this.watchTickers ([ symbol ], params);
-        if (!(symbol in tickers)) {
-            return {} as Ticker;
-        } else {
-            return tickers[symbol];
-        }
+        return this.safeValue (tickers, symbol);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
