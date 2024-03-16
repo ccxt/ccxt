@@ -82,6 +82,12 @@ node examples/js/cli binance currencies  # will print out a table of all the loa
 node examples/js/cli gate options  # will print out the contents of the exchange-specific options
 ```
 
+You can easily view which methods are supported on the various exchanges:
+
+```
+node examples/js/exchange-capabilities | less -S -R
+```
+
 ### Calling A Unified Method By Name
 
 Calling unified methods is easy:
