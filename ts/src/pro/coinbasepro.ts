@@ -956,6 +956,7 @@ export default class coinbasepro extends coinbaseproRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods = {
             'snapshot': this.handleOrderBook,
