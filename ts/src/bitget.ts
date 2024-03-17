@@ -1554,33 +1554,7 @@ export default class bitget extends Exchange {
         let spotInfoDict = {};
         let traceSymbolDict = {};
         if (type === 'spot') {
-            // const accountInfo = await this.privateSpotGetV2SpotAccountInfo (params);
-            const accountInfo = {
-                'code': '00000',
-                'msg': 'success',
-                'requestTime': '1710452758237',
-                'data': {
-                    'userId': '3182153878',
-                    'inviterId': null,
-                    'channelCode': 'rr7o',
-                    'channel': 'mzk2',
-                    'ips': '',
-                    'authorities': [
-                        'wtow',
-                        'chow',
-                        'smow',
-                        'coow',
-                        'taxw',
-                        'p2pw',
-                        'cpow',
-                        'ttow',
-                        'stow',
-                    ],
-                    'parentId': '3182153878',
-                    'traderType': 'trader',
-                    'regisTime': '1706140810000',
-                },
-            };
+            const accountInfo = await this.privateSpotGetV2SpotAccountInfo (params);
             //
             //   {
             //       code: '00000',
@@ -1608,58 +1582,7 @@ export default class bitget extends Exchange {
             const accountData = this.safeDict (accountInfo, 'data');
             const traderType = this.safeString (accountData, 'traderType');
             if (traderType === 'trader') {
-                // const querySettings = await this.privateCopyGetV2CopySpotTraderConfigQuerySettings (params);
-                const querySettings = {
-                    'code': '00000',
-                    'msg': 'success',
-                    'requestTime': 1695807020372,
-                    'data': {
-                        'removeLimitUsdt': '100',
-                        'spotInfoList': [
-                            {
-                                'maxQuoteSize': '5000000',
-                                'surplusQuoteSize': '4998894.59',
-                                'symbol': 'BTCUSDT',
-                            },
-                            {
-                                'maxQuoteSize': '300000',
-                                'surplusQuoteSize': '300000',
-                                'symbol': 'ETHBTC',
-                            },
-                            {
-                                'maxQuoteSize': '50000',
-                                'surplusQuoteSize': '50000',
-                                'symbol': 'ETHUSDT',
-                            },
-                        ],
-                        'labelList': [],
-                        'enable': 'YES',
-                        'showAssetsMap': 'NO',
-                        'showEquity': 'NO',
-                        'traceSymbolList': [
-                            {
-                                'enable': 'NO',
-                                'symbol': 'BGBUSDT',
-                                'minOpenCount': '0.0001',
-                            },
-                            {
-                                'enable': 'YES',
-                                'symbol': 'BTCUSDT',
-                                'minOpenCount': '0.0005',
-                            },
-                            {
-                                'enable': 'YES',
-                                'symbol': 'ETHBTC',
-                                'minOpenCount': '0.0001',
-                            },
-                            {
-                                'enable': 'YES',
-                                'symbol': 'ETHUSDT',
-                                'minOpenCount': '0.0001',
-                            },
-                        ],
-                    },
-                };
+                const querySettings = await this.privateCopyGetV2CopySpotTraderConfigQuerySettings (params);
                 //
                 //   {
                 //       "code": "00000",
