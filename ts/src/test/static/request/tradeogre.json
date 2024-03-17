@@ -1,0 +1,82 @@
+{
+    "exchange": "tradeogre",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://tradeogre.com/api/v1/ticker/BTC-USDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "url": "https://tradeogre.com/api/v1/history/BTC-USDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://tradeogre.com/api/v1/orders/LTC-USDT",
+                "input": [
+                  "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://tradeogre.com/api/v1/account/orders",
+                "input": [
+                  "LTC/USDT"
+                ],
+                "output": "market=LTC-USDT"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "limit buy order",
+                "method": "createOrder",
+                "url": "https://tradeogre.com/api/v1/order/buy",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50
+                ],
+                "output": "market=LTC-USDT&quantity=0.1&price=50"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "cancelOrder",
+                "url": "https://tradeogre.com/api/v1/order/cancel",
+                "input": [
+                  "b8f62742-bb59-4f87-a13a-bfd71560847c"
+                ],
+                "output": "uuid=b8f62742-bb59-4f87-a13a-bfd71560847c"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://tradeogre.com/api/v1/account/balances",
+                "input": []
+            }
+        ]
+    }
+}
