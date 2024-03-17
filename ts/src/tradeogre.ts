@@ -223,8 +223,8 @@ export default class tradeogre extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision ('9')),
-                    'price': this.parseNumber (this.parsePrecision ('9')), // they're not explicit about it
+                    'amount': this.parseNumber (this.parsePrecision ('8')),
+                    'price': this.parseNumber (this.parsePrecision ('8')), // they're not explicit about it
                 },
                 'limits': {
                     'leverage': {
