@@ -317,6 +317,7 @@ export default class luno extends lunoRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (message === '') {
             return;
         }

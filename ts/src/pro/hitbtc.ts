@@ -1233,6 +1233,7 @@ export default class hitbtc extends hitbtcRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         this.handleError (client, message);
         let channel = this.safeString2 (message, 'ch', 'method');
         if (channel !== undefined) {

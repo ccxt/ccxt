@@ -569,6 +569,7 @@ export default class hollaex extends hollaexRest {
         //         }
         //     }
         //
+        this.streamProduce ('raw', message);
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

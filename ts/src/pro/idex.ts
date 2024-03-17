@@ -714,6 +714,7 @@ export default class idex extends idexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods = {
             'tickers': this.handleTicker,

@@ -843,6 +843,7 @@ export default class gemini extends geminiRest {
         //         }
         //     ]
         //
+        this.streamProduce ('raw', message);
         const isArray = Array.isArray (message);
         if (isArray) {
             this.handleOrder (client, message);

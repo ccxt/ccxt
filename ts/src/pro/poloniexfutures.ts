@@ -1019,6 +1019,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods = {
             'welcome': this.handleSystemStatus,

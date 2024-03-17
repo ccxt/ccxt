@@ -406,6 +406,7 @@ export default class bitrue extends bitrueRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if ('channel' in message) {
             this.handleOrderBook (client, message);
         } else if ('ping' in message) {

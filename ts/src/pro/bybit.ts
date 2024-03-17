@@ -1743,6 +1743,7 @@ export default class bybit extends bybitRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

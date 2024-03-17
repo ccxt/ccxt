@@ -229,6 +229,7 @@ export default class upbit extends upbitRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const methods = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,

@@ -203,6 +203,7 @@ export default class coincheck extends coincheckRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const data = this.safeValue (message, 0);
         if (!Array.isArray (data)) {
             this.handleOrderBook (client, message);

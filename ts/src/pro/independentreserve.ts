@@ -275,6 +275,7 @@ export default class independentreserve extends independentreserveRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const event = this.safeString (message, 'Event');
         const handlers = {
             'Subscriptions': this.handleSubscriptions,

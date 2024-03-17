@@ -675,6 +675,7 @@ export default class alpaca extends alpacaRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (Array.isArray (message)) {
             this.handleCryptoMessage (client, message);
             return;

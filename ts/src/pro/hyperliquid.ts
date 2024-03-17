@@ -526,6 +526,7 @@ export default class hyperliquid extends hyperliquidRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

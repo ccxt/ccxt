@@ -1327,6 +1327,7 @@ export default class phemex extends phemexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         // private spot update
         // {
         //     "orders": { closed: [ ], fills: [ ], open: [] },

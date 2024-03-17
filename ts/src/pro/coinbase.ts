@@ -554,6 +554,7 @@ export default class coinbase extends coinbaseRest {
     }
 
     handleMessage (client, message) {
+        this.streamProduce ('raw', message);
         const channel = this.safeString (message, 'channel');
         const methods = {
             'subscriptions': this.handleSubscriptionStatus,

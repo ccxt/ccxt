@@ -1003,6 +1003,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods = {
             // 'heartbeat': this.handleHeartbeat,

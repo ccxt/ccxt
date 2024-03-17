@@ -837,6 +837,7 @@ export default class lbank extends lbankRest {
     }
 
     handleMessage (client, message) {
+        this.streamProduce ('raw', message);
         const status = this.safeString (message, 'status');
         if (status === 'error') {
             this.handleErrorMessage (client, message);

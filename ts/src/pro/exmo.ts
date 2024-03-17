@@ -573,6 +573,7 @@ export default class exmo extends exmoRest {
         //     "id": 1,
         //     "topic": "spot/ticker:BTC_USDT"
         // }
+        this.streamProduce ('raw', message);
         const event = this.safeString (message, 'event');
         const events = {
             'logged_in': this.handleAuthenticationMessage,

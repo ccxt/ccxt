@@ -1594,6 +1594,7 @@ export default class bitmex extends bitmexRest {
         //         ]
         //     }
         //
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             const table = this.safeString (message, 'table');
             const methods = {

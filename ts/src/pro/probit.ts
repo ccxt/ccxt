@@ -556,6 +556,7 @@ export default class probit extends probitRest {
         //         }
         //     }
         //
+        this.streamProduce ('raw', message);
         const errorCode = this.safeString (message, 'errorCode');
         if (errorCode !== undefined) {
             this.handleErrorMessage (client, message);

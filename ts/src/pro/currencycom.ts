@@ -540,6 +540,7 @@ export default class currencycom extends currencycomRest {
         //         }
         //     }
         //
+        this.streamProduce ('raw', message);
         const requestId = this.safeString (message, 'correlationId');
         if (requestId !== undefined) {
             const subscriptionsById = this.indexBy (client.subscriptions, 'correlationId');

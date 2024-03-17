@@ -1006,6 +1006,7 @@ export default class coinex extends coinexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
             throw new ExchangeError (this.id + ' ' + this.json (error));

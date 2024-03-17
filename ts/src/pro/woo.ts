@@ -827,6 +827,7 @@ export default class woo extends wooRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const methods = {
             'ping': this.handlePing,
             'pong': this.handlePong,

@@ -522,6 +522,7 @@ export default class ndax extends ndaxRest {
         //         "o": "[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]"
         //     }
         //
+        this.streamProduce ('raw', message);
         const payload = this.safeString (message, 'o');
         if (payload === undefined) {
             return;

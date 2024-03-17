@@ -995,6 +995,7 @@ export default class cryptocom extends cryptocomRest {
         //           "channel":"ticker",
         //           "data":[ { } ]
         //
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

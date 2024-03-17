@@ -1234,6 +1234,7 @@ export default class onetrading extends onetradingRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
             this.handleErrorMessage (client, message);

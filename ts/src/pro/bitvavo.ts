@@ -1365,6 +1365,7 @@ export default class bitvavo extends bitvavoRest {
         //         "authenticated": true
         //     }
         //
+        this.streamProduce ('raw', message);
         const error = this.safeString (message, 'error');
         if (error !== undefined) {
             this.handleErrorMessage (client, message);

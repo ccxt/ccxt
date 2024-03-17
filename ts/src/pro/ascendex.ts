@@ -740,6 +740,7 @@ export default class ascendex extends ascendexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

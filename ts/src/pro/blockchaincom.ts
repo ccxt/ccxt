@@ -731,6 +731,7 @@ export default class blockchaincom extends blockchaincomRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const channel = this.safeString (message, 'channel');
         const handlers = {
             'ticker': this.handleTicker,

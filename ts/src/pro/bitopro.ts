@@ -469,6 +469,7 @@ export default class bitopro extends bitoproRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const methods = {
             'TRADE': this.handleTrade,
             'TICKER': this.handleTicker,

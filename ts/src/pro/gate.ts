@@ -1216,6 +1216,7 @@ export default class gate extends gateRest {
         //        ]
         //    }
         //
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

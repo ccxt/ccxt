@@ -1,4 +1,4 @@
-import { Int, ConsumerFunction, Message, Topic } from "../types";
+import { Int, ConsumerFunction, Message } from "../types";
 
 export default class Consumer {
 

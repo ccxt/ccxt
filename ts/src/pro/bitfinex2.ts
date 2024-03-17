@@ -1097,6 +1097,7 @@ export default class bitfinex2 extends bitfinex2Rest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const channelId = this.safeString (message, 0);
         //
         //     [

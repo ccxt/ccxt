@@ -1462,6 +1462,7 @@ export default class krakenfutures extends krakenfuturesRest {
     }
 
     handleMessage (client, message) {
+        this.streamProduce ('raw', message);
         const event = this.safeString (message, 'event');
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);

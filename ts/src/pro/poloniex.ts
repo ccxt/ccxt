@@ -1164,6 +1164,7 @@ export default class poloniex extends poloniexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

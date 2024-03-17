@@ -1492,6 +1492,7 @@ export default class bitmart extends bitmartRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

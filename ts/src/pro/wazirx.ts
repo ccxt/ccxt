@@ -746,6 +746,7 @@ export default class wazirx extends wazirxRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const status = this.safeString (message, 'status');
         if (status === 'error') {
             this.handleError (client, message);

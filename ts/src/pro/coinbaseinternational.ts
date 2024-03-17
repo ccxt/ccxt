@@ -637,6 +637,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     }
 
     handleMessage (client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }
