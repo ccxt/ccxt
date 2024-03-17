@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.72'
+__version__ = '4.2.75'
 
 # -----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Account, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Topic
+from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Topic
 
 # -----------------------------------------------------------------------------
 
@@ -2343,6 +2343,15 @@ class Exchange(object):
     def fetch_funding_rates(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
 
+    def watch_funding_rate(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' watchFundingRate() is not supported yet')
+
+    def watch_funding_rates(self, symbols: List[str], params={}):
+        raise NotSupported(self.id + ' watchFundingRates() is not supported yet')
+
+    def watch_funding_rates_for_symbols(self, symbols: List[str], params={}):
+        return self.watchFundingRates(symbols, params)
+
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}):
         raise NotSupported(self.id + ' transfer() is not supported yet')
 
@@ -3427,10 +3436,16 @@ class Exchange(object):
         # for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
         if networkId is None:
             if currencyCode is None:
-                # if currencyCode was not provided, then we just set passed value to networkId
-                networkId = networkCode
+                currencies = list(self.currencies.values())
+                for i in range(0, len(currencies)):
+                    currency = [i]
+                    networks = self.safe_dict(currency, 'networks')
+                    network = self.safe_dict(networks, networkCode)
+                    networkId = self.safe_string(network, 'id')
+                    if networkId is not None:
+                        break
             else:
-                # if currencyCode was provided, then we try to find if that currencyCode has a replacement(i.e. ERC20 for ETH)
+                # if currencyCode was provided, then we try to find if that currencyCode has a replacement(i.e. ERC20 for ETH) or is in the currency
                 defaultNetworkCodeReplacements = self.safe_value(self.options, 'defaultNetworkCodeReplacements', {})
                 if currencyCode in defaultNetworkCodeReplacements:
                     # if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
@@ -3443,9 +3458,15 @@ class Exchange(object):
                         if value == networkCode:
                             networkId = self.safe_string(networkIdsByCodes, key)
                             break
-                # if it wasn't found, we just set the provided value to network-id
-                if networkId is None:
-                    networkId = networkCode
+                else:
+                    # serach for network inside currency
+                    currency = self.safe_dict(self.currencies, currencyCode)
+                    networks = self.safe_dict(currency, 'networks')
+                    network = self.safe_dict(networks, networkCode)
+                    networkId = self.safe_string(network, 'id')
+            # if it wasn't found, we just set the provided value to network-id
+            if networkId is None:
+                networkId = networkCode
         return networkId
 
     def network_id_to_code(self, networkId: str, currencyCode: Str = None):
@@ -4631,7 +4652,7 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
 
-    def account(self) -> Account:
+    def account(self) -> BalanceAccount:
         return {
             'free': None,
             'used': None,

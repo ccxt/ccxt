@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num } from './base/types.js';
+import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -950,6 +950,9 @@ export default class htx extends Exchange {
                             'inverse': true,
                         },
                     },
+                },
+                'fetchOHLCV': {
+                    'useHistoricalEndpointForSpot': true,
                 },
                 'withdraw': {
                     'includeFee': false,
@@ -2937,6 +2940,7 @@ export default class htx extends Exchange {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {string} [params.useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -3025,18 +3029,21 @@ export default class htx extends Exchange {
                 }
             }
         } else {
-            if (since !== undefined) {
-                request['from'] = this.parseToInt (since / 1000);
-            }
-            if (limit !== undefined) {
-                request['size'] = limit; // max 2000
-            }
             request['symbol'] = market['id'];
-            if (timeframe === '1M' || timeframe === '1y') {
-                // for some reason 1M and 1Y does not work with the regular endpoint
-                // https://github.com/ccxt/ccxt/issues/18006
+            let useHistorical = undefined;
+            [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
+            if (!useHistorical) {
+                // `limit` only available for the this endpoint
+                if (limit !== undefined) {
+                    request['size'] = limit; // max 2000
+                }
                 response = await this.spotPublicGetMarketHistoryKline (this.extend (request, params));
             } else {
+                // `since` only available for the this endpoint
+                if (since !== undefined) {
+                    // default 150 bars
+                    request['from'] = this.parseToInt (since / 1000);
+                }
                 response = await this.spotPublicGetMarketHistoryCandles (this.extend (request, params));
             }
         }
@@ -3056,7 +3063,7 @@ export default class htx extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name huobi#fetchAccounts

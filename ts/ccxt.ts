@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.72';
+const version = '4.2.75';
 
 (Exchange as any).ccxtVersion = version
 
@@ -140,6 +140,7 @@ import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
+import tradeogre from  './src/tradeogre.js'
 import upbit from  './src/upbit.js'
 import wavesexchange from  './src/wavesexchange.js'
 import wazirx from  './src/wazirx.js'
@@ -214,7 +215,6 @@ import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
-import zondaPro from  './src/pro/zonda.js'
 
 const exchanges = {
     'ace':                    ace,
@@ -311,6 +311,7 @@ const exchanges = {
     'probit':                 probit,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
+    'tradeogre':              tradeogre,
     'upbit':                  upbit,
     'wavesexchange':          wavesexchange,
     'wazirx':                 wazirx,
@@ -385,7 +386,6 @@ const pro = {
     'wazirx':                 wazirxPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
-    'zonda':                  zondaPro,
 }
 
 for (const exchange in pro) {
@@ -562,6 +562,7 @@ export {
     probit,
     timex,
     tokocrypto,
+    tradeogre,
     upbit,
     wavesexchange,
     wazirx,

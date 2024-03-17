@@ -71,6 +71,7 @@ public partial class bybit : Exchange
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
+                { "fetchLeverageTiers", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -7793,39 +7794,6 @@ public partial class bybit : Exchange
         return await this.fetchDerivativesMarketLeverageTiers(symbol, parameters);
     }
 
-    public override object parseMarketLeverageTiers(object info, object market = null)
-    {
-        //
-        //     {
-        //         "id": 1,
-        //         "symbol": "BTCUSD",
-        //         "riskLimitValue": "150",
-        //         "maintenanceMargin": "0.5",
-        //         "initialMargin": "1",
-        //         "isLowestRisk": 1,
-        //         "maxLeverage": "100.00"
-        //     }
-        //
-        object minNotional = 0;
-        object tiers = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
-        {
-            object item = getValue(info, i);
-            object maxNotional = this.safeNumber(item, "riskLimitValue");
-            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
-                { "tier", this.sum(i, 1) },
-                { "currency", getValue(market, "base") },
-                { "minNotional", minNotional },
-                { "maxNotional", maxNotional },
-                { "maintenanceMarginRate", this.safeNumber(item, "maintenanceMargin") },
-                { "maxLeverage", this.safeNumber(item, "maxLeverage") },
-                { "info", item },
-            });
-            minNotional = maxNotional;
-        }
-        return tiers;
-    }
-
     public virtual object parseTradingFee(object fee, object market = null)
     {
         //
@@ -8602,6 +8570,108 @@ public partial class bybit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         });
+    }
+
+    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchLeverageTiers
+        * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
+        * @description retrieve information on the maximum leverage, for different trade sizes
+        * @param {string[]} [symbols] a list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
+        * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            market = this.market(getValue(symbols, 0));
+            if (isTrue(getValue(market, "spot")))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchLeverageTiers() is not supported for spot market")) ;
+            }
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "category", subType },
+        };
+        object response = await this.publicGetV5MarketRiskLimit(this.extend(request, parameters));
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "list", new List<object>() {});
+        symbols = this.marketSymbols(symbols);
+        return this.parseLeverageTiers(data, symbols, "symbol");
+    }
+
+    public override object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
+    {
+        //
+        //  [
+        //      {
+        //          "id": 1,
+        //          "symbol": "BTCUSD",
+        //          "riskLimitValue": "150",
+        //          "maintenanceMargin": "0.5",
+        //          "initialMargin": "1",
+        //          "isLowestRisk": 1,
+        //          "maxLeverage": "100.00"
+        //      }
+        //  ]
+        //
+        object tiers = new Dictionary<string, object>() {};
+        object marketIds = this.marketIds(symbols);
+        object filteredResults = this.filterByArray(response, marketIdKey, marketIds, false);
+        object grouped = this.groupBy(filteredResults, marketIdKey);
+        object keys = new List<object>(((IDictionary<string,object>)grouped).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(keys, i);
+            object entry = getValue(grouped, marketId);
+            object market = this.safeMarket(marketId, null, null, "contract");
+            object symbol = getValue(market, "symbol");
+            ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(entry, market);
+        }
+        return tiers;
+    }
+
+    public override object parseMarketLeverageTiers(object info, object market = null)
+    {
+        //
+        //  [
+        //      {
+        //          "id": 1,
+        //          "symbol": "BTCUSD",
+        //          "riskLimitValue": "150",
+        //          "maintenanceMargin": "0.5",
+        //          "initialMargin": "1",
+        //          "isLowestRisk": 1,
+        //          "maxLeverage": "100.00"
+        //      }
+        //  ]
+        //
+        object tiers = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        {
+            object tier = getValue(info, i);
+            object marketId = this.safeString(info, "symbol");
+            market = this.safeMarket(marketId);
+            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+                { "tier", this.safeInteger(tier, "id") },
+                { "currency", getValue(market, "settle") },
+                { "minNotional", null },
+                { "maxNotional", null },
+                { "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin") },
+                { "maxLeverage", this.safeNumber(tier, "maxLeverage") },
+                { "info", tier },
+            });
+        }
+        return tiers;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

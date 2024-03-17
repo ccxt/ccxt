@@ -1347,10 +1347,10 @@ class bitget extends Exchange {
                 ),
                 'fetchOHLCV' => array(
                     'spot' => array(
-                        'method' => 'publicSpotGetV2SpotMarketCandles', // or publicSpotGetV2SpotMarketHistoryCandles
+                        'method' => 'publicSpotGetV2SpotMarketCandles', // publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
                     ),
                     'swap' => array(
-                        'method' => 'publicMixGetV2MixMarketCandles', // or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
+                        'method' => 'publicMixGetV2MixMarketCandles', // publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     ),
                     'maxDaysPerTimeframe' => array(
                         '1m' => 30,
@@ -3310,11 +3310,13 @@ class bitget extends Exchange {
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
-            $maxLimit = 1000; // max 1000
+            $defaultLimit = 100; // default 100, max 1000
+            $maxLimitForRecentEndpoint = 1000;
+            $maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimitForHistoryEndpoint));
             }
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $market = null;
@@ -3326,32 +3328,17 @@ class bitget extends Exchange {
             }
             $marketType = $market['spot'] ? 'spot' : 'swap';
             $timeframes = $this->options['timeframes'][$marketType];
-            $selectedTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
+            $msInDay = 86400000;
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $request = array(
                 'symbol' => $market['id'],
-                'granularity' => $selectedTimeframe,
+                'granularity' => $this->safe_string($timeframes, $timeframe, $timeframe),
             );
-            $defaultLimit = 100; // by default, exchange returns 100 items
-            $msInDay = 1000 * 60 * 60 * 24;
-            if ($limit !== null) {
-                $limit = min ($limit, $maxLimit);
-                $request['limit'] = $limit;
-            }
             $until = $this->safe_integer_2($params, 'until', 'till');
+            $limitDefined = $limit !== null;
+            $sinceDefined = $since !== null;
+            $untilDefined = $until !== null;
             $params = $this->omit($params, array( 'until', 'till' ));
-            if ($until !== null) {
-                $request['endTime'] = $until;
-            }
-            if ($since !== null) {
-                $request['startTime'] = $since;
-                if ($market['spot'] && ($until === null)) {
-                    // for spot we need to send "entTime" too
-                    $limitForEnd = ($limit !== null) ? $limit : $defaultLimit;
-                    $calculatedEnd = $this->sum($since, $duration * $limitForEnd);
-                    $request['endTime'] = $calculatedEnd;
-                }
-            }
             $response = null;
             $now = $this->milliseconds();
             // retrievable periods listed here:
@@ -3359,37 +3346,62 @@ class bitget extends Exchange {
             // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
             $ohlcOptions = $this->safe_dict($this->options, 'fetchOHLCV', array());
             $retrievableDaysMap = $this->safe_dict($ohlcOptions, 'maxDaysPerTimeframe', array());
-            $maxRetrievableDaysForNonHistory = $this->safe_integer($retrievableDaysMap, $timeframe, 30); // default to safe minimum
-            $endpointTsBoundary = $now - $maxRetrievableDaysForNonHistory * $msInDay;
-            // checks if we need history endpoint
-            $needsHistoryEndpoint = false;
-            $displaceByLimit = ($limit === null) ? 0 : $limit * $duration;
-            if ($since !== null && $since < $endpointTsBoundary) {
-                // if $since it earlier than the allowed diapason
-                $needsHistoryEndpoint = true;
-            } elseif ($until !== null && $until - $displaceByLimit < $endpointTsBoundary) {
-                // if $until is earlier than the allowed diapason
-                $needsHistoryEndpoint = true;
+            $maxRetrievableDaysForRecent = $this->safe_integer($retrievableDaysMap, $timeframe, 30); // default to safe minimum
+            $endpointTsBoundary = $now - $maxRetrievableDaysForRecent * $msInDay;
+            if ($limitDefined) {
+                $limit = min ($limit, $maxLimitForRecentEndpoint);
+                $request['limit'] = $limit;
+            } else {
+                $limit = $defaultLimit;
             }
+            $limitMultipliedDuration = $limit * $duration;
+            // exchange aligns from endTime, so it's important, not startTime
+            // startTime is supported only on "recent" endpoint, not on "historical" endpoint
+            $calculatedStartTime = null;
+            $calculatedEndTime = null;
+            if ($sinceDefined) {
+                $calculatedStartTime = $since;
+                $request['startTime'] = $since;
+                if (!$untilDefined) {
+                    $calculatedEndTime = $this->sum($calculatedStartTime, $limitMultipliedDuration);
+                    $request['endTime'] = $calculatedEndTime;
+                }
+            }
+            if ($untilDefined) {
+                $calculatedEndTime = $until;
+                $request['endTime'] = $calculatedEndTime;
+                if (!$sinceDefined) {
+                    $calculatedStartTime = $calculatedEndTime - $limitMultipliedDuration;
+                    // we do not need to set "startTime" here
+                }
+            }
+            $historicalEndpointNeeded = ($calculatedStartTime !== null) && ($calculatedStartTime <= $endpointTsBoundary);
+            if ($historicalEndpointNeeded) {
+                // only for "historical-candles" - ensure we use correct max $limit
+                if ($limitDefined) {
+                    $request['limit'] = min ($limit, $maxLimitForHistoryEndpoint);
+                }
+            }
+            // make $request
             if ($market['spot']) {
-                if ($needsHistoryEndpoint) {
+                // checks if we need history endpoint
+                if ($historicalEndpointNeeded) {
                     $response = Async\await($this->publicSpotGetV2SpotMarketHistoryCandles (array_merge($request, $params)));
                 } else {
                     $response = Async\await($this->publicSpotGetV2SpotMarketCandles (array_merge($request, $params)));
                 }
             } else {
-                $maxDistanceDaysForContracts = 90; // maximum 90 days allowed between start-end times
-                $distanceError = false;
-                if ($limit !== null && $limit * $duration > $maxDistanceDaysForContracts * $msInDay) {
-                    $distanceError = true;
-                } elseif ($since !== null && $until !== null && $until - $since > $maxDistanceDaysForContracts * $msInDay) {
-                    $distanceError = true;
+                $maxDistanceDaysForContracts = 90; // for contract, maximum 90 days allowed between start-end times
+                // only correct the $request to fix 90 days if $until was auto-calculated
+                if ($sinceDefined) {
+                    if (!$untilDefined) {
+                        $request['endTime'] = min ($calculatedEndTime, $this->sum($since, $maxDistanceDaysForContracts * $msInDay));
+                    } elseif ($calculatedEndTime - $calculatedStartTime > $maxDistanceDaysForContracts * $msInDay) {
+                        throw new BadRequest($this->id . ' fetchOHLCV() between start and end must be less than ' . (string) $maxDistanceDaysForContracts . ' days');
+                    }
                 }
-                if ($distanceError) {
-                    throw new BadRequest($this->id . ' fetchOHLCV() between start and end must be less than ' . (string) $maxDistanceDaysForContracts . ' days');
-                }
-                $priceType = $this->safe_string($params, 'price');
-                $params = $this->omit($params, array( 'price' ));
+                $priceType = null;
+                list($priceType, $params) = $this->handle_param_string($params, 'price');
                 $productType = null;
                 list($productType, $params) = $this->handle_product_type_and_params($market, $params);
                 $request['productType'] = $productType;
@@ -3400,7 +3412,7 @@ class bitget extends Exchange {
                 } elseif ($priceType === 'index') {
                     $response = Async\await($this->publicMixGetV2MixMarketHistoryIndexCandles ($extended));
                 } else {
-                    if ($needsHistoryEndpoint) {
+                    if ($historicalEndpointNeeded) {
                         $response = Async\await($this->publicMixGetV2MixMarketHistoryCandles ($extended));
                     } else {
                         $response = Async\await($this->publicMixGetV2MixMarketCandles ($extended));

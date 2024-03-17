@@ -41,7 +41,7 @@ use Exception;
 use ccxt\pro\Stream;
 
 
-$version = '4.2.72';
+$version = '4.2.75';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -60,7 +60,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.72';
+    const VERSION = '4.2.75';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -417,6 +417,7 @@ class Exchange {
         'bybit',
         'cex',
         'coinbase',
+        'coinbaseinternational',
         'coinbasepro',
         'coincheck',
         'coinex',
@@ -471,6 +472,7 @@ class Exchange {
         'probit',
         'timex',
         'tokocrypto',
+        'tradeogre',
         'upbit',
         'wavesexchange',
         'wazirx',
@@ -2940,6 +2942,18 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
     }
 
+    public function watch_funding_rate(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' watchFundingRate() is not supported yet');
+    }
+
+    public function watch_funding_rates(array $symbols, $params = array ()) {
+        throw new NotSupported($this->id . ' watchFundingRates() is not supported yet');
+    }
+
+    public function watch_funding_rates_for_symbols(array $symbols, $params = array ()) {
+        return $this->watchFundingRates ($symbols, $params);
+    }
+
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()) {
         throw new NotSupported($this->id . ' transfer() is not supported yet');
     }
@@ -4222,10 +4236,10 @@ class Exchange {
     public function network_code_to_id(string $networkCode, ?string $currencyCode = null) {
         /**
          * @ignore
-         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {string} $networkCode unified network code
-         * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
-         * @return {string|null} exchange-specific network id
+         * tries to convert the provided $networkCode (which is expected to be an unified $network code) to a $network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} $networkCode unified $network code
+         * @param {string} $currencyCode unified $currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {string|null} exchange-specific $network id
          */
         if ($networkCode === null) {
             return null;
@@ -4235,29 +4249,43 @@ class Exchange {
         // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
         if ($networkId === null) {
             if ($currencyCode === null) {
-                // if $currencyCode was not provided, then we just set passed $value to $networkId
-                $networkId = $networkCode;
+                $currencies = is_array($this->currencies) ? array_values($this->currencies) : array();
+                for ($i = 0; $i < count($currencies); $i++) {
+                    $currency = array( $i );
+                    $networks = $this->safe_dict($currency, 'networks');
+                    $network = $this->safe_dict($networks, $networkCode);
+                    $networkId = $this->safe_string($network, 'id');
+                    if ($networkId !== null) {
+                        break;
+                    }
+                }
             } else {
-                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH)
+                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH) or is in the $currency
                 $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
                 if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
-                    // if there is a replacement for the passed $networkCode, then we use it to find network-id in `options->networks` object
+                    // if there is a replacement for the passed $networkCode, then we use it to find $network-id in `options->networks` object
                     $replacementObject = $defaultNetworkCodeReplacements[$currencyCode]; // $i->e. array( 'ERC20' => 'ETH' )
                     $keys = is_array($replacementObject) ? array_keys($replacementObject) : array();
                     for ($i = 0; $i < count($keys); $i++) {
                         $key = $keys[$i];
                         $value = $replacementObject[$key];
-                        // if $value matches to provided unified $networkCode, then we use it's $key to find network-id in `options->networks` object
+                        // if $value matches to provided unified $networkCode, then we use it's $key to find $network-id in `options->networks` object
                         if ($value === $networkCode) {
                             $networkId = $this->safe_string($networkIdsByCodes, $key);
                             break;
                         }
                     }
+                } else {
+                    // serach for $network inside $currency
+                    $currency = $this->safe_dict($this->currencies, $currencyCode);
+                    $networks = $this->safe_dict($currency, 'networks');
+                    $network = $this->safe_dict($networks, $networkCode);
+                    $networkId = $this->safe_string($network, 'id');
                 }
-                // if it wasn't found, we just set the provided $value to network-id
-                if ($networkId === null) {
-                    $networkId = $networkCode;
-                }
+            }
+            // if it wasn't found, we just set the provided $value to $network-id
+            if ($networkId === null) {
+                $networkId = $networkCode;
             }
         }
         return $networkId;

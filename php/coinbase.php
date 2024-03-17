@@ -390,7 +390,7 @@ class coinbase extends Exchange {
         return $this->safe_timestamp_2($response, 'epoch', 'epochSeconds');
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
@@ -406,7 +406,7 @@ class coinbase extends Exchange {
         return $this->fetch_accounts_v2($params);
     }
 
-    public function fetch_accounts_v2($params = array ()) {
+    public function fetch_accounts_v2($params = array ()): array {
         $this->load_markets();
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'paginate');
@@ -475,7 +475,7 @@ class coinbase extends Exchange {
         return $this->parse_accounts($data, $params);
     }
 
-    public function fetch_accounts_v3($params = array ()) {
+    public function fetch_accounts_v3($params = array ()): array {
         $this->load_markets();
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'paginate');

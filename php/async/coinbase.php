@@ -401,7 +401,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -419,7 +419,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts_v2($params = array ()) {
+    public function fetch_accounts_v2($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
             $paginate = false;
@@ -490,7 +490,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts_v3($params = array ()) {
+    public function fetch_accounts_v3($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
             $paginate = false;
