@@ -4011,6 +4011,7 @@ class gate(Exchange, ImplicitAPI):
             'failed': 'canceled',
             'expired': 'canceled',
             'finished': 'closed',
+            'finish': 'closed',
             'succeeded': 'closed',
         }
         return self.safe_string(statuses, status, status)

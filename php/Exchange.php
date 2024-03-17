@@ -38,7 +38,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.74';
+$version = '4.2.75';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -57,7 +57,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.74';
+    const VERSION = '4.2.75';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -467,6 +467,7 @@ class Exchange {
         'probit',
         'timex',
         'tokocrypto',
+        'tradeogre',
         'upbit',
         'wavesexchange',
         'wazirx',

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -400,7 +400,7 @@ class coinbase(Exchange, ImplicitAPI):
             #
         return self.safe_timestamp_2(response, 'epoch', 'epochSeconds')
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
@@ -414,7 +414,7 @@ class coinbase(Exchange, ImplicitAPI):
             return self.fetch_accounts_v3(params)
         return self.fetch_accounts_v2(params)
 
-    def fetch_accounts_v2(self, params={}):
+    def fetch_accounts_v2(self, params={}) -> List[Account]:
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
@@ -480,7 +480,7 @@ class coinbase(Exchange, ImplicitAPI):
             accounts[lastIndex] = last
         return self.parse_accounts(data, params)
 
-    def fetch_accounts_v3(self, params={}):
+    def fetch_accounts_v3(self, params={}) -> List[Account]:
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')

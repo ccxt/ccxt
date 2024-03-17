@@ -4286,6 +4286,7 @@ class gate extends gate$1 {
             'failed': 'canceled',
             'expired': 'canceled',
             'finished': 'closed',
+            'finish': 'closed',
             'succeeded': 'closed',
         };
         return this.safeString(statuses, status, status);

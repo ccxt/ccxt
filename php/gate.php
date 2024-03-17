@@ -4212,6 +4212,7 @@ class gate extends Exchange {
             'failed' => 'canceled',
             'expired' => 'canceled',
             'finished' => 'closed',
+            'finish' => 'closed',
             'succeeded' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);

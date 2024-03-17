@@ -4554,6 +4554,7 @@ public partial class gate : Exchange
             { "failed", "canceled" },
             { "expired", "canceled" },
             { "finished", "closed" },
+            { "finish", "closed" },
             { "succeeded", "closed" },
         };
         return this.safeString(statuses, status, status);

@@ -82,6 +82,12 @@ node examples/js/cli binance currencies  # will print out a table of all the loa
 node examples/js/cli gate options  # will print out the contents of the exchange-specific options
 ```
 
+You can easily view which methods are supported on the various exchanges:
+
+```
+node examples/js/exchange-capabilities | less -S -R
+```
+
 ### Calling A Unified Method By Name
 
 Calling unified methods is easy:
@@ -91,9 +97,22 @@ node examples/js/cli okx fetchOrderBook BTC/USDT  # will fetch the orderbook fro
 node examples/js/cli binance fetchTrades ETH/USDT  # will fetch a list of most recent public trades and will print a table of them
 node examples/js/cli bitget fetchTickers  # will fetch all tickers one by one
 node examples/js/cli bitget fetchTickers --table  # will fetch all tickers and will print them out as a table
+node examples/js/cli bitget fetchTickers '["BTC/USDT","ETH/USDT"]' # will fetch the tickers specified in the array argument
+```
+
+Exchange specific parameters can be set in the last argument of every unified method:
+
+```
+node examples/js/cli bybit setMarginMode isolated BTC/USDT '{"leverage":"8"}' # set the margin mode while specifying the exchange specific leverage parameter
 ```
 
 ### Calling An Exchange-Specific Method By Name
+
+Here's an example of fetching the order book on okx in sandbox mode using the implicit API and the exchange specific instId and sz parameters:
+
+```
+node examples/js/cli okx publicGetMarketBooks '{"instId":"BTC-USDT","sz":"3"}' --sandbox
+```
 
 ## Authentication And Overrides
 

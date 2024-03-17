@@ -1264,7 +1264,7 @@ class okx extends Exchange {
         return $this->safe_integer($first, 'ts');
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://www.okx.com/docs-v5/en/#trading-$account-rest-api-get-$account-configuration

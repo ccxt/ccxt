@@ -710,7 +710,7 @@ class ascendex extends Exchange {
         return $this->safe_integer($data, 'requestReceiveAt');
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -744,7 +744,7 @@ class ascendex extends Exchange {
             array(
                 'id' => $accountGroup,
                 'type' => null,
-                'currency' => null,
+                'code' => null,
                 'info' => $response,
             ),
         );
@@ -2691,7 +2691,8 @@ class ascendex extends Exchange {
         if (Precise::string_eq($notional, '0')) {
             $notional = $this->safe_string($position, 'sellOpenOrderNotional');
         }
-        $marginMode = $this->safe_string($position, 'marginType');
+        $marginType = $this->safe_string($position, 'marginType');
+        $marginMode = ($marginType === 'crossed') ? 'cross' : 'isolated';
         $collateral = null;
         if ($marginMode === 'isolated') {
             $collateral = $this->safe_string($position, 'isolatedMargin');

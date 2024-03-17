@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbasepro.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account } from './base/types.js';
 /**
  * @class coinbasepro
  * @augments Exchange
@@ -19,7 +19,7 @@ export default class coinbasepro extends Exchange {
         info: any;
     }>;
     describe(): any;
-    fetchAccounts(params?: {}): Promise<any[]>;
+    fetchAccounts(params?: {}): Promise<Account[]>;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchCurrencies(params?: {}): Promise<{}>;

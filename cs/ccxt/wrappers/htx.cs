@@ -96,10 +96,10 @@ public partial class htx
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     public async Task<Dictionary<string, object>> FetchAccountIdByType(object type, object marginMode = null, object symbol = null, Dictionary<string, object> parameters = null)
     {

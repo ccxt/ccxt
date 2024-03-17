@@ -39,6 +39,7 @@ import { axolotl } from './functions/crypto.js';
 import type {
     Account,
     Balance,
+    BalanceAccount,
     Balances,
     BorrowInterest,
     BorrowRate,
@@ -2232,7 +2233,7 @@ export default class Exchange {
         return {};
     }
 
-    async fetchAccounts (params = {}): Promise<{}> {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         throw new NotSupported (this.id + ' fetchAccounts() is not supported yet');
     }
 
@@ -2348,7 +2349,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
     }
 
-    parseAccount (account): {} {
+    parseAccount (account): Account {
         throw new NotSupported (this.id + ' parseAccount() is not supported yet');
     }
 
@@ -3925,7 +3926,7 @@ export default class Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseAccounts (accounts: any[], params = {}) {
+    parseAccounts (accounts: any[], params = {}): Account[] {
         accounts = this.toArray (accounts);
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
@@ -5096,7 +5097,7 @@ export default class Exchange {
         }
     }
 
-    account (): Account {
+    account (): BalanceAccount {
         return {
             'free': undefined,
             'used': undefined,
