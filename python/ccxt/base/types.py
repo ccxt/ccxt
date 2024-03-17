@@ -77,7 +77,7 @@ class BalanceAccount(TypedDict):
     total: Str
 
 
-class AccountStructure(TypedDict):
+class Account(TypedDict):
     id: Str
     type: Str
     code: Str
