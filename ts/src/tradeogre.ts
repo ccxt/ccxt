@@ -135,6 +135,7 @@ export default class tradeogre extends Exchange {
                     'get': {
                         'account/balance': 1,
                         'account/balances': 1,
+                        'account/order/{uuid}': 1,
                     },
                     'post': {
                         'order/buy': 1,
@@ -142,7 +143,6 @@ export default class tradeogre extends Exchange {
                         'order/cancel': 1,
                         'orders': 1,
                         'account/orders': 1,
-                        'account/order/{uuid}': 1,
                     },
                 },
             },
@@ -154,6 +154,7 @@ export default class tradeogre extends Exchange {
                     'Must be authorized': AuthenticationError,
                     'Market not found': BadRequest,
                     'Insufficient funds': InsufficientFunds,
+                    'Order not found': BadRequest,
                 },
             },
             'options': {
@@ -555,7 +556,7 @@ export default class tradeogre extends Exchange {
         const request = {
             'uuid': id,
         };
-        const response = await this.privatePostAccountOrderUuid (this.extend (request, params));
+        const response = await this.privateGetAccountOrderUuid (this.extend (request, params));
         return this.parseOrder (response, undefined);
     }
 
