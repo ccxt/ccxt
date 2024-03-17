@@ -1345,13 +1345,13 @@ public struct Leverages
     }
 }
 
-public struct Account
+public struct BalanceAccount
 {
     public string? free;
     public string? used;
     public string? total;
 
-    public Account(object account2)
+    public BalanceAccount(object account2)
     {
         var account = (Dictionary<string, object>)account2;
         free = Exchange.SafeString(account, "free");
@@ -1360,14 +1360,14 @@ public struct Account
     }
 }
 
-public struct AccountStructure
+public struct Account
 {
     public string? id;
     public string? type;
     public string? code;
     public Dictionary<string, object>? info;
 
-    public AccountStructure(object accountStructure2)
+    public Account(object accountStructure2)
     {
         var accountStructure = (Dictionary<string, object>)accountStructure2;
         info = accountStructure.ContainsKey("info") ? (Dictionary<string, object>)accountStructure["info"] : null;

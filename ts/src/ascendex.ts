@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, AccountStructure, MarginModes, MarginMode } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -721,7 +721,7 @@ export default class ascendex extends Exchange {
         return this.safeInteger (data, 'requestReceiveAt');
     }
 
-    async fetchAccounts (params = {}): Promise<AccountStructure[]> {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name ascendex#fetchAccounts

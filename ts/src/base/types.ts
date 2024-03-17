@@ -200,13 +200,13 @@ export interface Balance {
     debt?: Num,
 }
 
-export interface Account {
+export interface BalanceAccount {
     free: Str,
     used: Str,
     total: Str,
 }
 
-export interface AccountStructure {
+export interface Account {
     id: Str,
     type: Str,
     code: Str,

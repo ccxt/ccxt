@@ -981,8 +981,8 @@ class Transpiler {
             libraries.push ('import numbers')
         }
         const matchObject = {
-            'Account': /-> Account:/,
-            'AccountStructure': /-> (?:List\[)?AccountStructure/,
+            'BalanceAccount': /-> BalanceAccount:/,
+            'Account': /-> (?:List\[)?Account/,
             'Any': /: Any =/,
             'Balances': /-> Balances:/,
             'Bool': /: Bool =/,

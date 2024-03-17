@@ -71,7 +71,7 @@ class Balance(TypedDict):
     debt: NotRequired[Num]
 
 
-class Account(TypedDict):
+class BalanceAccount(TypedDict):
     free: Str
     used: Str
     total: Str
