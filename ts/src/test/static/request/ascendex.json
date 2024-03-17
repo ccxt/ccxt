@@ -455,6 +455,24 @@
                 ]
             }
         ],
+        "fetchMarginModes": [
+            {
+                "description": "Fetch all of the set margin modes",
+                "method": "fetchMarginModes",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
+                "input": []
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "Fetch the set margin mode of a specified market",
+                "method": "fetchMarginMode",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fundingRate",
@@ -462,6 +480,24 @@
                 "url": "https://ascendex.com/api/pro/v2/futures/pricing-data",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "Fetch all set leverages",
+                "method": "fetchLeverages",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
+                "input": []
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Fetch the set leverage of a specified market",
+                "method": "fetchLeverage",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
+                "input": [
+                  "BTC/USDT:USDT"
                 ]
             }
         ]

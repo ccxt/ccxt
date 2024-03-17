@@ -98,7 +98,7 @@ class Exchange {
         this.last_request_body = undefined;
         this.last_request_url = undefined;
         this.last_request_path = undefined;
-        this.id = undefined;
+        this.id = 'Exchange';
         this.markets = undefined;
         this.status = undefined;
         this.rateLimit = undefined; // milliseconds
@@ -236,7 +236,7 @@ class Exchange {
         this.socksProxyAgentModule = undefined;
         this.socksProxyAgentModuleChecked = false;
         this.proxyDictionaries = {};
-        this.proxyModulesLoaded = false;
+        this.proxiesModulesLoading = undefined;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -731,36 +731,38 @@ class Exchange {
         console.log(...args);
     }
     async loadProxyModules() {
-        if (this.proxyModulesLoaded) {
-            return;
+        // when loading markets, multiple parallel calls are made, so need one promise
+        if (this.proxiesModulesLoading === undefined) {
+            this.proxiesModulesLoading = (async () => {
+                // we have to handle it with below nested way, because of dynamic
+                // import issues (https://github.com/ccxt/ccxt/pull/20687)
+                try {
+                    // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+                    this.httpProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js'); });
+                    this.httpsProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js'); });
+                }
+                catch (e) {
+                    // if several users are using those frameworks which cause exceptions,
+                    // let them to be able to load modules still, by installing them
+                    try {
+                        // @ts-ignore
+                        this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'http-proxy-agent')); });
+                        // @ts-ignore
+                        this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); });
+                    }
+                    catch (e) { }
+                }
+                if (this.socksProxyAgentModuleChecked === false) {
+                    try {
+                        // @ts-ignore
+                        this.socksProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'socks-proxy-agent')); });
+                    }
+                    catch (e) { }
+                    this.socksProxyAgentModuleChecked = true;
+                }
+            })();
         }
-        this.proxyModulesLoaded = true;
-        // we have to handle it with below nested way, because of dynamic
-        // import issues (https://github.com/ccxt/ccxt/pull/20687)
-        try {
-            // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-            this.httpProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js'); });
-            this.httpsProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js'); });
-        }
-        catch (e) {
-            // if several users are using those frameworks which cause exceptions,
-            // let them to be able to load modules still, by installing them
-            try {
-                // @ts-ignore
-                this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'http-proxy-agent')); });
-                // @ts-ignore
-                this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); });
-            }
-            catch (e) { }
-        }
-        if (this.socksProxyAgentModuleChecked === false) {
-            this.socksProxyAgentModuleChecked = true;
-            try {
-                // @ts-ignore
-                this.socksProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'socks-proxy-agent')); });
-            }
-            catch (e) { }
-        }
+        return await this.proxiesModulesLoading;
     }
     setProxyAgents(httpProxy, httpsProxy, socksProxy) {
         let chosenAgent = undefined;
@@ -1995,6 +1997,15 @@ class Exchange {
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingRates() is not supported yet');
+    }
+    async watchFundingRate(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchFundingRate() is not supported yet');
+    }
+    async watchFundingRates(symbols, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchFundingRates() is not supported yet');
+    }
+    async watchFundingRatesForSymbols(symbols, params = {}) {
+        return await this.watchFundingRates(symbols, params);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         throw new errors.NotSupported(this.id + ' transfer() is not supported yet');
@@ -3246,11 +3257,19 @@ class Exchange {
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
         if (networkId === undefined) {
             if (currencyCode === undefined) {
-                // if currencyCode was not provided, then we just set passed value to networkId
-                networkId = networkCode;
+                const currencies = Object.values(this.currencies);
+                for (let i = 0; i < currencies.length; i++) {
+                    const currency = [i];
+                    const networks = this.safeDict(currency, 'networks');
+                    const network = this.safeDict(networks, networkCode);
+                    networkId = this.safeString(network, 'id');
+                    if (networkId !== undefined) {
+                        break;
+                    }
+                }
             }
             else {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
+                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH) or is in the currency
                 const defaultNetworkCodeReplacements = this.safeValue(this.options, 'defaultNetworkCodeReplacements', {});
                 if (currencyCode in defaultNetworkCodeReplacements) {
                     // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
@@ -3266,10 +3285,17 @@ class Exchange {
                         }
                     }
                 }
-                // if it wasn't found, we just set the provided value to network-id
-                if (networkId === undefined) {
-                    networkId = networkCode;
+                else {
+                    // serach for network inside currency
+                    const currency = this.safeDict(this.currencies, currencyCode);
+                    const networks = this.safeDict(currency, 'networks');
+                    const network = this.safeDict(networks, networkCode);
+                    networkId = this.safeString(network, 'id');
                 }
+            }
+            // if it wasn't found, we just set the provided value to network-id
+            if (networkId === undefined) {
+                networkId = networkCode;
             }
         }
         return networkId;

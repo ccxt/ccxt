@@ -36,7 +36,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, entry, "fee");
         if (!isTrue((inOp(skippedProperties, "fees"))))
         {
-            // todo: remove undefined check
+            // todo: remove undefined check and probably non-empty array check later
             if (isTrue(!isEqual(getValue(entry, "fees"), null)))
             {
                 for (object i = 0; isLessThan(i, getArrayLength(getValue(entry, "fees"))); postFixIncrement(ref i))

@@ -2246,7 +2246,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order_request(array $market, string $marketType, string $type, string $side, $amount, $price = null, ?string $marginMode = null, $params = array ()) {
+    public function create_order_request(array $market, string $marketType, string $type, string $side, float $amount, ?float $price = null, ?string $marginMode = null, $params = array ()) {
         $isLimit = ($type === 'limit');
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -2449,7 +2449,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_margin_modes(?array $symbols = null, $params = array ()): MarginModes {
+    public function fetch_margin_modes(?array $symbols = null, $params = array ()): array {
         /**
          * fetches margin mode of the user
          * @see https://api.hitbtc.com/#get-margin-position-parameters
@@ -2512,7 +2512,7 @@ class hitbtc extends Exchange {
         return $this->parse_margin_modes($config, $symbols, 'symbol');
     }
 
-    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+    public function parse_margin_mode($marginMode, $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         return array(
             'info' => $marginMode,
@@ -2521,7 +2521,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://api.hitbtc.com/#transfer-between-wallet-and-exchange
@@ -3257,7 +3257,7 @@ class hitbtc extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://api.hitbtc.com/#get-futures-margin-account
@@ -3323,7 +3323,7 @@ class hitbtc extends Exchange {
         return $this->parse_leverage($response, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(

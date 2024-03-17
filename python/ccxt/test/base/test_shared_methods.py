@@ -147,7 +147,7 @@ def assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, n
 
 
 def assert_currency_code(exchange, skipped_properties, method, entry, actual_code, expected_code=None):
-    if 'currency' in skipped_properties:
+    if ('currency' in skipped_properties) or ('currencyIdAndCode' in skipped_properties):
         return
     log_text = log_template(exchange, method, entry)
     if actual_code is not None:
@@ -159,7 +159,7 @@ def assert_currency_code(exchange, skipped_properties, method, entry, actual_cod
 
 def assert_valid_currency_id_and_code(exchange, skipped_properties, method, entry, currency_id, currency_code):
     # this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-    if 'currencyIdAndCode' in skipped_properties:
+    if ('currency' in skipped_properties) or ('currencyIdAndCode' in skipped_properties):
         return
     log_text = log_template(exchange, method, entry)
     undefined_values = currency_id is None and currency_code is None
@@ -333,3 +333,13 @@ def set_proxy_options(exchange, skipped_properties, proxy_url, http_proxy, https
     exchange.http_proxy = http_proxy
     exchange.https_proxy = https_proxy
     exchange.socks_proxy = socks_proxy
+
+
+def assert_non_emtpy_array(exchange, skipped_properties, method, entry, hint=None):
+    log_text = log_template(exchange, method, entry)
+    if hint is not None:
+        log_text = log_text + ' ' + hint
+    assert isinstance(entry, list), 'response is expected to be an array' + log_text
+    if not ('emptyResponse' in skipped_properties):
+        return
+    assert len(entry) > 0, 'response is expected to be a non-empty array' + log_text + ' (add \"emptyResponse\" in skip-tests.json to skip this check)'

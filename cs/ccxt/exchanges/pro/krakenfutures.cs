@@ -524,19 +524,20 @@ public partial class krakenfutures : ccxt.krakenfutures
             object market = this.market(marketId);
             object symbol = getValue(market, "symbol");
             object messageHash = add("trade:", symbol);
-            object tradesArray = this.safeValue(this.trades, symbol);
-            if (isTrue(isEqual(tradesArray, null)))
+            if (isTrue(isEqual(this.safeList(this.trades, symbol), null)))
             {
                 object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-                tradesArray = new ArrayCache(tradesLimit);
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+                ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(tradesLimit);
             }
+            object tradesArray = getValue(this.trades, symbol);
             if (isTrue(isEqual(channel, "trade_snapshot")))
             {
-                object trades = this.safeValue(message, "trades", new List<object>() {});
-                for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+                object trades = this.safeList(message, "trades", new List<object>() {});
+                object length = getArrayLength(trades);
+                for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
                 {
-                    object item = getValue(trades, i);
+                    object index = subtract(subtract(length, 1), i); // need reverse to correct chronology
+                    object item = getValue(trades, index);
                     object trade = this.parseWsTrade(item);
                     callDynamically(tradesArray, "append", new object[] {trade});
                 }

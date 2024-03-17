@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -81,6 +81,7 @@ export default class bybit extends Exchange {
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
+                'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -3472,7 +3473,7 @@ export default class bybit extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, 1, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bybit#createOrder
@@ -3537,7 +3538,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}, isUTA = true) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}, isUTA = true) {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase ();
@@ -3812,7 +3813,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data);
     }
 
-    async createUsdcOrder (symbol, type, side, amount: number, price: number = undefined, params = {}) {
+    async createUsdcOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type === 'market') {
@@ -3990,7 +3991,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bybit#editOrder
@@ -7250,37 +7251,6 @@ export default class bybit extends Exchange {
         return await this.fetchDerivativesMarketLeverageTiers (symbol, params);
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
-        //
-        //     {
-        //         "id": 1,
-        //         "symbol": "BTCUSD",
-        //         "riskLimitValue": "150",
-        //         "maintenanceMargin": "0.5",
-        //         "initialMargin": "1",
-        //         "isLowestRisk": 1,
-        //         "maxLeverage": "100.00"
-        //     }
-        //
-        let minNotional = 0;
-        const tiers = [];
-        for (let i = 0; i < info.length; i++) {
-            const item = info[i];
-            const maxNotional = this.safeNumber (item, 'riskLimitValue');
-            tiers.push ({
-                'tier': this.sum (i, 1),
-                'currency': market['base'],
-                'minNotional': minNotional,
-                'maxNotional': maxNotional,
-                'maintenanceMarginRate': this.safeNumber (item, 'maintenanceMargin'),
-                'maxLeverage': this.safeNumber (item, 'maxLeverage'),
-                'info': item,
-            });
-            minNotional = maxNotional;
-        }
-        return tiers;
-    }
-
     parseTradingFee (fee, market: Market = undefined) {
         //
         //     {
@@ -7995,6 +7965,98 @@ export default class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
+    }
+
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchLeverageTiers
+         * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
+         * @description retrieve information on the maximum leverage, for different trade sizes
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market (symbols[0]);
+            if (market['spot']) {
+                throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported for spot market');
+            }
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
+        const request = {
+            'category': subType,
+        };
+        const response = await this.publicGetV5MarketRiskLimit (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'list', []);
+        symbols = this.marketSymbols (symbols);
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined) {
+        //
+        //  [
+        //      {
+        //          "id": 1,
+        //          "symbol": "BTCUSD",
+        //          "riskLimitValue": "150",
+        //          "maintenanceMargin": "0.5",
+        //          "initialMargin": "1",
+        //          "isLowestRisk": 1,
+        //          "maxLeverage": "100.00"
+        //      }
+        //  ]
+        //
+        const tiers = {};
+        const marketIds = this.marketIds (symbols);
+        const filteredResults = this.filterByArray (response, marketIdKey, marketIds, false);
+        const grouped = this.groupBy (filteredResults, marketIdKey);
+        const keys = Object.keys (grouped);
+        for (let i = 0; i < keys.length; i++) {
+            const marketId = keys[i];
+            const entry = grouped[marketId];
+            const market = this.safeMarket (marketId, undefined, undefined, 'contract');
+            const symbol = market['symbol'];
+            tiers[symbol] = this.parseMarketLeverageTiers (entry, market);
+        }
+        return tiers;
+    }
+
+    parseMarketLeverageTiers (info, market: Market = undefined) {
+        //
+        //  [
+        //      {
+        //          "id": 1,
+        //          "symbol": "BTCUSD",
+        //          "riskLimitValue": "150",
+        //          "maintenanceMargin": "0.5",
+        //          "initialMargin": "1",
+        //          "isLowestRisk": 1,
+        //          "maxLeverage": "100.00"
+        //      }
+        //  ]
+        //
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const tier = info[i];
+            const marketId = this.safeString (info, 'symbol');
+            market = this.safeMarket (marketId);
+            tiers.push ({
+                'tier': this.safeInteger (tier, 'id'),
+                'currency': market['settle'],
+                'minNotional': undefined,
+                'maxNotional': undefined,
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
+                'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

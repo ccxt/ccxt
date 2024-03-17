@@ -982,37 +982,38 @@ class Transpiler {
         }
         const matchObject = {
             'Account': /-> Account:/,
+            'Any': /: Any =/,
             'Balances': /-> Balances:/,
+            'Bool': /: Bool =/,
             'Currency': /(-> Currency:|: Currency)/,
+            'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
+            'IndexType': /: IndexType/,
             'Int': /: Int =/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
+            'LastPrice': /-> LastPrice:/,
+            'LastPrices': /-> LastPrices:/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
+            'Liquidation': /-> (?:List\[)?Liquidation/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
-            'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
             'MarketInterface': /-> MarketInterface:/,
-            'Order': /-> Order:/,
-            'TransferEntry': /-> TransferEntry:/,
+            'MarketType': /: MarketType/,
+            'Num': /: Num =/,
+            'Order': /-> (?:List\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
-            'IndexType': /: IndexType/,
-            'FundingHistory': /\[FundingHistory/,
-            'Num': /: Num =/,
-            'Any': /: Any =/,
             'Str': /: Str =/,
-            'Bool': /: Bool =/,
             'Strings': /: Strings =/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'Trade': /-> (?:List\[)?Trade/,
-            'Order': /-> (?:List\[)?Order\]?:/,
             'Transaction': /-> (?:List\[)?Transaction/,
+            'TransferEntry': /-> TransferEntry:/,
         }
         const matches = []
         let match
@@ -1652,6 +1653,7 @@ class Transpiler {
                 'string': 'string',
                 'MarketType': 'string',
                 'Str': '?string',
+                'Num': '?float',
                 'Strings': '?array',
                 'number': 'float',
                 'boolean': 'bool',
@@ -1662,7 +1664,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|Leverages|Leverage|Greeks|MarginModes|MarginMode|LastPrice|LastPrices)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {

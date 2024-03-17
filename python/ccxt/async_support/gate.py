@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -134,7 +134,8 @@ class gate(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchLedger': True,
-                'fetchLeverage': False,
+                'fetchLeverage': True,
+                'fetchLeverages': True,
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': True,
                 'fetchMarginMode': False,
@@ -2783,7 +2784,7 @@ class gate(Exchange, ImplicitAPI):
         request = {}
         request, params = self.prepare_request(market, None, params)
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-        maxLimit = 1000
+        maxLimit = 1999 if market['contract'] else 1000
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
         until = self.safe_integer(params, 'until')
         if until is not None:
@@ -3539,7 +3540,7 @@ class gate(Exchange, ImplicitAPI):
             },
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         Create an order on the exchange
         :see: https://www.gate.io/docs/developers/apiv4/en/#create-an-order
@@ -3705,7 +3706,7 @@ class gate(Exchange, ImplicitAPI):
             response = await self.privateFuturesPostSettleBatchOrders(ordersRequests)
         return self.parse_orders(response)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         contract = market['contract']
         trigger = self.safe_value(params, 'trigger')
@@ -3928,7 +3929,7 @@ class gate(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
         :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
@@ -6187,7 +6188,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def set_position_mode(self, hedged: bool, symbol: str = None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set dual/hedged mode to True or False for a swap market, make sure all positions are closed and no orders are open before setting dual mode
         :see: https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
@@ -6516,6 +6517,166 @@ class gate(Exchange, ImplicitAPI):
         if side is None:
             side = ''  # side is not used but needs to be present, otherwise crashes in php
         return await self.create_order(symbol, 'market', side, 0, None, params)
+
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+        """
+        fetch the set leverage for a market
+        :see: https://www.gate.io/docs/developers/apiv4/en/#get-unified-account-information
+        :see: https://www.gate.io/docs/developers/apiv4/en/#get-detail-of-lending-market
+        :see: https://www.gate.io/docs/developers/apiv4/en/#query-one-single-margin-currency-pair-deprecated
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.unified]: default False, set to True for fetching the unified accounts leverage
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            # unified account does not require a symbol
+            market = self.market(symbol)
+        request = {}
+        response = None
+        isUnified = self.safe_bool(params, 'unified')
+        params = self.omit(params, 'unified')
+        if market['spot']:
+            request['currency_pair'] = market['id']
+            if isUnified:
+                response = await self.publicMarginGetUniCurrencyPairsCurrencyPair(self.extend(request, params))
+                #
+                #     {
+                #         "currency_pair": "BTC_USDT",
+                #         "base_min_borrow_amount": "0.0001",
+                #         "quote_min_borrow_amount": "1",
+                #         "leverage": "10"
+                #     }
+                #
+            else:
+                response = await self.publicMarginGetCurrencyPairsCurrencyPair(self.extend(request, params))
+                #
+                #     {
+                #         "id": "BTC_USDT",
+                #         "base": "BTC",
+                #         "quote": "USDT",
+                #         "leverage": 10,
+                #         "min_base_amount": "0.0001",
+                #         "min_quote_amount": "1",
+                #         "max_quote_amount": "40000000",
+                #         "status": 1
+                #     }
+                #
+        elif isUnified:
+            response = await self.privateUnifiedGetAccounts(self.extend(request, params))
+            #
+            #     {
+            #         "user_id": 10001,
+            #         "locked": False,
+            #         "balances": {
+            #             "ETH": {
+            #                 "available": "0",
+            #                 "freeze": "0",
+            #                 "borrowed": "0.075393666654",
+            #                 "negative_liab": "0",
+            #                 "futures_pos_liab": "0",
+            #                 "equity": "1016.1",
+            #                 "total_freeze": "0",
+            #                 "total_liab": "0"
+            #             },
+            #             "POINT": {
+            #                 "available": "9999999999.017023138734",
+            #                 "freeze": "0",
+            #                 "borrowed": "0",
+            #                 "negative_liab": "0",
+            #                 "futures_pos_liab": "0",
+            #                 "equity": "12016.1",
+            #                 "total_freeze": "0",
+            #                 "total_liab": "0"
+            #             },
+            #             "USDT": {
+            #                 "available": "0.00000062023",
+            #                 "freeze": "0",
+            #                 "borrowed": "0",
+            #                 "negative_liab": "0",
+            #                 "futures_pos_liab": "0",
+            #                 "equity": "16.1",
+            #                 "total_freeze": "0",
+            #                 "total_liab": "0"
+            #             }
+            #         },
+            #         "total": "230.94621713",
+            #         "borrowed": "161.66395521",
+            #         "total_initial_margin": "1025.0524665088",
+            #         "total_margin_balance": "3382495.944473949183",
+            #         "total_maintenance_margin": "205.01049330176",
+            #         "total_initial_margin_rate": "3299.827135672679",
+            #         "total_maintenance_margin_rate": "16499.135678363399",
+            #         "total_available_margin": "3381470.892007440383",
+            #         "unified_account_total": "3381470.892007440383",
+            #         "unified_account_total_liab": "0",
+            #         "unified_account_total_equity": "100016.1",
+            #         "leverage": "2"
+            #     }
+            #
+        else:
+            raise NotSupported(self.id + ' fetchLeverage() does not support ' + market['type'] + ' markets')
+        return self.parse_leverage(response, market)
+
+    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+        """
+        fetch the set leverage for all leverage markets, only spot margin is supported on gate
+        :see: https://www.gate.io/docs/developers/apiv4/en/#list-lending-markets
+        :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated
+        :param str[] symbols: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.unified]: default False, set to True for fetching unified account leverages
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = None
+        isUnified = self.safe_bool(params, 'unified')
+        params = self.omit(params, 'unified')
+        marketIdRequest = 'id'
+        if isUnified:
+            marketIdRequest = 'currency_pair'
+            response = await self.publicMarginGetUniCurrencyPairs(params)
+            #
+            #     [
+            #         {
+            #             "currency_pair": "1INCH_USDT",
+            #             "base_min_borrow_amount": "8",
+            #             "quote_min_borrow_amount": "1",
+            #             "leverage": "3"
+            #         },
+            #     ]
+            #
+        else:
+            response = await self.publicMarginGetCurrencyPairs(params)
+            #
+            #     [
+            #         {
+            #             "id": "1CAT_USDT",
+            #             "base": "1CAT",
+            #             "quote": "USDT",
+            #             "leverage": 3,
+            #             "min_base_amount": "71",
+            #             "min_quote_amount": "1",
+            #             "max_quote_amount": "10000",
+            #             "status": 1
+            #         },
+            #     ]
+            #
+        return self.parse_leverages(response, symbols, marketIdRequest, 'spot')
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string_2(leverage, 'currency_pair', 'id')
+        leverageValue = self.safe_integer(leverage, 'leverage')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market, '_', 'spot'),
+            'marginMode': None,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

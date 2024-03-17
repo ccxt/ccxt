@@ -3450,14 +3450,16 @@ public partial class bitget : Exchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object maxLimit = 1000; // max 1000
+        object defaultLimit = 100; // default 100, max 1000
+        object maxLimitForRecentEndpoint = 1000;
+        object maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit);
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimitForHistoryEndpoint);
         }
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object market = null;
@@ -3471,36 +3473,17 @@ public partial class bitget : Exchange
         }
         object marketType = ((bool) isTrue(getValue(market, "spot"))) ? "spot" : "swap";
         object timeframes = getValue(getValue(this.options, "timeframes"), marketType);
-        object selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
+        object msInDay = 86400000;
         object duration = multiply(this.parseTimeframe(timeframe), 1000);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "granularity", selectedTimeframe },
+            { "granularity", this.safeString(timeframes, timeframe, timeframe) },
         };
-        object defaultLimit = 100; // by default, exchange returns 100 items
-        object msInDay = multiply(multiply(multiply(1000, 60), 60), 24);
-        if (isTrue(!isEqual(limit, null)))
-        {
-            limit = mathMin(limit, maxLimit);
-            ((IDictionary<string,object>)request)["limit"] = limit;
-        }
         object until = this.safeInteger2(parameters, "until", "till");
+        object limitDefined = !isEqual(limit, null);
+        object sinceDefined = !isEqual(since, null);
+        object untilDefined = !isEqual(until, null);
         parameters = this.omit(parameters, new List<object>() {"until", "till"});
-        if (isTrue(!isEqual(until, null)))
-        {
-            ((IDictionary<string,object>)request)["endTime"] = until;
-        }
-        if (isTrue(!isEqual(since, null)))
-        {
-            ((IDictionary<string,object>)request)["startTime"] = since;
-            if (isTrue(isTrue(getValue(market, "spot")) && isTrue((isEqual(until, null)))))
-            {
-                // for spot we need to send "entTime" too
-                object limitForEnd = ((bool) isTrue((!isEqual(limit, null)))) ? limit : defaultLimit;
-                object calculatedEnd = this.sum(since, multiply(duration, limitForEnd));
-                ((IDictionary<string,object>)request)["endTime"] = calculatedEnd;
-            }
-        }
         object response = null;
         object now = this.milliseconds();
         // retrievable periods listed here:
@@ -3508,23 +3491,54 @@ public partial class bitget : Exchange
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
         object ohlcOptions = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object retrievableDaysMap = this.safeDict(ohlcOptions, "maxDaysPerTimeframe", new Dictionary<string, object>() {});
-        object maxRetrievableDaysForNonHistory = this.safeInteger(retrievableDaysMap, timeframe, 30); // default to safe minimum
-        object endpointTsBoundary = subtract(now, multiply(maxRetrievableDaysForNonHistory, msInDay));
-        // checks if we need history endpoint
-        object needsHistoryEndpoint = false;
-        object displaceByLimit = ((bool) isTrue((isEqual(limit, null)))) ? 0 : multiply(limit, duration);
-        if (isTrue(isTrue(!isEqual(since, null)) && isTrue(isLessThan(since, endpointTsBoundary))))
+        object maxRetrievableDaysForRecent = this.safeInteger(retrievableDaysMap, timeframe, 30); // default to safe minimum
+        object endpointTsBoundary = subtract(now, multiply(maxRetrievableDaysForRecent, msInDay));
+        if (isTrue(limitDefined))
         {
-            // if since it earlier than the allowed diapason
-            needsHistoryEndpoint = true;
-        } else if (isTrue(isTrue(!isEqual(until, null)) && isTrue(isLessThan(subtract(until, displaceByLimit), endpointTsBoundary))))
+            limit = mathMin(limit, maxLimitForRecentEndpoint);
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        } else
         {
-            // if until is earlier than the allowed diapason
-            needsHistoryEndpoint = true;
+            limit = defaultLimit;
         }
+        object limitMultipliedDuration = multiply(limit, duration);
+        // exchange aligns from endTime, so it's important, not startTime
+        // startTime is supported only on "recent" endpoint, not on "historical" endpoint
+        object calculatedStartTime = null;
+        object calculatedEndTime = null;
+        if (isTrue(sinceDefined))
+        {
+            calculatedStartTime = since;
+            ((IDictionary<string,object>)request)["startTime"] = since;
+            if (!isTrue(untilDefined))
+            {
+                calculatedEndTime = this.sum(calculatedStartTime, limitMultipliedDuration);
+                ((IDictionary<string,object>)request)["endTime"] = calculatedEndTime;
+            }
+        }
+        if (isTrue(untilDefined))
+        {
+            calculatedEndTime = until;
+            ((IDictionary<string,object>)request)["endTime"] = calculatedEndTime;
+            if (!isTrue(sinceDefined))
+            {
+                calculatedStartTime = subtract(calculatedEndTime, limitMultipliedDuration);
+            }
+        }
+        object historicalEndpointNeeded = isTrue((!isEqual(calculatedStartTime, null))) && isTrue((isLessThanOrEqual(calculatedStartTime, endpointTsBoundary)));
+        if (isTrue(historicalEndpointNeeded))
+        {
+            // only for "historical-candles" - ensure we use correct max limit
+            if (isTrue(limitDefined))
+            {
+                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimitForHistoryEndpoint);
+            }
+        }
+        // make request
         if (isTrue(getValue(market, "spot")))
         {
-            if (isTrue(needsHistoryEndpoint))
+            // checks if we need history endpoint
+            if (isTrue(historicalEndpointNeeded))
             {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, parameters));
             } else
@@ -3533,21 +3547,22 @@ public partial class bitget : Exchange
             }
         } else
         {
-            object maxDistanceDaysForContracts = 90; // maximum 90 days allowed between start-end times
-            object distanceError = false;
-            if (isTrue(isTrue(!isEqual(limit, null)) && isTrue(isGreaterThan(multiply(limit, duration), multiply(maxDistanceDaysForContracts, msInDay)))))
+            object maxDistanceDaysForContracts = 90; // for contract, maximum 90 days allowed between start-end times
+            // only correct the request to fix 90 days if until was auto-calculated
+            if (isTrue(sinceDefined))
             {
-                distanceError = true;
-            } else if (isTrue(isTrue(isTrue(!isEqual(since, null)) && isTrue(!isEqual(until, null))) && isTrue(isGreaterThan(subtract(until, since), multiply(maxDistanceDaysForContracts, msInDay)))))
-            {
-                distanceError = true;
+                if (!isTrue(untilDefined))
+                {
+                    ((IDictionary<string,object>)request)["endTime"] = mathMin(calculatedEndTime, this.sum(since, multiply(maxDistanceDaysForContracts, msInDay)));
+                } else if (isTrue(isGreaterThan(subtract(calculatedEndTime, calculatedStartTime), multiply(maxDistanceDaysForContracts, msInDay))))
+                {
+                    throw new BadRequest ((string)add(add(add(this.id, " fetchOHLCV() between start and end must be less than "), ((object)maxDistanceDaysForContracts).ToString()), " days")) ;
+                }
             }
-            if (isTrue(distanceError))
-            {
-                throw new BadRequest ((string)add(add(add(this.id, " fetchOHLCV() between start and end must be less than "), ((object)maxDistanceDaysForContracts).ToString()), " days")) ;
-            }
-            object priceType = this.safeString(parameters, "price");
-            parameters = this.omit(parameters, new List<object>() {"price"});
+            object priceType = null;
+            var priceTypeparametersVariable = this.handleParamString(parameters, "price");
+            priceType = ((IList<object>)priceTypeparametersVariable)[0];
+            parameters = ((IList<object>)priceTypeparametersVariable)[1];
             object productType = null;
             var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
             productType = ((IList<object>)productTypeparametersVariable)[0];
@@ -3563,7 +3578,7 @@ public partial class bitget : Exchange
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles(extended);
             } else
             {
-                if (isTrue(needsHistoryEndpoint))
+                if (isTrue(historicalEndpointNeeded))
                 {
                     response = await this.publicMixGetV2MixMarketHistoryCandles(extended);
                 } else
@@ -6766,11 +6781,13 @@ public partial class bitget : Exchange
         * @description fetch all open positions
         * @see https://www.bitget.com/api-doc/contract/position/get-all-position
         * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
-        * @param {string[]|undefined} symbols list of unified market symbols
+        * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
         * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
+        * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -6783,8 +6800,17 @@ public partial class bitget : Exchange
         {
             return await this.fetchPaginatedCallCursor("fetchPositions", null, null, null, parameters, "endId", "idLessThan");
         }
-        object fetchPositionsOptions = this.safeValue(this.options, "fetchPositions", new Dictionary<string, object>() {});
-        object method = this.safeString(fetchPositionsOptions, "method", "privateMixGetV2MixPositionAllPosition");
+        object method = null;
+        object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
+        if (isTrue(useHistoryEndpoint))
+        {
+            method = "privateMixGetV2MixPositionHistoryPosition";
+        } else
+        {
+            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method", "privateMixGetV2MixPositionAllPosition");
+            method = ((IList<object>)methodparametersVariable)[0];
+            parameters = ((IList<object>)methodparametersVariable)[1];
+        }
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -6909,11 +6935,11 @@ public partial class bitget : Exchange
         object position = new List<object>() {};
         if (!isTrue(isHistory))
         {
-            position = this.safeValue(response, "data", new List<object>() {});
+            position = this.safeList(response, "data", new List<object>() {});
         } else
         {
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-            position = this.safeValue(data, "list", new List<object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            position = this.safeList(data, "list", new List<object>() {});
         }
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(position)); postFixIncrement(ref i))

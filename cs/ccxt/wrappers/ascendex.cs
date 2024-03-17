@@ -842,4 +842,29 @@ public partial class ascendex
         var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
     }
+    public async Task<MarginModes> FetchMarginModes(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginModes(symbols, parameters);
+        return new MarginModes(res);
+    }
+    /// <summary>
+    /// fetch the set leverage for all contract markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://ascendex.github.io/ascendex-futures-pro-api-v2/#position"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverages(symbols, parameters);
+        return new Leverages(res);
+    }
 }

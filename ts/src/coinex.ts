@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -136,7 +136,7 @@ export default class coinex extends Exchange {
                     'perpetualPrivate': 'https://api.coinex.com/perpetual',
                 },
                 'www': 'https://www.coinex.com',
-                'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
+                'doc': 'https://viabtc.github.io/coinex_api_en_doc',
                 'fees': 'https://www.coinex.com/fees',
                 'referral': 'https://www.coinex.com/register?refer_code=yw5fz',
             },
@@ -350,6 +350,7 @@ export default class coinex extends Exchange {
                 },
                 'broad': {
                     'ip not allow visit': PermissionDenied,
+                    'service too busy': ExchangeNotAvailable,
                 },
             },
         });
@@ -1974,7 +1975,7 @@ export default class coinex extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    createOrderRequest (symbol, type, side, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
@@ -2119,7 +2120,7 @@ export default class coinex extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name coinex#createOrder
@@ -2519,7 +2520,7 @@ export default class coinex extends Exchange {
         return results;
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrder
@@ -5151,7 +5152,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#borrowIsolatedMargin
          * @description create a loan to borrow margin
-         * @see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account017_margin_loan
          * @param {string} symbol unified market symbol, required for coinex
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
@@ -5189,7 +5190,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#repayIsolatedMargin
          * @description repay borrowed margin and interest
-         * @see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account018_margin_flat
          * @param {string} symbol unified market symbol, required for coinex
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay

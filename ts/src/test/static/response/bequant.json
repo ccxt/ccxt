@@ -1,0 +1,135 @@
+{
+    "exchange": "bequant",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": "2371822918",
+                        "price": "73265.87",
+                        "qty": "0.05094",
+                        "side": "buy",
+                        "timestamp": "2024-03-13T11:00:21.983Z"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "2371822918",
+                            "price": "73265.87",
+                            "qty": "0.05094",
+                            "side": "buy",
+                            "timestamp": "2024-03-13T11:00:21.983Z"
+                        },
+                        "id": "2371822918",
+                        "order": null,
+                        "timestamp": 1710327621983,
+                        "datetime": "2024-03-13T11:00:21.983Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 73265.87,
+                        "amount": 0.05094,
+                        "cost": 3732.1634178,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "ask": "73369.04",
+                    "bid": "73369.03",
+                    "last": "73386.24",
+                    "low": "68555.00",
+                    "high": "73619.97",
+                    "open": "72173.99",
+                    "volume": "1319.26278",
+                    "volume_quote": "94847393.3889236",
+                    "timestamp": "2024-03-13T11:10:43.211Z"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328243211,
+                    "datetime": "2024-03-13T11:10:43.211Z",
+                    "high": 73619.97,
+                    "low": 68555,
+                    "bid": 73369.03,
+                    "bidVolume": null,
+                    "ask": 73369.04,
+                    "askVolume": null,
+                    "vwap": 71894.23883308798,
+                    "open": 72173.99,
+                    "close": 73386.24,
+                    "last": 73386.24,
+                    "previousClose": null,
+                    "change": 1212.25,
+                    "percentage": 1.6796217030539673,
+                    "average": 72780.115,
+                    "baseVolume": 1319.26278,
+                    "quoteVolume": 94847393.3889236,
+                    "info": {
+                        "ask": "73369.04",
+                        "bid": "73369.03",
+                        "last": "73386.24",
+                        "low": "68555.00",
+                        "high": "73619.97",
+                        "open": "72173.99",
+                        "volume": "1319.26278",
+                        "volume_quote": "94847393.3889236",
+                        "timestamp": "2024-03-13T11:10:43.211Z"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "timestamp": "2024-03-13T11:00:00.000Z",
+                        "open": "73264.77",
+                        "close": "73435.86",
+                        "min": "73245.05",
+                        "max": "73436.75",
+                        "volume": "2.98510",
+                        "volume_quote": "218883.0328372"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73264.77,
+                        73436.75,
+                        73245.05,
+                        73435.86,
+                        2.9851
+                    ]
+                ]
+            }
+        ]
+    }
+}
