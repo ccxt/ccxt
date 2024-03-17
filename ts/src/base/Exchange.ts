@@ -3218,7 +3218,7 @@ export default class Exchange {
         return reversed;
     }
 
-    reduceFeesByCurrency (fees) {
+    reduceFeesByCurrency (fees: any) {
         //
         // this function takes a list of fee structures having the following format
         //
