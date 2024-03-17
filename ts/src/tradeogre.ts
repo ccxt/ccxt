@@ -5,8 +5,7 @@ import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers } from './base/types.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
