@@ -73,7 +73,9 @@ class Exchange extends \ccxt\Exchange {
         $this->default_connector = $this->create_connector();
         $this->set_request_browser($this->default_connector);
         $this->throttler = new Throttler($this->tokenBucket);
-        $this->stream = new Stream ($this->streaming['maxMessagesPerTopic']);
+        $maxMessagesPerTopic = $this->safe_integer($this->streaming, 'maxMessagesPerTopic', 10000);
+        $verbose = $this->safe_bool($this->streaming, 'verbose', $this->verbose);
+        $this->stream = new Stream ($maxMessagesPerTopic,  $verbose);
     }
 
     public function set_request_browser($connector) {
@@ -762,7 +764,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchTrades() is not supported yet');
     }
 
-    public function subscribe_trades(string $symbol, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_trades(string $symbol, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
             /**
              * subscribe $callback to be called with each trade
@@ -784,7 +786,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchTradesForSymbols() is not supported yet');
     }
 
-    public function subscribe_trades_for_symbols(array $symbols, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_trades_for_symbols(array $symbols, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
             /**
              * subscribe $callback to be called with each trade
@@ -812,7 +814,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchMyTradesForSymbols() is not supported yet');
     }
 
-    public function subscribe_my_trades_for_symbols(array $symbols, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_my_trades_for_symbols(array $symbols, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
             /**
              * subscribe $callback to be called with each user trade
@@ -841,7 +843,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchOrdersForSymbols() is not supported yet');
     }
 
-    public function subscribe_orders_for_symbols(array $symbols, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_orders_for_symbols(array $symbols, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
             /**
              * subscribe $callback to be called with order
@@ -869,7 +871,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchOHLCVForSymbols() is not supported yet');
     }
 
-    public function subscribe_ohlcv_for_symbols(array $symbolsAndTimeframes, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_ohlcv_for_symbols(array $symbolsAndTimeframes, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbolsAndTimeframes, $callback, $synchronous, $params) {
             /**
              * subscribe $callback to be called with order
@@ -898,7 +900,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
     }
 
-    public function subscribe_order_book_for_symbols(array $symbols, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_order_book_for_symbols(array $symbols, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
             /**
              * subscribes to information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -967,7 +969,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchOrderBook() is not supported yet');
     }
 
-    public function subscribe_order_book(string $symbol, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_order_book(string $symbol, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
             /**
              * subscribe to information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1078,6 +1080,20 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
+    }
+
+    public function watch_funding_rate(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' watchFundingRate() is not supported yet');
+    }
+
+    public function watch_funding_rates(array $symbols, $params = array ()) {
+        throw new NotSupported($this->id . ' watchFundingRates() is not supported yet');
+    }
+
+    public function watch_funding_rates_for_symbols(array $symbols, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            return Async\await($this->watchFundingRates ($symbols, $params));
+        }) ();
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()) {
@@ -2140,7 +2156,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
     }
 
-    public function subscribe_ohlcv(string $symbol, $timeframe = '1m', mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_ohlcv(string $symbol, $timeframe = '1m', mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $callback, $synchronous, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -2370,10 +2386,10 @@ class Exchange extends \ccxt\Exchange {
     public function network_code_to_id(string $networkCode, ?string $currencyCode = null) {
         /**
          * @ignore
-         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {string} $networkCode unified network code
-         * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
-         * @return {string|null} exchange-specific network id
+         * tries to convert the provided $networkCode (which is expected to be an unified $network code) to a $network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} $networkCode unified $network code
+         * @param {string} $currencyCode unified $currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {string|null} exchange-specific $network id
          */
         if ($networkCode === null) {
             return null;
@@ -2383,29 +2399,43 @@ class Exchange extends \ccxt\Exchange {
         // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
         if ($networkId === null) {
             if ($currencyCode === null) {
-                // if $currencyCode was not provided, then we just set passed $value to $networkId
-                $networkId = $networkCode;
+                $currencies = is_array($this->currencies) ? array_values($this->currencies) : array();
+                for ($i = 0; $i < count($currencies); $i++) {
+                    $currency = array( $i );
+                    $networks = $this->safe_dict($currency, 'networks');
+                    $network = $this->safe_dict($networks, $networkCode);
+                    $networkId = $this->safe_string($network, 'id');
+                    if ($networkId !== null) {
+                        break;
+                    }
+                }
             } else {
-                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH)
+                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH) or is in the $currency
                 $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
                 if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
-                    // if there is a replacement for the passed $networkCode, then we use it to find network-id in `options->networks` object
+                    // if there is a replacement for the passed $networkCode, then we use it to find $network-id in `options->networks` object
                     $replacementObject = $defaultNetworkCodeReplacements[$currencyCode]; // $i->e. array( 'ERC20' => 'ETH' )
                     $keys = is_array($replacementObject) ? array_keys($replacementObject) : array();
                     for ($i = 0; $i < count($keys); $i++) {
                         $key = $keys[$i];
                         $value = $replacementObject[$key];
-                        // if $value matches to provided unified $networkCode, then we use it's $key to find network-id in `options->networks` object
+                        // if $value matches to provided unified $networkCode, then we use it's $key to find $network-id in `options->networks` object
                         if ($value === $networkCode) {
                             $networkId = $this->safe_string($networkIdsByCodes, $key);
                             break;
                         }
                     }
+                } else {
+                    // serach for $network inside $currency
+                    $currency = $this->safe_dict($this->currencies, $currencyCode);
+                    $networks = $this->safe_dict($currency, 'networks');
+                    $network = $this->safe_dict($networks, $networkCode);
+                    $networkId = $this->safe_string($network, 'id');
                 }
-                // if it wasn't found, we just set the provided $value to network-id
-                if ($networkId === null) {
-                    $networkId = $networkCode;
-                }
+            }
+            // if it wasn't found, we just set the provided $value to $network-id
+            if ($networkId === null) {
+                $networkId = $networkCode;
             }
         }
         return $networkId;
@@ -2879,11 +2909,11 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchPosition() is not supported yet');
     }
 
-    public function watch_position(string $symbol, $params = array ()) {
+    public function watch_position(?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchPosition() is not supported yet');
     }
 
-    public function subscribe_position(string $symbol, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_position(string $symbol, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
             Async\await($this->load_markets());
             $symbol = $this->symbol ($symbol);
@@ -2899,7 +2929,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchPositions() is not supported yet');
     }
 
-    public function subscribe_positions(?array $symbols = null, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_positions(?array $symbols = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true);
@@ -2923,7 +2953,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function subscribe_position_for_symbols(?array $symbols = null, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_position_for_symbols(?array $symbols = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
             return Async\await($this->subscribePositions ($symbols, $callback, $synchronous, $params));
         }) ();
@@ -3078,7 +3108,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchBalance() is not supported yet');
     }
 
-    public function subscribe_balance(mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_balance(mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($callback, $synchronous, $params) {
             $stream = $this->stream;
             if ($callback !== null) {
@@ -3373,7 +3403,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchTicker() is not supported yet');
     }
 
-    public function subscribe_ticker(string $symbol, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_ticker(string $symbol, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
             /**
              * subscribe to watchTicker
@@ -3404,7 +3434,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchTickers() is not supported yet');
     }
 
-    public function subscribe_tickers(?array $symbols = null, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_tickers(?array $symbols = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
             /**
              * subscribe to watchTickers
@@ -3759,7 +3789,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchOrders() is not supported yet');
     }
 
-    public function subscribe_raw(mixed $callback, $synchronous = true) {
+    public function subscribe_raw(mixed $callback, bool $synchronous = true) {
         /**
          * subscribe to all raw messages received from websocket
          * @param {string[]} symbols unified symbols of the market to watch tickers
@@ -3770,7 +3800,7 @@ class Exchange extends \ccxt\Exchange {
         $stream->subscribe ('raw', $callback, $synchronous);
     }
 
-    public function subscribe_errors(mixed $callback, $synchronous = true) {
+    public function subscribe_errors(mixed $callback, bool $synchronous = true) {
         /**
          * subscribe to all errors thrown by $stream
          * @param {string[]} symbols unified symbols of the market to watch tickers
@@ -3781,7 +3811,7 @@ class Exchange extends \ccxt\Exchange {
         $stream->subscribe ('errors', $callback, $synchronous);
     }
 
-    public function subscribe_orders(?string $symbol = null, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_orders(?string $symbol = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
             /**
              * subscribes information on multiple orders made by the user
@@ -3868,7 +3898,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchMyTrades() is not supported yet');
     }
 
-    public function subscribe_my_trades(?string $symbol = null, mixed $callback = null, $synchronous = true, $params = array ()) {
+    public function subscribe_my_trades(?string $symbol = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
             /**
              * watches information on multiple trades made by the user

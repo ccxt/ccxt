@@ -1,35 +1,37 @@
-import { Int, Message, Topic, ConsumerFunction, BaseStream } from "../types";
+import { Int, Message, Topic, ConsumerFunction, BaseStream, Dictionary } from "../types";
 import { Consumer } from "./Consumer.js";
 
 export class Stream implements BaseStream {
     public maxMessagesPerTopic: Int;
 
-    public topics: Map<Topic, Message[]>;
+    public topics: Dictionary<Message[]>;
 
-    private consumers: Map<Topic, Consumer[]>;
+    public verbose: boolean;
 
-    constructor (maxMessagesPerTopic = undefined) {
-        this.init (maxMessagesPerTopic);
+    public autoreconnect: boolean;
+
+    public consumers: Dictionary<Consumer[]>;
+
+    constructor (maxMessagesPerTopic = 10000, verbose = false) {
+        this.init (maxMessagesPerTopic, verbose);
     }
 
-    init (maxMessagesPerTopic = undefined) {
-        this.maxMessagesPerTopic = maxMessagesPerTopic;
-        this.topics = new Map ();
-        this.consumers = new Map ();
+    init (maxMessagesPerTopic = 10000, verbose = false) {
+        this.maxMessagesPerTopic = maxMessagesPerTopic
+        this.verbose = verbose;
+        this.topics = {};
+        this.consumers = {};
+        if (this.verbose) {
+            console.log ('stream initialized')
+        }
     }
 
-    /**
-     * Produces a message for the specified topic.
-     * @param topic - The topic to produce the message for.
-     * @param payload - The payload of the message.
-     * @param error - The error associated with the message (optional).
-     */
     produce (topic: Topic, payload: any, error: any = null): void {
-        if (!this.topics.has (topic)) {
-            this.topics.set (topic, []);
+        if (!this.topics[topic]) {
+            this.topics[topic] = [];
         }
 
-        const messages = this.topics.get (topic);
+        const messages = this.topics[topic];
         const index = this.getLastIndex (topic) + 1;
 
         const message: Message = {
@@ -47,8 +49,8 @@ export class Stream implements BaseStream {
             messages.shift ();
         }
 
-        this.topics.get (topic).push (message);
-        const consumers = this.consumers.get (topic) || [];
+        this.topics[topic].push (message);
+        const consumers = this.consumers[topic] || [];
         this.sendToConsumers (consumers, message);
     }
 
@@ -62,11 +64,14 @@ export class Stream implements BaseStream {
     subscribe (topic: Topic, consumerFn: ConsumerFunction, synchronous: boolean = true): void {
         const consumer = new Consumer (consumerFn, synchronous, this.getLastIndex (topic));
 
-        if (!this.consumers.has (topic)) {
-            this.consumers.set (topic, []);
+        if (!this.consumers[topic]) {
+            this.consumers[topic] = [];
         }
 
-        this.consumers.get (topic).push (consumer);
+        this.consumers[topic].push (consumer);
+        if (this.verbose) {
+            console.log ('subscribed function to topic: ', topic, ' synchronous: ', synchronous);
+        }
     }
 
     /**
@@ -75,9 +80,16 @@ export class Stream implements BaseStream {
      * @param consumerFn - The consumer function to unsubscribe.
      */
     unsubscribe (topic: Topic, consumerFn: ConsumerFunction): void {
-        if (this.consumers.has (topic)) {
-            const consumersForTopic = this.consumers.get (topic)!;
-            this.consumers.set (topic, consumersForTopic.filter ((consumer) => consumer.fn !== consumerFn));
+        if (this.consumers[topic]) {
+            const consumersForTopic = this.consumers[topic];
+            this.consumers[topic] = consumersForTopic.filter ((consumer) => consumer.fn !== consumerFn);
+            if (this.verbose) {
+                console.log ('unsubscribed function from topic: ', topic);
+            }
+        } else {
+            if (this.verbose) {
+                console.log ('unsubscribe failed: consumer not found for topic: ', topic);
+            }
         }
     }
 
@@ -87,7 +99,7 @@ export class Stream implements BaseStream {
      * @returns An array of messages representing the message history for the given topic.
      */
     getMessageHistory (topic: Topic): Message[] {
-        return this.topics.get (topic) || [];
+        return this.topics[topic] || [];
     }
 
     /**
@@ -97,7 +109,7 @@ export class Stream implements BaseStream {
      */
     getLastIndex (topic: Topic): Int {
         let lastIndex = -1
-        const messages = this.topics.get (topic)
+        const messages = this.topics[topic];
         if (messages && messages.length > 0) {
             lastIndex = messages[messages.length - 1].metadata.index;
         }
@@ -105,6 +117,9 @@ export class Stream implements BaseStream {
     }
 
     private sendToConsumers (consumers: Consumer[], message: Message): void {
+        if (this.verbose) {
+            console.log ('sending message from topic ', message.metadata.topic, 'to ', consumers.length, ' consumers');
+        }
         for (let i = 0; i < consumers.length; i++) {
             const consumer = consumers[i];
             consumer.publish (message);
@@ -116,6 +131,13 @@ export class Stream implements BaseStream {
      * Note: this won't cancel any ongoing consumers
      */
     close (): void {
+        if (this.verbose) {
+            console.log ('closing stream');
+        }
+        const config = {
+            'maxMessagesPerTopic': this.maxMessagesPerTopic,
+            'verbose': this.verbose,
+        }
         this.init (this.maxMessagesPerTopic);
     }
 }

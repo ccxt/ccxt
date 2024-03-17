@@ -83,7 +83,8 @@ class Exchange(BaseExchange):
 
     def init_stream(self):
         maxMessagesPerTopic = self.streaming.get('maxMessagesPerTopic', 10000)
-        self.stream = Stream(maxMessagesPerTopic)
+        verbose = self.streaming.get('verbose', self.verbose)
+        self.stream = Stream(maxMessagesPerTopic, verbose)
         self.setup_stream()
 
     def init_rest_rate_limiter(self):
@@ -601,7 +602,7 @@ class Exchange(BaseExchange):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
-    async def subscribe_trades(self, symbol: str, callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_trades(self, symbol: str, callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         subscribe callback to be called with each trade
         :param str[] symbols: unified symbol of the market to fetch trades for
@@ -618,7 +619,7 @@ class Exchange(BaseExchange):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTradesForSymbols() is not supported yet')
 
-    async def subscribe_trades_for_symbols(self, symbols: List[str], callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_trades_for_symbols(self, symbols: List[str], callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         subscribe callback to be called with each trade
         :param str[] symbols: unified symbol of the market to fetch trades for
@@ -639,7 +640,7 @@ class Exchange(BaseExchange):
     async def watch_my_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchMyTradesForSymbols() is not supported yet')
 
-    async def subscribe_my_trades_for_symbols(self, symbols: List[str], callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_my_trades_for_symbols(self, symbols: List[str], callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         subscribe callback to be called with each user trade
         :param str[] symbols: unified symbol of the market to fetch trades for
@@ -661,7 +662,7 @@ class Exchange(BaseExchange):
     async def watch_orders_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrdersForSymbols() is not supported yet')
 
-    async def subscribe_orders_for_symbols(self, symbols: List[str], callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_orders_for_symbols(self, symbols: List[str], callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         subscribe callback to be called with order
         :param str[] symbols: unified symbol of the market to fetch orders for
@@ -682,7 +683,7 @@ class Exchange(BaseExchange):
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
 
-    async def subscribe_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         subscribe callback to be called with order
         :param str[] symbols: unified symbol of the market to fetch orders for
@@ -704,7 +705,7 @@ class Exchange(BaseExchange):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
 
-    async def subscribe_order_book_for_symbols(self, symbols: List[str], callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_order_book_for_symbols(self, symbols: List[str], callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         subscribes to information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
@@ -753,7 +754,7 @@ class Exchange(BaseExchange):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
 
-    async def subscribe_order_book(self, symbol: str, callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_order_book(self, symbol: str, callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         subscribe to information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -780,6 +781,15 @@ class Exchange(BaseExchange):
 
     async def fetch_funding_rates(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
+
+    async def watch_funding_rate(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' watchFundingRate() is not supported yet')
+
+    async def watch_funding_rates(self, symbols: List[str], params={}):
+        raise NotSupported(self.id + ' watchFundingRates() is not supported yet')
+
+    async def watch_funding_rates_for_symbols(self, symbols: List[str], params={}):
+        return await self.watchFundingRates(symbols, params)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}):
         raise NotSupported(self.id + ' transfer() is not supported yet')
@@ -869,7 +879,7 @@ class Exchange(BaseExchange):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
-    async def subscribe_ohlcv(self, symbol: str, timeframe='1m', callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_ohlcv(self, symbol: str, timeframe='1m', callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -995,7 +1005,7 @@ class Exchange(BaseExchange):
     async def watch_position(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' watchPosition() is not supported yet')
 
-    async def subscribe_position(self, symbol: str, callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_position(self, symbol: str, callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         await self.load_markets()
         symbol = self.symbol(symbol)
         stream = self.stream
@@ -1006,7 +1016,7 @@ class Exchange(BaseExchange):
     async def watch_positions(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchPositions() is not supported yet')
 
-    async def subscribe_positions(self, symbols: List[str] = None, callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_positions(self, symbols: List[str] = None, callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         if callback is not None:
@@ -1021,7 +1031,7 @@ class Exchange(BaseExchange):
     async def watch_position_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
         return await self.watchPositions(symbols, since, limit, params)
 
-    async def subscribe_position_for_symbols(self, symbols: List[str] = None, callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_position_for_symbols(self, symbols: List[str] = None, callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         return await self.subscribePositions(symbols, callback, synchronous, params)
 
     async def fetch_positions_for_symbol(self, symbol: str, params={}):
@@ -1060,7 +1070,7 @@ class Exchange(BaseExchange):
     async def watch_balance(self, params={}):
         raise NotSupported(self.id + ' watchBalance() is not supported yet')
 
-    async def subscribe_balance(self, callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_balance(self, callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         stream = self.stream
         if callback is not None:
             stream.subscribe('balances', callback, synchronous)
@@ -1148,7 +1158,7 @@ class Exchange(BaseExchange):
     async def watch_ticker(self, symbol: str, params={}):
         raise NotSupported(self.id + ' watchTicker() is not supported yet')
 
-    async def subscribe_ticker(self, symbol: str, callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_ticker(self, symbol: str, callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         subscribe to watchTicker
         :param str symbol: unified symbol of the market to watch ticker
@@ -1172,7 +1182,7 @@ class Exchange(BaseExchange):
     async def watch_tickers(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
 
-    async def subscribe_tickers(self, symbols: List[str] = None, callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_tickers(self, symbols: List[str] = None, callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         subscribe to watchTickers
         :param str[] symbols: unified symbols of the market to watch tickers
@@ -1445,7 +1455,7 @@ class Exchange(BaseExchange):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
 
-    async def subscribe_orders(self, symbol: str = None, callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_orders(self, symbol: str = None, callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         subscribes information on multiple orders made by the user
         :param str symbol: unified market symbol of the market the orders were made in
@@ -1505,7 +1515,7 @@ class Exchange(BaseExchange):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
-    async def subscribe_my_trades(self, symbol: str = None, callback: ConsumerFunction = None, synchronous=True, params={}):
+    async def subscribe_my_trades(self, symbol: str = None, callback: ConsumerFunction = None, synchronous: bool = True, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in

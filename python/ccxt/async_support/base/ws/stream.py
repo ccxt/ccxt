@@ -9,7 +9,7 @@ ConsumerFunction = Callable[['Message'], Future[None] | None]
 
 
 class Stream:
-    def __init__(self, max_messages_per_topic: int = None):
+    def __init__(self, max_messages_per_topic: int = 10000, verbose: bool = False):
         """
         Initializes a new Stream object.
         :param int max_messages_per_topic: Maximum number of messages per topic. Defaults to None.
@@ -17,6 +17,9 @@ class Stream:
         self.topics: Dict[Topic, List[Message]] = {}
         self.consumers: Dict[Topic, List[Consumer]] = {}
         self.max_messages_per_topic = max_messages_per_topic
+        self.verbose = verbose
+        if self.verbose:
+            print('stream initialized')
 
     def produce(self, topic: Topic, payload: Any, error: Any = None) -> None:
         """
@@ -39,6 +42,8 @@ class Stream:
         self.topics[topic].append(message)
         consumers = self.consumers.get(topic, [])
         self.send_to_consumers(consumers, message)
+        if self.verbose:
+            print(f'Produced message for topic: {topic}. Total messages now: {len(messages)}.')
 
     def subscribe(self, topic: Topic, consumer_fn: ConsumerFunction, synchronous: bool = True) -> None:
         """
@@ -51,6 +56,8 @@ class Stream:
         if topic not in self.consumers:
             self.consumers[topic] = []
         self.consumers[topic].append(consumer)
+        if self.verbose:
+            print(f'Subscribed to topic: {topic}. Total consumers for topic now: {len(self.consumers[topic])}.')
 
     def unsubscribe(self, topic: Topic, consumer_fn: ConsumerFunction) -> None:
         """
@@ -60,6 +67,10 @@ class Stream:
         """
         if topic in self.consumers:
             self.consumers[topic] = [consumer for consumer in self.consumers[topic] if consumer.fn != consumer_fn]
+            if self.verbose:
+                print(f'Unsubscribed consumer from topic: {topic}. Total consumers for topic now: {len(self.consumers[topic])}.')
+        else:
+            print(f'Unable to unsubscribe. Could not find consumer for topic: {topic}')
 
     def get_message_history(self, topic: Topic) -> List[Message]:
         """
@@ -85,6 +96,8 @@ class Stream:
     def send_to_consumers(self, consumers, message):
         for consumer in consumers:
             consumer.publish(message)
+        if self.verbose:
+            print(f'Sending message to {len(consumers)} consumers for topic {message.metadata.topic}.')
 
 
     async def close(self) -> None:
@@ -94,4 +107,6 @@ class Stream:
         for consumers in self.consumers.values():
             for consumer in consumers:
                 await consumer.close()
+        if self.verbose:
+            print("closed stream")
         self.stream = Stream()

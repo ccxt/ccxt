@@ -20,12 +20,31 @@ public partial class Exchange
 
         this.initRestLimiter();
         this.initHttpClient();
+        this.initStream();
 
         if (this.markets != null)
         {
             this.setMarkets(this.markets);
         }
         this.afterConstruct();
+    }
+
+    private void initStream()
+    {
+        int maxMessagesPerTopic;
+        bool verbose;
+
+        if (!this.streaming.TryGetValue("maxMessagesPerTopic", out maxMessagesPerTopic))
+        {
+            maxMessagesPerTopic = 10000; // default value
+        }
+
+        if (!this.streaming.TryGetValue("verbose", out verbose))
+        {
+            verbose = this.verbose; // default value
+        }
+
+        this.stream = new Stream(maxMessagesPerTopic, verbose);
     }
 
     private void initHttpClient()

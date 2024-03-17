@@ -851,7 +851,9 @@ export default class Exchange {
             this.setMarkets (this.markets)
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
-        this.stream = new Stream ();
+        const maxMessagesPerTopic = this.safeInteger (this.streaming, 'maxMessagesPerTopic', 10000);
+        const verbose = this.safeBool (this.streaming, 'verbose', this.verbose);
+        this.stream = new Stream (maxMessagesPerTopic, verbose);
         this.afterConstruct ();
     }
 
