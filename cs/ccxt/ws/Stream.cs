@@ -11,8 +11,7 @@ public class Stream : IBaseStream
     public bool verbose { get; set; }
     private Dictionary<string, List<Message>> topics;
     private Dictionary<string, List<Consumer>> consumers;
-    public List<string, List<object>> activeWatchFunctions;
-
+    public List<Dictionary<string, object>> activeWatchFunctions;
     public Stream(int? maxMessagesPerTopic = null)
     {
         Init(maxMessagesPerTopic);
@@ -24,7 +23,7 @@ public class Stream : IBaseStream
         this.verbose = verbose ?? false;
         this.topics = new Dictionary<string, List<Message>>();
         this.consumers = new Dictionary<string, List<Consumer>>();
-        if (verbose)
+        if (verbose.HasValue && verbose.Value)
         {
             Console.WriteLine("Stream initialized");
         }
