@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -397,7 +397,7 @@ export default class coinbase extends Exchange {
         return this.safeTimestamp2 (response, 'epoch', 'epochSeconds');
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name coinbase#fetchAccounts
@@ -415,7 +415,7 @@ export default class coinbase extends Exchange {
         return await this.fetchAccountsV2 (params);
     }
 
-    async fetchAccountsV2 (params = {}) {
+    async fetchAccountsV2 (params = {}): Promise<Account[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
@@ -484,7 +484,7 @@ export default class coinbase extends Exchange {
         return this.parseAccounts (data, params);
     }
 
-    async fetchAccountsV3 (params = {}) {
+    async fetchAccountsV3 (params = {}): Promise<Account[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
