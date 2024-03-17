@@ -1,7 +1,7 @@
 {
     "exchange": "tradeogre",
     "skipKeys": [],
-    "outputType": "json",
+    "outputType": "both",
     "methods": {
         "fetchTicker": [
             {
