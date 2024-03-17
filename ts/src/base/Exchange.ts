@@ -2083,7 +2083,7 @@ export default class Exchange {
         return array;
     }
 
-    filterBySinceLimit (array: object[], since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp', tail = false): any {
+    filterBySinceLimit (array, since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp', tail = false): any {
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
         let result = parsedArray;
@@ -2106,7 +2106,7 @@ export default class Exchange {
         return this.filterByLimit (result, limit, key, shouldFilterFromStart);
     }
 
-    filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
+    filterByValueSinceLimit (array, field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
         const valueIsDefined = this.valueIsDefined (value);
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
@@ -2244,11 +2244,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: object): Market {
         throw new NotSupported (this.id + ' parseMarket() is not supported yet');
     }
 
-    parseMarkets (markets): Market[] {
+    parseMarkets (markets: object[]): Market[] {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.parseMarket (markets[i]));
@@ -2260,7 +2260,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): object {
+    parseDepositAddress (depositAddress: object, currency: Currency = undefined): object {
         throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
@@ -2268,23 +2268,23 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: object, currency: Currency = undefined): Transaction {
         throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
     }
 
-    parseTransfer (transfer, currency: Currency = undefined): object {
+    parseTransfer (transfer: object, currency: Currency = undefined): object {
         throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
     }
 
-    parseAccount (account): {} {
+    parseAccount (account: object): {} {
         throw new NotSupported (this.id + ' parseAccount() is not supported yet');
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined): object {
+    parseLedgerEntry (item: object, currency: Currency = undefined): object {
         throw new NotSupported (this.id + ' parseLedgerEntry() is not supported yet');
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: object, market: Market = undefined): Order {
         throw new NotSupported (this.id + ' parseOrder() is not supported yet');
     }
 
@@ -2296,7 +2296,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchIsolatedBorrowRates() is not supported yet');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): object {
+    parseMarketLeverageTiers (info: object[], market: Market = undefined): object {
         throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 
@@ -2304,31 +2304,31 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 
-    parsePosition (position, market: Market = undefined): Position {
+    parsePosition (position: object, market: Market = undefined): Position {
         throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
-    parseFundingRateHistory (info, market: Market = undefined): FundingRateHistory {
+    parseFundingRateHistory (info: object, market: Market = undefined): FundingRateHistory {
         throw new NotSupported (this.id + ' parseFundingRateHistory() is not supported yet');
     }
 
-    parseBorrowInterest (info, market: Market = undefined): BorrowInterest {
+    parseBorrowInterest (info: object, market: Market = undefined): BorrowInterest {
         throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade: object, market: Market = undefined): Trade {
         throw new NotSupported (this.id + ' parseWsTrade() is not supported yet');
     }
 
-    parseWsOrder (order, market: Market = undefined): Order {
+    parseWsOrder (order: object, market: Market = undefined): Order {
         throw new NotSupported (this.id + ' parseWsOrder() is not supported yet');
     }
 
-    parseWsOrderTrade (trade, market: Market = undefined): Trade {
+    parseWsOrderTrade (trade: object, market: Market = undefined): Trade {
         throw new NotSupported (this.id + ' parseWsOrderTrade() is not supported yet');
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv: object, market: Market = undefined): OHLCV {
         return this.parseOHLCV (ohlcv, market);
     }
 
@@ -3027,7 +3027,7 @@ export default class Exchange {
         });
     }
 
-    parseOrders (orders: object, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
+    parseOrders (orders: object|object[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
         //
         // the value of orders is either a dict or a list
         //
@@ -3563,7 +3563,7 @@ export default class Exchange {
         return result;
     }
 
-    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    parseBidsAsks (bidasks: object[], priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -3784,7 +3784,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0) as any;
     }
 
-    parseLeverageTiers (response: object[], symbols: string[] = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response: object[][], symbols: string[] = undefined, marketIdKey = undefined) {
         // marketIdKey should only be undefined when response is a dictionary
         symbols = this.marketSymbols (symbols);
         const tiers = {};
@@ -3842,31 +3842,31 @@ export default class Exchange {
         return position as Position;
     }
 
-    parsePositions (positions: any[], symbols: string[] = undefined, params = {}): Position[] {
+    parsePositions (positions: object|object[], symbols: string[] = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
-        positions = this.toArray (positions);
+        const arrPositions = this.toArray (positions);
         const result = [];
-        for (let i = 0; i < positions.length; i++) {
+        for (let i = 0; i < arrPositions.length; i++) {
             const position = this.extend (this.parsePosition (positions[i], undefined), params);
             result.push (position);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseAccounts (accounts: any[], params = {}) {
-        accounts = this.toArray (accounts);
+    parseAccounts (accounts: object|object[], params = {}) {
+        const arrAccounts = this.toArray (accounts);
         const result = [];
-        for (let i = 0; i < accounts.length; i++) {
+        for (let i = 0; i < arrAccounts.length; i++) {
             const account = this.extend (this.parseAccount (accounts[i]), params);
             result.push (account);
         }
         return result;
     }
 
-    parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
-        trades = this.toArray (trades);
+    parseTrades (trades: object|object[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+        const arrTrades = this.toArray (trades);
         let result = [];
-        for (let i = 0; i < trades.length; i++) {
+        for (let i = 0; i < arrTrades.length; i++) {
             const trade = this.extend (this.parseTrade (trades[i], market), params);
             result.push (trade);
         }
@@ -3875,10 +3875,10 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
-        transactions = this.toArray (transactions);
+    parseTransactions (transactions: object|object[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+        const arrTransactions = this.toArray (transactions);
         let result = [];
-        for (let i = 0; i < transactions.length; i++) {
+        for (let i = 0; i < arrTransactions.length; i++) {
             const transaction = this.extend (this.parseTransaction (transactions[i], currency), params);
             result.push (transaction);
         }
@@ -3887,10 +3887,10 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        transfers = this.toArray (transfers);
+    parseTransfers (transfers: object|object[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        const arrTransfers = this.toArray (transfers);
         let result = [];
-        for (let i = 0; i < transfers.length; i++) {
+        for (let i = 0; i < arrTransfers.length; i++) {
             const transfer = this.extend (this.parseTransfer (transfers[i], currency), params);
             result.push (transfer);
         }
@@ -3899,7 +3899,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseLedger (data, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseLedger (data: object|object[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let result = [];
         const arrayData = this.toArray (data);
         for (let i = 0; i < arrayData.length; i++) {
@@ -4085,7 +4085,7 @@ export default class Exchange {
         return ohlcvs;
     }
 
-    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
+    parseTradingViewOHLCV (ohlcvs: object[], market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
         const result = this.convertTradingViewToOHLCV (ohlcvs);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
@@ -4168,7 +4168,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchLedgerEntry() is not supported yet');
     }
 
-    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    parseBidAsk (bidask: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const countOrId = this.safeInteger (bidask, countOrIdKey);
@@ -4275,7 +4275,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchBalanceWs() is not supported yet');
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: object): Balances {
         throw new NotSupported (this.id + ' parseBalance() is not supported yet');
     }
 
@@ -4995,7 +4995,7 @@ export default class Exchange {
         throw new BadRequest (this.id + ' fetchL3OrderBook() is not supported yet');
     }
 
-    parseLastPrice (price, market: Market = undefined): LastPrice {
+    parseLastPrice (price: object, market: Market = undefined): LastPrice {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
 
@@ -5295,7 +5295,7 @@ export default class Exchange {
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
-    parseLastPrices (pricesData, symbols: string[] = undefined, params = {}): LastPrices {
+    parseLastPrices (pricesData: object[], symbols: string[] = undefined, params = {}): LastPrices {
         //
         // the value of tickers is either a dict or a list
         //
@@ -5334,7 +5334,7 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseTickers (tickers, symbols: string[] = undefined, params = {}): Dictionary<Ticker> {
+    parseTickers (tickers: object|object[], symbols: string[] = undefined, params = {}): Dictionary<Ticker> {
         //
         // the value of tickers is either a dict or a list
         //
@@ -5375,7 +5375,7 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseDepositAddresses (addresses, codes: string[] = undefined, indexed = true, params = {}) {
+    parseDepositAddresses (addresses: object[], codes: string[] = undefined, indexed = true, params = {}) {
         let result = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend (this.parseDepositAddress (addresses[i]), params);
@@ -5390,7 +5390,7 @@ export default class Exchange {
         return result;
     }
 
-    parseBorrowInterests (response, market: Market = undefined) {
+    parseBorrowInterests (response: object[], market: Market = undefined) {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const row = response[i];
@@ -5399,7 +5399,7 @@ export default class Exchange {
         return interests;
     }
 
-    parseFundingRateHistories (response, market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
+    parseFundingRateHistories (response: object[], market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
         const rates = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -5415,11 +5415,11 @@ export default class Exchange {
         return market['symbol'];
     }
 
-    parseFundingRate (contract: string, market: Market = undefined): object {
+    parseFundingRate (contract: object, market: Market = undefined): object {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
 
-    parseFundingRates (response, market: Market = undefined) {
+    parseFundingRates (response: object[], market: Market = undefined) {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parseFundingRate (response[i], market);
@@ -5515,11 +5515,11 @@ export default class Exchange {
         return await this.fetchTradingFees (params);
     }
 
-    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+    parseOpenInterest (interest: object, market: Market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
-    parseOpenInterests (response, market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
+    parseOpenInterests (response: object[], market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -5720,7 +5720,7 @@ export default class Exchange {
         return depositWithdrawFees;
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined): any {
+    parseDepositWithdrawFee (fee: object, currency: Currency = undefined): any {
         throw new NotSupported (this.id + ' parseDepositWithdrawFee() is not supported yet');
     }
 
@@ -5766,11 +5766,11 @@ export default class Exchange {
         return fee;
     }
 
-    parseIncome (info, market: Market = undefined): object {
+    parseIncome (info: object, market: Market = undefined): object {
         throw new NotSupported (this.id + ' parseIncome () is not supported yet');
     }
 
-    parseIncomes (incomes, market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+    parseIncomes (incomes: object[], market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         /**
          * @ignore
          * @method
@@ -6158,11 +6158,11 @@ export default class Exchange {
         });
     }
 
-    parseLiquidation (liquidation, market: Market = undefined): Liquidation {
+    parseLiquidation (liquidation: object, market: Market = undefined): Liquidation {
         throw new NotSupported (this.id + ' parseLiquidation () is not supported yet');
     }
 
-    parseLiquidations (liquidations, market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
+    parseLiquidations (liquidations: object[], market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
         /**
          * @ignore
          * @method
@@ -6201,7 +6201,7 @@ export default class Exchange {
         return marginModeStructures;
     }
 
-    parseMarginMode (marginMode, market: Market = undefined): MarginMode {
+    parseMarginMode (marginMode: object, market: Market = undefined): MarginMode {
         throw new NotSupported (this.id + ' parseMarginMode () is not supported yet');
     }
 
@@ -6218,7 +6218,7 @@ export default class Exchange {
         return leverageStructures;
     }
 
-    parseLeverage (leverage, market: Market = undefined): Leverage {
+    parseLeverage (leverage: object, market: Market = undefined): Leverage {
         throw new NotSupported (this.id + ' parseLeverage() is not supported yet');
     }
 }
