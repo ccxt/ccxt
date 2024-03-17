@@ -2377,7 +2377,7 @@ export default class htx extends htxRest {
                 'messageHash': messageHash,
                 'params': params,
             };
-            this.watch (url, messageHash, request, messageHash, subscription);
+            await this.watch (url, messageHash, request, messageHash, subscription);
         }
         return future;
     }

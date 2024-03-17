@@ -772,7 +772,7 @@ export default class okx extends okxRest {
                 ],
             };
             const message = this.extend (request, params);
-            this.watch (url, messageHash, message, messageHash);
+            await this.watch (url, messageHash, message, messageHash);
         }
         return await future;
     }
