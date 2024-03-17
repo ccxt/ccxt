@@ -3205,7 +3205,7 @@ export default class Exchange {
         return trade as Trade;
     }
 
-    invertFlatStringDictionary (dict) {
+    invertFlatStringDictionary (dict: any) {
         const reversed = {};
         const keys = Object.keys (dict);
         for (let i = 0; i < keys.length; i++) {
