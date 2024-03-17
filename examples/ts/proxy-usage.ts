@@ -3,7 +3,7 @@ import ccxt from '../../js/ccxt.js';
 
 // AUTO-TRANSPILE //
 
-// ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/#/README?id=proxy
+// ABOUT CCXT PROXIES, READ MORE AT: https://github.com/ccxt/ccxt/wiki/Manual#proxy
 
 async function example_proxyUrl () {
     const myEx = new ccxt.kucoin ();
