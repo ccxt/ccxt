@@ -3,7 +3,7 @@
 
 import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
-import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired, ExchangeError } from './base/errors.js';
+import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker } from './base/types.js';
 
@@ -30,7 +30,7 @@ export default class tradeogre extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'closeAllPositions': false,
@@ -75,10 +75,10 @@ export default class tradeogre extends Exchange {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
-                'fetchOrder': true,
                 'fetchOrderTrades': false,
                 'fetchPermissions': false,
                 'fetchPosition': false,
@@ -108,7 +108,7 @@ export default class tradeogre extends Exchange {
             },
             'urls': {
                 'referral': '',
-                'logo': '',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/3aa748b7-ea44-45e9-a9e7-b1d207a2578a',
                 'api': {
                     'rest': 'https://tradeogre.com/api/v1',
                 },
@@ -150,6 +150,11 @@ export default class tradeogre extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
+                'exact': {
+                    'Must be authorized': AuthenticationError,
+                    'Market not found': BadRequest,
+                    'Insufficient funds': InsufficientFunds,
+                },
             },
             'options': {
             },
@@ -458,9 +463,12 @@ export default class tradeogre extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
+            'quantity': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
+            'price': this.parseToNumeric (this.priceToPrecision (symbol, price)),
         };
+        if (type === 'market') {
+            throw new BadRequest (this.id + ' createOrder does not support market orders');
+        }
         let response = undefined;
         if (side === 'buy') {
             response = await this.privatePostOrderBuy (this.extend (request, params));
@@ -596,11 +604,12 @@ export default class tradeogre extends Exchange {
         }
         if (api === 'private') {
             headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Referer': 'CCXT',
                 'authorization': 'Basic ' + this.stringToBase64 (this.apiKey + ':' + this.secret),
             };
             if (method !== 'GET') {
-                body = this.json (params);
+                body = this.urlencode (params);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -621,7 +630,7 @@ export default class tradeogre extends Exchange {
             const error = this.safeValue (response, 'error');
             const errorCode = this.safeString (error, 'code');
             const feedback = this.id + ' ' + this.json (response);
-            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback);
             // fallback to default error handler
         }
