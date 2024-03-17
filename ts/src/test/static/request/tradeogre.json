@@ -57,6 +57,19 @@
                   50
                 ],
                 "output": "market=LTC-USDT&quantity=0.1&price=50"
+            },
+            {
+                "description": "limit sell order",
+                "method": "createOrder",
+                "url": "https://tradeogre.com/api/v1/order/sell",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "sell",
+                  0.1,
+                  87
+                ],
+                "output": "market=LTC-USDT&quantity=0.1&price=87"
             }
         ],
         "cancelOrder": [
@@ -76,6 +89,16 @@
                 "method": "fetchBalance",
                 "url": "https://tradeogre.com/api/v1/account/balances",
                 "input": []
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order",
+                "method": "fetchOrder",
+                "url": "https://tradeogre.com/api/v1/account/order/fb3545c8-837a-4245-bdfa-79e857230d82",
+                "input": [
+                  "fb3545c8-837a-4245-bdfa-79e857230d82"
+                ]
             }
         ]
     }
