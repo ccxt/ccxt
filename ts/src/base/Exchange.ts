@@ -1798,6 +1798,23 @@ export default class Exchange {
         stream.produce (topic, payload, error);
     }
 
+    async streamReconnect () {
+        if (this.verbose) {
+            this.log ('reconnecting active watch functions');
+        }
+        const stream = this.stream;
+        const activeFunctions = stream.activeWatchFunctions;
+        const tasks = [];
+        for (let i = 0; i < activeFunctions.length; i++) {
+            const activeFunction = activeFunctions[i];
+            const method = this.safeString (activeFunction, 'method');
+            const args = this.safeList (activeFunction, 'args');
+            const future = this.spawn (this[method], ...args);
+            tasks.push (future);
+        }
+        return Promise.all (tasks);
+    }
+
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
@@ -4814,6 +4831,7 @@ export default class Exchange {
         if (callback !== undefined) {
             stream.subscribe ('tickers::' + symbol, callback, synchronous);
         }
+        stream.addWatchFunction ('watchTicker', [ symbol, params ]);
         await this.watchTicker (symbol, params);
     }
 
@@ -4841,8 +4859,8 @@ export default class Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
+        const stream = this.stream;
         if (callback !== undefined) {
-            const stream = this.stream;
             if (this.isEmpty (symbols)) {
                 stream.subscribe ('tickers', callback, synchronous);
             } else {
@@ -4851,6 +4869,7 @@ export default class Exchange {
                 }
             }
         }
+        stream.addWatchFunction ('watchTickers', [ symbols, params ]);
         await this.watchTickers (symbols, params);
     }
 

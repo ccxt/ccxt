@@ -18,6 +18,7 @@ class Stream:
         self.consumers: Dict[Topic, List[Consumer]] = {}
         self.max_messages_per_topic = max_messages_per_topic
         self.verbose = verbose
+        self.active_watch_functions: List[str, List[Any]] = []
         if self.verbose:
             print('stream initialized')
 
@@ -98,6 +99,9 @@ class Stream:
             consumer.publish(message)
         if self.verbose:
             print(f'Sending message to {len(consumers)} consumers for topic {message.metadata.topic}.')
+    
+    def add_watch_function (self, watchFn: str, args: List[Any]):
+        self.active_watch_functions.append ({ 'method': watchFn, 'args': args })
 
 
     async def close(self) -> None:

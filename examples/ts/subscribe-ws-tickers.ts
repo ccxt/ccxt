@@ -2,7 +2,7 @@ import ccxt from '../../js/ccxt.js';
 import { Message } from '../../js/src/base/types.js';
 
 const exchange = new ccxt.pro.binance ({});
-exchange.verbose = false;
+exchange.verbose = true;
 
 function printMessage (message: Message) {
     console.log ('Received message from: ', message.metadata.topic, ' : ', message.payload['symbol'], ' : ', message.payload['last']);
@@ -23,18 +23,14 @@ function priceAlert (message: Message) {
 
 async function checkForErrors (message: Message) {
     if (message.error) {
-        await createSubscriptions ();
         console.log ('Error: ', message.error);
+        await exchange.streamReconnect ();
     }
-}
-
-async function createSubscriptions () {
-    await exchange.watchTickers ();
 }
 
 async function example () {
     // create ws subscriptions
-    await createSubscriptions ();
+    await exchange.subscribeTickers (undefined, printMessage, true);
 
     // subscribe synchronously to all tickers with a sync function
     exchange.stream.subscribe ('tickers', printMessage, true);
@@ -51,11 +47,14 @@ async function example () {
     // subscribe to exchange wide errors
     exchange.stream.subscribe ('errors', checkForErrors, true);
 
-    await exchange.sleep (10000);
+    await exchange.sleep (5000);
     // get history length
     const history = exchange.stream.getMessageHistory ('tickers');
     console.log ('History Length:', history.length);
     await exchange.close ();
+    await exchange.streamReconnect ();
+    // await exchange.watchTickers ();
+    await exchange.sleep (5000);
 }
 
 await example ();

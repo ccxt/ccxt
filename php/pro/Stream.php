@@ -32,11 +32,17 @@ class Message {
 
 class Stream {
     public $max_messages_per_topic;
+    public $verbose;
     public $topics = array();
     private $consumers = array();
+    public $active_watch_functions = array();
 
-    public function __construct($max_messages_per_topic = null) {
+    public function __construct($max_messages_per_topic = 10000, $verbose = false) {
         $this->max_messages_per_topic = $max_messages_per_topic;
+        $this->verbose = $verbose;
+        if ($this->verbose) {
+            print_r ('stream initialized');
+        }
     }
 
     public function produce($topic, $payload, $error = null) {
@@ -63,6 +69,9 @@ class Stream {
             $this->consumers[$topic] = [];
         }
         $this->consumers[$topic][] = $consumer;
+        if ($this->verbose) {
+            print_r ("Subscribed function to topic: " . $topic . "\n");
+        }
     }
 
     public function unsubscribe($topic, callable $consumerFn) {
@@ -70,6 +79,12 @@ class Stream {
             $this->consumers[$topic] = array_filter($this->consumers[$topic], function ($consumer) use ($consumerFn) {
                 return $consumer->fn !== $consumerFn;
             });
+            if ($this->verbose) {
+                print_r ("Unsubscribed function from topic: " . $topic . "\n");
+            }
+        }
+        if ($this->verbose) {
+            print_r ("Unable to unsubscribe function from topic: " . $topic . ". Consumer function not found.\n");
         }
     }
 
@@ -88,13 +103,24 @@ class Stream {
     }
 
     private function send_to_consumers($consumers, $message) {
+        if ($this->verbose) {
+            print_r ('sending message from topic ' . $message->metadata->topic, 'to consumers');
+        }
         foreach ($consumers as $consumer) {
             $consumer->publish($message);
         }
     }
+
+    public function addWatchFunction($watchFn, $args) {
+        $this->active_watch_functions[] = array('method' => $watchFn, 'args' => $args);
+    }
+
     
     public function close () {
         $this->topics = [];
         $this->consumers = [];
+        if ($this->verbose) {
+            print_r ("Closed stream\n");
+        }
     }
 }
