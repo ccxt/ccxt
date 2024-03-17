@@ -12,6 +12,8 @@ export class Stream implements BaseStream {
 
     public consumers: Dictionary<Consumer[]>;
 
+    public activeWatchFunctions: any[];
+
     constructor (maxMessagesPerTopic = 10000, verbose = false) {
         this.init (maxMessagesPerTopic, verbose);
     }
@@ -124,6 +126,10 @@ export class Stream implements BaseStream {
             const consumer = consumers[i];
             consumer.publish (message);
         }
+    }
+
+    public addWatchFunction (watchFn: string, args: any[]): void {
+        this.activeWatchFunctions.push ({ 'method': watchFn, 'args': args })
     }
 
     /**
