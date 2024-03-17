@@ -319,6 +319,7 @@ export default class coinex extends coinexRest {
             const trade = trades[i];
             const parsed = this.parseWsTrade (trade, market);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         this.trades[symbol] = stored;
         client.resolve (this.trades[symbol], messageHash);

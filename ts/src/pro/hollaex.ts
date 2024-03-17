@@ -165,6 +165,7 @@ export default class hollaex extends hollaexRest {
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
+            this.streamProduce ('trades', parsedTrades[j]);
         }
         const messageHash = channel + ':' + marketId;
         client.resolve (stored, messageHash);

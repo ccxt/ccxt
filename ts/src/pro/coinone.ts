@@ -312,6 +312,7 @@ export default class coinone extends coinoneRest {
             this.trades[symbol] = stored;
         }
         stored.append (trade);
+        this.streamProduce ('trades', trade);
         const messageHash = 'trade:' + symbol;
         client.resolve (stored, messageHash);
     }

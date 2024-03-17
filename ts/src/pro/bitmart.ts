@@ -867,6 +867,7 @@ export default class bitmart extends bitmartRest {
         }
         const stored = this.trades[symbol];
         stored.append (trade);
+        this.streamProduce ('trades', trade);
         return symbol;
     }
 

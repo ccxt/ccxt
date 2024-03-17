@@ -231,6 +231,7 @@ export default class currencycom extends currencycomRest {
             this.trades[symbol] = stored;
         }
         stored.append (parsed);
+        this.streamProduce ('trades', parsed);
         client.resolve (stored, messageHash);
     }
 

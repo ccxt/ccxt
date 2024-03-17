@@ -201,6 +201,7 @@ export default class ascendex extends ascendexRest {
         }
         for (let i = 0; i < trades.length; i++) {
             tradesArray.append (trades[i]);
+            this.streamProduce ('trades', trades[i]);
         }
         this.trades[symbol] = tradesArray;
         client.resolve (tradesArray, messageHash);

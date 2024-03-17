@@ -378,6 +378,7 @@ export default class woo extends wooRest {
             tradesArray = new ArrayCache (limit);
         }
         tradesArray.append (trade);
+        this.streamProduce ('trades', trade);
         this.trades[symbol] = tradesArray;
         client.resolve (tradesArray, topic);
     }

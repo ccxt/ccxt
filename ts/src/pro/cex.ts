@@ -178,6 +178,7 @@ export default class cex extends cexRest {
             const rawTrade = data[i];
             const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         const messageHash = 'trades';
         this.trades = stored as any; // trades don't have symbol
@@ -231,6 +232,7 @@ export default class cex extends cexRest {
             const rawTrade = data[i];
             const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         const messageHash = 'trades';
         this.trades = stored;

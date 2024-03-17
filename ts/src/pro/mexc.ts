@@ -616,6 +616,7 @@ export default class mexc extends mexcRest {
                 parsedTrade = this.parseTrade (trades[j], market);
             }
             stored.append (parsedTrade);
+            this.streamProduce ('trades', parsedTrade);
         }
         client.resolve (stored, messageHash);
     }

@@ -177,6 +177,7 @@ export default class bitopro extends bitoproRest {
         }
         for (let i = 0; i < trades.length; i++) {
             tradesCache.append (trades[i]);
+            this.streamProduce ('trades', trades[i]);
         }
         this.trades[symbol] = tradesCache;
         client.resolve (tradesCache, messageHash);

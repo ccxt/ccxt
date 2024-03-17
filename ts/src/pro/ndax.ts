@@ -178,6 +178,7 @@ export default class ndax extends ndaxRest {
                 tradesArray = new ArrayCache (limit);
             }
             tradesArray.append (trade);
+            this.streamProduce ('trades', trade);
             this.trades[symbol] = tradesArray;
             updates[symbol] = true;
         }

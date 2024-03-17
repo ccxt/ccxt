@@ -439,6 +439,7 @@ export default class phemex extends phemexRest {
         const parsed = this.parseTrades (trades, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append (parsed[i]);
+            this.streamProduce ('trades', parsed[i]);
         }
         client.resolve (stored, messageHash);
     }

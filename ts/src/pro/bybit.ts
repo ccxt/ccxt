@@ -711,6 +711,7 @@ export default class bybit extends bybitRest {
         for (let j = 0; j < trades.length; j++) {
             const parsed = this.parseWsTrade (trades[j], market);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         const messageHash = 'trade' + ':' + symbol;
         client.resolve (stored, messageHash);

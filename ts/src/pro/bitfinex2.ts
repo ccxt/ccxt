@@ -338,6 +338,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const index = length - i - 1;
                 const parsed = this.parseWsTrade (trades[index], market);
                 stored.append (parsed);
+                this.streamProduce ('trades', parsed);
             }
         } else {
             // update
@@ -349,6 +350,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             }
             const trade = this.safeValue (message, 2, []);
             const parsed = this.parseWsTrade (trade, market);
+            this.streamProduce ('trades', parsed);
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);

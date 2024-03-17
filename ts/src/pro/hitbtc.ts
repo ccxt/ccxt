@@ -582,6 +582,7 @@ export default class hitbtc extends hitbtcRest {
             const trades = this.parseWsTrades (data[marketId], market);
             for (let j = 0; j < trades.length; j++) {
                 stored.append (trades[j]);
+                this.streamProduce ('trades', trades[j]);
             }
             const messageHash = 'trades::' + symbol;
             client.resolve (stored, messageHash);

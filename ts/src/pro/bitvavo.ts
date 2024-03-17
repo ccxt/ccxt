@@ -177,6 +177,7 @@ export default class bitvavo extends bitvavoRest {
         }
         tradesArray.append (trade);
         this.trades[symbol] = tradesArray;
+        this.streamProduce ('trades', trade);
         client.resolve (tradesArray, messageHash);
     }
 

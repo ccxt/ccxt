@@ -317,6 +317,7 @@ export default class deribit extends deribitRest {
             const trade = trades[i];
             const parsed = this.parseTrade (trade, market);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         this.trades[symbol] = stored;
         const messageHash = 'trades|' + symbol + '|' + interval;

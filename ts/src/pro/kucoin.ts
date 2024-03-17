@@ -447,6 +447,7 @@ export default class kucoin extends kucoinRest {
             this.trades[symbol] = trades;
         }
         trades.append (trade);
+        this.streamProduce ('trades', trade);
         client.resolve (trades, messageHash);
     }
 

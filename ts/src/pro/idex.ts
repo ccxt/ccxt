@@ -185,6 +185,7 @@ export default class idex extends idexRest {
         }
         const trades = this.trades as any;
         trades.append (trade);
+        this.streamProduce ('trades', trade);
         client.resolve (trades, messageHash);
     }
 

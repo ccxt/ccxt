@@ -356,6 +356,7 @@ export default class wazirx extends wazirxRest {
         for (let i = 0; i < rawTrades.length; i++) {
             const parsedTrade = this.parseWsTrade (rawTrades[i], market);
             trades.append (parsedTrade);
+            this.streamProduce ('trades', parsedTrade);
         }
         client.resolve (trades, messageHash);
     }

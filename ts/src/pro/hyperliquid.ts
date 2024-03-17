@@ -283,6 +283,7 @@ export default class hyperliquid extends hyperliquidRest {
             const data = this.safeDict (entry, i);
             const trade = this.parseWsTrade (data);
             trades.append (trade);
+            this.streamProduce ('trades', trade);
         }
         const messageHash = 'trade:' + symbol;
         client.resolve (trades, messageHash);

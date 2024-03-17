@@ -267,6 +267,7 @@ export default class bitstamp extends bitstampRest {
             this.trades[symbol] = tradesArray;
         }
         tradesArray.append (trade);
+        this.streamProduce ('trades', trade);
         client.resolve (tradesArray, messageHash);
     }
 

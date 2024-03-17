@@ -270,6 +270,7 @@ export default class p2b extends p2bRest {
             const item = trades[i];
             const trade = this.parseTrade (item, market);
             tradesArray.append (trade);
+            this.streamProduce ('trades', trade);
         }
         const messageHash = 'deals::' + symbol;
         client.resolve (tradesArray, messageHash);

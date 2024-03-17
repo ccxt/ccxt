@@ -606,6 +606,7 @@ export default class poloniex extends poloniexRest {
                     this.trades[symbol] = tradesArray;
                 }
                 tradesArray.append (trade);
+                this.streamProduce ('trades', trade);
                 client.resolve (tradesArray, messageHash);
             }
         }

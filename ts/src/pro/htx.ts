@@ -261,6 +261,7 @@ export default class htx extends htxRest {
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i], market);
             tradesCache.append (trade);
+            this.streamProduce ('trades', trade);
         }
         client.resolve (tradesCache, ch);
         return message;

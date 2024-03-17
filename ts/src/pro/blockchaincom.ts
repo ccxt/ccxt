@@ -375,6 +375,7 @@ export default class blockchaincom extends blockchaincomRest {
         }
         const parsed = this.parseWsTrade (message, market);
         stored.append (parsed);
+        this.streamProduce ('trades', parsed);
         this.trades[symbol] = stored;
         client.resolve (this.trades[symbol], messageHash);
     }

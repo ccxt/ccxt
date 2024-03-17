@@ -321,6 +321,7 @@ export default class cryptocom extends cryptocomRest {
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
+            this.streamProduce ('trades', parsedTrades[j]);
         }
         const channelReplaced = channel.replace ('.' + marketId, '');
         client.resolve (stored, symbolSpecificMessageHash);

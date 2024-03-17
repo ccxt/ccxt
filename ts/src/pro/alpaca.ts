@@ -318,6 +318,7 @@ export default class alpaca extends alpacaRest {
         }
         const parsed = this.parseTrade (message);
         stored.append (parsed);
+        this.streamProduce ('myTrades', parsed);
         const messageHash = 'trade' + ':' + symbol;
         client.resolve (stored, messageHash);
     }

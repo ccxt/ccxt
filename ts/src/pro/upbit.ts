@@ -224,6 +224,7 @@ export default class upbit extends upbitRest {
             this.trades[symbol] = stored;
         }
         stored.append (trade);
+        this.streamProduce ('trades', trade);
         const marketId = this.safeString (message, 'code');
         const messageHash = 'trade:' + marketId;
         client.resolve (stored, messageHash);

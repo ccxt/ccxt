@@ -172,6 +172,7 @@ export default class gemini extends geminiRest {
             this.trades[symbol] = stored;
         }
         stored.append (trade);
+        this.streamProduce ('trades', trade);
         const messageHash = 'trades:' + symbol;
         client.resolve (stored, messageHash);
     }
@@ -228,6 +229,7 @@ export default class gemini extends geminiRest {
             for (let i = 0; i < trades.length; i++) {
                 const trade = this.parseWsTrade (trades[i], market);
                 stored.append (trade);
+                this.streamProduce ('trades', trade);
             }
             const messageHash = 'trades:' + symbol;
             client.resolve (stored, messageHash);
@@ -251,6 +253,7 @@ export default class gemini extends geminiRest {
                     this.trades[symbol] = stored;
                 }
                 stored.append (trade);
+                this.streamProduce ('trades', trade);
                 storesForSymbols[symbol] = stored;
             }
             const symbols = Object.keys (storesForSymbols);

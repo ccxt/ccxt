@@ -499,6 +499,7 @@ export default class gate extends gateRest {
                 this.trades[symbol] = cachedTrades;
             }
             cachedTrades.append (trade);
+            this.streamProduce ('trades', trade);
             const hash = 'trades:' + symbol;
             client.resolve (cachedTrades, hash);
         }

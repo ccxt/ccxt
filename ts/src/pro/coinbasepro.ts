@@ -413,6 +413,7 @@ export default class coinbasepro extends coinbaseproRest {
                 this.trades[symbol] = tradesArray;
             }
             tradesArray.append (trade);
+            this.streamProduce ('trades', trade);
             client.resolve (tradesArray, messageHash);
         }
         return message;

@@ -162,6 +162,7 @@ export default class coincheck extends coincheckRest {
             const data = this.safeValue (message, i);
             const trade = this.parseWsTrade (data);
             stored.append (trade);
+            this.streamProduce ('trades', trade);
         }
         const messageHash = 'trade:' + symbol;
         client.resolve (stored, messageHash);

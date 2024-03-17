@@ -389,6 +389,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
+            this.streamProduce ('trades', trade);
             client.resolve (stored, messageHash);
         }
         return message;

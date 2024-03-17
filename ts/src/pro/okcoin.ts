@@ -217,6 +217,7 @@ export default class okcoin extends okcoinRest {
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
+            this.streamProduce ('trades', trade);
             client.resolve (stored, messageHash);
         }
         return message;

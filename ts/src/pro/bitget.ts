@@ -693,6 +693,7 @@ export default class bitget extends bitgetRest {
             const rawTrade = data[index];
             const parsed = this.parseWsTrade (rawTrade, market);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         const messageHash = 'trade:' + symbol;
         client.resolve (stored, messageHash);

@@ -465,6 +465,7 @@ export default class lbank extends lbankRest {
             const trade = this.parseWsTrade (rawTrades[i], market);
             trade['symbol'] = symbol;
             stored.append (trade);
+            this.streamProduce ('trades', trade);
         }
         this.trades[symbol] = stored;
         let messageHash = 'trades:' + symbol;

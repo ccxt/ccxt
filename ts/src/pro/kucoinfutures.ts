@@ -484,6 +484,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             this.trades[symbol] = trades;
         }
         trades.append (trade);
+        this.streamProduce ('trades', trade);
         const messageHash = 'trades:' + symbol;
         client.resolve (trades, messageHash);
         return message;

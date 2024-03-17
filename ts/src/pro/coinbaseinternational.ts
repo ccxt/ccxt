@@ -412,6 +412,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         const tradesArray = this.trades[symbol];
         tradesArray.append (trade);
+        this.streamProduce ('trades', trade);
         this.trades[symbol] = tradesArray;
         client.resolve (tradesArray, channel);
         client.resolve (tradesArray, channel + '::' + trade['symbol']);

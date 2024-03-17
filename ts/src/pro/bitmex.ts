@@ -564,6 +564,7 @@ export default class bitmex extends bitmexRest {
             }
             for (let j = 0; j < trades.length; j++) {
                 stored.append (trades[j]);
+                this.streamProduce ('trades', trades[j]);
             }
             client.resolve (stored, messageHash);
         }
