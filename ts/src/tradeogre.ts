@@ -5,7 +5,7 @@ import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker } from './base/types.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -342,21 +342,29 @@ export default class tradeogre extends Exchange {
         //        "0.02425501": "36.46986607",
         //        "0.02425502": "93.64201137",
         //        "0.02425503": "19.02000000",
-        //        "0.02425504": "101.68086403",
-        //        "0.02425505": "29.57700547",
-        //        "0.02425506": "104.61014094",
-        //        "0.02425507": "142.23464863",
-        //        "0.02425508": "25.31886131",
-        //        "0.02425509": "79.46064443",
-        //        "0.02425510": "76.22400000",
-        //        "0.02425511": "49.31800000",
-        //        "0.02425512": "23.67600000",
-        //        "0.02425513": "3.26463919",
-        //        "0.02425514": "78.16971446",
         //        "0.02425515": "115.49000000"
         // }
-        // return this.parseOrderBook (result, market['symbol'], this.unique, 'bids', 'asks', 0, 1);
-        return response;
+        //
+        const rawBids = this.safeDict (response, 'buy', {});
+        const rawAsks = this.safeDict (response, 'sell', {});
+        const rawOrderbook = {
+            'bids': rawBids,
+            'asks': rawAsks,
+        };
+        const orderbook = this.parseOrderBook (rawOrderbook, symbol);
+        return orderbook;
+    }
+
+    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+        const prices = Object.keys (bidasks);
+        const result = [];
+        for (let i = 0; i < prices.length; i++) {
+            const priceString = this.safeString (prices, i);
+            const price = this.safeNumber (prices, i);
+            const volume = this.safeNumber (bidasks, priceString);
+            result.push ([ price, volume ]);
+        }
+        return result;
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -626,14 +634,17 @@ export default class tradeogre extends Exchange {
         //  {"success":false,"error":"Must be authorized"}
         //
         const success = this.safeBool (response, 'success');
-        if (!success) {
-            const error = this.safeValue (response, 'error');
-            const errorCode = this.safeString (error, 'code');
-            const feedback = this.id + ' ' + this.json (response);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            throw new ExchangeError (feedback);
-            // fallback to default error handler
+        if (success) {
+            return undefined;
         }
-        return undefined;
+        const successString = this.safeString (response, 'success');
+        if (successString === 'true') {
+            return undefined;
+        }
+        const error = this.safeValue (response, 'error');
+        const errorCode = this.safeString (error, 'code');
+        const feedback = this.id + ' ' + this.json (response);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        throw new ExchangeError (feedback);
     }
 }
