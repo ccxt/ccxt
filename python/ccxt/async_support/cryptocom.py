@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -988,7 +988,7 @@ class cryptocom(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         uppercaseType = type.upper()
         request = {
@@ -1070,7 +1070,7 @@ class cryptocom(Exchange, ImplicitAPI):
         params = self.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
@@ -1179,7 +1179,7 @@ class cryptocom(Exchange, ImplicitAPI):
             return self.parse_orders(ocoOrders)
         return self.parse_orders(result)
 
-    def create_advanced_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_advanced_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         # differs slightly from createOrderRequest
         # since the advanced order endpoint requires a different set of parameters
         # namely here we don't support ref_price or spot_margin

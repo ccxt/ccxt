@@ -917,6 +917,18 @@
                 "url": "https://api.bybit.com/v5/market/time",
                 "input": []
             }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "linear leverage tiers",
+                "method": "fetchLeverageTiers",
+                "url": "https://api-testnet.bybit.com/v5/market/risk-limit?category=linear",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+            }
         ]
     },
     "disabled": []

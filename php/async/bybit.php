@@ -85,6 +85,7 @@ class bybit extends Exchange {
                 'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
+                'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -3826,7 +3827,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function create_usdc_order($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_usdc_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -7284,37 +7285,6 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
-        //
-        //     {
-        //         "id" => 1,
-        //         "symbol" => "BTCUSD",
-        //         "riskLimitValue" => "150",
-        //         "maintenanceMargin" => "0.5",
-        //         "initialMargin" => "1",
-        //         "isLowestRisk" => 1,
-        //         "maxLeverage" => "100.00"
-        //     }
-        //
-        $minNotional = 0;
-        $tiers = array();
-        for ($i = 0; $i < count($info); $i++) {
-            $item = $info[$i];
-            $maxNotional = $this->safe_number($item, 'riskLimitValue');
-            $tiers[] = array(
-                'tier' => $this->sum($i, 1),
-                'currency' => $market['base'],
-                'minNotional' => $minNotional,
-                'maxNotional' => $maxNotional,
-                'maintenanceMarginRate' => $this->safe_number($item, 'maintenanceMargin'),
-                'maxLeverage' => $this->safe_number($item, 'maxLeverage'),
-                'info' => $item,
-            );
-            $minNotional = $maxNotional;
-        }
-        return $tiers;
-    }
-
     public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
@@ -8029,6 +7999,98 @@ class bybit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
+             * retrieve information on the maximum leverage, for different trade sizes
+             * @param {string[]} [$symbols] a list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] $market $subType, ['linear', 'inverse'], default is 'linear'
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by $market $symbols
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbols !== null) {
+                $market = $this->market($symbols[0]);
+                if ($market['spot']) {
+                    throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported for spot market');
+                }
+            }
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
+            $request = array(
+                'category' => $subType,
+            );
+            $response = Async\await($this->publicGetV5MarketRiskLimit (array_merge($request, $params)));
+            $result = $this->safe_dict($response, 'result', array());
+            $data = $this->safe_list($result, 'list', array());
+            $symbols = $this->market_symbols($symbols);
+            return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+        }) ();
+    }
+
+    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
+        //
+        //  array(
+        //      {
+        //          "id" => 1,
+        //          "symbol" => "BTCUSD",
+        //          "riskLimitValue" => "150",
+        //          "maintenanceMargin" => "0.5",
+        //          "initialMargin" => "1",
+        //          "isLowestRisk" => 1,
+        //          "maxLeverage" => "100.00"
+        //      }
+        //  )
+        //
+        $tiers = array();
+        $marketIds = $this->market_ids($symbols);
+        $filteredResults = $this->filter_by_array($response, $marketIdKey, $marketIds, false);
+        $grouped = $this->group_by($filteredResults, $marketIdKey);
+        $keys = is_array($grouped) ? array_keys($grouped) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $marketId = $keys[$i];
+            $entry = $grouped[$marketId];
+            $market = $this->safe_market($marketId, null, null, 'contract');
+            $symbol = $market['symbol'];
+            $tiers[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
+        }
+        return $tiers;
+    }
+
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
+        //
+        //  array(
+        //      {
+        //          "id" => 1,
+        //          "symbol" => "BTCUSD",
+        //          "riskLimitValue" => "150",
+        //          "maintenanceMargin" => "0.5",
+        //          "initialMargin" => "1",
+        //          "isLowestRisk" => 1,
+        //          "maxLeverage" => "100.00"
+        //      }
+        //  )
+        //
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $info[$i];
+            $marketId = $this->safe_string($info, 'symbol');
+            $market = $this->safe_market($marketId);
+            $tiers[] = array(
+                'tier' => $this->safe_integer($tier, 'id'),
+                'currency' => $market['settle'],
+                'minNotional' => null,
+                'maxNotional' => null,
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMargin'),
+                'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
+                'info' => $tier,
+            );
+        }
+        return $tiers;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

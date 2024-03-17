@@ -2309,7 +2309,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function create_order_request(array $market, string $marketType, string $type, string $side, $amount, $price = null, ?string $marginMode = null, $params = array ()) {
+    public function create_order_request(array $market, string $marketType, string $type, string $side, float $amount, ?float $price = null, ?string $marginMode = null, $params = array ()) {
         $isLimit = ($type === 'limit');
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $timeInForce = $this->safe_string($params, 'timeInForce');

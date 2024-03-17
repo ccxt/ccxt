@@ -42,6 +42,7 @@ Exchange::$exchanges = array(
     'bybit',
     'cex',
     'coinbase',
+    'coinbaseinternational',
     'coinbasepro',
     'coincheck',
     'coinex',

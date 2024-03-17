@@ -294,22 +294,25 @@ public partial class testMainClass : BaseTest
         // get "method-specific" skips
         object skipsForMethod = exchange.safeValue(this.skippedMethods, methodName, new Dictionary<string, object>() {});
         // get "object-specific" skips
-        if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchOrderBook", "fetchOrderBooks", "fetchL2OrderBook", "watchOrderBook", "watchOrderBookForSymbols"})))
+        object objectSkips = new Dictionary<string, object>() {
+            { "orderBook", new List<object>() {"fetchOrderBook", "fetchOrderBooks", "fetchL2OrderBook", "watchOrderBook", "watchOrderBookForSymbols"} },
+            { "ticker", new List<object>() {"fetchTicker", "fetchTickers", "watchTicker", "watchTickers"} },
+            { "trade", new List<object>() {"fetchTrades", "watchTrades", "watchTradesForSymbols"} },
+            { "ohlcv", new List<object>() {"fetchOHLCV", "watchOHLCV", "watchOHLCVForSymbols"} },
+            { "ledger", new List<object>() {"fetchLedger", "fetchLedgerEntry"} },
+            { "depositWithdraw", new List<object>() {"fetchDepositsWithdrawals", "fetchDeposits", "fetchWithdrawals"} },
+            { "depositWithdrawFee", new List<object>() {"fetchDepositWithdrawFee", "fetchDepositWithdrawFees"} },
+        };
+        object objectNames = new List<object>(((IDictionary<string,object>)objectSkips).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(objectNames)); postFixIncrement(ref i))
         {
-            object skips = exchange.safeValue(this.skippedMethods, "orderBook", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        } else if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchTicker", "fetchTickers", "watchTicker", "watchTickers"})))
-        {
-            object skips = exchange.safeValue(this.skippedMethods, "ticker", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        } else if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchTrades", "watchTrades", "watchTradesForSymbols"})))
-        {
-            object skips = exchange.safeValue(this.skippedMethods, "trade", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        } else if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchOHLCV", "watchOHLCV", "watchOHLCVForSymbols"})))
-        {
-            object skips = exchange.safeValue(this.skippedMethods, "ohlcv", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
+            object objectName = getValue(objectNames, i);
+            object objectMethods = getValue(objectSkips, objectName);
+            if (isTrue(exchange.inArray(methodName, objectMethods)))
+            {
+                object extraSkips = exchange.safeDict(this.skippedMethods, objectName, new Dictionary<string, object>() {});
+                return exchange.deepExtend(skipsForMethod, extraSkips);
+            }
         }
         return skipsForMethod;
     }
@@ -1243,6 +1246,8 @@ public partial class testMainClass : BaseTest
     {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         Exchange exchange = this.initOfflineExchange(exchangeName);
+        object globalOptions = exchange.safeDict(exchangeData, "options", new Dictionary<string, object>() {});
+        exchange.options = exchange.deepExtend(exchange.options, globalOptions); // custom options to be used in the tests
         object methods = exchange.safeValue(exchangeData, "methods", new Dictionary<string, object>() {});
         object methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(methodsNames)); postFixIncrement(ref i))
@@ -1405,7 +1410,7 @@ public partial class testMainClass : BaseTest
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1793,5 +1798,25 @@ public partial class testMainClass : BaseTest
         object brokerId = ((object)(getValue(getValue(request, "action"), "brokerCode"))).ToString();
         assert(isEqual(brokerId, id), add(add(add("hyperliquid - brokerId: ", brokerId), " does not start with id: "), id));
         await close(exchange);
+    }
+
+    public async virtual Task<object> testCoinbaseinternational()
+    {
+        Exchange exchange = this.initOfflineExchange("coinbaseinternational");
+        ((IDictionary<string,object>)exchange.options)["portfolio"] = "random";
+        object id = "nfqkvdjp";
+        assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object clientOrderId = getValue(request, "client_order_id");
+        assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clientOrderId does not start with id");
+        await close(exchange);
+        return true;
     }
 }

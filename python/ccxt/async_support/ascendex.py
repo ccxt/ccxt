@@ -1440,7 +1440,7 @@ class ascendex(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -1512,7 +1512,7 @@ class ascendex(Exchange, ImplicitAPI):
         params = self.omit(params, ['reduceOnly', 'triggerPrice'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order on the exchange
         :see: https://ascendex.github.io/ascendex-pro-api/#place-order

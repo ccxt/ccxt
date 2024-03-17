@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitvavo.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bitvavo
  * @augments Exchange
@@ -34,10 +34,10 @@ export default class bitvavo extends Exchange {
         network: any;
         info: any;
     }>;
-    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
-    createOrder(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrder(symbol: Str, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): {};
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrderRequest(id: Str, symbol?: Str, params?: {}): any;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
