@@ -755,7 +755,7 @@ public partial class ascendex : Exchange
         return new List<object>() {new Dictionary<string, object>() {
     { "id", accountGroup },
     { "type", null },
-    { "currency", null },
+    { "code", null },
     { "info", response },
 }};
     }
@@ -2882,7 +2882,8 @@ public partial class ascendex : Exchange
         {
             notional = this.safeString(position, "sellOpenOrderNotional");
         }
-        object marginMode = this.safeString(position, "marginType");
+        object marginType = this.safeString(position, "marginType");
+        object marginMode = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : "isolated";
         object collateral = null;
         if (isTrue(isEqual(marginMode, "isolated")))
         {

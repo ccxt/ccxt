@@ -302,6 +302,7 @@ public partial class bitmart : Exchange
                     { "70000", typeof(ExchangeError) },
                     { "70001", typeof(BadRequest) },
                     { "70002", typeof(BadSymbol) },
+                    { "70003", typeof(NetworkError) },
                     { "71001", typeof(BadRequest) },
                     { "71002", typeof(BadRequest) },
                     { "71003", typeof(BadRequest) },

@@ -15,12 +15,12 @@ interface Exchange {
     publicGetHistoryMarket (params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalances (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountOrderUuid (params?: {}): Promise<implicitReturnType>;
     privatePostOrderBuy (params?: {}): Promise<implicitReturnType>;
     privatePostOrderSell (params?: {}): Promise<implicitReturnType>;
     privatePostOrderCancel (params?: {}): Promise<implicitReturnType>;
     privatePostOrders (params?: {}): Promise<implicitReturnType>;
     privatePostAccountOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountOrderUuid (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

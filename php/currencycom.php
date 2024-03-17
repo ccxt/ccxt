@@ -573,7 +573,7 @@ class currencycom extends Exchange {
         return $result;
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the $accounts associated with a profile
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET

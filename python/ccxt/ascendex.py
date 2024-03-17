@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currency, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -714,7 +714,7 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.safe_integer(data, 'requestReceiveAt')
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -747,7 +747,7 @@ class ascendex(Exchange, ImplicitAPI):
             {
                 'id': accountGroup,
                 'type': None,
-                'currency': None,
+                'code': None,
                 'info': response,
             },
         ]
@@ -2590,7 +2590,8 @@ class ascendex(Exchange, ImplicitAPI):
         notional = self.safe_string(position, 'buyOpenOrderNotional')
         if Precise.string_eq(notional, '0'):
             notional = self.safe_string(position, 'sellOpenOrderNotional')
-        marginMode = self.safe_string(position, 'marginType')
+        marginType = self.safe_string(position, 'marginType')
+        marginMode = 'cross' if (marginType == 'crossed') else 'isolated'
         collateral = None
         if marginMode == 'isolated':
             collateral = self.safe_string(position, 'isolatedMargin')

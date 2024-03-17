@@ -106,6 +106,7 @@ var poloniexfutures = require('./src/poloniexfutures.js');
 var probit = require('./src/probit.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
+var tradeogre = require('./src/tradeogre.js');
 var upbit = require('./src/upbit.js');
 var wavesexchange = require('./src/wavesexchange.js');
 var wazirx = require('./src/wazirx.js');
@@ -180,7 +181,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.74';
+const version = '4.2.75';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -277,6 +278,7 @@ const exchanges = {
     'probit': probit,
     'timex': timex,
     'tokocrypto': tokocrypto,
+    'tradeogre': tradeogre,
     'upbit': upbit,
     'wavesexchange': wavesexchange,
     'wazirx': wazirx,
@@ -486,6 +488,7 @@ exports.poloniexfutures = poloniexfutures;
 exports.probit = probit;
 exports.timex = timex;
 exports.tokocrypto = tokocrypto;
+exports.tradeogre = tradeogre;
 exports.upbit = upbit;
 exports.wavesexchange = wavesexchange;
 exports.wazirx = wazirx;
