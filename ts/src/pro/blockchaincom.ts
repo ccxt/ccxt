@@ -269,6 +269,7 @@ export default class blockchaincom extends blockchaincomRest {
         }
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 

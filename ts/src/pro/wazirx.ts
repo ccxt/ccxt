@@ -244,6 +244,7 @@ export default class wazirx extends wazirxRest {
             const symbol = parsedTicker['symbol'];
             this.tickers[symbol] = parsedTicker;
             const messageHash = 'ticker:' + symbol;
+            this.streamProduce ('tickers', parsedTicker);
             client.resolve (parsedTicker, messageHash);
         }
         client.resolve (this.tickers, 'tickers');

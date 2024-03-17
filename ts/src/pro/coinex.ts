@@ -143,6 +143,7 @@ export default class coinex extends coinexRest {
             const market = this.safeMarket (marketId, undefined, undefined, defaultType);
             const parsedTicker = this.parseWSTicker (rawTicker, market);
             this.tickers[symbol] = parsedTicker;
+            this.streamProduce ('tickers', parsedTicker);
             newTickers.push (parsedTicker);
         }
         const messageHashes = this.findMessageHashes (client, 'tickers::');

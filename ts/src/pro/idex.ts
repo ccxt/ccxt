@@ -140,6 +140,7 @@ export default class idex extends idexRest {
             'quoteVolume': this.safeString (data, 'q'),
             'info': message,
         });
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 

@@ -291,6 +291,7 @@ export default class whitebit extends whitebitRest {
         const ticker = this.parseTicker (rawTicker, market);
         this.tickers[symbol] = ticker;
         // watchTicker
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
         // watchTickers
         const messageHashes = Object.keys (client.futures);

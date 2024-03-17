@@ -296,6 +296,7 @@ export default class phemex extends phemexRest {
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
     }

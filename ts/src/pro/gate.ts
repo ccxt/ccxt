@@ -412,6 +412,7 @@ export default class gate extends gateRest {
             const symbol = parsedItem['symbol'];
             if (isTicker) {
                 this.tickers[symbol] = parsedItem;
+                this.streamProduce ('tickers', parsedItem);
             } else {
                 this.bidsasks[symbol] = parsedItem;
             }

@@ -359,6 +359,7 @@ export default class kraken extends krakenRest {
         // kraken confirms multi-pair subscriptions separately one by one
         // trigger correct watchTickers calls upon receiving any of symbols
         this.tickers[symbol] = result;
+        this.streamProduce ('tickers', result);
         client.resolve (result, messageHash);
     }
 

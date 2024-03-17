@@ -259,6 +259,7 @@ export default class exmo extends exmoRest {
         const parsedTicker = this.parseTicker (ticker, market);
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = parsedTicker;
+        this.streamProduce ('tickers', parsedTicker);
         client.resolve (parsedTicker, messageHash);
     }
 

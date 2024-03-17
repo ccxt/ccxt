@@ -141,6 +141,7 @@ export default class upbit extends upbitRest {
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 

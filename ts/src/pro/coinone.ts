@@ -193,6 +193,7 @@ export default class coinone extends coinoneRest {
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
+        this.streamProduce ('tickers', ticker);
         client.resolve (this.tickers[symbol], messageHash);
     }
 

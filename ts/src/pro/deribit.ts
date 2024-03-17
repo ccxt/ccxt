@@ -231,6 +231,7 @@ export default class deribit extends deribitRest {
         const ticker = this.parseTicker (data);
         const messageHash = this.safeString (params, 'channel');
         this.tickers[symbol] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 

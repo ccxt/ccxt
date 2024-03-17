@@ -124,6 +124,7 @@ export default class mexc extends mexcRest {
         }
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 

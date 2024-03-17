@@ -104,6 +104,7 @@ export default class ndax extends ndaxRest {
         this.tickers[symbol] = ticker;
         const name = 'SubscribeLevel1';
         const messageHash = name + ':' + market['id'];
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 

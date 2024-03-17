@@ -306,6 +306,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //
         const ticker = this.parseWsTicker (message);
         const channel = this.safeString (message, 'channel');
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, channel);
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }

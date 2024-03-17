@@ -956,6 +956,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             const messageHash = feed + ':' + symbol;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
         client.resolve (this.tickers, feed);

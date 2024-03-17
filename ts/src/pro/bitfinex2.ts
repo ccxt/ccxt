@@ -482,6 +482,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const channel = 'ticker';
         const messageHash = channel + ':' + marketId;
         this.tickers[symbol] = parsed;
+        this.streamProduce ('tickers', parsed);
         client.resolve (parsed, messageHash);
     }
 

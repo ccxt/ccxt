@@ -274,6 +274,7 @@ export default class kucoin extends kucoinRest {
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
         // watchTickers
         const allTickers = {};

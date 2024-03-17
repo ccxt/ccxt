@@ -249,6 +249,7 @@ export default class bitfinex extends bitfinexRest {
             'info': message,
         };
         this.tickers[symbol] = result;
+        this.streamProduce ('tickers', result);
         client.resolve (result, messageHash);
     }
 

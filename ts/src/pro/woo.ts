@@ -206,6 +206,7 @@ export default class woo extends wooRest {
         const ticker = this.parseWsTicker (data, market);
         ticker['symbol'] = market['symbol'];
         this.tickers[market['symbol']] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, topic);
         return message;
     }
@@ -263,6 +264,7 @@ export default class woo extends wooRest {
             const ticker = this.parseWsTicker (this.extend (data[i], { 'date': timestamp }), market);
             this.tickers[market['symbol']] = ticker;
             result.push (ticker);
+            this.streamProduce ('tickers', ticker);
         }
         client.resolve (result, topic);
     }

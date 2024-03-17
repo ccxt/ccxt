@@ -353,6 +353,7 @@ export default class cex extends cexRest {
         client.resolve (ticker, messageHash);
         client.resolve (ticker, 'tickers');
         messageHash = this.safeString (message, 'oid');
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 

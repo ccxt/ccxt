@@ -962,6 +962,7 @@ export default class bitmart extends bitmartRest {
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             const messageHash = 'ticker:' + symbol;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
     }

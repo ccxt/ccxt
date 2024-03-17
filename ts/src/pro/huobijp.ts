@@ -108,6 +108,7 @@ export default class huobijp extends huobijpRest {
         ticker['datetime'] = this.iso8601 (timestamp);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, ch);
         return message;
     }

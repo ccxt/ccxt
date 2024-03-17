@@ -151,6 +151,7 @@ export default class currencycom extends currencycomRest {
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             const messageHash = destination + ':' + symbol;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];

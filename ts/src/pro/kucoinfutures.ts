@@ -216,6 +216,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const ticker = this.parseTicker (data, market);
         this.tickers[market['symbol']] = ticker;
         const messageHash = 'ticker:' + market['symbol'];
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
         return message;
     }

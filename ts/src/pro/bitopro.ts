@@ -374,6 +374,7 @@ export default class bitopro extends bitoproRest {
         result['timestamp'] = timestamp;
         result['datetime'] = datetime;
         this.tickers[symbol] = result;
+        this.streamProduce ('tickers', result);
         client.resolve (result, messageHash);
     }
 

@@ -86,6 +86,7 @@ export default class alpaca extends alpacaRest {
         const symbol = ticker['symbol'];
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (this.tickers[symbol], messageHash);
     }
 

@@ -329,6 +329,7 @@ export default class p2b extends p2bRest {
         }
         const symbol = ticker['symbol'];
         const messageHash = messageHashStart + '::' + symbol;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
         return message;
     }

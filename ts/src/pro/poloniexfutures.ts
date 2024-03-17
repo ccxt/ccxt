@@ -681,6 +681,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         if (symbol !== undefined) {
             const ticker = this.parseTicker (data);
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
         return message;

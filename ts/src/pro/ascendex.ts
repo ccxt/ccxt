@@ -488,6 +488,7 @@ export default class ascendex extends ascendexRest {
             }
         }
         const messageHash = 'balance' + ':' + type;
+        this.streamProduce ('balances', this.safeBalance (result));
         client.resolve (this.safeBalance (result), messageHash);
     }
 

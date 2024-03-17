@@ -163,6 +163,7 @@ export default class probit extends probitRest {
         const parsedTicker = this.parseTicker (ticker, market);
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = parsedTicker;
+        this.streamProduce ('tickers', parsedTicker);
         client.resolve (parsedTicker, messageHash);
     }
 

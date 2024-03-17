@@ -970,6 +970,7 @@ export default class poloniex extends poloniexRest {
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
                 newTickers[symbol] = ticker;
+                this.streamProduce ('tickers', ticker);
             }
         }
         const messageHashes = this.findMessageHashes (client, 'ticker::');

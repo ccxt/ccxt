@@ -189,6 +189,7 @@ export default class coinbase extends coinbaseRest {
                 const wsMarketId = this.safeString (ticker, 'product_id');
                 const messageHash = channel + '::' + wsMarketId;
                 newTickers.push (result);
+                this.streamProduce ('tickers', result);
                 client.resolve (result, messageHash);
             }
         }

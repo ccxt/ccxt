@@ -402,6 +402,7 @@ export default class cryptocom extends cryptocomRest {
             const parsed = this.parseTicker (ticker, market);
             const symbol = parsed['symbol'];
             this.tickers[symbol] = parsed;
+            this.streamProduce ('tickers', parsed);
             client.resolve (parsed, messageHash);
         }
     }

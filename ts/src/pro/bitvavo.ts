@@ -126,6 +126,7 @@ export default class bitvavo extends bitvavoRest {
             const ticker = this.parseTicker (data, market);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
         return message;

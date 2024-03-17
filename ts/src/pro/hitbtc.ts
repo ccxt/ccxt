@@ -421,6 +421,7 @@ export default class hitbtc extends hitbtcRest {
             const symbol = market['symbol'];
             const ticker = this.parseWsTicker (data[marketId], market);
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             newTickers[symbol] = ticker;
         }
         client.resolve (newTickers, 'tickers');

@@ -329,6 +329,7 @@ export default class okx extends okxRest {
             const ticker = this.parseTicker (data[i]);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             newTickers.push (ticker);
         }
         const messageHashes = this.findMessageHashes (client, channel + '::');

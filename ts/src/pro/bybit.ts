@@ -375,6 +375,7 @@ export default class bybit extends bybitRest {
         parsed['datetime'] = this.iso8601 (timestamp);
         this.tickers[symbol] = parsed;
         const messageHash = 'ticker:' + symbol;
+        this.streamProduce ('tickers', parsed);
         client.resolve (this.tickers[symbol], messageHash);
     }
 

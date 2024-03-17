@@ -313,6 +313,7 @@ export default class lbank extends lbankRest {
         let messageHash = 'ticker:' + symbol;
         client.resolve (parsedTicker, messageHash);
         messageHash = 'fetchTicker:' + symbol;
+        this.streamProduce ('tickers', parsedTicker);
         client.resolve (parsedTicker, messageHash);
     }
 

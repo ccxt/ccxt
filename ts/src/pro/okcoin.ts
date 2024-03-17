@@ -253,6 +253,7 @@ export default class okcoin extends okcoinRest {
             const marketId = this.safeString (ticker['info'], 'instrument_id');
             const messageHash = table + ':' + marketId;
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
         return message;

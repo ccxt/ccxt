@@ -170,6 +170,7 @@ export default class bingx extends bingxRest {
         const ticker = this.parseWsTicker (data, market);
         this.tickers[symbol] = ticker;
         const messageHash = market['id'] + '@ticker';
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 
