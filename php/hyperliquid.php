@@ -365,7 +365,7 @@ class hyperliquid extends Exchange {
             'optionType' => null,
             'precision' => array(
                 'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'szDecimals'))), // decimal places
-                'price' => $this->parse_number('5'), // significant digits
+                'price' => 5, // significant digits
             ),
             'limits' => array(
                 'leverage' => array(
@@ -851,6 +851,7 @@ class hyperliquid extends Exchange {
                     throw new ArgumentsRequired($this->id . '  $market $orders require $price to calculate the max $slippage $price-> Default $slippage can be set in options (default is 5%).');
                 }
                 $px = ($isBuy) ? Precise::string_mul($price, Precise::string_add('1', $slippage)) : Precise::string_mul($price, Precise::string_sub('1', $slippage));
+                $px = $this->price_to_precision($symbol, $px); // round after adding $slippage
             } else {
                 $px = $this->price_to_precision($symbol, $price);
             }

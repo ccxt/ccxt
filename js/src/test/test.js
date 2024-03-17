@@ -407,21 +407,23 @@ export default class testMainClass extends baseMainTestClass {
         // get "method-specific" skips
         const skipsForMethod = exchange.safeValue(this.skippedMethods, methodName, {});
         // get "object-specific" skips
-        if (exchange.inArray(methodName, ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'orderBook', {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        }
-        else if (exchange.inArray(methodName, ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'ticker', {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        }
-        else if (exchange.inArray(methodName, ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'trade', {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        }
-        else if (exchange.inArray(methodName, ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'ohlcv', {});
-            return exchange.deepExtend(skipsForMethod, skips);
+        const objectSkips = {
+            'orderBook': ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
+            'ticker': ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'],
+            'trade': ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'],
+            'ohlcv': ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'],
+            'ledger': ['fetchLedger', 'fetchLedgerEntry'],
+            'depositWithdraw': ['fetchDepositsWithdrawals', 'fetchDeposits', 'fetchWithdrawals'],
+            'depositWithdrawFee': ['fetchDepositWithdrawFee', 'fetchDepositWithdrawFees'],
+        };
+        const objectNames = Object.keys(objectSkips);
+        for (let i = 0; i < objectNames.length; i++) {
+            const objectName = objectNames[i];
+            const objectMethods = objectSkips[objectName];
+            if (exchange.inArray(methodName, objectMethods)) {
+                const extraSkips = exchange.safeDict(this.skippedMethods, objectName, {});
+                return exchange.deepExtend(skipsForMethod, extraSkips);
+            }
         }
         return skipsForMethod;
     }

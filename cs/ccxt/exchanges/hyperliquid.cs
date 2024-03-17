@@ -369,7 +369,7 @@ public partial class hyperliquid : Exchange
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "szDecimals"))) },
-                { "price", this.parseNumber("5") },
+                { "price", 5 },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -919,6 +919,7 @@ public partial class hyperliquid : Exchange
                     throw new ArgumentsRequired ((string)add(this.id, "  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).")) ;
                 }
                 px = ((bool) isTrue((isBuy))) ? Precise.stringMul(price, Precise.stringAdd("1", slippage)) : Precise.stringMul(price, Precise.stringSub("1", slippage));
+                px = this.priceToPrecision(symbol, px); // round after adding slippage
             } else
             {
                 px = this.priceToPrecision(symbol, price);

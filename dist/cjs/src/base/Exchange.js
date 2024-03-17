@@ -98,7 +98,7 @@ class Exchange {
         this.last_request_body = undefined;
         this.last_request_url = undefined;
         this.last_request_path = undefined;
-        this.id = undefined;
+        this.id = 'Exchange';
         this.markets = undefined;
         this.status = undefined;
         this.rateLimit = undefined; // milliseconds

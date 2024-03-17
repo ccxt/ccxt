@@ -489,16 +489,17 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
             $messageHash = 'trade:' . $symbol;
-            $tradesArray = $this->safe_value($this->trades, $symbol);
-            if ($tradesArray === null) {
+            if ($this->safe_list($this->trades, $symbol) === null) {
                 $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $tradesArray = new ArrayCache ($tradesLimit);
-                $this->trades[$symbol] = $tradesArray;
+                $this->trades[$symbol] = new ArrayCache ($tradesLimit);
             }
+            $tradesArray = $this->trades[$symbol];
             if ($channel === 'trade_snapshot') {
-                $trades = $this->safe_value($message, 'trades', array());
-                for ($i = 0; $i < count($trades); $i++) {
-                    $item = $trades[$i];
+                $trades = $this->safe_list($message, 'trades', array());
+                $length = count($trades);
+                for ($i = 0; $i < $length; $i++) {
+                    $index = $length - 1 - $i; // need reverse to correct chronology
+                    $item = $trades[$index];
                     $trade = $this->parse_ws_trade($item);
                     $tradesArray->append ($trade);
                 }

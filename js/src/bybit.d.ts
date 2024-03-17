@@ -191,7 +191,6 @@ export default class bybit extends Exchange {
     };
     fetchDerivativesMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
-    parseMarketLeverageTiers(info: any, market?: Market): any[];
     parseTradingFee(fee: any, market?: Market): {
         info: any;
         symbol: string;
@@ -254,6 +253,9 @@ export default class bybit extends Exchange {
     };
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
+    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
+    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): {};
+    parseMarketLeverageTiers(info: any, market?: Market): any[];
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
