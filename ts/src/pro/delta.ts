@@ -62,10 +62,7 @@ export default class delta extends deltaRest {
         };
         const messageHash = 'trades:' + symbol;
         const url = this.urls['api']['ws'];
-        let trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        if (trades !== undefined) {
-            trades = this.sortBy (trades, 'timestamp');
-        }
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0, {});
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -112,17 +109,19 @@ export default class delta extends deltaRest {
             trades = [ message ];
         }
         const symbol = market['symbol'];
-        const messageHash = 'trades:' + symbol;
-        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        for (let i = 0; i < trades.length; i++) {
-            const trade = this.parseTrade (trades[i], market);
-            if (!(symbol in this.trades)) {
-                this.trades[symbol] = new ArrayCache (tradesLimit);
-            }
-            const stored = this.trades[symbol];
-            stored.append (trade);
-            client.resolve (stored, messageHash);
+        if (!(symbol in this.trades)) {
+            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.trades[symbol] = new ArrayCache (tradesLimit);
         }
+        const stored = this.trades[symbol];
+        const messageHash = 'trades:' + symbol;
+        const length = trades.length;
+        for (let i = 0; i < length; i++) {
+            const index = length - 1 - i;
+            const trade = this.parseTrade (trades[index], market);
+            stored.append (trade);
+        }
+        client.resolve (stored, messageHash);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -136,7 +135,7 @@ export default class delta extends deltaRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const tickers = await this.watchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol);
+        return this.safeValue (tickers, symbol, {});
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
