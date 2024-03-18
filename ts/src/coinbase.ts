@@ -1897,9 +1897,15 @@ export default class coinbase extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchLedger', undefined, undefined, undefined, params, 'next_starting_after', 'starting_after', undefined, 100);
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1910,7 +1916,17 @@ export default class coinbase extends Exchange {
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
         const response = await this.v2PrivateGetAccountsAccountIdTransactions (this.extend (request, params));
-        return this.parseLedger (response['data'], currency, since, limit);
+        const ledger = this.parseLedger (response['data'], currency, since, limit);
+        const length = ledger.length;
+        const lastIndex = length - 1;
+        const last = this.safeDict (ledger, lastIndex);
+        const pagination = this.safeDict (response, 'pagination', {});
+        const cursor = this.safeString (pagination, 'next_starting_after');
+        if ((cursor !== undefined) && (cursor !== '')) {
+            last['next_starting_after'] = cursor;
+            ledger[lastIndex] = last;
+        }
+        return ledger;
     }
 
     parseLedgerEntryStatus (status) {
