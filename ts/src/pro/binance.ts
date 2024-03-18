@@ -1239,7 +1239,7 @@ export default class binance extends binanceRest {
             client.resolve (parsedTicker, messageHash);
         }
         // resolve batch endpoint
-        if (resolvedMessageHashes.length > 0) {
+        if (resolvedMessageHashes.length) {
             client.resolve (newTickers, '!' + channelName + '@arr');
         }
     }
@@ -3062,8 +3062,7 @@ export default class binance extends binanceRest {
             '1dTicker': this.handleTickers,
             '24hrTicker': this.handleTickers,
             '24hrMiniTicker': this.handleTickers,
-            'bookTicker@arr': this.handleBidsAsks,
-            'bookTicker': this.handleBidsAsks,
+            'bookTicker': this.handleBidsAsks, // there is no "bookTicker@arr" endpoint
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,
             'ACCOUNT_UPDATE': this.handleAcountUpdate,
