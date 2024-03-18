@@ -422,7 +422,7 @@ public partial class kucoin : Exchange
                     { "400006", typeof(AuthenticationError) },
                     { "400007", typeof(AuthenticationError) },
                     { "400008", typeof(NotSupported) },
-                    { "400100", typeof(BadRequest) },
+                    { "400100", typeof(InsufficientFunds) },
                     { "400200", typeof(InvalidOrder) },
                     { "400350", typeof(InvalidOrder) },
                     { "400370", typeof(InvalidOrder) },

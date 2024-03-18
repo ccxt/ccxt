@@ -138,6 +138,7 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
+                                'server/time': 3,
                                 'common/symbols': 3,
                                 'market/trades': 3,
                                 'market/depth': 3,
@@ -161,6 +162,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/order/cancelReplace': 3,
                                 'trade/cancelOrders': 3,
                                 'trade/cancelOpenOrders': 3,
+                                'trade/cancelAllAfter': 1,
                             },
                         },
                     },
@@ -1730,13 +1732,15 @@ class bingx(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request[exchangeClientOrderId] = clientOrderId
         timeInForce = self.safe_string_upper(params, 'timeInForce')
-        if timeInForce == 'IOC':
+        postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'PostOnly', params)
+        if postOnly or (timeInForce == 'PostOnly'):
+            request['timeInForce'] = 'PostOnly'
+        elif timeInForce == 'IOC':
             request['timeInForce'] = 'IOC'
+        elif timeInForce == 'GTC':
+            request['timeInForce'] = 'GTC'
         triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         if isSpot:
-            postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'POC', params)
-            if postOnly or (timeInForce == 'POC'):
-                request['timeInForce'] = 'POC'
             cost = self.safe_number_2(params, 'cost', 'quoteOrderQty')
             params = self.omit(params, 'cost')
             if cost is not None:
@@ -1759,12 +1763,7 @@ class bingx(Exchange, ImplicitAPI):
                 elif type == 'MARKET':
                     request['type'] = 'TRIGGER_MARKET'
         else:
-            postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'PostOnly', params)
-            if postOnly or (timeInForce == 'PostOnly'):
-                request['timeInForce'] = 'PostOnly'
-            elif timeInForce == 'GTC':
-                request['timeInForce'] = 'GTC'
-            elif timeInForce == 'FOK':
+            if timeInForce == 'FOK':
                 request['timeInForce'] = 'FOK'
             stopLossPrice = self.safe_string(params, 'stopLossPrice')
             takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
@@ -1867,7 +1866,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique id for the order
         :param bool [params.postOnly]: True to place a post only order
-        :param str [params.timeInForce]: spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+        :param str [params.timeInForce]: spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
         :param bool [params.reduceOnly]: *swap only* True or False whether the order is reduce only
         :param float [params.triggerPrice]: *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
         :param float [params.stopLossPrice]: *swap only* stop loss trigger price

@@ -51,7 +51,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
             },
-            'errors': {
+            'exceptions': {
                 'exact': {
                     'Unable to authenticate': errors.AuthenticationError,
                 },
