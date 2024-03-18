@@ -1021,8 +1021,8 @@ export default class binance extends binanceRest {
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
-        if (this.inArray (marketType, [ 'swap', 'future' ]) && subType === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a params["subType"] for ' + marketType + ' markets');
+        if ((this.inArray (marketType, [ 'swap', 'future' ]) && subType === undefined) || (marketType === 'spot' && subType !== undefined)) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a correct set of params["defaultType"] and params["subType"]');
         }
         let rawMarketType = marketType;
         if (this.isLinear (marketType, subType)) {
