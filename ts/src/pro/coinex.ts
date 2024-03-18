@@ -1040,12 +1040,8 @@ export default class coinex extends coinexRest {
         //
         const messageHashSpot = 'authenticated:spot';
         const messageHashSwap = 'authenticated:swap';
-        // client.resolve (message, messageHashSpot);
-        // client.resolve (message, messageHashSwap);
-        const spotFuture = this.safeValue (client.futures, messageHashSpot);
-        spotFuture.resolve (true);
-        const swapFutures = this.safeValue (client.futures, messageHashSwap);
-        swapFutures.resolve (true);
+        client.resolve (message, messageHashSpot);
+        client.resolve (message, messageHashSwap);
         return message;
     }
 
@@ -1072,11 +1068,10 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
         const time = this.milliseconds ();
-        const messageHash = (type === 'spot') ? 'authenticated:spot' : 'authenticated:swap';
-        const future = client.future (messageHash);
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (type === 'spot') {
-            if (authenticated !== undefined) {
+            const messageHash = 'authenticated:spot';
+            let future = this.safeValue (client.subscriptions, messageHash);
+            if (future !== undefined) {
                 return await future;
             }
             const requestId = this.requestId ();
@@ -1095,10 +1090,13 @@ export default class coinex extends coinexRest {
                 ],
                 'id': requestId,
             };
-            this.watch (url, messageHash, request, requestId, subscribe);
+            future = this.watch (url, messageHash, request, requestId, subscribe);
+            client.subscriptions[messageHash] = future;
             return await future;
         } else {
-            if (authenticated !== undefined) {
+            const messageHash = 'authenticated:swap';
+            let future = this.safeValue (client.subscriptions, messageHash);
+            if (future !== undefined) {
                 return await future;
             }
             const requestId = this.requestId ();
@@ -1117,7 +1115,8 @@ export default class coinex extends coinexRest {
                 ],
                 'id': requestId,
             };
-            this.watch (url, messageHash, request, requestId, subscribe);
+            future = this.watch (url, messageHash, request, requestId, subscribe);
+            client.subscriptions[messageHash] = future;
             return await future;
         }
     }
