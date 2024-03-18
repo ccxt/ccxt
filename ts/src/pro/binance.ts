@@ -970,58 +970,68 @@ export default class binance extends binanceRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
-        const symbolsProvided = (symbols !== undefined);
         let firstMarket = undefined;
         let marketType = undefined;
-        if (symbolsProvided) {
+        if (symbols !== undefined) {
             firstMarket = this.market (symbols[0]);
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', firstMarket, params);
-        let rawType = marketType;
+        let rawMarketType = marketType;
         if (this.isLinear (marketType, subType)) {
-            rawType = 'future';
+            rawMarketType = 'future';
         } else if (this.isInverse (marketType, subType)) {
-            rawType = 'delivery';
+            rawMarketType = 'delivery';
         }
-        let endpointName = undefined;
-        [ endpointName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
+        let channelName = undefined;
+        [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
+        const ticker = await this.subscribeMultiple ('watchTickers', channelName, rawMarketType, symbols, params);
+        if (this.newUpdates) {
+            const newTickers = {};
+            newTickers[ticker['symbol']] = ticker;
+            return newTickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    async subscribeMultiple (methodName, channelName: string, marketType: string, symbols: Strings = undefined, params = {}) {
         let rawSubscriptions = [];
-        let messageHashes = [];
+        const messageHashes = [];
+        const symbolsProvided = (symbols !== undefined);
         if (symbolsProvided) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
-                const messageHash = market['lowercaseId'] + '@' + endpointName;
+                const messageHash = market['lowercaseId'] + '@' + channelName;
                 rawSubscriptions.push (messageHash);
                 messageHashes.push (messageHash);
             }
         } else {
-            const messageHash = '!' + endpointName + '@arr';
+            if (channelName === 'bookTicker') {
+                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel');
+            }
+            const messageHash = '!' + channelName + '@arr';
             rawSubscriptions = [
                 messageHash,
             ];
             messageHashes.push (messageHash);
         }
-        const url = this.urls['api']['ws'][rawType] + '/' + this.stream (rawType, messageHash);
+        let streamHash = 'tickers';
+        if (symbolsProvided) {
+            streamHash = 'tickers::' + symbols.join (',');
+        }
+        const url = this.urls['api']['ws'][marketType] + '/' + this.stream (marketType, streamHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
-            'params': wsParams,
+            'params': rawSubscriptions,
             'id': requestId,
         };
         const subscribe = {
             'id': requestId,
         };
-        
-        const tickers = await this.watchMultiple (url, subParams, this.extend (request, query), subParams, subscribe);
-
-        const newTickers = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
-        if (this.newUpdates) {
-            return newTickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions, subscribe);
     }
 
     parseWsTicker (message, marketType) {
