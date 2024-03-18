@@ -3027,7 +3027,7 @@ export default class Exchange {
         });
     }
 
-    parseOrders (orders: object|object[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
+    parseOrders (orders: object[] | object, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
         //
         // the value of orders is either a dict or a list
         //
@@ -3842,7 +3842,7 @@ export default class Exchange {
         return position as Position;
     }
 
-    parsePositions (positions: object|object[], symbols: string[] = undefined, params = {}): Position[] {
+    parsePositions (positions: object[] | object, symbols: string[] = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         const arrPositions = this.toArray (positions);
         const result = [];
@@ -3853,7 +3853,7 @@ export default class Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseAccounts (accounts: object|object[], params = {}): Account[] {
+    parseAccounts (accounts: object[] | object, params = {}): Account[] {
         const arrAccounts = this.toArray (accounts);
         const result = [];
         for (let i = 0; i < arrAccounts.length; i++) {
@@ -3863,7 +3863,7 @@ export default class Exchange {
         return result;
     }
 
-    parseTrades (trades: object|object[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTrades (trades: object[] | object, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         const arrTrades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < arrTrades.length; i++) {
@@ -3875,7 +3875,7 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTransactions (transactions: object|object[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
+    parseTransactions (transactions: object[] | object, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
         const arrTransactions = this.toArray (transactions);
         let result = [];
         for (let i = 0; i < arrTransactions.length; i++) {
@@ -3887,7 +3887,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers: object|object[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseTransfers (transfers: object[] | object, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const arrTransfers = this.toArray (transfers);
         let result = [];
         for (let i = 0; i < arrTransfers.length; i++) {
@@ -3899,7 +3899,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseLedger (data: object|object[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseLedger (data: object[] | object, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let result = [];
         const arrayData = this.toArray (data);
         for (let i = 0; i < arrayData.length; i++) {
@@ -5334,7 +5334,7 @@ export default class Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseTickers (tickers: object|object[], symbols: string[] = undefined, params = {}): Dictionary<Ticker> {
+    parseTickers (tickers: object[] | object, symbols: string[] = undefined, params = {}): Dictionary<Ticker> {
         //
         // the value of tickers is either a dict or a list
         //
