@@ -20,6 +20,7 @@ export default class binance extends binanceRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
+                'watchBidsAsks': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
@@ -995,26 +996,70 @@ export default class binance extends binanceRest {
         }
         let channelName = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
-        const tickers = await this.subscribeMultiple ('watchTickers', channelName, rawMarketType, symbols, params);
+        const newTickers = await this.subscribeMultiple ('watchTickers', channelName, rawMarketType, symbols, params);
         if (this.newUpdates) {
-            // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
-            // ticker dict comes in, otherwise all-tickers dict comes in
-            if (!symbolsDefined) {
-                return tickers;
-            } else {
-                const newTickers = {};
-                newTickers[tickers['symbol']] = tickers;
-                return newTickers;
-            }
+            return newTickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name gate#watchBidsAsks
+         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
+         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, false, true);
+        let firstMarket = undefined;
+        let marketType = undefined;
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            firstMarket = this.market (symbols[0]);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchBidsAsks', firstMarket, params);
+        let rawMarketType = marketType;
+        if (this.isLinear (marketType, subType)) {
+            rawMarketType = 'future';
+        } else if (this.isInverse (marketType, subType)) {
+            rawMarketType = 'delivery';
+        }
+        return await this.subscribeMultiple ('watchBidsAsks', 'bookTicker', rawMarketType, symbols, params);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //    {
+        //        "time": 1671363004,
+        //        "time_ms": 1671363004235,
+        //        "channel": "spot.book_ticker",
+        //        "event": "update",
+        //        "result": {
+        //          "t": 1671363004228,
+        //          "u": 9793320464,
+        //          "s": "BTC_USDT",
+        //          "b": "16716.8",
+        //          "B": "0.0134",
+        //          "a": "16716.9",
+        //          "A": "0.0353"
+        //        }
+        //    }
+        //
+        this.handleTickerAndBidAsk ('bidask', client, message);
     }
 
     async subscribeMultiple (methodName, channelName: string, marketType: string, symbols: Strings = undefined, params = {}) {
         const rawSubscriptions = [];
         const messageHashes = [];
-        const symbolsProvided = (symbols !== undefined);
-        if (symbolsProvided) {
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
@@ -1031,7 +1076,7 @@ export default class binance extends binanceRest {
             messageHashes.push (messageHash);
         }
         let streamHash = channelName;
-        if (symbolsProvided) {
+        if (symbolsDefined) {
             streamHash = channelName + '::' + symbols.join (',');
         }
         const url = this.urls['api']['ws'][marketType] + '/' + this.stream (marketType, streamHash);
@@ -1044,7 +1089,16 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions, subscribe);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions, subscribe);
+        // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
+        // ticker dict comes in, otherwise all-tickers dict comes in
+        if (!symbolsDefined) {
+            return result;
+        } else {
+            const newDict = {};
+            newDict[result['symbol']] = result;
+            return newDict;
+        }
     }
 
     parseWsTicker (message, marketType) {
