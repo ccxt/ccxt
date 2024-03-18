@@ -101,10 +101,10 @@ export default class binance extends binanceRest {
                     'name': 'trade', // 'trade' or 'aggTrade'
                 },
                 'watchTicker': {
-                    'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                    'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
                 },
                 'watchTickers': {
-                    'name': 'ticker', // ticker or miniTicker or bookTicker
+                    'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
                 },
                 'watchOHLCV': {
                     'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
@@ -950,7 +950,7 @@ export default class binance extends binanceRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.name] stream to use can be ticker or bookTicker
+         * @param {string} [params.name] stream to use can be ticker or miniTicker
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -969,38 +969,40 @@ export default class binance extends binanceRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const marketIds = this.marketIds (symbols);
-        let market = undefined;
+        symbols = this.marketSymbols (symbols, undefined, true, false, true);
+        const symbolsProvided = (symbols !== undefined);
+        let firstMarket = undefined;
         let marketType = undefined;
-        if (symbols !== undefined) {
-            market = this.market (symbols[0]);
+        if (symbolsProvided) {
+            firstMarket = this.market (symbols[0]);
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', firstMarket, params);
         let rawType = marketType;
         if (this.isLinear (marketType, subType)) {
             rawType = 'future';
         } else if (this.isInverse (marketType, subType)) {
             rawType = 'delivery';
         }
-        let methodName = undefined;
-        [ methodName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
-        let wsParams = [];
+        let endpointName = undefined;
+        [ endpointName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
+        let rawSubscriptions = [];
         let messageHashes = [];
-        if (methodName === 'bookTicker') {
-            if (marketIds === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for bookTicker');
-            }
-            // simulate watchTickers with subscribe multiple individual bookTicker topic
-            for (let i = 0; i < marketIds.length; i++) {
-                wsParams.push (marketIds[i].toLowerCase () + '@bookTicker');
+        if (symbolsProvided) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                const messageHash = market['lowercaseId'] + '@' + endpointName;
+                rawSubscriptions.push (messageHash);
+                messageHashes.push (messageHash);
             }
         } else {
-            wsParams = [
-                '!' + methodName + '@arr',
+            const messageHash = '!' + endpointName + '@arr';
+            rawSubscriptions = [
+                messageHash,
             ];
+            messageHashes.push (messageHash);
         }
         const url = this.urls['api']['ws'][rawType] + '/' + this.stream (rawType, messageHash);
         const requestId = this.requestId (url);
