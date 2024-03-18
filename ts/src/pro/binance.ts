@@ -125,6 +125,14 @@ export default class binance extends binanceRest {
                 'ws': {
                     'cost': 5,
                 },
+                'tickerChannelsMap': {
+                    '24hrTicker': 'ticker',
+                    '24hrMiniTicker': 'miniTicker',
+                    // rolling window tickers
+                    '1hTicker': 'ticker_1h',
+                    '4hTicker': 'ticker_4h',
+                    '1dTicker': 'ticker_1d',
+                },
             },
         });
     }
@@ -972,7 +980,8 @@ export default class binance extends binanceRest {
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
         let firstMarket = undefined;
         let marketType = undefined;
-        if (symbols !== undefined) {
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
             firstMarket = this.market (symbols[0]);
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
@@ -986,9 +995,17 @@ export default class binance extends binanceRest {
         }
         let channelName = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
-        const newTickers = await this.subscribeMultiple ('watchTickers', channelName, rawMarketType, symbols, params);
+        const tickers = await this.subscribeMultiple ('watchTickers', channelName, rawMarketType, symbols, params);
         if (this.newUpdates) {
-            return newTickers;
+            // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
+            // ticker dict comes in, otherwise all-tickers dict comes in
+            if (!symbolsDefined) {
+                return tickers;
+            } else {
+                const newTickers = {};
+                newTickers[tickers['symbol']] = tickers;
+                return newTickers;
+            }
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
@@ -1144,48 +1161,25 @@ export default class binance extends binanceRest {
         //         "n": 163222,            // total number of trades
         //     }
         //
-        let event = this.safeString (message, 'e', 'bookTicker');
-        if (event === '24hrTicker') {
-            event = 'ticker';
-        } else if (event === '24hrMiniTicker') {
-            event = 'miniTicker';
+        const event = this.safeString (message, 'e');
+        const channelName = this.safeString (this.options['tickerChannelsMap'], event, event);
+        if (channelName === undefined) {
+            return message;
         }
         const wsMarketId = this.safeStringLower (message, 's');
-        const messageHash = wsMarketId + '@' + event;
+        const messageHash = wsMarketId + '@' + channelName;
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
         const result = this.parseWsTicker (message, marketType);
         const symbol = result['symbol'];
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
-        if (event === 'bookTicker') {
-            // watch bookTickers
-            client.resolve (result, '!' + 'bookTicker@arr');
-            const messageHashes = this.findMessageHashes (client, 'tickers::');
-            for (let i = 0; i < messageHashes.length; i++) {
-                const currentMessageHash = messageHashes[i];
-                const parts = currentMessageHash.split ('::');
-                const symbolsString = parts[1];
-                const symbols = symbolsString.split (',');
-                if (this.inArray (symbol, symbols)) {
-                    client.resolve (result, currentMessageHash);
-                }
-            }
-        }
     }
 
     handleTickers (client: Client, message) {
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
-        const reverseMap = {
-            '24hrTicker': 'ticker',
-            '24hrMiniTicker': 'miniTicker',
-            // rolling window tickers
-            '1hTicker': 'ticker_1h',
-            '4hTicker': 'ticker_4h',
-            '1dTicker': 'ticker_1d',
-        };
-        let currentChannel = undefined;
+        let channelName = undefined;
         const resolvedMessageHashes = [];
         let rawTickers = [];
         const newTickers = {};
@@ -1201,13 +1195,13 @@ export default class binance extends binanceRest {
             newTickers[symbol] = parsedTicker;
             this.tickers[symbol] = parsedTicker;
             const event = this.safeString (ticker, 'e');
-            currentChannel = this.safeString (reverseMap, event, event);
-            const messageHash = symbol + '@' + currentChannel;
+            channelName = this.safeString (this.options['tickerChannelsMap'], event, event);
+            const messageHash = symbol + '@' + channelName;
             resolvedMessageHashes.push (messageHash);
             client.resolve (parsedTicker, messageHash);
         }
         // resolve batch endpoint
-        client.resolve (newTickers, '!' + currentChannel + '@arr');
+        client.resolve (newTickers, '!' + channelName + '@arr');
     }
 
     signParams (params = {}) {
