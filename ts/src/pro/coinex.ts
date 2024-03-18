@@ -1090,7 +1090,7 @@ export default class coinex extends coinexRest {
                 ],
                 'id': requestId,
             };
-            future = this.watch (url, messageHash, request, requestId, subscribe);
+            future = await this.watch (url, messageHash, request, requestId, subscribe);
             client.subscriptions[messageHash] = future;
             return await future;
         } else {
@@ -1115,7 +1115,7 @@ export default class coinex extends coinexRest {
                 ],
                 'id': requestId,
             };
-            future = this.watch (url, messageHash, request, requestId, subscribe);
+            future = await this.watch (url, messageHash, request, requestId, subscribe);
             client.subscriptions[messageHash] = future;
             return await future;
         }
