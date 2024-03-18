@@ -133,6 +133,7 @@ export default class binance extends binanceRest {
                     '1hTicker': 'ticker_1h',
                     '4hTicker': 'ticker_4h',
                     '1dTicker': 'ticker_1d',
+                    'bookTicker': 'bookTicker',
                 },
             },
         });
@@ -1052,7 +1053,7 @@ export default class binance extends binanceRest {
         //        }
         //    }
         //
-        this.handleTickerAndBidAsk ('bidask', client, message);
+        
     }
 
     async subscribeMultiple (methodName, channelName: string, marketType: string, symbols: Strings = undefined, params = {}) {
@@ -1183,11 +1184,13 @@ export default class binance extends binanceRest {
         }, market);
     }
 
-    handleTicker (client: Client, message) {
+    handleBidsAsks (client: Client, message) {
+        return this.handleTickersAndBidsAsks (client, message);
+    }
+
+    handleTickers (client: Client, message) {
         //
-        // 24hr rolling window ticker statistics for a single symbol
-        // These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs
-        // Update Speed 1000ms
+        // arrives one symbol dict or array of symbol dicts
         //
         //     {
         //         "e": "24hrTicker",      // event type
@@ -1215,22 +1218,10 @@ export default class binance extends binanceRest {
         //         "n": 163222,            // total number of trades
         //     }
         //
-        const event = this.safeString (message, 'e');
-        const channelName = this.safeString (this.options['tickerChannelsMap'], event, event);
-        if (channelName === undefined) {
-            return message;
-        }
-        const wsMarketId = this.safeStringLower (message, 's');
-        const messageHash = wsMarketId + '@' + channelName;
-        const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
-        const marketType = (isSpot) ? 'spot' : 'contract';
-        const result = this.parseWsTicker (message, marketType);
-        const symbol = result['symbol'];
-        this.tickers[symbol] = result;
-        client.resolve (result, messageHash);
+        return this.handleTickersAndBidsAsks (client, message);
     }
 
-    handleTickers (client: Client, message) {
+    handleTickersAndBidsAsks (client: Client, message) {
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
         let channelName = undefined;
@@ -1250,12 +1241,17 @@ export default class binance extends binanceRest {
             this.tickers[symbol] = parsedTicker;
             const event = this.safeString (ticker, 'e');
             channelName = this.safeString (this.options['tickerChannelsMap'], event, event);
+            if (channelName === undefined) {
+                continue;
+            }
             const messageHash = symbol + '@' + channelName;
             resolvedMessageHashes.push (messageHash);
             client.resolve (parsedTicker, messageHash);
         }
         // resolve batch endpoint
-        client.resolve (newTickers, '!' + channelName + '@arr');
+        if (resolvedMessageHashes.length > 0) {
+            client.resolve (newTickers, '!' + channelName + '@arr');
+        }
     }
 
     signParams (params = {}) {
@@ -3071,12 +3067,13 @@ export default class binance extends binanceRest {
             '1dTicker@arr': this.handleTickers,
             '24hrTicker@arr': this.handleTickers,
             '24hrMiniTicker@arr': this.handleTickers,
-            '1hTicker': this.handleTicker,
-            '4hTicker': this.handleTicker,
-            '1dTicker': this.handleTicker,
-            '24hrTicker': this.handleTicker,
-            '24hrMiniTicker': this.handleTicker,
-            'bookTicker': this.handleTicker,
+            '1hTicker': this.handleTickers,
+            '4hTicker': this.handleTickers,
+            '1dTicker': this.handleTickers,
+            '24hrTicker': this.handleTickers,
+            '24hrMiniTicker': this.handleTickers,
+            'bookTicker@arr': this.handleBidsAsks,
+            'bookTicker': this.handleBidsAsks,
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,
             'ACCOUNT_UPDATE': this.handleAcountUpdate,
