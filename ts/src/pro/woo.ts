@@ -966,7 +966,9 @@ export default class woo extends wooRest {
         const messageHash = 'authenticated';
         const success = this.safeValue (message, 'success');
         if (success) {
-            client.resolve (message, messageHash);
+            // client.resolve (message, messageHash);
+            const future = this.safeValue (client.futures, 'authenticated');
+            future.resolve (true);
         } else {
             const error = new AuthenticationError (this.json (message));
             client.reject (error, messageHash);
