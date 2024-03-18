@@ -1209,6 +1209,7 @@ export default class binance extends binanceRest {
     handleTickersAndBidsAsks (client: Client, message, methodType) {
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
+        const isBidsAsks = (methodType === 'bidsasks');
         let channelName = undefined;
         const resolvedMessageHashes = [];
         let rawTickers = [];
@@ -1224,7 +1225,7 @@ export default class binance extends binanceRest {
             const parsedTicker = this.parseWsTicker (ticker, marketType);
             const symbol = parsedTicker['symbol'];
             newTickers[symbol] = parsedTicker;
-            if (methodType === 'bidsasks') {
+            if (isBidsAsks) {
                 event = 'bookTicker'; // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
                 this.bidsasks[symbol] = parsedTicker;
             } else {
@@ -1241,7 +1242,8 @@ export default class binance extends binanceRest {
         // resolve batch endpoint
         const length = resolvedMessageHashes.length;
         if (length > 0) {
-            client.resolve (newTickers, '!' + channelName + '@arr');
+            const batchMessageHash = isBidsAsks ? '!bookTicker' : ('!' + channelName + '@arr');
+            client.resolve (newTickers, batchMessageHash);
         }
     }
 
