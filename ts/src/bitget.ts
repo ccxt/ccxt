@@ -1580,7 +1580,7 @@ export default class bitget extends Exchange {
                 //       }
                 //   }
                 //
-                const accountData = this.safeDict (accountInfo, 'data');
+                const accountData = this.safeDict (accountInfo, 'data', {});
                 const traderType = this.safeString (accountData, 'traderType');
                 if (traderType === 'trader') {
                     const querySettings = await this.privateCopyGetV2CopySpotTraderConfigQuerySettings (params);
@@ -1637,9 +1637,9 @@ export default class bitget extends Exchange {
                     //       }
                     //   }
                     //
-                    const querySettingsData = this.safeDict (querySettings, 'data');
-                    const spotInfoList = this.safeList (querySettingsData, 'spotInfoList');
-                    const traceSymbolList = this.safeList (querySettingsData, 'traceSymbolList');
+                    const querySettingsData = this.safeDict (querySettings, 'data', {});
+                    const spotInfoList = this.safeList (querySettingsData, 'spotInfoList', []);
+                    const traceSymbolList = this.safeList (querySettingsData, 'traceSymbolList', []);
                     spotInfoDict = this.indexBy (spotInfoList, 'symbol');
                     traceSymbolDict = this.indexBy (traceSymbolList, 'symbol');
                 }
@@ -1789,8 +1789,8 @@ export default class bitget extends Exchange {
             }
             const amountMinDefault = this.safeNumber2 (market, 'minTradeNum', 'minTradeAmount');
             const amountMaxDefault = this.safeNumber (market, 'maxTradeAmount');
-            const spotInfo = this.safeDict (spotInfoDict, marketId);
-            const traceSymbol = this.safeDict (traceSymbolDict, marketId);
+            const spotInfo = this.safeDict (spotInfoDict, marketId, {});
+            const traceSymbol = this.safeDict (traceSymbolDict, marketId, {});
             result.push ({
                 'id': marketId,
                 'symbol': symbol,
