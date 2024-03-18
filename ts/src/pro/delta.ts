@@ -164,8 +164,11 @@ export default class delta extends deltaRest {
                 ],
             },
         };
-        const tickers = await this.watchMany (messageHash, request, subscriptionHash, symbols, params);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        const newTickers = await this.watchMany (messageHash, request, subscriptionHash, symbols, params);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
