@@ -1039,8 +1039,8 @@ export default class binance extends binanceRest {
                 messageHashes.push (messageHash);
             }
         } else {
-            if (channelName === 'bookTicker') {
-                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel');
+            if ((channelName === 'bookTicker') && (marketType === 'spot')) {
+                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
             }
             const messageHash = '!' + channelName + '@arr';
             rawSubscriptions.push (messageHash);
