@@ -1042,10 +1042,15 @@ export default class binance extends binanceRest {
                 messageHashes.push (messageHash);
             }
         } else {
-            if ((channelName === 'bookTicker') && (marketType === 'spot')) {
-                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
+            let messageHash = undefined;
+            if (channelName === 'bookTicker') {
+                if (marketType === 'spot') {
+                    throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
+                }
+                messageHash = '!' + channelName;
+            } else {
+                messageHash = '!' + channelName + '@arr';
             }
-            const messageHash = '!' + channelName + '@arr';
             rawSubscriptions.push (messageHash);
             messageHashes.push (messageHash);
         }
