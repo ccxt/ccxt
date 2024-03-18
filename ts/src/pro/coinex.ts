@@ -1040,8 +1040,12 @@ export default class coinex extends coinexRest {
         //
         const messageHashSpot = 'authenticated:spot';
         const messageHashSwap = 'authenticated:swap';
-        client.resolve (message, messageHashSpot);
-        client.resolve (message, messageHashSwap);
+        // client.resolve (message, messageHashSpot);
+        // client.resolve (message, messageHashSwap);
+        const spotFuture = this.safeValue (client.futures, messageHashSpot);
+        spotFuture.resolve (true);
+        const swapFutures = this.safeValue (client.futures, messageHashSwap);
+        swapFutures.resolve (true);
         return message;
     }
 
