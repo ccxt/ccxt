@@ -8,7 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, FundingHistory, Int, Leverage, Liquidation, MarginMode, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, FundingHistory, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1362,10 +1362,10 @@ class bitget(Exchange, ImplicitAPI):
                 },
                 'fetchOHLCV': {
                     'spot': {
-                        'method': 'publicSpotGetV2SpotMarketCandles',  # or publicSpotGetV2SpotMarketHistoryCandles
+                        'method': 'publicSpotGetV2SpotMarketCandles',  # publicSpotGetV2SpotMarketCandles or publicSpotGetV2SpotMarketHistoryCandles
                     },
                     'swap': {
-                        'method': 'publicMixGetV2MixMarketCandles',  # or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
+                        'method': 'publicMixGetV2MixMarketCandles',  # publicMixGetV2MixMarketCandles or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     },
                     'maxDaysPerTimeframe': {
                         '1m': 30,
@@ -3197,11 +3197,13 @@ class bitget(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
-        maxLimit = 1000  # max 1000
+        defaultLimit = 100  # default 100, max 1000
+        maxLimitForRecentEndpoint = 1000
+        maxLimitForHistoryEndpoint = 200  # note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForHistoryEndpoint)
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         market = None
         if sandboxMode:
@@ -3211,28 +3213,17 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = 'spot' if market['spot'] else 'swap'
         timeframes = self.options['timeframes'][marketType]
-        selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
+        msInDay = 86400000
         duration = self.parse_timeframe(timeframe) * 1000
         request = {
             'symbol': market['id'],
-            'granularity': selectedTimeframe,
+            'granularity': self.safe_string(timeframes, timeframe, timeframe),
         }
-        defaultLimit = 100  # by default, exchange returns 100 items
-        msInDay = 1000 * 60 * 60 * 24
-        if limit is not None:
-            limit = min(limit, maxLimit)
-            request['limit'] = limit
         until = self.safe_integer_2(params, 'until', 'till')
+        limitDefined = limit is not None
+        sinceDefined = since is not None
+        untilDefined = until is not None
         params = self.omit(params, ['until', 'till'])
-        if until is not None:
-            request['endTime'] = until
-        if since is not None:
-            request['startTime'] = since
-            if market['spot'] and (until is None):
-                # for spot we need to send "entTime" too
-                limitForEnd = limit if (limit is not None) else defaultLimit
-                calculatedEnd = self.sum(since, duration * limitForEnd)
-                request['endTime'] = calculatedEnd
         response = None
         now = self.milliseconds()
         # retrievable periods listed here:
@@ -3240,33 +3231,52 @@ class bitget(Exchange, ImplicitAPI):
         # - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
         ohlcOptions = self.safe_dict(self.options, 'fetchOHLCV', {})
         retrievableDaysMap = self.safe_dict(ohlcOptions, 'maxDaysPerTimeframe', {})
-        maxRetrievableDaysForNonHistory = self.safe_integer(retrievableDaysMap, timeframe, 30)  # default to safe minimum
-        endpointTsBoundary = now - maxRetrievableDaysForNonHistory * msInDay
-        # checks if we need history endpoint
-        needsHistoryEndpoint = False
-        displaceByLimit = 0 if (limit is None) else limit * duration
-        if since is not None and since < endpointTsBoundary:
-            # if since it earlier than the allowed diapason
-            needsHistoryEndpoint = True
-        elif until is not None and until - displaceByLimit < endpointTsBoundary:
-            # if until is earlier than the allowed diapason
-            needsHistoryEndpoint = True
+        maxRetrievableDaysForRecent = self.safe_integer(retrievableDaysMap, timeframe, 30)  # default to safe minimum
+        endpointTsBoundary = now - maxRetrievableDaysForRecent * msInDay
+        if limitDefined:
+            limit = min(limit, maxLimitForRecentEndpoint)
+            request['limit'] = limit
+        else:
+            limit = defaultLimit
+        limitMultipliedDuration = limit * duration
+        # exchange aligns from endTime, so it's important, not startTime
+        # startTime is supported only on "recent" endpoint, not on "historical" endpoint
+        calculatedStartTime = None
+        calculatedEndTime = None
+        if sinceDefined:
+            calculatedStartTime = since
+            request['startTime'] = since
+            if not untilDefined:
+                calculatedEndTime = self.sum(calculatedStartTime, limitMultipliedDuration)
+                request['endTime'] = calculatedEndTime
+        if untilDefined:
+            calculatedEndTime = until
+            request['endTime'] = calculatedEndTime
+            if not sinceDefined:
+                calculatedStartTime = calculatedEndTime - limitMultipliedDuration
+                # we do not need to set "startTime" here
+        historicalEndpointNeeded = (calculatedStartTime is not None) and (calculatedStartTime <= endpointTsBoundary)
+        if historicalEndpointNeeded:
+            # only for "historical-candles" - ensure we use correct max limit
+            if limitDefined:
+                request['limit'] = min(limit, maxLimitForHistoryEndpoint)
+        # make request
         if market['spot']:
-            if needsHistoryEndpoint:
+            # checks if we need history endpoint
+            if historicalEndpointNeeded:
                 response = await self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
             else:
                 response = await self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
         else:
-            maxDistanceDaysForContracts = 90  # maximum 90 days allowed between start-end times
-            distanceError = False
-            if limit is not None and limit * duration > maxDistanceDaysForContracts * msInDay:
-                distanceError = True
-            elif since is not None and until is not None and until - since > maxDistanceDaysForContracts * msInDay:
-                distanceError = True
-            if distanceError:
-                raise BadRequest(self.id + ' fetchOHLCV() between start and end must be less than ' + str(maxDistanceDaysForContracts) + ' days')
-            priceType = self.safe_string(params, 'price')
-            params = self.omit(params, ['price'])
+            maxDistanceDaysForContracts = 90  # for contract, maximum 90 days allowed between start-end times
+            # only correct the request to fix 90 days if until was auto-calculated
+            if sinceDefined:
+                if not untilDefined:
+                    request['endTime'] = min(calculatedEndTime, self.sum(since, maxDistanceDaysForContracts * msInDay))
+                elif calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay:
+                    raise BadRequest(self.id + ' fetchOHLCV() between start and end must be less than ' + str(maxDistanceDaysForContracts) + ' days')
+            priceType = None
+            priceType, params = self.handle_param_string(params, 'price')
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
@@ -3277,7 +3287,7 @@ class bitget(Exchange, ImplicitAPI):
             elif priceType == 'index':
                 response = await self.publicMixGetV2MixMarketHistoryIndexCandles(extended)
             else:
-                if needsHistoryEndpoint:
+                if historicalEndpointNeeded:
                     response = await self.publicMixGetV2MixMarketHistoryCandles(extended)
                 else:
                     response = await self.publicMixGetV2MixMarketCandles(extended)
@@ -3911,7 +3921,7 @@ class bitget(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://www.bitget.com/api-doc/spot/trade/Place-Order
@@ -3994,7 +4004,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_order_request(self, symbol, type, side, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         market = None
         if sandboxMode:
@@ -4263,7 +4273,7 @@ class bitget(Exchange, ImplicitAPI):
         both = self.array_concat(orderInfo, failure)
         return self.parse_orders(both, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order

@@ -437,15 +437,16 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             market = self.market(marketId)
             symbol = market['symbol']
             messageHash = 'trade:' + symbol
-            tradesArray = self.safe_value(self.trades, symbol)
-            if tradesArray is None:
+            if self.safe_list(self.trades, symbol) is None:
                 tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-                tradesArray = ArrayCache(tradesLimit)
-                self.trades[symbol] = tradesArray
+                self.trades[symbol] = ArrayCache(tradesLimit)
+            tradesArray = self.trades[symbol]
             if channel == 'trade_snapshot':
-                trades = self.safe_value(message, 'trades', [])
-                for i in range(0, len(trades)):
-                    item = trades[i]
+                trades = self.safe_list(message, 'trades', [])
+                length = len(trades)
+                for i in range(0, length):
+                    index = length - 1 - i  # need reverse to correct chronology
+                    item = trades[index]
                     trade = self.parse_ws_trade(item)
                     tradesArray.append(trade)
             else:

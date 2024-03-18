@@ -51,6 +51,7 @@ var btcturk = require('./src/btcturk.js');
 var bybit = require('./src/bybit.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
+var coinbaseinternational = require('./src/coinbaseinternational.js');
 var coinbasepro = require('./src/coinbasepro.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
@@ -105,6 +106,7 @@ var poloniexfutures = require('./src/poloniexfutures.js');
 var probit = require('./src/probit.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
+var tradeogre = require('./src/tradeogre.js');
 var upbit = require('./src/upbit.js');
 var wavesexchange = require('./src/wavesexchange.js');
 var wazirx = require('./src/wazirx.js');
@@ -136,6 +138,7 @@ var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
+var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
 var coinbasepro$1 = require('./src/pro/coinbasepro.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
@@ -178,7 +181,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.70';
+const version = '4.2.76';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -220,6 +223,7 @@ const exchanges = {
     'bybit': bybit,
     'cex': cex,
     'coinbase': coinbase,
+    'coinbaseinternational': coinbaseinternational,
     'coinbasepro': coinbasepro,
     'coincheck': coincheck,
     'coinex': coinex,
@@ -274,6 +278,7 @@ const exchanges = {
     'probit': probit,
     'timex': timex,
     'tokocrypto': tokocrypto,
+    'tradeogre': tradeogre,
     'upbit': upbit,
     'wavesexchange': wavesexchange,
     'wazirx': wazirx,
@@ -307,6 +312,7 @@ const pro = {
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,
+    'coinbaseinternational': coinbaseinternational$1,
     'coinbasepro': coinbasepro$1,
     'coincheck': coincheck$1,
     'coinex': coinex$1,
@@ -427,6 +433,7 @@ exports.btcturk = btcturk;
 exports.bybit = bybit;
 exports.cex = cex;
 exports.coinbase = coinbase;
+exports.coinbaseinternational = coinbaseinternational;
 exports.coinbasepro = coinbasepro;
 exports.coincheck = coincheck;
 exports.coinex = coinex;
@@ -481,6 +488,7 @@ exports.poloniexfutures = poloniexfutures;
 exports.probit = probit;
 exports.timex = timex;
 exports.tokocrypto = tokocrypto;
+exports.tradeogre = tradeogre;
 exports.upbit = upbit;
 exports.wavesexchange = wavesexchange;
 exports.wazirx = wazirx;

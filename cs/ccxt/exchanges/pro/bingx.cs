@@ -854,27 +854,56 @@ public partial class bingx : ccxt.bingx
         return true;
     }
 
+    public async virtual Task keepAliveListenKey(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object listenKey = this.safeString(this.options, "listenKey");
+        if (isTrue(isEqual(listenKey, null)))
+        {
+            // A network error happened: we can't renew a listen key that does not exist.
+            return;
+        }
+        try
+        {
+            await this.userAuthPrivatePutUserDataStream(new Dictionary<string, object>() {
+                { "listenKey", listenKey },
+            }); // extend the expiry
+        } catch(Exception error)
+        {
+            object types = new List<object>() {"spot", "swap"};
+            for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+            {
+                object type = getValue(types, i);
+                object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "?listenKey="), listenKey);
+                var client = this.client(url);
+                object messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
+                for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
+                {
+                    object messageHash = getValue(messageHashes, j);
+                    ((WebSocketClient)client).reject(error, messageHash);
+                }
+            }
+            ((IDictionary<string,object>)this.options)["listenKey"] = null;
+            ((IDictionary<string,object>)this.options)["lastAuthenticatedTime"] = 0;
+            return;
+        }
+        // whether or not to schedule another listenKey keepAlive request
+        object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
+        this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+    }
+
     public async virtual Task authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object time = this.milliseconds();
-        object listenKey = this.safeString(this.options, "listenKey");
-        if (isTrue(isEqual(listenKey, null)))
-        {
-            object response = await this.userAuthPrivatePostUserDataStream();
-            ((IDictionary<string,object>)this.options)["listenKey"] = this.safeString(response, "listenKey");
-            ((IDictionary<string,object>)this.options)["lastAuthenticatedTime"] = time;
-            return;
-        }
         object lastAuthenticatedTime = this.safeInteger(this.options, "lastAuthenticatedTime", 0);
         object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
         {
-            object response = await this.userAuthPrivatePutUserDataStream(new Dictionary<string, object>() {
-                { "listenKey", listenKey },
-            }); // extend the expiry
+            object response = await this.userAuthPrivatePostUserDataStream();
             ((IDictionary<string,object>)this.options)["listenKey"] = this.safeString(response, "listenKey");
             ((IDictionary<string,object>)this.options)["lastAuthenticatedTime"] = time;
+            this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
         }
     }
 

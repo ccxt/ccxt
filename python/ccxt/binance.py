@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -830,6 +830,7 @@ class binance(Exchange, ImplicitAPI):
                         'userTrades': 5,
                         'income': 30,
                         'commissionRate': 20,
+                        'rateLimit/order': 1,
                         'apiTradingStatus': 1,
                         'multiAssetsMargin': 30,
                         # broker endpoints
@@ -4513,7 +4514,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def edit_spot_order(self, id: str, symbol, type, side, amount: float, price: float = None, params={}):
+    def edit_spot_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         edit a trade order
@@ -4576,7 +4577,7 @@ class binance(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'newOrderResponse')
         return self.parse_order(data, market)
 
-    def edit_spot_order_request(self, id: str, symbol, type, side, amount: float, price: float = None, params={}):
+    def edit_spot_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build request for editSpotOrder
@@ -4681,7 +4682,7 @@ class binance(Exchange, ImplicitAPI):
         params = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly'])
         return self.extend(request, params)
 
-    def edit_contract_order(self, id: str, symbol, type, side, amount: float, price: float = None, params={}):
+    def edit_contract_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
@@ -4745,7 +4746,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
@@ -5413,7 +5414,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
@@ -5503,7 +5504,7 @@ class binance(Exchange, ImplicitAPI):
                 response = self.privatePostOrder(request)
         return self.parse_order(response, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build the request
@@ -10725,6 +10726,7 @@ class binance(Exchange, ImplicitAPI):
         :param int [limit]: default 30, max 500
         :param dict [params]: exchange specific parameters
         :param int [params.until]: the time(ms) of the latest record to retrieve unix timestamp
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: an array of `open interest structure <https://docs.ccxt.com/#/?id=open-interest-structure>`
         """
         if timeframe == '1m':

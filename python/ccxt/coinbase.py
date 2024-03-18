@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -400,7 +400,7 @@ class coinbase(Exchange, ImplicitAPI):
             #
         return self.safe_timestamp_2(response, 'epoch', 'epochSeconds')
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
@@ -414,7 +414,7 @@ class coinbase(Exchange, ImplicitAPI):
             return self.fetch_accounts_v3(params)
         return self.fetch_accounts_v2(params)
 
-    def fetch_accounts_v2(self, params={}):
+    def fetch_accounts_v2(self, params={}) -> List[Account]:
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
@@ -480,7 +480,7 @@ class coinbase(Exchange, ImplicitAPI):
             accounts[lastIndex] = last
         return self.parse_accounts(data, params)
 
-    def fetch_accounts_v3(self, params={}):
+    def fetch_accounts_v3(self, params={}) -> List[Account]:
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
@@ -1287,7 +1287,7 @@ class coinbase(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         response = self.fetch_currencies_from_cache(params)
-        currencies = self.safe_dict(response, 'currencies', {})
+        currencies = self.safe_list(response, 'currencies', [])
         #
         # fiat
         #
@@ -1812,9 +1812,14 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, 'next_starting_after', 'starting_after', None, 100)
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1824,7 +1829,16 @@ class coinbase(Exchange, ImplicitAPI):
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         # eg: instance.last_json_response.pagination.next_starting_after
         response = self.v2PrivateGetAccountsAccountIdTransactions(self.extend(request, params))
-        return self.parse_ledger(response['data'], currency, since, limit)
+        ledger = self.parse_ledger(response['data'], currency, since, limit)
+        length = len(ledger)
+        lastIndex = length - 1
+        last = self.safe_dict(ledger, lastIndex)
+        pagination = self.safe_dict(response, 'pagination', {})
+        cursor = self.safe_string(pagination, 'next_starting_after')
+        if (cursor is not None) and (cursor != ''):
+            last['next_starting_after'] = cursor
+            ledger[lastIndex] = last
+        return ledger
 
     def parse_ledger_entry_status(self, status):
         types = {
@@ -2202,7 +2216,7 @@ class coinbase(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
@@ -2613,7 +2627,7 @@ class coinbase(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_editorder

@@ -1,5 +1,5 @@
 import coinbaseRest from '../coinbase.js';
-import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order } from '../base/types.js';
+import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str } from '../base/types.js';
 export default class coinbase extends coinbaseRest {
     describe(): any;
     subscribe(name: any, symbol?: any, params?: {}): Promise<any>;
@@ -8,7 +8,7 @@ export default class coinbase extends coinbaseRest {
     handleTickers(client: any, message: any): any;
     parseWsTicker(ticker: any, market?: any): Ticker;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleTrade(client: any, message: any): any;
     handleOrder(client: any, message: any): any;

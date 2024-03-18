@@ -407,21 +407,23 @@ export default class testMainClass extends baseMainTestClass {
         // get "method-specific" skips
         const skipsForMethod = exchange.safeValue(this.skippedMethods, methodName, {});
         // get "object-specific" skips
-        if (exchange.inArray(methodName, ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'orderBook', {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        }
-        else if (exchange.inArray(methodName, ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'ticker', {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        }
-        else if (exchange.inArray(methodName, ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'trade', {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        }
-        else if (exchange.inArray(methodName, ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'])) {
-            const skips = exchange.safeValue(this.skippedMethods, 'ohlcv', {});
-            return exchange.deepExtend(skipsForMethod, skips);
+        const objectSkips = {
+            'orderBook': ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
+            'ticker': ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'],
+            'trade': ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'],
+            'ohlcv': ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'],
+            'ledger': ['fetchLedger', 'fetchLedgerEntry'],
+            'depositWithdraw': ['fetchDepositsWithdrawals', 'fetchDeposits', 'fetchWithdrawals'],
+            'depositWithdrawFee': ['fetchDepositWithdrawFee', 'fetchDepositWithdrawFees'],
+        };
+        const objectNames = Object.keys(objectSkips);
+        for (let i = 0; i < objectNames.length; i++) {
+            const objectName = objectNames[i];
+            const objectMethods = objectSkips[objectName];
+            if (exchange.inArray(methodName, objectMethods)) {
+                const extraSkips = exchange.safeDict(this.skippedMethods, objectName, {});
+                return exchange.deepExtend(skipsForMethod, extraSkips);
+            }
         }
         return skipsForMethod;
     }
@@ -446,27 +448,38 @@ export default class testMainClass extends baseMainTestClass {
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
-                        let shouldFail = false;
-                        // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                        if ((e instanceof ExchangeNotAvailable) && !(e instanceof OnMaintenance)) {
-                            shouldFail = true;
-                        }
-                        // if it's `loadMarkets` call (which is main request), then don't return the test as passed, because it's mandatory and we should fail the test
-                        else if (isLoadMarkets) {
-                            shouldFail = true;
-                        }
-                        else {
-                            shouldFail = false;
-                        }
-                        // final step
-                        if (shouldFail) {
-                            dump('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
-                            return false;
+                        const isOnMaintenance = (e instanceof OnMaintenance);
+                        const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
+                        let shouldFail = undefined;
+                        let returnSuccess = undefined;
+                        if (isLoadMarkets) {
+                            // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
+                            returnSuccess = false;
+                            // we might not break exchange tests, if exchange is on maintenance at this moment
+                            if (isOnMaintenance) {
+                                shouldFail = false;
+                            }
+                            else {
+                                shouldFail = true;
+                            }
                         }
                         else {
-                            dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
-                            return true;
+                            // for any other method tests:
+                            if (isExchangeNotAvailable && !isOnMaintenance) {
+                                // break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
+                                shouldFail = true;
+                                returnSuccess = false;
+                            }
+                            else {
+                                // in all other cases of OperationFailed, show Warning, but don't mark test as failed
+                                shouldFail = false;
+                                returnSuccess = true;
+                            }
                         }
+                        // output the message
+                        const failType = shouldFail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
+                        dump(failType, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
+                        return returnSuccess;
                     }
                     else {
                         // wait and retry again
@@ -1270,6 +1283,8 @@ export default class testMainClass extends baseMainTestClass {
     async testExchangeRequestStatically(exchangeName, exchangeData, testName = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange(exchangeName);
+        const globalOptions = exchange.safeDict(exchangeData, 'options', {});
+        exchange.options = exchange.deepExtend(exchange.options, globalOptions); // custom options to be used in the tests
         const methods = exchange.safeValue(exchangeData, 'methods', {});
         const methodsNames = Object.keys(methods);
         for (let i = 0; i < methodsNames.length; i++) {
@@ -1419,6 +1434,7 @@ export default class testMainClass extends baseMainTestClass {
             this.testPhemex(),
             this.testBlofin(),
             this.testHyperliquid(),
+            this.testCoinbaseinternational(),
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1751,6 +1767,23 @@ export default class testMainClass extends baseMainTestClass {
         const brokerId = (request['action']['brokerCode']).toString();
         assert(brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
         await close(exchange);
+    }
+    async testCoinbaseinternational() {
+        const exchange = this.initOfflineExchange('coinbaseinternational');
+        exchange.options['portfolio'] = 'random';
+        const id = 'nfqkvdjp';
+        assert(exchange.options['brokerId'] === id, 'id not in options');
+        let request = undefined;
+        try {
+            await exchange.createOrder('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const clientOrderId = request['client_order_id'];
+        assert(clientOrderId.startsWith(id.toString()), 'clientOrderId does not start with id');
+        await close(exchange);
+        return true;
     }
 }
 // ***** AUTO-TRANSPILER-END *****

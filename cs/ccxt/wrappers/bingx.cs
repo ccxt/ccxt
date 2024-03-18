@@ -473,7 +473,7 @@ public partial class bingx
     /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
-    /// string : spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+    /// string : spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
     /// </description>
     /// </item>
     /// <item>

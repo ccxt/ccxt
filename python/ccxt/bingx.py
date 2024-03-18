@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -137,6 +137,7 @@ class bingx(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
+                                'server/time': 3,
                                 'common/symbols': 3,
                                 'market/trades': 3,
                                 'market/depth': 3,
@@ -160,6 +161,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/order/cancelReplace': 3,
                                 'trade/cancelOrders': 3,
                                 'trade/cancelOpenOrders': 3,
+                                'trade/cancelAllAfter': 1,
                             },
                         },
                     },
@@ -1700,7 +1702,7 @@ class bingx(Exchange, ImplicitAPI):
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', 'sell', cost, None, params)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -1729,13 +1731,15 @@ class bingx(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request[exchangeClientOrderId] = clientOrderId
         timeInForce = self.safe_string_upper(params, 'timeInForce')
-        if timeInForce == 'IOC':
+        postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'PostOnly', params)
+        if postOnly or (timeInForce == 'PostOnly'):
+            request['timeInForce'] = 'PostOnly'
+        elif timeInForce == 'IOC':
             request['timeInForce'] = 'IOC'
+        elif timeInForce == 'GTC':
+            request['timeInForce'] = 'GTC'
         triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         if isSpot:
-            postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'POC', params)
-            if postOnly or (timeInForce == 'POC'):
-                request['timeInForce'] = 'POC'
             cost = self.safe_number_2(params, 'cost', 'quoteOrderQty')
             params = self.omit(params, 'cost')
             if cost is not None:
@@ -1758,12 +1762,7 @@ class bingx(Exchange, ImplicitAPI):
                 elif type == 'MARKET':
                     request['type'] = 'TRIGGER_MARKET'
         else:
-            postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'PostOnly', params)
-            if postOnly or (timeInForce == 'PostOnly'):
-                request['timeInForce'] = 'PostOnly'
-            elif timeInForce == 'GTC':
-                request['timeInForce'] = 'GTC'
-            elif timeInForce == 'FOK':
+            if timeInForce == 'FOK':
                 request['timeInForce'] = 'FOK'
             stopLossPrice = self.safe_string(params, 'stopLossPrice')
             takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
@@ -1853,7 +1852,7 @@ class bingx(Exchange, ImplicitAPI):
             params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
@@ -1866,7 +1865,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique id for the order
         :param bool [params.postOnly]: True to place a post only order
-        :param str [params.timeInForce]: spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+        :param str [params.timeInForce]: spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
         :param bool [params.reduceOnly]: *swap only* True or False whether the order is reduce only
         :param float [params.triggerPrice]: *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
         :param float [params.stopLossPrice]: *swap only* stop loss trigger price
@@ -3772,7 +3771,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.swapV1PrivatePostPositionSideDual(self.extend(request, params))
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}) -> Order:
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
         cancels an order and places a new order
         :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20order%20and%20place%20a%20new%20order  # spot

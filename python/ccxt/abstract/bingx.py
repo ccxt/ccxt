@@ -2,6 +2,7 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    spot_v1_public_get_server_time = spotV1PublicGetServerTime = Entry('server/time', ['spot', 'v1', 'public'], 'GET', {'cost': 3})
     spot_v1_public_get_common_symbols = spotV1PublicGetCommonSymbols = Entry('common/symbols', ['spot', 'v1', 'public'], 'GET', {'cost': 3})
     spot_v1_public_get_market_trades = spotV1PublicGetMarketTrades = Entry('market/trades', ['spot', 'v1', 'public'], 'GET', {'cost': 3})
     spot_v1_public_get_market_depth = spotV1PublicGetMarketDepth = Entry('market/depth', ['spot', 'v1', 'public'], 'GET', {'cost': 3})
@@ -19,6 +20,7 @@ class ImplicitAPI:
     spot_v1_private_post_trade_order_cancelreplace = spotV1PrivatePostTradeOrderCancelReplace = Entry('trade/order/cancelReplace', ['spot', 'v1', 'private'], 'POST', {'cost': 3})
     spot_v1_private_post_trade_cancelorders = spotV1PrivatePostTradeCancelOrders = Entry('trade/cancelOrders', ['spot', 'v1', 'private'], 'POST', {'cost': 3})
     spot_v1_private_post_trade_cancelopenorders = spotV1PrivatePostTradeCancelOpenOrders = Entry('trade/cancelOpenOrders', ['spot', 'v1', 'private'], 'POST', {'cost': 3})
+    spot_v1_private_post_trade_cancelallafter = spotV1PrivatePostTradeCancelAllAfter = Entry('trade/cancelAllAfter', ['spot', 'v1', 'private'], 'POST', {'cost': 1})
     spot_v3_private_get_get_asset_transfer = spotV3PrivateGetGetAssetTransfer = Entry('get/asset/transfer', ['spot', 'v3', 'private'], 'GET', {'cost': 3})
     spot_v3_private_get_asset_transfer = spotV3PrivateGetAssetTransfer = Entry('asset/transfer', ['spot', 'v3', 'private'], 'GET', {'cost': 3})
     spot_v3_private_get_capital_deposit_hisrec = spotV3PrivateGetCapitalDepositHisrec = Entry('capital/deposit/hisrec', ['spot', 'v3', 'private'], 'GET', {'cost': 3})

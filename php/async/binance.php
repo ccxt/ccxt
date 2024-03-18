@@ -815,6 +815,7 @@ class binance extends Exchange {
                         'userTrades' => 5,
                         'income' => 30,
                         'commissionRate' => 20,
+                        'rateLimit/order' => 1,
                         'apiTradingStatus' => 1,
                         'multiAssetsMargin' => 30,
                         // broker endpoints
@@ -4650,7 +4651,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function edit_spot_order(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_spot_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * @ignore
@@ -4717,7 +4718,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function edit_spot_order_request(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_spot_order_request(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * helper function to build $request for editSpotOrder
@@ -4842,7 +4843,7 @@ class binance extends Exchange {
         return array_merge($request, $params);
     }
 
-    public function edit_contract_order(string $id, $symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function edit_contract_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -11509,6 +11510,7 @@ class binance extends Exchange {
              * @param {int} [$limit] default 30, max 500
              * @param {array} [$params] exchange specific parameters
              * @param {int} [$params->until] the time(ms) of the latest record to retrieve unix timestamp
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structure~
              */
             if ($timeframe === '1m') {

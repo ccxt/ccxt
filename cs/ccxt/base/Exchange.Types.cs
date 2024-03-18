@@ -326,6 +326,66 @@ public struct Tickers
     }
 }
 
+public struct LastPrice
+{
+    public string? symbol;
+    public Int64? timestamp;
+    public string? datetime;
+    public double? price;
+    public string? side;
+    public Dictionary<string, object> info;
+
+    public LastPrice(object lastPrice2)
+    {
+        var lastPrice = (Dictionary<string, object>)lastPrice2;
+        symbol = Exchange.SafeString(lastPrice, "symbol");
+        timestamp = Exchange.SafeInteger(lastPrice, "timestamp");
+        datetime = Exchange.SafeString(lastPrice, "datetime");
+        price = Exchange.SafeFloat(lastPrice, "price");
+        side = Exchange.SafeString(lastPrice, "side");
+        info = lastPrice.ContainsKey("info") ? (Dictionary<string, object>)lastPrice["info"] : null;
+    }
+}
+
+public struct LastPrices
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, LastPrice> lastPrices;
+
+    public LastPrices(object lastPrices2)
+    {
+        var lastPrices = (Dictionary<string, object>)lastPrices2;
+
+        info = lastPrices.ContainsKey("info") ? (Dictionary<string, object>)lastPrices["info"] : null;
+        this.lastPrices = new Dictionary<string, LastPrice>();
+        foreach (var lastPrice in lastPrices)
+        {
+            if (lastPrice.Key != "info")
+                this.lastPrices.Add(lastPrice.Key, new LastPrice(lastPrice.Value));
+        }
+    }
+
+    // Indexer
+    public LastPrice this[string key]
+    {
+        get
+        {
+            if (lastPrices.ContainsKey(key))
+            {
+                return lastPrices[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the lastPrices.");
+            }
+        }
+        set
+        {
+            lastPrices[key] = value;
+        }
+    }
+}
+
 public struct Transaction
 {
     public string? id;
@@ -1282,5 +1342,37 @@ public struct Leverages
         {
             leverages[key] = value;
         }
+    }
+}
+
+public struct BalanceAccount
+{
+    public string? free;
+    public string? used;
+    public string? total;
+
+    public BalanceAccount(object account2)
+    {
+        var account = (Dictionary<string, object>)account2;
+        free = Exchange.SafeString(account, "free");
+        used = Exchange.SafeString(account, "used");
+        total = Exchange.SafeString(account, "total");
+    }
+}
+
+public struct Account
+{
+    public string? id;
+    public string? type;
+    public string? code;
+    public Dictionary<string, object>? info;
+
+    public Account(object accountStructure2)
+    {
+        var accountStructure = (Dictionary<string, object>)accountStructure2;
+        info = accountStructure.ContainsKey("info") ? (Dictionary<string, object>)accountStructure["info"] : null;
+        id = Exchange.SafeString(accountStructure, "id");
+        type = Exchange.SafeString(accountStructure, "type");
+        code = Exchange.SafeString(accountStructure, "code");
     }
 }

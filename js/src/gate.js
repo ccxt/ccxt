@@ -2912,7 +2912,7 @@ export default class gate extends Exchange {
         let request = {};
         [request, params] = this.prepareRequest(market, undefined, params);
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
-        let maxLimit = 1000;
+        let maxLimit = market['contract'] ? 1999 : 1000;
         limit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
         let until = this.safeInteger(params, 'until');
         if (until !== undefined) {
@@ -4289,6 +4289,7 @@ export default class gate extends Exchange {
             'failed': 'canceled',
             'expired': 'canceled',
             'finished': 'closed',
+            'finish': 'closed',
             'succeeded': 'closed',
         };
         return this.safeString(statuses, status, status);
@@ -6157,6 +6158,7 @@ export default class gate extends Exchange {
          * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
          * @param {int} [limit] default 30
          * @param {object} [params] exchange specific parameters
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
         await this.loadMarkets();
