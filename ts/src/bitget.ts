@@ -1554,7 +1554,7 @@ export default class bitget extends Exchange {
         let spotInfoDict = {};
         let traceSymbolDict = {};
         if (type === 'spot') {
-            if (this.checkRequiredCredentials ()) {
+            if (this.checkRequiredCredentials (false)) {
                 const accountInfo = await this.privateSpotGetV2SpotAccountInfo (params);
                 //
                 //   {
