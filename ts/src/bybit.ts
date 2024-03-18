@@ -2644,7 +2644,7 @@ export default class bybit extends Exchange {
         //
         const id = this.safeStringN (trade, [ 'execId', 'id', 'tradeId' ]);
         const marketId = this.safeString (trade, 'symbol');
-        let marketType = 'contract';
+        let marketType = ('createType' in trade) ? 'contract' : 'spot';
         if (market !== undefined) {
             marketType = market['type'];
         }
