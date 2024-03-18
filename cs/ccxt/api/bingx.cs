@@ -11,6 +11,11 @@ public partial class bingx : Exchange
 {
     public bingx (object args = null): base(args) {}
 
+    public async Task<object> spotV1PublicGetServerTime (object parameters = null)
+    {
+        return await this.callAsync ("spotV1PublicGetServerTime",parameters);
+    }
+
     public async Task<object> spotV1PublicGetCommonSymbols (object parameters = null)
     {
         return await this.callAsync ("spotV1PublicGetCommonSymbols",parameters);
@@ -94,6 +99,11 @@ public partial class bingx : Exchange
     public async Task<object> spotV1PrivatePostTradeCancelOpenOrders (object parameters = null)
     {
         return await this.callAsync ("spotV1PrivatePostTradeCancelOpenOrders",parameters);
+    }
+
+    public async Task<object> spotV1PrivatePostTradeCancelAllAfter (object parameters = null)
+    {
+        return await this.callAsync ("spotV1PrivatePostTradeCancelAllAfter",parameters);
     }
 
     public async Task<object> spotV3PrivateGetGetAssetTransfer (object parameters = null)

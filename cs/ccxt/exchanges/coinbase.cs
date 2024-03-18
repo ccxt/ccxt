@@ -1350,7 +1350,7 @@ public partial class coinbase : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         object response = await this.fetchCurrenciesFromCache(parameters);
-        object currencies = this.safeDict(response, "currencies", new Dictionary<string, object>() {});
+        object currencies = this.safeList(response, "currencies", new List<object>() {});
         //
         // fiat
         //
@@ -1945,10 +1945,19 @@ public partial class coinbase : Exchange
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
         * @param {int} [limit] max number of ledger entrys to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "next_starting_after", "starting_after", null, 100);
+        }
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
@@ -1962,7 +1971,18 @@ public partial class coinbase : Exchange
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
         object response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters));
-        return this.parseLedger(getValue(response, "data"), currency, since, limit);
+        object ledger = this.parseLedger(getValue(response, "data"), currency, since, limit);
+        object length = getArrayLength(ledger);
+        object lastIndex = subtract(length, 1);
+        object last = this.safeDict(ledger, lastIndex);
+        object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
+        object cursor = this.safeString(pagination, "next_starting_after");
+        if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
+        {
+            ((IDictionary<string,object>)last)["next_starting_after"] = cursor;
+            ((List<object>)ledger)[Convert.ToInt32(lastIndex)] = last;
+        }
+        return ledger;
     }
 
     public virtual object parseLedgerEntryStatus(object status)

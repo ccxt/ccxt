@@ -401,7 +401,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -419,7 +419,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts_v2($params = array ()) {
+    public function fetch_accounts_v2($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
             $paginate = false;
@@ -490,7 +490,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts_v3($params = array ()) {
+    public function fetch_accounts_v3($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
             $paginate = false;
@@ -1354,7 +1354,7 @@ class coinbase extends Exchange {
              * @return {array} an associative dictionary of $currencies
              */
             $response = Async\await($this->fetch_currencies_from_cache($params));
-            $currencies = $this->safe_dict($response, 'currencies', array());
+            $currencies = $this->safe_list($response, 'currencies', array());
             //
             // fiat
             //
@@ -1917,23 +1917,39 @@ class coinbase extends Exchange {
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
              * @param {string} $code unified $currency $code, default is null
-             * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
+             * @param {int} [$limit] max number of $ledger entrys to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $params, 'next_starting_after', 'starting_after', null, 100));
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
             $request = null;
             list($request, $params) = Async\await($this->prepare_account_request_with_currency_code($code, $limit, $params));
-            // for pagination use parameter 'starting_after'
+            // for $pagination use parameter 'starting_after'
             // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
             // eg => instance.last_json_response.pagination.next_starting_after
             $response = Async\await($this->v2PrivateGetAccountsAccountIdTransactions (array_merge($request, $params)));
-            return $this->parse_ledger($response['data'], $currency, $since, $limit);
+            $ledger = $this->parse_ledger($response['data'], $currency, $since, $limit);
+            $length = count($ledger);
+            $lastIndex = $length - 1;
+            $last = $this->safe_dict($ledger, $lastIndex);
+            $pagination = $this->safe_dict($response, 'pagination', array());
+            $cursor = $this->safe_string($pagination, 'next_starting_after');
+            if (($cursor !== null) && ($cursor !== '')) {
+                $last['next_starting_after'] = $cursor;
+                $ledger[$lastIndex] = $last;
+            }
+            return $ledger;
         }) ();
     }
 
