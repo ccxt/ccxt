@@ -1287,7 +1287,7 @@ class coinbase(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         response = self.fetch_currencies_from_cache(params)
-        currencies = self.safe_dict(response, 'currencies', {})
+        currencies = self.safe_list(response, 'currencies', [])
         #
         # fiat
         #
@@ -1812,9 +1812,14 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, 'next_starting_after', 'starting_after', None, 100)
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1824,7 +1829,16 @@ class coinbase(Exchange, ImplicitAPI):
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         # eg: instance.last_json_response.pagination.next_starting_after
         response = self.v2PrivateGetAccountsAccountIdTransactions(self.extend(request, params))
-        return self.parse_ledger(response['data'], currency, since, limit)
+        ledger = self.parse_ledger(response['data'], currency, since, limit)
+        length = len(ledger)
+        lastIndex = length - 1
+        last = self.safe_dict(ledger, lastIndex)
+        pagination = self.safe_dict(response, 'pagination', {})
+        cursor = self.safe_string(pagination, 'next_starting_after')
+        if (cursor is not None) and (cursor != ''):
+            last['next_starting_after'] = cursor
+            ledger[lastIndex] = last
+        return ledger
 
     def parse_ledger_entry_status(self, status):
         types = {

@@ -59,7 +59,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
             },
-            'errors': {
+            'exceptions': {
                 'exact': {
                     'Unable to authenticate': AuthenticationError,
                 },

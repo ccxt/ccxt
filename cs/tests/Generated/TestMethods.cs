@@ -345,28 +345,41 @@ public partial class testMainClass : BaseTest
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (isTrue(isEqual(i, subtract(maxRetries, 1))))
                     {
-                        object shouldFail = false;
-                        // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                        if (isTrue(isTrue((e is ExchangeNotAvailable)) && !isTrue((e is OnMaintenance))))
+                        object isOnMaintenance = (e is OnMaintenance);
+                        object isExchangeNotAvailable = (e is ExchangeNotAvailable);
+                        object shouldFail = null;
+                        object returnSuccess = null;
+                        if (isTrue(isLoadMarkets))
                         {
-                            shouldFail = true;
-                        } else if (isTrue(isLoadMarkets))
-                        {
-                            shouldFail = true;
+                            // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
+                            returnSuccess = false;
+                            // we might not break exchange tests, if exchange is on maintenance at this moment
+                            if (isTrue(isOnMaintenance))
+                            {
+                                shouldFail = false;
+                            } else
+                            {
+                                shouldFail = true;
+                            }
                         } else
                         {
-                            shouldFail = false;
+                            // for any other method tests:
+                            if (isTrue(isTrue(isExchangeNotAvailable) && !isTrue(isOnMaintenance)))
+                            {
+                                // break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
+                                shouldFail = true;
+                                returnSuccess = false;
+                            } else
+                            {
+                                // in all other cases of OperationFailed, show Warning, but don't mark test as failed
+                                shouldFail = false;
+                                returnSuccess = true;
+                            }
                         }
-                        // final step
-                        if (isTrue(shouldFail))
-                        {
-                            dump("[TEST_FAILURE]", "Method could not be tested due to a repeated Network/Availability issues", " | ", this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
-                            return false;
-                        } else
-                        {
-                            dump("[TEST_WARNING]", "Method could not be tested due to a repeated Network/Availability issues", " | ", this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
-                            return true;
-                        }
+                        // output the message
+                        object failType = ((bool) isTrue(shouldFail)) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
+                        dump(failType, "Method could not be tested due to a repeated Network/Availability issues", " | ", this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
+                        return returnSuccess;
                     } else
                     {
                         // wait and retry again
