@@ -997,6 +997,9 @@ export default class binance extends binanceRest {
         }
         let channelName = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
+        if (channelName === 'bookTicker') {
+            throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use .watchBidsAsks() method instead');
+        }
         const newTickers = await this.subscribeMultiple ('watchTickers', channelName, rawMarketType, symbols, params);
         if (this.newUpdates) {
             return newTickers;
@@ -1033,27 +1036,6 @@ export default class binance extends binanceRest {
             rawMarketType = 'delivery';
         }
         return await this.subscribeMultiple ('watchBidsAsks', 'bookTicker', rawMarketType, symbols, params);
-    }
-
-    handleBidAsk (client: Client, message) {
-        //
-        //    {
-        //        "time": 1671363004,
-        //        "time_ms": 1671363004235,
-        //        "channel": "spot.book_ticker",
-        //        "event": "update",
-        //        "result": {
-        //          "t": 1671363004228,
-        //          "u": 9793320464,
-        //          "s": "BTC_USDT",
-        //          "b": "16716.8",
-        //          "B": "0.0134",
-        //          "a": "16716.9",
-        //          "A": "0.0353"
-        //        }
-        //    }
-        //
-        
     }
 
     async subscribeMultiple (methodName, channelName: string, marketType: string, symbols: Strings = undefined, params = {}) {
@@ -1185,7 +1167,19 @@ export default class binance extends binanceRest {
     }
 
     handleBidsAsks (client: Client, message) {
-        return this.handleTickersAndBidsAsks (client, message);
+        //
+        // arrives one symbol dict or array of symbol dicts
+        //
+        //     {
+        //         "u": 7488717758,
+        //         "s": "BTCUSDT",
+        //         "b": "28621.74000000",
+        //         "B": "1.43278800",
+        //         "a": "28621.75000000",
+        //         "A": "2.52500800"
+        //     }
+        //
+        return this.handleTickersAndBidsAsks ('bidsasks', client, message);
     }
 
     handleTickers (client: Client, message) {
@@ -1218,10 +1212,10 @@ export default class binance extends binanceRest {
         //         "n": 163222,            // total number of trades
         //     }
         //
-        return this.handleTickersAndBidsAsks (client, message);
+        return this.handleTickersAndBidsAsks ('tickers', client, message);
     }
 
-    handleTickersAndBidsAsks (client: Client, message) {
+    handleTickersAndBidsAsks (methodName, client: Client, message) {
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
         let channelName = undefined;
@@ -1235,11 +1229,16 @@ export default class binance extends binanceRest {
         }
         for (let i = 0; i < rawTickers.length; i++) {
             const ticker = rawTickers[i];
+            let event = this.safeString (ticker, 'e');
             const parsedTicker = this.parseWsTicker (ticker, marketType);
             const symbol = parsedTicker['symbol'];
             newTickers[symbol] = parsedTicker;
-            this.tickers[symbol] = parsedTicker;
-            const event = this.safeString (ticker, 'e');
+            if (methodName === 'bidsasks') {
+                event = 'bookTicker'; // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
+                this.bidsasks[symbol] = parsedTicker;
+            } else {
+                this.tickers[symbol] = parsedTicker;
+            }
             channelName = this.safeString (this.options['tickerChannelsMap'], event, event);
             if (channelName === undefined) {
                 continue;
@@ -3103,9 +3102,8 @@ export default class binance extends binanceRest {
             //         "A": "2.52500800"
             //     }
             //
-            if (event === undefined) {
-                this.handleTicker (client, message);
-                this.handleTickers (client, message);
+            if (event === undefined && ('a' in message) && ('b' in message)) {
+                this.handleBidsAsks (client, message);
             }
         } else {
             method.call (this, client, message);
