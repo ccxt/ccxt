@@ -3639,7 +3639,7 @@ export default class Exchange {
         if (callback !== undefined) {
             stream.subscribe ('ohlcv::' + symbol + '::' + timeframe, callback, synchronous);
         }
-        stream.addWatchFunction ('watchOHLCV', [ symbol,timeframe, undefined, undefined, params ]);
+        stream.addWatchFunction ('watchOHLCV', [ symbol, timeframe, undefined, undefined, params ]);
         await this.watchOHLCV (symbol, timeframe, undefined, undefined, params);
     }
 
@@ -4397,7 +4397,7 @@ export default class Exchange {
     }
 
     async subscribePositionForSymbols (symbols: string[] = undefined, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<void> {
-        return await this.subscribePositions (symbols, callback, synchronous, params);
+        await this.subscribePositions (symbols, callback, synchronous, params);
     }
 
     async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {

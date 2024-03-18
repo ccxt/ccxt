@@ -31,20 +31,21 @@ public partial class Exchange
 
     private void initStream()
     {
-        int maxMessagesPerTopic;
-        bool verbose;
+        int maxMessagesPerTopic = 10000;
+        bool verbose = this.verbose;
 
-        if (!this.streaming.TryGetValue("maxMessagesPerTopic", out maxMessagesPerTopic))
-        {
-            maxMessagesPerTopic = 10000; // default value
-        }
+        // TODO: fix to reference streaming values
+        // if (!this.streaming.TryGetValue("maxMessagesPerTopic", out maxMessagesPerTopic))
+        // {
+        //     maxMessagesPerTopic = 10000; // default value
+        // }
 
-        if (!this.streaming.TryGetValue("verbose", out verbose))
-        {
-            verbose = this.verbose; // default value
-        }
+        // if (!this.streaming.TryGetValue("verbose", out verbose))
+        // {
+        //     verbose = this.verbose; // default value
+        // }
 
-        this.stream = new Stream(maxMessagesPerTopic, verbose);
+        this.stream = new ccxt.pro.Stream(maxMessagesPerTopic, verbose);
     }
 
     private void initHttpClient()
