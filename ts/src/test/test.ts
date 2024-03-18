@@ -1572,11 +1572,10 @@ export default class testMainClass extends baseMainTestClass {
     async testKucoin () {
         const exchange = this.initOfflineExchange ('kucoin');
         let reqHeaders = undefined;
-        const optionsString = exchange.options.toString ();
         const spotId =  exchange.options['partner']['spot']['id'];
         const spotKey =  exchange.options['partner']['spot']['key'];
-        assert (spotId === 'ccxt', 'kucoin - id: ' + spotId + ' not in options: ' + optionsString);
-        assert (spotKey === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spotKey + ' not in options: ' + optionsString);
+        assert (spotId === 'ccxt', 'kucoin - id: ' + spotId + ' not in options');
+        assert (spotKey === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spotKey + ' not in options.');
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -1612,8 +1611,7 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange ('bitget');
         let reqHeaders = undefined;
         const id = 'p4sve';
-        const optionsString = exchange.options.toString ();
-        assert (exchange.options['broker'] === id, 'bitget - id: ' + id + ' not in options: ' + optionsString);
+        assert (exchange.options['broker'] === id, 'bitget - id: ' + id + ' not in options');
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -1628,16 +1626,14 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange ('mexc');
         let reqHeaders = undefined;
         const id = 'CCXT';
-        const optionsString = exchange.options.toString ();
-        assert (exchange.options['broker'] === id, 'mexc - id: ' + id + ' not in options: ' + optionsString);
+        assert (exchange.options['broker'] === id, 'mexc - id: ' + id + ' not in options');
         await exchange.loadMarkets ();
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             reqHeaders = exchange.last_request_headers;
         }
-        const reqHeadersString = reqHeaders !== undefined ? reqHeaders.toString () : 'undefined';
-        assert (reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers: ' + reqHeadersString);
+        assert (reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers.');
         await close (exchange);
         return true;
     }
@@ -1739,16 +1735,14 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange ('bingx');
         let reqHeaders = undefined;
         const id = 'CCXT';
-        const optionsString = exchange.options.toString ();
-        assert (exchange.options['broker'] === id, 'bingx - id: ' + id + ' not in options: ' + optionsString);
+        assert (exchange.options['broker'] === id, 'bingx - id: ' + id + ' not in options');
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
             reqHeaders = exchange.last_request_headers;
         }
-        const reqHeadersString = reqHeaders !== undefined ? reqHeaders.toString () : 'undefined';
-        assert (reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers: ' + reqHeadersString);
+        assert (reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers.');
         await close (exchange);
     }
 
