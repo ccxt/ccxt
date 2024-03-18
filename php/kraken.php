@@ -2729,7 +2729,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function parse_account($account) {
+    public function parse_account_type($account) {
         $accountByType = array(
             'spot' => 'Spot Wallet',
             'swap' => 'Futures Wallet',
@@ -2763,8 +2763,8 @@ class kraken extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $fromAccount = $this->parse_account($fromAccount);
-        $toAccount = $this->parse_account($toAccount);
+        $fromAccount = $this->parse_account_type($fromAccount);
+        $toAccount = $this->parse_account_type($toAccount);
         $request = array(
             'amount' => $this->currency_to_precision($code, $amount),
             'from' => $fromAccount,

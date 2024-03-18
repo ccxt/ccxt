@@ -1344,3 +1344,35 @@ public struct Leverages
         }
     }
 }
+
+public struct BalanceAccount
+{
+    public string? free;
+    public string? used;
+    public string? total;
+
+    public BalanceAccount(object account2)
+    {
+        var account = (Dictionary<string, object>)account2;
+        free = Exchange.SafeString(account, "free");
+        used = Exchange.SafeString(account, "used");
+        total = Exchange.SafeString(account, "total");
+    }
+}
+
+public struct Account
+{
+    public string? id;
+    public string? type;
+    public string? code;
+    public Dictionary<string, object>? info;
+
+    public Account(object accountStructure2)
+    {
+        var accountStructure = (Dictionary<string, object>)accountStructure2;
+        info = accountStructure.ContainsKey("info") ? (Dictionary<string, object>)accountStructure["info"] : null;
+        id = Exchange.SafeString(accountStructure, "id");
+        type = Exchange.SafeString(accountStructure, "type");
+        code = Exchange.SafeString(accountStructure, "code");
+    }
+}

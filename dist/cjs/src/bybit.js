@@ -2650,7 +2650,7 @@ class bybit extends bybit$1 {
         //
         const id = this.safeStringN(trade, ['execId', 'id', 'tradeId']);
         const marketId = this.safeString(trade, 'symbol');
-        let marketType = 'contract';
+        let marketType = ('createType' in trade) ? 'contract' : 'spot';
         if (market !== undefined) {
             marketType = market['type'];
         }
@@ -6789,6 +6789,7 @@ class bybit extends bybit$1 {
          * @param {int} [since] Not used by Bybit
          * @param {int} [limit] The number of open interest structures to return. Max 200, default 50
          * @param {object} [params] Exchange specific parameters
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns An array of open interest structures
          */
         if (timeframe === '1m') {

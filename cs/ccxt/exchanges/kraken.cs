@@ -2989,7 +2989,7 @@ public partial class kraken : Exchange
         return result;
     }
 
-    public override object parseAccount(object account)
+    public virtual object parseAccountType(object account)
     {
         object accountByType = new Dictionary<string, object>() {
             { "spot", "Spot Wallet" },
@@ -3030,8 +3030,8 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        fromAccount = this.parseAccount(fromAccount);
-        toAccount = this.parseAccount(toAccount);
+        fromAccount = this.parseAccountType(fromAccount);
+        toAccount = this.parseAccountType(toAccount);
         object request = new Dictionary<string, object>() {
             { "amount", this.currencyToPrecision(code, amount) },
             { "from", fromAccount },

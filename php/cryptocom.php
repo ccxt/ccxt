@@ -2419,7 +2419,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the $accounts associated with a profile
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$accounts
