@@ -986,17 +986,15 @@ export default class binance extends binanceRest {
         }
         let channelName = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
-        const ticker = await this.subscribeMultiple ('watchTickers', channelName, rawMarketType, symbols, params);
+        const newTickers = await this.subscribeMultiple ('watchTickers', channelName, rawMarketType, symbols, params);
         if (this.newUpdates) {
-            const newTickers = {};
-            newTickers[ticker['symbol']] = ticker;
             return newTickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     async subscribeMultiple (methodName, channelName: string, marketType: string, symbols: Strings = undefined, params = {}) {
-        let rawSubscriptions = [];
+        const rawSubscriptions = [];
         const messageHashes = [];
         const symbolsProvided = (symbols !== undefined);
         if (symbolsProvided) {
@@ -1012,14 +1010,12 @@ export default class binance extends binanceRest {
                 throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel');
             }
             const messageHash = '!' + channelName + '@arr';
-            rawSubscriptions = [
-                messageHash,
-            ];
+            rawSubscriptions.push (messageHash);
             messageHashes.push (messageHash);
         }
-        let streamHash = 'tickers';
+        let streamHash = channelName;
         if (symbolsProvided) {
-            streamHash = 'tickers::' + symbols.join (',');
+            streamHash = channelName + '::' + symbols.join (',');
         }
         const url = this.urls['api']['ws'][marketType] + '/' + this.stream (marketType, streamHash);
         const requestId = this.requestId (url);
@@ -1181,6 +1177,16 @@ export default class binance extends binanceRest {
     handleTickers (client: Client, message) {
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
+        const reverseMap = {
+            '24hrTicker': 'ticker',
+            '24hrMiniTicker': 'miniTicker',
+            // rolling window tickers
+            '1hTicker': 'ticker_1h',
+            '4hTicker': 'ticker_4h',
+            '1dTicker': 'ticker_1d',
+        };
+        let currentChannel = undefined;
+        const resolvedMessageHashes = [];
         let rawTickers = [];
         const newTickers = {};
         if (Array.isArray (message)) {
@@ -1190,12 +1196,18 @@ export default class binance extends binanceRest {
         }
         for (let i = 0; i < rawTickers.length; i++) {
             const ticker = rawTickers[i];
-            const result = this.parseWsTicker (ticker, marketType);
-            const symbol = result['symbol'];
-            this.tickers[symbol] = result;
-            newTickers[symbol] = result;
+            const parsedTicker = this.parseWsTicker (ticker, marketType);
+            const symbol = parsedTicker['symbol'];
+            newTickers[symbol] = parsedTicker;
+            this.tickers[symbol] = parsedTicker;
+            const event = this.safeString (ticker, 'e');
+            currentChannel = this.safeString (reverseMap, event, event);
+            const messageHash = symbol + '@' + currentChannel;
+            resolvedMessageHashes.push (messageHash);
+            client.resolve (parsedTicker, messageHash);
         }
-        client.resolve (newTickers, 'tickers');
+        // resolve batch endpoint
+        client.resolve (newTickers, '!' + currentChannel + '@arr');
     }
 
     signParams (params = {}) {
