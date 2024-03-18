@@ -990,31 +990,27 @@ export default class binance extends binanceRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const marketIds = this.marketIds (symbols);
         let market = undefined;
-        let type = undefined;
+        let marketType = undefined;
         if (symbols !== undefined) {
             market = this.market (symbols[0]);
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', market, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
+        let rawType = marketType;
+        if (this.isLinear (marketType, subType)) {
+            rawType = 'future';
+        } else if (this.isInverse (marketType, subType)) {
+            rawType = 'delivery';
         }
-        const options = this.safeValue (this.options, 'watchTickers', {});
-        let name = this.safeString (options, 'name', 'ticker');
-        name = this.safeString (params, 'name', name);
-        params = this.omit (params, 'name');
+        let methodName = undefined;
+        [ methodName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
         let wsParams = [];
-        let messageHash = 'tickers';
-        if (symbols !== undefined) {
-            messageHash = 'tickers::' + symbols.join (',');
-        }
-        if (name === 'bookTicker') {
+        let messageHashes = [];
+        if (methodName === 'bookTicker') {
             if (marketIds === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for bookTicker');
             }
@@ -1024,10 +1020,10 @@ export default class binance extends binanceRest {
             }
         } else {
             wsParams = [
-                '!' + name + '@arr',
+                '!' + methodName + '@arr',
             ];
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
+        const url = this.urls['api']['ws'][rawType] + '/' + this.stream (rawType, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -1037,6 +1033,9 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
+        
+        const tickers = await this.watchMultiple (url, subParams, this.extend (request, query), subParams, subscribe);
+
         const newTickers = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
         if (this.newUpdates) {
             return newTickers;
