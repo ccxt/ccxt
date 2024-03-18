@@ -19,6 +19,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -365,6 +366,7 @@ class bitmart(Exchange, ImplicitAPI):
                     '70000': ExchangeError,  # 200, no data
                     '70001': BadRequest,  # 200, request param can not be null
                     '70002': BadSymbol,  # 200, symbol is invalid
+                    '70003': NetworkError,  # {"code":70003,"trace":"81a9d57b63be4819b65d3065e6a4682b.105.17105295323593915","message":"net error, please try later","data":null}
                     '71001': BadRequest,  # 200, after is invalid
                     '71002': BadRequest,  # 200, before is invalid
                     '71003': BadRequest,  # 200, request after or before is invalid
