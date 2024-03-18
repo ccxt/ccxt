@@ -6025,7 +6025,7 @@ export default class Exchange {
                 if (method === 'fetchAccounts') {
                     response = await this[method] (params);
                 } else {
-                    response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                    response = await this[method] (symbol, since, limit, params);
                 }
                 errors = 0;
                 const responseLength = response.length;
