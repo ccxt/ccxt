@@ -1170,7 +1170,7 @@ export default class binance extends binanceRest {
         //         "A": "2.52500800"
         //     }
         //
-        return this.handleTickersAndBidsAsks ('bidsasks', client, message);
+        this.handleTickersAndBidsAsks ('bidsasks', client, message);
     }
 
     handleTickers (client: Client, message) {
@@ -1203,7 +1203,7 @@ export default class binance extends binanceRest {
         //         "n": 163222,            // total number of trades
         //     }
         //
-        return this.handleTickersAndBidsAsks ('tickers', client, message);
+        this.handleTickersAndBidsAsks ('tickers', client, message);
     }
 
     handleTickersAndBidsAsks (methodName, client: Client, message) {
