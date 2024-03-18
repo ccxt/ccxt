@@ -4433,7 +4433,7 @@ export default class Exchange {
         return result;
     }
 
-    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue: string = 'spot'): any {
+    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue: Str = 'spot'): any {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', defaultValue);
         const methodOptions = this.safeDict (this.options, methodName);
         let methodType = defaultType;
