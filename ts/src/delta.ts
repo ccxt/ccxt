@@ -499,13 +499,31 @@ export default class delta extends Exchange {
         const markets = await super.loadMarkets (reload, params);
         const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId');
         if ((currenciesByNumericId === undefined) || reload) {
-            this.options['currenciesByNumericId'] = this.indexBy (this.currencies, 'numericId');
+            this.options['currenciesByNumericId'] = this.indexByStringifiedNumericId (this.currencies);
         }
         const marketsByNumericId = this.safeValue (this.options, 'marketsByNumericId');
         if ((marketsByNumericId === undefined) || reload) {
-            this.options['marketsByNumericId'] = this.indexBy (this.markets, 'numericId');
+            this.options['marketsByNumericId'] = this.indexByStringifiedNumericId (this.markets);
         }
         return markets;
+    }
+
+    indexByStringifiedNumericId (input) {
+        const result = {};
+        if (input === undefined) {
+            return undefined;
+        }
+        const keys = Object.keys (input);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const item = input[key];
+            const numericIdString = this.safeString (item, 'numericId');
+            if (numericIdString === undefined) {
+                continue;
+            }
+            result[numericIdString] = item;
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -2292,7 +2310,7 @@ export default class delta extends Exchange {
             direction = 'out';
         }
         type = this.parseLedgerEntryType (type);
-        const currencyId = this.safeInteger (item, 'asset_id');
+        const currencyId = this.safeString (item, 'asset_id');
         const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId');
         currency = this.safeValue (currenciesByNumericId, currencyId, currency);
         const code = (currency === undefined) ? undefined : currency['code'];
