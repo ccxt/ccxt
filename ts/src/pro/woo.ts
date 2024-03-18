@@ -440,8 +440,9 @@ export default class woo extends wooRest {
         const client = this.client (url);
         const messageHash = 'authenticated';
         const event = 'auth';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const ts = this.nonce ().toString ();
             const auth = '|' + ts;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
@@ -454,10 +455,9 @@ export default class woo extends wooRest {
                 },
             };
             const message = this.extend (request, params);
-            future = this.watch (url, messageHash, message, messageHash);
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     async watchPrivate (messageHash, message, params = {}) {
