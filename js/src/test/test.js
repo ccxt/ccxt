@@ -448,27 +448,38 @@ export default class testMainClass extends baseMainTestClass {
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
-                        let shouldFail = false;
-                        // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                        if ((e instanceof ExchangeNotAvailable) && !(e instanceof OnMaintenance)) {
-                            shouldFail = true;
-                        }
-                        // if it's `loadMarkets` call (which is main request), then don't return the test as passed, because it's mandatory and we should fail the test
-                        else if (isLoadMarkets) {
-                            shouldFail = true;
-                        }
-                        else {
-                            shouldFail = false;
-                        }
-                        // final step
-                        if (shouldFail) {
-                            dump('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
-                            return false;
+                        const isOnMaintenance = (e instanceof OnMaintenance);
+                        const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
+                        let shouldFail = undefined;
+                        let returnSuccess = undefined;
+                        if (isLoadMarkets) {
+                            // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
+                            returnSuccess = false;
+                            // we might not break exchange tests, if exchange is on maintenance at this moment
+                            if (isOnMaintenance) {
+                                shouldFail = false;
+                            }
+                            else {
+                                shouldFail = true;
+                            }
                         }
                         else {
-                            dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
-                            return true;
+                            // for any other method tests:
+                            if (isExchangeNotAvailable && !isOnMaintenance) {
+                                // break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
+                                shouldFail = true;
+                                returnSuccess = false;
+                            }
+                            else {
+                                // in all other cases of OperationFailed, show Warning, but don't mark test as failed
+                                shouldFail = false;
+                                returnSuccess = true;
+                            }
                         }
+                        // output the message
+                        const failType = shouldFail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
+                        dump(failType, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
+                        return returnSuccess;
                     }
                     else {
                         // wait and retry again

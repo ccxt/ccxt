@@ -56,7 +56,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
                 'ordersLimit' => 1000,
                 'myTradesLimit' => 1000,
             ),
-            'errors' => array(
+            'exceptions' => array(
                 'exact' => array(
                     'Unable to authenticate' => '\\ccxt\\AuthenticationError',
                 ),

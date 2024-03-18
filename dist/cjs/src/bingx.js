@@ -124,6 +124,7 @@ class bingx extends bingx$1 {
                     'v1': {
                         'public': {
                             'get': {
+                                'server/time': 3,
                                 'common/symbols': 3,
                                 'market/trades': 3,
                                 'market/depth': 3,
@@ -147,6 +148,7 @@ class bingx extends bingx$1 {
                                 'trade/order/cancelReplace': 3,
                                 'trade/cancelOrders': 3,
                                 'trade/cancelOpenOrders': 3,
+                                'trade/cancelAllAfter': 1,
                             },
                         },
                     },
@@ -1809,15 +1811,18 @@ class bingx extends bingx$1 {
             request[exchangeClientOrderId] = clientOrderId;
         }
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
-        if (timeInForce === 'IOC') {
+        [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'PostOnly', params);
+        if (postOnly || (timeInForce === 'PostOnly')) {
+            request['timeInForce'] = 'PostOnly';
+        }
+        else if (timeInForce === 'IOC') {
             request['timeInForce'] = 'IOC';
+        }
+        else if (timeInForce === 'GTC') {
+            request['timeInForce'] = 'GTC';
         }
         const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         if (isSpot) {
-            [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'POC', params);
-            if (postOnly || (timeInForce === 'POC')) {
-                request['timeInForce'] = 'POC';
-            }
             const cost = this.safeNumber2(params, 'cost', 'quoteOrderQty');
             params = this.omit(params, 'cost');
             if (cost !== undefined) {
@@ -1850,14 +1855,7 @@ class bingx extends bingx$1 {
             }
         }
         else {
-            [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'PostOnly', params);
-            if (postOnly || (timeInForce === 'PostOnly')) {
-                request['timeInForce'] = 'PostOnly';
-            }
-            else if (timeInForce === 'GTC') {
-                request['timeInForce'] = 'GTC';
-            }
-            else if (timeInForce === 'FOK') {
+            if (timeInForce === 'FOK') {
                 request['timeInForce'] = 'FOK';
             }
             const stopLossPrice = this.safeString(params, 'stopLossPrice');
@@ -1985,7 +1983,7 @@ class bingx extends bingx$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] a unique id for the order
          * @param {bool} [params.postOnly] true to place a post only order
-         * @param {string} [params.timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+         * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
          * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
          * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price

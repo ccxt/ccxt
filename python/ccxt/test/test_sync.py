@@ -496,21 +496,32 @@ class testMainClass(baseMainTestClass):
                 if is_operation_failed:
                     # if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if i == max_retries - 1:
-                        should_fail = False
-                        # we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                        if (isinstance(e, ExchangeNotAvailable)) and not (isinstance(e, OnMaintenance)):
-                            should_fail = True
-                        elif is_load_markets:
-                            should_fail = True
+                        is_on_maintenance = (isinstance(e, OnMaintenance))
+                        is_exchange_not_available = (isinstance(e, ExchangeNotAvailable))
+                        should_fail = None
+                        return_success = None
+                        if is_load_markets:
+                            # if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
+                            return_success = False
+                            # we might not break exchange tests, if exchange is on maintenance at this moment
+                            if is_on_maintenance:
+                                should_fail = False
+                            else:
+                                should_fail = True
                         else:
-                            should_fail = False
-                        # final step
-                        if should_fail:
-                            dump('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', self.exchange_hint(exchange), method_name, args_stringified, exception_message(e))
-                            return False
-                        else:
-                            dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', self.exchange_hint(exchange), method_name, args_stringified, exception_message(e))
-                            return True
+                            # for any other method tests:
+                            if is_exchange_not_available and not is_on_maintenance:
+                                # break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
+                                should_fail = True
+                                return_success = False
+                            else:
+                                # in all other cases of OperationFailed, show Warning, but don't mark test as failed
+                                should_fail = False
+                                return_success = True
+                        # output the message
+                        fail_type = '[TEST_FAILURE]' if should_fail else '[TEST_WARNING]'
+                        dump(fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', self.exchange_hint(exchange), method_name, args_stringified, exception_message(e))
+                        return return_success
                     else:
                         # wait and retry again
                         # (increase wait time on every retry)
