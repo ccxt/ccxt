@@ -1592,11 +1592,10 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = this.initOfflineExchange ('kucoinfutures');
         let reqHeaders = undefined;
         const id = 'ccxtfutures';
-        const optionsString = exchange.options['partner']['future'].toString ();
         const futureId = exchange.options['partner']['future']['id'];
         const futureKey = exchange.options['partner']['future']['key'];
-        assert (futureId === id, 'kucoinfutures - id: ' + futureId + ' not in options: ' + optionsString);
-        assert (futureKey === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + futureKey + ' not in options: ' + optionsString);
+        assert (futureId === id, 'kucoinfutures - id: ' + futureId + ' not in options.');
+        assert (futureKey === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + futureKey + ' not in options.');
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
