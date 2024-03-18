@@ -4010,6 +4010,7 @@ class gate(Exchange, ImplicitAPI):
             'failed': 'canceled',
             'expired': 'canceled',
             'finished': 'closed',
+            'finish': 'closed',
             'succeeded': 'closed',
         }
         return self.safe_string(statuses, status, status)
@@ -5720,6 +5721,7 @@ class gate(Exchange, ImplicitAPI):
         :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
         :param int [limit]: default 30
         :param dict [params]: exchange specific parameters
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
         """
         self.load_markets()

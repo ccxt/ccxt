@@ -353,6 +353,7 @@ class bitmart extends Exchange {
                     '70000' => '\\ccxt\\ExchangeError', // 200, no data
                     '70001' => '\\ccxt\\BadRequest', // 200, request param can not be null
                     '70002' => '\\ccxt\\BadSymbol', // 200, symbol is invalid
+                    '70003' => '\\ccxt\\NetworkError', // array("code":70003,"trace":"81a9d57b63be4819b65d3065e6a4682b.105.17105295323593915","message":"net error, please try later","data":null)
                     '71001' => '\\ccxt\\BadRequest', // 200, after is invalid
                     '71002' => '\\ccxt\\BadRequest', // 200, before is invalid
                     '71003' => '\\ccxt\\BadRequest', // 200, request after or before is invalid

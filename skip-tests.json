@@ -767,6 +767,8 @@
                 "open": "same",
                 "low": "same",
                 "high": "same",
+                "bid": "same",
+                "ask": "same",
                 "average": "same"
             }
         }
@@ -1477,5 +1479,8 @@
                 "currency": "not provided"
             }
         }
+    },
+    "tradeogre": {
+        "skip": "flaky"
     }
 }

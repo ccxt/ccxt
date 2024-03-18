@@ -6795,6 +6795,7 @@ export default class htx extends Exchange {
          * @param {int} [since] not used by huobi, but filtered internally by ccxt
          * @param {int} [limit] not used by huobi, but filtered internally by ccxt
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
         if (symbol === undefined) {

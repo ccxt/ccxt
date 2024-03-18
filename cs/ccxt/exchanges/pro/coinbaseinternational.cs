@@ -51,7 +51,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
                 { "ordersLimit", 1000 },
                 { "myTradesLimit", 1000 },
             } },
-            { "errors", new Dictionary<string, object>() {
+            { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "Unable to authenticate", typeof(AuthenticationError) },
                 } },

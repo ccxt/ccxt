@@ -2586,7 +2586,7 @@ class kraken(Exchange, ImplicitAPI):
         # todo unify parsePosition/parsePositions
         return result
 
-    def parse_account(self, account):
+    def parse_account_type(self, account):
         accountByType = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',
@@ -2618,8 +2618,8 @@ class kraken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        fromAccount = self.parse_account(fromAccount)
-        toAccount = self.parse_account(toAccount)
+        fromAccount = self.parse_account_type(fromAccount)
+        toAccount = self.parse_account_type(toAccount)
         request = {
             'amount': self.currency_to_precision(code, amount),
             'from': fromAccount,

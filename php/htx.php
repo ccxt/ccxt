@@ -3036,7 +3036,7 @@ class htx extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6555,6 +6555,7 @@ class htx extends Exchange {
          * @param {int} [$since] not used by huobi, but filtered internally by ccxt
          * @param {int} [$limit] not used by huobi, but filtered internally by ccxt
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
