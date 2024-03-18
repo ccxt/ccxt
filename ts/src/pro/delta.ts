@@ -149,8 +149,6 @@ export default class delta extends deltaRest {
          * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const marketIds = this.marketIds (symbols);
         const subscriptionHash = 'v2/ticker';
         const messageHash = 'tickers';
         const request = {
@@ -159,16 +157,12 @@ export default class delta extends deltaRest {
                 'channels': [
                     {
                         'name': subscriptionHash,
-                        'symbols': marketIds,
                     },
                 ],
             },
         };
-        const newTickers = await this.watchMany (messageHash, request, subscriptionHash, symbols, params);
-        if (this.newUpdates) {
-            return newTickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        const tickers = await this.watchMany (messageHash, request, subscriptionHash, symbols, params);
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
@@ -205,7 +199,7 @@ export default class delta extends deltaRest {
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
         this.tickers[symbol] = this.parseTicker (message);
-        client.resolve (this.tickers[symbol], 'ticker.' + symbol);
+        client.resolve (this.tickers[symbol], symbol);
         client.resolve (this.tickers, 'tickers');
     }
 
@@ -381,17 +375,15 @@ export default class delta extends deltaRest {
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const timeframe = this.findTimeframe (timeframeId);
-        const ohlcvsBySymbol = this.safeDict (this.ohlcvs, symbol);
-        if (ohlcvsBySymbol === undefined) {
+        if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (stored === undefined) {
+        if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
         const parsed = this.parseWsOHLCV (message, market);
+        const stored = this.ohlcvs[symbol][timeframe];
         stored.push (parsed);
         const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
         client.resolve (stored, messageHash);
@@ -403,10 +395,9 @@ export default class delta extends deltaRest {
         return result;
     }
 
-    async watchMany (messageHash, request, subscriptionHash, symbols: Strings = [], params = {}) {
+    async watchMany (messageHash, request, subscriptionHash, symbols = undefined, params = {}) {
         let marketIds = [];
-        const numSymbols = symbols.length;
-        if (numSymbols === 0) {
+        if (symbols === undefined) {
             marketIds = Object.keys (this.markets_by_id);
         } else {
             marketIds = this.marketIds (symbols);
@@ -432,7 +423,6 @@ export default class delta extends deltaRest {
             const marketId = marketIds[i];
             subscription[marketId] = true;
         }
-        request['type'] = 'subscribe';
         request['payload']['channels'][0]['symbols'] = Object.keys (subscription);
         return await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscription);
     }
