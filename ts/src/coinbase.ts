@@ -1339,7 +1339,7 @@ export default class coinbase extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.fetchCurrenciesFromCache (params);
-        const currencies = this.safeDict (response, 'currencies', {});
+        const currencies = this.safeList (response, 'currencies', []);
         //
         // fiat
         //
