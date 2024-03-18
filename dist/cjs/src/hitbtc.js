@@ -315,6 +315,7 @@ class hitbtc extends hitbtc$1 {
                     '2012': errors.BadRequest,
                     '2020': errors.BadRequest,
                     '2022': errors.BadRequest,
+                    '2024': errors.InvalidOrder,
                     '10001': errors.BadRequest,
                     '10021': errors.AccountSuspended,
                     '10022': errors.BadRequest,
@@ -332,6 +333,7 @@ class hitbtc extends hitbtc$1 {
                     '20012': errors.ExchangeError,
                     '20014': errors.ExchangeError,
                     '20016': errors.ExchangeError,
+                    '20018': errors.ExchangeError,
                     '20031': errors.ExchangeError,
                     '20032': errors.ExchangeError,
                     '20033': errors.ExchangeError,
@@ -342,10 +344,15 @@ class hitbtc extends hitbtc$1 {
                     '20043': errors.ExchangeError,
                     '20044': errors.PermissionDenied,
                     '20045': errors.InvalidOrder,
+                    '20047': errors.InvalidOrder,
+                    '20048': errors.InvalidOrder,
+                    '20049': errors.InvalidOrder,
                     '20080': errors.ExchangeError,
                     '21001': errors.ExchangeError,
                     '21003': errors.AccountSuspended,
                     '21004': errors.AccountSuspended,
+                    '22004': errors.ExchangeError,
+                    '22008': errors.ExchangeError, // Gateway timeout exceeded.
                 },
                 'broad': {},
             },
@@ -1721,10 +1728,10 @@ class hitbtc extends hitbtc$1 {
             'symbol': market['id'],
             'period': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        [request, params] = this.handleUntilOption('till', request, params);
         if (since !== undefined) {
             request['from'] = this.iso8601(since);
         }
+        [request, params] = this.handleUntilOption('till', request, params);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2517,7 +2524,7 @@ class hitbtc extends hitbtc$1 {
          * @see https://api.hitbtc.com/#get-futures-position-parameters
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} Struct of MarginMode
+         * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -2699,7 +2706,7 @@ class hitbtc extends hitbtc$1 {
         if ((network !== undefined) && (code === 'USDT')) {
             const parsedNetwork = this.safeString(networks, network);
             if (parsedNetwork !== undefined) {
-                request['currency'] = parsedNetwork;
+                request['network_code'] = parsedNetwork;
             }
             params = this.omit(params, 'network');
         }
@@ -3399,7 +3406,18 @@ class hitbtc extends hitbtc$1 {
         //         ]
         //     }
         //
-        return this.safeNumber(response, 'leverage');
+        return this.parseLeverage(response, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        const leverageValue = this.safeInteger(leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': this.safeStringLower(leverage, 'type'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         /**

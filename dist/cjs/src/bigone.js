@@ -1541,7 +1541,11 @@ class bigone extends bigone$1 {
             }
         }
         request['type'] = uppercaseType;
-        params = this.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce']);
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        params = this.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId']);
         const response = await this.privatePostOrders(this.extend(request, params));
         //
         //    {
@@ -1822,7 +1826,7 @@ class bigone extends bigone$1 {
             }
             else if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
-                body = query;
+                body = this.json(query);
             }
         }
         headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;

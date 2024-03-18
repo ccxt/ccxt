@@ -56,7 +56,7 @@ class bitmex extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
-                'fetchLeverage' => true,
+                'fetchLeverage' => 'emulated',
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => true,
@@ -1493,7 +1493,7 @@ class bitmex extends Exchange {
             $request['endTime'] = $this->iso8601($until);
         }
         $duration = $this->parse_timeframe($timeframe) * 1000;
-        $fetchOHLCVOpenTimestamp = $this->safe_value($this->options, 'fetchOHLCVOpenTimestamp', true);
+        $fetchOHLCVOpenTimestamp = $this->safe_bool($this->options, 'fetchOHLCVOpenTimestamp', true);
         // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
             $timestamp = $since;
@@ -2087,42 +2087,28 @@ class bitmex extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()) {
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the set leverage for all contract markets
          * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
-         * @param {string[]} [$symbols] a list of unified $market $symbols
+         * @param {string[]} [$symbols] a list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
          */
         $this->load_markets();
-        $positions = $this->fetch_positions($symbols, $params);
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $entry = $positions[$i];
-            $marketId = $this->safe_string($entry, 'symbol');
-            $market = $this->safe_market($marketId, null, null, 'contract');
-            $result[] = array(
-                'info' => $entry,
-                'symbol' => $market['symbol'],
-                'leverage' => $this->safe_integer($entry, 'leverage'),
-                'marginMode' => $this->safe_string($entry, 'marginMode'),
-            );
-        }
-        return $result;
+        $leverages = $this->fetch_positions($symbols, $params);
+        return $this->parse_leverages($leverages, $symbols, 'symbol');
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
-        /**
-         * fetch the set $leverage for a market
-         * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
-         * @param {string} $symbol unified market $symbol
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$leverage-structure $leverage structure~
-         */
-        $this->load_markets();
-        $leverage = $this->fetch_leverages(array( $symbol ), $params);
-        return $leverage;
+    public function parse_leverage($leverage, $market = null): array {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'marginMode'),
+            'longLeverage' => $this->safe_integer($leverage, 'leverage'),
+            'shortLeverage' => $this->safe_integer($leverage, 'leverage'),
+        );
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {
@@ -2527,7 +2513,9 @@ class bitmex extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $this->iso8601($until);
         }
-        $request['reverse'] = true;
+        if (($since === null) && ($until === null)) {
+            $request['reverse'] = true;
+        }
         $response = $this->publicGetFunding (array_merge($request, $params));
         //
         //    array(

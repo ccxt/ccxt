@@ -56,11 +56,11 @@ interface Exchange {
     v3PrivateGetBrokerageProductsProductId(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageProductsProductIdCandles(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageProductsProductIdTicker(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageBestBidAsk(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageProductBook(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageTransactionSummary(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokeragePortfolios(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokeragePortfoliosPortfolioUuid(params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetBrokerageTransactionSummary(params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetBrokerageProductBook(params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetBrokerageBestBidAsk(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageConvertTradeTradeId(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageCfmBalanceSummary(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageCfmPositions(params?: {}): Promise<implicitReturnType>;
@@ -69,6 +69,8 @@ interface Exchange {
     v3PrivateGetBrokerageIntxPortfolioPortfolioUuid(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageIntxPositionsPortfolioUuid(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokeragePaymentMethods(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrders(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersBatchCancel(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEdit(params?: {}): Promise<implicitReturnType>;

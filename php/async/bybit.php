@@ -85,6 +85,7 @@ class bybit extends Exchange {
                 'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
+                'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -3765,8 +3766,8 @@ class bybit extends Exchange {
             $market = $this->market($symbols[0]);
             $category = null;
             list($category, $params) = $this->get_bybit_type('createOrders', $market, $params);
-            if (($category === 'spot') || ($category === 'inverse')) {
-                throw new NotSupported($this->id . ' createOrders does not allow spot or inverse orders');
+            if ($category === 'inverse') {
+                throw new NotSupported($this->id . ' createOrders does not allow inverse orders');
             }
             $request = array(
                 'category' => $category,
@@ -3826,7 +3827,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function create_usdc_order($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_usdc_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4241,6 +4242,88 @@ class bybit extends Exchange {
             //
             $result = $this->safe_value($response, 'result', array());
             return $this->parse_order($result, $market);
+        }) ();
+    }
+
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+             * @param {string[]} $ids order $ids
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string[]} [$params->clientOrderIds] client order $ids
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $category = null;
+            list($category, $params) = $this->get_bybit_type('cancelOrders', $market, $params);
+            if ($category === 'inverse') {
+                throw new NotSupported($this->id . ' cancelOrders does not allow inverse orders');
+            }
+            $ordersRequests = array();
+            $clientOrderIds = $this->safe_list_2($params, 'clientOrderIds', 'clientOids', array());
+            $params = $this->omit($params, array( 'clientOrderIds', 'clientOids' ));
+            for ($i = 0; $i < count($clientOrderIds); $i++) {
+                $ordersRequests[] = array(
+                    'symbol' => $market['id'],
+                    'orderLinkId' => $this->safe_string($clientOrderIds, $i),
+                );
+            }
+            for ($i = 0; $i < count($ids); $i++) {
+                $ordersRequests[] = array(
+                    'symbol' => $market['id'],
+                    'orderId' => $this->safe_string($ids, $i),
+                );
+            }
+            $request = array(
+                'category' => $category,
+                'request' => $ordersRequests,
+            );
+            $response = Async\await($this->privatePostV5OrderCancelBatch (array_merge($request, $params)));
+            //
+            //     {
+            //         "retCode" => "0",
+            //         "retMsg" => "OK",
+            //         "result" => {
+            //             "list" => array(
+            //                 array(
+            //                     "category" => "spot",
+            //                     "symbol" => "BTCUSDT",
+            //                     "orderId" => "1636282505818800896",
+            //                     "orderLinkId" => "1636282505818800897"
+            //                 ),
+            //                 array(
+            //                     "category" => "spot",
+            //                     "symbol" => "BTCUSDT",
+            //                     "orderId" => "1636282505818800898",
+            //                     "orderLinkId" => "1636282505818800899"
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => {
+            //             "list" => array(
+            //                 array(
+            //                     "code" => "0",
+            //                     "msg" => "OK"
+            //                 ),
+            //                 array(
+            //                     "code" => "0",
+            //                     "msg" => "OK"
+            //                 }
+            //             )
+            //         ),
+            //         "time" => "1709796158501"
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            $row = $this->safe_list($result, 'list', array());
+            return $this->parse_orders($row, $market);
         }) ();
     }
 
@@ -6350,23 +6433,32 @@ class bybit extends Exchange {
         ));
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * fetch the set leverage for a market
+             * fetch the set leverage for a $market
              * @see https://bybit-exchange.github.io/docs/v5/position
-             * @param {string} $symbol unified market $symbol
+             * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
              */
             Async\await($this->load_markets());
+            $market = $this->market($symbol);
             $position = Async\await($this->fetch_position($symbol, $params));
-            return array(
-                'info' => $position,
-                'leverage' => $this->safe_integer($position, 'leverage'),
-                'marginMode' => $this->safe_number($position, 'marginMode'),
-            );
+            return $this->parse_leverage($position, $market);
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): array {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'marginMode'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
@@ -7193,37 +7285,6 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
-        //
-        //     {
-        //         "id" => 1,
-        //         "symbol" => "BTCUSD",
-        //         "riskLimitValue" => "150",
-        //         "maintenanceMargin" => "0.5",
-        //         "initialMargin" => "1",
-        //         "isLowestRisk" => 1,
-        //         "maxLeverage" => "100.00"
-        //     }
-        //
-        $minNotional = 0;
-        $tiers = array();
-        for ($i = 0; $i < count($info); $i++) {
-            $item = $info[$i];
-            $maxNotional = $this->safe_number($item, 'riskLimitValue');
-            $tiers[] = array(
-                'tier' => $this->sum($i, 1),
-                'currency' => $market['base'],
-                'minNotional' => $minNotional,
-                'maxNotional' => $maxNotional,
-                'maintenanceMarginRate' => $this->safe_number($item, 'maintenanceMargin'),
-                'maxLeverage' => $this->safe_number($item, 'maxLeverage'),
-                'info' => $item,
-            );
-            $minNotional = $maxNotional;
-        }
-        return $tiers;
-    }
-
     public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
@@ -7233,7 +7294,8 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($fee, 'symbol');
-        $symbol = $this->safe_symbol($marketId, null, null, 'contract');
+        $defaultType = ($market !== null) ? $market['type'] : 'contract';
+        $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
         return array(
             'info' => $fee,
             'symbol' => $symbol,
@@ -7253,12 +7315,20 @@ class bybit extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if ($market['spot']) {
-                throw new NotSupported($this->id . ' fetchTradingFee() is not supported for spot market');
-            }
             $request = array(
                 'symbol' => $market['id'],
             );
+            $category = null;
+            if ($market['linear']) {
+                $category = 'linear';
+            } elseif ($market['inverse']) {
+                $category = 'inverse';
+            } elseif ($market['spot']) {
+                $category = 'spot';
+            } else {
+                $category = 'option';
+            }
+            $request['category'] = $category;
             $response = Async\await($this->privateGetV5AccountFeeRate (array_merge($request, $params)));
             //
             //     {
@@ -7280,7 +7350,7 @@ class bybit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $fees = $this->safe_value($result, 'list', array());
             $first = $this->safe_value($fees, 0, array());
-            return $this->parse_trading_fee($first);
+            return $this->parse_trading_fee($first, $market);
         }) ();
     }
 
@@ -7929,6 +7999,98 @@ class bybit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
+             * retrieve information on the maximum leverage, for different trade sizes
+             * @param {string[]} [$symbols] a list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] $market $subType, ['linear', 'inverse'], default is 'linear'
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by $market $symbols
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbols !== null) {
+                $market = $this->market($symbols[0]);
+                if ($market['spot']) {
+                    throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported for spot market');
+                }
+            }
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
+            $request = array(
+                'category' => $subType,
+            );
+            $response = Async\await($this->publicGetV5MarketRiskLimit (array_merge($request, $params)));
+            $result = $this->safe_dict($response, 'result', array());
+            $data = $this->safe_list($result, 'list', array());
+            $symbols = $this->market_symbols($symbols);
+            return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+        }) ();
+    }
+
+    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
+        //
+        //  array(
+        //      {
+        //          "id" => 1,
+        //          "symbol" => "BTCUSD",
+        //          "riskLimitValue" => "150",
+        //          "maintenanceMargin" => "0.5",
+        //          "initialMargin" => "1",
+        //          "isLowestRisk" => 1,
+        //          "maxLeverage" => "100.00"
+        //      }
+        //  )
+        //
+        $tiers = array();
+        $marketIds = $this->market_ids($symbols);
+        $filteredResults = $this->filter_by_array($response, $marketIdKey, $marketIds, false);
+        $grouped = $this->group_by($filteredResults, $marketIdKey);
+        $keys = is_array($grouped) ? array_keys($grouped) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $marketId = $keys[$i];
+            $entry = $grouped[$marketId];
+            $market = $this->safe_market($marketId, null, null, 'contract');
+            $symbol = $market['symbol'];
+            $tiers[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
+        }
+        return $tiers;
+    }
+
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
+        //
+        //  array(
+        //      {
+        //          "id" => 1,
+        //          "symbol" => "BTCUSD",
+        //          "riskLimitValue" => "150",
+        //          "maintenanceMargin" => "0.5",
+        //          "initialMargin" => "1",
+        //          "isLowestRisk" => 1,
+        //          "maxLeverage" => "100.00"
+        //      }
+        //  )
+        //
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $info[$i];
+            $marketId = $this->safe_string($info, 'symbol');
+            $market = $this->safe_market($marketId);
+            $tiers[] = array(
+                'tier' => $this->safe_integer($tier, 'id'),
+                'currency' => $market['settle'],
+                'minNotional' => null,
+                'maxNotional' => null,
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMargin'),
+                'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
+                'info' => $tier,
+            );
+        }
+        return $tiers;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

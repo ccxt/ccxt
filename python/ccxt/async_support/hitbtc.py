@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, MarginMode, MarginModes, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, MarginModes, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -332,6 +332,7 @@ class hitbtc(Exchange, ImplicitAPI):
                     '2012': BadRequest,
                     '2020': BadRequest,
                     '2022': BadRequest,
+                    '2024': InvalidOrder,  # Invalid margin mode.
                     '10001': BadRequest,
                     '10021': AccountSuspended,
                     '10022': BadRequest,
@@ -349,6 +350,7 @@ class hitbtc(Exchange, ImplicitAPI):
                     '20012': ExchangeError,
                     '20014': ExchangeError,
                     '20016': ExchangeError,
+                    '20018': ExchangeError,  # Withdrawals are unavailable due to the current configuration. Any of: - internal withdrawals are disabled; - in-chain withdrawals are disabled.
                     '20031': ExchangeError,
                     '20032': ExchangeError,
                     '20033': ExchangeError,
@@ -359,10 +361,15 @@ class hitbtc(Exchange, ImplicitAPI):
                     '20043': ExchangeError,
                     '20044': PermissionDenied,
                     '20045': InvalidOrder,
+                    '20047': InvalidOrder,  # Order placing exceeds the central counterparty balance limit.
+                    '20048': InvalidOrder,  # Provided Time-In-Force instruction is invalid or the combination of the instruction and the order type is not allowed.
+                    '20049': InvalidOrder,  # Provided order type is invalid.
                     '20080': ExchangeError,
                     '21001': ExchangeError,
                     '21003': AccountSuspended,
                     '21004': AccountSuspended,
+                    '22004': ExchangeError,  # User is not found.
+                    '22008': ExchangeError,  # Gateway timeout exceeded.
                 },
                 'broad': {},
             },
@@ -1646,9 +1653,9 @@ class hitbtc(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        request, params = self.handle_until_option('till', request, params)
         if since is not None:
             request['from'] = self.iso8601(since)
+        request, params = self.handle_until_option('till', request, params)
         if limit is not None:
             request['limit'] = limit
         price = self.safe_string(params, 'price')
@@ -2078,7 +2085,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' cancelOrder() not support self market type')
         return self.parse_order(response, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         await self.load_markets()
         market = None
         request = {
@@ -2110,7 +2117,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' editOrder() not support self market type')
         return self.parse_order(response, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://api.hitbtc.com/#create-new-spot-order
@@ -2146,7 +2153,7 @@ class hitbtc(Exchange, ImplicitAPI):
             response = await self.privatePostSpotOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def create_order_request(self, market: object, marketType: str, type: OrderType, side: OrderSide, amount, price=None, marginMode: Str = None, params={}):
+    def create_order_request(self, market: object, marketType: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, marginMode: Str = None, params={}):
         isLimit = (type == 'limit')
         reduceOnly = self.safe_value(params, 'reduceOnly')
         timeInForce = self.safe_string(params, 'timeInForce')
@@ -2339,7 +2346,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :see: https://api.hitbtc.com/#get-futures-position-parameters
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: Struct of MarginMode
+        :returns dict: a list of `margin mode structures <https://docs.ccxt.com/#/?id=margin-mode-structure>`
         """
         await self.load_markets()
         market = None
@@ -2508,7 +2515,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if (network is not None) and (code == 'USDT'):
             parsedNetwork = self.safe_string(networks, network)
             if parsedNetwork is not None:
-                request['currency'] = parsedNetwork
+                request['network_code'] = parsedNetwork
             params = self.omit(params, 'network')
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
         includeFee = self.safe_bool(withdrawOptions, 'includeFee', False)
@@ -3086,7 +3093,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
-    async def fetch_leverage(self, symbol: str, params={}):
+    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
         :see: https://api.hitbtc.com/#get-futures-margin-account
@@ -3147,7 +3154,18 @@ class hitbtc(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        return self.safe_number(response, 'leverage')
+        return self.parse_leverage(response, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'symbol')
+        leverageValue = self.safe_integer(leverage, 'leverage')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': self.safe_string_lower(leverage, 'type'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
 
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """

@@ -845,7 +845,7 @@ export default class gate extends gateRest {
         const client = this.client (url);
         this.setPositionsCache (client, type, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.safeValue (this.positions, type);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             return await client.future (type + ':fetchPositionsSnapshot');

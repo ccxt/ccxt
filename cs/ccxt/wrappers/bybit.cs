@@ -485,7 +485,7 @@ public partial class bybit
         var res = await this.createOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<Order> CreateUsdcOrder(object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateUsdcOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createUsdcOrder(symbol, type, side, amount, price, parameters);
@@ -604,6 +604,26 @@ public partial class bybit
     {
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
+    }
+    /// <summary>
+    /// cancel multiple orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/order/batch-cancel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     public async Task<Dictionary<string, object>> CancelAllUsdcOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
@@ -1555,10 +1575,10 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Int64> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);
-        return (Int64)res;
+        return new Leverage(res);
     }
     /// <summary>
     /// set margin mode (account) or trade mode (symbol)
@@ -2124,5 +2144,31 @@ public partial class bybit
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyLiquidations(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    /// <summary>
+    /// retrieve information on the maximum leverage, for different trade sizes
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/market/risk-limit"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : market subType, ['linear', 'inverse'], default is 'linear'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
+    public async Task<Dictionary<string, object>> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverageTiers(symbols, parameters);
+        return ((Dictionary<string, object>)res);
     }
 }

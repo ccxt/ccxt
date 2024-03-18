@@ -72,7 +72,8 @@ class coinex extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => true,
                 'fetchIsolatedBorrowRates' => true,
-                'fetchLeverage' => false,
+                'fetchLeverage' => 'emulated',
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
@@ -129,7 +130,7 @@ class coinex extends Exchange {
                     'perpetualPrivate' => 'https://api.coinex.com/perpetual',
                 ),
                 'www' => 'https://www.coinex.com',
-                'doc' => 'https://github.com/coinexcom/coinex_exchange_api/wiki',
+                'doc' => 'https://viabtc.github.io/coinex_api_en_doc',
                 'fees' => 'https://www.coinex.com/fees',
                 'referral' => 'https://www.coinex.com/register?refer_code=yw5fz',
             ),
@@ -343,6 +344,7 @@ class coinex extends Exchange {
                 ),
                 'broad' => array(
                     'ip not allow visit' => '\\ccxt\\PermissionDenied',
+                    'service too busy' => '\\ccxt\\ExchangeNotAvailable',
                 ),
             ),
         ));
@@ -1945,7 +1947,7 @@ class coinex extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order_request($symbol, $type, $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $swap = $market['swap'];
         $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
@@ -4519,7 +4521,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer
@@ -5061,7 +5063,7 @@ class coinex extends Exchange {
     public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
-         * @see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account017_margin_loan
          * @param {string} $symbol unified $market $symbol, required for coinex
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
@@ -5097,7 +5099,7 @@ class coinex extends Exchange {
     public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
         /**
          * repay borrowed margin and interest
-         * @see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account018_margin_flat
          * @param {string} $symbol unified $market $symbol, required for coinex
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
@@ -5248,6 +5250,65 @@ class coinex extends Exchange {
             $depositWithdrawFees[$code] = $this->assign_default_deposit_withdraw_fees($depositWithdrawFees[$code], $currency);
         }
         return $depositWithdrawFees;
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetch the set leverage for all contract and margin markets
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+         * @param {string[]} [$symbols] a list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $market = null;
+        if ($symbols !== null) {
+            $symbol = $this->safe_value($symbols, 0);
+            $market = $this->market($symbol);
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchLeverages', $market, $params);
+        if ($marketType !== 'spot') {
+            throw new NotSupported($this->id . ' fetchLeverages() supports spot margin markets only');
+        }
+        $response = $this->privateGetMarginConfig ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             {
+        //                 "market" => "BTCUSDT",
+        //                 "leverage" => 10,
+        //                 "BTC" => array(
+        //                     "min_amount" => "0.0008",
+        //                     "max_amount" => "200",
+        //                     "day_rate" => "0.0015"
+        //                 ),
+        //                 "USDT" => array(
+        //                     "min_amount" => "50",
+        //                     "max_amount" => "500000",
+        //                     "day_rate" => "0.001"
+        //                 }
+        //             ),
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $leverages = $this->safe_list($response, 'data', array());
+        return $this->parse_leverages($leverages, $symbols, 'market', $marketType);
+    }
+
+    public function parse_leverage($leverage, $market = null): array {
+        $marketId = $this->safe_string($leverage, 'market');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'spot'),
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {

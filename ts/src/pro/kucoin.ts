@@ -510,7 +510,7 @@ export default class kucoin extends kucoinRest {
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false);
-        let method: string = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', '/market/level2');
         if ((limit === 5) || (limit === 50)) {
             method = '/spotMarket/level2Depth' + limit.toString ();

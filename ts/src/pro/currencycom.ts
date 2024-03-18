@@ -200,7 +200,7 @@ export default class currencycom extends currencycomRest {
         };
     }
 
-    handleTrades (client: Client, message, subscription) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         "status": "OK",

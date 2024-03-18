@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -485,6 +485,7 @@ class htx(Exchange, ImplicitAPI):
                             'v2/sub-user/api-key-modification': 1,
                             'v2/sub-user/api-key-deletion': 1,
                             'v1/subuser/transfer': 10,
+                            'v1/trust/user/active/credit': 10,
                             # Trading
                             'v1/order/orders/place': 0.2,
                             'v1/order/batch-orders': 0.4,
@@ -965,6 +966,9 @@ class htx(Exchange, ImplicitAPI):
                             'inverse': True,
                         },
                     },
+                },
+                'fetchOHLCV': {
+                    'useHistoricalEndpointForSpot': True,
                 },
                 'withdraw': {
                     'includeFee': False,
@@ -2506,7 +2510,9 @@ class htx(Exchange, ImplicitAPI):
         amountString = self.safe_string(trade, 'trade_volume', amountString)
         costString = self.safe_string(trade, 'trade_turnover')
         fee = None
-        feeCost = self.safe_string_2(trade, 'filled-fees', 'trade_fee')
+        feeCost = self.safe_string(trade, 'filled-fees')
+        if feeCost is None:
+            feeCost = Precise.string_neg(self.safe_string(trade, 'trade_fee'))
         feeCurrencyId = self.safe_string_2(trade, 'fee-currency', 'fee_asset')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         filledPoints = self.safe_string(trade, 'filled-points')
@@ -2825,6 +2831,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.useHistoricalEndpointForSpot]: True/false - whether use the historical candles endpoint for spot markets or default klines endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -2902,16 +2909,19 @@ class htx(Exchange, ImplicitAPI):
                 else:
                     response = self.contractPublicGetLinearSwapExMarketHistoryKline(self.extend(request, params))
         else:
-            if since is not None:
-                request['from'] = self.parse_to_int(since / 1000)
-            if limit is not None:
-                request['size'] = limit  # max 2000
             request['symbol'] = market['id']
-            if timeframe == '1M' or timeframe == '1y':
-                # for some reason 1M and 1Y does not work with the regular endpoint
-                # https://github.com/ccxt/ccxt/issues/18006
+            useHistorical = None
+            useHistorical, params = self.handle_option_and_params(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', True)
+            if not useHistorical:
+                # `limit` only available for the self endpoint
+                if limit is not None:
+                    request['size'] = limit  # max 2000
                 response = self.spotPublicGetMarketHistoryKline(self.extend(request, params))
             else:
+                # `since` only available for the self endpoint
+                if since is not None:
+                    # default 150 bars
+                    request['from'] = self.parse_to_int(since / 1000)
                 response = self.spotPublicGetMarketHistoryCandles(self.extend(request, params))
         #
         #     {
@@ -2928,7 +2938,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4772,7 +4782,7 @@ class htx(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
+    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -4793,7 +4803,7 @@ class htx(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return self.create_order(symbol, type, side, amount, price, params)
 
-    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -4897,7 +4907,7 @@ class htx(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce'])
         return self.extend(request, params)
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -4978,7 +4988,7 @@ class htx(Exchange, ImplicitAPI):
         params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin

@@ -56,6 +56,7 @@ class bingx extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchLeverage' => true,
                 'fetchLiquidations' => false,
+                'fetchMarginMode' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyLiquidations' => true,
@@ -430,7 +431,7 @@ class bingx extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->safe_integer($data, 'serverTime');
     }
 
@@ -444,7 +445,7 @@ class bingx extends Exchange {
         if (!$this->check_required_credentials(false)) {
             return null;
         }
-        $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+        $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($isSandbox) {
             return null;
         }
@@ -484,14 +485,14 @@ class bingx extends Exchange {
         //        ),
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $currencyId = $this->safe_string($entry, 'coin');
             $code = $this->safe_currency_code($currencyId);
             $name = $this->safe_string($entry, 'name');
-            $networkList = $this->safe_value($entry, 'networkList');
+            $networkList = $this->safe_list($entry, 'networkList');
             $networks = array();
             $fee = null;
             $active = null;
@@ -501,8 +502,8 @@ class bingx extends Exchange {
                 $rawNetwork = $networkList[$j];
                 $network = $this->safe_string($rawNetwork, 'network');
                 $networkCode = $this->network_id_to_code($network);
-                $isDefault = $this->safe_value($rawNetwork, 'isDefault');
-                $withdrawEnabled = $this->safe_value($rawNetwork, 'withdrawEnable');
+                $isDefault = $this->safe_bool($rawNetwork, 'isDefault');
+                $withdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
                 $limits = array(
                     'amounts' => array( 'min' => $this->safe_number($rawNetwork, 'withdrawMin'), 'max' => $this->safe_number($rawNetwork, 'withdrawMax') ),
                 );
@@ -564,8 +565,8 @@ class bingx extends Exchange {
         //         }
         //    }
         //
-        $data = $this->safe_value($response, 'data');
-        $markets = $this->safe_value($data, 'symbols', array());
+        $data = $this->safe_dict($response, 'data');
+        $markets = $this->safe_list($data, 'symbols', array());
         return $this->parse_markets($markets);
     }
 
@@ -594,7 +595,7 @@ class bingx extends Exchange {
         //        )
         //    }
         //
-        $markets = $this->safe_value($response, 'data', array());
+        $markets = $this->safe_list($response, 'data', array());
         return $this->parse_markets($markets);
     }
 
@@ -622,7 +623,7 @@ class bingx extends Exchange {
         if ($settle !== null) {
             $symbol .= ':' . $settle;
         }
-        $fees = $this->safe_value($this->fees, $type, array());
+        $fees = $this->safe_dict($this->fees, $type, array());
         $contractSize = $this->safe_number($market, 'size');
         $isActive = $this->safe_string($market, 'status') === '1';
         $isInverse = ($spot) ? null : false;
@@ -690,13 +691,13 @@ class bingx extends Exchange {
          * @return {array[]} an array of objects representing market data
          */
         $requests = array( $this->fetch_swap_markets($params) );
-        $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+        $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         if (!$isSandbox) {
             $requests[] = $this->fetch_spot_markets($params); // sandbox is swap only
         }
         $promises = $requests;
-        $spotMarkets = $this->safe_value($promises, 0, array());
-        $swapMarkets = $this->safe_value($promises, 1, array());
+        $spotMarkets = $this->safe_list($promises, 0, array());
+        $swapMarkets = $this->safe_list($promises, 1, array());
         return $this->array_concat($spotMarkets, $swapMarkets);
     }
 
@@ -906,7 +907,7 @@ class bingx extends Exchange {
         //      )
         //    }
         //
-        $trades = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_list($response, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1003,9 +1004,9 @@ class bingx extends Exchange {
         $type = ($cost === null) ? 'spot' : 'swap';
         $currencyId = $this->safe_string_n($trade, array( 'currency', 'N', 'commissionAsset' ));
         $currencyCode = $this->safe_currency_code($currencyId);
-        $m = $this->safe_value($trade, 'm');
+        $m = $this->safe_bool($trade, 'm');
         $marketId = $this->safe_string($trade, 's');
-        $isBuyerMaker = $this->safe_value_2($trade, 'buyerMaker', 'isBuyerMaker');
+        $isBuyerMaker = $this->safe_bool_2($trade, 'buyerMaker', 'isBuyerMaker');
         $takeOrMaker = null;
         if (($isBuyerMaker !== null) || ($m !== null)) {
             $takeOrMaker = ($isBuyerMaker || $m) ? 'maker' : 'taker';
@@ -1017,11 +1018,11 @@ class bingx extends Exchange {
                 $takeOrMaker = 'taker';
             }
         }
-        $isBuyer = $this->safe_value($trade, 'isBuyer');
+        $isBuyer = $this->safe_bool($trade, 'isBuyer');
         if ($isBuyer !== null) {
             $side = $isBuyer ? 'buy' : 'sell';
         }
-        $isMaker = $this->safe_value($trade, 'isMaker');
+        $isMaker = $this->safe_bool($trade, 'isMaker');
         if ($isMaker !== null) {
             $takeOrMaker = $isMaker ? 'maker' : 'taker';
         }
@@ -1129,7 +1130,7 @@ class bingx extends Exchange {
         //         )}
         //     }
         //
-        $orderbook = $this->safe_value($response, 'data', array());
+        $orderbook = $this->safe_dict($response, 'data', array());
         $timestamp = $this->safe_integer_2($orderbook, 'T', 'ts');
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
     }
@@ -1164,7 +1165,7 @@ class bingx extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_funding_rate($data, $market);
     }
 
@@ -1179,7 +1180,7 @@ class bingx extends Exchange {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols, 'swap', true);
         $response = $this->swapV2PublicGetQuotePremiumIndex (array_merge($params));
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $filteredResponse = array();
         for ($i = 0; $i < count($data); $i++) {
             $item = $data[$i];
@@ -1276,7 +1277,7 @@ class bingx extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -1320,7 +1321,7 @@ class bingx extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_open_interest($data, $market);
     }
 
@@ -1647,7 +1648,7 @@ class bingx extends Exchange {
         //        )
         //    }
         //
-        $positions = $this->safe_value($response, 'data', array());
+        $positions = $this->safe_list($response, 'data', array());
         return $this->parse_positions($positions, $symbols);
     }
 
@@ -1683,7 +1684,7 @@ class bingx extends Exchange {
         //
         $marketId = $this->safe_string($position, 'symbol', '');
         $marketId = str_replace('/', '-', $marketId); // standard return different format
-        $isolated = $this->safe_value($position, 'isolated');
+        $isolated = $this->safe_bool($position, 'isolated');
         $marginMode = null;
         if ($isolated !== null) {
             $marginMode = $isolated ? 'isolated' : 'cross';
@@ -1836,6 +1837,7 @@ class bingx extends Exchange {
             $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
             $trailingAmount = $this->safe_string($params, 'trailingAmount');
             $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'priceRate');
+            $trailingType = $this->safe_string($params, 'trailingType', 'TRAILING_STOP_MARKET');
             $isTriggerOrder = $triggerPrice !== null;
             $isStopLossPriceOrder = $stopLossPrice !== null;
             $isTakeProfitPriceOrder = $takeProfitPrice !== null;
@@ -1876,7 +1878,7 @@ class bingx extends Exchange {
                     }
                 }
             } elseif ($isTrailing) {
-                $request['type'] = 'TRAILING_STOP_MARKET';
+                $request['type'] = $trailingType;
                 if ($isTrailingAmountOrder) {
                     $request['price'] = $this->parse_to_numeric($trailingAmount);
                 } elseif ($isTrailingPercentOrder) {
@@ -1929,7 +1931,7 @@ class bingx extends Exchange {
             }
             $request['positionSide'] = $positionSide;
             $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
-            $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss', 'clientOrderId' ));
+            $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         }
         return array_merge($request, $params);
     }
@@ -1959,14 +1961,21 @@ class bingx extends Exchange {
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+         * @param {boolean} [$params->test] *swap only* whether to use the $test endpoint or not, default is false
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        $test = $this->safe_bool($params, 'test', false);
+        $params = $this->omit($params, 'test');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
         if ($market['swap']) {
-            $response = $this->swapV2PrivatePostTradeOrder ($request);
+            if ($test) {
+                $response = $this->swapV2PrivatePostTradeOrderTest ($request);
+            } else {
+                $response = $this->swapV2PrivatePostTradeOrder ($request);
+            }
         } else {
             $response = $this->spotV1PrivatePostTradeOrder ($request);
         }
@@ -2045,7 +2054,7 @@ class bingx extends Exchange {
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_number($rawOrder, 'amount');
             $price = $this->safe_number($rawOrder, 'price');
-            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest;
         }
@@ -2104,8 +2113,8 @@ class bingx extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $result = $this->safe_value($data, 'orders', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $result = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($result, $market);
     }
 
@@ -2827,8 +2836,8 @@ class bingx extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($data, 'orders', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -2925,7 +2934,7 @@ class bingx extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
@@ -2938,7 +2947,7 @@ class bingx extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $request = array(
@@ -2980,7 +2989,7 @@ class bingx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromAccount = $this->safe_string($params, 'fromAccount');
         $toAccount = $this->safe_string($params, 'toAccount');
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
@@ -3013,7 +3022,7 @@ class bingx extends Exchange {
         //         )
         //     }
         //
-        $rows = $this->safe_value($response, 'rows', array());
+        $rows = $this->safe_list($response, 'rows', array());
         return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 
@@ -3022,7 +3031,7 @@ class bingx extends Exchange {
         $timestamp = $this->safe_integer($transfer, 'timestamp');
         $currencyCode = $this->safe_currency_code(null, $currency);
         $status = $this->safe_string($transfer, 'status');
-        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        $accountsById = $this->safe_dict($this->options, 'accountsById', array());
         $typeId = $this->safe_string($transfer, 'type');
         $typeIdSplit = explode('_', $typeId);
         $fromId = $this->safe_string($typeIdSplit, 0);
@@ -3079,7 +3088,7 @@ class bingx extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($this->safe_value($response, 'data'), 'data');
+        $data = $this->safe_list($this->safe_dict($response, 'data'), 'data');
         $parsed = $this->parse_deposit_addresses($data, [ $currency['code'] ], false);
         return $this->index_by($parsed, 'network');
     }
@@ -3412,7 +3421,7 @@ class bingx extends Exchange {
         return $response;
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
@@ -3436,7 +3445,19 @@ class bingx extends Exchange {
         //        }
         //    }
         //
-        return $response;
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_leverage($data, $market);
+    }
+
+    public function parse_leverage($leverage, $market = null): array {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => null,
+            'longLeverage' => $this->safe_integer($leverage, 'longLeverage'),
+            'shortLeverage' => $this->safe_integer($leverage, 'shortLeverage'),
+        );
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
@@ -3514,8 +3535,8 @@ class bingx extends Exchange {
         $fills = null;
         if ($market['spot']) {
             $response = $this->spotV1PrivateGetTradeMyTrades (array_merge($request, $params));
-            $data = $this->safe_value($response, 'data', array());
-            $fills = $this->safe_value($data, 'fills', array());
+            $data = $this->safe_dict($response, 'data', array());
+            $fills = $this->safe_list($data, 'fills', array());
             //
             //     {
             //         "code" => 0,
@@ -3545,8 +3566,8 @@ class bingx extends Exchange {
             $params = $this->omit($params, 'tradingUnit');
             $request['tradingUnit'] = $tradingUnit;
             $response = $this->swapV2PrivateGetTradeAllFillOrders (array_merge($request, $params));
-            $data = $this->safe_value($response, 'data', array());
-            $fills = $this->safe_value($data, 'fill_orders', array());
+            $data = $this->safe_dict($response, 'data', array());
+            $fills = $this->safe_list($data, 'fill_orders', array());
             //
             //    {
             //       "code" => "0",
@@ -3600,7 +3621,7 @@ class bingx extends Exchange {
         //        )
         //    }
         //
-        $networkList = $this->safe_value($fee, 'networkList', array());
+        $networkList = $this->safe_list($fee, 'networkList', array());
         $networkListLength = count($networkList);
         $result = array(
             'info' => $fee,
@@ -3618,7 +3639,7 @@ class bingx extends Exchange {
             for ($i = 0; $i < $networkListLength; $i++) {
                 $network = $networkList[$i];
                 $networkId = $this->safe_string($network, 'network');
-                $isDefault = $this->safe_value($network, 'isDefault');
+                $isDefault = $this->safe_bool($network, 'isDefault');
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
                 $result['networks'][$networkCode] = array(
@@ -3771,8 +3792,8 @@ class bingx extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $liquidations = $this->safe_value($data, 'orders', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $liquidations = $this->safe_list($data, 'orders', array());
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
@@ -3845,7 +3866,7 @@ class bingx extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data);
     }
 
@@ -3882,8 +3903,8 @@ class bingx extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $success = $this->safe_value($data, 'success', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $success = $this->safe_list($data, 'success', array());
         $positions = array();
         for ($i = 0; $i < count($success); $i++) {
             $position = $this->parse_position(array( 'positionId' => $success[$i] ));
@@ -3974,7 +3995,7 @@ class bingx extends Exchange {
          * @param {string} [$params->newClientOrderId] custom order $id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
          * @param {string} [$params->positionSide] *contract only* position direction, required for single position, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
          * @param {string} [$params->reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
-         * @param {float} [$params->priceRate] *contract only* for $type TRAILING_STOP_Market, Max = 1
+         * @param {float} [$params->priceRate] *contract only* for $type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
          * @param {string} [$params->workingType] *contract only* StopPrice trigger $price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -4084,11 +4105,48 @@ class bingx extends Exchange {
         return $this->parse_order($data, $market);
     }
 
+    public function fetch_margin_mode(string $symbol, $params = array ()): array {
+        /**
+         * fetches the margin mode of the trading pair
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode
+         * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->swapV2PrivateGetTradeMarginType (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "data" => {
+        //             "marginType" => "CROSSED"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_margin_mode($data, $market);
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): array {
+        $marginType = $this->safe_string_lower($marginMode, 'marginType');
+        $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
+        return array(
+            'info' => $marginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $marginType,
+        );
+    }
+
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
-        $isSandbox = $this->safe_value($this->options, 'sandboxMode', false);
+        $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($isSandbox && ($type !== 'swap')) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
         }

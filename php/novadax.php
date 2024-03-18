@@ -1107,7 +1107,7 @@ class novadax extends Exchange {
         ), $market);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://doc.novadax.com/en-US/#get-sub-account-$transfer
@@ -1216,7 +1216,7 @@ class novadax extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://doc.novadax.com/en-US/#get-sub-$account-list

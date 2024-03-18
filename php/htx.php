@@ -464,6 +464,7 @@ class htx extends Exchange {
                             'v2/sub-user/api-key-modification' => 1,
                             'v2/sub-user/api-key-deletion' => 1,
                             'v1/subuser/transfer' => 10,
+                            'v1/trust/user/active/credit' => 10,
                             // Trading
                             'v1/order/orders/place' => 0.2,
                             'v1/order/batch-orders' => 0.4,
@@ -944,6 +945,9 @@ class htx extends Exchange {
                             'inverse' => true,
                         ),
                     ),
+                ),
+                'fetchOHLCV' => array(
+                    'useHistoricalEndpointForSpot' => true,
                 ),
                 'withdraw' => array(
                     'includeFee' => false,
@@ -2556,7 +2560,10 @@ class htx extends Exchange {
         $amountString = $this->safe_string($trade, 'trade_volume', $amountString);
         $costString = $this->safe_string($trade, 'trade_turnover');
         $fee = null;
-        $feeCost = $this->safe_string_2($trade, 'filled-fees', 'trade_fee');
+        $feeCost = $this->safe_string($trade, 'filled-fees');
+        if ($feeCost === null) {
+            $feeCost = Precise::string_neg($this->safe_string($trade, 'trade_fee'));
+        }
         $feeCurrencyId = $this->safe_string_2($trade, 'fee-currency', 'fee_asset');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $filledPoints = $this->safe_string($trade, 'filled-points');
@@ -2906,6 +2913,7 @@ class htx extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {string} [$params->useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -2994,18 +3002,21 @@ class htx extends Exchange {
                 }
             }
         } else {
-            if ($since !== null) {
-                $request['from'] = $this->parse_to_int($since / 1000);
-            }
-            if ($limit !== null) {
-                $request['size'] = $limit; // max 2000
-            }
             $request['symbol'] = $market['id'];
-            if ($timeframe === '1M' || $timeframe === '1y') {
-                // for some reason 1M and 1Y does not work with the regular endpoint
-                // https://github.com/ccxt/ccxt/issues/18006
+            $useHistorical = null;
+            list($useHistorical, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
+            if (!$useHistorical) {
+                // `$limit` only available for the this endpoint
+                if ($limit !== null) {
+                    $request['size'] = $limit; // max 2000
+                }
                 $response = $this->spotPublicGetMarketHistoryKline (array_merge($request, $params));
             } else {
+                // `$since` only available for the this endpoint
+                if ($since !== null) {
+                    // default 150 bars
+                    $request['from'] = $this->parse_to_int($since / 1000);
+                }
                 $response = $this->spotPublicGetMarketHistoryCandles (array_merge($request, $params));
             }
         }
@@ -3025,7 +3036,7 @@ class htx extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4981,7 +4992,7 @@ class htx extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -6358,7 +6369,7 @@ class htx extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account

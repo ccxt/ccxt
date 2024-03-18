@@ -868,12 +868,10 @@ class whitebit extends whitebit$1 {
         if (!this.handleErrorMessage(client, message)) {
             return;
         }
-        const result = this.safeValue(message, 'result', {});
-        if (result !== undefined) {
-            if (result === 'pong') {
-                this.handlePong(client, message);
-                return;
-            }
+        const result = this.safeString(message, 'result');
+        if (result === 'pong') {
+            this.handlePong(client, message);
+            return;
         }
         const id = this.safeInteger(message, 'id');
         if (id !== undefined) {

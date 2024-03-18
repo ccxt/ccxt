@@ -1264,7 +1264,7 @@ class okx extends Exchange {
         return $this->safe_integer($first, 'ts');
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://www.okx.com/docs-v5/en/#trading-$account-rest-api-get-$account-configuration
@@ -1553,7 +1553,7 @@ class okx extends Exchange {
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        $isSandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+        $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         if (!$this->check_required_credentials(false) || $isSandboxMode) {
             return null;
         }
@@ -2217,7 +2217,7 @@ class okx extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 100);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -5034,7 +5034,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
@@ -5072,7 +5072,36 @@ class okx extends Exchange {
         //        "msg" => ""
         //     }
         //
-        return $response;
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_leverage($data, $market);
+    }
+
+    public function parse_leverage($leverage, $market = null): array {
+        $marketId = null;
+        $marginMode = null;
+        $longLeverage = null;
+        $shortLeverage = null;
+        for ($i = 0; $i < count($leverage); $i++) {
+            $entry = $leverage[$i];
+            $marginMode = $this->safe_string_lower($entry, 'mgnMode');
+            $marketId = $this->safe_string($entry, 'instId');
+            $positionSide = $this->safe_string_lower($entry, 'posSide');
+            if ($positionSide === 'long') {
+                $longLeverage = $this->safe_integer($entry, 'lever');
+            } elseif ($positionSide === 'short') {
+                $shortLeverage = $this->safe_integer($entry, 'lever');
+            } else {
+                $longLeverage = $this->safe_integer($entry, 'lever');
+                $shortLeverage = $this->safe_integer($entry, 'lever');
+            }
+        }
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $marginMode,
+            'longLeverage' => $longLeverage,
+            'shortLeverage' => $shortLeverage,
+        );
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -5421,7 +5450,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
@@ -5540,7 +5569,7 @@ class okx extends Exchange {
         $fromAccountId = $this->safe_string($transfer, 'from');
         $toAccountId = $this->safe_string($transfer, 'to');
         $accountsById = $this->safe_value($this->options, 'accountsById', array());
-        $timestamp = $this->safe_integer($transfer, 'ts', $this->milliseconds());
+        $timestamp = $this->safe_integer($transfer, 'ts');
         $balanceChange = $this->safe_string($transfer, 'sz');
         if ($balanceChange !== null) {
             $amount = $this->parse_number(Precise::string_abs($balanceChange));
@@ -6829,7 +6858,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
         if ($enable) {
@@ -7097,7 +7126,7 @@ class okx extends Exchange {
         return $underlyings[0];
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): Greeks {
+    public function fetch_greeks(string $symbol, $params = array ()): array {
         /**
          * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-option-$market-$data

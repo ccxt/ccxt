@@ -44,6 +44,7 @@ export default class mexc extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
@@ -920,7 +921,7 @@ export default class mexc extends Exchange {
                     'Combination of optional parameters invalid': BadRequest,
                     'api market order is disabled': BadRequest,
                     'Contract not allow place order!': InvalidOrder,
-                    'Oversold': InvalidOrder,
+                    'Oversold': InsufficientFunds,
                     'Insufficient position': InsufficientFunds,
                     'Insufficient balance!': InsufficientFunds,
                     'Bid price is great than max allow price': InvalidOrder,
@@ -2210,6 +2211,14 @@ export default class mexc extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+         * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
+         * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
+         * @param {string} [params.externalOid] *contract only* external order ID
+         * @param {int} [params.positionMode] *contract only*  1:hedge, 2:one-way, default: the user's current config
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -5426,30 +5435,30 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const longLeverage = this.safeDict(data, 0);
-        return this.parseLeverage(longLeverage, market);
+        return this.parseLeverage(data, market);
     }
     parseLeverage(leverage, market = undefined) {
-        //
-        //     {
-        //         "level": 1,
-        //         "maxVol": 463300,
-        //         "mmr": 0.004,
-        //         "imr": 0.005,
-        //         "positionType": 1,
-        //         "openType": 1,
-        //         "leverage": 20,
-        //         "limitBySys": false,
-        //         "currentMmr": 0.004
-        //     }
-        //
-        const marketId = this.safeString(leverage, 'symbol');
-        market = this.safeMarket(marketId, market, undefined, 'contract');
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            const openType = this.safeInteger(entry, 'openType');
+            const positionType = this.safeInteger(entry, 'positionType');
+            if (positionType === 1) {
+                longLeverage = this.safeInteger(entry, 'leverage');
+            }
+            else if (positionType === 2) {
+                shortLeverage = this.safeInteger(entry, 'leverage');
+            }
+            marginMode = (openType === 1) ? 'isolated' : 'cross';
+        }
         return {
             'info': leverage,
             'symbol': market['symbol'],
-            'leverage': this.safeInteger(leverage, 'leverage'),
-            'marginMode': undefined,
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
         };
     }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
@@ -5500,7 +5509,7 @@ export default class mexc extends Exchange {
                     'source': this.safeString(this.options, 'broker', 'CCXT'),
                 };
             }
-            if ((method === 'POST') || (method === 'PUT')) {
+            if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 headers['Content-Type'] = 'application/json';
             }
         }

@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -81,6 +81,7 @@ export default class bybit extends Exchange {
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
+                'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -3472,7 +3473,7 @@ export default class bybit extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, 1, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bybit#createOrder
@@ -3537,7 +3538,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}, isUTA = true) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}, isUTA = true) {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase ();
@@ -3752,8 +3753,8 @@ export default class bybit extends Exchange {
         const market = this.market (symbols[0]);
         let category = undefined;
         [ category, params ] = this.getBybitType ('createOrders', market, params);
-        if ((category === 'spot') || (category === 'inverse')) {
-            throw new NotSupported (this.id + ' createOrders does not allow spot or inverse orders');
+        if (category === 'inverse') {
+            throw new NotSupported (this.id + ' createOrders does not allow inverse orders');
         }
         const request = {
             'category': category,
@@ -3812,7 +3813,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data);
     }
 
-    async createUsdcOrder (symbol, type, side, amount: number, price: number = undefined, params = {}) {
+    async createUsdcOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type === 'market') {
@@ -3990,7 +3991,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bybit#editOrder
@@ -4222,6 +4223,88 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result, market);
+    }
+
+    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#cancelOrders
+         * @description cancel multiple orders
+         * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let category = undefined;
+        [ category, params ] = this.getBybitType ('cancelOrders', market, params);
+        if (category === 'inverse') {
+            throw new NotSupported (this.id + ' cancelOrders does not allow inverse orders');
+        }
+        const ordersRequests = [];
+        const clientOrderIds = this.safeList2 (params, 'clientOrderIds', 'clientOids', []);
+        params = this.omit (params, [ 'clientOrderIds', 'clientOids' ]);
+        for (let i = 0; i < clientOrderIds.length; i++) {
+            ordersRequests.push ({
+                'symbol': market['id'],
+                'orderLinkId': this.safeString (clientOrderIds, i),
+            });
+        }
+        for (let i = 0; i < ids.length; i++) {
+            ordersRequests.push ({
+                'symbol': market['id'],
+                'orderId': this.safeString (ids, i),
+            });
+        }
+        const request = {
+            'category': category,
+            'request': ordersRequests,
+        };
+        const response = await this.privatePostV5OrderCancelBatch (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800896",
+        //                     "orderLinkId": "1636282505818800897"
+        //                 },
+        //                 {
+        //                     "category": "spot",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderId": "1636282505818800898",
+        //                     "orderLinkId": "1636282505818800899"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {
+        //             "list": [
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 },
+        //                 {
+        //                     "code": "0",
+        //                     "msg": "OK"
+        //                 }
+        //             ]
+        //         },
+        //         "time": "1709796158501"
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const row = this.safeList (result, 'list', []);
+        return this.parseOrders (row, market);
     }
 
     async cancelAllUsdcOrders (symbol: Str = undefined, params = {}) {
@@ -6320,7 +6403,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    async fetchLeverage (symbol: string, params = {}) {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name bybit#fetchLeverage
@@ -6331,12 +6414,21 @@ export default class bybit extends Exchange {
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const position = await this.fetchPosition (symbol, params);
+        return this.parseLeverage (position, market);
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
-            'info': position,
-            'leverage': this.safeInteger (position, 'leverage'),
-            'marginMode': this.safeNumber (position, 'marginMode'),
-        };
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverage, 'marginMode'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
@@ -6664,6 +6756,7 @@ export default class bybit extends Exchange {
          * @param {int} [since] Not used by Bybit
          * @param {int} [limit] The number of open interest structures to return. Max 200, default 50
          * @param {object} [params] Exchange specific parameters
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns An array of open interest structures
          */
         if (timeframe === '1m') {
@@ -7159,37 +7252,6 @@ export default class bybit extends Exchange {
         return await this.fetchDerivativesMarketLeverageTiers (symbol, params);
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
-        //
-        //     {
-        //         "id": 1,
-        //         "symbol": "BTCUSD",
-        //         "riskLimitValue": "150",
-        //         "maintenanceMargin": "0.5",
-        //         "initialMargin": "1",
-        //         "isLowestRisk": 1,
-        //         "maxLeverage": "100.00"
-        //     }
-        //
-        let minNotional = 0;
-        const tiers = [];
-        for (let i = 0; i < info.length; i++) {
-            const item = info[i];
-            const maxNotional = this.safeNumber (item, 'riskLimitValue');
-            tiers.push ({
-                'tier': this.sum (i, 1),
-                'currency': market['base'],
-                'minNotional': minNotional,
-                'maxNotional': maxNotional,
-                'maintenanceMarginRate': this.safeNumber (item, 'maintenanceMargin'),
-                'maxLeverage': this.safeNumber (item, 'maxLeverage'),
-                'info': item,
-            });
-            minNotional = maxNotional;
-        }
-        return tiers;
-    }
-
     parseTradingFee (fee, market: Market = undefined) {
         //
         //     {
@@ -7199,7 +7261,8 @@ export default class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
+        const defaultType = (market !== undefined) ? market['type'] : 'contract';
+        const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         return {
             'info': fee,
             'symbol': symbol,
@@ -7220,12 +7283,20 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot']) {
-            throw new NotSupported (this.id + ' fetchTradingFee() is not supported for spot market');
-        }
         const request = {
             'symbol': market['id'],
         };
+        let category = undefined;
+        if (market['linear']) {
+            category = 'linear';
+        } else if (market['inverse']) {
+            category = 'inverse';
+        } else if (market['spot']) {
+            category = 'spot';
+        } else {
+            category = 'option';
+        }
+        request['category'] = category;
         const response = await this.privateGetV5AccountFeeRate (this.extend (request, params));
         //
         //     {
@@ -7247,7 +7318,7 @@ export default class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const fees = this.safeValue (result, 'list', []);
         const first = this.safeValue (fees, 0, {});
-        return this.parseTradingFee (first);
+        return this.parseTradingFee (first, market);
     }
 
     async fetchTradingFees (params = {}) {
@@ -7895,6 +7966,98 @@ export default class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
+    }
+
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchLeverageTiers
+         * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
+         * @description retrieve information on the maximum leverage, for different trade sizes
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market (symbols[0]);
+            if (market['spot']) {
+                throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported for spot market');
+            }
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
+        const request = {
+            'category': subType,
+        };
+        const response = await this.publicGetV5MarketRiskLimit (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'list', []);
+        symbols = this.marketSymbols (symbols);
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined) {
+        //
+        //  [
+        //      {
+        //          "id": 1,
+        //          "symbol": "BTCUSD",
+        //          "riskLimitValue": "150",
+        //          "maintenanceMargin": "0.5",
+        //          "initialMargin": "1",
+        //          "isLowestRisk": 1,
+        //          "maxLeverage": "100.00"
+        //      }
+        //  ]
+        //
+        const tiers = {};
+        const marketIds = this.marketIds (symbols);
+        const filteredResults = this.filterByArray (response, marketIdKey, marketIds, false);
+        const grouped = this.groupBy (filteredResults, marketIdKey);
+        const keys = Object.keys (grouped);
+        for (let i = 0; i < keys.length; i++) {
+            const marketId = keys[i];
+            const entry = grouped[marketId];
+            const market = this.safeMarket (marketId, undefined, undefined, 'contract');
+            const symbol = market['symbol'];
+            tiers[symbol] = this.parseMarketLeverageTiers (entry, market);
+        }
+        return tiers;
+    }
+
+    parseMarketLeverageTiers (info, market: Market = undefined) {
+        //
+        //  [
+        //      {
+        //          "id": 1,
+        //          "symbol": "BTCUSD",
+        //          "riskLimitValue": "150",
+        //          "maintenanceMargin": "0.5",
+        //          "initialMargin": "1",
+        //          "isLowestRisk": 1,
+        //          "maxLeverage": "100.00"
+        //      }
+        //  ]
+        //
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const tier = info[i];
+            const marketId = this.safeString (info, 'symbol');
+            market = this.safeMarket (marketId);
+            tiers.push ({
+                'tier': this.safeInteger (tier, 'id'),
+                'currency': market['settle'],
+                'minNotional': undefined,
+                'maxNotional': undefined,
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
+                'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

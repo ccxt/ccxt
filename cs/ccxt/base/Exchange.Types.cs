@@ -326,6 +326,66 @@ public struct Tickers
     }
 }
 
+public struct LastPrice
+{
+    public string? symbol;
+    public Int64? timestamp;
+    public string? datetime;
+    public double? price;
+    public string? side;
+    public Dictionary<string, object> info;
+
+    public LastPrice(object lastPrice2)
+    {
+        var lastPrice = (Dictionary<string, object>)lastPrice2;
+        symbol = Exchange.SafeString(lastPrice, "symbol");
+        timestamp = Exchange.SafeInteger(lastPrice, "timestamp");
+        datetime = Exchange.SafeString(lastPrice, "datetime");
+        price = Exchange.SafeFloat(lastPrice, "price");
+        side = Exchange.SafeString(lastPrice, "side");
+        info = lastPrice.ContainsKey("info") ? (Dictionary<string, object>)lastPrice["info"] : null;
+    }
+}
+
+public struct LastPrices
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, LastPrice> lastPrices;
+
+    public LastPrices(object lastPrices2)
+    {
+        var lastPrices = (Dictionary<string, object>)lastPrices2;
+
+        info = lastPrices.ContainsKey("info") ? (Dictionary<string, object>)lastPrices["info"] : null;
+        this.lastPrices = new Dictionary<string, LastPrice>();
+        foreach (var lastPrice in lastPrices)
+        {
+            if (lastPrice.Key != "info")
+                this.lastPrices.Add(lastPrice.Key, new LastPrice(lastPrice.Value));
+        }
+    }
+
+    // Indexer
+    public LastPrice this[string key]
+    {
+        get
+        {
+            if (lastPrices.ContainsKey(key))
+            {
+                return lastPrices[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the lastPrices.");
+            }
+        }
+        set
+        {
+            lastPrices[key] = value;
+        }
+    }
+}
+
 public struct Transaction
 {
     public string? id;
@@ -441,6 +501,10 @@ public struct Balance
 public struct Balances
 {
     public Dictionary<string, Balance> balances;
+
+    public Dictionary<string, double> free;
+    public Dictionary<string, double> used;
+    public Dictionary<string, double> total;
     public Dictionary<string, object> info;
 
     public Balances(object balances2)
@@ -454,7 +518,44 @@ public struct Balances
                 this.balances.Add(balance.Key, new Balance(balance.Value));
             }
         }
-        info = (Dictionary<string, object>)balances["info"];
+        // handle free balance
+        free = new Dictionary<string, double>();
+        var balanceFree = (Dictionary<string, object>)balances["free"];
+        foreach (var balance in balanceFree)
+        {
+            free.Add(balance.Key, Convert.ToDouble(balance.Value));
+        }
+        // handle used balance
+        used = new Dictionary<string, double>();
+        var balanceUsed = (Dictionary<string, object>)balances["used"];
+        foreach (var balance in balanceUsed)
+        {
+            used.Add(balance.Key, Convert.ToDouble(balance.Value));
+        }
+        // handle total balance
+        total = new Dictionary<string, double>();
+        var balanceTotal = (Dictionary<string, object>)balances["total"];
+        foreach (var balance in balanceTotal)
+        {
+            total.Add(balance.Key, Convert.ToDouble(balance.Value));
+        }
+        // info = (Dictionary<string, object>)balances["info"];
+        var balancesInfo = balances["info"];
+        if (balancesInfo is IDictionary<string, object>)
+        {
+            info = (Dictionary<string, object>)balancesInfo;
+        }
+        else if (balancesInfo is IList<object>)
+        {
+            info = new Dictionary<string, object> {
+                {"response", balancesInfo}
+            };
+        }
+        else
+        {
+            info = null;
+        }
+
     }
 
     public Balance this[string key]
@@ -942,6 +1043,27 @@ public struct MarginMode
     }
 }
 
+public struct Leverage
+{
+    public Dictionary<string, object>? info;
+    public string? symbol;
+    public string? marginMode;
+
+    public Int64? leverage;
+    public Int64? longLeverage;
+    public Int64? shortLeverage;
+
+    public Leverage(object levObj)
+    {
+        info = Exchange.SafeValue(levObj, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(levObj, "info") : null;
+        symbol = Exchange.SafeString(levObj, "symbol");
+        marginMode = Exchange.SafeString(levObj, "marginMode");
+        leverage = Exchange.SafeInteger(levObj, "leverage");
+        longLeverage = Exchange.SafeInteger(levObj, "longLeverage");
+        shortLeverage = Exchange.SafeInteger(levObj, "shortLeverage");
+    }
+}
+
 
 public struct Greeks
 {
@@ -1080,7 +1202,24 @@ public struct Currency
 
     public Currency(object currency)
     {
-        info = Exchange.SafeValue(currency, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(currency, "info") : null;
+
+        // info = Exchange.SafeValue(currency, "info") != null ? (Dictionary<string, object>)Exchange.SafeValue(currency, "info") : null;
+        var rawInfo = Exchange.SafeValue(currency, "info");
+        if (rawInfo is IDictionary<string, object>)
+        {
+            info = (Dictionary<string, object>)rawInfo;
+        }
+        else if (rawInfo is IList<object>)
+        {
+            info = new Dictionary<string, object> {
+                {"currencies", rawInfo}
+            };
+        }
+        else
+        {
+            info = null;
+        }
+
         id = Exchange.SafeString(currency, "id");
         code = Exchange.SafeString(currency, "code");
         precision = Exchange.SafeFloat(currency, "precision");
@@ -1164,5 +1303,76 @@ public struct MarginModes
         {
             marginModes[key] = value;
         }
+    }
+}
+
+public struct Leverages
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, Leverage> leverages;
+
+    public Leverages(object leverage2)
+    {
+        var leverages = (Dictionary<string, object>)leverage2;
+
+        info = leverages.ContainsKey("info") ? (Dictionary<string, object>)leverages["info"] : null;
+        this.leverages = new Dictionary<string, Leverage>();
+        foreach (var leverage in leverages)
+        {
+            if (leverage.Key != "info")
+                this.leverages.Add(leverage.Key, new Leverage(leverage.Value));
+        }
+    }
+
+    // Indexer
+    public Leverage this[string key]
+    {
+        get
+        {
+            if (leverages.ContainsKey(key))
+            {
+                return leverages[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the leverages.");
+            }
+        }
+        set
+        {
+            leverages[key] = value;
+        }
+    }
+}
+
+public struct BalanceAccount
+{
+    public string? free;
+    public string? used;
+    public string? total;
+
+    public BalanceAccount(object account2)
+    {
+        var account = (Dictionary<string, object>)account2;
+        free = Exchange.SafeString(account, "free");
+        used = Exchange.SafeString(account, "used");
+        total = Exchange.SafeString(account, "total");
+    }
+}
+
+public struct Account
+{
+    public string? id;
+    public string? type;
+    public string? code;
+    public Dictionary<string, object>? info;
+
+    public Account(object accountStructure2)
+    {
+        var accountStructure = (Dictionary<string, object>)accountStructure2;
+        info = accountStructure.ContainsKey("info") ? (Dictionary<string, object>)accountStructure["info"] : null;
+        id = Exchange.SafeString(accountStructure, "id");
+        type = Exchange.SafeString(accountStructure, "type");
+        code = Exchange.SafeString(accountStructure, "code");
     }
 }

@@ -898,12 +898,10 @@ class whitebit extends \ccxt\async\whitebit {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
-        $result = $this->safe_value($message, 'result', array());
-        if ($result !== null) {
-            if ($result === 'pong') {
-                $this->handle_pong($client, $message);
-                return;
-            }
+        $result = $this->safe_string($message, 'result');
+        if ($result === 'pong') {
+            $this->handle_pong($client, $message);
+            return;
         }
         $id = $this->safe_integer($message, 'id');
         if ($id !== null) {

@@ -48,7 +48,7 @@ public partial class bitmex : Exchange
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
                 { "fetchLedger", true },
-                { "fetchLeverage", true },
+                { "fetchLeverage", "emulated" },
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", false },
                 { "fetchLiquidations", true },
@@ -1600,7 +1600,7 @@ public partial class bitmex : Exchange
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
         object duration = multiply(this.parseTimeframe(timeframe), 1000);
-        object fetchOHLCVOpenTimestamp = this.safeValue(this.options, "fetchOHLCVOpenTimestamp", true);
+        object fetchOHLCVOpenTimestamp = this.safeBool(this.options, "fetchOHLCVOpenTimestamp", true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (isTrue(!isEqual(since, null)))
         {
@@ -2290,38 +2290,20 @@ public partial class bitmex : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object positions = await this.fetchPositions(symbols, parameters);
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
-        {
-            object entry = getValue(positions, i);
-            object marketId = this.safeString(entry, "symbol");
-            object market = this.safeMarket(marketId, null, null, "contract");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
-                { "info", entry },
-                { "symbol", getValue(market, "symbol") },
-                { "leverage", this.safeInteger(entry, "leverage") },
-                { "marginMode", this.safeString(entry, "marginMode") },
-            });
-        }
-        return result;
+        object leverages = await this.fetchPositions(symbols, parameters);
+        return this.parseLeverages(leverages, symbols, "symbol");
     }
 
-    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    public override object parseLeverage(object leverage, object market = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchLeverage
-        * @description fetch the set leverage for a market
-        * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object leverage = await this.fetchLeverages(new List<object>() {symbol}, parameters);
-        return leverage;
+        object marketId = this.safeString(leverage, "symbol");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", this.safeStringLower(leverage, "marginMode") },
+            { "longLeverage", this.safeInteger(leverage, "leverage") },
+            { "shortLeverage", this.safeInteger(leverage, "leverage") },
+        };
     }
 
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -2758,7 +2740,10 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
         }
-        ((IDictionary<string,object>)request)["reverse"] = true;
+        if (isTrue(isTrue((isEqual(since, null))) && isTrue((isEqual(until, null)))))
+        {
+            ((IDictionary<string,object>)request)["reverse"] = true;
+        }
         object response = await this.publicGetFunding(this.extend(request, parameters));
         //
         //    [

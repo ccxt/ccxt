@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Greeks, Int, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1275,7 +1275,7 @@ class okx(Exchange, ImplicitAPI):
         first = self.safe_value(data, 0, {})
         return self.safe_integer(first, 'ts')
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
@@ -1549,7 +1549,7 @@ class okx(Exchange, ImplicitAPI):
         # while fetchCurrencies is a public API method by design
         # therefore we check the keys here
         # and fallback to generating the currencies from the markets
-        isSandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         if not self.check_required_credentials(False) or isSandboxMode:
             return None
         #
@@ -2175,7 +2175,7 @@ class okx(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100)
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -2491,7 +2491,7 @@ class okx(Exchange, ImplicitAPI):
         params['tgtCcy'] = 'quote_ccy'
         return self.create_order(symbol, 'market', 'sell', cost, None, params)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -2698,7 +2698,7 @@ class okx(Exchange, ImplicitAPI):
             params = self.omit(params, ['clOrdId', 'clientOrderId'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
@@ -2875,7 +2875,7 @@ class okx(Exchange, ImplicitAPI):
         params = self.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-order
@@ -4795,7 +4795,7 @@ class okx(Exchange, ImplicitAPI):
             },
         }
 
-    def fetch_leverage(self, symbol: str, params={}):
+    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
@@ -4831,7 +4831,33 @@ class okx(Exchange, ImplicitAPI):
         #        "msg": ""
         #     }
         #
-        return response
+        data = self.safe_list(response, 'data', [])
+        return self.parse_leverage(data, market)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = None
+        marginMode = None
+        longLeverage = None
+        shortLeverage = None
+        for i in range(0, len(leverage)):
+            entry = leverage[i]
+            marginMode = self.safe_string_lower(entry, 'mgnMode')
+            marketId = self.safe_string(entry, 'instId')
+            positionSide = self.safe_string_lower(entry, 'posSide')
+            if positionSide == 'long':
+                longLeverage = self.safe_integer(entry, 'lever')
+            elif positionSide == 'short':
+                shortLeverage = self.safe_integer(entry, 'lever')
+            else:
+                longLeverage = self.safe_integer(entry, 'lever')
+                shortLeverage = self.safe_integer(entry, 'lever')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        }
 
     def fetch_position(self, symbol: str, params={}):
         """
@@ -5275,7 +5301,7 @@ class okx(Exchange, ImplicitAPI):
         fromAccountId = self.safe_string(transfer, 'from')
         toAccountId = self.safe_string(transfer, 'to')
         accountsById = self.safe_value(self.options, 'accountsById', {})
-        timestamp = self.safe_integer(transfer, 'ts', self.milliseconds())
+        timestamp = self.safe_integer(transfer, 'ts')
         balanceChange = self.safe_string(transfer, 'sz')
         if balanceChange is not None:
             amount = self.parse_number(Precise.string_abs(balanceChange))
@@ -6470,7 +6496,7 @@ class okx(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def set_sandbox_mode(self, enable):
+    def set_sandbox_mode(self, enable: bool):
         super(okx, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
         if enable:

@@ -520,7 +520,7 @@ class bitget(ccxt.async_support.bitget):
             self.handle_deltas(storedOrderBook['bids'], bids)
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
-            checksum = self.safe_value(self.options, 'checksum', True)
+            checksum = self.safe_bool(self.options, 'checksum', True)
             isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
             if not isSnapshot and checksum:
                 storedAsks = storedOrderBook['asks']
@@ -639,10 +639,10 @@ class bitget(ccxt.async_support.bitget):
             self.trades[symbol] = stored
         data = self.safe_list(message, 'data', [])
         length = len(data)
-        maxLength = max(length - 1, 0)
         # fix chronological order by reversing
-        for i in range(maxLength, 0):
-            rawTrade = data[i]
+        for i in range(0, length):
+            index = length - i - 1
+            rawTrade = data[index]
             parsed = self.parse_ws_trade(rawTrade, market)
             stored.append(parsed)
         messageHash = 'trade:' + symbol
@@ -1227,7 +1227,7 @@ class bitget(ccxt.async_support.bitget):
         if feeAmount is not None:
             feeCurrency = self.safe_string(fee, 'feeCoin')
             feeObject = {
-                'cost': Precise.string_abs(feeAmount),
+                'cost': self.parse_number(Precise.string_abs(feeAmount)),
                 'currency': self.safe_currency_code(feeCurrency),
             }
         triggerPrice = self.safe_number(order, 'triggerPrice')
@@ -1239,8 +1239,9 @@ class bitget(ccxt.async_support.bitget):
         if side == 'buy' and market['spot'] and (type == 'market'):
             cost = self.safe_string(order, 'newSize', cost)
         filled = self.safe_string_2(order, 'accBaseVolume', 'baseVolume')
-        if market['spot'] and (rawStatus != 'live'):
-            filled = Precise.string_div(cost, avgPrice)
+        # if market['spot'] and (rawStatus != 'live'):
+        #     filled = Precise.string_div(cost, avgPrice)
+        # }
         amount = self.safe_string(order, 'baseVolume')
         if not market['spot'] or not (side == 'buy' and type == 'market'):
             amount = self.safe_string(order, 'newSize', amount)

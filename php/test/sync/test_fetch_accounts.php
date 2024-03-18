@@ -12,7 +12,7 @@ include_once PATH_TO_CCXT . '/test/base/test_account.php';
 function test_fetch_accounts($exchange, $skipped_properties) {
     $method = 'fetchAccounts';
     $accounts = $exchange->fetch_accounts();
-    assert(gettype($accounts) === 'array' && array_keys($accounts) === array_keys(array_keys($accounts)), $exchange->id . ' ' . $method . ' must return an object. ' . $exchange->json($accounts));
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $accounts);
     for ($i = 0; $i < count($accounts); $i++) {
         test_account($exchange, $skipped_properties, $method, $accounts[$i]);
     }

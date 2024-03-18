@@ -76,7 +76,8 @@ class coinex extends coinex$1 {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': true,
                 'fetchIsolatedBorrowRates': true,
-                'fetchLeverage': false,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -133,7 +134,7 @@ class coinex extends coinex$1 {
                     'perpetualPrivate': 'https://api.coinex.com/perpetual',
                 },
                 'www': 'https://www.coinex.com',
-                'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
+                'doc': 'https://viabtc.github.io/coinex_api_en_doc',
                 'fees': 'https://www.coinex.com/fees',
                 'referral': 'https://www.coinex.com/register?refer_code=yw5fz',
             },
@@ -347,6 +348,7 @@ class coinex extends coinex$1 {
                 },
                 'broad': {
                     'ip not allow visit': errors.PermissionDenied,
+                    'service too busy': errors.ExchangeNotAvailable,
                 },
             },
         });
@@ -5153,7 +5155,7 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#borrowIsolatedMargin
          * @description create a loan to borrow margin
-         * @see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account017_margin_loan
          * @param {string} symbol unified market symbol, required for coinex
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
@@ -5190,7 +5192,7 @@ class coinex extends coinex$1 {
          * @method
          * @name coinex#repayIsolatedMargin
          * @description repay borrowed margin and interest
-         * @see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account018_margin_flat
          * @param {string} symbol unified market symbol, required for coinex
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
@@ -5341,6 +5343,65 @@ class coinex extends coinex$1 {
             depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency);
         }
         return depositWithdrawFees;
+    }
+    async fetchLeverages(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchLeverages
+         * @description fetch the set leverage for all contract and margin markets
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue(symbols, 0);
+            market = this.market(symbol);
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchLeverages', market, params);
+        if (marketType !== 'spot') {
+            throw new errors.NotSupported(this.id + ' fetchLeverages() supports spot margin markets only');
+        }
+        const response = await this.privateGetMarginConfig(params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "market": "BTCUSDT",
+        //                 "leverage": 10,
+        //                 "BTC": {
+        //                     "min_amount": "0.0008",
+        //                     "max_amount": "200",
+        //                     "day_rate": "0.0015"
+        //                 },
+        //                 "USDT": {
+        //                     "min_amount": "50",
+        //                     "max_amount": "500000",
+        //                     "day_rate": "0.001"
+        //                 }
+        //             },
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        const leverages = this.safeList(response, 'data', []);
+        return this.parseLeverages(leverages, symbols, 'market', marketType);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'market');
+        const leverageValue = this.safeInteger(leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'spot'),
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        };
     }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
         /**

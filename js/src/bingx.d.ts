@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -69,8 +69,8 @@ export default class bingx extends Exchange {
     createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     parseOrderSide(side: any): string;
     parseOrderType(type: any): string;
@@ -110,7 +110,8 @@ export default class bingx extends Exchange {
     parseTransactionStatus(status: string): string;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     setMargin(symbol: string, amount: number, params?: {}): Promise<any>;
-    fetchLeverage(symbol: string, params?: {}): Promise<any>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    parseLeverage(leverage: any, market?: any): Leverage;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
@@ -137,7 +138,9 @@ export default class bingx extends Exchange {
         hedged: boolean;
     }>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    parseMarginMode(marginMode: any, market?: any): MarginMode;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

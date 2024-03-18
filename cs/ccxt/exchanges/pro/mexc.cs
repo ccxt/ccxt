@@ -547,11 +547,13 @@ public partial class mexc : ccxt.mexc
 
     public override void handleDelta(object orderbook, object delta)
     {
-        object nonce = this.safeInteger(orderbook, "nonce");
+        object existingNonce = this.safeInteger(orderbook, "nonce");
         object deltaNonce = this.safeInteger2(delta, "r", "version");
-        if (isTrue(isTrue(!isEqual(deltaNonce, nonce)) && isTrue(!isEqual(deltaNonce, add(nonce, 1)))))
+        if (isTrue(isLessThan(deltaNonce, existingNonce)))
         {
-            throw new ExchangeError ((string)add(this.id, " handleOrderBook received an out-of-order nonce")) ;
+            // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         ((IDictionary<string,object>)orderbook)["nonce"] = deltaNonce;
         object asks = this.safeValue(delta, "asks", new List<object>() {});

@@ -449,12 +449,33 @@ class testMainClass(baseMainTestClass):
         if self.info:
             args_stringified = '(' + ','.join(args) + ')'
             dump(self.add_padding('[INFO] TESTING', 25), self.exchange_hint(exchange), method_name, args_stringified)
-        skipped_properties = exchange.safe_value(self.skipped_methods, method_name, {})
-        await call_method(self.test_files, method_name, exchange, skipped_properties, args)
+        await call_method(self.test_files, method_name, exchange, self.get_skips(exchange, method_name), args)
         # if it was passed successfully, add to the list of successfull tests
         if is_public:
             self.checked_public_tests[method_name] = True
         return
+
+    def get_skips(self, exchange, method_name):
+        # get "method-specific" skips
+        skips_for_method = exchange.safe_value(self.skipped_methods, method_name, {})
+        # get "object-specific" skips
+        object_skips = {
+            'orderBook': ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
+            'ticker': ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'],
+            'trade': ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'],
+            'ohlcv': ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'],
+            'ledger': ['fetchLedger', 'fetchLedgerEntry'],
+            'depositWithdraw': ['fetchDepositsWithdrawals', 'fetchDeposits', 'fetchWithdrawals'],
+            'depositWithdrawFee': ['fetchDepositWithdrawFee', 'fetchDepositWithdrawFees'],
+        }
+        object_names = list(object_skips.keys())
+        for i in range(0, len(object_names)):
+            object_name = object_names[i]
+            object_methods = object_skips[object_name]
+            if exchange.in_array(method_name, object_methods):
+                extra_skips = exchange.safe_dict(self.skipped_methods, object_name, {})
+                return exchange.deep_extend(skips_for_method, extra_skips)
+        return skips_for_method
 
     async def test_safe(self, method_name, exchange, args=[], is_public=False):
         # `testSafe` method does not throw an exception, instead mutes it. The reason we
@@ -1064,6 +1085,7 @@ class testMainClass(baseMainTestClass):
             'secret': 'secretsecret',
             'password': 'password',
             'walletAddress': 'wallet',
+            'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid': 'uid',
             'token': 'token',
             'accounts': [{
@@ -1087,6 +1109,8 @@ class testMainClass(baseMainTestClass):
     async def test_exchange_request_statically(self, exchange_name, exchange_data, test_name=None):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
         exchange = self.init_offline_exchange(exchange_name)
+        global_options = exchange.safe_dict(exchange_data, 'options', {})
+        exchange.options = exchange.deep_extend(exchange.options, global_options)  # custom options to be used in the tests
         methods = exchange.safe_value(exchange_data, 'methods', {})
         methods_names = list(methods.keys())
         for i in range(0, len(methods_names)):
@@ -1100,7 +1124,7 @@ class testMainClass(baseMainTestClass):
                 description = exchange.safe_value(result, 'description')
                 if (test_name is not None) and (test_name != description):
                     continue
-                is_disabled = exchange.safe_value(result, 'disabled', False)
+                is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
                     continue
                 type = exchange.safe_string(exchange_data, 'outputType')
@@ -1126,13 +1150,13 @@ class testMainClass(baseMainTestClass):
                 old_exchange_options = exchange.options  # snapshot options;
                 test_exchange_options = exchange.safe_value(result, 'options', {})
                 exchange.options = exchange.deep_extend(old_exchange_options, test_exchange_options)  # custom options to be used in the tests
-                is_disabled = exchange.safe_value(result, 'disabled', False)
+                is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
                     continue
-                is_disabled_c_sharp = exchange.safe_value(result, 'disabledCS', False)
+                is_disabled_c_sharp = exchange.safe_bool(result, 'disabledCS', False)
                 if is_disabled_c_sharp and (self.lang == 'C#'):
                     continue
-                is_disabled_php = exchange.safe_value(result, 'disabledPHP', False)
+                is_disabled_php = exchange.safe_bool(result, 'disabledPHP', False)
                 if is_disabled_php and (self.lang == 'PHP'):
                     continue
                 if (test_name is not None) and (test_name != description):
@@ -1199,7 +1223,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1214,7 +1238,8 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         client_order_id = spot_order_request['newClientOrderId']
-        assert client_order_id.startswith(str(spot_id)), 'spot clientOrderId does not start with spotId'
+        spot_id_string = str(spot_id)
+        assert client_order_id.startswith(spot_id_string), 'binance - spot clientOrderId: ' + client_order_id + ' does not start with spotId' + spot_id_string
         swap_id = 'x-xcKtGhcu'
         swap_order_request = None
         try:
@@ -1226,10 +1251,11 @@ class testMainClass(baseMainTestClass):
             await exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
         except Exception as e:
             swap_inverse_order_request = self.urlencoded_to_dict(exchange.last_request_body)
-        client_order_id_spot = swap_order_request['newClientOrderId']
-        assert client_order_id_spot.startswith(str(swap_id)), 'swap clientOrderId does not start with swapId'
+        client_order_id_swap = swap_order_request['newClientOrderId']
+        swap_id_string = str(swap_id)
+        assert client_order_id_swap.startswith(swap_id_string), 'binance - swap clientOrderId: ' + client_order_id_swap + ' does not start with swapId' + swap_id_string
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
-        assert client_order_id_inverse.startswith(str(swap_id)), 'swap clientOrderIdInverse does not start with swapId'
+        assert client_order_id_inverse.startswith(swap_id_string), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + swap_id_string
         await close(exchange)
         return True
 
@@ -1242,16 +1268,19 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             spot_order_request = json_parse(exchange.last_request_body)
         client_order_id = spot_order_request[0]['clOrdId']  # returns order inside array
-        assert client_order_id.startswith(str(id)), 'spot clientOrderId does not start with id'
-        assert spot_order_request[0]['tag'] == id, 'id different from spot tag'
+        id_string = str(id)
+        assert client_order_id.startswith(id_string), 'okx - spot clientOrderId: ' + client_order_id + ' does not start with id: ' + id_string
+        spot_tag = spot_order_request[0]['tag']
+        assert spot_tag == id, 'okx - id: ' + id + ' different from spot tag: ' + spot_tag
         swap_order_request = None
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             swap_order_request = json_parse(exchange.last_request_body)
-        client_order_id_spot = swap_order_request[0]['clOrdId']
-        assert client_order_id_spot.startswith(str(id)), 'swap clientOrderId does not start with id'
-        assert swap_order_request[0]['tag'] == id, 'id different from swap tag'
+        client_order_id_swap = swap_order_request[0]['clOrdId']
+        assert client_order_id_swap.startswith(id_string), 'okx - swap clientOrderId: ' + client_order_id_swap + ' does not start with id: ' + id_string
+        swap_tag = swap_order_request[0]['tag']
+        assert swap_tag == id, 'okx - id: ' + id + ' different from swap tag: ' + swap_tag
         await close(exchange)
         return True
 
@@ -1264,7 +1293,8 @@ class testMainClass(baseMainTestClass):
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             request = json_parse(exchange.last_request_body)
-        assert request['params']['broker_id'] == id, 'id different from  broker_id'
+        broker_id = request['params']['broker_id']
+        assert broker_id == id, 'cryptocom - id: ' + id + ' different from  broker_id: ' + broker_id
         await close(exchange)
         return True
 
@@ -1278,22 +1308,25 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
-        assert req_headers['Referer'] == id, 'id not in headers'
+        assert req_headers['Referer'] == id, 'bybit - id: ' + id + ' not in headers.'
         await close(exchange)
         return True
 
     async def test_kucoin(self):
         exchange = self.init_offline_exchange('kucoin')
         req_headers = None
-        assert exchange.options['partner']['spot']['id'] == 'ccxt', 'id not in options'
-        assert exchange.options['partner']['spot']['key'] == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options'
+        options_string = str(exchange.options)
+        spot_id = exchange.options['partner']['spot']['id']
+        spot_key = exchange.options['partner']['spot']['key']
+        assert spot_id == 'ccxt', 'kucoin - id: ' + spot_id + ' not in options: ' + options_string
+        assert spot_key == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spot_key + ' not in options: ' + options_string
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
         id = 'ccxt'
-        assert req_headers['KC-API-PARTNER'] == id, 'id not in headers'
+        assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers.'
         await close(exchange)
         return True
 
@@ -1301,13 +1334,16 @@ class testMainClass(baseMainTestClass):
         exchange = self.init_offline_exchange('kucoinfutures')
         req_headers = None
         id = 'ccxtfutures'
-        assert exchange.options['partner']['future']['id'] == id, 'id not in options'
-        assert exchange.options['partner']['future']['key'] == '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options'
+        options_string = str(exchange.options['partner']['future'])
+        future_id = exchange.options['partner']['future']['id']
+        future_key = exchange.options['partner']['future']['key']
+        assert future_id == id, 'kucoinfutures - id: ' + future_id + ' not in options: ' + options_string
+        assert future_key == '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + future_key + ' not in options: ' + options_string
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
-        assert req_headers['KC-API-PARTNER'] == id, 'id not in headers'
+        assert req_headers['KC-API-PARTNER'] == id, 'kucoinfutures - id: ' + id + ' not in headers.'
         await close(exchange)
         return True
 
@@ -1315,12 +1351,13 @@ class testMainClass(baseMainTestClass):
         exchange = self.init_offline_exchange('bitget')
         req_headers = None
         id = 'p4sve'
-        assert exchange.options['broker'] == id, 'id not in options'
+        options_string = str(exchange.options)
+        assert exchange.options['broker'] == id, 'bitget - id: ' + id + ' not in options: ' + options_string
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
-        assert req_headers['X-CHANNEL-API-CODE'] == id, 'id not in headers'
+        assert req_headers['X-CHANNEL-API-CODE'] == id, 'bitget - id: ' + id + ' not in headers.'
         await close(exchange)
         return True
 
@@ -1328,13 +1365,15 @@ class testMainClass(baseMainTestClass):
         exchange = self.init_offline_exchange('mexc')
         req_headers = None
         id = 'CCXT'
-        assert exchange.options['broker'] == id, 'id not in options'
+        options_string = str(exchange.options)
+        assert exchange.options['broker'] == id, 'mexc - id: ' + id + ' not in options: ' + options_string
         await exchange.load_markets()
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
-        assert req_headers['source'] == id, 'id not in headers'
+        req_headers_string = str(req_headers) if req_headers is not None else 'undefined'
+        assert req_headers['source'] == id, 'mexc - id: ' + id + ' not in headers: ' + req_headers_string
         await close(exchange)
         return True
 
@@ -1348,7 +1387,8 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             spot_order_request = json_parse(exchange.last_request_body)
         client_order_id = spot_order_request['client-order-id']
-        assert client_order_id.startswith(str(id)), 'spot clientOrderId does not start with id'
+        id_string = str(id)
+        assert client_order_id.startswith(id_string), 'htx - spot clientOrderId ' + client_order_id + ' does not start with id: ' + id_string
         # swap test
         swap_order_request = None
         try:
@@ -1360,10 +1400,10 @@ class testMainClass(baseMainTestClass):
             await exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
         except Exception as e:
             swap_inverse_order_request = json_parse(exchange.last_request_body)
-        client_order_id_spot = swap_order_request['channel_code']
-        assert client_order_id_spot.startswith(str(id)), 'swap channel_code does not start with id'
+        client_order_id_swap = swap_order_request['channel_code']
+        assert client_order_id_swap.startswith(id_string), 'htx - swap channel_code ' + client_order_id_swap + ' does not start with id: ' + id_string
         client_order_id_inverse = swap_inverse_order_request['channel_code']
-        assert client_order_id_inverse.startswith(str(id)), 'swap inverse channel_code does not start with id'
+        assert client_order_id_inverse.startswith(id_string), 'htx - swap inverse channel_code ' + client_order_id_inverse + ' does not start with id: ' + id_string
         await close(exchange)
         return True
 
@@ -1377,7 +1417,8 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         broker_id = spot_order_request['broker_id']
-        assert broker_id.startswith(str(id)), 'broker_id does not start with id'
+        id_string = str(id)
+        assert broker_id.startswith(id_string), 'woo - broker_id: ' + broker_id + ' does not start with id: ' + id_string
         # swap test
         stop_order_request = None
         try:
@@ -1386,8 +1427,8 @@ class testMainClass(baseMainTestClass):
             })
         except Exception as e:
             stop_order_request = json_parse(exchange.last_request_body)
-        client_order_id_spot = stop_order_request['brokerId']
-        assert client_order_id_spot.startswith(str(id)), 'brokerId does not start with id'
+        client_order_id_stop = stop_order_request['brokerId']
+        assert client_order_id_stop.startswith(id_string), 'woo - brokerId: ' + client_order_id_stop + ' does not start with id: ' + id_string
         await close(exchange)
         return True
 
@@ -1395,27 +1436,28 @@ class testMainClass(baseMainTestClass):
         exchange = self.init_offline_exchange('bitmart')
         req_headers = None
         id = 'CCXTxBitmart000'
-        assert exchange.options['brokerId'] == id, 'id not in options'
+        assert exchange.options['brokerId'] == id, 'bitmart - id: ' + id + ' not in options'
         await exchange.load_markets()
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
-        assert req_headers['X-BM-BROKER-ID'] == id, 'id not in headers'
+        assert req_headers['X-BM-BROKER-ID'] == id, 'bitmart - id: ' + id + ' not in headers'
         await close(exchange)
         return True
 
     async def test_coinex(self):
         exchange = self.init_offline_exchange('coinex')
         id = 'x-167673045'
-        assert exchange.options['brokerId'] == id, 'id not in options'
+        assert exchange.options['brokerId'] == id, 'coinex - id: ' + id + ' not in options'
         spot_order_request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             spot_order_request = json_parse(exchange.last_request_body)
         client_order_id = spot_order_request['client_id']
-        assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
+        id_string = str(id)
+        assert client_order_id.startswith(id_string), 'coinex - clientOrderId: ' + client_order_id + ' does not start with id: ' + id_string
         await close(exchange)
         return True
 
@@ -1423,13 +1465,15 @@ class testMainClass(baseMainTestClass):
         exchange = self.init_offline_exchange('bingx')
         req_headers = None
         id = 'CCXT'
-        assert exchange.options['broker'] == id, 'id not in options'
+        options_string = str(exchange.options)
+        assert exchange.options['broker'] == id, 'bingx - id: ' + id + ' not in options: ' + options_string
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
-        assert req_headers['X-SOURCE-KEY'] == id, 'id not in headers'
+        req_headers_string = str(req_headers) if req_headers is not None else 'undefined'
+        assert req_headers['X-SOURCE-KEY'] == id, 'bingx - id: ' + id + ' not in headers: ' + req_headers_string
         await close(exchange)
 
     async def test_phemex(self):
@@ -1441,7 +1485,8 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             request = json_parse(exchange.last_request_body)
         client_order_id = request['clOrdID']
-        assert client_order_id.startswith(str(id)), 'clOrdID does not start with id'
+        id_string = str(id)
+        assert client_order_id.startswith(id_string), 'phemex - clOrdID: ' + client_order_id + ' does not start with id: ' + id_string
         await close(exchange)
 
     async def test_blofin(self):
@@ -1453,8 +1498,36 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             request = json_parse(exchange.last_request_body)
         broker_id = request['brokerId']
-        assert broker_id.startswith(str(id)), 'brokerId does not start with id'
+        id_string = str(id)
+        assert broker_id.startswith(id_string), 'blofin - brokerId: ' + broker_id + ' does not start with id: ' + id_string
         await close(exchange)
+
+    async def test_hyperliquid(self):
+        exchange = self.init_offline_exchange('hyperliquid')
+        id = '1'
+        request = None
+        try:
+            await exchange.create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        broker_id = str((request['action']['brokerCode']))
+        assert broker_id == id, 'hyperliquid - brokerId: ' + broker_id + ' does not start with id: ' + id
+        await close(exchange)
+
+    async def test_coinbaseinternational(self):
+        exchange = self.init_offline_exchange('coinbaseinternational')
+        exchange.options['portfolio'] = 'random'
+        id = 'nfqkvdjp'
+        assert exchange.options['brokerId'] == id, 'id not in options'
+        request = None
+        try:
+            await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['client_order_id']
+        assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
+        await close(exchange)
+        return True
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

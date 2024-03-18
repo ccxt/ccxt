@@ -21,7 +21,10 @@ class kraken extends kraken$1 {
             'name': 'Kraken',
             'countries': ['US'],
             'version': '0',
-            'rateLimit': 3000,
+            // rate-limits: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+            // for public: 1 req/s
+            // for private: every second 0.33 weight added to your allowed capacity (some private endpoints need 1 weight, some need 2)
+            'rateLimit': 1000,
             'certified': false,
             'pro': true,
             'has': {
@@ -151,7 +154,7 @@ class kraken extends kraken$1 {
                 },
                 'public': {
                     'get': {
-                        // public endpoint rate-limits are described in article: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+                        // rate-limits explained in comment in the top of this file
                         'Assets': 1,
                         'AssetPairs': 1,
                         'Depth': 1,
@@ -167,48 +170,48 @@ class kraken extends kraken$1 {
                     'post': {
                         'AddOrder': 0,
                         'AddOrderBatch': 0,
-                        'AddExport': 1,
-                        'Balance': 1,
-                        'CancelAll': 1,
-                        'CancelAllOrdersAfter': 1,
+                        'AddExport': 3,
+                        'Balance': 3,
+                        'CancelAll': 3,
+                        'CancelAllOrdersAfter': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
-                        'ClosedOrders': 1,
-                        'DepositAddresses': 1,
-                        'DepositMethods': 1,
-                        'DepositStatus': 1,
+                        'ClosedOrders': 3,
+                        'DepositAddresses': 3,
+                        'DepositMethods': 3,
+                        'DepositStatus': 3,
                         'EditOrder': 0,
-                        'ExportStatus': 1,
-                        'GetWebSocketsToken': 1,
-                        'Ledgers': 2,
-                        'OpenOrders': 1,
-                        'OpenPositions': 1,
-                        'QueryLedgers': 1,
-                        'QueryOrders': 1,
-                        'QueryTrades': 1,
-                        'RetrieveExport': 1,
-                        'RemoveExport': 1,
-                        'BalanceEx': 1,
-                        'TradeBalance': 1,
-                        'TradesHistory': 2,
-                        'TradeVolume': 1,
-                        'Withdraw': 1,
-                        'WithdrawCancel': 1,
-                        'WithdrawInfo': 1,
-                        'WithdrawMethods': 1,
-                        'WithdrawAddresses': 1,
-                        'WithdrawStatus': 1,
-                        'WalletTransfer': 1,
+                        'ExportStatus': 3,
+                        'GetWebSocketsToken': 3,
+                        'Ledgers': 6,
+                        'OpenOrders': 3,
+                        'OpenPositions': 3,
+                        'QueryLedgers': 3,
+                        'QueryOrders': 3,
+                        'QueryTrades': 3,
+                        'RetrieveExport': 3,
+                        'RemoveExport': 3,
+                        'BalanceEx': 3,
+                        'TradeBalance': 3,
+                        'TradesHistory': 6,
+                        'TradeVolume': 3,
+                        'Withdraw': 3,
+                        'WithdrawCancel': 3,
+                        'WithdrawInfo': 3,
+                        'WithdrawMethods': 3,
+                        'WithdrawAddresses': 3,
+                        'WithdrawStatus': 3,
+                        'WalletTransfer': 3,
                         // sub accounts
-                        'CreateSubaccount': 1,
-                        'AccountTransfer': 1,
+                        'CreateSubaccount': 3,
+                        'AccountTransfer': 3,
                         // earn
-                        'Earn/Allocate': 1,
-                        'Earn/Deallocate': 1,
-                        'Earn/AllocateStatus': 1,
-                        'Earn/DeallocateStatus': 1,
-                        'Earn/Strategies': 1,
-                        'Earn/Allocations': 1,
+                        'Earn/Allocate': 3,
+                        'Earn/Deallocate': 3,
+                        'Earn/AllocateStatus': 3,
+                        'Earn/DeallocateStatus': 3,
+                        'Earn/Strategies': 3,
+                        'Earn/Allocations': 3,
                     },
                 },
             },
@@ -1292,6 +1295,7 @@ class kraken extends kraken$1 {
         const lastTrade = trades[length - 1];
         const lastTradeId = this.safeString(result, 'last');
         lastTrade.push(lastTradeId);
+        trades[length - 1] = lastTrade;
         return this.parseTrades(trades, market, since, limit);
     }
     parseBalance(response) {
@@ -1544,8 +1548,14 @@ class kraken extends kraken$1 {
         //      }
         //  }
         //
-        const description = this.safeValue(order, 'descr', {});
-        const orderDescription = this.safeString(description, 'order', description);
+        const description = this.safeDict(order, 'descr', {});
+        let orderDescription = undefined;
+        if (description !== undefined) {
+            orderDescription = this.safeString(description, 'order');
+        }
+        else {
+            orderDescription = this.safeString(order, 'descr');
+        }
         let side = undefined;
         let type = undefined;
         let marketId = undefined;
@@ -2751,7 +2761,7 @@ class kraken extends kraken$1 {
         // todo unify parsePosition/parsePositions
         return result;
     }
-    parseAccount(account) {
+    parseAccountType(account) {
         const accountByType = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',
@@ -2785,8 +2795,8 @@ class kraken extends kraken$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        fromAccount = this.parseAccount(fromAccount);
-        toAccount = this.parseAccount(toAccount);
+        fromAccount = this.parseAccountType(fromAccount);
+        toAccount = this.parseAccountType(toAccount);
         const request = {
             'amount': this.currencyToPrecision(code, amount),
             'from': fromAccount,

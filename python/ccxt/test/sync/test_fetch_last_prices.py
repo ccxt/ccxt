@@ -13,6 +13,7 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 from ccxt.test.base import test_last_price  # noqa E402
+from ccxt.test.base import test_shared_methods  # noqa E402
 
 def test_fetch_last_prices(exchange, skipped_properties, symbol):
     method = 'fetchLastprices'
@@ -26,6 +27,7 @@ def test_fetch_last_prices(exchange, skipped_properties, symbol):
         checked_symbol = symbol
     assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + checked_symbol + ' must return an object. ' + exchange.json(response)
     values = list(response.values())
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values, checked_symbol)
     for i in range(0, len(values)):
         # todo: symbol check here
         test_last_price(exchange, skipped_properties, method, values[i], checked_symbol)

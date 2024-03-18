@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Num, Order, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -89,7 +89,8 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': True,
                 'fetchIsolatedBorrowRates': True,
-                'fetchLeverage': False,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': True,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
@@ -146,7 +147,7 @@ class coinex(Exchange, ImplicitAPI):
                     'perpetualPrivate': 'https://api.coinex.com/perpetual',
                 },
                 'www': 'https://www.coinex.com',
-                'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
+                'doc': 'https://viabtc.github.io/coinex_api_en_doc',
                 'fees': 'https://www.coinex.com/fees',
                 'referral': 'https://www.coinex.com/register?refer_code=yw5fz',
             },
@@ -360,6 +361,7 @@ class coinex(Exchange, ImplicitAPI):
                 },
                 'broad': {
                     'ip not allow visit': PermissionDenied,
+                    'service too busy': ExchangeNotAvailable,
                 },
             },
         })
@@ -1900,7 +1902,7 @@ class coinex(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order_request(self, symbol, type, side, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         swap = market['swap']
         clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
@@ -2016,7 +2018,7 @@ class coinex(Exchange, ImplicitAPI):
         params = self.omit(params, ['reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade001_limit_order
@@ -2386,7 +2388,7 @@ class coinex(Exchange, ImplicitAPI):
             results.append(order)
         return results
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order
@@ -4813,7 +4815,7 @@ class coinex(Exchange, ImplicitAPI):
     async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
-        :see: https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account017_margin_loan
         :param str symbol: unified market symbol, required for coinex
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
@@ -4848,7 +4850,7 @@ class coinex(Exchange, ImplicitAPI):
     async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account018_margin_flat
         :param str symbol: unified market symbol, required for coinex
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
@@ -4989,6 +4991,61 @@ class coinex(Exchange, ImplicitAPI):
             currency = self.currency(code)
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
+
+    async def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+        """
+        fetch the set leverage for all contract and margin markets
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        market = None
+        if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            market = self.market(symbol)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchLeverages', market, params)
+        if marketType != 'spot':
+            raise NotSupported(self.id + ' fetchLeverages() supports spot margin markets only')
+        response = await self.privateGetMarginConfig(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "market": "BTCUSDT",
+        #                 "leverage": 10,
+        #                 "BTC": {
+        #                     "min_amount": "0.0008",
+        #                     "max_amount": "200",
+        #                     "day_rate": "0.0015"
+        #                 },
+        #                 "USDT": {
+        #                     "min_amount": "50",
+        #                     "max_amount": "500000",
+        #                     "day_rate": "0.001"
+        #                 }
+        #             },
+        #         ],
+        #         "message": "Success"
+        #     }
+        #
+        leverages = self.safe_list(response, 'data', [])
+        return self.parse_leverages(leverages, symbols, 'market', marketType)
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'market')
+        leverageValue = self.safe_integer(leverage, 'leverage')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market, None, 'spot'),
+            'marginMode': None,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
 
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """

@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -59,9 +59,11 @@ export default class ascendex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
-                'fetchLeverage': false,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
-                'fetchMarginMode': false,
+                'fetchMarginMode': 'emulated',
+                'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -719,7 +721,7 @@ export default class ascendex extends Exchange {
         return this.safeInteger (data, 'requestReceiveAt');
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name ascendex#fetchAccounts
@@ -755,18 +757,17 @@ export default class ascendex extends Exchange {
             {
                 'id': accountGroup,
                 'type': undefined,
-                'currency': undefined,
+                'code': undefined,
                 'info': response,
             },
         ];
     }
 
     parseBalance (response): Balances {
-        const timestamp = this.milliseconds ();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
@@ -781,11 +782,10 @@ export default class ascendex extends Exchange {
     }
 
     parseMarginBalance (response) {
-        const timestamp = this.milliseconds ();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
@@ -803,11 +803,10 @@ export default class ascendex extends Exchange {
     }
 
     parseSwapBalance (response) {
-        const timestamp = this.milliseconds ();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const data = this.safeValue (response, 'data', {});
         const collaterals = this.safeValue (data, 'collaterals', []);
@@ -830,6 +829,8 @@ export default class ascendex extends Exchange {
          * @see https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] wallet type, 'spot', 'margin', or 'swap'
+         * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -1502,7 +1503,7 @@ export default class ascendex extends Exchange {
         return result;
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -1589,7 +1590,7 @@ export default class ascendex extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#createOrder
@@ -2743,7 +2744,8 @@ export default class ascendex extends Exchange {
         if (Precise.stringEq (notional, '0')) {
             notional = this.safeString (position, 'sellOpenOrderNotional');
         }
-        const marginMode = this.safeString (position, 'marginType');
+        const marginType = this.safeString (position, 'marginType');
+        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
         let collateral = undefined;
         if (marginMode === 'isolated') {
             collateral = this.safeString (position, 'isolatedMargin');
@@ -3209,12 +3211,11 @@ export default class ascendex extends Exchange {
         //
         const status = this.safeInteger (transfer, 'code');
         const currencyCode = this.safeCurrencyCode (undefined, currency);
-        const timestamp = this.milliseconds ();
         return {
             'info': transfer,
             'id': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'currency': currencyCode,
             'amount': undefined,
             'fromAccount': undefined,
@@ -3307,6 +3308,155 @@ export default class ascendex extends Exchange {
             'id': undefined,
             'amount': this.safeNumber (income, 'paymentInUSDT'),
         };
+    }
+
+    async fetchMarginModes (symbols: string[] = undefined, params = {}): Promise<MarginModes> {
+        /**
+         * @method
+         * @name ascendex#fetchMarginMode
+         * @description fetches the set margin mode of the user
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+         */
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
+        const request = {
+            'account-group': accountGroup,
+        };
+        const response = await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "balance": "44.570287262",
+        //                     "referencePrice": "1",
+        //                     "discountFactor": "1"
+        //                 }
+        //             ],
+        //             "contracts": [
+        //                 {
+        //                     "symbol": "BTC-PERP",
+        //                     "side": "LONG",
+        //                     "position": "0.0001",
+        //                     "referenceCost": "-3.12277254",
+        //                     "unrealizedPnl": "-0.001700233",
+        //                     "realizedPnl": "0",
+        //                     "avgOpenPrice": "31209",
+        //                     "marginType": "isolated",
+        //                     "isolatedMargin": "1.654972977",
+        //                     "leverage": "2",
+        //                     "takeProfitPrice": "0",
+        //                     "takeProfitTrigger": "market",
+        //                     "stopLossPrice": "0",
+        //                     "stopLossTrigger": "market",
+        //                     "buyOpenOrderNotional": "0",
+        //                     "sellOpenOrderNotional": "0",
+        //                     "markPrice": "31210.723063672",
+        //                     "indexPrice": "31223.148857925"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const marginModes = this.safeList (data, 'contracts', []);
+        return this.parseMarginModes (marginModes, symbols, 'symbol');
+    }
+
+    parseMarginMode (marginMode, market = undefined): MarginMode {
+        const marketId = this.safeString (marginMode, 'symbol');
+        const marginType = this.safeString (marginMode, 'marginType');
+        const margin = (marginType === 'crossed') ? 'cross' : 'isolated';
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': margin,
+        } as MarginMode;
+    }
+
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+        /**
+         * @method
+         * @name ascendex#fetchLeverages
+         * @description fetch the set leverage for all contract markets
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
+        const request = {
+            'account-group': accountGroup,
+        };
+        const response = await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "balance": "44.570287262",
+        //                     "referencePrice": "1",
+        //                     "discountFactor": "1"
+        //                 }
+        //             ],
+        //             "contracts": [
+        //                 {
+        //                     "symbol": "BTC-PERP",
+        //                     "side": "LONG",
+        //                     "position": "0.0001",
+        //                     "referenceCost": "-3.12277254",
+        //                     "unrealizedPnl": "-0.001700233",
+        //                     "realizedPnl": "0",
+        //                     "avgOpenPrice": "31209",
+        //                     "marginType": "isolated",
+        //                     "isolatedMargin": "1.654972977",
+        //                     "leverage": "2",
+        //                     "takeProfitPrice": "0",
+        //                     "takeProfitTrigger": "market",
+        //                     "stopLossPrice": "0",
+        //                     "stopLossTrigger": "market",
+        //                     "buyOpenOrderNotional": "0",
+        //                     "sellOpenOrderNotional": "0",
+        //                     "markPrice": "31210.723063672",
+        //                     "indexPrice": "31223.148857925"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const leverages = this.safeList (data, 'contracts', []);
+        return this.parseLeverages (leverages, symbols, 'symbol');
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        const leverageValue = this.safeInteger (leverage, 'leverage');
+        const marginType = this.safeString (leverage, 'marginType');
+        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

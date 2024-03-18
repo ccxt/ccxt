@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bitmart.js';
-import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } from './base/errors.js';
+import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported, NetworkError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -350,6 +350,7 @@ export default class bitmart extends Exchange {
                     '70000': ExchangeError,
                     '70001': BadRequest,
                     '70002': BadSymbol,
+                    '70003': NetworkError,
                     '71001': BadRequest,
                     '71002': BadRequest,
                     '71003': BadRequest,
@@ -515,6 +516,7 @@ export default class bitmart extends Exchange {
                 },
                 'networks': {
                     'ERC20': 'ERC20',
+                    'SOL': 'SOL',
                     'BTC': 'BTC',
                     'TRC20': 'TRC20',
                     // todo: should be TRX after unification
@@ -537,7 +539,6 @@ export default class bitmart extends Exchange {
                     'FIO': 'FIO',
                     'SCRT': 'SCRT',
                     'IOTX': 'IOTX',
-                    'SOL': 'SOL',
                     'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
                     'DOT': 'DOT',
@@ -3090,6 +3091,7 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -3112,40 +3114,57 @@ export default class bitmart extends Exchange {
         }
         const response = await this.privateGetAccountV1DepositAddress(this.extend(request, params));
         //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
-        //         "data":{
-        //             "currency":"USDT-TRC20",
-        //             "chain":"USDT-TRC20",
-        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
-        //             "address_memo":""
-        //         }
-        //     }
+        //    {
+        //        "message": "OK",
+        //        "code": 1000,
+        //        "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //        "data": {
+        //            currency: 'ETH',
+        //            chain: 'Ethereum',
+        //            address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //            address_memo: ''
+        //        }
+        //    }
         //
         const data = this.safeValue(response, 'data', {});
-        const address = this.safeString(data, 'address');
-        const tag = this.safeString(data, 'address_memo');
-        const chain = this.safeString(data, 'chain');
+        return this.parseDepositAddress(data, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //    {
+        //        currency: 'ETH',
+        //        chain: 'Ethereum',
+        //        address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //        address_memo: ''
+        //    }
+        //
+        const currencyId = this.safeString(depositAddress, 'currency');
+        const address = this.safeString(depositAddress, 'address');
+        const chain = this.safeString(depositAddress, 'chain');
         let network = undefined;
+        currency = this.safeCurrency(currencyId, currency);
         if (chain !== undefined) {
             const parts = chain.split('-');
-            const networkId = this.safeString(parts, 1);
-            network = this.safeNetwork(networkId);
+            const partsLength = parts.length;
+            const networkId = this.safeString(parts, partsLength - 1);
+            network = this.safeNetworkCode(networkId, currency);
         }
         this.checkAddress(address);
         return {
-            'currency': code,
+            'info': depositAddress,
+            'currency': this.safeString(currency, 'code'),
             'address': address,
-            'tag': tag,
+            'tag': this.safeString(depositAddress, 'address_memo'),
             'network': network,
-            'info': response,
         };
     }
-    safeNetwork(networkId) {
-        // TODO: parse
-        return networkId;
+    safeNetworkCode(networkId, currency = undefined) {
+        const name = this.safeString(currency, 'name');
+        if (networkId === name) {
+            const code = this.safeString(currency, 'code');
+            return code;
+        }
+        return this.networkIdToCode(networkId);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**

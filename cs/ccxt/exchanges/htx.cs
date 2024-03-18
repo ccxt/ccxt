@@ -418,6 +418,7 @@ public partial class htx : Exchange
                             { "v2/sub-user/api-key-modification", 1 },
                             { "v2/sub-user/api-key-deletion", 1 },
                             { "v1/subuser/transfer", 10 },
+                            { "v1/trust/user/active/credit", 10 },
                             { "v1/order/orders/place", 0.2 },
                             { "v1/order/batch-orders", 0.4 },
                             { "v1/order/auto/place", 0.2 },
@@ -876,6 +877,9 @@ public partial class htx : Exchange
                             { "inverse", true },
                         } },
                     } },
+                } },
+                { "fetchOHLCV", new Dictionary<string, object>() {
+                    { "useHistoricalEndpointForSpot", true },
                 } },
                 { "withdraw", new Dictionary<string, object>() {
                     { "includeFee", false },
@@ -2527,7 +2531,11 @@ public partial class htx : Exchange
         amountString = this.safeString(trade, "trade_volume", amountString);
         object costString = this.safeString(trade, "trade_turnover");
         object fee = null;
-        object feeCost = this.safeString2(trade, "filled-fees", "trade_fee");
+        object feeCost = this.safeString(trade, "filled-fees");
+        if (isTrue(isEqual(feeCost, null)))
+        {
+            feeCost = Precise.stringNeg(this.safeString(trade, "trade_fee"));
+        }
         object feeCurrencyId = this.safeString2(trade, "fee-currency", "fee_asset");
         object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         object filledPoints = this.safeString(trade, "filled-points");
@@ -2912,6 +2920,7 @@ public partial class htx : Exchange
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {string} [params.useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
         timeframe ??= "1m";
@@ -3028,22 +3037,27 @@ public partial class htx : Exchange
             }
         } else
         {
-            if (isTrue(!isEqual(since, null)))
-            {
-                ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
-            }
-            if (isTrue(!isEqual(limit, null)))
-            {
-                ((IDictionary<string,object>)request)["size"] = limit; // max 2000
-            }
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            if (isTrue(isTrue(isEqual(timeframe, "1M")) || isTrue(isEqual(timeframe, "1y"))))
+            object useHistorical = null;
+            var useHistoricalparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
+            useHistorical = ((IList<object>)useHistoricalparametersVariable)[0];
+            parameters = ((IList<object>)useHistoricalparametersVariable)[1];
+            if (!isTrue(useHistorical))
             {
-                // for some reason 1M and 1Y does not work with the regular endpoint
-                // https://github.com/ccxt/ccxt/issues/18006
+                // `limit` only available for the this endpoint
+                if (isTrue(!isEqual(limit, null)))
+                {
+                    ((IDictionary<string,object>)request)["size"] = limit; // max 2000
+                }
                 response = await this.spotPublicGetMarketHistoryKline(this.extend(request, parameters));
             } else
             {
+                // `since` only available for the this endpoint
+                if (isTrue(!isEqual(since, null)))
+                {
+                    // default 150 bars
+                    ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+                }
                 response = await this.spotPublicGetMarketHistoryCandles(this.extend(request, parameters));
             }
         }
