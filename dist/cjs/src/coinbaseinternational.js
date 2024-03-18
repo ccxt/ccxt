@@ -16,7 +16,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinbaseinternational',
-            'name': 'coinbase International',
+            'name': 'Coinbase International',
             'countries': ['US'],
             'certified': true,
             'pro': true,
