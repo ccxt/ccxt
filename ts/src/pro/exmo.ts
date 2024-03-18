@@ -670,7 +670,7 @@ export default class exmo extends exmoRest {
                 'nonce': time,
             };
             const message = this.extend (request, query);
-            future = this.watch (url, messageHash, message);
+            future = this.watch (url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;
