@@ -1239,7 +1239,8 @@ export default class binance extends binanceRest {
             client.resolve (parsedTicker, messageHash);
         }
         // resolve batch endpoint
-        if (resolvedMessageHashes.length) {
+        const length = resolvedMessageHashes.length;
+        if (length > 0) {
             client.resolve (newTickers, '!' + channelName + '@arr');
         }
     }
