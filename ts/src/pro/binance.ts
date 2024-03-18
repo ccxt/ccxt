@@ -979,28 +979,12 @@ export default class binance extends binanceRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, false, true);
-        let firstMarket = undefined;
-        let marketType = undefined;
-        const symbolsDefined = (symbols !== undefined);
-        if (symbolsDefined) {
-            firstMarket = this.market (symbols[0]);
-        }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', firstMarket, params);
-        let rawMarketType = marketType;
-        if (this.isLinear (marketType, subType)) {
-            rawMarketType = 'future';
-        } else if (this.isInverse (marketType, subType)) {
-            rawMarketType = 'delivery';
-        }
         let channelName = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
         if (channelName === 'bookTicker') {
             throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use .watchBidsAsks() method instead');
         }
-        const newTickers = await this.subscribeMultiple ('watchTickers', channelName, rawMarketType, symbols, params);
+        const newTickers = await this.watchMultiTickerBidAsk ('watchTickers', channelName, symbols, params);
         if (this.newUpdates) {
             return newTickers;
         }
@@ -1018,6 +1002,14 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        const result = await this.watchMultiTickerBidAsk ('watchBidsAsks', 'bookTicker', symbols, params);
+        if (this.newUpdates) {
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    async watchMultiTickerBidAsk (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
         let firstMarket = undefined;
@@ -1026,28 +1018,24 @@ export default class binance extends binanceRest {
         if (symbolsDefined) {
             firstMarket = this.market (symbols[0]);
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchBidsAsks', firstMarket, params);
+        [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
         let rawMarketType = marketType;
         if (this.isLinear (marketType, subType)) {
             rawMarketType = 'future';
         } else if (this.isInverse (marketType, subType)) {
             rawMarketType = 'delivery';
         }
-        return await this.subscribeMultiple ('watchBidsAsks', 'bookTicker', rawMarketType, symbols, params);
-    }
-
-    async subscribeMultiple (methodName, channelName: string, marketType: string, symbols: Strings = undefined, params = {}) {
         const rawSubscriptions = [];
         const messageHashes = [];
-        const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
-                const messageHash = market['lowercaseId'] + '@' + channelName;
-                rawSubscriptions.push (messageHash);
+                const subscribeHash = market['lowercaseId'] + '@' + channelName;
+                rawSubscriptions.push (subscribeHash);
+                const messageHash = market['symbol'] + '@' + channelName;
                 messageHashes.push (messageHash);
             }
         } else {
@@ -1062,7 +1050,7 @@ export default class binance extends binanceRest {
         if (symbolsDefined) {
             streamHash = channelName + '::' + symbols.join (',');
         }
-        const url = this.urls['api']['ws'][marketType] + '/' + this.stream (marketType, streamHash);
+        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream (rawMarketType, streamHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
