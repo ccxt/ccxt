@@ -99,9 +99,9 @@ class Stream:
             consumer.publish(message)
         if self.verbose:
             print(f'Sending message to {len(consumers)} consumers for topic {message.metadata.topic}.')
-    
+
     def add_watch_function (self, watchFn: str, args: List[Any]):
-        self.active_watch_functions.append ({ 'method': watchFn, 'args': args })
+        self.active_watch_functions.append({'method': watchFn, 'args': args})
 
 
     async def close(self) -> None:

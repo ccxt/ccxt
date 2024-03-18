@@ -722,7 +722,9 @@ class NewTranspiler {
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(exact, str)(((string)message));", "this.throwDynamicException(exact, str, message);"); // tmp fix for c#
         // baseClass = baseClass.replace("throw new getValue(exact, str)(message);", "throw new Exception ((string) message);"); // tmp fix for c#
-
+        
+        // spread operator
+        baseClass = baseClass.replace(/\.\.\.(\w+)/g, 'new object[] {$1}');
 
         // WS fixes
         baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');

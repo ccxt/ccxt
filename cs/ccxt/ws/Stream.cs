@@ -12,9 +12,9 @@ public class Stream : IBaseStream
     private Dictionary<string, List<Message>> topics;
     private Dictionary<string, List<Consumer>> consumers;
     public List<Dictionary<string, object>> activeWatchFunctions;
-    public Stream(int? maxMessagesPerTopic = null)
+    public Stream(int? maxMessagesPerTopic = null, bool? verbose = null)
     {
-        Init(maxMessagesPerTopic);
+        Init(maxMessagesPerTopic, verbose);
     }
 
     private void Init(int? maxMessagesPerTopic = null, bool? verbose = null)
