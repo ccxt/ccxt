@@ -1904,7 +1904,7 @@ export default class coinbase extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchLedger', undefined, undefined, undefined, params, 'next_starting_after', 'starting_after', undefined, 100);
+            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'next_starting_after', 'starting_after', undefined, 100);
         }
         let currency = undefined;
         if (code !== undefined) {
