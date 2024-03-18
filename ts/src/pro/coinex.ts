@@ -1072,7 +1072,8 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
         const time = this.milliseconds ();
-        const messageHash = (type === 'spot') ? 'authenticated:spot' : 'authenticated:swap';
+        const isSpot = (type === 'spot');
+        const messageHash = isSpot ? 'authenticated:spot' : 'authenticated:swap';
         const future = client.future (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (type === 'spot') {
