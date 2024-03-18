@@ -2555,7 +2555,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         id = self.safe_string_n(trade, ['execId', 'id', 'tradeId'])
         marketId = self.safe_string(trade, 'symbol')
-        marketType = 'contract'
+        marketType = 'contract' if ('createType' in trade) else 'spot'
         if market is not None:
             marketType = market['type']
         category = self.safe_string(trade, 'category')
@@ -6296,6 +6296,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [since]: Not used by Bybit
         :param int [limit]: The number of open interest structures to return. Max 200, default 50
         :param dict [params]: Exchange specific parameters
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns: An array of open interest structures
         """
         if timeframe == '1m':
