@@ -810,6 +810,7 @@ export default class binance extends Exchange {
                         'userTrades': 5,
                         'income': 30,
                         'commissionRate': 20,
+                        'rateLimit/order': 1,
                         'apiTradingStatus': 1,
                         'multiAssetsMargin': 30,
                         // broker endpoints
