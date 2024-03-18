@@ -1170,7 +1170,7 @@ export default class binance extends binanceRest {
         //         "A": "2.52500800"
         //     }
         //
-        this.handleTickersAndBidsAsks ('bidsasks', client, message);
+        this.handleTickersAndBidsAsks (client, message, 'bidsasks');
     }
 
     handleTickers (client: Client, message) {
@@ -1203,10 +1203,10 @@ export default class binance extends binanceRest {
         //         "n": 163222,            // total number of trades
         //     }
         //
-        this.handleTickersAndBidsAsks ('tickers', client, message);
+        this.handleTickersAndBidsAsks (client, message, 'tickers');
     }
 
-    handleTickersAndBidsAsks (methodName, client: Client, message) {
+    handleTickersAndBidsAsks (client: Client, message, methodType) {
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
         let channelName = undefined;
@@ -1224,7 +1224,7 @@ export default class binance extends binanceRest {
             const parsedTicker = this.parseWsTicker (ticker, marketType);
             const symbol = parsedTicker['symbol'];
             newTickers[symbol] = parsedTicker;
-            if (methodName === 'bidsasks') {
+            if (methodType === 'bidsasks') {
                 event = 'bookTicker'; // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
                 this.bidsasks[symbol] = parsedTicker;
             } else {
