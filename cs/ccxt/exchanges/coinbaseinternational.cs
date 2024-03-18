@@ -9,7 +9,7 @@ public partial class coinbaseinternational : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinbaseinternational" },
-            { "name", "coinbase International" },
+            { "name", "Coinbase International" },
             { "countries", new List<object>() {"US"} },
             { "certified", true },
             { "pro", true },

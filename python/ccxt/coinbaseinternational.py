@@ -25,7 +25,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
     def describe(self):
         return self.deep_extend(super(coinbaseinternational, self).describe(), {
             'id': 'coinbaseinternational',
-            'name': 'coinbase International',
+            'name': 'Coinbase International',
             'countries': ['US'],
             'certified': True,
             'pro': True,
