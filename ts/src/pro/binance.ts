@@ -954,30 +954,9 @@ export default class binance extends binanceRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketId = market['lowercaseId'];
-        let type = market['type'];
-        if (market['contract']) {
-            type = market['linear'] ? 'future' : 'delivery';
-        }
-        const options = this.safeValue (this.options, 'watchTicker', {});
-        let name = this.safeString (options, 'name', 'ticker');
-        name = this.safeString (params, 'name', name);
-        params = this.omit (params, 'name');
-        const messageHash = marketId + '@' + name;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
-        const requestId = this.requestId (url);
-        const request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-                messageHash,
-            ],
-            'id': requestId,
-        };
-        const subscribe = {
-            'id': requestId,
-        };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
+        symbol = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbol ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
+        return tickers[symbol];
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
