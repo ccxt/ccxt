@@ -1440,18 +1440,6 @@ export default class Exchange {
         return this.clients[url];
     }
 
-    handleStreamProduce (result, messageHash) {
-        const parts = messageHash.split (':');
-        const targetName = parts[0];
-        const targetNameLower = targetName.toLowerCase ();
-        if (targetNameLower.includes ('orderbook')) {
-            this.streamProduce ('orderbooks', result);
-        }
-        if (targetNameLower.includes ('ticker')) {
-            this.streamProduce ('tickers', result);
-        }
-    }
-
     watchMultiple (url: string, messageHashes: string[], message = undefined, subscribeHashes = undefined, subscription = undefined) {
         //
         // Without comments the code of this method is short and easy:
@@ -1801,6 +1789,25 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    handleStreamProduce (result, messageHash) {
+        const parts = messageHash.split (':');
+        const targetName = parts[0];
+        const targetNameLower = targetName.toLowerCase ();
+        if (targetNameLower.indexOf ('orderbook') >= 0) {
+            this.streamProduce ('orderbooks', result);
+        } else if (targetNameLower.indexOf ('ticker') >= 0) {
+            this.streamProduce ('tickers', result);
+        } else if (targetNameLower.indexOf ('order') >= 0) {
+            this.streamProduce ('orders', result);
+        } else if (targetNameLower.indexOf ('position') >= 0) {
+            this.streamProduce ('positions', result);
+        } else if (targetNameLower.indexOf ('mytrade') >= 0) {
+            this.streamProduce ('myTrades', result);
+        } else if (targetNameLower.indexOf ('trade') >= 0) {
+            this.streamProduce ('trades', result);
+        }
+    }
 
     setupStream () {
         const stream = this.stream;
