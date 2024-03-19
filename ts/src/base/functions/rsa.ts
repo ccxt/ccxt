@@ -13,9 +13,10 @@ function rsa (request: string, secret: string, hash: CHash) {
     return RSA.sign (request, digester, name)
 }
 
-function jwt (request: {}, secret: Uint8Array, hash: CHash, isRSA = false) {
+function jwt (request: {}, secret: Uint8Array, hash: CHash, isRSA = false, opts = {}) {
     const alg = (isRSA ? 'RS' : 'HS') + (hash.outputLen * 8)
-    const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })));
+    const header = Object.assign({ 'alg': alg, 'typ': 'JWT' }, opts);
+    const encodedHeader = urlencodeBase64(stringToBase64(JSON.stringify(header)));
     const encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)));
     const token = [ encodedHeader, encodedData ].join ('.');
     const algoType = alg.slice (0, 2);
