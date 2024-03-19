@@ -638,16 +638,8 @@
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "networks": "missing"
-<<<<<<< HEAD
             },
-<<<<<<< HEAD
             "fetchOHLCV": "unexpected issue"
-=======
-            "watchTrades": "temp skip before other PR is merged"
->>>>>>> 1af92ee33b (skip wt)
-=======
-            }
->>>>>>> 4d6cebb811 (trades tests)
         }
     },
     "coinex": {
