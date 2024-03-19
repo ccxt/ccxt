@@ -6,6 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { jwt } from './base/functions/rsa.js';
 import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account } from './base/types.js';
 
 // ----------------------------------------------------------------------------
@@ -3827,6 +3828,7 @@ export default class coinbase extends Exchange {
                 }
             } else {
                 this.checkRequiredCredentials ();
+                const seconds = this.seconds ();
                 const timestampString = this.seconds ().toString ();
                 let payload = '';
                 if (method !== 'GET') {
@@ -3845,14 +3847,30 @@ export default class coinbase extends Exchange {
                 // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-request
                 // v2: 'GET' require payload in the signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
-                const auth = timestampString + method + savedPath + payload;
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-                headers = {
-                    'CB-ACCESS-KEY': this.apiKey,
-                    'CB-ACCESS-SIGN': signature,
-                    'CB-ACCESS-TIMESTAMP': timestampString,
-                    'Content-Type': 'application/json',
-                };
+                const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0);
+                if (isCloudAPiKey) {
+                    const uri = method + ' ' + url.replace ('https://', '');
+                    const request = {
+                        'aud': [ 'retail_rest_api_proxy' ],
+                        'iss': 'coinbase-cloud',
+                        'nbf': seconds,
+                        'exp': seconds + 120,
+                        'sub': key_name,
+                        'uri': uri,
+                    };
+                    const token = jwt (request, this.encode (this.secret), sha256);
+
+                    
+                } else {
+                    const auth = timestampString + method + savedPath + payload;
+                    const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+                    headers = {
+                        'CB-ACCESS-KEY': this.apiKey,
+                        'CB-ACCESS-SIGN': signature,
+                        'CB-ACCESS-TIMESTAMP': timestampString,
+                        'Content-Type': 'application/json',
+                    };
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
