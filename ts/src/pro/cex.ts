@@ -152,6 +152,7 @@ export default class cex extends cexRest {
             'e': 'subscribe',
             'rooms': [ 'pair-' + market['base'] + '-' + market['quote'] ],
         };
+        this.options['currentWatchTradeSymbol'] = symbol;
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
         // assing symbol to the trades as message does not contain symbol information
@@ -174,19 +175,7 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', []);
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache (limit);
-        // as described in watchTrades, only one symbol can be watched at a time
-        const subs = Object.keys (client.subscriptions);
-        if (!subs.length) {
-            return;
-        }
-        let symbol = undefined;
-        for (let i = 0; i < subs.length; i++) {
-            const sub = subs[i];
-            if (sub.indexOf ('old:') >= 0) {
-                symbol = sub.replace ('old:', '');
-                break;
-            }
-        }
+        const symbol = this.safeString (this.options, 'currentWatchTradeSymbol');
         if (symbol === undefined) {
             return;
         }
