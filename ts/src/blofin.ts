@@ -1268,6 +1268,7 @@ export default class blofin extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -1278,13 +1279,23 @@ export default class blofin extends Exchange {
         const request = {
             'instId': market['id'],
         };
+        const isTrigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl' ], false);
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         } else {
-            request['orderId'] = id;
+            if (!isTrigger) {
+                request['orderId'] = id.toString ();
+            } else {
+                request['tpslId'] = id.toString ();
+            }
         }
-        const query = this.omit (params, [ 'orderId', 'clientOrderId' ]);
+        const query = this.omit (params, [ 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ]);
+        if (isTrigger) {
+            const tpslResponse = await this.cancelOrders ([ id ], symbol, params);
+            const first = this.safeDict (tpslResponse, 0);
+            return first as Order;
+        }
         const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
         const data = this.safeList (response, 'data', []);
         const order = this.safeDict (data, 0);

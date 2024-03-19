@@ -2725,7 +2725,7 @@ public partial class bybit : Exchange
         //
         object id = this.safeStringN(trade, new List<object>() {"execId", "id", "tradeId"});
         object marketId = this.safeString(trade, "symbol");
-        object marketType = "contract";
+        object marketType = ((bool) isTrue((inOp(trade, "createType")))) ? "contract" : "spot";
         if (isTrue(!isEqual(market, null)))
         {
             marketType = getValue(market, "type");
@@ -7260,6 +7260,7 @@ public partial class bybit : Exchange
         * @param {int} [since] Not used by Bybit
         * @param {int} [limit] The number of open interest structures to return. Max 200, default 50
         * @param {object} [params] Exchange specific parameters
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns An array of open interest structures
         */
         timeframe ??= "1h";

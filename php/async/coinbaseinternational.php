@@ -20,7 +20,7 @@ class coinbaseinternational extends Exchange {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbaseinternational',
-            'name' => 'coinbase International',
+            'name' => 'Coinbase International',
             'countries' => array( 'US' ),
             'certified' => true,
             'pro' => true,
