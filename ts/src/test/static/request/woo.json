@@ -123,7 +123,7 @@
             {
                 "description": "Spot orders",
                 "method": "fetchOrders",
-                "url": "https://api.woo.org/v1/orders?symbol=SPOT_LTC_USDT",
+                "url": "https://api.woo.org/v1/orders?symbol=SPOT_LTC_USDT&size=500",
                 "input": [
                     "LTC/USDT"
                 ]
@@ -131,7 +131,7 @@
             {
                 "description": "Swap orders",
                 "method": "fetchOrders",
-                "url": "https://api.woo.org/v1/orders?symbol=PERP_LTC_USDT",
+                "url": "https://api.woo.org/v1/orders?symbol=PERP_LTC_USDT&size=500",
                 "input": [
                     "LTC/USDT:USDT"
                 ]
@@ -139,7 +139,7 @@
             {
                 "description": "Swap trailing orders",
                 "method": "fetchOrders",
-                "url": "https://api.staging.woo.org/v3/algo/orders?algoType=TRAILING_STOP&symbol=PERP_BTC_USDT",
+                "url": "https://api.staging.woo.org/v3/algo/orders?algoType=TRAILING_STOP&symbol=PERP_BTC_USDT&size=500",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
@@ -154,7 +154,7 @@
             {
                 "description": "Spot private trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.woo.org/v1/client/trades?start_t=1699457638000&symbol=SPOT_LTC_USDT",
+                "url": "https://api.woo.org/v1/client/trades?start_t=1699457638000&symbol=SPOT_LTC_USDT&size=5",
                 "input": [
                     "LTC/USDT",
                     1699457638000,
@@ -164,7 +164,7 @@
             {
                 "description": "Swap private trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.woo.org/v1/client/trades?start_t=1699457638000&symbol=PERP_LTC_USDT",
+                "url": "https://api.woo.org/v1/client/trades?start_t=1699457638000&symbol=PERP_LTC_USDT&size=5",
                 "input": [
                     "LTC/USDT:USDT",
                     1699457638000,
