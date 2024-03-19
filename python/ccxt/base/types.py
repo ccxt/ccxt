@@ -258,7 +258,7 @@ class MarginMode(TypedDict):
     marginMode: Str
 
 
-MarginModes = Dict[str, List[MarginMode]]
+MarginModes = Dict[str, MarginMode]
 
 
 class Leverage(TypedDict):
