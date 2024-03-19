@@ -270,7 +270,6 @@ export default class p2b extends p2bRest {
             const item = trades[i];
             const trade = this.parseTrade (item, market);
             tradesArray.append (trade);
-            this.streamProduce ('trades', trade);
         }
         const messageHash = 'deals::' + symbol;
         client.resolve (tradesArray, messageHash);
@@ -330,7 +329,6 @@ export default class p2b extends p2bRest {
         }
         const symbol = ticker['symbol'];
         const messageHash = messageHashStart + '::' + symbol;
-        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
         return message;
     }
@@ -392,7 +390,6 @@ export default class p2b extends p2bRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

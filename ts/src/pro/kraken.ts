@@ -359,7 +359,6 @@ export default class kraken extends krakenRest {
         // kraken confirms multi-pair subscriptions separately one by one
         // trigger correct watchTickers calls upon receiving any of symbols
         this.tickers[symbol] = result;
-        this.streamProduce ('tickers', result);
         client.resolve (result, messageHash);
     }
 
@@ -390,7 +389,6 @@ export default class kraken extends krakenRest {
         const parsed = this.parseTrades (trades, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append (parsed[i]);
-            this.streamProduce ('trades', parsed[i]);
         }
         client.resolve (stored, messageHash);
     }
@@ -1342,7 +1340,6 @@ export default class kraken extends krakenRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             const subscription = this.safeValue (client.subscriptions, channelId, {});

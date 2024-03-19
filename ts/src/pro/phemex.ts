@@ -296,7 +296,6 @@ export default class phemex extends phemexRest {
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
             this.tickers[symbol] = ticker;
-            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
     }
@@ -439,7 +438,6 @@ export default class phemex extends phemexRest {
         const parsed = this.parseTrades (trades, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append (parsed[i]);
-            this.streamProduce ('trades', parsed[i]);
         }
         client.resolve (stored, messageHash);
     }
@@ -1329,7 +1327,6 @@ export default class phemex extends phemexRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         // private spot update
         // {
         //     "orders": { closed: [ ], fills: [ ], open: [] },

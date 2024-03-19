@@ -421,7 +421,6 @@ export default class hitbtc extends hitbtcRest {
             const symbol = market['symbol'];
             const ticker = this.parseWsTicker (data[marketId], market);
             this.tickers[symbol] = ticker;
-            this.streamProduce ('tickers', ticker);
             newTickers[symbol] = ticker;
         }
         client.resolve (newTickers, 'tickers');
@@ -582,7 +581,6 @@ export default class hitbtc extends hitbtcRest {
             const trades = this.parseWsTrades (data[marketId], market);
             for (let j = 0; j < trades.length; j++) {
                 stored.append (trades[j]);
-                this.streamProduce ('trades', trades[j]);
             }
             const messageHash = 'trades::' + symbol;
             client.resolve (stored, messageHash);
@@ -1235,7 +1233,6 @@ export default class hitbtc extends hitbtcRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         this.handleError (client, message);
         let channel = this.safeString2 (message, 'ch', 'method');
         if (channel !== undefined) {

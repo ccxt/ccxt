@@ -269,7 +269,6 @@ export default class blockchaincom extends blockchaincomRest {
         }
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
-        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 
@@ -375,7 +374,6 @@ export default class blockchaincom extends blockchaincomRest {
         }
         const parsed = this.parseWsTrade (message, market);
         stored.append (parsed);
-        this.streamProduce ('trades', parsed);
         this.trades[symbol] = stored;
         client.resolve (this.trades[symbol], messageHash);
     }
@@ -733,7 +731,6 @@ export default class blockchaincom extends blockchaincomRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         const channel = this.safeString (message, 'channel');
         const handlers = {
             'ticker': this.handleTicker,

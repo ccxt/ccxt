@@ -126,7 +126,6 @@ export default class bitvavo extends bitvavoRest {
             const ticker = this.parseTicker (data, market);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
         return message;
@@ -177,7 +176,6 @@ export default class bitvavo extends bitvavoRest {
         }
         tradesArray.append (trade);
         this.trades[symbol] = tradesArray;
-        this.streamProduce ('trades', trade);
         client.resolve (tradesArray, messageHash);
     }
 
@@ -1367,7 +1365,6 @@ export default class bitvavo extends bitvavoRest {
         //         "authenticated": true
         //     }
         //
-        this.streamProduce ('raw', message);
         const error = this.safeString (message, 'error');
         if (error !== undefined) {
             this.handleErrorMessage (client, message);

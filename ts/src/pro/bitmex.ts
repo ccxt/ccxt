@@ -352,7 +352,6 @@ export default class bitmex extends bitmexRest {
             tickers[symbol] = fullParsedTicker;
             this.tickers[symbol] = fullParsedTicker;
             const messageHash = 'ticker:' + symbol;
-            this.streamProduce ('tickers', fullParsedTicker);
             client.resolve (fullParsedTicker, messageHash);
             client.resolve (fullParsedTicker, 'alltickers');
         }
@@ -564,7 +563,6 @@ export default class bitmex extends bitmexRest {
             }
             for (let j = 0; j < trades.length; j++) {
                 stored.append (trades[j]);
-                this.streamProduce ('trades', trades[j]);
             }
             client.resolve (stored, messageHash);
         }
@@ -1596,7 +1594,6 @@ export default class bitmex extends bitmexRest {
         //         ]
         //     }
         //
-        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             const table = this.safeString (message, 'table');
             const methods = {

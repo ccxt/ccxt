@@ -321,7 +321,6 @@ export default class cryptocom extends cryptocomRest {
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
-            this.streamProduce ('trades', parsedTrades[j]);
         }
         const channelReplaced = channel.replace ('.' + marketId, '');
         client.resolve (stored, symbolSpecificMessageHash);
@@ -403,7 +402,6 @@ export default class cryptocom extends cryptocomRest {
             const parsed = this.parseTicker (ticker, market);
             const symbol = parsed['symbol'];
             this.tickers[symbol] = parsed;
-            this.streamProduce ('tickers', parsed);
             client.resolve (parsed, messageHash);
         }
     }
@@ -997,7 +995,6 @@ export default class cryptocom extends cryptocomRest {
         //           "channel":"ticker",
         //           "data":[ { } ]
         //
-        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

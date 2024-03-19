@@ -250,7 +250,6 @@ export default class okx extends okxRest {
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
-            this.streamProduce ('trades', trade);
             client.resolve (stored, messageHash);
         }
     }
@@ -330,7 +329,6 @@ export default class okx extends okxRest {
             const ticker = this.parseTicker (data[i]);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            this.streamProduce ('tickers', ticker);
             newTickers.push (ticker);
         }
         const messageHashes = this.findMessageHashes (client, channel + '::');
@@ -1571,7 +1569,6 @@ export default class okx extends okxRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

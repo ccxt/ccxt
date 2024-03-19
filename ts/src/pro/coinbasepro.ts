@@ -413,7 +413,6 @@ export default class coinbasepro extends coinbaseproRest {
                 this.trades[symbol] = tradesArray;
             }
             tradesArray.append (trade);
-            this.streamProduce ('trades', trade);
             client.resolve (tradesArray, messageHash);
         }
         return message;
@@ -773,7 +772,6 @@ export default class coinbasepro extends coinbaseproRest {
             this.tickers[symbol] = ticker;
             const messageHash = 'ticker:' + symbol;
             const idMessageHash = 'ticker:' + marketId;
-            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
             client.resolve (ticker, idMessageHash);
         }
@@ -958,7 +956,6 @@ export default class coinbasepro extends coinbaseproRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods = {
             'snapshot': this.handleOrderBook,

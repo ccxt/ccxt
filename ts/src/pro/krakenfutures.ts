@@ -496,12 +496,10 @@ export default class krakenfutures extends krakenfuturesRest {
                     const item = trades[index];
                     const trade = this.parseWsTrade (item);
                     tradesArray.append (trade);
-                    this.streamProduce ('trades', trade);
                 }
             } else {
                 const trade = this.parseWsTrade (message);
                 tradesArray.append (trade);
-                this.streamProduce ('trades', trade);
             }
             client.resolve (tradesArray, messageHash);
         }
@@ -959,7 +957,6 @@ export default class krakenfutures extends krakenfuturesRest {
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             const messageHash = feed + ':' + symbol;
-            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
         client.resolve (this.tickers, feed);
@@ -1466,7 +1463,6 @@ export default class krakenfutures extends krakenfuturesRest {
     }
 
     handleMessage (client, message) {
-        this.streamProduce ('raw', message);
         const event = this.safeString (message, 'event');
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);

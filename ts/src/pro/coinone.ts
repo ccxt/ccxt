@@ -193,7 +193,6 @@ export default class coinone extends coinoneRest {
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
-        this.streamProduce ('tickers', ticker);
         client.resolve (this.tickers[symbol], messageHash);
     }
 
@@ -312,7 +311,6 @@ export default class coinone extends coinoneRest {
             this.trades[symbol] = stored;
         }
         stored.append (trade);
-        this.streamProduce ('trades', trade);
         const messageHash = 'trade:' + symbol;
         client.resolve (stored, messageHash);
     }
@@ -376,7 +374,6 @@ export default class coinone extends coinoneRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

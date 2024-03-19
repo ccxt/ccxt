@@ -141,7 +141,6 @@ export default class upbit extends upbitRest {
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
-        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 
@@ -224,14 +223,12 @@ export default class upbit extends upbitRest {
             this.trades[symbol] = stored;
         }
         stored.append (trade);
-        this.streamProduce ('trades', trade);
         const marketId = this.safeString (message, 'code');
         const messageHash = 'trade:' + marketId;
         client.resolve (stored, messageHash);
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         const methods = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,

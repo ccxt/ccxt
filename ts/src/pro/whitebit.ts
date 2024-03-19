@@ -291,7 +291,6 @@ export default class whitebit extends whitebitRest {
         const ticker = this.parseTicker (rawTicker, market);
         this.tickers[symbol] = ticker;
         // watchTicker
-        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
         // watchTickers
         const messageHashes = Object.keys (client.futures);
@@ -376,7 +375,6 @@ export default class whitebit extends whitebitRest {
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
-            this.streamProduce ('trades', parsedTrades[j]);
         }
         const messageHash = 'trades:' + market['symbol'];
         client.resolve (stored, messageHash);
@@ -886,7 +884,6 @@ export default class whitebit extends whitebitRest {
         // pong
         //    { error: null, result: "pong", id: 0 }
         //
-        this.streamProduce ('raw', message);
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

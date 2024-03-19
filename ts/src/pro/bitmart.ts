@@ -867,7 +867,6 @@ export default class bitmart extends bitmartRest {
         }
         const stored = this.trades[symbol];
         stored.append (trade);
-        this.streamProduce ('trades', trade);
         return symbol;
     }
 
@@ -963,7 +962,6 @@ export default class bitmart extends bitmartRest {
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             const messageHash = 'ticker:' + symbol;
-            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
     }
@@ -1494,7 +1492,6 @@ export default class bitmart extends bitmartRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

@@ -313,7 +313,6 @@ export default class lbank extends lbankRest {
         let messageHash = 'ticker:' + symbol;
         client.resolve (parsedTicker, messageHash);
         messageHash = 'fetchTicker:' + symbol;
-        this.streamProduce ('tickers', parsedTicker);
         client.resolve (parsedTicker, messageHash);
     }
 
@@ -465,7 +464,6 @@ export default class lbank extends lbankRest {
             const trade = this.parseWsTrade (rawTrades[i], market);
             trade['symbol'] = symbol;
             stored.append (trade);
-            this.streamProduce ('trades', trade);
         }
         this.trades[symbol] = stored;
         let messageHash = 'trades:' + symbol;
@@ -839,7 +837,6 @@ export default class lbank extends lbankRest {
     }
 
     handleMessage (client, message) {
-        this.streamProduce ('raw', message);
         const status = this.safeString (message, 'status');
         if (status === 'error') {
             this.handleErrorMessage (client, message);

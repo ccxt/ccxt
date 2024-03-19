@@ -259,7 +259,6 @@ export default class exmo extends exmoRest {
         const parsedTicker = this.parseTicker (ticker, market);
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = parsedTicker;
-        this.streamProduce ('tickers', parsedTicker);
         client.resolve (parsedTicker, messageHash);
     }
 
@@ -324,7 +323,6 @@ export default class exmo extends exmoRest {
             const trade = trades[i];
             const parsed = this.parseTrade (trade, market);
             stored.append (parsed);
-            this.streamProduce ('trades', parsed);
         }
         this.trades[symbol] = stored;
         client.resolve (this.trades[symbol], messageHash);
@@ -575,7 +573,6 @@ export default class exmo extends exmoRest {
         //     "id": 1,
         //     "topic": "spot/ticker:BTC_USDT"
         // }
-        this.streamProduce ('raw', message);
         const event = this.safeString (message, 'event');
         const events = {
             'logged_in': this.handleAuthenticationMessage,

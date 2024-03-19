@@ -196,7 +196,6 @@ export default class htx extends htxRest {
         ticker['datetime'] = this.iso8601 (timestamp);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
-        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, ch);
         return message;
     }
@@ -261,7 +260,6 @@ export default class htx extends htxRest {
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i], market);
             tradesCache.append (trade);
-            this.streamProduce ('trades', trade);
         }
         client.resolve (tradesCache, ch);
         return message;
@@ -1971,7 +1969,6 @@ export default class htx extends htxRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}

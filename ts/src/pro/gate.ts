@@ -412,7 +412,6 @@ export default class gate extends gateRest {
             const symbol = parsedItem['symbol'];
             if (isTicker) {
                 this.tickers[symbol] = parsedItem;
-                this.streamProduce ('tickers', parsedItem);
             } else {
                 this.bidsasks[symbol] = parsedItem;
             }
@@ -499,7 +498,6 @@ export default class gate extends gateRest {
                 this.trades[symbol] = cachedTrades;
             }
             cachedTrades.append (trade);
-            this.streamProduce ('trades', trade);
             const hash = 'trades:' + symbol;
             client.resolve (cachedTrades, hash);
         }
@@ -1218,7 +1216,6 @@ export default class gate extends gateRest {
         //        ]
         //    }
         //
-        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

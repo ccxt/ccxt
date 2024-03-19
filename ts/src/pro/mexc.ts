@@ -124,7 +124,6 @@ export default class mexc extends mexcRest {
         }
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
-        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 
@@ -616,7 +615,6 @@ export default class mexc extends mexcRest {
                 parsedTrade = this.parseTrade (trades[j], market);
             }
             stored.append (parsedTrade);
-            this.streamProduce ('trades', parsedTrade);
         }
         client.resolve (stored, messageHash);
     }
@@ -1149,7 +1147,6 @@ export default class mexc extends mexcRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         if (typeof message === 'string') {
             if (message === 'Invalid listen key') {
                 const error = new AuthenticationError (this.id + ' invalid listen key');

@@ -189,7 +189,6 @@ export default class coinbase extends coinbaseRest {
                 const wsMarketId = this.safeString (ticker, 'product_id');
                 const messageHash = channel + '::' + wsMarketId;
                 newTickers.push (result);
-                this.streamProduce ('tickers', result);
                 client.resolve (result, messageHash);
             }
         }
@@ -352,9 +351,7 @@ export default class coinbase extends coinbaseRest {
             const currentTrades = this.safeValue (currentEvent, 'trades');
             for (let j = 0; j < currentTrades.length; j++) {
                 const item = currentTrades[i];
-                const parsedTrade = this.parseTrade (item);
-                tradesArray.append (parsedTrade);
-                this.streamProduce ('trades', parsedTrade);
+                tradesArray.append (this.parseTrade (item));
             }
         }
         client.resolve (tradesArray, messageHash);
@@ -557,7 +554,6 @@ export default class coinbase extends coinbaseRest {
     }
 
     handleMessage (client, message) {
-        this.streamProduce ('raw', message);
         const channel = this.safeString (message, 'channel');
         const methods = {
             'subscriptions': this.handleSubscriptionStatus,

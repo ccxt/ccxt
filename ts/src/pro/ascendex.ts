@@ -201,7 +201,6 @@ export default class ascendex extends ascendexRest {
         }
         for (let i = 0; i < trades.length; i++) {
             tradesArray.append (trades[i]);
-            this.streamProduce ('trades', trades[i]);
         }
         this.trades[symbol] = tradesArray;
         client.resolve (tradesArray, messageHash);
@@ -489,7 +488,6 @@ export default class ascendex extends ascendexRest {
             }
         }
         const messageHash = 'balance' + ':' + type;
-        this.streamProduce ('balances', this.safeBalance (result));
         client.resolve (this.safeBalance (result), messageHash);
     }
 
@@ -742,7 +740,6 @@ export default class ascendex extends ascendexRest {
     }
 
     handleMessage (client: Client, message) {
-        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }
