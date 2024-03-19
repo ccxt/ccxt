@@ -2,13 +2,8 @@
 
 import cexRest from '../cex.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-<<<<<<< HEAD
 import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num } from '../base/types.js';
-import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js';
-=======
-import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, BadRequest, OperationFailed } from '../base/errors.js';
->>>>>>> d9f7a9bc85 (cex fix error)
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
