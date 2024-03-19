@@ -273,18 +273,18 @@ export default class Exchange {
     wsSocksProxy: string;
     wssProxy: string;
     //
+    headers: any = {};
+    origin = '*'; // CORS origin
     userAgents: any = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
         'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
     };
-    headers: any = {};
-    origin = '*'; // CORS origin
     //
     agent = undefined; // maintained for backwards compatibility
-    nodeHttpModuleLoaded = false;
     httpAgent = undefined;
     httpsAgent = undefined;
+    nodeHttpModuleLoaded = false;
 
     handleContentTypeApplicationZip = false;
     minFundingAddressLength = 1; // used in checkAddress
@@ -316,14 +316,80 @@ export default class Exchange {
     uid: string;
     walletAddress: string; // a wallet address "0x"-prefixed hexstring
 
+    accounts = undefined;
+    accountsById = undefined;
     balance = {};
+    baseCurrencies = undefined;
     bidsasks: Dictionary<Ticker> = {};
+    codes = undefined;
+    commonCurrencies = undefined;
+    currencies: Dictionary<Currency> = undefined;
+    currencies_by_id = undefined;
+    enableLastHttpResponse = true;
+    enableLastJsonResponse = true;
+    enableLastResponseHeaders = true;
+    enableRateLimit: boolean = undefined;
+    exceptions = {};
+    fees: object;
+    has: Dictionary<boolean | 'emulated'>;
+    hostname: Str = undefined;
+    httpExceptions = undefined;
+    id: string = 'Exchange';
+    ids: string[] = undefined;
+    last_http_response = undefined;
+    last_json_response = undefined;
+    last_request_body     = undefined;
+    last_request_headers  = undefined;
+    last_request_path     = undefined;
+    last_request_url      = undefined;
+    last_response_headers = undefined;
+    lastRestRequestTimestamp: number;
+    limits: {
+        amount?: MinMax,
+        cost?: MinMax,
+        leverage?: MinMax,
+        price?: MinMax,
+    };
+    markets: Dictionary<any> = undefined;
+    markets_by_id: Dictionary<any> = undefined;
+    marketsByAltname = undefined;
+    marketsLoading = undefined;
     myTrades: ArrayCache;
+    name: Str = undefined;
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     orderbooks: Dictionary<Ob> = {};
     orders: ArrayCache = undefined;
+    paddingMode = undefined;
     positions: any;
+    precision: {
+        amount: number | undefined,
+        price: number | undefined
+    };
+    precisionMode: Num = undefined;
+    quoteCurrencies = undefined;
+    rateLimit: Num = undefined; // milliseconds
+    reloadingMarkets = undefined;
+    requiredCredentials: {
+        apiKey: boolean;
+        login: boolean;
+        password: boolean;
+        privateKey: boolean;
+        secret: boolean;
+        token: boolean;
+        twofa: boolean;
+        uid: boolean;
+        walletAddress: boolean;
+    };
+    requiresEddsa = false;
+    requiresWeb3 = false;
+    stablePairs = {};
+    status = undefined;
+    symbols: string[] = undefined;
+    targetAccount = undefined;
+    throttler = undefined;
     tickers: Dictionary<Ticker> = {};
+    timeframes: Dictionary<number | string> = {};
+    tokenBucket = undefined;
     trades: Dictionary<ArrayCache>;
     transactions = {};
     triggerOrders: ArrayCache = undefined;
@@ -337,94 +403,7 @@ export default class Exchange {
         test?: string | Dictionary<string>;
         www?: string;
     };
-
-    precision: {
-        amount: number | undefined,
-        price: number | undefined
-    };
-    requiresEddsa = false;
-    requiresWeb3 = false;
-
-    enableLastHttpResponse = true;
-    enableLastJsonResponse = true;
-    enableLastResponseHeaders = true;
-    last_http_response = undefined;
-    last_json_response = undefined;
-    last_request_body     = undefined;
-    last_request_headers  = undefined;
-    last_request_path     = undefined;
-    last_request_url      = undefined;
-    last_response_headers = undefined;
-
-    id: string = 'Exchange';
-
-    has: Dictionary<boolean | 'emulated'>;
-    markets: Dictionary<any> = undefined;
-
-    status = undefined;
-
-    enableRateLimit: boolean = undefined;
-    requiredCredentials: {
-        apiKey: boolean;
-        login: boolean;
-        password: boolean;
-        privateKey: boolean;
-        secret: boolean;
-        token: boolean;
-        twofa: boolean;
-        uid: boolean;
-        walletAddress: boolean;
-    };
-    rateLimit: Num = undefined; // milliseconds
-    throttler = undefined;
-    tokenBucket = undefined;
-
-    httpExceptions = undefined;
-
-    limits: {
-        amount?: MinMax,
-        cost?: MinMax,
-        leverage?: MinMax,
-        price?: MinMax,
-    };
-    currencies: Dictionary<Currency> = undefined;
-    fees: object;
-    ids: string[] = undefined;
-    markets_by_id: Dictionary<any> = undefined;
-    symbols: string[] = undefined;
-
-    baseCurrencies = undefined;
-    codes = undefined;
-    currencies_by_id = undefined;
-    quoteCurrencies = undefined;
-
-    marketsLoading = undefined;
-    reloadingMarkets = undefined;
-
-    accounts = undefined;
-    accountsById = undefined;
-
-    commonCurrencies = undefined;
-
-    hostname: Str = undefined;
-
-    paddingMode = undefined;
-    precisionMode: Num = undefined;
-
-    exceptions = {};
-    timeframes: Dictionary<number | string> = {};
-
     version: Str = undefined;
-
-    marketsByAltname = undefined;
-
-    name: Str = undefined;
-
-    lastRestRequestTimestamp: number;
-
-    targetAccount = undefined;
-
-    stablePairs = {};
 
     // WS/PRO options
     aggregate = aggregate;
