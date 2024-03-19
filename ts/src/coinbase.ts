@@ -3806,30 +3806,14 @@ export default class coinbase extends Exchange {
         const url = this.urls['api']['rest'] + fullPath;
         if (signed) {
             const authorization = this.safeString (this.headers, 'Authorization');
+            let authorizationString = undefined;
             if (authorization !== undefined) {
-                headers = {
-                    'Authorization': authorization,
-                    'Content-Type': 'application/json',
-                };
-                if (method !== 'GET') {
-                    if (Object.keys (query).length) {
-                        body = this.json (query);
-                    }
-                }
+                authorizationString = authorization;
             } else if (this.token && !this.checkRequiredCredentials (false)) {
-                headers = {
-                    'Authorization': 'Bearer ' + this.token,
-                    'Content-Type': 'application/json',
-                };
-                if (method !== 'GET') {
-                    if (Object.keys (query).length) {
-                        body = this.json (query);
-                    }
-                }
+                authorizationString = 'Bearer ' + this.token;
             } else {
                 this.checkRequiredCredentials ();
                 const seconds = this.seconds ();
-                const timestampString = this.seconds ().toString ();
                 let payload = '';
                 if (method !== 'GET') {
                     if (Object.keys (query).length) {
@@ -3855,13 +3839,13 @@ export default class coinbase extends Exchange {
                         'iss': 'coinbase-cloud',
                         'nbf': seconds,
                         'exp': seconds + 120,
-                        'sub': key_name,
+                        'sub': this.apiKey,
                         'uri': uri,
                     };
                     const token = jwt (request, this.encode (this.secret), sha256);
-
-                    
+                    authorizationString = 'Bearer ' + token;
                 } else {
+                    const timestampString = this.seconds ().toString ();
                     const auth = timestampString + method + savedPath + payload;
                     const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                     headers = {
@@ -3870,6 +3854,17 @@ export default class coinbase extends Exchange {
                         'CB-ACCESS-TIMESTAMP': timestampString,
                         'Content-Type': 'application/json',
                     };
+                }
+            }
+            if (authorizationString !== undefined) {
+                headers = {
+                    'Authorization': authorizationString,
+                    'Content-Type': 'application/json',
+                };
+                if (method !== 'GET') {
+                    if (Object.keys (query).length) {
+                        body = this.json (query);
+                    }
                 }
             }
         }
