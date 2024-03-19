@@ -3593,9 +3593,29 @@ export default class bybit extends Exchange {
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
         const isBuy = side === 'buy';
-        if (isTrailingAmountOrder || (defaultMethod === 'privatePostV5PositionTradingStop')) {
-            if (isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTriggerOrder || market['spot']) {
-                throw new InvalidOrder (this.id + ' the API endpoint used only supports contract trailingAmount, stopLoss and takeProfit orders');
+        const isAlternativeEndpoint = defaultMethod === 'privatePostV5PositionTradingStop';
+        if (isTrailingAmountOrder || isAlternativeEndpoint) {
+            if (isStopLoss || isTakeProfit || isTriggerOrder || market['spot']) {
+                throw new InvalidOrder (this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
+            }
+            if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                if (isStopLossTriggerOrder) {
+                    request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                    if (isLimit) {
+                        request['tpslMode'] = 'Partial';
+                        request['slOrderType'] = 'Limit';
+                        request['slLimitPrice'] = this.priceToPrecision (symbol, price);
+                        request['slSize'] = this.amountToPrecision (symbol, amount);
+                    }
+                } else if (isTakeProfitTriggerOrder) {
+                    request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                    if (isLimit) {
+                        request['tpslMode'] = 'Partial';
+                        request['tpOrderType'] = 'Limit';
+                        request['tpLimitPrice'] = this.priceToPrecision (symbol, price);
+                        request['tpSize'] = this.amountToPrecision (symbol, amount);
+                    }
+                }
             }
         } else {
             request['side'] = this.capitalize (side);
@@ -3626,6 +3646,9 @@ export default class bybit extends Exchange {
             } else if (market['option']) {
                 // mandatory field for options
                 request['orderLinkId'] = this.uuid16 ();
+            }
+            if (isLimit) {
+                request['price'] = this.priceToPrecision (symbol, price);
             }
         }
         if (market['spot']) {
@@ -3678,13 +3701,8 @@ export default class bybit extends Exchange {
                 request['qty'] = this.costToPrecision (symbol, amount);
             }
         } else {
-            if (!isTrailingAmountOrder && (defaultMethod !== 'privatePostV5PositionTradingStop')) {
+            if (!isTrailingAmountOrder && !isAlternativeEndpoint) {
                 request['qty'] = this.amountToPrecision (symbol, amount);
-            }
-        }
-        if (isLimit) {
-            if (!isTrailingAmountOrder && (defaultMethod !== 'privatePostV5PositionTradingStop')) {
-                request['price'] = this.priceToPrecision (symbol, price);
             }
         }
         if (isTrailingAmountOrder) {
@@ -3692,7 +3710,7 @@ export default class bybit extends Exchange {
                 request['activePrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
             }
             request['trailingStop'] = trailingAmount;
-        } else if (isTriggerOrder) {
+        } else if (isTriggerOrder && !isAlternativeEndpoint) {
             const triggerDirection = this.safeString (params, 'triggerDirection');
             params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'triggerDirection' ]);
             if (market['spot']) {
@@ -3707,7 +3725,7 @@ export default class bybit extends Exchange {
                 request['triggerDirection'] = isAsending ? 1 : 2;
             }
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-        } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+        } else if ((isStopLossTriggerOrder || isTakeProfitTriggerOrder) && !isAlternativeEndpoint) {
             if (isBuy) {
                 request['triggerDirection'] = isStopLossTriggerOrder ? 1 : 2;
             } else {
@@ -3717,7 +3735,7 @@ export default class bybit extends Exchange {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             request['reduceOnly'] = true;
         }
-        if (isStopLoss || isTakeProfit) {
+        if ((isStopLoss || isTakeProfit) && !isAlternativeEndpoint) {
             if (isStopLoss) {
                 const slTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.priceToPrecision (symbol, slTriggerPrice);
@@ -3726,9 +3744,6 @@ export default class bybit extends Exchange {
                     request['tpslMode'] = 'Partial';
                     request['slOrderType'] = 'Limit';
                     request['slLimitPrice'] = this.priceToPrecision (symbol, slLimitPrice);
-                    if (defaultMethod === 'privatePostV5PositionTradingStop') {
-                        request['slSize'] = this.amountToPrecision (symbol, amount);
-                    }
                 }
             }
             if (isTakeProfit) {
@@ -3739,9 +3754,6 @@ export default class bybit extends Exchange {
                     request['tpslMode'] = 'Partial';
                     request['tpOrderType'] = 'Limit';
                     request['tpLimitPrice'] = this.priceToPrecision (symbol, tpLimitPrice);
-                    if (defaultMethod === 'privatePostV5PositionTradingStop') {
-                        request['tpSize'] = this.amountToPrecision (symbol, amount);
-                    }
                 }
             }
         }
