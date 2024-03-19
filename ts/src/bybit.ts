@@ -5185,7 +5185,9 @@ export default class bybit extends Exchange {
         }
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        let request = {};
+        let request = {
+            'execType': 'Trade',
+        };
         let market = undefined;
         let isUsdcSettled = false;
         if (symbol !== undefined) {
