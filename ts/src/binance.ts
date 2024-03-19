@@ -4168,7 +4168,7 @@ export default class binance extends Exchange {
         const inverse = this.safeBool (market, 'inverse');
         const volumeIndex = inverse ? 7 : 5;
         return [
-            this.safeInteger2 (ohlcv, 0, 'closeTime'),
+            this.safeInteger2 (ohlcv, 0, 'openTime'),
             this.safeNumber2 (ohlcv, 1, 'open'),
             this.safeNumber2 (ohlcv, 2, 'high'),
             this.safeNumber2 (ohlcv, 3, 'low'),
