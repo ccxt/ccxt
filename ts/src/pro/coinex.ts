@@ -1073,7 +1073,9 @@ export default class coinex extends coinexRest {
         const client = this.client (url);
         const time = this.milliseconds ();
         const isSpot = (type === 'spot');
-        const messageHash = isSpot ? 'authenticated:spot' : 'authenticated:swap';
+        const spotMessageHash = 'authenticated:spot';
+        const swapMessageHash = 'authenticated:swap';
+        const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const future = client.future (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (type === 'spot') {
@@ -1083,7 +1085,7 @@ export default class coinex extends coinexRest {
             const requestId = this.requestId ();
             const subscribe = {
                 'id': requestId,
-                'future': 'authenticated:spot',
+                'future': spotMessageHash,
             };
             const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString (time) + '&secret_key=' + this.secret;
             const hash = this.hash (this.encode (signData), md5);
@@ -1106,7 +1108,7 @@ export default class coinex extends coinexRest {
             const requestId = this.requestId ();
             const subscribe = {
                 'id': requestId,
-                'future': 'authenticated:swap',
+                'future': swapMessageHash,
             };
             const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString (time) + '&secret_key=' + this.secret;
             const hash = this.hash (this.encode (signData), sha256, 'hex');
