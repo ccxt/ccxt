@@ -1404,6 +1404,10 @@ export default class Exchange {
         this.clients = this.clients || {};
         if (!this.clients[url]) {
             const onMessage = this.handleMessage.bind (this);
+            const onMessageWithStream = (client, message)=> {
+                this.streamProduce ('raw', message);
+                return onMessage (client, message);
+            };
             const onError = this.onError.bind (this);
             const onClose = this.onClose.bind (this);
             const onConnected = this.onConnected.bind (this);
@@ -1426,9 +1430,26 @@ export default class Exchange {
                     'agent': finalAgent,
                 }
             }, wsOptions);
-            this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
+            this.clients[url] = new WsClient (url, onMessageWithStream, onError, onClose, onConnected, options);
+            const originalResolve = this.clients[url].resolve;
+            this.clients[url].resolve = (result, messageHash) => {
+                this.handleStreamProduce (result, messageHash);
+                return originalResolve (result, messageHash);
+            };
         }
         return this.clients[url];
+    }
+
+    handleStreamProduce (result, messageHash) {
+        const parts = messageHash.split (':');
+        const targetName = parts[0];
+        const targetNameLower = targetName.toLowerCase ();
+        if (targetNameLower.includes ('orderbook')) {
+            this.streamProduce ('orderbooks', result);
+        }
+        if (targetNameLower.includes ('ticker')) {
+            this.streamProduce ('tickers', result);
+        }
     }
 
     watchMultiple (url: string, messageHashes: string[], message = undefined, subscribeHashes = undefined, subscription = undefined) {
