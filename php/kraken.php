@@ -1287,6 +1287,7 @@ class kraken extends Exchange {
         $lastTrade = $trades[$length - 1];
         $lastTradeId = $this->safe_string($result, 'last');
         $lastTrade[] = $lastTradeId;
+        $trades[$length - 1] = $lastTrade;
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -2728,7 +2729,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function parse_account($account) {
+    public function parse_account_type($account) {
         $accountByType = array(
             'spot' => 'Spot Wallet',
             'swap' => 'Futures Wallet',
@@ -2749,7 +2750,7 @@ class kraken extends Exchange {
         return $this->transfer($code, $amount, 'spot', 'swap', $params);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
          * transfers currencies between sub-accounts (only spot->swap direction is supported)
@@ -2762,8 +2763,8 @@ class kraken extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $fromAccount = $this->parse_account($fromAccount);
-        $toAccount = $this->parse_account($toAccount);
+        $fromAccount = $this->parse_account_type($fromAccount);
+        $toAccount = $this->parse_account_type($toAccount);
         $request = array(
             'amount' => $this->currency_to_precision($code, $amount),
             'from' => $fromAccount,

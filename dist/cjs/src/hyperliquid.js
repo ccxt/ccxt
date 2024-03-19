@@ -23,7 +23,7 @@ class hyperliquid extends hyperliquid$1 {
             'version': 'v1',
             'rateLimit': 50,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -364,8 +364,8 @@ class hyperliquid extends hyperliquid$1 {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': 0.00000001,
-                'price': 0.00000001,
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'szDecimals'))),
+                'price': 5, // significant digits
             },
             'limits': {
                 'leverage': {
@@ -624,6 +624,12 @@ class hyperliquid extends hyperliquid$1 {
     amountToPrecision(symbol, amount) {
         return this.decimalToPrecision(amount, number.ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
     }
+    priceToPrecision(symbol, price) {
+        const market = this.market(symbol);
+        const result = this.decimalToPrecision(price, number.ROUND, market['precision']['price'], number.SIGNIFICANT_DIGITS, this.paddingMode);
+        const decimalParsedResult = this.decimalToPrecision(result, number.ROUND, 6, number.DECIMAL_PLACES, this.paddingMode);
+        return decimalParsedResult;
+    }
     hashMessage(message) {
         return '0x' + this.hash(message, sha3.keccak_256, 'hex');
     }
@@ -841,6 +847,7 @@ class hyperliquid extends hyperliquid$1 {
                     throw new errors.ArgumentsRequired(this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
                 }
                 px = (isBuy) ? Precise["default"].stringMul(price, Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(price, Precise["default"].stringSub('1', slippage));
+                px = this.priceToPrecision(symbol, px); // round after adding slippage
             }
             else {
                 px = this.priceToPrecision(symbol, price);

@@ -2,7 +2,7 @@ export type Bool = boolean | undefined;
 // must be an integer in other langs
 export type IndexType = number | string;
 export type Int = number | undefined;
-export type MarketType = 'future' | 'margin' | 'option' | 'spot' | 'swap';
+export type MarketType = 'future' | 'margin' | 'option' | 'spot' | 'swap' | 'delivery' | 'index';
 export type Num = number | undefined;
 export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
@@ -199,10 +199,17 @@ export interface Balance {
     used: Num,
 }
 
-export interface Account {
+export interface BalanceAccount {
     free: Str,
     total: Str,
     used: Str,
+}
+
+export interface Account {
+    id: Str,
+    type: Str,
+    code: Str,
+    info: any,
 }
 
 export interface PartialBalances extends Dictionary<number> {
@@ -434,6 +441,15 @@ export interface Greeks {
     vega: number;
 }
 
+export interface LastPrice {
+    symbol: string,
+    timestamp?: number,
+    datetime?: string,
+    price: number,
+    side?: OrderSide,
+    info: any,
+}
+
 export interface Leverage {
     info: any;
     longLeverage: number;
@@ -443,6 +459,9 @@ export interface Leverage {
 }
 
 export interface Leverages extends Dictionary<Leverage> {
+}
+
+export interface LastPrices extends Dictionary<LastPrice> {
 }
 
 export interface MarginModes extends Dictionary<MarginMode> {

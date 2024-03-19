@@ -1295,6 +1295,7 @@ class kraken extends kraken$1 {
         const lastTrade = trades[length - 1];
         const lastTradeId = this.safeString(result, 'last');
         lastTrade.push(lastTradeId);
+        trades[length - 1] = lastTrade;
         return this.parseTrades(trades, market, since, limit);
     }
     parseBalance(response) {
@@ -2760,7 +2761,7 @@ class kraken extends kraken$1 {
         // todo unify parsePosition/parsePositions
         return result;
     }
-    parseAccount(account) {
+    parseAccountType(account) {
         const accountByType = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',
@@ -2794,8 +2795,8 @@ class kraken extends kraken$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        fromAccount = this.parseAccount(fromAccount);
-        toAccount = this.parseAccount(toAccount);
+        fromAccount = this.parseAccountType(fromAccount);
+        toAccount = this.parseAccountType(toAccount);
         const request = {
             'amount': this.currencyToPrecision(code, amount),
             'from': fromAccount,

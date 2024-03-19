@@ -470,16 +470,17 @@ export default class krakenfutures extends krakenfuturesRest {
             const market = this.market(marketId);
             const symbol = market['symbol'];
             const messageHash = 'trade:' + symbol;
-            let tradesArray = this.safeValue(this.trades, symbol);
-            if (tradesArray === undefined) {
+            if (this.safeList(this.trades, symbol) === undefined) {
                 const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
-                tradesArray = new ArrayCache(tradesLimit);
-                this.trades[symbol] = tradesArray;
+                this.trades[symbol] = new ArrayCache(tradesLimit);
             }
+            const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
-                const trades = this.safeValue(message, 'trades', []);
-                for (let i = 0; i < trades.length; i++) {
-                    const item = trades[i];
+                const trades = this.safeList(message, 'trades', []);
+                const length = trades.length;
+                for (let i = 0; i < length; i++) {
+                    const index = length - 1 - i; // need reverse to correct chronology
+                    const item = trades[index];
                     const trade = this.parseWsTrade(item);
                     tradesArray.append(trade);
                 }

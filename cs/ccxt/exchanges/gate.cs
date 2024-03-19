@@ -3028,7 +3028,7 @@ public partial class gate : Exchange
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframe, timeframe);
-        object maxLimit = 1000;
+        object maxLimit = ((bool) isTrue(getValue(market, "contract"))) ? 1999 : 1000;
         limit = ((bool) isTrue((isEqual(limit, null)))) ? maxLimit : mathMin(limit, maxLimit);
         object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
@@ -4554,6 +4554,7 @@ public partial class gate : Exchange
             { "failed", "canceled" },
             { "expired", "canceled" },
             { "finished", "closed" },
+            { "finish", "closed" },
             { "succeeded", "closed" },
         };
         return this.safeString(statuses, status, status);
@@ -6612,6 +6613,7 @@ public partial class gate : Exchange
         * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
         * @param {int} [limit] default 30
         * @param {object} [params] exchange specific parameters
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
         */
         timeframe ??= "5m";

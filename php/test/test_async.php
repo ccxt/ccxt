@@ -545,14 +545,38 @@ class testMainClass extends baseMainTestClass {
                 $args_stringified = '(' . implode(',', $args) . ')';
                 dump($this->add_padding('[INFO] TESTING', 25), $this->exchange_hint($exchange), $method_name, $args_stringified);
             }
-            $skipped_properties = $exchange->safe_value($this->skipped_methods, $method_name, array());
-            Async\await(call_method($this->test_files, $method_name, $exchange, $skipped_properties, $args));
+            Async\await(call_method($this->test_files, $method_name, $exchange, $this->get_skips($exchange, $method_name), $args));
             // if it was passed successfully, add to the list of successfull tests
             if ($is_public) {
                 $this->checked_public_tests[$method_name] = true;
             }
             return;
         }) ();
+    }
+
+    public function get_skips($exchange, $method_name) {
+        // get "method-specific" skips
+        $skips_for_method = $exchange->safe_value($this->skipped_methods, $method_name, array());
+        // get "object-specific" skips
+        $object_skips = array(
+            'orderBook' => ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
+            'ticker' => ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'],
+            'trade' => ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'],
+            'ohlcv' => ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'],
+            'ledger' => ['fetchLedger', 'fetchLedgerEntry'],
+            'depositWithdraw' => ['fetchDepositsWithdrawals', 'fetchDeposits', 'fetchWithdrawals'],
+            'depositWithdrawFee' => ['fetchDepositWithdrawFee', 'fetchDepositWithdrawFees'],
+        );
+        $object_names = is_array($object_skips) ? array_keys($object_skips) : array();
+        for ($i = 0; $i < count($object_names); $i++) {
+            $object_name = $object_names[$i];
+            $object_methods = $object_skips[$object_name];
+            if ($exchange->in_array($method_name, $object_methods)) {
+                $extra_skips = $exchange->safe_dict($this->skipped_methods, $object_name, array());
+                return $exchange->deep_extend($skips_for_method, $extra_skips);
+            }
+        }
+        return $skips_for_method;
     }
 
     public function test_safe($method_name, $exchange, $args = [], $is_public = false) {
@@ -576,23 +600,35 @@ class testMainClass extends baseMainTestClass {
                     if ($is_operation_failed) {
                         // if last retry was gone with same `tempFailure` error, then let's eventually return false
                         if ($i === $max_retries - 1) {
-                            $should_fail = false;
-                            // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                            if (($e instanceof ExchangeNotAvailable) && !($e instanceof OnMaintenance)) {
-                                $should_fail = true;
-                            } elseif ($is_load_markets) {
-                                $should_fail = true;
+                            $is_on_maintenance = ($e instanceof OnMaintenance);
+                            $is_exchange_not_available = ($e instanceof ExchangeNotAvailable);
+                            $should_fail = null;
+                            $return_success = null;
+                            if ($is_load_markets) {
+                                // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
+                                $return_success = false;
+                                // we might not break exchange tests, if exchange is on maintenance at this moment
+                                if ($is_on_maintenance) {
+                                    $should_fail = false;
+                                } else {
+                                    $should_fail = true;
+                                }
                             } else {
-                                $should_fail = false;
+                                // for any other method tests:
+                                if ($is_exchange_not_available && !$is_on_maintenance) {
+                                    // break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
+                                    $should_fail = true;
+                                    $return_success = false;
+                                } else {
+                                    // in all other cases of OperationFailed, show Warning, but don't mark test as failed
+                                    $should_fail = false;
+                                    $return_success = true;
+                                }
                             }
-                            // final step
-                            if ($should_fail) {
-                                dump('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
-                                return false;
-                            } else {
-                                dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
-                                return true;
-                            }
+                            // output the message
+                            $fail_type = $should_fail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
+                            dump($fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
+                            return $return_success;
                         } else {
                             // wait and retry again
                             // (increase wait time on every retry)
@@ -1338,6 +1374,8 @@ class testMainClass extends baseMainTestClass {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
             $exchange = $this->init_offline_exchange($exchange_name);
+            $global_options = $exchange->safe_dict($exchange_data, 'options', array());
+            $exchange->options = $exchange->deep_extend($exchange->options, $global_options); // custom options to be used in the tests
             $methods = $exchange->safe_value($exchange_data, 'methods', array());
             $methods_names = is_array($methods) ? array_keys($methods) : array();
             for ($i = 0; $i < count($methods_names); $i++) {
@@ -1486,7 +1524,7 @@ class testMainClass extends baseMainTestClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1505,7 +1543,8 @@ class testMainClass extends baseMainTestClass {
                 $spot_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
             }
             $client_order_id = $spot_order_request['newClientOrderId'];
-            assert(str_starts_with($client_order_id, ((string) $spot_id)), 'spot clientOrderId does not start with spotId');
+            $spot_id_string = ((string) $spot_id);
+            assert(str_starts_with($client_order_id, $spot_id_string), 'binance - spot clientOrderId: ' . $client_order_id . ' does not start with spotId' . $spot_id_string);
             $swap_id = 'x-xcKtGhcu';
             $swap_order_request = null;
             try {
@@ -1519,10 +1558,11 @@ class testMainClass extends baseMainTestClass {
             } catch(\Throwable $e) {
                 $swap_inverse_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
             }
-            $client_order_id_spot = $swap_order_request['newClientOrderId'];
-            assert(str_starts_with($client_order_id_spot, ((string) $swap_id)), 'swap clientOrderId does not start with swapId');
+            $client_order_id_swap = $swap_order_request['newClientOrderId'];
+            $swap_id_string = ((string) $swap_id);
+            assert(str_starts_with($client_order_id_swap, $swap_id_string), 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id_string);
             $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
-            assert(str_starts_with($client_order_id_inverse, ((string) $swap_id)), 'swap clientOrderIdInverse does not start with swapId');
+            assert(str_starts_with($client_order_id_inverse, $swap_id_string), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $swap_id_string);
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1539,17 +1579,20 @@ class testMainClass extends baseMainTestClass {
                 $spot_order_request = json_parse($exchange->last_request_body);
             }
             $client_order_id = $spot_order_request[0]['clOrdId']; // returns order inside array
-            assert(str_starts_with($client_order_id, ((string) $id)), 'spot clientOrderId does not start with id');
-            assert($spot_order_request[0]['tag'] === $id, 'id different from spot tag');
+            $id_string = ((string) $id);
+            assert(str_starts_with($client_order_id, $id_string), 'okx - spot clientOrderId: ' . $client_order_id . ' does not start with id: ' . $id_string);
+            $spot_tag = $spot_order_request[0]['tag'];
+            assert($spot_tag === $id, 'okx - id: ' . $id . ' different from spot tag: ' . $spot_tag);
             $swap_order_request = null;
             try {
                 Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 $swap_order_request = json_parse($exchange->last_request_body);
             }
-            $client_order_id_spot = $swap_order_request[0]['clOrdId'];
-            assert(str_starts_with($client_order_id_spot, ((string) $id)), 'swap clientOrderId does not start with id');
-            assert($swap_order_request[0]['tag'] === $id, 'id different from swap tag');
+            $client_order_id_swap = $swap_order_request[0]['clOrdId'];
+            assert(str_starts_with($client_order_id_swap, $id_string), 'okx - swap clientOrderId: ' . $client_order_id_swap . ' does not start with id: ' . $id_string);
+            $swap_tag = $swap_order_request[0]['tag'];
+            assert($swap_tag === $id, 'okx - id: ' . $id . ' different from swap tag: ' . $swap_tag);
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1566,7 +1609,8 @@ class testMainClass extends baseMainTestClass {
             } catch(\Throwable $e) {
                 $request = json_parse($exchange->last_request_body);
             }
-            assert($request['params']['broker_id'] === $id, 'id different from  broker_id');
+            $broker_id = $request['params']['broker_id'];
+            assert($broker_id === $id, 'cryptocom - id: ' . $id . ' different from  broker_id: ' . $broker_id);
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1584,7 +1628,7 @@ class testMainClass extends baseMainTestClass {
                 // we expect an error here, we're only interested in the headers
                 $req_headers = $exchange->last_request_headers;
             }
-            assert($req_headers['Referer'] === $id, 'id not in headers');
+            assert($req_headers['Referer'] === $id, 'bybit - id: ' . $id . ' not in headers.');
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1594,8 +1638,11 @@ class testMainClass extends baseMainTestClass {
         return Async\async(function () {
             $exchange = $this->init_offline_exchange('kucoin');
             $req_headers = null;
-            assert($exchange->options['partner']['spot']['id'] === 'ccxt', 'id not in options');
-            assert($exchange->options['partner']['spot']['key'] === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options');
+            $options_string = ((string) $exchange->options);
+            $spot_id = $exchange->options['partner']['spot']['id'];
+            $spot_key = $exchange->options['partner']['spot']['key'];
+            assert($spot_id === 'ccxt', 'kucoin - id: ' . $spot_id . ' not in options: ' . $options_string);
+            assert($spot_key === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' . $spot_key . ' not in options: ' . $options_string);
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
@@ -1603,7 +1650,7 @@ class testMainClass extends baseMainTestClass {
                 $req_headers = $exchange->last_request_headers;
             }
             $id = 'ccxt';
-            assert($req_headers['KC-API-PARTNER'] === $id, 'id not in headers');
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers.');
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1614,14 +1661,17 @@ class testMainClass extends baseMainTestClass {
             $exchange = $this->init_offline_exchange('kucoinfutures');
             $req_headers = null;
             $id = 'ccxtfutures';
-            assert($exchange->options['partner']['future']['id'] === $id, 'id not in options');
-            assert($exchange->options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
+            $options_string = ((string) $exchange->options['partner']['future']);
+            $future_id = $exchange->options['partner']['future']['id'];
+            $future_key = $exchange->options['partner']['future']['key'];
+            assert($future_id === $id, 'kucoinfutures - id: ' . $future_id . ' not in options: ' . $options_string);
+            assert($future_key === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' . $future_key . ' not in options: ' . $options_string);
             try {
                 Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 $req_headers = $exchange->last_request_headers;
             }
-            assert($req_headers['KC-API-PARTNER'] === $id, 'id not in headers');
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers.');
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1632,13 +1682,14 @@ class testMainClass extends baseMainTestClass {
             $exchange = $this->init_offline_exchange('bitget');
             $req_headers = null;
             $id = 'p4sve';
-            assert($exchange->options['broker'] === $id, 'id not in options');
+            $options_string = ((string) $exchange->options);
+            assert($exchange->options['broker'] === $id, 'bitget - id: ' . $id . ' not in options: ' . $options_string);
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 $req_headers = $exchange->last_request_headers;
             }
-            assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'id not in headers');
+            assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'bitget - id: ' . $id . ' not in headers.');
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1649,14 +1700,16 @@ class testMainClass extends baseMainTestClass {
             $exchange = $this->init_offline_exchange('mexc');
             $req_headers = null;
             $id = 'CCXT';
-            assert($exchange->options['broker'] === $id, 'id not in options');
+            $options_string = ((string) $exchange->options);
+            assert($exchange->options['broker'] === $id, 'mexc - id: ' . $id . ' not in options: ' . $options_string);
             Async\await($exchange->load_markets());
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 $req_headers = $exchange->last_request_headers;
             }
-            assert($req_headers['source'] === $id, 'id not in headers');
+            $req_headers_string = $req_headers !== null ? ((string) $req_headers) : 'undefined';
+            assert($req_headers['source'] === $id, 'mexc - id: ' . $id . ' not in headers: ' . $req_headers_string);
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1674,7 +1727,8 @@ class testMainClass extends baseMainTestClass {
                 $spot_order_request = json_parse($exchange->last_request_body);
             }
             $client_order_id = $spot_order_request['client-order-id'];
-            assert(str_starts_with($client_order_id, ((string) $id)), 'spot clientOrderId does not start with id');
+            $id_string = ((string) $id);
+            assert(str_starts_with($client_order_id, $id_string), 'htx - spot clientOrderId ' . $client_order_id . ' does not start with id: ' . $id_string);
             // swap test
             $swap_order_request = null;
             try {
@@ -1688,10 +1742,10 @@ class testMainClass extends baseMainTestClass {
             } catch(\Throwable $e) {
                 $swap_inverse_order_request = json_parse($exchange->last_request_body);
             }
-            $client_order_id_spot = $swap_order_request['channel_code'];
-            assert(str_starts_with($client_order_id_spot, ((string) $id)), 'swap channel_code does not start with id');
+            $client_order_id_swap = $swap_order_request['channel_code'];
+            assert(str_starts_with($client_order_id_swap, $id_string), 'htx - swap channel_code ' . $client_order_id_swap . ' does not start with id: ' . $id_string);
             $client_order_id_inverse = $swap_inverse_order_request['channel_code'];
-            assert(str_starts_with($client_order_id_inverse, ((string) $id)), 'swap inverse channel_code does not start with id');
+            assert(str_starts_with($client_order_id_inverse, $id_string), 'htx - swap inverse channel_code ' . $client_order_id_inverse . ' does not start with id: ' . $id_string);
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1709,7 +1763,8 @@ class testMainClass extends baseMainTestClass {
                 $spot_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
             }
             $broker_id = $spot_order_request['broker_id'];
-            assert(str_starts_with($broker_id, ((string) $id)), 'broker_id does not start with id');
+            $id_string = ((string) $id);
+            assert(str_starts_with($broker_id, $id_string), 'woo - broker_id: ' . $broker_id . ' does not start with id: ' . $id_string);
             // swap test
             $stop_order_request = null;
             try {
@@ -1719,8 +1774,8 @@ class testMainClass extends baseMainTestClass {
             } catch(\Throwable $e) {
                 $stop_order_request = json_parse($exchange->last_request_body);
             }
-            $client_order_id_spot = $stop_order_request['brokerId'];
-            assert(str_starts_with($client_order_id_spot, ((string) $id)), 'brokerId does not start with id');
+            $client_order_id_stop = $stop_order_request['brokerId'];
+            assert(str_starts_with($client_order_id_stop, $id_string), 'woo - brokerId: ' . $client_order_id_stop . ' does not start with id: ' . $id_string);
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1731,14 +1786,14 @@ class testMainClass extends baseMainTestClass {
             $exchange = $this->init_offline_exchange('bitmart');
             $req_headers = null;
             $id = 'CCXTxBitmart000';
-            assert($exchange->options['brokerId'] === $id, 'id not in options');
+            assert($exchange->options['brokerId'] === $id, 'bitmart - id: ' . $id . ' not in options');
             Async\await($exchange->load_markets());
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 $req_headers = $exchange->last_request_headers;
             }
-            assert($req_headers['X-BM-BROKER-ID'] === $id, 'id not in headers');
+            assert($req_headers['X-BM-BROKER-ID'] === $id, 'bitmart - id: ' . $id . ' not in headers');
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1748,7 +1803,7 @@ class testMainClass extends baseMainTestClass {
         return Async\async(function () {
             $exchange = $this->init_offline_exchange('coinex');
             $id = 'x-167673045';
-            assert($exchange->options['brokerId'] === $id, 'id not in options');
+            assert($exchange->options['brokerId'] === $id, 'coinex - id: ' . $id . ' not in options');
             $spot_order_request = null;
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
@@ -1756,7 +1811,8 @@ class testMainClass extends baseMainTestClass {
                 $spot_order_request = json_parse($exchange->last_request_body);
             }
             $client_order_id = $spot_order_request['client_id'];
-            assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
+            $id_string = ((string) $id);
+            assert(str_starts_with($client_order_id, $id_string), 'coinex - clientOrderId: ' . $client_order_id . ' does not start with id: ' . $id_string);
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1767,14 +1823,16 @@ class testMainClass extends baseMainTestClass {
             $exchange = $this->init_offline_exchange('bingx');
             $req_headers = null;
             $id = 'CCXT';
-            assert($exchange->options['broker'] === $id, 'id not in options');
+            $options_string = ((string) $exchange->options);
+            assert($exchange->options['broker'] === $id, 'bingx - id: ' . $id . ' not in options: ' . $options_string);
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
                 $req_headers = $exchange->last_request_headers;
             }
-            assert($req_headers['X-SOURCE-KEY'] === $id, 'id not in headers');
+            $req_headers_string = $req_headers !== null ? ((string) $req_headers) : 'undefined';
+            assert($req_headers['X-SOURCE-KEY'] === $id, 'bingx - id: ' . $id . ' not in headers: ' . $req_headers_string);
             Async\await(close($exchange));
         }) ();
     }
@@ -1790,7 +1848,8 @@ class testMainClass extends baseMainTestClass {
                 $request = json_parse($exchange->last_request_body);
             }
             $client_order_id = $request['clOrdID'];
-            assert(str_starts_with($client_order_id, ((string) $id)), 'clOrdID does not start with id');
+            $id_string = ((string) $id);
+            assert(str_starts_with($client_order_id, $id_string), 'phemex - clOrdID: ' . $client_order_id . ' does not start with id: ' . $id_string);
             Async\await(close($exchange));
         }) ();
     }
@@ -1806,7 +1865,8 @@ class testMainClass extends baseMainTestClass {
                 $request = json_parse($exchange->last_request_body);
             }
             $broker_id = $request['brokerId'];
-            assert(str_starts_with($broker_id, ((string) $id)), 'brokerId does not start with id');
+            $id_string = ((string) $id);
+            assert(str_starts_with($broker_id, $id_string), 'blofin - brokerId: ' . $broker_id . ' does not start with id: ' . $id_string);
             Async\await(close($exchange));
         }) ();
     }
@@ -1822,8 +1882,27 @@ class testMainClass extends baseMainTestClass {
                 $request = json_parse($exchange->last_request_body);
             }
             $broker_id = ((string) ($request['action']['brokerCode']));
-            assert($broker_id === $id, 'brokerId does not start with id');
+            assert($broker_id === $id, 'hyperliquid - brokerId: ' . $broker_id . ' does not start with id: ' . $id);
             Async\await(close($exchange));
+        }) ();
+    }
+
+    public function test_coinbaseinternational() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('coinbaseinternational');
+            $exchange->options['portfolio'] = 'random';
+            $id = 'nfqkvdjp';
+            assert($exchange->options['brokerId'] === $id, 'id not in options');
+            $request = null;
+            try {
+                Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $request['client_order_id'];
+            assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
+            Async\await(close($exchange));
+            return true;
         }) ();
     }
 }

@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.2.70';
+const version = '4.2.76';
 
 (Exchange as any).ccxtVersion = version
 
@@ -85,6 +85,7 @@ import btcturk from  './src/btcturk.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
+import coinbaseinternational from  './src/coinbaseinternational.js'
 import coinbasepro from  './src/coinbasepro.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
@@ -139,6 +140,7 @@ import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
+import tradeogre from  './src/tradeogre.js'
 import upbit from  './src/upbit.js'
 import wavesexchange from  './src/wavesexchange.js'
 import wazirx from  './src/wazirx.js'
@@ -173,6 +175,7 @@ import blockchaincomPro from  './src/pro/blockchaincom.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
+import coinbaseinternationalPro from  './src/pro/coinbaseinternational.js'
 import coinbaseproPro from  './src/pro/coinbasepro.js'
 import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
@@ -189,6 +192,7 @@ import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
 import huobiPro from  './src/pro/huobi.js'
 import huobijpPro from  './src/pro/huobijp.js'
+import hyperliquidPro from  './src/pro/hyperliquid.js'
 import idexPro from  './src/pro/idex.js'
 import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
@@ -252,6 +256,7 @@ const exchanges = {
     'bybit':                  bybit,
     'cex':                    cex,
     'coinbase':               coinbase,
+    'coinbaseinternational':  coinbaseinternational,
     'coinbasepro':            coinbasepro,
     'coincheck':              coincheck,
     'coinex':                 coinex,
@@ -306,6 +311,7 @@ const exchanges = {
     'probit':                 probit,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
+    'tradeogre':              tradeogre,
     'upbit':                  upbit,
     'wavesexchange':          wavesexchange,
     'wazirx':                 wazirx,
@@ -340,6 +346,7 @@ const pro = {
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
+    'coinbaseinternational':  coinbaseinternationalPro,
     'coinbasepro':            coinbaseproPro,
     'coincheck':              coincheckPro,
     'coinex':                 coinexPro,
@@ -356,6 +363,7 @@ const pro = {
     'htx':                    htxPro,
     'huobi':                  huobiPro,
     'huobijp':                huobijpPro,
+    'hyperliquid':            hyperliquidPro,
     'idex':                   idexPro,
     'independentreserve':     independentreservePro,
     'kraken':                 krakenPro,
@@ -499,6 +507,7 @@ export {
     bybit,
     cex,
     coinbase,
+    coinbaseinternational,
     coinbasepro,
     coincheck,
     coinex,
@@ -553,6 +562,7 @@ export {
     probit,
     timex,
     tokocrypto,
+    tradeogre,
     upbit,
     wavesexchange,
     wazirx,

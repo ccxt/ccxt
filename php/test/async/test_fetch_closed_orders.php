@@ -16,12 +16,12 @@ function test_fetch_closed_orders($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchClosedOrders';
         $orders = Async\await($exchange->fetch_closed_orders($symbol));
-        assert(gettype($orders) === 'array' && array_keys($orders) === array_keys(array_keys($orders)), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($orders));
+        assert_non_emtpy_array($exchange, $skipped_properties, $method, $orders, $symbol);
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($orders); $i++) {
             $order = $orders[$i];
             test_order($exchange, $skipped_properties, $method, $order, $symbol, $now);
-            assert($exchange->in_array($order['status'], ['closed', 'canceled']), $exchange->id . ' ' . $method . ' ' . $symbol . ' returned an order with status ' . $order['status'] . ' (expected \"closed\" or \"canceled\")');
+            assert_in_array($exchange, $skipped_properties, $method, $order, 'status', ['closed', 'canceled']);
         }
         assert_timestamp_order($exchange, $method, $symbol, $orders);
     }) ();

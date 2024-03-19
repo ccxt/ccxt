@@ -2474,7 +2474,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the $accounts associated with a profile

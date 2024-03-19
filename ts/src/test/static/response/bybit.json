@@ -1236,6 +1236,231 @@
                         ]
                     }
                 ]
+            },
+            {
+                "description": "spot trades without symbol",
+                "method": "fetchMyTrades",
+                "input": [
+                  null,
+                  null,
+                  1,
+                  {
+                    "type": "spot"
+                  }
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "nextPageCursor": "5771348%3A0%2C5771348%3A0",
+                    "category": "spot",
+                    "list": [
+                      {
+                        "symbol": "ETHUSDT",
+                        "orderType": "Market",
+                        "underlyingPrice": "",
+                        "orderLinkId": "1644387819067894017",
+                        "orderId": "1644387819067894016",
+                        "stopOrderType": "",
+                        "execTime": "1710762303659",
+                        "feeCurrency": "ETH",
+                        "feeRate": "0.001",
+                        "tradeIv": "",
+                        "blockTradeId": "",
+                        "markPrice": "",
+                        "execPrice": "2453.65",
+                        "markIv": "",
+                        "orderQty": "0.001",
+                        "orderPrice": "2506.29",
+                        "execValue": "2.45365",
+                        "closedSize": "",
+                        "execType": "Trade",
+                        "seq": "820177003",
+                        "side": "Buy",
+                        "indexPrice": "",
+                        "leavesQty": "0",
+                        "isMaker": false,
+                        "execFee": "0.000001",
+                        "execId": "2110000000034095620",
+                        "marketUnit": "baseCoin",
+                        "execQty": "0.001",
+                        "nextPageCursor": "5771348%3A0%2C5771348%3A0"
+                      }
+                    ]
+                  },
+                  "retExtInfo": {},
+                  "time": "1710762743905"
+                },
+                "parsedResponse": [
+                  {
+                    "id": "2110000000034095620",
+                    "info": {
+                      "symbol": "ETHUSDT",
+                      "orderType": "Market",
+                      "underlyingPrice": "",
+                      "orderLinkId": "1644387819067894017",
+                      "orderId": "1644387819067894016",
+                      "stopOrderType": "",
+                      "execTime": "1710762303659",
+                      "feeCurrency": "ETH",
+                      "feeRate": "0.001",
+                      "tradeIv": "",
+                      "blockTradeId": "",
+                      "markPrice": "",
+                      "execPrice": "2453.65",
+                      "markIv": "",
+                      "orderQty": "0.001",
+                      "orderPrice": "2506.29",
+                      "execValue": "2.45365",
+                      "closedSize": "",
+                      "execType": "Trade",
+                      "seq": "820177003",
+                      "side": "Buy",
+                      "indexPrice": "",
+                      "leavesQty": "0",
+                      "isMaker": false,
+                      "execFee": "0.000001",
+                      "execId": "2110000000034095620",
+                      "marketUnit": "baseCoin",
+                      "execQty": "0.001",
+                      "nextPageCursor": "5771348%3A0%2C5771348%3A0"
+                    },
+                    "timestamp": 1710762303659,
+                    "datetime": "2024-03-18T11:45:03.659Z",
+                    "symbol": "ETH/USDT",
+                    "order": "1644387819067894016",
+                    "type": "market",
+                    "side": "buy",
+                    "takerOrMaker": "taker",
+                    "price": 2453.65,
+                    "amount": 0.001,
+                    "cost": 2.45365,
+                    "fee": {
+                      "cost": 0.000001,
+                      "currency": "ETH",
+                      "rate": 0.001
+                    },
+                    "fees": [
+                      {
+                        "cost": 0.000001,
+                        "currency": "ETH",
+                        "rate": 0.001
+                      }
+                    ]
+                  }
+                ]
+            },
+            {
+                "description": "swap trades without symbol",
+                "method": "fetchMyTrades",
+                "input": [
+                  null,
+                  null,
+                  1
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "nextPageCursor": "5771350%3A2%2C5771350%3A2",
+                    "category": "linear",
+                    "list": [
+                      {
+                        "symbol": "LTCUSDT",
+                        "orderType": "Market",
+                        "underlyingPrice": "",
+                        "orderLinkId": "",
+                        "orderId": "c18b72e4-1bf7-4c30-9b99-ba3274066029",
+                        "stopOrderType": "UNKNOWN",
+                        "execTime": "1710762918390",
+                        "feeCurrency": "",
+                        "createType": "CreateByUser",
+                        "feeRate": "0.00055",
+                        "tradeIv": "",
+                        "blockTradeId": "",
+                        "markPrice": "85.07",
+                        "execPrice": "85.11",
+                        "markIv": "",
+                        "orderQty": "0.1",
+                        "orderPrice": "89.32",
+                        "execValue": "8.511",
+                        "closedSize": "0",
+                        "execType": "Trade",
+                        "seq": "15961900053",
+                        "side": "Buy",
+                        "indexPrice": "",
+                        "leavesQty": "0",
+                        "isMaker": false,
+                        "execFee": "0.00468105",
+                        "execId": "751c8dba-bdeb-5d0c-9dd3-dda6bf98cdaf",
+                        "marketUnit": "",
+                        "execQty": "0.1",
+                        "nextPageCursor": "5771350%3A2%2C5771350%3A2"
+                      }
+                    ]
+                  },
+                  "retExtInfo": {},
+                  "time": "1710762931079"
+                },
+                "parsedResponse": [
+                  {
+                    "id": "751c8dba-bdeb-5d0c-9dd3-dda6bf98cdaf",
+                    "info": {
+                      "symbol": "LTCUSDT",
+                      "orderType": "Market",
+                      "underlyingPrice": "",
+                      "orderLinkId": "",
+                      "orderId": "c18b72e4-1bf7-4c30-9b99-ba3274066029",
+                      "stopOrderType": "UNKNOWN",
+                      "execTime": "1710762918390",
+                      "feeCurrency": "",
+                      "createType": "CreateByUser",
+                      "feeRate": "0.00055",
+                      "tradeIv": "",
+                      "blockTradeId": "",
+                      "markPrice": "85.07",
+                      "execPrice": "85.11",
+                      "markIv": "",
+                      "orderQty": "0.1",
+                      "orderPrice": "89.32",
+                      "execValue": "8.511",
+                      "closedSize": "0",
+                      "execType": "Trade",
+                      "seq": "15961900053",
+                      "side": "Buy",
+                      "indexPrice": "",
+                      "leavesQty": "0",
+                      "isMaker": false,
+                      "execFee": "0.00468105",
+                      "execId": "751c8dba-bdeb-5d0c-9dd3-dda6bf98cdaf",
+                      "marketUnit": "",
+                      "execQty": "0.1",
+                      "nextPageCursor": "5771350%3A2%2C5771350%3A2"
+                    },
+                    "timestamp": 1710762918390,
+                    "datetime": "2024-03-18T11:55:18.390Z",
+                    "symbol": "LTC/USDT:USDT",
+                    "order": "c18b72e4-1bf7-4c30-9b99-ba3274066029",
+                    "type": "market",
+                    "side": "buy",
+                    "takerOrMaker": "taker",
+                    "price": 85.11,
+                    "amount": 0.1,
+                    "cost": 8.511,
+                    "fee": {
+                      "cost": 0.00468105,
+                      "currency": "USDT",
+                      "rate": 0.00055
+                    },
+                    "fees": [
+                      {
+                        "cost": 0.00468105,
+                        "currency": "USDT",
+                        "rate": 0.00055
+                      }
+                    ]
+                  }
+                ]
             }
         ],
         "cancelAllOrders": [

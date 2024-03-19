@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1365,7 +1365,7 @@ export default class kraken extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name kraken#createOrder
@@ -1781,7 +1781,7 @@ export default class kraken extends Exchange {
         return [ request, params ];
     }
 
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name kraken#editOrder
@@ -2794,7 +2794,7 @@ export default class kraken extends Exchange {
         return result;
     }
 
-    parseAccount (account) {
+    parseAccountType (account) {
         const accountByType = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',
@@ -2830,8 +2830,8 @@ export default class kraken extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        fromAccount = this.parseAccount (fromAccount);
-        toAccount = this.parseAccount (toAccount);
+        fromAccount = this.parseAccountType (fromAccount);
+        toAccount = this.parseAccountType (toAccount);
         const request = {
             'amount': this.currencyToPrecision (code, amount),
             'from': fromAccount,

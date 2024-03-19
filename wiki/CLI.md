@@ -32,6 +32,12 @@ The source code of the CLI is available here:
 - https://github.com/ccxt/ccxt/blob/master/examples/py/cli.py
 - https://github.com/ccxt/ccxt/blob/master/examples/php/cli.php
 
+## Install globally
+```js
+npm -g ccxt
+```
+- Update using `npm update ccxt -g`
+
 ## Install
 
 1. Clone the CCXT repository:
@@ -48,12 +54,12 @@ The source code of the CLI is available here:
 
 4. Run the script:
     - Node.js: `node examples/js/cli okx fetchTicker ETH/USDT`
-    - Python: `python3 examples/py/cli.py okx fetc_ticker ETH/USDT`
-    - PHP: `php -f examples/php/cli.php okx fetc_ticker ETH/USDT`
+    - Python: `python3 examples/py/cli.py okx fetch_ticker ETH/USDT`
+    - PHP: `php -f examples/php/cli.php okx fetch_ticker ETH/USDT`
 
 ## Usage
 
-The CLI script requires at least one argument, that is, the exchange id ([the list of supported excanges and their ids](https://github.com/ccxt/ccxt#supported-cryptocurrency-exchange-markets)). If you don't specify the exchange id, the script will print the list of all exchange ids for reference.
+The CLI script requires at least one argument, that is, the exchange id ([the list of supported exchanges and their ids](https://github.com/ccxt/ccxt#supported-cryptocurrency-exchange-markets)). If you don't specify the exchange id, the script will print the list of all exchange ids for reference.
 
 Upon launch, CLI will create and initialize the exchange instance and will also call [exchange.loadMarkets()](https://github.com/ccxt/ccxt/wiki/Manual#loading-markets) on that exchange.
 If you don't specify any other command-line arguments to CLI except the exchange id argument, then the CLI script will print out all the contents of the exchange object, including the list of all the methods and properties and all the loaded markets (the output may be extremely long in that case).
@@ -76,6 +82,12 @@ node examples/js/cli binance currencies  # will print out a table of all the loa
 node examples/js/cli gate options  # will print out the contents of the exchange-specific options
 ```
 
+You can easily view which methods are supported on the various exchanges:
+
+```
+node examples/js/exchange-capabilities | less -S -R
+```
+
 ### Calling A Unified Method By Name
 
 Calling unified methods is easy:
@@ -85,9 +97,22 @@ node examples/js/cli okx fetchOrderBook BTC/USDT  # will fetch the orderbook fro
 node examples/js/cli binance fetchTrades ETH/USDT  # will fetch a list of most recent public trades and will print a table of them
 node examples/js/cli bitget fetchTickers  # will fetch all tickers one by one
 node examples/js/cli bitget fetchTickers --table  # will fetch all tickers and will print them out as a table
+node examples/js/cli bitget fetchTickers '["BTC/USDT","ETH/USDT"]' # will fetch the tickers specified in the array argument
+```
+
+Exchange specific parameters can be set in the last argument of every unified method:
+
+```
+node examples/js/cli bybit setMarginMode isolated BTC/USDT '{"leverage":"8"}' # set the margin mode while specifying the exchange specific leverage parameter
 ```
 
 ### Calling An Exchange-Specific Method By Name
+
+Here's an example of fetching the order book on okx in sandbox mode using the implicit API and the exchange specific instId and sz parameters:
+
+```
+node examples/js/cli okx publicGetMarketBooks '{"instId":"BTC-USDT","sz":"3"}' --sandbox
+```
 
 ## Authentication And Overrides
 
@@ -98,3 +123,31 @@ For private API calls, by default the CLI script will look for API keys in the `
 ## Unified API vs Exchange-Specific API
 
 CLI supports all possible methods and properties that exist on the exchange instance.
+
+### Run with jq
+Install jq 
+
+<!-- tabs:start -->
+#### **Ubuntu**
+```bash
+sudo apt-get install jq
+```
+#### **Brew (Mac)**
+```bash
+brew install jq
+```
+#### **Choco (Windows)**
+```bash
+choco install jq -y
+```
+<!-- tabs:end -->
+
+#### Examples
+- Get ticker price of BTC/USDT: `ccxt binance fetchTicker BTC/USDT | jq '.price'
+- watch price and amount of trades:
+`ccxt binance watchTrades BTC/USDT --raw | jq -c '[.[] | {price: .price, amount: .amount}]'`
+
+- fuzzy search between trades (requires fzf):
+`ccxt binance fetchTrades --raw | jq -c '.[]' | fzf`
+
+![render1710459605924](https://github.com/ccxt/ccxt/assets/12142844/39b22383-42d5-4ebd-8b09-617008b7e4f0)

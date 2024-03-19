@@ -250,7 +250,10 @@ public partial class hitbtc : ccxt.hitbtc
         //        }
         //    }
         //
-        object data = this.safeValue2(message, "snapshot", "update", new Dictionary<string, object>() {});
+        object snapshot = this.safeDict(message, "snapshot");
+        object update = this.safeDict(message, "update");
+        object data = ((bool) isTrue(snapshot)) ? snapshot : update;
+        object type = ((bool) isTrue(snapshot)) ? "snapshot" : "update";
         object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -261,17 +264,24 @@ public partial class hitbtc : ccxt.hitbtc
             object messageHash = add("orderbooks::", symbol);
             if (!isTrue((inOp(this.orderbooks, symbol))))
             {
-                object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
+                object subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
                 object limit = this.safeInteger(subscription, "limit");
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
+            object orderbook = getValue(this.orderbooks, symbol);
             object timestamp = this.safeInteger(item, "t");
             object nonce = this.safeInteger(item, "s");
-            object orderbook = getValue(this.orderbooks, symbol);
-            object asks = this.safeValue(item, "a", new List<object>() {});
-            object bids = this.safeValue(item, "b", new List<object>() {});
-            this.handleDeltas(getValue(orderbook, "asks"), asks);
-            this.handleDeltas(getValue(orderbook, "bids"), bids);
+            if (isTrue(isEqual(type, "snapshot")))
+            {
+                object parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, "b", "a");
+                (orderbook as IOrderBook).reset(parsedSnapshot);
+            } else
+            {
+                object asks = this.safeList(item, "a", new List<object>() {});
+                object bids = this.safeList(item, "b", new List<object>() {});
+                this.handleDeltas(getValue(orderbook, "asks"), asks);
+                this.handleDeltas(getValue(orderbook, "bids"), bids);
+            }
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
             ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
