@@ -281,7 +281,7 @@ public partial class Exchange
                 { "fetchPositions", null },
                 { "fetchPositionsRisk", null },
                 { "fetchPremiumIndexOHLCV", null },
-                { "fetchStatus", null },
+                { "fetchStatus", "emulated" },
                 { "fetchTicker", true },
                 { "fetchTickers", null },
                 { "fetchTime", null },

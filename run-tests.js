@@ -183,7 +183,6 @@ const exec = (bin, ...args) => {
     })).catch (e => {
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
-            stderr = stderr.trim (); // remove multiple empty new lines
             stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
             return generateResultFromOutput (output, stderr, 0);
         }
