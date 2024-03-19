@@ -2300,7 +2300,7 @@ export default class delta extends Exchange {
         const id = this.safeString (item, 'uuid');
         let direction = undefined;
         const account = undefined;
-        const metaData = this.safeList (item, 'meta_data', {});
+        const metaData = this.safeDict (item, 'meta_data', {});
         const referenceId = this.safeString (metaData, 'transaction_id');
         const referenceAccount = undefined;
         let type = this.safeString (item, 'transaction_type');
