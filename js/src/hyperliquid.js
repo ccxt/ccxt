@@ -558,7 +558,7 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         return [
-            this.safeInteger(ohlcv, 'T'),
+            this.safeInteger(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),

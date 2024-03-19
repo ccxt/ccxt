@@ -887,6 +887,6 @@ class deribit(ccxt.async_support.deribit):
                     'data': '',
                 },
             }
-            future = self.watch(url, messageHash, self.extend(request, params))
+            future = await self.watch(url, messageHash, self.extend(request, params), messageHash)
             client.subscriptions[messageHash] = future
         return future

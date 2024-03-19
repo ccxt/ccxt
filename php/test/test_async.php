@@ -1638,11 +1638,10 @@ class testMainClass extends baseMainTestClass {
         return Async\async(function () {
             $exchange = $this->init_offline_exchange('kucoin');
             $req_headers = null;
-            $options_string = ((string) $exchange->options);
             $spot_id = $exchange->options['partner']['spot']['id'];
             $spot_key = $exchange->options['partner']['spot']['key'];
-            assert($spot_id === 'ccxt', 'kucoin - id: ' . $spot_id . ' not in options: ' . $options_string);
-            assert($spot_key === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' . $spot_key . ' not in options: ' . $options_string);
+            assert($spot_id === 'ccxt', 'kucoin - id: ' . $spot_id . ' not in options');
+            assert($spot_key === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' . $spot_key . ' not in options.');
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
@@ -1661,11 +1660,10 @@ class testMainClass extends baseMainTestClass {
             $exchange = $this->init_offline_exchange('kucoinfutures');
             $req_headers = null;
             $id = 'ccxtfutures';
-            $options_string = ((string) $exchange->options['partner']['future']);
             $future_id = $exchange->options['partner']['future']['id'];
             $future_key = $exchange->options['partner']['future']['key'];
-            assert($future_id === $id, 'kucoinfutures - id: ' . $future_id . ' not in options: ' . $options_string);
-            assert($future_key === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' . $future_key . ' not in options: ' . $options_string);
+            assert($future_id === $id, 'kucoinfutures - id: ' . $future_id . ' not in options.');
+            assert($future_key === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' . $future_key . ' not in options.');
             try {
                 Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
@@ -1682,8 +1680,7 @@ class testMainClass extends baseMainTestClass {
             $exchange = $this->init_offline_exchange('bitget');
             $req_headers = null;
             $id = 'p4sve';
-            $options_string = ((string) $exchange->options);
-            assert($exchange->options['broker'] === $id, 'bitget - id: ' . $id . ' not in options: ' . $options_string);
+            assert($exchange->options['broker'] === $id, 'bitget - id: ' . $id . ' not in options');
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
@@ -1700,16 +1697,14 @@ class testMainClass extends baseMainTestClass {
             $exchange = $this->init_offline_exchange('mexc');
             $req_headers = null;
             $id = 'CCXT';
-            $options_string = ((string) $exchange->options);
-            assert($exchange->options['broker'] === $id, 'mexc - id: ' . $id . ' not in options: ' . $options_string);
+            assert($exchange->options['broker'] === $id, 'mexc - id: ' . $id . ' not in options');
             Async\await($exchange->load_markets());
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 $req_headers = $exchange->last_request_headers;
             }
-            $req_headers_string = $req_headers !== null ? ((string) $req_headers) : 'undefined';
-            assert($req_headers['source'] === $id, 'mexc - id: ' . $id . ' not in headers: ' . $req_headers_string);
+            assert($req_headers['source'] === $id, 'mexc - id: ' . $id . ' not in headers.');
             Async\await(close($exchange));
             return true;
         }) ();
@@ -1823,16 +1818,14 @@ class testMainClass extends baseMainTestClass {
             $exchange = $this->init_offline_exchange('bingx');
             $req_headers = null;
             $id = 'CCXT';
-            $options_string = ((string) $exchange->options);
-            assert($exchange->options['broker'] === $id, 'bingx - id: ' . $id . ' not in options: ' . $options_string);
+            assert($exchange->options['broker'] === $id, 'bingx - id: ' . $id . ' not in options');
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch(\Throwable $e) {
                 // we expect an error here, we're only interested in the headers
                 $req_headers = $exchange->last_request_headers;
             }
-            $req_headers_string = $req_headers !== null ? ((string) $req_headers) : 'undefined';
-            assert($req_headers['X-SOURCE-KEY'] === $id, 'bingx - id: ' . $id . ' not in headers: ' . $req_headers_string);
+            assert($req_headers['X-SOURCE-KEY'] === $id, 'bingx - id: ' . $id . ' not in headers.');
             Async\await(close($exchange));
         }) ();
     }

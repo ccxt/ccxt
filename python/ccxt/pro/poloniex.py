@@ -111,7 +111,7 @@ class poloniex(ccxt.async_support.poloniex):
                 },
             }
             message = self.extend(request, params)
-            future = await self.watch(url, messageHash, message)
+            future = await self.watch(url, messageHash, message, messageHash)
             #
             #    {
             #        "data": {

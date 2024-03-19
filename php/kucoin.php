@@ -49,8 +49,8 @@ class kucoin extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
-                'fetchBorrowRateHistories' => false,
-                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRateHistories' => true,
+                'fetchBorrowRateHistory' => true,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -224,6 +224,7 @@ class kucoin extends Exchange {
                         'isolated/account/{symbol}' => 50, // 50SW
                         'margin/borrow' => 15, // 15SW
                         'margin/repay' => 15, // 15SW
+                        'margin/interest' => 20, // 20SW
                         'project/list' => 10, // 10SW
                         'project/marketInterestRate' => 7.5, // 5PW
                         'redeem/orders' => 10, // 10SW
@@ -585,6 +586,7 @@ class kucoin extends Exchange {
                             'margin/currencies' => 'v3',
                             'margin/borrow' => 'v3',
                             'margin/repay' => 'v3',
+                            'margin/interest' => 'v3',
                             'project/list' => 'v3',
                             'project/marketInterestRate' => 'v3',
                             'redeem/orders' => 'v3',
@@ -3967,12 +3969,19 @@ class kucoin extends Exchange {
         //         "timestamp" => 1658531274508488480
         //     ),
         //
-        $timestampId = $this->safe_string($info, 'timestamp');
-        $timestamp = Precise::string_mul($timestampId, '0.000001');
+        //     {
+        //         "createdAt" => 1697783812257,
+        //         "currency" => "XMR",
+        //         "interestAmount" => "0.1",
+        //         "dayRatio" => "0.001"
+        //     }
+        //
+        $timestampId = $this->safe_string_2($info, 'createdAt', 'timestamp');
+        $timestamp = $this->parse_to_int(mb_substr($timestampId, 0, 13 - 0));
         $currencyId = $this->safe_string($info, 'currency');
         return array(
             'currency' => $this->safe_currency_code($currencyId, $currency),
-            'rate' => $this->safe_number($info, 'dailyIntRate'),
+            'rate' => $this->safe_number_2($info, 'dailyIntRate', 'dayRatio'),
             'period' => 86400000,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -4153,6 +4162,143 @@ class kucoin extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );
+    }
+
+    public function fetch_borrow_rate_histories($codes = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+         * @param {string[]|null} $codes list of unified currency $codes, default is null
+         * @param {int} [$since] timestamp in ms of the earliest borrowRate, default is null
+         * @param {int} [$limit] max number of borrow rate prices to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated' default is 'cross'
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~ indexed by the market symbol
+         */
+        $this->load_markets();
+        $marginResult = $this->handle_margin_mode_and_params('fetchBorrowRateHistories', $params);
+        $marginMode = $this->safe_string($marginResult, 0, 'cross');
+        $isIsolated = ($marginMode === 'isolated'); // true-isolated, false-cross
+        $request = array(
+            'isIsolated' => $isIsolated,
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        if ($limit !== null) {
+            $request['pageSize'] = $limit; // default:50, min:10, max:500
+        }
+        $response = $this->privateGetMarginInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "timestamp" => 1710829939673,
+        //             "currentPage" => 1,
+        //             "pageSize" => 50,
+        //             "totalNum" => 0,
+        //             "totalPage" => 0,
+        //             "items" => array(
+        //                 {
+        //                     "createdAt" => 1697783812257,
+        //                     "currency" => "XMR",
+        //                     "interestAmount" => "0.1",
+        //                     "dayRatio" => "0.001"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data');
+        $rows = $this->safe_list($data, 'items');
+        return $this->parse_borrow_rate_histories($rows, $codes, $since, $limit);
+    }
+
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves a history of a currencies borrow interest rate at specific time slots
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] timestamp for the earliest borrow rate
+         * @param {int} [$limit] the maximum number of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~ to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated' default is 'cross'
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
+         */
+        $this->load_markets();
+        $marginResult = $this->handle_margin_mode_and_params('fetchBorrowRateHistories', $params);
+        $marginMode = $this->safe_string($marginResult, 0, 'cross');
+        $isIsolated = ($marginMode === 'isolated'); // true-isolated, false-cross
+        $currency = $this->currency($code);
+        $request = array(
+            'isIsolated' => $isIsolated,
+            'currency' => $currency['id'],
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        if ($limit !== null) {
+            $request['pageSize'] = $limit; // default:50, min:10, max:500
+        }
+        $response = $this->privateGetMarginInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "timestamp" => 1710829939673,
+        //             "currentPage" => 1,
+        //             "pageSize" => 50,
+        //             "totalNum" => 0,
+        //             "totalPage" => 0,
+        //             "items" => array(
+        //                 {
+        //                     "createdAt" => 1697783812257,
+        //                     "currency" => "XMR",
+        //                     "interestAmount" => "0.1",
+        //                     "dayRatio" => "0.001"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data');
+        $rows = $this->safe_list($data, 'items');
+        return $this->parse_borrow_rate_history($rows, $code, $since, $limit);
+    }
+
+    public function parse_borrow_rate_histories($response, $codes, $since, $limit) {
+        //
+        //     array(
+        //         {
+        //             "createdAt" => 1697783812257,
+        //             "currency" => "XMR",
+        //             "interestAmount" => "0.1",
+        //             "dayRatio" => "0.001"
+        //         }
+        //     )
+        //
+        $borrowRateHistories = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $code = $this->safe_currency_code($this->safe_string($item, 'currency'));
+            if ($codes === null || $this->in_array($code, $codes)) {
+                if (!(is_array($borrowRateHistories) && array_key_exists($code, $borrowRateHistories))) {
+                    $borrowRateHistories[$code] = array();
+                }
+                $borrowRateStructure = $this->parse_borrow_rate($item);
+                $borrowRateHistories[$code][] = $borrowRateStructure;
+            }
+        }
+        $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $code = $keys[$i];
+            $borrowRateHistories[$code] = $this->filter_by_currency_since_limit($borrowRateHistories[$code], $code, $since, $limit);
+        }
+        return $borrowRateHistories;
     }
 
     public function borrow_cross_margin(string $code, float $amount, $params = array ()) {

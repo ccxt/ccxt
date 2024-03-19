@@ -555,7 +555,7 @@ class hyperliquid extends hyperliquid$1 {
         //     }
         //
         return [
-            this.safeInteger(ohlcv, 'T'),
+            this.safeInteger(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),

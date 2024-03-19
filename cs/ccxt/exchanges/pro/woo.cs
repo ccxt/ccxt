@@ -54,6 +54,13 @@ public partial class woo : ccxt.woo
                 { "ping", this.ping },
                 { "keepAlive", 10000 },
             } },
+            { "exceptions", new Dictionary<string, object>() {
+                { "ws", new Dictionary<string, object>() {
+                    { "exact", new Dictionary<string, object>() {
+                        { "Auth is needed.", typeof(AuthenticationError) },
+                    } },
+                } },
+            } },
         });
     }
 
@@ -461,8 +468,9 @@ public partial class woo : ccxt.woo
         var client = this.client(url);
         object messageHash = "authenticated";
         object eventVar = "auth";
-        var future = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
-        if (isTrue(isEqual(future, null)))
+        var future = client.future(messageHash);
+        object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
+        if (isTrue(isEqual(authenticated, null)))
         {
             object ts = ((object)this.nonce()).ToString();
             object auth = add("|", ts);
@@ -476,10 +484,9 @@ public partial class woo : ccxt.woo
                 } },
             };
             object message = this.extend(request, parameters);
-            future = this.watch(url, messageHash, message);
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public async virtual Task<object> watchPrivate(object messageHash, object message, object parameters = null)
@@ -497,6 +504,16 @@ public partial class woo : ccxt.woo
 
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name woo#watchOrders
+        * @description watches information on multiple orders made by the user
+        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object topic = "executionreport";
@@ -892,8 +909,53 @@ public partial class woo : ccxt.woo
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
     }
 
+    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    {
+        //
+        // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
+        //
+        if (!isTrue((inOp(message, "success"))))
+        {
+            return false;
+        }
+        object success = this.safeBool(message, "success");
+        if (isTrue(success))
+        {
+            return false;
+        }
+        object errorMessage = this.safeString(message, "errorMsg");
+        try
+        {
+            if (isTrue(!isEqual(errorMessage, null)))
+            {
+                object feedback = add(add(this.id, " "), this.json(message));
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
+            }
+            return false;
+        } catch(Exception error)
+        {
+            if (isTrue(error is AuthenticationError))
+            {
+                object messageHash = "authenticated";
+                ((WebSocketClient)client).reject(error, messageHash);
+                if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+                {
+
+                }
+            } else
+            {
+                ((WebSocketClient)client).reject(error);
+            }
+            return true;
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
+        if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        {
+            return;
+        }
         object methods = new Dictionary<string, object>() {
             { "ping", this.handlePing },
             { "pong", this.handlePong },
@@ -998,7 +1060,9 @@ public partial class woo : ccxt.woo
         object success = this.safeValue(message, "success");
         if (isTrue(success))
         {
-            callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});
+            // client.resolve (message, messageHash);
+            var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+            (future as Future).resolve(true);
         } else
         {
             var error = new AuthenticationError(this.json(message));

@@ -8,7 +8,7 @@ export default class delta extends Exchange {
     describe(): any;
     convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     fetchTime(params?: {}): Promise<number>;
     fetchStatus(params?: {}): Promise<{
         status: string;
@@ -19,6 +19,7 @@ export default class delta extends Exchange {
     }>;
     fetchCurrencies(params?: {}): Promise<{}>;
     loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<MarketInterface>>;
+    indexByStringifiedNumericId(input: any): {};
     fetchMarkets(params?: {}): Promise<any[]>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;

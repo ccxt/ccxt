@@ -1274,9 +1274,14 @@ class woo(Exchange, ImplicitAPI):
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
+        :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
         request = {}
         market: Market = None
         stop = self.safe_bool_2(params, 'stop', 'trigger')
@@ -1290,6 +1295,10 @@ class woo(Exchange, ImplicitAPI):
                 request['createdTimeStart'] = since
             else:
                 request['start_t'] = since
+        if limit is not None:
+            request['size'] = limit
+        else:
+            request['size'] = 500
         if stop:
             request['algoType'] = 'stop'
         elif trailing:
@@ -1633,14 +1642,20 @@ class woo(Exchange, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+        :see: https://docs.woo.org/#get-trades
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: set to True if you want to fetch trades with pagination
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, 'page', 500)
         request = {}
         market: Market = None
         if symbol is not None:
@@ -1648,6 +1663,10 @@ class woo(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['start_t'] = since
+        if limit is not None:
+            request['size'] = limit
+        else:
+            request['size'] = 500
         response = await self.v1PrivateGetClientTrades(self.extend(request, params))
         # {
         #     "success": True,

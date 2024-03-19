@@ -2428,7 +2428,7 @@ class bingx extends Exchange {
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
             'CANCELLED' => 'canceled',
-            'FAILED' => 'failed',
+            'FAILED' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
