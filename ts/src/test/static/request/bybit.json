@@ -248,7 +248,7 @@
                         "trailingAmount": "1000"
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"0.001\",\"trailingStop\":\"1000\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"linear\",\"trailingStop\":\"1000\"}"
             },
             {
                 "description": "Swap inverse market buy order",
