@@ -54,20 +54,20 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
-    public async Task<Dictionary<string, object>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
-    public async Task<Dictionary<string, object>> FetchAccountsV2(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccountsV2(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccountsV2(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
-    public async Task<Dictionary<string, object>> FetchAccountsV3(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccountsV3(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccountsV3(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
     /// create a currency deposit address
@@ -388,6 +388,12 @@ public partial class coinbase
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>

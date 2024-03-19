@@ -593,23 +593,35 @@ class testMainClass extends baseMainTestClass {
                 if ($is_operation_failed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if ($i === $max_retries - 1) {
-                        $should_fail = false;
-                        // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                        if (($e instanceof ExchangeNotAvailable) && !($e instanceof OnMaintenance)) {
-                            $should_fail = true;
-                        } elseif ($is_load_markets) {
-                            $should_fail = true;
+                        $is_on_maintenance = ($e instanceof OnMaintenance);
+                        $is_exchange_not_available = ($e instanceof ExchangeNotAvailable);
+                        $should_fail = null;
+                        $return_success = null;
+                        if ($is_load_markets) {
+                            // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
+                            $return_success = false;
+                            // we might not break exchange tests, if exchange is on maintenance at this moment
+                            if ($is_on_maintenance) {
+                                $should_fail = false;
+                            } else {
+                                $should_fail = true;
+                            }
                         } else {
-                            $should_fail = false;
+                            // for any other method tests:
+                            if ($is_exchange_not_available && !$is_on_maintenance) {
+                                // break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
+                                $should_fail = true;
+                                $return_success = false;
+                            } else {
+                                // in all other cases of OperationFailed, show Warning, but don't mark test as failed
+                                $should_fail = false;
+                                $return_success = true;
+                            }
                         }
-                        // final step
-                        if ($should_fail) {
-                            dump('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
-                            return false;
-                        } else {
-                            dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
-                            return true;
-                        }
+                        // output the message
+                        $fail_type = $should_fail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
+                        dump($fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
+                        return $return_success;
                     } else {
                         // wait and retry again
                         // (increase wait time on every retry)

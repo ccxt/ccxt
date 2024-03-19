@@ -1047,7 +1047,7 @@ class coinlist extends Exchange {
         );
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the $accounts associated with a profile
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$accounts

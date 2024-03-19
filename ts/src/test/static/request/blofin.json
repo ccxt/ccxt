@@ -112,6 +112,19 @@
                     "LTC/USDT:USDT"
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"orderId\":\"2075628262\"}"
+            },
+            {
+                "description": "cancel tpsl order",
+                "method": "cancelOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/cancel-tpsl",
+                "input": [
+                  "10811191",
+                  "LTC/USDT:USDT",
+                  {
+                    "trigger": true
+                  }
+                ],
+                "output": "[{\"tpslId\":\"10811191\",\"instId\":\"LTC-USDT\"}]"
             }
         ],
         "cancelOrders": [

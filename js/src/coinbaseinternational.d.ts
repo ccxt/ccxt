@@ -8,7 +8,7 @@ export default class coinbaseinternational extends Exchange {
     describe(): any;
     handlePortfolioAndParams(methodName: string, params?: {}): Promise<any[]>;
     handleNetworkIdAndParams(currencyCode: string, methodName: string, params: any): Promise<any[]>;
-    fetchAccounts(params?: {}): Promise<any[]>;
+    fetchAccounts(params?: {}): Promise<import("./base/types.js").Account[]>;
     parseAccount(account: any): {
         id: string;
         type: any;

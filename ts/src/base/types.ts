@@ -8,7 +8,7 @@ export type Bool = boolean | undefined;
 export type IndexType = number | string;
 export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
-export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
+export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
 export type SubType = 'linear' | 'inverse' | undefined;
 
 export interface Dictionary<T> {
@@ -200,10 +200,17 @@ export interface Balance {
     debt?: Num,
 }
 
-export interface Account {
+export interface BalanceAccount {
     free: Str,
     used: Str,
     total: Str,
+}
+
+export interface Account {
+    id: Str,
+    type: Str,
+    code: Str,
+    info: any,
 }
 
 export interface PartialBalances extends Dictionary<number> {

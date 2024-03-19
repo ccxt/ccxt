@@ -1648,6 +1648,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function fapiprivate_get_commissionrate($params = array()) {
         return $this->request('commissionRate', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function fapiprivate_get_ratelimit_order($params = array()) {
+        return $this->request('rateLimit/order', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function fapiprivate_get_apitradingstatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3894,6 +3897,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function fapiPrivateGetCommissionRate($params = array()) {
         return $this->request('commissionRate', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function fapiPrivateGetRateLimitOrder($params = array()) {
+        return $this->request('rateLimit/order', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiPrivateGetApiTradingStatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));

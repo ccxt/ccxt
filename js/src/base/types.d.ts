@@ -180,10 +180,16 @@ export interface Balance {
     total: Num;
     debt?: Num;
 }
-export interface Account {
+export interface BalanceAccount {
     free: Str;
     used: Str;
     total: Str;
+}
+export interface Account {
+    id: Str;
+    type: Str;
+    code: Str;
+    info: any;
 }
 export interface PartialBalances extends Dictionary<number> {
 }
