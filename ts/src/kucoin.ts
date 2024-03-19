@@ -229,6 +229,7 @@ export default class kucoin extends Exchange {
                         'isolated/account/{symbol}': 50, // 50SW
                         'margin/borrow': 15, // 15SW
                         'margin/repay': 15, // 15SW
+                        'margin/interest': 20, // 20SW
                         'project/list': 10, // 10SW
                         'project/marketInterestRate': 7.5, // 5PW
                         'redeem/orders': 10, // 10SW
@@ -590,6 +591,7 @@ export default class kucoin extends Exchange {
                             'margin/currencies': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
+                            'margin/interest': 'v3',
                             'project/list': 'v3',
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
