@@ -1254,10 +1254,11 @@ export default class binance extends binanceRest {
     }
 
     getMessageHash (channelName: string, symbol: Str, isBidAsk: boolean) {
+        const prefix = isBidAsk ? 'bidask' : 'ticker';
         if (symbol !== undefined) {
-            return (isBidAsk ? 'bidask' : 'ticker') + ':' + channelName + '@' + symbol;
+            return prefix + ':' + channelName + '@' + symbol;
         } else {
-            return (isBidAsk ? 'bidasks' : 'tickers') + ':' + channelName;
+            return prefix + 's' + ':' + channelName;
         }
     }
 
