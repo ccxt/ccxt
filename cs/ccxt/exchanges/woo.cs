@@ -49,7 +49,7 @@ public partial class woo : Exchange
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", false },
                 { "fetchClosedOrder", false },
-                { "fetchClosedOrders", false },
+                { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDeposits", true },
@@ -68,7 +68,7 @@ public partial class woo : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrder", false },
-                { "fetchOpenOrders", false },
+                { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -1451,10 +1451,19 @@ public partial class woo : Exchange
         * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
         * @param {string} [params.side] 'buy' or 'sell'
         * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", 500);
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         object stop = this.safeBool2(parameters, "stop", "trigger");
@@ -1474,6 +1483,13 @@ public partial class woo : Exchange
             {
                 ((IDictionary<string,object>)request)["start_t"] = since;
             }
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["size"] = 500;
         }
         if (isTrue(stop))
         {
@@ -1523,7 +1539,61 @@ public partial class woo : Exchange
         //
         object data = this.safeValue(response, "data", response);
         object orders = this.safeList(data, "rows");
-        return this.parseOrders(orders, market, since, limit, parameters);
+        return this.parseOrders(orders, market, since, limit);
+    }
+
+    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchOpenOrders
+        * @description fetches information on multiple orders made by the user
+        * @see https://docs.woo.org/#get-orders
+        * @see https://docs.woo.org/#get-algo-orders
+        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.stop] whether the order is a stop/algo order
+        * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+        * @param {string} [params.side] 'buy' or 'sell'
+        * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "status", "INCOMPLETE" },
+        });
+        return await this.fetchOrders(symbol, since, limit, extendedParams);
+    }
+
+    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#fetchClosedOrders
+        * @description fetches information on multiple orders made by the user
+        * @see https://docs.woo.org/#get-orders
+        * @see https://docs.woo.org/#get-algo-orders
+        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.stop] whether the order is a stop/algo order
+        * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+        * @param {string} [params.side] 'buy' or 'sell'
+        * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "status", "COMPLETED" },
+        });
+        return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
 
     public virtual object parseTimeInForce(object timeInForce)
@@ -1821,15 +1891,25 @@ public partial class woo : Exchange
         /**
         * @method
         * @name woo#fetchMyTrades
+        * @see https://docs.woo.org/#get-trades
         * @description fetch all trades made by the user
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500);
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1840,6 +1920,13 @@ public partial class woo : Exchange
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["size"] = 500;
         }
         object response = await this.v1PrivateGetClientTrades(this.extend(request, parameters));
         // {

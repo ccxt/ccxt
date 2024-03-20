@@ -1429,7 +1429,7 @@ export default class bitmart extends bitmartRest {
             const message = this.extend (request, params);
             this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     handleSubscriptionStatus (client: Client, message) {

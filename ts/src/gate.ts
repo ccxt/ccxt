@@ -49,6 +49,7 @@ export default class gate extends Exchange {
                         'rebate': 'https://api.gateio.ws/api/v4',
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
+                        'loan': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -942,7 +943,7 @@ export default class gate extends Exchange {
         } as MarketInterface;
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
         if (isOption && !(marketId in this.markets_by_id)) {
             // handle expired option contracts

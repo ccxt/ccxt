@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Greeks, Int, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -595,6 +595,7 @@ class okx(Exchange, ImplicitAPI):
                     '50027': PermissionDenied,  # The account is restricted from trading
                     '50028': ExchangeError,  # Unable to take the order, please reach out to support center for details
                     '50044': BadRequest,  # Must select one broker type
+                    '50061': ExchangeError,  # You've reached the maximum order rate limit for self account.
                     '50062': ExchangeError,  # This feature is currently unavailable.
                     # API Class
                     '50100': ExchangeError,  # API frozen, please contact customer service
@@ -782,6 +783,15 @@ class okx(Exchange, ImplicitAPI):
                     # SPOT/MARGIN error codes 54000-54999
                     '54000': ExchangeError,  # Margin transactions unavailable
                     '54001': ExchangeError,  # Only Multi-currency margin account can be set to borrow coins automatically
+                    # Trading bot Error Code from 55100 to 55999
+                    '55100': InvalidOrder,  # Take profit % should be within the range of {parameter1}-{parameter2}
+                    '55101': InvalidOrder,  # Stop loss % should be within the range of {parameter1}-{parameter2}
+                    '55102': InvalidOrder,  # Take profit % should be greater than the current bot’s PnL%
+                    '55103': InvalidOrder,  # Stop loss % should be less than the current bot’s PnL%
+                    '55104': InvalidOrder,  # Only futures grid supports take profit or stop loss based on profit percentage
+                    '55111': InvalidOrder,  # This signal name is in use, please try a new name
+                    '55112': InvalidOrder,  # This signal does not exist
+                    '55113': InvalidOrder,  # Create signal strategies with leverage greater than the maximum leverage of the instruments
                     # FUNDING error codes 58000-58999
                     '58000': ExchangeError,  # Account type {0} does not supported when getting the sub-account balance
                     '58001': AuthenticationError,  # Incorrect trade password
@@ -1195,7 +1205,7 @@ class okx(Exchange, ImplicitAPI):
             'info': None,
         }
 
-    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
         if isOption and not (marketId in self.markets_by_id):
             # handle expired option contracts
@@ -4699,6 +4709,14 @@ class okx(Exchange, ImplicitAPI):
             '3': 'pending',
             '4': 'pending',
             '5': 'pending',
+            '6': 'pending',
+            '7': 'pending',
+            '8': 'pending',
+            '9': 'pending',
+            '10': 'pending',
+            '12': 'pending',
+            '15': 'pending',
+            '16': 'pending',
         }
         return self.safe_string(statuses, status, status)
 

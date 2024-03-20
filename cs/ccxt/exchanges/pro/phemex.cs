@@ -1630,7 +1630,7 @@ public partial class phemex : ccxt.phemex
             {
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionHash] = this.handleAuthenticate;
             }
-            future = this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
         return future;

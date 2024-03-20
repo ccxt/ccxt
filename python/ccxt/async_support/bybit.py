@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -978,6 +978,9 @@ class bybit(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'options': {
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
+                'createOrder': {
+                    'method': 'privatePostV5OrderCreate',  # 'privatePostV5PositionTradingStop'
+                },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'createMarketBuyOrderRequiresPrice': True,  # only True for classic accounts
@@ -1254,7 +1257,7 @@ class bybit(Exchange, ImplicitAPI):
             'info': None,
         }
 
-    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
         if isOption and not (marketId in self.markets_by_id):
             # handle expired option contracts
@@ -3357,8 +3360,10 @@ class bybit(Exchange, ImplicitAPI):
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trailingStop')
         isTrailingAmountOrder = trailingAmount is not None
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params, enableUnifiedAccount)
+        options = self.safe_value(self.options, 'createOrder', {})
+        defaultMethod = self.safe_string(options, 'method', 'privatePostV5OrderCreate')
         response = None
-        if isTrailingAmountOrder:
+        if isTrailingAmountOrder or (defaultMethod == 'privatePostV5PositionTradingStop'):
             response = await self.privatePostV5PositionTradingStop(orderRequest)
         else:
             response = await self.privatePostV5OrderCreate(orderRequest)  # already extended inside createOrderRequest
@@ -3383,10 +3388,12 @@ class bybit(Exchange, ImplicitAPI):
         lowerCaseType = type.lower()
         if (price is None) and (lowerCaseType == 'limit'):
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
+        defaultMethod = None
+        defaultMethod, params = self.handle_option_and_params(params, 'createOrder', 'method', 'privatePostV5OrderCreate')
         request = {
             'symbol': market['id'],
-            'side': self.capitalize(side),
-            'orderType': self.capitalize(lowerCaseType),  # limit or market
+            # 'side': self.capitalize(side),
+            # 'orderType': self.capitalize(lowerCaseType),  # limit or market
             # 'timeInForce': 'GTC',  # IOC, FOK, PostOnly
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
@@ -3408,6 +3415,69 @@ class bybit(Exchange, ImplicitAPI):
             # Valid for option only.
             # 'orderIv': '0',  # Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         }
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
+        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activePrice', self.number_to_string(price))
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trailingStop')
+        isTrailingAmountOrder = trailingAmount is not None
+        isTriggerOrder = triggerPrice is not None
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLoss = stopLoss is not None
+        isTakeProfit = takeProfit is not None
+        isMarket = lowerCaseType == 'market'
+        isLimit = lowerCaseType == 'limit'
+        isBuy = side == 'buy'
+        isAlternativeEndpoint = defaultMethod == 'privatePostV5PositionTradingStop'
+        if isTrailingAmountOrder or isAlternativeEndpoint:
+            if isStopLoss or isTakeProfit or isTriggerOrder or market['spot']:
+                raise InvalidOrder(self.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders')
+            if isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                if isStopLossTriggerOrder:
+                    request['stopLoss'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                    if isLimit:
+                        request['tpslMode'] = 'Partial'
+                        request['slOrderType'] = 'Limit'
+                        request['slLimitPrice'] = self.price_to_precision(symbol, price)
+                        request['slSize'] = self.amount_to_precision(symbol, amount)
+                elif isTakeProfitTriggerOrder:
+                    request['takeProfit'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                    if isLimit:
+                        request['tpslMode'] = 'Partial'
+                        request['tpOrderType'] = 'Limit'
+                        request['tpLimitPrice'] = self.price_to_precision(symbol, price)
+                        request['tpSize'] = self.amount_to_precision(symbol, amount)
+        else:
+            request['side'] = self.capitalize(side)
+            request['orderType'] = self.capitalize(lowerCaseType)
+            timeInForce = self.safe_string_lower(params, 'timeInForce')  # self is same specific param
+            postOnly = None
+            postOnly, params = self.handle_post_only(isMarket, timeInForce == 'postonly', params)
+            if postOnly:
+                request['timeInForce'] = 'PostOnly'
+            elif timeInForce == 'gtc':
+                request['timeInForce'] = 'GTC'
+            elif timeInForce == 'fok':
+                request['timeInForce'] = 'FOK'
+            elif timeInForce == 'ioc':
+                request['timeInForce'] = 'IOC'
+            if market['spot']:
+                # only works for spot market
+                if triggerPrice is not None:
+                    request['orderFilter'] = 'StopOrder'
+                elif stopLossTriggerPrice is not None or takeProfitTriggerPrice is not None or isStopLoss or isTakeProfit:
+                    request['orderFilter'] = 'tpslOrder'
+            clientOrderId = self.safe_string(params, 'clientOrderId')
+            if clientOrderId is not None:
+                request['orderLinkId'] = clientOrderId
+            elif market['option']:
+                # mandatory field for options
+                request['orderLinkId'] = self.uuid16()
+            if isLimit:
+                request['price'] = self.price_to_precision(symbol, price)
         if market['spot']:
             request['category'] = 'spot'
         elif market['linear']:
@@ -3453,40 +3523,13 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 request['qty'] = self.cost_to_precision(symbol, amount)
         else:
-            request['qty'] = self.amount_to_precision(symbol, amount)
-        isMarket = lowerCaseType == 'market'
-        isLimit = lowerCaseType == 'limit'
-        if isLimit:
-            request['price'] = self.price_to_precision(symbol, price)
-        timeInForce = self.safe_string_lower(params, 'timeInForce')  # self is same specific param
-        postOnly = None
-        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'postonly', params)
-        if postOnly:
-            request['timeInForce'] = 'PostOnly'
-        elif timeInForce == 'gtc':
-            request['timeInForce'] = 'GTC'
-        elif timeInForce == 'fok':
-            request['timeInForce'] = 'FOK'
-        elif timeInForce == 'ioc':
-            request['timeInForce'] = 'IOC'
-        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
-        stopLoss = self.safe_value(params, 'stopLoss')
-        takeProfit = self.safe_value(params, 'takeProfit')
-        trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activePrice', self.number_to_string(price))
-        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trailingStop')
-        isTrailingAmountOrder = trailingAmount is not None
-        isStopLossTriggerOrder = stopLossTriggerPrice is not None
-        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
-        isStopLoss = stopLoss is not None
-        isTakeProfit = takeProfit is not None
-        isBuy = side == 'buy'
+            if not isTrailingAmountOrder and not isAlternativeEndpoint:
+                request['qty'] = self.amount_to_precision(symbol, amount)
         if isTrailingAmountOrder:
             if trailingTriggerPrice is not None:
                 request['activePrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
             request['trailingStop'] = trailingAmount
-        elif triggerPrice is not None:
+        elif isTriggerOrder and not isAlternativeEndpoint:
             triggerDirection = self.safe_string(params, 'triggerDirection')
             params = self.omit(params, ['triggerPrice', 'stopPrice', 'triggerDirection'])
             if market['spot']:
@@ -3498,7 +3541,7 @@ class bybit(Exchange, ImplicitAPI):
                 isAsending = ((triggerDirection == 'above') or (triggerDirection == '1'))
                 request['triggerDirection'] = 1 if isAsending else 2
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-        elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+        elif (isStopLossTriggerOrder or isTakeProfitTriggerOrder) and not isAlternativeEndpoint:
             if isBuy:
                 request['triggerDirection'] = 1 if isStopLossTriggerOrder else 2
             else:
@@ -3506,7 +3549,7 @@ class bybit(Exchange, ImplicitAPI):
             triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['reduceOnly'] = True
-        if isStopLoss or isTakeProfit:
+        if (isStopLoss or isTakeProfit) and not isAlternativeEndpoint:
             if isStopLoss:
                 slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
                 request['stopLoss'] = self.price_to_precision(symbol, slTriggerPrice)
@@ -3523,18 +3566,6 @@ class bybit(Exchange, ImplicitAPI):
                     request['tpslMode'] = 'Partial'
                     request['tpOrderType'] = 'Limit'
                     request['tpLimitPrice'] = self.price_to_precision(symbol, tpLimitPrice)
-        if market['spot']:
-            # only works for spot market
-            if triggerPrice is not None:
-                request['orderFilter'] = 'StopOrder'
-            elif stopLossTriggerPrice is not None or takeProfitTriggerPrice is not None or isStopLoss or isTakeProfit:
-                request['orderFilter'] = 'tpslOrder'
-        clientOrderId = self.safe_string(params, 'clientOrderId')
-        if clientOrderId is not None:
-            request['orderLinkId'] = clientOrderId
-        elif market['option']:
-            # mandatory field for options
-            request['orderLinkId'] = self.uuid16()
         params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice'])
         return self.extend(request, params)
 
@@ -4848,7 +4879,9 @@ class bybit(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 100)
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
-        request = {}
+        request = {
+            'execType': 'Trade',
+        }
         market = None
         isUsdcSettled = False
         if symbol is not None:
@@ -7493,11 +7526,14 @@ class bybit(Exchange, ImplicitAPI):
             tier = info[i]
             marketId = self.safe_string(info, 'symbol')
             market = self.safe_market(marketId)
+            minNotional = self.parse_number('0')
+            if i != 0:
+                minNotional = self.safe_number(info[i - 1], 'riskLimitValue')
             tiers.append({
                 'tier': self.safe_integer(tier, 'id'),
                 'currency': market['settle'],
-                'minNotional': None,
-                'maxNotional': None,
+                'minNotional': minNotional,
+                'maxNotional': self.safe_number(tier, 'riskLimitValue'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMargin'),
                 'maxLeverage': self.safe_number(tier, 'maxLeverage'),
                 'info': tier,

@@ -1060,7 +1060,10 @@ class coinbase extends Exchange {
          * @return {array[]} an array of objects representing market data
          */
         $method = $this->safe_string($this->options, 'fetchMarkets', 'fetchMarketsV3');
-        return $this->$method ($params);
+        if ($method === 'fetchMarketsV3') {
+            return $this->fetch_markets_v3($params);
+        }
+        return $this->fetch_markets_v2($params);
     }
 
     public function fetch_markets_v2($params = array ()) {
@@ -1137,7 +1140,13 @@ class coinbase extends Exchange {
     }
 
     public function fetch_markets_v3($params = array ()) {
-        $response = $this->v3PrivateGetBrokerageProducts ($params);
+        $promisesUnresolved = array(
+            $this->v3PrivateGetBrokerageProducts ($params),
+            $this->v3PrivateGetBrokerageTransactionSummary ($params),
+        );
+        // $response = $this->v3PrivateGetBrokerageProducts ($params);
+        $promises = $promisesUnresolved;
+        $response = $this->safe_dict($promises, 0, array());
         //
         //     array(
         //         array(
@@ -1172,7 +1181,8 @@ class coinbase extends Exchange {
         //         ...
         //     )
         //
-        $fees = $this->v3PrivateGetBrokerageTransactionSummary ($params);
+        // $fees = $this->v3PrivateGetBrokerageTransactionSummary ($params);
+        $fees = $this->safe_dict($promises, 1, array());
         //
         //     {
         //         "total_volume" => 0,
@@ -1887,6 +1897,9 @@ class coinbase extends Exchange {
         $response = $this->v2PrivateGetAccountsAccountIdTransactions (array_merge($request, $params));
         $ledger = $this->parse_ledger($response['data'], $currency, $since, $limit);
         $length = count($ledger);
+        if ($length === 0) {
+            return $ledger;
+        }
         $lastIndex = $length - 1;
         $last = $this->safe_dict($ledger, $lastIndex);
         $pagination = $this->safe_dict($response, 'pagination', array());
@@ -2229,9 +2242,9 @@ class coinbase extends Exchange {
         );
     }
 
-    public function find_account_id($code) {
+    public function find_account_id($code, $params = array ()) {
         $this->load_markets();
-        $this->load_accounts();
+        $this->load_accounts(false, $params);
         for ($i = 0; $i < count($this->accounts); $i++) {
             $account = $this->accounts[$i];
             if ($account['code'] === $code) {
@@ -2262,7 +2275,7 @@ class coinbase extends Exchange {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or $accountId) parameter OR a currency $code argument');
             }
-            $accountId = $this->find_account_id($code);
+            $accountId = $this->find_account_id($code, $params);
             if ($accountId === null) {
                 throw new ExchangeError($this->id . ' prepareAccountRequestWithCurrencyCode() could not find account id for ' . $code);
             }
@@ -2859,7 +2872,7 @@ class coinbase extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 1000);
         }
         $market = null;
         if ($symbol !== null) {
@@ -3377,7 +3390,7 @@ class coinbase extends Exchange {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires an account_id (or $accountId) parameter OR a $currency $code argument');
             }
-            $accountId = $this->find_account_id($code);
+            $accountId = $this->find_account_id($code, $params);
             if ($accountId === null) {
                 throw new ExchangeError($this->id . ' withdraw() could not find account id for ' . $code);
             }
@@ -3601,7 +3614,7 @@ class coinbase extends Exchange {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' deposit() requires an account_id (or $accountId) parameter OR a currency $code argument');
             }
-            $accountId = $this->find_account_id($code);
+            $accountId = $this->find_account_id($code, $params);
             if ($accountId === null) {
                 throw new ExchangeError($this->id . ' deposit() could not find account $id for ' . $code);
             }
@@ -3670,7 +3683,7 @@ class coinbase extends Exchange {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDeposit() requires an account_id (or $accountId) parameter OR a currency $code argument');
             }
-            $accountId = $this->find_account_id($code);
+            $accountId = $this->find_account_id($code, $params);
             if ($accountId === null) {
                 throw new ExchangeError($this->id . ' fetchDeposit() could not find account $id for ' . $code);
             }

@@ -396,6 +396,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("privateGetMarginRepay",parameters);
     }
 
+    public async Task<object> privateGetMarginInterest (object parameters = null)
+    {
+        return await this.callAsync ("privateGetMarginInterest",parameters);
+    }
+
     public async Task<object> privateGetProjectList (object parameters = null)
     {
         return await this.callAsync ("privateGetProjectList",parameters);

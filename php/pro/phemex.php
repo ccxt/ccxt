@@ -1510,31 +1510,33 @@ class phemex extends \ccxt\async\phemex {
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $requestId = $this->request_id();
-        $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $expiryDelta = $this->safe_integer($this->options, 'expires', 120);
-            $expiration = $this->seconds() . $expiryDelta;
-            $payload = $this->apiKey . (string) $expiration;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
-            $method = 'user.auth';
-            $request = array(
-                'method' => $method,
-                'params' => array( 'API', $this->apiKey, $signature, $expiration ),
-                'id' => $requestId,
-            );
-            $subscriptionHash = (string) $requestId;
-            $message = array_merge($request, $params);
-            if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
-                $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $requestId = $this->request_id();
+            $messageHash = 'authenticated';
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $expiryDelta = $this->safe_integer($this->options, 'expires', 120);
+                $expiration = $this->seconds() . $expiryDelta;
+                $payload = $this->apiKey . (string) $expiration;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
+                $method = 'user.auth';
+                $request = array(
+                    'method' => $method,
+                    'params' => array( 'API', $this->apiKey, $signature, $expiration ),
+                    'id' => $requestId,
+                );
+                $subscriptionHash = (string) $requestId;
+                $message = array_merge($request, $params);
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                    $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
+                }
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+                $client->subscriptions[$messageHash] = $future;
             }
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+            return $future;
+        }) ();
     }
 }

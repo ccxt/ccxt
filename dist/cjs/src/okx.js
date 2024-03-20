@@ -573,6 +573,7 @@ class okx extends okx$1 {
                     '50027': errors.PermissionDenied,
                     '50028': errors.ExchangeError,
                     '50044': errors.BadRequest,
+                    '50061': errors.ExchangeError,
                     '50062': errors.ExchangeError,
                     // API Class
                     '50100': errors.ExchangeError,
@@ -760,6 +761,15 @@ class okx extends okx$1 {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000': errors.ExchangeError,
                     '54001': errors.ExchangeError,
+                    // Trading bot Error Code from 55100 to 55999
+                    '55100': errors.InvalidOrder,
+                    '55101': errors.InvalidOrder,
+                    '55102': errors.InvalidOrder,
+                    '55103': errors.InvalidOrder,
+                    '55104': errors.InvalidOrder,
+                    '55111': errors.InvalidOrder,
+                    '55112': errors.InvalidOrder,
+                    '55113': errors.InvalidOrder,
                     // FUNDING error codes 58000-58999
                     '58000': errors.ExchangeError,
                     '58001': errors.AuthenticationError,
@@ -5021,6 +5031,14 @@ class okx extends okx$1 {
             '3': 'pending',
             '4': 'pending',
             '5': 'pending',
+            '6': 'pending',
+            '7': 'pending',
+            '8': 'pending',
+            '9': 'pending',
+            '10': 'pending',
+            '12': 'pending',
+            '15': 'pending',
+            '16': 'pending',
         };
         return this.safeString(statuses, status, status);
     }

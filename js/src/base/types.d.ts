@@ -6,7 +6,7 @@ export declare type Bool = boolean | undefined;
 export declare type IndexType = number | string;
 export declare type OrderSide = 'buy' | 'sell' | string;
 export declare type OrderType = 'limit' | 'market' | string;
-export declare type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
+export declare type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
 export declare type SubType = 'linear' | 'inverse' | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
@@ -357,8 +357,8 @@ export interface Liquidation {
 }
 export interface OrderRequest {
     symbol: string;
-    type: Str;
-    side: Str;
+    type: OrderType;
+    side: OrderSide;
     amount?: number;
     price?: number | undefined;
     params?: any;

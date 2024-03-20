@@ -569,7 +569,7 @@ class hyperliquid extends Exchange {
         //     }
         //
         return array(
-            $this->safe_integer($ohlcv, 'T'),
+            $this->safe_integer($ohlcv, 't'),
             $this->safe_number($ohlcv, 'o'),
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),
@@ -785,8 +785,9 @@ class hyperliquid extends Exchange {
              * @param {bool} [$params->postOnly] true or false whether the $order is post-only
              * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
              * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
-             * @param {string} [$params->clientOrderId] client $order id, optional 128 bit hex string
+             * @param {string} [$params->clientOrderId] client $order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->slippage] the slippage for $market $order
+             * @param {string} [$params->vaultAddress] the vault address for $order
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -837,7 +838,7 @@ class hyperliquid extends Exchange {
                     }
                 }
             }
-            $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
+            $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ));
             $nonce = $this->milliseconds();
             $orderReq = array();
             for ($i = 0; $i < count($orders); $i++) {
@@ -962,7 +963,7 @@ class hyperliquid extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] client order $id (default null)
+             * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             return Async\await($this->cancel_orders(array( $id ), $symbol, $params));
@@ -978,7 +979,7 @@ class hyperliquid extends Exchange {
              * @param {string[]} $ids order $ids
              * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string|string[]} [$params->clientOrderId] client order $ids (default null)
+             * @param {string|string[]} [$params->clientOrderId] client order $ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $this->check_required_credentials();
@@ -1061,6 +1062,7 @@ class hyperliquid extends Exchange {
              * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+             * @param {string} [$params->vaultAddress] the vault address for order
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $this->check_required_credentials();

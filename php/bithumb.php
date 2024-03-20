@@ -176,7 +176,7 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         // bithumb has a different type of conflict in markets, because
         // their ids are the base currency (BTC for instance), so we can have
         // multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)

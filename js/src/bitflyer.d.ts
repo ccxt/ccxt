@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitflyer.js';
-import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class bitflyer
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide,
 export default class bitflyer extends Exchange {
     describe(): any;
     parseExpiryDate(expiry: any): number;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): import("./base/types.js").MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;

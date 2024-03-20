@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.76'
+__version__ = '4.2.78'
 
 # -----------------------------------------------------------------------------
 
@@ -2287,7 +2287,7 @@ class Exchange(object):
             return float(stringVersion)
         return int(stringVersion)
 
-    def is_round_number(self, value):
+    def is_round_number(self, value: float):
         # self method is similar to isInteger, but self is more loyal and does not check for types.
         # i.e. isRoundNumber(1.000) returns True, while isInteger(1.000) returns False
         res = self.parse_to_numeric((value % 1))
@@ -3109,7 +3109,7 @@ class Exchange(object):
     def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
-    def convert_trading_view_to_ohlcv(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
+    def convert_trading_view_to_ohlcv(self, ohlcvs: List[List[float]], timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
         result = []
         timestamps = self.safe_list(ohlcvs, timestamp, [])
         opens = self.safe_list(ohlcvs, open, [])
@@ -3128,7 +3128,7 @@ class Exchange(object):
             ])
         return result
 
-    def convert_ohlcv_to_trading_view(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
+    def convert_ohlcv_to_trading_view(self, ohlcvs: List[List[float]], timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
         result = {}
         result[timestamp] = []
         result[open] = []
@@ -3779,6 +3779,11 @@ class Exchange(object):
         return result
 
     def check_required_credentials(self, error=True):
+        """
+         * @ignore
+        :param boolean error: raise an error that a credential is required if True
+        :returns boolean: True if all required credentials have been set, otherwise False or an error is thrown is param error=true
+        """
         keys = list(self.requiredCredentials.keys())
         for i in range(0, len(keys)):
             key = keys[i]
