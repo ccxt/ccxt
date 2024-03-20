@@ -248,7 +248,7 @@
                         "trailingAmount": "1000"
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"0.001\",\"trailingStop\":\"1000\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"linear\",\"trailingStop\":\"1000\"}"
             },
             {
                 "description": "Swap inverse market buy order",
@@ -586,7 +586,7 @@
             {
                 "description": "Spot fetchMyTrades",
                 "method": "fetchMyTrades",
-                "url": "https://api-testnet.bybit.com/v5/execution/list?symbol=LTCUSDT&category=spot",
+                "url": "https://api-testnet.bybit.com/v5/execution/list?execType=Trade&symbol=LTCUSDT&category=spot",
                 "input": [
                     "LTC/USDT"
                 ]
@@ -594,7 +594,7 @@
             {
                 "description": "Swap fetchMyTrades",
                 "method": "fetchMyTrades",
-                "url": "https://api-testnet.bybit.com/v5/execution/list?symbol=LTCUSDT&category=linear",
+                "url": "https://api-testnet.bybit.com/v5/execution/list?execType=Trade&symbol=LTCUSDT&category=linear",
                 "input": [
                     "LTC/USDT:USDT"
                 ]
@@ -916,6 +916,18 @@
                 "method": "fetchTime",
                 "url": "https://api.bybit.com/v5/market/time",
                 "input": []
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "linear leverage tiers",
+                "method": "fetchLeverageTiers",
+                "url": "https://api-testnet.bybit.com/v5/market/risk-limit?category=linear",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
             }
         ]
     },

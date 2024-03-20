@@ -323,7 +323,7 @@ class delta extends Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')) || (str_starts_with($marketId, 'C-')) || (str_starts_with($marketId, 'P-')));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
@@ -341,7 +341,7 @@ class delta extends Exchange {
              */
             $response = Async\await($this->publicGetSettings ($params));
             // full $response sample under `fetchStatus`
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->safe_integer_product($result, 'server_time', 0.001);
         }) ();
     }
@@ -407,7 +407,7 @@ class delta extends Exchange {
             //         "success" => true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             $underMaintenance = $this->safe_string($result, 'under_maintenance');
             $status = ($underMaintenance === 'true') ? 'maintenance' : 'ok';
             $updated = $this->safe_integer_product($result, 'server_time', 0.001, $this->milliseconds());
@@ -460,7 +460,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $currencies = $this->safe_value($response, 'result', array());
+            $currencies = $this->safe_list($response, 'result', array());
             $result = array();
             for ($i = 0; $i < count($currencies); $i++) {
                 $currency = $currencies[$i];
@@ -500,16 +500,34 @@ class delta extends Exchange {
     public function load_markets($reload = false, $params = array ()) {
         return Async\async(function () use ($reload, $params) {
             $markets = Async\await(parent::load_markets($reload, $params));
-            $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId');
+            $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId');
             if (($currenciesByNumericId === null) || $reload) {
-                $this->options['currenciesByNumericId'] = $this->index_by($this->currencies, 'numericId');
+                $this->options['currenciesByNumericId'] = $this->index_by_stringified_numeric_id($this->currencies);
             }
-            $marketsByNumericId = $this->safe_value($this->options, 'marketsByNumericId');
+            $marketsByNumericId = $this->safe_dict($this->options, 'marketsByNumericId');
             if (($marketsByNumericId === null) || $reload) {
-                $this->options['marketsByNumericId'] = $this->index_by($this->markets, 'numericId');
+                $this->options['marketsByNumericId'] = $this->index_by_stringified_numeric_id($this->markets);
             }
             return $markets;
         }) ();
+    }
+
+    public function index_by_stringified_numeric_id($input) {
+        $result = array();
+        if ($input === null) {
+            return null;
+        }
+        $keys = is_array($input) ? array_keys($input) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $item = $input[$key];
+            $numericIdString = $this->safe_string($item, 'numericId');
+            if ($numericIdString === null) {
+                continue;
+            }
+            $result[$numericIdString] = $item;
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()) {
@@ -699,7 +717,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $markets = $this->safe_value($response, 'result', array());
+            $markets = $this->safe_list($response, 'result', array());
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
@@ -708,10 +726,10 @@ class delta extends Exchange {
                     continue;
                 }
                 // $settlingAsset = $this->safe_value($market, 'settling_asset', array());
-                $quotingAsset = $this->safe_value($market, 'quoting_asset', array());
-                $underlyingAsset = $this->safe_value($market, 'underlying_asset', array());
-                $settlingAsset = $this->safe_value($market, 'settling_asset');
-                $productSpecs = $this->safe_value($market, 'product_specs', array());
+                $quotingAsset = $this->safe_dict($market, 'quoting_asset', array());
+                $underlyingAsset = $this->safe_dict($market, 'underlying_asset', array());
+                $settlingAsset = $this->safe_dict($market, 'settling_asset');
+                $productSpecs = $this->safe_dict($market, 'product_specs', array());
                 $baseId = $this->safe_string($underlyingAsset, 'symbol');
                 $quoteId = $this->safe_string($quotingAsset, 'symbol');
                 $settleId = $this->safe_string($settlingAsset, 'symbol');
@@ -942,7 +960,7 @@ class delta extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string($ticker, 'close');
-        $quotes = $this->safe_value($ticker, 'quotes', array());
+        $quotes = $this->safe_dict($ticker, 'quotes', array());
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1106,7 +1124,7 @@ class delta extends Exchange {
             //         "success" => true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_ticker($result, $market);
         }) ();
     }
@@ -1253,7 +1271,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $tickers = $this->safe_value($response, 'result', array());
+            $tickers = $this->safe_list($response, 'result', array());
             $result = array();
             for ($i = 0; $i < count($tickers); $i++) {
                 $ticker = $this->parse_ticker($tickers[$i]);
@@ -1301,7 +1319,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order_book($result, $market['symbol'], null, 'buy', 'sell', 'price', 'size');
         }) ();
     }
@@ -1360,7 +1378,7 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($trade, 'timestamp', 0.001, $timestamp);
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
-        $product = $this->safe_value($trade, 'product', array());
+        $product = $this->safe_dict($trade, 'product', array());
         $marketId = $this->safe_string($product, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $sellerRole = $this->safe_string($trade, 'seller_role');
@@ -1373,7 +1391,7 @@ class delta extends Exchange {
             }
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
-        $metaData = $this->safe_value($trade, 'meta_data', array());
+        $metaData = $this->safe_dict($trade, 'meta_data', array());
         $type = $this->safe_string($metaData, 'order_type');
         if ($type !== null) {
             $type = str_replace('_order', '', $type);
@@ -1381,7 +1399,7 @@ class delta extends Exchange {
         $feeCostString = $this->safe_string($trade, 'commission');
         $fee = null;
         if ($feeCostString !== null) {
-            $settlingAsset = $this->safe_value($product, 'settling_asset', array());
+            $settlingAsset = $this->safe_dict($product, 'settling_asset', array());
             $feeCurrencyId = $this->safe_string($settlingAsset, 'symbol');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
@@ -1438,7 +1456,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_trades($result, $market, $since, $limit);
         }) ();
     }
@@ -1512,19 +1530,19 @@ class delta extends Exchange {
             //         )
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
         }) ();
     }
 
     public function parse_balance($response): array {
-        $balances = $this->safe_value($response, 'result', array());
+        $balances = $this->safe_list($response, 'result', array());
         $result = array( 'info' => $response );
-        $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId', array());
+        $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'asset_id');
-            $currency = $this->safe_value($currenciesByNumericId, $currencyId);
+            $currency = $this->safe_dict($currenciesByNumericId, $currencyId);
             $code = ($currency === null) ? $currencyId : $currency['code'];
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'balance');
@@ -1594,7 +1612,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_position($result, $market);
         }) ();
     }
@@ -1631,7 +1649,7 @@ class delta extends Exchange {
             //         )
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_positions($result, $symbols);
         }) ();
     }
@@ -1756,7 +1774,7 @@ class delta extends Exchange {
         $clientOrderId = $this->safe_string($order, 'client_order_id');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $marketId = $this->safe_string($order, 'product_id');
-        $marketsByNumericId = $this->safe_value($this->options, 'marketsByNumericId', array());
+        $marketsByNumericId = $this->safe_dict($this->options, 'marketsByNumericId', array());
         $market = $this->safe_value($marketsByNumericId, $marketId, $market);
         $symbol = ($market === null) ? $marketId : $market['symbol'];
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
@@ -1772,7 +1790,7 @@ class delta extends Exchange {
         if ($feeCostString !== null) {
             $feeCurrencyCode = null;
             if ($market !== null) {
-                $settlingAsset = $this->safe_value($market['info'], 'settling_asset', array());
+                $settlingAsset = $this->safe_dict($market['info'], 'settling_asset', array());
                 $feeCurrencyId = $this->safe_string($settlingAsset, 'symbol');
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             }
@@ -1839,7 +1857,7 @@ class delta extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
             }
-            $reduceOnly = $this->safe_value($params, 'reduceOnly');
+            $reduceOnly = $this->safe_bool($params, 'reduceOnly');
             if ($reduceOnly) {
                 $request['reduce_only'] = $reduceOnly;
                 $params = $this->omit($params, 'reduceOnly');
@@ -1881,7 +1899,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -1932,7 +1950,7 @@ class delta extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -1993,7 +2011,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -2111,7 +2129,7 @@ class delta extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
         }) ();
     }
@@ -2194,7 +2212,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_trades($result, $market, $since, $limit);
         }) ();
     }
@@ -2248,7 +2266,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_ledger($result, $currency, $since, $limit);
         }) ();
     }
@@ -2288,7 +2306,7 @@ class delta extends Exchange {
         $id = $this->safe_string($item, 'uuid');
         $direction = null;
         $account = null;
-        $metaData = $this->safe_value($item, 'meta_data', array());
+        $metaData = $this->safe_dict($item, 'meta_data', array());
         $referenceId = $this->safe_string($metaData, 'transaction_id');
         $referenceAccount = null;
         $type = $this->safe_string($item, 'transaction_type');
@@ -2298,8 +2316,8 @@ class delta extends Exchange {
             $direction = 'out';
         }
         $type = $this->parse_ledger_entry_type($type);
-        $currencyId = $this->safe_integer($item, 'asset_id');
-        $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId');
+        $currencyId = $this->safe_string($item, 'asset_id');
+        $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId');
         $currency = $this->safe_value($currenciesByNumericId, $currencyId, $currency);
         $code = ($currency === null) ? null : $currency['code'];
         $amount = $this->safe_string($item, 'amount');
@@ -2363,7 +2381,7 @@ class delta extends Exchange {
             //        }
             //    }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_deposit_address($result, $currency);
         }) ();
     }
@@ -2459,7 +2477,7 @@ class delta extends Exchange {
             //         "success" => true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_funding_rate($result, $market);
         }) ();
     }
@@ -2526,7 +2544,7 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            $rates = $this->safe_value($response, 'result', array());
+            $rates = $this->safe_list($response, 'result', array());
             $result = $this->parse_funding_rates($rates);
             return $this->filter_by_array($result, 'symbol', $symbols);
         }) ();
@@ -2664,7 +2682,7 @@ class delta extends Exchange {
             //         "success" => true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_margin_modification($result, $market);
         }) ();
     }
@@ -2773,7 +2791,7 @@ class delta extends Exchange {
             //         "success" => true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_open_interest($result, $market);
         }) ();
     }
@@ -2875,7 +2893,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'index_symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -3002,7 +3020,7 @@ class delta extends Exchange {
             //         "success" => true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             $settlements = $this->parse_settlements($result, $market);
             $sorted = $this->sort_by($settlements, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
@@ -3149,7 +3167,7 @@ class delta extends Exchange {
             //         "success" => true
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_greeks($result, $market);
         }) ();
     }
@@ -3207,8 +3225,8 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($greeks, 'timestamp', 0.001);
         $marketId = $this->safe_string($greeks, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $stats = $this->safe_value($greeks, 'greeks', array());
-        $quotes = $this->safe_value($greeks, 'quotes', array());
+        $stats = $this->safe_dict($greeks, 'greeks', array());
+        $quotes = $this->safe_dict($greeks, 'quotes', array());
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -3251,7 +3269,7 @@ class delta extends Exchange {
             //
             // array("result":array(),"success":true)
             //
-            $position = $this->parse_position($this->safe_value($response, 'result', array()));
+            $position = $this->parse_position($this->safe_dict($response, 'result', array()));
             return array( $position );
         }) ();
     }
@@ -3339,7 +3357,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+    public function parse_margin_mode($marginMode, $market = null): array {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -3391,7 +3409,7 @@ class delta extends Exchange {
         //
         // array("error":array("code":"insufficient_margin","context":array("available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000")),"success":false)
         //
-        $error = $this->safe_value($response, 'error', array());
+        $error = $this->safe_dict($response, 'error', array());
         $errorCode = $this->safe_string($error, 'code');
         if ($errorCode !== null) {
             $feedback = $this->id . ' ' . $body;

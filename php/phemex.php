@@ -4274,7 +4274,7 @@ class phemex extends Exchange {
         return $response;
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code

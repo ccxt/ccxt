@@ -71,10 +71,17 @@ class Balance(TypedDict):
     debt: NotRequired[Num]
 
 
-class Account(TypedDict):
+class BalanceAccount(TypedDict):
     free: Str
     used: Str
     total: Str
+
+
+class Account(TypedDict):
+    id: Str
+    type: Str
+    code: Str
+    info: Dict[str, Any]
 
 
 class Trade(TypedDict):
@@ -335,6 +342,17 @@ class CurrencyInterface(TypedDict):
     code: Str
     precision: Num
 
+
+class LastPrice(TypedDict):
+    symbol: Str
+    timestamp: Int
+    datetime: Str
+    price: Num
+    side: OrderSide
+    info: Dict[str, Any]
+
+
+LastPrices = Dict[Str, LastPrice]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

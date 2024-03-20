@@ -131,7 +131,7 @@ export default class bybit extends bybitRest {
         return requestId;
     }
 
-    getUrlByMarketType (symbol: Str = undefined, isPrivate = false, method: string = undefined, params = {}) {
+    getUrlByMarketType (symbol: Str = undefined, isPrivate = false, method: Str = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         let isUsdcSettled = undefined;
         let isSpot = undefined;
@@ -1053,8 +1053,22 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
+            const side = this.safeString (position, 'side');
+            // hacky solution to handle closing positions
+            // without crashing, we should handle this properly later
             newPositions.push (position);
-            cache.append (position);
+            if (side === undefined || side === '') {
+                // closing update, adding both sides to "reset" both sides
+                // since we don't know which side is being closed
+                position['side'] = 'long';
+                cache.append (position);
+                position['side'] = 'short';
+                cache.append (position);
+                position['side'] = undefined;
+            } else {
+                // regular update
+                cache.append (position);
+            }
         }
         const messageHashes = this.findMessageHashes (client, 'positions::');
         for (let i = 0; i < messageHashes.length; i++) {

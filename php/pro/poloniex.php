@@ -111,7 +111,7 @@ class poloniex extends \ccxt\async\poloniex {
                     ),
                 );
                 $message = array_merge($request, $params);
-                $future = Async\await($this->watch($url, $messageHash, $message));
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
                 //
                 //    {
                 //        "data" => array(

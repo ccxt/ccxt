@@ -654,7 +654,7 @@ public partial class bitget
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public Dictionary<string, object> CreateOrderRequest(object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
@@ -1313,6 +1313,18 @@ public partial class bitget
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.useHistoryEndpoint</term>
+    /// <description>
+    /// boolean : default false, when true  will use the historic endpoint to fetch positions
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
     /// </description>
     /// </item>
     /// </list>

@@ -42,11 +42,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.2.68';
+$version = '4.2.78';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.2.68';
+    const VERSION = '4.2.78';
 
     public $browser;
     public $marketsLoading = null;
@@ -906,6 +906,20 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
     }
 
+    public function watch_funding_rate(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' watchFundingRate() is not supported yet');
+    }
+
+    public function watch_funding_rates(array $symbols, $params = array ()) {
+        throw new NotSupported($this->id . ' watchFundingRates() is not supported yet');
+    }
+
+    public function watch_funding_rates_for_symbols(array $symbols, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            return Async\await($this->watchFundingRates ($symbols, $params));
+        }) ();
+    }
+
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()) {
         throw new NotSupported($this->id . ' transfer() is not supported yet');
     }
@@ -997,7 +1011,7 @@ class Exchange extends \ccxt\Exchange {
         return intval($stringVersion);
     }
 
-    public function is_round_number($value) {
+    public function is_round_number(float $value) {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         $res = $this->parse_to_numeric((fmod($value, 1)));
@@ -1965,7 +1979,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
     }
 
-    public function convert_trading_view_to_ohlcv($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
+    public function convert_trading_view_to_ohlcv(array $ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
         $timestamps = $this->safe_list($ohlcvs, $timestamp, array());
         $opens = $this->safe_list($ohlcvs, $open, array());
@@ -1986,7 +2000,7 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function convert_ohlcv_to_trading_view($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
+    public function convert_ohlcv_to_trading_view(array $ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
         $result[$timestamp] = array();
         $result[$open] = array();
@@ -2174,10 +2188,10 @@ class Exchange extends \ccxt\Exchange {
     public function network_code_to_id(string $networkCode, ?string $currencyCode = null) {
         /**
          * @ignore
-         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {string} $networkCode unified network code
-         * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
-         * @return {string|null} exchange-specific network id
+         * tries to convert the provided $networkCode (which is expected to be an unified $network code) to a $network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} $networkCode unified $network code
+         * @param {string} $currencyCode unified $currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {string|null} exchange-specific $network id
          */
         if ($networkCode === null) {
             return null;
@@ -2187,29 +2201,43 @@ class Exchange extends \ccxt\Exchange {
         // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
         if ($networkId === null) {
             if ($currencyCode === null) {
-                // if $currencyCode was not provided, then we just set passed $value to $networkId
-                $networkId = $networkCode;
+                $currencies = is_array($this->currencies) ? array_values($this->currencies) : array();
+                for ($i = 0; $i < count($currencies); $i++) {
+                    $currency = array( $i );
+                    $networks = $this->safe_dict($currency, 'networks');
+                    $network = $this->safe_dict($networks, $networkCode);
+                    $networkId = $this->safe_string($network, 'id');
+                    if ($networkId !== null) {
+                        break;
+                    }
+                }
             } else {
-                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH)
+                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH) or is in the $currency
                 $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
                 if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
-                    // if there is a replacement for the passed $networkCode, then we use it to find network-id in `options->networks` object
+                    // if there is a replacement for the passed $networkCode, then we use it to find $network-id in `options->networks` object
                     $replacementObject = $defaultNetworkCodeReplacements[$currencyCode]; // $i->e. array( 'ERC20' => 'ETH' )
                     $keys = is_array($replacementObject) ? array_keys($replacementObject) : array();
                     for ($i = 0; $i < count($keys); $i++) {
                         $key = $keys[$i];
                         $value = $replacementObject[$key];
-                        // if $value matches to provided unified $networkCode, then we use it's $key to find network-id in `options->networks` object
+                        // if $value matches to provided unified $networkCode, then we use it's $key to find $network-id in `options->networks` object
                         if ($value === $networkCode) {
                             $networkId = $this->safe_string($networkIdsByCodes, $key);
                             break;
                         }
                     }
+                } else {
+                    // serach for $network inside $currency
+                    $currency = $this->safe_dict($this->currencies, $currencyCode);
+                    $networks = $this->safe_dict($currency, 'networks');
+                    $network = $this->safe_dict($networks, $networkCode);
+                    $networkId = $this->safe_string($network, 'id');
                 }
-                // if it wasn't found, we just set the provided $value to network-id
-                if ($networkId === null) {
-                    $networkId = $networkCode;
-                }
+            }
+            // if it wasn't found, we just set the provided $value to $network-id
+            if ($networkId === null) {
+                $networkId = $networkCode;
             }
         }
         return $networkId;
@@ -2808,6 +2836,11 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function check_required_credentials($error = true) {
+        /**
+         * @ignore
+         * @param {boolean} $error throw an $error that a credential is required if true
+         * @return {boolean} true if all required credentials have been set, otherwise false or an $error is thrown is param $error=true
+         */
         $keys = is_array($this->requiredCredentials) ? array_keys($this->requiredCredentials) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -3170,7 +3203,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
-    public function create_trailing_amount_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingAmount, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
@@ -3198,7 +3231,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
@@ -3275,7 +3308,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_trigger_order(string $symbol, string $type, string $side, $amount, $price = null, $triggerPrice = null, $params = array ()) {
+    public function create_trigger_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $triggerPrice, $params) {
             /**
              * create a trigger stop order ($type 1)

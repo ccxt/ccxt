@@ -23,7 +23,7 @@ class hyperliquid extends hyperliquid$1 {
             'version': 'v1',
             'rateLimit': 50,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -364,8 +364,8 @@ class hyperliquid extends hyperliquid$1 {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': 0.00000001,
-                'price': 0.00000001,
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'szDecimals'))),
+                'price': 5, // significant digits
             },
             'limits': {
                 'leverage': {
@@ -555,7 +555,7 @@ class hyperliquid extends hyperliquid$1 {
         //     }
         //
         return [
-            this.safeInteger(ohlcv, 'T'),
+            this.safeInteger(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
@@ -623,6 +623,12 @@ class hyperliquid extends hyperliquid$1 {
     }
     amountToPrecision(symbol, amount) {
         return this.decimalToPrecision(amount, number.ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
+    }
+    priceToPrecision(symbol, price) {
+        const market = this.market(symbol);
+        const result = this.decimalToPrecision(price, number.ROUND, market['precision']['price'], number.SIGNIFICANT_DIGITS, this.paddingMode);
+        const decimalParsedResult = this.decimalToPrecision(result, number.ROUND, 6, number.DECIMAL_PLACES, this.paddingMode);
+        return decimalParsedResult;
     }
     hashMessage(message) {
         return '0x' + this.hash(message, sha3.keccak_256, 'hex');
@@ -755,8 +761,9 @@ class hyperliquid extends hyperliquid$1 {
          * @param {bool} [params.postOnly] true or false whether the order is post-only
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @param {string} [params.clientOrderId] client order id, optional 128 bit hex string
+         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @param {string} [params.slippage] the slippage for market order
+         * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -806,7 +813,7 @@ class hyperliquid extends hyperliquid$1 {
                 }
             }
         }
-        params = this.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice']);
+        params = this.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce']);
         const nonce = this.milliseconds();
         const orderReq = [];
         for (let i = 0; i < orders.length; i++) {
@@ -841,6 +848,7 @@ class hyperliquid extends hyperliquid$1 {
                     throw new errors.ArgumentsRequired(this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
                 }
                 px = (isBuy) ? Precise["default"].stringMul(price, Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(price, Precise["default"].stringSub('1', slippage));
+                px = this.priceToPrecision(symbol, px); // round after adding slippage
             }
             else {
                 px = this.priceToPrecision(symbol, price);
@@ -932,7 +940,7 @@ class hyperliquid extends hyperliquid$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.clientOrderId] client order id (default undefined)
+         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.cancelOrders([id], symbol, params);
@@ -947,7 +955,7 @@ class hyperliquid extends hyperliquid$1 {
          * @param {string[]} ids order ids
          * @param {string} [symbol] unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string|string[]} [params.clientOrderId] client order ids (default undefined)
+         * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials();
@@ -1030,6 +1038,7 @@ class hyperliquid extends hyperliquid$1 {
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials();

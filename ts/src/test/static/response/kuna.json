@@ -1,0 +1,126 @@
+{
+    "exchange": "kuna",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "59babc69-d988-4c33-9047-c1d922991f6d",
+                            "pair": "BTC_USDT",
+                            "quoteQuantity": "2561.48799225",
+                            "matchPrice": "73250.25",
+                            "matchQuantity": "0.034969",
+                            "createdAt": "2024-03-13T11:00:44.840Z",
+                            "side": "Ask"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "59babc69-d988-4c33-9047-c1d922991f6d",
+                            "pair": "BTC_USDT",
+                            "quoteQuantity": "2561.48799225",
+                            "matchPrice": "73250.25",
+                            "matchQuantity": "0.034969",
+                            "createdAt": "2024-03-13T11:00:44.840Z",
+                            "side": "Ask"
+                        },
+                        "id": "59babc69-d988-4c33-9047-c1d922991f6d",
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1710327644840,
+                        "datetime": "2024-03-13T11:00:44.840Z",
+                        "type": null,
+                        "side": "ask",
+                        "order": null,
+                        "takerOrMaker": "maker",
+                        "price": 73250.25,
+                        "amount": 0.034969,
+                        "cost": 2561.48799225,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null,
+                                "rate": null
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "pair": "BTC_USDT",
+                            "percentagePriceChange": "0.01886791666666674",
+                            "price": "73358.49",
+                            "equivalentPrice": "",
+                            "high": "73687.11",
+                            "low": "69000",
+                            "baseVolume": "13.182049999999991",
+                            "quoteVolume": "949482.9634477801",
+                            "bestBidPrice": "73265.83",
+                            "bestAskPrice": "73400",
+                            "priceChange": "1358.4900000000052"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "pair": "BTC_USDT",
+                        "percentagePriceChange": "0.01886791666666674",
+                        "price": "73358.49",
+                        "equivalentPrice": "",
+                        "high": "73687.11",
+                        "low": "69000",
+                        "baseVolume": "13.182049999999991",
+                        "quoteVolume": "949482.9634477801",
+                        "bestBidPrice": "73265.83",
+                        "bestAskPrice": "73400",
+                        "priceChange": "1358.4900000000052"
+                    },
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 73687.11,
+                    "low": 69000,
+                    "bid": 73265.83,
+                    "ask": 73400,
+                    "vwap": 72028.47534698933,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": 1358.4900000000052,
+                    "percentage": 0.01886791666666674,
+                    "average": null,
+                    "baseVolume": 13.182049999999991,
+                    "quoteVolume": 949482.9634477801,
+                    "bidVolume": null,
+                    "askVolume": null
+                }
+            }
+        ]
+    }
+}

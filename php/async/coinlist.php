@@ -1071,7 +1071,7 @@ class coinlist extends Exchange {
         );
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the $accounts associated with a profile

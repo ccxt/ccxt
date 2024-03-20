@@ -1241,6 +1241,7 @@ class blofin extends Exchange {
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->trigger] True if cancelling a trigger/conditional order/tp sl orders
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
@@ -1251,13 +1252,23 @@ class blofin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
+        $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl' ), false);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         } else {
-            $request['orderId'] = $id;
+            if (!$isTrigger) {
+                $request['orderId'] = (string) $id;
+            } else {
+                $request['tpslId'] = (string) $id;
+            }
         }
-        $query = $this->omit($params, array( 'orderId', 'clientOrderId' ));
+        $query = $this->omit($params, array( 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ));
+        if ($isTrigger) {
+            $tpslResponse = $this->cancel_orders(array( $id ), $symbol, $params);
+            $first = $this->safe_dict($tpslResponse, 0);
+            return $first;
+        }
         $response = $this->privatePostTradeCancelOrder (array_merge($request, $query));
         $data = $this->safe_list($response, 'data', array());
         $order = $this->safe_dict($data, 0);
@@ -1696,7 +1707,7 @@ class blofin extends Exchange {
         return $this->parse_orders($ordersData, $market, null, null, $params);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://blofin.com/docs#funds-transfer
@@ -1866,7 +1877,7 @@ class blofin extends Exchange {
         ));
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): Leverages {
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the set leverage for all contract markets
          * @see https://docs.blofin.com/index.html#get-multiple-leverage
@@ -1920,7 +1931,7 @@ class blofin extends Exchange {
         return $this->parse_leverages($leverages, $symbols, 'instId');
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://docs.blofin.com/index.html#get-leverage
@@ -1959,7 +1970,7 @@ class blofin extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'instId');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -2083,7 +2094,7 @@ class blofin extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): MarginMode {
+    public function fetch_margin_mode(string $symbol, $params = array ()): array {
         /**
          * fetches the margin mode of a trading pair
          * @see https://docs.blofin.com/index.html#get-margin-mode
@@ -2107,7 +2118,7 @@ class blofin extends Exchange {
         return $this->parse_margin_mode($data, $market);
     }
 
-    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+    public function parse_margin_mode($marginMode, $market = null): array {
         return array(
             'info' => $marginMode,
             'symbol' => $market['symbol'],

@@ -10,7 +10,7 @@ public partial class kraken
     /// retrieves data on all markets for kraken
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class kraken
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -77,7 +77,7 @@ public partial class kraken
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -97,7 +97,7 @@ public partial class kraken
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -117,7 +117,7 @@ public partial class kraken
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -207,7 +207,7 @@ public partial class kraken
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -676,7 +676,7 @@ public partial class kraken
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

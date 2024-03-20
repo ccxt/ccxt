@@ -587,7 +587,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the $accounts associated with a profile
@@ -1851,7 +1851,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $leverageValue = $this->safe_integer($leverage, 'value');
         return array(
             'info' => $leverage,

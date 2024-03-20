@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
-from ccxt.base.types import Balances, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -13,6 +13,8 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -27,7 +29,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'version': 'v1',
             'rateLimit': 50,  # 1200 requests per minute, 20 request per second
             'certified': False,
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': False,
@@ -365,8 +367,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': 0.00000001,
-                'price': 0.00000001,
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'szDecimals'))),  # decimal places
+                'price': 5,  # significant digits
             },
             'limits': {
                 'leverage': {
@@ -548,7 +550,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         #
         return [
-            self.safe_integer(ohlcv, 'T'),
+            self.safe_integer(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),
@@ -611,6 +613,12 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def amount_to_precision(self, symbol, amount):
         return self.decimal_to_precision(amount, ROUND, self.markets[symbol]['precision']['amount'], self.precisionMode)
+
+    def price_to_precision(self, symbol: str, price) -> str:
+        market = self.market(symbol)
+        result = self.decimal_to_precision(price, ROUND, market['precision']['price'], SIGNIFICANT_DIGITS, self.paddingMode)
+        decimalParsedResult = self.decimal_to_precision(result, ROUND, 6, DECIMAL_PLACES, self.paddingMode)
+        return decimalParsedResult
 
     def hash_message(self, message):
         return '0x' + self.hash(message, 'keccak', 'hex')
@@ -725,7 +733,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         return self.build_sig(chainId, messageTypes, message)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
@@ -739,8 +747,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: True or False whether the order is post-only
         :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
-        :param str [params.clientOrderId]: client order id, optional 128 bit hex string
+        :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :param str [params.slippage]: the slippage for market order
+        :param str [params.vaultAddress]: the vault address for order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -783,7 +792,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 clientOrderId = self.safe_string_2(orderParams, 'clientOrderId', 'client_id')
                 if clientOrderId is None:
                     raise ArgumentsRequired(self.id + ' createOrders() all orders must have clientOrderId if at least one has a clientOrderId')
-        params = self.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
+        params = self.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce'])
         nonce = self.milliseconds()
         orderReq = []
         for i in range(0, len(orders)):
@@ -816,6 +825,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 if price is None:
                     raise ArgumentsRequired(self.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options(default is 5%).')
                 px = Precise.string_mul(price, Precise.string_add('1', slippage)) if (isBuy) else Precise.string_mul(price, Precise.string_sub('1', slippage))
+                px = self.price_to_precision(symbol, px)  # round after adding slippage
             else:
                 px = self.price_to_precision(symbol, price)
             sz = self.amount_to_precision(symbol, amount)
@@ -896,7 +906,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.clientOrderId]: client order id(default None)
+        :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.cancel_orders([id], symbol, params)
@@ -909,7 +919,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param string|str[] [params.clientOrderId]: client order ids(default None)
+        :param string|str[] [params.clientOrderId]: client order ids,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_credentials()
@@ -967,7 +977,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return response
 
-    def edit_order(self, id: str, symbol: str, type: str, side: str, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
@@ -984,6 +994,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+        :param str [params.vaultAddress]: the vault address for order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_credentials()

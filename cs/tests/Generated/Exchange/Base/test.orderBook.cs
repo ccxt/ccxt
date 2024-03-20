@@ -27,6 +27,7 @@ public partial class testMainClass : BaseTest
         {
             return;
         }
+        // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         object bids = getValue(orderbook, "bids");
         object bidsLength = getArrayLength(bids);
         for (object i = 0; isLessThan(i, bidsLength); postFixIncrement(ref i))

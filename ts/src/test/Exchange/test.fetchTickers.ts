@@ -1,6 +1,7 @@
 
 import assert from 'assert';
 import testTicker from './base/test.ticker.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 
 async function testFetchTickers (exchange, skippedProperties, symbol) {
     const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
@@ -17,6 +18,7 @@ async function testFetchTickersHelper (exchange, skippedProperties, argSymbols, 
     if (argSymbols !== undefined && argSymbols.length === 1) {
         checkedSymbol = argSymbols[0];
     }
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
     for (let i = 0; i < values.length; i++) {
         // todo: symbol check here
         const ticker = values[i];
