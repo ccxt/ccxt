@@ -1030,6 +1030,8 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (marketType, subType)) {
             rawMarketType = 'delivery';
         }
+        const isBidsAsks = (channelName === 'bookTicker');
+        const hashPrefix = (isBidsAsks ? 'bidask' : 'ticker');
         const rawSubscriptions = [];
         const messageHashes = [];
         if (symbolsDefined) {
@@ -1038,20 +1040,21 @@ export default class binance extends binanceRest {
                 const market = this.market (symbol);
                 const subscribeHash = market['lowercaseId'] + '@' + channelName;
                 rawSubscriptions.push (subscribeHash);
-                const messageHash = market['symbol'] + '@' + channelName;
+                const messageHash = hashPrefix + '_' + channelName + ':' + market['symbol'];
                 messageHashes.push (messageHash);
             }
         } else {
-            let messageHash = undefined;
-            if (channelName === 'bookTicker') {
+            let subscribeHash = undefined;
+            if (isBidsAsks) {
                 if (marketType === 'spot') {
                     throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
                 }
-                messageHash = '!' + channelName;
+                subscribeHash = '!' + channelName;
             } else {
-                messageHash = '!' + channelName + '@arr';
+                subscribeHash = '!' + channelName + '@arr';
             }
-            rawSubscriptions.push (messageHash);
+            rawSubscriptions.push (subscribeHash);
+            const messageHash = hashPrefix + '_' + channelName + 's'; // in the end add 's' for plural form (i.e. tickers, bidasks)
             messageHashes.push (messageHash);
         }
         let streamHash = channelName;
