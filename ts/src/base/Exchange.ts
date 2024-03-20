@@ -3552,7 +3552,7 @@ export default class Exchange {
         return result;
     }
 
-    marketCodes (codes: string[]) {
+    marketCodes (codes: Strings = undefined) {
         if (codes === undefined) {
             return codes;
         }
