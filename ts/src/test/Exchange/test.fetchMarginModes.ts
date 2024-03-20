@@ -10,11 +10,9 @@ async function testFetchMarginModes (exchange: Exchange, skippedProperties: stri
     const marginModeKeys = Object.keys (marginModes);
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, marginModes, symbol);
     for (let i = 0; i < marginModeKeys.length; i++) {
-        const marginModesForSymbol = marginModes[marginModeKeys[i]];
-        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, marginModesForSymbol, symbol);
-        for (let j = 0; j < marginModesForSymbol.length; j++) {
-            testMarginMode (exchange, skippedProperties, method, marginModesForSymbol[j]);
-        }
+        const marginMode = marginModes[marginModeKeys[i]];
+        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, marginMode, symbol);
+        testMarginMode (exchange, skippedProperties, method, marginMode);
     }
 }
 
