@@ -41,19 +41,24 @@ use React\Promise;
 //     throw $e;
 // } );
 
-
+// ############## detect cli arguments ############## //
 array_shift($argv); // remove first argument (which is script path "ccxt/php/test/test_async.php")
-$findArgv = function ($args_array, $needle = '', $match = true) {
-    return array_filter(array_map (function ($x) use ($needle, $match) { return stripos($x, $needle)===$match? $x : null;}, $args_array));
-};
-$filetered_args = $findArgv($argv, '--', false);
 
-$symbol_args   = $findArgv($filetered_args, '/', true);
-$method_args   = $findArgv($filetered_args, '()', true);
-$exchange_args = $findArgv($findArgv($filetered_args, '/', false), '()', false);
-$argvSymbol   = !empty($symbol_args) ? $symbol_args[0] : null;
-$argvMethod   = !empty($method_args) ? $method_args[0] : null;
-$argvExchange = !empty($exchange_args) ? $exchange_args[0] : null; // this should be different than JS
+function filterArgvs($argsArray, $needle, $include = true) {
+    return array_filter($argsArray, function ($x) use ($needle, $include) { return ($include && str_contains($x, $needle) || (!$include && !str_contains($x, $needle))); });
+};
+
+function selectArgv ($argsArray, $needle) {
+    $foundArray = array_filter($argsArray, function ($x) use ($needle) { return str_contains($x, $needle); });
+    return count($foundArray) > 0 ? $foundArray : null;
+}
+
+$argvExchange = filterArgvs ($argv, '--', false)[0];
+$argvSymbol   = selectArgv ($argv, '/');
+$argvMethod   = selectArgv ($argv, '()');
+// #################################################### //
+
+
 
 // non-transpiled part, but shared names among langs
 function get_cli_arg_value ($arg) {
