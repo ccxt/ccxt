@@ -978,13 +978,12 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets ();
         let channelName = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
         if (channelName === 'bookTicker') {
-            throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use .watchBidsAsks() method instead');
+            throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
-        const newTickers = await this.watchMultiTickerBidAsk ('watchTickers', channelName, symbols, params);
+        const newTickers = await this.watchMultiTickerHelper ('watchTickers', channelName, symbols, params);
         if (this.newUpdates) {
             return newTickers;
         }
@@ -1002,14 +1001,14 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const result = await this.watchMultiTickerBidAsk ('watchBidsAsks', 'bookTicker', symbols, params);
+        const result = await this.watchMultiTickerHelper ('watchBidsAsks', 'bookTicker', symbols, params);
         if (this.newUpdates) {
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    async watchMultiTickerBidAsk (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
+    async watchMultiTickerHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
         let firstMarket = undefined;
@@ -1023,6 +1022,9 @@ export default class binance extends binanceRest {
         [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
         if ((this.inArray (marketType, [ 'swap', 'future' ]) && subType === undefined)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a correct combination of params["defaultType"] and params["subType"]');
+        } else if (marketType === 'spot' && subType !== undefined) {
+            // when user calls i.e. watchTickers (undefined, { 'subType': 'linear' }), remove default 'spot' marketType
+            marketType = undefined;
         }
         let rawMarketType = marketType;
         if (this.isLinear (marketType, subType)) {
