@@ -1081,7 +1081,10 @@ export default class coinbase extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const method = this.safeString (this.options, 'fetchMarkets', 'fetchMarketsV3');
-        return await this[method] (params);
+        if (method === 'fetchMarketsV3') {
+            return await this.fetchMarketsV3 (params);
+        }
+        return await this.fetchMarketsV2 (params);
     }
 
     async fetchMarketsV2 (params = {}) {
@@ -1158,7 +1161,12 @@ export default class coinbase extends Exchange {
     }
 
     async fetchMarketsV3 (params = {}) {
-        const response = await this.v3PrivateGetBrokerageProducts (params);
+        const promisesUnresolved = [
+            this.v3PrivateGetBrokerageProducts (params),
+            this.v3PrivateGetBrokerageTransactionSummary (params),
+        ];
+        // const response = await this.v3PrivateGetBrokerageProducts (params);
+        const response = this.safeDict (promisesUnresolved, 0, {});
         //
         //     [
         //         {
@@ -1193,7 +1201,8 @@ export default class coinbase extends Exchange {
         //         ...
         //     ]
         //
-        const fees = await this.v3PrivateGetBrokerageTransactionSummary (params);
+        // const fees = await this.v3PrivateGetBrokerageTransactionSummary (params);
+        const fees = this.safeDict (promisesUnresolved, 1, {});
         //
         //     {
         //         "total_volume": 0,
@@ -2264,7 +2273,7 @@ export default class coinbase extends Exchange {
     }
 
     async findAccountId (code, params = {}) {
-        await this.loadMarkets (false, params);
+        await this.loadMarkets ();
         await this.loadAccounts (false, params);
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
