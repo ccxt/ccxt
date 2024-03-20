@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testTrade (exchange, skippedProperties, method, entry, symbol, now) {
+function testTrade (exchange, skippedProperties, method, entry, symbol, now, isPublicTrade) {
     const format = {
         'info': { },
         'id': '12345-67890:09876/54321', // string trade id
@@ -24,7 +24,13 @@ function testTrade (exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'side', [ 'buy', 'sell' ]);
-    testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
+    if (isPublicTrade) {
+        // for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
+        testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'takerOrMaker', [ 'taker', undefined ]);
+    } else {
+        // for private trades (fetchMyTrades & watchMyTrades), it can be any
+        testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'takerOrMaker', [ 'taker', 'maker', undefined ]);
+    }
     testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry, 'fee');
     if (!('fees' in skippedProperties)) {
         // todo: remove undefined check and probably non-empty array check later
