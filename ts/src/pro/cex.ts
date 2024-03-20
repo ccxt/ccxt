@@ -166,20 +166,16 @@ export default class cex extends cexRest {
         //     {
         //         "e": "history",
         //         "data": [
-        //            'buy:1710255706095:444444:71222.2:14892622'
-        //            'sell:1710255658251:42530:71300:14892621'
-        //            'buy:1710252424241:87913:72800:14892620'
-        //            ... descending in timestamp
+        //             "sell:1665467367741:3888551:19058.8:14541219",
+        //             "buy:1665467367741:1059339:19071.5:14541218",
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data = this.safeValue (message, 'data', []);
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache (limit);
-        const length = data.length;
-        for (let i = 0; i < length; i++) {
-            const index = length - 1 - i;
-            const rawTrade = data[index];
+        for (let i = 0; i < data.length; i++) {
+            const rawTrade = data[i];
             const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
         }
@@ -1076,12 +1072,11 @@ export default class cex extends cexRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const timeframeRaw = this.safeString (this.timeframes, timeframe, timeframe);
-        const messageHash = 'ohlcv-' + timeframeRaw + ':' + symbol;
+        const messageHash = 'ohlcv:' + symbol;
         const url = this.urls['api']['ws'];
         const request = {
             'e': 'init-ohlcv',
-            'i': timeframeRaw,
+            'i': timeframe,
             'rooms': [
                 'pair-' + market['baseId'] + '-' + market['quoteId'],
             ],
@@ -1134,20 +1129,6 @@ export default class cex extends cexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCVAny (client: Client, message) {
-        const event = this.safeString (message, 'e');
-        const methods = {
-            'init-ohlcv-data': this.handleInitOHLCV,
-            'ohlcv24': this.handleOHLCV24,
-            'ohlcv1m': this.handleOHLCV1m,
-            'ohlcv': this.handleOHLCV,
-        };
-        const handler = this.safeValue (methods, event);
-        if (handler !== undefined) {
-            handler.call (this, client, message);
-        }
-    }
-
     handleOHLCV24 (client: Client, message) {
         //
         //     {
@@ -1178,7 +1159,7 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', {});
         const pair = this.safeString (data, 'pair');
         const symbol = this.pairToSymbol (pair);
-        const messageHash = 'ohlcv-1m:' + symbol;
+        const messageHash = 'ohlcv:' + symbol;
         const ohlcv = [
             this.safeTimestamp (data, 'time'),
             this.safeNumber (data, 'o'),
@@ -1511,7 +1492,10 @@ export default class cex extends cexRest {
             'connected': this.handleConnected,
             'tick': this.handleTicker,
             'ticker': this.handleTicker,
-            'ohlcv': this.handleOHLCVAny,
+            'init-ohlcv-data': this.handleInitOHLCV,
+            'ohlcv24': this.handleOHLCV24,
+            'ohlcv1m': this.handleOHLCV1m,
+            'ohlcv': this.handleOHLCV,
             'get-balance': this.handleBalance,
             'order-book-subscribe': this.handleOrderBookSnapshot,
             'md_update': this.handleOrderBookUpdate,
@@ -1529,8 +1513,6 @@ export default class cex extends cexRest {
         const handler = this.safeValue (handlers, event);
         if (handler !== undefined) {
             handler.call (this, client, message);
-        } else if (event.indexOf ('ohlcv') >= 0) {
-            this.handleOHLCVAny (client, message);
         }
     }
 
