@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -11,8 +11,8 @@ export default class binance extends Exchange {
     setSandboxMode(enable: boolean): void;
     convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
-    market(symbol: any): any;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
+    market(symbol: string): MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     costToPrecision(symbol: any, cost: any): any;
     currencyToPrecision(code: any, fee: any, networkCode?: any): any;
     nonce(): number;
@@ -20,7 +20,7 @@ export default class binance extends Exchange {
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseMarket(market: any): Market;
-    parseBalanceHelper(entry: any): import("./base/types.js").Account;
+    parseBalanceHelper(entry: any): import("./base/types.js").BalanceAccount;
     parseBalanceCustom(response: any, type?: any, marginMode?: any, isPortfolioMargin?: boolean): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -34,7 +34,7 @@ export default class binance extends Exchange {
     }>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    fetchLastPrices(symbols?: Strings, params?: {}): Promise<any>;
+    fetchLastPrices(symbols?: Strings, params?: {}): Promise<import("./base/types.js").LastPrices>;
     parseLastPrice(entry: any, market?: Market): {
         symbol: string;
         timestamp: number;
@@ -48,15 +48,15 @@ export default class binance extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    editSpotOrder(id: string, symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): Promise<Order>;
-    editSpotOrderRequest(id: string, symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): any;
-    editContractOrder(id: string, symbol: any, type: any, side: any, amount: number, price?: number, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    editSpotOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editSpotOrderRequest(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    editContractOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;

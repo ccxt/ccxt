@@ -51,10 +51,10 @@ public partial class htx
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
     }
-    public async Task<Dictionary<string, object>> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLastPrices(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LastPrices(res);
     }
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -96,10 +96,10 @@ public partial class htx
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     public async Task<Dictionary<string, object>> FetchAccountIdByType(object type, object marginMode = null, object symbol = null, Dictionary<string, object> parameters = null)
     {
@@ -212,8 +212,9 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> CreateTrailingPercentOrder(string symbol, string type, string side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price2 = 0, object trailingPercent = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters);
         return new Order(res);
     }

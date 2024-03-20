@@ -45,8 +45,8 @@ public partial class kucoin : Exchange
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", true },
-                { "fetchBorrowRateHistories", false },
-                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRateHistories", true },
+                { "fetchBorrowRateHistory", true },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
@@ -206,6 +206,7 @@ public partial class kucoin : Exchange
                         { "isolated/account/{symbol}", 50 },
                         { "margin/borrow", 15 },
                         { "margin/repay", 15 },
+                        { "margin/interest", 20 },
                         { "project/list", 10 },
                         { "project/marketInterestRate", 7.5 },
                         { "redeem/orders", 10 },
@@ -422,7 +423,7 @@ public partial class kucoin : Exchange
                     { "400006", typeof(AuthenticationError) },
                     { "400007", typeof(AuthenticationError) },
                     { "400008", typeof(NotSupported) },
-                    { "400100", typeof(BadRequest) },
+                    { "400100", typeof(InsufficientFunds) },
                     { "400200", typeof(InvalidOrder) },
                     { "400350", typeof(InvalidOrder) },
                     { "400370", typeof(InvalidOrder) },
@@ -514,6 +515,7 @@ public partial class kucoin : Exchange
                             { "margin/currencies", "v3" },
                             { "margin/borrow", "v3" },
                             { "margin/repay", "v3" },
+                            { "margin/interest", "v3" },
                             { "project/list", "v3" },
                             { "project/marketInterestRate", "v3" },
                             { "redeem/orders", "v3" },
@@ -4208,12 +4210,19 @@ public partial class kucoin : Exchange
         //         "timestamp": 1658531274508488480
         //     },
         //
-        object timestampId = this.safeString(info, "timestamp");
-        object timestamp = Precise.stringMul(timestampId, "0.000001");
+        //     {
+        //         "createdAt": 1697783812257,
+        //         "currency": "XMR",
+        //         "interestAmount": "0.1",
+        //         "dayRatio": "0.001"
+        //     }
+        //
+        object timestampId = this.safeString2(info, "createdAt", "timestamp");
+        object timestamp = this.parseToInt(slice(timestampId, 0, 13));
         object currencyId = this.safeString(info, "currency");
         return new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "rate", this.safeNumber(info, "dailyIntRate") },
+            { "rate", this.safeNumber2(info, "dailyIntRate", "dayRatio") },
             { "period", 86400000 },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -4407,6 +4416,164 @@ public partial class kucoin : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "info", info },
         };
+    }
+
+    public async virtual Task<object> fetchBorrowRateHistories(object codes = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoin#fetchBorrowRateHistories
+        * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
+        * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+        * @param {string[]|undefined} codes list of unified currency codes, default is undefined
+        * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
+        * @param {int} [limit] max number of borrow rate prices to return, default is undefined
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
+        * @param {int} [params.until] the latest time in ms to fetch entries for
+        * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by the market symbol
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object marginResult = this.handleMarginModeAndParams("fetchBorrowRateHistories", parameters);
+        object marginMode = this.safeString(marginResult, 0, "cross");
+        object isIsolated = (isEqual(marginMode, "isolated")); // true-isolated, false-cross
+        object request = new Dictionary<string, object>() {
+            { "isIsolated", isIsolated },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = limit; // default:50, min:10, max:500
+        }
+        object response = await this.privateGetMarginInterest(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "timestamp": 1710829939673,
+        //             "currentPage": 1,
+        //             "pageSize": 50,
+        //             "totalNum": 0,
+        //             "totalPage": 0,
+        //             "items": [
+        //                 {
+        //                     "createdAt": 1697783812257,
+        //                     "currency": "XMR",
+        //                     "interestAmount": "0.1",
+        //                     "dayRatio": "0.001"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data");
+        object rows = this.safeList(data, "items");
+        return this.parseBorrowRateHistories(rows, codes, since, limit);
+    }
+
+    public async virtual Task<object> fetchBorrowRateHistory(object code, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoin#fetchBorrowRateHistory
+        * @description retrieves a history of a currencies borrow interest rate at specific time slots
+        * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+        * @param {string} code unified currency code
+        * @param {int} [since] timestamp for the earliest borrow rate
+        * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
+        * @param {int} [params.until] the latest time in ms to fetch entries for
+        * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object marginResult = this.handleMarginModeAndParams("fetchBorrowRateHistories", parameters);
+        object marginMode = this.safeString(marginResult, 0, "cross");
+        object isIsolated = (isEqual(marginMode, "isolated")); // true-isolated, false-cross
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "isIsolated", isIsolated },
+            { "currency", getValue(currency, "id") },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = limit; // default:50, min:10, max:500
+        }
+        object response = await this.privateGetMarginInterest(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "timestamp": 1710829939673,
+        //             "currentPage": 1,
+        //             "pageSize": 50,
+        //             "totalNum": 0,
+        //             "totalPage": 0,
+        //             "items": [
+        //                 {
+        //                     "createdAt": 1697783812257,
+        //                     "currency": "XMR",
+        //                     "interestAmount": "0.1",
+        //                     "dayRatio": "0.001"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data");
+        object rows = this.safeList(data, "items");
+        return this.parseBorrowRateHistory(rows, code, since, limit);
+    }
+
+    public virtual object parseBorrowRateHistories(object response, object codes, object since, object limit)
+    {
+        //
+        //     [
+        //         {
+        //             "createdAt": 1697783812257,
+        //             "currency": "XMR",
+        //             "interestAmount": "0.1",
+        //             "dayRatio": "0.001"
+        //         }
+        //     ]
+        //
+        object borrowRateHistories = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object item = getValue(response, i);
+            object code = this.safeCurrencyCode(this.safeString(item, "currency"));
+            if (isTrue(isTrue(isEqual(codes, null)) || isTrue(this.inArray(code, codes))))
+            {
+                if (!isTrue((inOp(borrowRateHistories, code))))
+                {
+                    ((IDictionary<string,object>)borrowRateHistories)[(string)code] = new List<object>() {};
+                }
+                object borrowRateStructure = this.parseBorrowRate(item);
+                ((IList<object>)getValue(borrowRateHistories, code)).Add(borrowRateStructure);
+            }
+        }
+        object keys = new List<object>(((IDictionary<string,object>)borrowRateHistories).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object code = getValue(keys, i);
+            ((IDictionary<string,object>)borrowRateHistories)[(string)code] = this.filterByCurrencySinceLimit(getValue(borrowRateHistories, code), code, since, limit);
+        }
+        return borrowRateHistories;
     }
 
     public async override Task<object> borrowCrossMargin(object code, object amount, object parameters = null)

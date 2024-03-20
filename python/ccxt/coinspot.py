@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinspot import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -464,7 +464,7 @@ class coinspot(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://www.coinspot.com.au/api#placebuyorder

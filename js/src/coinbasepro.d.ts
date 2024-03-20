@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbasepro.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account } from './base/types.js';
 /**
  * @class coinbasepro
  * @augments Exchange
@@ -8,7 +8,7 @@ export default class coinbasepro extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchAccounts(params?: {}): Promise<any[]>;
+    fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
         id: string;
         type: any;
@@ -35,7 +35,7 @@ export default class coinbasepro extends Exchange {
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchPaymentMethods(params?: {}): Promise<any>;

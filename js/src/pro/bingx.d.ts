@@ -20,6 +20,7 @@ export default class bingx extends bingxRest {
     setBalanceCache(client: Client, type: any, subscriptionHash: any, params: any): void;
     loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     handleErrorMessage(client: any, message: any): boolean;
+    keepAliveListenKey(params?: {}): Promise<void>;
     authenticate(params?: {}): Promise<void>;
     pong(client: any, message: any): Promise<void>;
     handleOrder(client: any, message: any): void;

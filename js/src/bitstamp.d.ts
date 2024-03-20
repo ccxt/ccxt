@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitstamp.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class bitstamp
  * @augments Exchange
@@ -74,7 +74,7 @@ export default class bitstamp extends Exchange {
     parseTransactionFees(response: any, codes?: any): {};
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;

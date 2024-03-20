@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currency, Greeks, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -553,7 +553,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': None,
         }
 
-    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')))
         if isOption and not (marketId in self.markets_by_id):
             # handle expired option contracts
@@ -682,7 +682,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_accounts(self, params={}):
+    async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://docs.deribit.com/#private-get_subaccounts
@@ -1822,7 +1822,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result')
         return self.parse_order(result, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.deribit.com/#private-buy
@@ -1979,7 +1979,7 @@ class deribit(Exchange, ImplicitAPI):
         order['trades'] = trades
         return self.parse_order(order, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.deribit.com/#private-edit

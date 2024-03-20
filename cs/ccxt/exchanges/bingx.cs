@@ -116,6 +116,7 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
+                                { "server/time", 3 },
                                 { "common/symbols", 3 },
                                 { "market/trades", 3 },
                                 { "market/depth", 3 },
@@ -139,6 +140,7 @@ public partial class bingx : Exchange
                                 { "trade/order/cancelReplace", 3 },
                                 { "trade/cancelOrders", 3 },
                                 { "trade/cancelOpenOrders", 3 },
+                                { "trade/cancelAllAfter", 1 },
                             } },
                         } },
                     } },
@@ -1932,20 +1934,22 @@ public partial class bingx : Exchange
             ((IDictionary<string,object>)request)[(string)exchangeClientOrderId] = clientOrderId;
         }
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        if (isTrue(isEqual(timeInForce, "IOC")))
+        var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(timeInForce, "PostOnly"), parameters);
+        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        parameters = ((IList<object>)postOnlyparametersVariable)[1];
+        if (isTrue(isTrue(postOnly) || isTrue((isEqual(timeInForce, "PostOnly")))))
+        {
+            ((IDictionary<string,object>)request)["timeInForce"] = "PostOnly";
+        } else if (isTrue(isEqual(timeInForce, "IOC")))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "IOC";
+        } else if (isTrue(isEqual(timeInForce, "GTC")))
+        {
+            ((IDictionary<string,object>)request)["timeInForce"] = "GTC";
         }
         object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         if (isTrue(isSpot))
         {
-            var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(timeInForce, "POC"), parameters);
-            postOnly = ((IList<object>)postOnlyparametersVariable)[0];
-            parameters = ((IList<object>)postOnlyparametersVariable)[1];
-            if (isTrue(isTrue(postOnly) || isTrue((isEqual(timeInForce, "POC")))))
-            {
-                ((IDictionary<string,object>)request)["timeInForce"] = "POC";
-            }
             object cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
             parameters = this.omit(parameters, "cost");
             if (isTrue(!isEqual(cost, null)))
@@ -1984,16 +1988,7 @@ public partial class bingx : Exchange
             }
         } else
         {
-            var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(timeInForce, "PostOnly"), parameters);
-            postOnly = ((IList<object>)postOnlyparametersVariable)[0];
-            parameters = ((IList<object>)postOnlyparametersVariable)[1];
-            if (isTrue(isTrue(postOnly) || isTrue((isEqual(timeInForce, "PostOnly")))))
-            {
-                ((IDictionary<string,object>)request)["timeInForce"] = "PostOnly";
-            } else if (isTrue(isEqual(timeInForce, "GTC")))
-            {
-                ((IDictionary<string,object>)request)["timeInForce"] = "GTC";
-            } else if (isTrue(isEqual(timeInForce, "FOK")))
+            if (isTrue(isEqual(timeInForce, "FOK")))
             {
                 ((IDictionary<string,object>)request)["timeInForce"] = "FOK";
             }
@@ -2137,7 +2132,7 @@ public partial class bingx : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.clientOrderId] a unique id for the order
         * @param {bool} [params.postOnly] true to place a post only order
-        * @param {string} [params.timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+        * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
         * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
         * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
         * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
@@ -2652,7 +2647,7 @@ public partial class bingx : Exchange
             { "FILLED", "closed" },
             { "CANCELED", "canceled" },
             { "CANCELLED", "canceled" },
-            { "FAILED", "failed" },
+            { "FAILED", "canceled" },
         };
         return this.safeString(statuses, status, status);
     }

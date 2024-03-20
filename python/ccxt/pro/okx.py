@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -1175,7 +1175,7 @@ class okx(ccxt.async_support.okx):
             symbolMessageHash = messageHash + '::' + tradeSymbols[i]
             client.resolve(self.orders, symbolMessageHash)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         :see: https://www.okx.com/docs-v5/en/#websocket-api-trade-place-order
         create a trade order
@@ -1238,7 +1238,7 @@ class okx(ccxt.async_support.okx):
         orders = self.parse_orders(args, None, None, None)
         client.resolve(orders, messageHash)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         edit a trade order
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-amend-order

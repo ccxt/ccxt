@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinmetro import ImplicitAPI
-from ccxt.base.types import Balances, Currency, IndexType, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1140,7 +1140,7 @@ class coinmetro(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#a4895a1d-3f50-40ae-8231-6962ef06c771

@@ -924,7 +924,7 @@ class mexc extends Exchange {
                     'Combination of optional parameters invalid' => '\\ccxt\\BadRequest', // code:-2011
                     'api market order is disabled' => '\\ccxt\\BadRequest', //
                     'Contract not allow place order!' => '\\ccxt\\InvalidOrder', // code:1002
-                    'Oversold' => '\\ccxt\\InvalidOrder', // code:30005
+                    'Oversold' => '\\ccxt\\InsufficientFunds', // code:30005
                     'Insufficient position' => '\\ccxt\\InsufficientFunds', // code:30004
                     'Insufficient balance!' => '\\ccxt\\InsufficientFunds', // code:2005
                     'Bid price is great than max allow price' => '\\ccxt\\InvalidOrder', // code:2003
@@ -3533,7 +3533,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile

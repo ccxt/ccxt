@@ -962,11 +962,70 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "fetch OHLCV - spot",
+                "description": "spot fetch OHLCV",
                 "method": "fetchOHLCV",
                 "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=ltcusdt",
                 "input": [
                     "LTC/USDT"
+                ]
+            },
+            {
+                "description": "spot 1m +since",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&from=1620000000&symbol=btcusdt",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1620000000000
+                ]
+            },
+            {
+                "description": "spot 1m +since +limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=btcusdt&from=1620000000",      
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1620000000000,
+                  5
+                ]
+            },
+            {
+                "description": "spot 1m +since +limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=btcusdt&from=1620000000&until=1620000000900",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1620000000000,
+                  5,
+                  {
+                    "until": 1620000000900
+                  }
+                ]
+            },
+            {
+                "description": "spot 1m +since -limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&from=1620000000&symbol=btcusdt&until=1620000000900",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1620000000000,
+                  null,
+                  {
+                    "until": 1620000000900
+                  }
+                ]
+            },
+            {
+                "description": "spot 1M +since",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1mon&from=1620000000&symbol=btcusdt",
+                "input": [
+                  "BTC/USDT",
+                  "1M",
+                  1620000000000
                 ]
             },
             {
@@ -975,6 +1034,20 @@
                 "url": "https://api.hbdm.com/linear-swap-ex/market/history/kline?period=1min&from=1702411463&to=1702531403&contract_code=LTC-USDT",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot 1m +since +limit +until without useHistoricalEndpointForSpot",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/kline?period=1min&size=5&symbol=btcusdt",      
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1620000000000,
+                  5,
+                  {
+                    "useHistoricalEndpointForSpot": false
+                  }
                 ]
             },
             {

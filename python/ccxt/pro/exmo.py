@@ -625,6 +625,6 @@ class exmo(ccxt.async_support.exmo):
                 'nonce': time,
             }
             message = self.extend(request, query)
-            future = self.watch(url, messageHash, message)
+            future = await self.watch(url, messageHash, message, messageHash)
             client.subscriptions[messageHash] = future
         return future

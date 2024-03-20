@@ -1,5 +1,5 @@
 import Exchange from './abstract/cex.js';
-import type { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class cex
  * @augments Exchange
@@ -20,16 +20,16 @@ export default class cex extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     parseOrder(order: any, market?: Market): Order;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: any): string;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;

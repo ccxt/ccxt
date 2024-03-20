@@ -294,22 +294,25 @@ public partial class testMainClass : BaseTest
         // get "method-specific" skips
         object skipsForMethod = exchange.safeValue(this.skippedMethods, methodName, new Dictionary<string, object>() {});
         // get "object-specific" skips
-        if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchOrderBook", "fetchOrderBooks", "fetchL2OrderBook", "watchOrderBook", "watchOrderBookForSymbols"})))
+        object objectSkips = new Dictionary<string, object>() {
+            { "orderBook", new List<object>() {"fetchOrderBook", "fetchOrderBooks", "fetchL2OrderBook", "watchOrderBook", "watchOrderBookForSymbols"} },
+            { "ticker", new List<object>() {"fetchTicker", "fetchTickers", "watchTicker", "watchTickers"} },
+            { "trade", new List<object>() {"fetchTrades", "watchTrades", "watchTradesForSymbols"} },
+            { "ohlcv", new List<object>() {"fetchOHLCV", "watchOHLCV", "watchOHLCVForSymbols"} },
+            { "ledger", new List<object>() {"fetchLedger", "fetchLedgerEntry"} },
+            { "depositWithdraw", new List<object>() {"fetchDepositsWithdrawals", "fetchDeposits", "fetchWithdrawals"} },
+            { "depositWithdrawFee", new List<object>() {"fetchDepositWithdrawFee", "fetchDepositWithdrawFees"} },
+        };
+        object objectNames = new List<object>(((IDictionary<string,object>)objectSkips).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(objectNames)); postFixIncrement(ref i))
         {
-            object skips = exchange.safeValue(this.skippedMethods, "orderBook", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        } else if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchTicker", "fetchTickers", "watchTicker", "watchTickers"})))
-        {
-            object skips = exchange.safeValue(this.skippedMethods, "ticker", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        } else if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchTrades", "watchTrades", "watchTradesForSymbols"})))
-        {
-            object skips = exchange.safeValue(this.skippedMethods, "trade", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
-        } else if (isTrue(exchange.inArray(methodName, new List<object>() {"fetchOHLCV", "watchOHLCV", "watchOHLCVForSymbols"})))
-        {
-            object skips = exchange.safeValue(this.skippedMethods, "ohlcv", new Dictionary<string, object>() {});
-            return exchange.deepExtend(skipsForMethod, skips);
+            object objectName = getValue(objectNames, i);
+            object objectMethods = getValue(objectSkips, objectName);
+            if (isTrue(exchange.inArray(methodName, objectMethods)))
+            {
+                object extraSkips = exchange.safeDict(this.skippedMethods, objectName, new Dictionary<string, object>() {});
+                return exchange.deepExtend(skipsForMethod, extraSkips);
+            }
         }
         return skipsForMethod;
     }
@@ -342,28 +345,41 @@ public partial class testMainClass : BaseTest
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (isTrue(isEqual(i, subtract(maxRetries, 1))))
                     {
-                        object shouldFail = false;
-                        // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                        if (isTrue(isTrue((e is ExchangeNotAvailable)) && !isTrue((e is OnMaintenance))))
+                        object isOnMaintenance = (e is OnMaintenance);
+                        object isExchangeNotAvailable = (e is ExchangeNotAvailable);
+                        object shouldFail = null;
+                        object returnSuccess = null;
+                        if (isTrue(isLoadMarkets))
                         {
-                            shouldFail = true;
-                        } else if (isTrue(isLoadMarkets))
-                        {
-                            shouldFail = true;
+                            // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
+                            returnSuccess = false;
+                            // we might not break exchange tests, if exchange is on maintenance at this moment
+                            if (isTrue(isOnMaintenance))
+                            {
+                                shouldFail = false;
+                            } else
+                            {
+                                shouldFail = true;
+                            }
                         } else
                         {
-                            shouldFail = false;
+                            // for any other method tests:
+                            if (isTrue(isTrue(isExchangeNotAvailable) && !isTrue(isOnMaintenance)))
+                            {
+                                // break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
+                                shouldFail = true;
+                                returnSuccess = false;
+                            } else
+                            {
+                                // in all other cases of OperationFailed, show Warning, but don't mark test as failed
+                                shouldFail = false;
+                                returnSuccess = true;
+                            }
                         }
-                        // final step
-                        if (isTrue(shouldFail))
-                        {
-                            dump("[TEST_FAILURE]", "Method could not be tested due to a repeated Network/Availability issues", " | ", this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
-                            return false;
-                        } else
-                        {
-                            dump("[TEST_WARNING]", "Method could not be tested due to a repeated Network/Availability issues", " | ", this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
-                            return true;
-                        }
+                        // output the message
+                        object failType = ((bool) isTrue(shouldFail)) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
+                        dump(failType, "Method could not be tested due to a repeated Network/Availability issues", " | ", this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
+                        return returnSuccess;
                     } else
                     {
                         // wait and retry again
@@ -1243,6 +1259,8 @@ public partial class testMainClass : BaseTest
     {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         Exchange exchange = this.initOfflineExchange(exchangeName);
+        object globalOptions = exchange.safeDict(exchangeData, "options", new Dictionary<string, object>() {});
+        exchange.options = exchange.deepExtend(exchange.options, globalOptions); // custom options to be used in the tests
         object methods = exchange.safeValue(exchangeData, "methods", new Dictionary<string, object>() {});
         object methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(methodsNames)); postFixIncrement(ref i))
@@ -1405,7 +1423,7 @@ public partial class testMainClass : BaseTest
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1528,11 +1546,10 @@ public partial class testMainClass : BaseTest
     {
         Exchange exchange = this.initOfflineExchange("kucoin");
         object reqHeaders = null;
-        object optionsString = ((object)exchange.options).ToString();
         object spotId = getValue(getValue(getValue(exchange.options, "partner"), "spot"), "id");
         object spotKey = getValue(getValue(getValue(exchange.options, "partner"), "spot"), "key");
-        assert(isEqual(spotId, "ccxt"), add(add(add("kucoin - id: ", spotId), " not in options: "), optionsString));
-        assert(isEqual(spotKey, "9e58cc35-5b5e-4133-92ec-166e3f077cb8"), add(add(add("kucoin - key: ", spotKey), " not in options: "), optionsString));
+        assert(isEqual(spotId, "ccxt"), add(add("kucoin - id: ", spotId), " not in options"));
+        assert(isEqual(spotKey, "9e58cc35-5b5e-4133-92ec-166e3f077cb8"), add(add("kucoin - key: ", spotKey), " not in options."));
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -1552,11 +1569,10 @@ public partial class testMainClass : BaseTest
         Exchange exchange = this.initOfflineExchange("kucoinfutures");
         object reqHeaders = null;
         object id = "ccxtfutures";
-        object optionsString = ((object)getValue(getValue(exchange.options, "partner"), "future")).ToString();
         object futureId = getValue(getValue(getValue(exchange.options, "partner"), "future"), "id");
         object futureKey = getValue(getValue(getValue(exchange.options, "partner"), "future"), "key");
-        assert(isEqual(futureId, id), add(add(add("kucoinfutures - id: ", futureId), " not in options: "), optionsString));
-        assert(isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), add(add(add("kucoinfutures - key: ", futureKey), " not in options: "), optionsString));
+        assert(isEqual(futureId, id), add(add("kucoinfutures - id: ", futureId), " not in options."));
+        assert(isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), add(add("kucoinfutures - key: ", futureKey), " not in options."));
         try
         {
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
@@ -1574,8 +1590,7 @@ public partial class testMainClass : BaseTest
         Exchange exchange = this.initOfflineExchange("bitget");
         object reqHeaders = null;
         object id = "p4sve";
-        object optionsString = ((object)exchange.options).ToString();
-        assert(isEqual(getValue(exchange.options, "broker"), id), add(add(add("bitget - id: ", id), " not in options: "), optionsString));
+        assert(isEqual(getValue(exchange.options, "broker"), id), add(add("bitget - id: ", id), " not in options"));
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -1593,8 +1608,7 @@ public partial class testMainClass : BaseTest
         Exchange exchange = this.initOfflineExchange("mexc");
         object reqHeaders = null;
         object id = "CCXT";
-        object optionsString = ((object)exchange.options).ToString();
-        assert(isEqual(getValue(exchange.options, "broker"), id), add(add(add("mexc - id: ", id), " not in options: "), optionsString));
+        assert(isEqual(getValue(exchange.options, "broker"), id), add(add("mexc - id: ", id), " not in options"));
         await exchange.loadMarkets();
         try
         {
@@ -1603,8 +1617,7 @@ public partial class testMainClass : BaseTest
         {
             reqHeaders = exchange.last_request_headers;
         }
-        object reqHeadersString = ((bool) isTrue(!isEqual(reqHeaders, null))) ? ((object)reqHeaders).ToString() : "undefined";
-        assert(isEqual(getValue(reqHeaders, "source"), id), add(add(add("mexc - id: ", id), " not in headers: "), reqHeadersString));
+        assert(isEqual(getValue(reqHeaders, "source"), id), add(add("mexc - id: ", id), " not in headers."));
         await close(exchange);
         return true;
     }
@@ -1727,8 +1740,7 @@ public partial class testMainClass : BaseTest
         Exchange exchange = this.initOfflineExchange("bingx");
         object reqHeaders = null;
         object id = "CCXT";
-        object optionsString = ((object)exchange.options).ToString();
-        assert(isEqual(getValue(exchange.options, "broker"), id), add(add(add("bingx - id: ", id), " not in options: "), optionsString));
+        assert(isEqual(getValue(exchange.options, "broker"), id), add(add("bingx - id: ", id), " not in options"));
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -1737,8 +1749,7 @@ public partial class testMainClass : BaseTest
             // we expect an error here, we're only interested in the headers
             reqHeaders = exchange.last_request_headers;
         }
-        object reqHeadersString = ((bool) isTrue(!isEqual(reqHeaders, null))) ? ((object)reqHeaders).ToString() : "undefined";
-        assert(isEqual(getValue(reqHeaders, "X-SOURCE-KEY"), id), add(add(add("bingx - id: ", id), " not in headers: "), reqHeadersString));
+        assert(isEqual(getValue(reqHeaders, "X-SOURCE-KEY"), id), add(add("bingx - id: ", id), " not in headers."));
         await close(exchange);
     }
 
@@ -1793,5 +1804,25 @@ public partial class testMainClass : BaseTest
         object brokerId = ((object)(getValue(getValue(request, "action"), "brokerCode"))).ToString();
         assert(isEqual(brokerId, id), add(add(add("hyperliquid - brokerId: ", brokerId), " does not start with id: "), id));
         await close(exchange);
+    }
+
+    public async virtual Task<object> testCoinbaseinternational()
+    {
+        Exchange exchange = this.initOfflineExchange("coinbaseinternational");
+        ((IDictionary<string,object>)exchange.options)["portfolio"] = "random";
+        object id = "nfqkvdjp";
+        assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object clientOrderId = getValue(request, "client_order_id");
+        assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clientOrderId does not start with id");
+        await close(exchange);
+        return true;
     }
 }

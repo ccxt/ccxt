@@ -980,7 +980,7 @@ class ndax extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://apidoc.ndax.io/#getuseraccounts

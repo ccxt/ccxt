@@ -546,7 +546,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
@@ -682,7 +682,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://docs.deribit.com/#private-get_subaccounts

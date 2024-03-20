@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Order, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, Market, Num, Order, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -146,7 +146,7 @@ class coinex(Exchange, ImplicitAPI):
                     'perpetualPrivate': 'https://api.coinex.com/perpetual',
                 },
                 'www': 'https://www.coinex.com',
-                'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
+                'doc': 'https://viabtc.github.io/coinex_api_en_doc',
                 'fees': 'https://www.coinex.com/fees',
                 'referral': 'https://www.coinex.com/register?refer_code=yw5fz',
             },
@@ -360,6 +360,7 @@ class coinex(Exchange, ImplicitAPI):
                 },
                 'broad': {
                     'ip not allow visit': PermissionDenied,
+                    'service too busy': ExchangeNotAvailable,
                 },
             },
         })
@@ -1900,7 +1901,7 @@ class coinex(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order_request(self, symbol, type, side, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         swap = market['swap']
         clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
@@ -2016,7 +2017,7 @@ class coinex(Exchange, ImplicitAPI):
         params = self.omit(params, ['reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade001_limit_order
@@ -2386,7 +2387,7 @@ class coinex(Exchange, ImplicitAPI):
             results.append(order)
         return results
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order
@@ -4813,7 +4814,7 @@ class coinex(Exchange, ImplicitAPI):
     def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
-        :see: https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account017_margin_loan
         :param str symbol: unified market symbol, required for coinex
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
@@ -4848,7 +4849,7 @@ class coinex(Exchange, ImplicitAPI):
     def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account018_margin_flat
         :param str symbol: unified market symbol, required for coinex
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay

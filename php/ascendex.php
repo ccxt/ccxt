@@ -54,9 +54,11 @@ class ascendex extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
-                'fetchLeverage' => false,
+                'fetchLeverage' => 'emulated',
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
-                'fetchMarginMode' => false,
+                'fetchMarginMode' => 'emulated',
+                'fetchMarginModes' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -708,7 +710,7 @@ class ascendex extends Exchange {
         return $this->safe_integer($data, 'requestReceiveAt');
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -742,7 +744,7 @@ class ascendex extends Exchange {
             array(
                 'id' => $accountGroup,
                 'type' => null,
-                'currency' => null,
+                'code' => null,
                 'info' => $response,
             ),
         );
@@ -2689,7 +2691,8 @@ class ascendex extends Exchange {
         if (Precise::string_eq($notional, '0')) {
             $notional = $this->safe_string($position, 'sellOpenOrderNotional');
         }
-        $marginMode = $this->safe_string($position, 'marginType');
+        $marginType = $this->safe_string($position, 'marginType');
+        $marginMode = ($marginType === 'crossed') ? 'cross' : 'isolated';
         $collateral = null;
         if ($marginMode === 'isolated') {
             $collateral = $this->safe_string($position, 'isolatedMargin');
@@ -3233,6 +3236,151 @@ class ascendex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'id' => null,
             'amount' => $this->safe_number($income, 'paymentInUSDT'),
+        );
+    }
+
+    public function fetch_margin_modes(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches the set margin mode of the user
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
+         */
+        $this->load_markets();
+        $this->load_accounts();
+        $account = $this->safe_value($this->accounts, 0, array());
+        $accountGroup = $this->safe_string($account, 'id');
+        $request = array(
+            'account-group' => $accountGroup,
+        );
+        $response = $this->v2PrivateAccountGroupGetFuturesPosition (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac" => "FUTURES",
+        //             "collaterals" => array(
+        //                 {
+        //                     "asset" => "USDT",
+        //                     "balance" => "44.570287262",
+        //                     "referencePrice" => "1",
+        //                     "discountFactor" => "1"
+        //                 }
+        //             ),
+        //             "contracts" => array(
+        //                 array(
+        //                     "symbol" => "BTC-PERP",
+        //                     "side" => "LONG",
+        //                     "position" => "0.0001",
+        //                     "referenceCost" => "-3.12277254",
+        //                     "unrealizedPnl" => "-0.001700233",
+        //                     "realizedPnl" => "0",
+        //                     "avgOpenPrice" => "31209",
+        //                     "marginType" => "isolated",
+        //                     "isolatedMargin" => "1.654972977",
+        //                     "leverage" => "2",
+        //                     "takeProfitPrice" => "0",
+        //                     "takeProfitTrigger" => "market",
+        //                     "stopLossPrice" => "0",
+        //                     "stopLossTrigger" => "market",
+        //                     "buyOpenOrderNotional" => "0",
+        //                     "sellOpenOrderNotional" => "0",
+        //                     "markPrice" => "31210.723063672",
+        //                     "indexPrice" => "31223.148857925"
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $marginModes = $this->safe_list($data, 'contracts', array());
+        return $this->parse_margin_modes($marginModes, $symbols, 'symbol');
+    }
+
+    public function parse_margin_mode($marginMode, $market = null): array {
+        $marketId = $this->safe_string($marginMode, 'symbol');
+        $marginType = $this->safe_string($marginMode, 'marginType');
+        $margin = ($marginType === 'crossed') ? 'cross' : 'isolated';
+        return array(
+            'info' => $marginMode,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $margin,
+        );
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetch the set leverage for all contract markets
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+         */
+        $this->load_markets();
+        $this->load_accounts();
+        $account = $this->safe_value($this->accounts, 0, array());
+        $accountGroup = $this->safe_string($account, 'id');
+        $request = array(
+            'account-group' => $accountGroup,
+        );
+        $response = $this->v2PrivateAccountGroupGetFuturesPosition (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac" => "FUTURES",
+        //             "collaterals" => array(
+        //                 {
+        //                     "asset" => "USDT",
+        //                     "balance" => "44.570287262",
+        //                     "referencePrice" => "1",
+        //                     "discountFactor" => "1"
+        //                 }
+        //             ),
+        //             "contracts" => array(
+        //                 array(
+        //                     "symbol" => "BTC-PERP",
+        //                     "side" => "LONG",
+        //                     "position" => "0.0001",
+        //                     "referenceCost" => "-3.12277254",
+        //                     "unrealizedPnl" => "-0.001700233",
+        //                     "realizedPnl" => "0",
+        //                     "avgOpenPrice" => "31209",
+        //                     "marginType" => "isolated",
+        //                     "isolatedMargin" => "1.654972977",
+        //                     "leverage" => "2",
+        //                     "takeProfitPrice" => "0",
+        //                     "takeProfitTrigger" => "market",
+        //                     "stopLossPrice" => "0",
+        //                     "stopLossTrigger" => "market",
+        //                     "buyOpenOrderNotional" => "0",
+        //                     "sellOpenOrderNotional" => "0",
+        //                     "markPrice" => "31210.723063672",
+        //                     "indexPrice" => "31223.148857925"
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $leverages = $this->safe_list($data, 'contracts', array());
+        return $this->parse_leverages($leverages, $symbols, 'symbol');
+    }
+
+    public function parse_leverage($leverage, $market = null): array {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        $marginType = $this->safe_string($leverage, 'marginType');
+        $marginMode = ($marginType === 'crossed') ? 'cross' : 'isolated';
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $marginMode,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
         );
     }
 

@@ -1,5 +1,5 @@
 import Exchange from './abstract/digifinex.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num } from './base/types.js';
 /**
  * @class digifinex
  * @augments Exchange
@@ -28,9 +28,9 @@ export default class digifinex extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): any;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;

@@ -176,7 +176,7 @@ const exec = (bin, ...args) => {
         const psSpawn = ps.spawn (bin, args)
 
         psSpawn.stdout.on ('data', data => { output += data.toString () })
-        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); })
+        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString ().trim (); })
 
         psSpawn.on ('exit', code => return_ (generateResultFromOutput (output, stderr, code)) )
 

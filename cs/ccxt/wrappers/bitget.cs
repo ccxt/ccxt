@@ -654,7 +654,7 @@ public partial class bitget
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public Dictionary<string, object> CreateOrderRequest(object symbol, object type, object side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);

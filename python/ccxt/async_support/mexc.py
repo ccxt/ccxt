@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, IndexType, Int, Leverage, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currency, IndexType, Int, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -932,7 +932,7 @@ class mexc(Exchange, ImplicitAPI):
                     'Combination of optional parameters invalid': BadRequest,  # code:-2011
                     'api market order is disabled': BadRequest,  #
                     'Contract not allow place order!': InvalidOrder,  # code:1002
-                    'Oversold': InvalidOrder,  # code:30005
+                    'Oversold': InsufficientFunds,  # code:30005
                     'Insufficient position': InsufficientFunds,  # code:30004
                     'Insufficient balance!': InsufficientFunds,  # code:2005
                     'Bid price is great than max allow price': InvalidOrder,  # code:2003
@@ -2109,7 +2109,7 @@ class mexc(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
@@ -3319,7 +3319,7 @@ class mexc(Exchange, ImplicitAPI):
             return self.safe_value(response, 'data')
         return None
 
-    async def fetch_accounts(self, params={}):
+    async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the exchange API endpoint

@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import math
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -71,8 +71,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
-                'fetchBorrowRateHistories': False,
-                'fetchBorrowRateHistory': False,
+                'fetchBorrowRateHistories': True,
+                'fetchBorrowRateHistory': True,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
@@ -246,6 +246,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'isolated/account/{symbol}': 50,  # 50SW
                         'margin/borrow': 15,  # 15SW
                         'margin/repay': 15,  # 15SW
+                        'margin/interest': 20,  # 20SW
                         'project/list': 10,  # 10SW
                         'project/marketInterestRate': 7.5,  # 5PW
                         'redeem/orders': 10,  # 10SW
@@ -480,7 +481,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '400006': AuthenticationError,
                     '400007': AuthenticationError,
                     '400008': NotSupported,
-                    '400100': BadRequest,
+                    '400100': InsufficientFunds,  # {"msg":"account.available.amount","code":"400100"}
                     '400200': InvalidOrder,  # {"code":"400200","msg":"Forbidden to place an order"}
                     '400350': InvalidOrder,  # {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400370': InvalidOrder,  # {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
@@ -607,6 +608,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'margin/currencies': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
+                            'margin/interest': 'v3',
                             'project/list': 'v3',
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
@@ -1227,7 +1229,7 @@ class kucoin(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_accounts(self, params={}):
+    async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :see: https://docs.kucoin.com/#list-accounts
@@ -1845,7 +1847,7 @@ class kucoin(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice')
         return [triggerPrice, stopLossPrice, takeProfitPrice]
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         Create an order on the exchange
         :see: https://docs.kucoin.com/spot#place-a-new-order
@@ -2038,7 +2040,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(data, 'data', [])
         return self.parse_orders(data)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
@@ -2095,7 +2097,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['postOnly'] = True
         return self.extend(request, params)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit an order, kucoin currently only supports the modification of HF orders
         :see: https://docs.kucoin.com/spot-hf/#modify-order
@@ -3788,12 +3790,19 @@ class kucoin(Exchange, ImplicitAPI):
         #         "timestamp": 1658531274508488480
         #     },
         #
-        timestampId = self.safe_string(info, 'timestamp')
-        timestamp = Precise.string_mul(timestampId, '0.000001')
+        #     {
+        #         "createdAt": 1697783812257,
+        #         "currency": "XMR",
+        #         "interestAmount": "0.1",
+        #         "dayRatio": "0.001"
+        #     }
+        #
+        timestampId = self.safe_string_2(info, 'createdAt', 'timestamp')
+        timestamp = self.parse_to_int(timestampId[0:13])
         currencyId = self.safe_string(info, 'currency')
         return {
             'currency': self.safe_currency_code(currencyId, currency),
-            'rate': self.safe_number(info, 'dailyIntRate'),
+            'rate': self.safe_number_2(info, 'dailyIntRate', 'dayRatio'),
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -3968,6 +3977,132 @@ class kucoin(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': info,
         }
+
+    async def fetch_borrow_rate_histories(self, codes=None, since: Int = None, limit: Int = None, params={}):
+        """
+        retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
+        :see: https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+        :param str[]|None codes: list of unified currency codes, default is None
+        :param int [since]: timestamp in ms of the earliest borrowRate, default is None
+        :param int [limit]: max number of borrow rate prices to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated' default is 'cross'
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :returns dict: a dictionary of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>` indexed by the market symbol
+        """
+        await self.load_markets()
+        marginResult = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params)
+        marginMode = self.safe_string(marginResult, 0, 'cross')
+        isIsolated = (marginMode == 'isolated')  # True-isolated, False-cross
+        request = {
+            'isIsolated': isIsolated,
+        }
+        if since is not None:
+            request['startTime'] = since
+        request, params = self.handle_until_option('endTime', request, params)
+        if limit is not None:
+            request['pageSize'] = limit  # default:50, min:10, max:500
+        response = await self.privateGetMarginInterest(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "timestamp": 1710829939673,
+        #             "currentPage": 1,
+        #             "pageSize": 50,
+        #             "totalNum": 0,
+        #             "totalPage": 0,
+        #             "items": [
+        #                 {
+        #                     "createdAt": 1697783812257,
+        #                     "currency": "XMR",
+        #                     "interestAmount": "0.1",
+        #                     "dayRatio": "0.001"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data')
+        rows = self.safe_list(data, 'items')
+        return self.parse_borrow_rate_histories(rows, codes, since, limit)
+
+    async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
+        """
+        retrieves a history of a currencies borrow interest rate at specific time slots
+        :see: https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+        :param str code: unified currency code
+        :param int [since]: timestamp for the earliest borrow rate
+        :param int [limit]: the maximum number of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>` to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated' default is 'cross'
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
+        """
+        await self.load_markets()
+        marginResult = self.handle_margin_mode_and_params('fetchBorrowRateHistories', params)
+        marginMode = self.safe_string(marginResult, 0, 'cross')
+        isIsolated = (marginMode == 'isolated')  # True-isolated, False-cross
+        currency = self.currency(code)
+        request = {
+            'isIsolated': isIsolated,
+            'currency': currency['id'],
+        }
+        if since is not None:
+            request['startTime'] = since
+        request, params = self.handle_until_option('endTime', request, params)
+        if limit is not None:
+            request['pageSize'] = limit  # default:50, min:10, max:500
+        response = await self.privateGetMarginInterest(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "timestamp": 1710829939673,
+        #             "currentPage": 1,
+        #             "pageSize": 50,
+        #             "totalNum": 0,
+        #             "totalPage": 0,
+        #             "items": [
+        #                 {
+        #                     "createdAt": 1697783812257,
+        #                     "currency": "XMR",
+        #                     "interestAmount": "0.1",
+        #                     "dayRatio": "0.001"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data')
+        rows = self.safe_list(data, 'items')
+        return self.parse_borrow_rate_history(rows, code, since, limit)
+
+    def parse_borrow_rate_histories(self, response, codes, since, limit):
+        #
+        #     [
+        #         {
+        #             "createdAt": 1697783812257,
+        #             "currency": "XMR",
+        #             "interestAmount": "0.1",
+        #             "dayRatio": "0.001"
+        #         }
+        #     ]
+        #
+        borrowRateHistories = {}
+        for i in range(0, len(response)):
+            item = response[i]
+            code = self.safe_currency_code(self.safe_string(item, 'currency'))
+            if codes is None or self.in_array(code, codes):
+                if not (code in borrowRateHistories):
+                    borrowRateHistories[code] = []
+                borrowRateStructure = self.parse_borrow_rate(item)
+                borrowRateHistories[code].append(borrowRateStructure)
+        keys = list(borrowRateHistories.keys())
+        for i in range(0, len(keys)):
+            code = keys[i]
+            borrowRateHistories[code] = self.filter_by_currency_since_limit(borrowRateHistories[code], code, since, limit)
+        return borrowRateHistories
 
     async def borrow_cross_margin(self, code: str, amount: float, params={}):
         """

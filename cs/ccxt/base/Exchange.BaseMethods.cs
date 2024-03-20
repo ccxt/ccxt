@@ -743,6 +743,24 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchFundingRates() is not supported yet")) ;
     }
 
+    public async virtual Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchFundingRate() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchFundingRates(object symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchFundingRates() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchFundingRatesForSymbols(object symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.watchFundingRates(symbols, parameters);
+    }
+
     public async virtual Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -2308,11 +2326,21 @@ public partial class Exchange
         {
             if (isTrue(isEqual(currencyCode, null)))
             {
-                // if currencyCode was not provided, then we just set passed value to networkId
-                networkId = networkCode;
+                object currencies = new List<object>(((IDictionary<string,object>)this.currencies).Values);
+                for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+                {
+                    object currency = new List<object>() {i};
+                    object networks = this.safeDict(currency, "networks");
+                    object network = this.safeDict(networks, networkCode);
+                    networkId = this.safeString(network, "id");
+                    if (isTrue(!isEqual(networkId, null)))
+                    {
+                        break;
+                    }
+                }
             } else
             {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
+                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH) or is in the currency
                 object defaultNetworkCodeReplacements = this.safeValue(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
                 if (isTrue(inOp(defaultNetworkCodeReplacements, currencyCode)))
                 {
@@ -2330,12 +2358,19 @@ public partial class Exchange
                             break;
                         }
                     }
-                }
-                // if it wasn't found, we just set the provided value to network-id
-                if (isTrue(isEqual(networkId, null)))
+                } else
                 {
-                    networkId = networkCode;
+                    // serach for network inside currency
+                    object currency = this.safeDict(this.currencies, currencyCode);
+                    object networks = this.safeDict(currency, "networks");
+                    object network = this.safeDict(networks, networkCode);
+                    networkId = this.safeString(network, "id");
                 }
+            }
+            // if it wasn't found, we just set the provided value to network-id
+            if (isTrue(isEqual(networkId, null)))
+            {
+                networkId = networkCode;
             }
         }
         return networkId;
@@ -3076,6 +3111,12 @@ public partial class Exchange
 
     public virtual object checkRequiredCredentials(object error = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @param {boolean} error throw an error that a credential is required if true
+        * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
+        */
         error ??= true;
         object keys = new List<object>(((IDictionary<string,object>)this.requiredCredentials).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))

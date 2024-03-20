@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, Market, MarketInterface, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -956,7 +956,7 @@ class gate(Exchange, ImplicitAPI):
             'info': None,
         }
 
-    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
         if isOption and not (marketId in self.markets_by_id):
             # handle expired option contracts
@@ -2784,7 +2784,7 @@ class gate(Exchange, ImplicitAPI):
         request = {}
         request, params = self.prepare_request(market, None, params)
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-        maxLimit = 1000
+        maxLimit = 1999 if market['contract'] else 1000
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
         until = self.safe_integer(params, 'until')
         if until is not None:
@@ -3540,7 +3540,7 @@ class gate(Exchange, ImplicitAPI):
             },
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         Create an order on the exchange
         :see: https://www.gate.io/docs/developers/apiv4/en/#create-an-order
@@ -3706,7 +3706,7 @@ class gate(Exchange, ImplicitAPI):
             response = await self.privateFuturesPostSettleBatchOrders(ordersRequests)
         return self.parse_orders(response)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         contract = market['contract']
         trigger = self.safe_value(params, 'trigger')
@@ -3929,7 +3929,7 @@ class gate(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
         :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
@@ -4011,6 +4011,7 @@ class gate(Exchange, ImplicitAPI):
             'failed': 'canceled',
             'expired': 'canceled',
             'finished': 'closed',
+            'finish': 'closed',
             'succeeded': 'closed',
         }
         return self.safe_string(statuses, status, status)
@@ -5721,6 +5722,7 @@ class gate(Exchange, ImplicitAPI):
         :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
         :param int [limit]: default 30
         :param dict [params]: exchange specific parameters
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
         """
         await self.load_markets()
@@ -6188,7 +6190,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def set_position_mode(self, hedged: bool, symbol: str = None, params={}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set dual/hedged mode to True or False for a swap market, make sure all positions are closed and no orders are open before setting dual mode
         :see: https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode

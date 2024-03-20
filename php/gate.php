@@ -940,7 +940,7 @@ class gate extends Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
@@ -2875,7 +2875,7 @@ class gate extends Exchange {
         $request = array();
         list($request, $params) = $this->prepare_request($market, null, $params);
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $maxLimit = 1000;
+        $maxLimit = $market['contract'] ? 1999 : 1000;
         $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
@@ -4212,6 +4212,7 @@ class gate extends Exchange {
             'failed' => 'canceled',
             'expired' => 'canceled',
             'finished' => 'closed',
+            'finish' => 'closed',
             'succeeded' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -6024,6 +6025,7 @@ class gate extends Exchange {
          * @param {int} [$since] the time(ms) of the earliest record to retrieve unix timestamp
          * @param {int} [$limit] default 30
          * @param {array} [$params] exchange specific parameters
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
          */
         $this->load_markets();

@@ -6,7 +6,7 @@ export declare type Bool = boolean | undefined;
 export declare type IndexType = number | string;
 export declare type OrderSide = 'buy' | 'sell' | string;
 export declare type OrderType = 'limit' | 'market' | string;
-export declare type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
+export declare type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
 export declare type SubType = 'linear' | 'inverse' | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
@@ -180,10 +180,16 @@ export interface Balance {
     total: Num;
     debt?: Num;
 }
-export interface Account {
+export interface BalanceAccount {
     free: Str;
     used: Str;
     total: Str;
+}
+export interface Account {
+    id: Str;
+    type: Str;
+    code: Str;
+    info: any;
 }
 export interface PartialBalances extends Dictionary<number> {
 }
@@ -392,6 +398,14 @@ export interface Greeks {
     underlyingPrice: number;
     info: any;
 }
+export interface LastPrice {
+    symbol: string;
+    timestamp?: number;
+    datetime?: string;
+    price: number;
+    side?: OrderSide;
+    info: any;
+}
 export interface Leverage {
     info: any;
     symbol: string;
@@ -400,6 +414,8 @@ export interface Leverage {
     shortLeverage: number;
 }
 export interface Leverages extends Dictionary<Leverage> {
+}
+export interface LastPrices extends Dictionary<LastPrice> {
 }
 export interface MarginModes extends Dictionary<MarginMode> {
 }

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, MarginModes, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, MarginModes, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -2085,7 +2085,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' cancelOrder() not support self market type')
         return self.parse_order(response, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         await self.load_markets()
         market = None
         request = {
@@ -2117,7 +2117,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' editOrder() not support self market type')
         return self.parse_order(response, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://api.hitbtc.com/#create-new-spot-order
@@ -2153,7 +2153,7 @@ class hitbtc(Exchange, ImplicitAPI):
             response = await self.privatePostSpotOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def create_order_request(self, market: object, marketType: str, type: OrderType, side: OrderSide, amount, price=None, marginMode: Str = None, params={}):
+    def create_order_request(self, market: object, marketType: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, marginMode: Str = None, params={}):
         isLimit = (type == 'limit')
         reduceOnly = self.safe_value(params, 'reduceOnly')
         timeInForce = self.safe_string(params, 'timeInForce')

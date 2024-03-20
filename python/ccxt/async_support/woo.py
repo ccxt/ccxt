@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Bool, Currency, Int, Leverage, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currency, Int, Leverage, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -820,7 +820,7 @@ class woo(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, trailingAmount=None, trailingTriggerPrice=None, params={}) -> Order:
+    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
         :param str symbol: unified symbol of the market to create an order in
@@ -841,7 +841,7 @@ class woo(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return await self.create_order(symbol, type, side, amount, price, params)
 
-    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -862,7 +862,7 @@ class woo(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return await self.create_order(symbol, type, side, amount, price, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.woo.org/#send-order
@@ -1037,7 +1037,7 @@ class woo(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.woo.org/#edit-order
@@ -1274,9 +1274,14 @@ class woo(Exchange, ImplicitAPI):
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
+        :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
         request = {}
         market: Market = None
         stop = self.safe_bool_2(params, 'stop', 'trigger')
@@ -1290,6 +1295,10 @@ class woo(Exchange, ImplicitAPI):
                 request['createdTimeStart'] = since
             else:
                 request['start_t'] = since
+        if limit is not None:
+            request['size'] = limit
+        else:
+            request['size'] = 500
         if stop:
             request['algoType'] = 'stop'
         elif trailing:
@@ -1633,14 +1642,20 @@ class woo(Exchange, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+        :see: https://docs.woo.org/#get-trades
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: set to True if you want to fetch trades with pagination
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, 'page', 500)
         request = {}
         market: Market = None
         if symbol is not None:
@@ -1648,6 +1663,10 @@ class woo(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['start_t'] = since
+        if limit is not None:
+            request['size'] = limit
+        else:
+            request['size'] = 500
         response = await self.v1PrivateGetClientTrades(self.extend(request, params))
         # {
         #     "success": True,
@@ -1675,7 +1694,7 @@ class woo(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    async def fetch_accounts(self, params={}):
+    async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the exchange API endpoint

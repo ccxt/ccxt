@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.huobijp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -944,7 +944,7 @@ class huobijp(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1320,7 +1320,7 @@ class huobijp(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

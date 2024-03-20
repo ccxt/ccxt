@@ -347,6 +347,7 @@ class bitmart extends bitmart$1 {
                     '70000': errors.ExchangeError,
                     '70001': errors.BadRequest,
                     '70002': errors.BadSymbol,
+                    '70003': errors.NetworkError,
                     '71001': errors.BadRequest,
                     '71002': errors.BadRequest,
                     '71003': errors.BadRequest,

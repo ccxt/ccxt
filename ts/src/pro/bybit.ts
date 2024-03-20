@@ -131,7 +131,7 @@ export default class bybit extends bybitRest {
         return requestId;
     }
 
-    getUrlByMarketType (symbol: Str = undefined, isPrivate = false, method: string = undefined, params = {}) {
+    getUrlByMarketType (symbol: Str = undefined, isPrivate = false, method: Str = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         let isUsdcSettled = undefined;
         let isSpot = undefined;

@@ -1178,7 +1178,7 @@ class okx extends Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
@@ -1264,7 +1264,7 @@ class okx extends Exchange {
         return $this->safe_integer($first, 'ts');
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://www.okx.com/docs-v5/en/#trading-$account-rest-api-get-$account-configuration
@@ -2217,7 +2217,7 @@ class okx extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 100);
         }
         $market = $this->market($symbol);
         $request = array(

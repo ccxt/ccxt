@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
@@ -8,7 +8,7 @@ export default class delta extends Exchange {
     describe(): any;
     convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     fetchTime(params?: {}): Promise<number>;
     fetchStatus(params?: {}): Promise<{
         status: string;
@@ -19,6 +19,7 @@ export default class delta extends Exchange {
     }>;
     fetchCurrencies(params?: {}): Promise<{}>;
     loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<MarketInterface>>;
+    indexByStringifiedNumericId(input: any): {};
     fetchMarkets(params?: {}): Promise<any[]>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
@@ -35,8 +36,8 @@ export default class delta extends Exchange {
     parsePosition(position: any, market?: Market): Position;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: number, price?: number, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

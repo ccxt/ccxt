@@ -552,18 +552,23 @@ class testMainClass extends baseMainTestClass {
         // get "method-specific" skips
         $skips_for_method = $exchange->safe_value($this->skipped_methods, $method_name, array());
         // get "object-specific" skips
-        if ($exchange->in_array($method_name, ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'])) {
-            $skips = $exchange->safe_value($this->skipped_methods, 'orderBook', array());
-            return $exchange->deep_extend($skips_for_method, $skips);
-        } elseif ($exchange->in_array($method_name, ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'])) {
-            $skips = $exchange->safe_value($this->skipped_methods, 'ticker', array());
-            return $exchange->deep_extend($skips_for_method, $skips);
-        } elseif ($exchange->in_array($method_name, ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'])) {
-            $skips = $exchange->safe_value($this->skipped_methods, 'trade', array());
-            return $exchange->deep_extend($skips_for_method, $skips);
-        } elseif ($exchange->in_array($method_name, ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'])) {
-            $skips = $exchange->safe_value($this->skipped_methods, 'ohlcv', array());
-            return $exchange->deep_extend($skips_for_method, $skips);
+        $object_skips = array(
+            'orderBook' => ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
+            'ticker' => ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'],
+            'trade' => ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'],
+            'ohlcv' => ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'],
+            'ledger' => ['fetchLedger', 'fetchLedgerEntry'],
+            'depositWithdraw' => ['fetchDepositsWithdrawals', 'fetchDeposits', 'fetchWithdrawals'],
+            'depositWithdrawFee' => ['fetchDepositWithdrawFee', 'fetchDepositWithdrawFees'],
+        );
+        $object_names = is_array($object_skips) ? array_keys($object_skips) : array();
+        for ($i = 0; $i < count($object_names); $i++) {
+            $object_name = $object_names[$i];
+            $object_methods = $object_skips[$object_name];
+            if ($exchange->in_array($method_name, $object_methods)) {
+                $extra_skips = $exchange->safe_dict($this->skipped_methods, $object_name, array());
+                return $exchange->deep_extend($skips_for_method, $extra_skips);
+            }
         }
         return $skips_for_method;
     }
@@ -588,23 +593,35 @@ class testMainClass extends baseMainTestClass {
                 if ($is_operation_failed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if ($i === $max_retries - 1) {
-                        $should_fail = false;
-                        // we do not mute specifically "ExchangeNotAvailable" exception, because it might be a hint about a change in API engine (but its subtype "OnMaintenance" can be muted)
-                        if (($e instanceof ExchangeNotAvailable) && !($e instanceof OnMaintenance)) {
-                            $should_fail = true;
-                        } elseif ($is_load_markets) {
-                            $should_fail = true;
+                        $is_on_maintenance = ($e instanceof OnMaintenance);
+                        $is_exchange_not_available = ($e instanceof ExchangeNotAvailable);
+                        $should_fail = null;
+                        $return_success = null;
+                        if ($is_load_markets) {
+                            // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
+                            $return_success = false;
+                            // we might not break exchange tests, if exchange is on maintenance at this moment
+                            if ($is_on_maintenance) {
+                                $should_fail = false;
+                            } else {
+                                $should_fail = true;
+                            }
                         } else {
-                            $should_fail = false;
+                            // for any other method tests:
+                            if ($is_exchange_not_available && !$is_on_maintenance) {
+                                // break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
+                                $should_fail = true;
+                                $return_success = false;
+                            } else {
+                                // in all other cases of OperationFailed, show Warning, but don't mark test as failed
+                                $should_fail = false;
+                                $return_success = true;
+                            }
                         }
-                        // final step
-                        if ($should_fail) {
-                            dump('[TEST_FAILURE]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
-                            return false;
-                        } else {
-                            dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
-                            return true;
-                        }
+                        // output the message
+                        $fail_type = $should_fail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
+                        dump($fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
+                        return $return_success;
                     } else {
                         // wait and retry again
                         // (increase wait time on every retry)
@@ -1330,6 +1347,8 @@ class testMainClass extends baseMainTestClass {
     public function test_exchange_request_statically($exchange_name, $exchange_data, $test_name = null) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         $exchange = $this->init_offline_exchange($exchange_name);
+        $global_options = $exchange->safe_dict($exchange_data, 'options', array());
+        $exchange->options = $exchange->deep_extend($exchange->options, $global_options); // custom options to be used in the tests
         $methods = $exchange->safe_value($exchange_data, 'methods', array());
         $methods_names = is_array($methods) ? array_keys($methods) : array();
         for ($i = 0; $i < count($methods_names); $i++) {
@@ -1466,7 +1485,7 @@ class testMainClass extends baseMainTestClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1570,11 +1589,10 @@ class testMainClass extends baseMainTestClass {
     public function test_kucoin() {
         $exchange = $this->init_offline_exchange('kucoin');
         $req_headers = null;
-        $options_string = ((string) $exchange->options);
         $spot_id = $exchange->options['partner']['spot']['id'];
         $spot_key = $exchange->options['partner']['spot']['key'];
-        assert($spot_id === 'ccxt', 'kucoin - id: ' . $spot_id . ' not in options: ' . $options_string);
-        assert($spot_key === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' . $spot_key . ' not in options: ' . $options_string);
+        assert($spot_id === 'ccxt', 'kucoin - id: ' . $spot_id . ' not in options');
+        assert($spot_key === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' . $spot_key . ' not in options.');
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
@@ -1591,11 +1609,10 @@ class testMainClass extends baseMainTestClass {
         $exchange = $this->init_offline_exchange('kucoinfutures');
         $req_headers = null;
         $id = 'ccxtfutures';
-        $options_string = ((string) $exchange->options['partner']['future']);
         $future_id = $exchange->options['partner']['future']['id'];
         $future_key = $exchange->options['partner']['future']['key'];
-        assert($future_id === $id, 'kucoinfutures - id: ' . $future_id . ' not in options: ' . $options_string);
-        assert($future_key === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' . $future_key . ' not in options: ' . $options_string);
+        assert($future_id === $id, 'kucoinfutures - id: ' . $future_id . ' not in options.');
+        assert($future_key === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' . $future_key . ' not in options.');
         try {
             $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
@@ -1610,8 +1627,7 @@ class testMainClass extends baseMainTestClass {
         $exchange = $this->init_offline_exchange('bitget');
         $req_headers = null;
         $id = 'p4sve';
-        $options_string = ((string) $exchange->options);
-        assert($exchange->options['broker'] === $id, 'bitget - id: ' . $id . ' not in options: ' . $options_string);
+        assert($exchange->options['broker'] === $id, 'bitget - id: ' . $id . ' not in options');
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
@@ -1626,16 +1642,14 @@ class testMainClass extends baseMainTestClass {
         $exchange = $this->init_offline_exchange('mexc');
         $req_headers = null;
         $id = 'CCXT';
-        $options_string = ((string) $exchange->options);
-        assert($exchange->options['broker'] === $id, 'mexc - id: ' . $id . ' not in options: ' . $options_string);
+        assert($exchange->options['broker'] === $id, 'mexc - id: ' . $id . ' not in options');
         $exchange->load_markets();
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             $req_headers = $exchange->last_request_headers;
         }
-        $req_headers_string = $req_headers !== null ? ((string) $req_headers) : 'undefined';
-        assert($req_headers['source'] === $id, 'mexc - id: ' . $id . ' not in headers: ' . $req_headers_string);
+        assert($req_headers['source'] === $id, 'mexc - id: ' . $id . ' not in headers.');
         close($exchange);
         return true;
     }
@@ -1739,16 +1753,14 @@ class testMainClass extends baseMainTestClass {
         $exchange = $this->init_offline_exchange('bingx');
         $req_headers = null;
         $id = 'CCXT';
-        $options_string = ((string) $exchange->options);
-        assert($exchange->options['broker'] === $id, 'bingx - id: ' . $id . ' not in options: ' . $options_string);
+        assert($exchange->options['broker'] === $id, 'bingx - id: ' . $id . ' not in options');
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             // we expect an error here, we're only interested in the headers
             $req_headers = $exchange->last_request_headers;
         }
-        $req_headers_string = $req_headers !== null ? ((string) $req_headers) : 'undefined';
-        assert($req_headers['X-SOURCE-KEY'] === $id, 'bingx - id: ' . $id . ' not in headers: ' . $req_headers_string);
+        assert($req_headers['X-SOURCE-KEY'] === $id, 'bingx - id: ' . $id . ' not in headers.');
         close($exchange);
     }
 
@@ -1794,6 +1806,23 @@ class testMainClass extends baseMainTestClass {
         $broker_id = ((string) ($request['action']['brokerCode']));
         assert($broker_id === $id, 'hyperliquid - brokerId: ' . $broker_id . ' does not start with id: ' . $id);
         close($exchange);
+    }
+
+    public function test_coinbaseinternational() {
+        $exchange = $this->init_offline_exchange('coinbaseinternational');
+        $exchange->options['portfolio'] = 'random';
+        $id = 'nfqkvdjp';
+        assert($exchange->options['brokerId'] === $id, 'id not in options');
+        $request = null;
+        try {
+            $exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $client_order_id = $request['client_order_id'];
+        assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
+        close($exchange);
+        return true;
     }
 }
 

@@ -829,7 +829,7 @@ class woo extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_trailing_amount_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()): array {
+    public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -853,7 +853,7 @@ class woo extends Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, $amount, $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -1328,9 +1328,15 @@ class woo extends Exchange {
          * @param {boolean} [$params->isTriggered] whether the order has been triggered (false by default)
          * @param {string} [$params->side] 'buy' or 'sell'
          * @param {boolean} [$params->trailing] set to true if you want to fetch $trailing $orders
+         * @param {boolean} [$params->paginate] set to true if you want to fetch $orders with pagination
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $params, 'page', 500);
+        }
         $request = array();
         $market = null;
         $stop = $this->safe_bool_2($params, 'stop', 'trigger');
@@ -1346,6 +1352,11 @@ class woo extends Exchange {
             } else {
                 $request['start_t'] = $since;
             }
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        } else {
+            $request['size'] = 500;
         }
         if ($stop) {
             $request['algoType'] = 'stop';
@@ -1708,14 +1719,21 @@ class woo extends Exchange {
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.woo.org/#get-$trades
          * fetch all $trades made by the user
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->paginate] set to true if you want to fetch $trades with pagination
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $params, 'page', 500);
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -1724,6 +1742,11 @@ class woo extends Exchange {
         }
         if ($since !== null) {
             $request['start_t'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        } else {
+            $request['size'] = 500;
         }
         $response = $this->v1PrivateGetClientTrades (array_merge($request, $params));
         // {
@@ -1753,7 +1776,7 @@ class woo extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit, $params);
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
