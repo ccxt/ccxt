@@ -2960,6 +2960,9 @@ export default class htx extends Exchange {
         };
         const priceType = this.safeStringN (params, [ 'priceType', 'price' ]);
         params = this.omit (params, [ 'priceType', 'price' ]);
+        let until = undefined;
+        [ until, params ] = this.handleParamInteger (params, 'until');
+        const untilSeconds = (until !== undefined) ? this.parseToInt (until / 1000) : undefined;
         if (market['contract']) {
             if (limit !== undefined) {
                 request['size'] = limit; // when using limit: from & to are ignored
@@ -2969,15 +2972,17 @@ export default class htx extends Exchange {
             }
             if (priceType === undefined) {
                 const duration = this.parseTimeframe (timeframe);
+                let calcualtedEnd = undefined;
                 if (since === undefined) {
                     const now = this.seconds ();
                     request['from'] = now - duration * (limit - 1);
-                    request['to'] = now;
+                    calcualtedEnd = now;
                 } else {
                     const start = this.parseToInt (since / 1000);
                     request['from'] = start;
-                    request['to'] = this.sum (start, duration * (limit - 1));
+                    calcualtedEnd = this.sum (start, duration * (limit - 1));
                 }
+                request['to'] = (untilSeconds !== undefined) ? untilSeconds : calcualtedEnd;
             }
         }
         let response = undefined;
@@ -3038,13 +3043,15 @@ export default class htx extends Exchange {
                 }
                 response = await this.spotPublicGetMarketHistoryKline (this.extend (request, params));
             } else {
-                // `since` only available for the this endpoint
+                // "from & to" only available for the this endpoint
                 if (since !== undefined) {
-                    // default 150 bars
                     request['from'] = this.parseToInt (since / 1000);
                 }
+                if (untilSeconds !== undefined) {
+                    request['to'] = untilSeconds;
+                }
                 if (limit !== undefined) {
-                    request['size'] = Math.min (1000, limit); // max 1000
+                    request['size'] = Math.min (1000, limit); // max 1000, otherwise default returns 150
                 }
                 response = await this.spotPublicGetMarketHistoryCandles (this.extend (request, params));
             }
