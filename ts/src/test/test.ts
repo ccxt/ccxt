@@ -31,19 +31,23 @@ const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
+
+// ############## detect cli arguments ############## //
 const argv = process.argv.slice (2); // remove first two arguments (which is process and script path "js/src/test/test.js")
-function findArgv (args_array, needle = '', match = true) {
-    return args_array.filter ((x) => (x.includes (needle) ? match : !match));
+
+function filterArgvs (argsArray, needle, include = true) {
+    return argsArray.filter ((x) => (include && x.includes (needle)) || (!include && !x.includes (needle)));
 }
-const filetered_args = findArgv (argv, '--', false);
+function selectArgv (argsArray, needle) {
+    const foundArray = argsArray.filter ((x) => (x.includes (needle)));
+    return foundArray.length ? foundArray[0] : undefined;
+}
 
+const argvExchange = filterArgvs (argv, '--', false)[0];
+const argvSymbol   = selectArgv (argv, '/');
+const argvMethod   = selectArgv (argv, '()');
+// #################################################### //
 
-const symbol_args   = findArgv (filetered_args, '/', true);
-const method_args   = findArgv (filetered_args, '()', true);
-const exchange_args = findArgv (findArgv (filetered_args, '/', false), '()', false);
-const argvSymbol   = symbol_args.length ? symbol_args[0] : undefined;
-const argvMethod   = method_args.length ? method_args[0] : undefined;
-const argvExchange = exchange_args.length ? exchange_args[0] : undefined;
 
 // non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
@@ -277,12 +281,7 @@ export default class testMainClass extends baseMainTestClass {
                     }
                 }
             }
-            // if method names were found, then remove them from symbolArgv
-            if (this.onlySpecificTests.length > 0) {
-                return undefined;
-            }
         }
-        return methodArgv;
     }
 
     async importFiles (exchange: Exchange) {
