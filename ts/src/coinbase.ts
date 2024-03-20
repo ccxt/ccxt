@@ -1166,7 +1166,8 @@ export default class coinbase extends Exchange {
             this.v3PrivateGetBrokerageTransactionSummary (params),
         ];
         // const response = await this.v3PrivateGetBrokerageProducts (params);
-        const response = this.safeDict (promisesUnresolved, 0, {});
+        const promises = await Promise.all (promisesUnresolved);
+        const response = this.safeDict (promises, 0, {});
         //
         //     [
         //         {
@@ -1202,7 +1203,7 @@ export default class coinbase extends Exchange {
         //     ]
         //
         // const fees = await this.v3PrivateGetBrokerageTransactionSummary (params);
-        const fees = this.safeDict (promisesUnresolved, 1, {});
+        const fees = this.safeDict (promises, 1, {});
         //
         //     {
         //         "total_volume": 0,
