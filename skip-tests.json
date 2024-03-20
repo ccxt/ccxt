@@ -1116,6 +1116,9 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "fetchTrades": {
+                "side": "todo https://app.travis-ci.com/github/ccxt/ccxt/builds/269557802#L3819"
             }
         }
     },
