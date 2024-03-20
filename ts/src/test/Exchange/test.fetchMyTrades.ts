@@ -9,7 +9,7 @@ async function testFetchMyTrades (exchange, skippedProperties, symbol) {
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, trades, symbol);
     const now = exchange.milliseconds ();
     for (let i = 0; i < trades.length; i++) {
-        testTrade (exchange, skippedProperties, method, trades[i], symbol, now);
+        testTrade (exchange, skippedProperties, method, trades[i], symbol, now, false);
     }
     testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades);
 }
