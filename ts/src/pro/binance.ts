@@ -1030,32 +1030,26 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (marketType, subType)) {
             rawMarketType = 'delivery';
         }
-        const isBidsAsks = (channelName === 'bookTicker');
-        const hashPrefix = (isBidsAsks ? 'bidask' : 'ticker');
-        const rawSubscriptions = [];
+        const isBidAsk = (channelName === 'bookTicker');
+        const subscriptionArgs = [];
         const messageHashes = [];
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
-                const subscribeHash = market['lowercaseId'] + '@' + channelName;
-                rawSubscriptions.push (subscribeHash);
-                const messageHash = hashPrefix + '_' + channelName + ':' + market['symbol'];
-                messageHashes.push (messageHash);
+                subscriptionArgs.push (market['lowercaseId'] + '@' + channelName);
+                messageHashes.push (this.getMessageHash (channelName, market['symbol'], isBidAsk));
             }
         } else {
-            let subscribeHash = undefined;
-            if (isBidsAsks) {
+            if (isBidAsk) {
                 if (marketType === 'spot') {
                     throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
                 }
-                subscribeHash = '!' + channelName;
+                subscriptionArgs.push ('!' + channelName);
             } else {
-                subscribeHash = '!' + channelName + '@arr';
+                subscriptionArgs.push ('!' + channelName + '@arr');
             }
-            rawSubscriptions.push (subscribeHash);
-            const messageHash = hashPrefix + '_' + channelName + 's'; // in the end add 's' for plural form (i.e. tickers, bidasks)
-            messageHashes.push (messageHash);
+            messageHashes.push (this.getMessageHash (channelName, undefined, isBidAsk));
         }
         let streamHash = channelName;
         if (symbolsDefined) {
@@ -1065,13 +1059,13 @@ export default class binance extends binanceRest {
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
-            'params': rawSubscriptions,
+            'params': subscriptionArgs,
             'id': requestId,
         };
         const subscribe = {
             'id': requestId,
         };
-        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions, subscribe);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionArgs, subscribe);
         // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
         // ticker dict comes in, otherwise all-tickers dict comes in
         if (!symbolsDefined) {
@@ -1178,7 +1172,7 @@ export default class binance extends binanceRest {
         //         "A": "2.52500800"
         //     }
         //
-        this.handleTickersAndBidsAsks (client, message, 'bidsasks');
+        this.handleTickersAndBidsAsks (client, message, 'bidasks');
     }
 
     handleTickers (client: Client, message) {
@@ -1217,7 +1211,7 @@ export default class binance extends binanceRest {
     handleTickersAndBidsAsks (client: Client, message, methodType) {
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
-        const isBidsAsks = (methodType === 'bidsasks');
+        const isBidAsk = (methodType === 'bidasks');
         let channelName = undefined;
         const resolvedMessageHashes = [];
         let rawTickers = [];
@@ -1230,28 +1224,38 @@ export default class binance extends binanceRest {
         for (let i = 0; i < rawTickers.length; i++) {
             const ticker = rawTickers[i];
             let event = this.safeString (ticker, 'e');
-            const parsedTicker = this.parseWsTicker (ticker, marketType);
-            const symbol = parsedTicker['symbol'];
-            newTickers[symbol] = parsedTicker;
-            if (isBidsAsks) {
+            if (isBidAsk) {
                 event = 'bookTicker'; // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
-                this.bidsasks[symbol] = parsedTicker;
-            } else {
-                this.tickers[symbol] = parsedTicker;
             }
             channelName = this.safeString (this.options['tickerChannelsMap'], event, event);
             if (channelName === undefined) {
                 continue;
             }
-            const messageHash = symbol + '@' + channelName;
+            const parsedTicker = this.parseWsTicker (ticker, marketType);
+            const symbol = parsedTicker['symbol'];
+            newTickers[symbol] = parsedTicker;
+            if (isBidAsk) {
+                this.bidsasks[symbol] = parsedTicker;
+            } else {
+                this.tickers[symbol] = parsedTicker;
+            }
+            const messageHash = this.getMessageHash (channelName, symbol, isBidAsk);
             resolvedMessageHashes.push (messageHash);
             client.resolve (parsedTicker, messageHash);
         }
         // resolve batch endpoint
         const length = resolvedMessageHashes.length;
         if (length > 0) {
-            const batchMessageHash = isBidsAsks ? '!bookTicker' : ('!' + channelName + '@arr');
+            const batchMessageHash = this.getMessageHash (channelName, undefined, isBidAsk);
             client.resolve (newTickers, batchMessageHash);
+        }
+    }
+
+    getMessageHash (channelName: string, symbol: Str, isBidAsk: boolean) {
+        if (symbol !== undefined) {
+            return (isBidAsk ? 'bidask' : 'ticker') + ':' + channelName + '@' + symbol;
+        } else {
+            return (isBidAsk ? 'bidasks' : 'tickers') + ':' + channelName;
         }
     }
 
