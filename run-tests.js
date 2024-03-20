@@ -3,7 +3,7 @@
 A tests launcher. Runs tests for all languages and all exchanges, in
 parallel, with a humanized error reporting.
 
-Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [symbol] [method]
+Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [method|symbol]
 
 --------------------------------------------------------------------------- */
 
@@ -46,7 +46,7 @@ const exchangeSpecificFlags = {
 }
 
 let exchanges = []
-let symbol = undefined
+let symbol = 'all'
 let method = undefined
 let maxConcurrency = 5 // Number.MAX_VALUE // no limit
 
@@ -61,8 +61,8 @@ for (const arg of args) {
             log.bright.red ('\nUnknown option', arg.white, '\n');
         }
     }
+    else if (arg.includes ('()'))            { method = arg }
     else if (arg.includes ('/'))             { symbol = arg }
-    else if (arg.includes ('()'))           { method = arg }
     else if (Number.isFinite (Number (arg))) { maxConcurrency = Number (arg) }
     else                                     { exchanges.push (arg) }
 }
@@ -259,7 +259,7 @@ const testExchange = async (exchange) => {
 
 /*  Run tests for all/selected languages (in parallel)     */
     let args = [exchange];
-    if (symbol !== undefined) {
+    if (symbol !== undefined && symbol !== 'all') {
         args.push(symbol);
     }
     if (method !== undefined) {
@@ -345,7 +345,7 @@ const testExchange = async (exchange) => {
                 '\n|-------------- INFO --------------|\n' +
                 infos.join('\n') +
                 '\n|--------------------------------------------|\n'
-            ).white);
+            ).blue);
         }
     }
 /*  Return collected data to main loop     */
@@ -433,7 +433,7 @@ async function testAllExchanges () {
     // show output like `Testing { exchanges: ["binance"], symbol: "all", debugKeys: { '--warnings': false, '--info': true }, langKeys: { '--ts': false, '--js': false, '--php': false, '--python': false, '--python-async': false, '--php-async': false }, exchangeSpecificFlags: { '--ws': true, '--sandbox': false, '--verbose': false, '--private': false, '--privateOnly': false }, maxConcurrency: 100 }`
     log.bright.magenta.noPretty (
         'Testing'.white, 
-        Object.assign ({ exchanges, "symbol": symbol, "method": method, debugKeys, langKeys, exchangeSpecificFlags }, maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency })
+        Object.assign ({ exchanges, method, symbol, debugKeys, langKeys, exchangeSpecificFlags }, maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency })
     )
 
     const tested    = await testAllExchanges ()
