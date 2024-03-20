@@ -4554,6 +4554,7 @@ public partial class gate : Exchange
             { "failed", "canceled" },
             { "expired", "canceled" },
             { "finished", "closed" },
+            { "finish", "closed" },
             { "succeeded", "closed" },
         };
         return this.safeString(statuses, status, status);
@@ -6612,6 +6613,7 @@ public partial class gate : Exchange
         * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
         * @param {int} [limit] default 30
         * @param {object} [params] exchange specific parameters
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
         */
         timeframe ??= "5m";

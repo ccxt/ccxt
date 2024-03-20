@@ -682,7 +682,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://docs.deribit.com/#private-get_subaccounts

@@ -2658,7 +2658,7 @@ class bybit extends Exchange {
         //
         $id = $this->safe_string_n($trade, array( 'execId', 'id', 'tradeId' ));
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketType = 'contract';
+        $marketType = (is_array($trade) && array_key_exists('createType', $trade)) ? 'contract' : 'spot';
         if ($market !== null) {
             $marketType = $market['type'];
         }
@@ -6787,6 +6787,7 @@ class bybit extends Exchange {
              * @param {int} [$since] Not used by Bybit
              * @param {int} [$limit] The number of open interest structures to return. Max 200, default 50
              * @param {array} [$params] Exchange specific parameters
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return An array of open interest structures
              */
             if ($timeframe === '1m') {

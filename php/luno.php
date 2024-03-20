@@ -266,7 +266,7 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances

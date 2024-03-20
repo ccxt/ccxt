@@ -54,7 +54,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
             },
-            'errors': {
+            'exceptions': {
                 'exact': {
                     'Unable to authenticate': AuthenticationError,
                 },

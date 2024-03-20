@@ -750,7 +750,7 @@ class ascendex extends ascendex$1 {
             {
                 'id': accountGroup,
                 'type': undefined,
-                'currency': undefined,
+                'code': undefined,
                 'info': response,
             },
         ];
@@ -2730,7 +2730,8 @@ class ascendex extends ascendex$1 {
         if (Precise["default"].stringEq(notional, '0')) {
             notional = this.safeString(position, 'sellOpenOrderNotional');
         }
-        const marginMode = this.safeString(position, 'marginType');
+        const marginType = this.safeString(position, 'marginType');
+        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
         let collateral = undefined;
         if (marginMode === 'isolated') {
             collateral = this.safeString(position, 'isolatedMargin');
