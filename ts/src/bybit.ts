@@ -8087,10 +8087,14 @@ export default class bybit extends Exchange {
             const tier = info[i];
             const marketId = this.safeString (info, 'symbol');
             market = this.safeMarket (marketId);
+            let minNotional = this.parseNumber ('0');
+            if (i !== 0) {
+                minNotional = this.safeNumber (info[i - 1], 'riskLimitValue');
+            }
             tiers.push ({
                 'tier': this.safeInteger (tier, 'id'),
                 'currency': market['settle'],
-                'minNotional': undefined,
+                'minNotional': minNotional,
                 'maxNotional': this.safeNumber (tier, 'riskLimitValue'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
                 'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
