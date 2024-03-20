@@ -332,6 +332,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (messageLength === 2) {
             // initial snapshot
             const trades = this.safeList (message, 1, []);
+            // needs to be reversed to make chronological order
             const length = trades.length;
             for (let i = 0; i < length; i++) {
                 const index = length - i - 1;
