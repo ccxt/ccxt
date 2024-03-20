@@ -151,18 +151,37 @@ export default class delta extends deltaRest {
         await this.loadMarkets ();
         const subscriptionHash = 'v2/ticker';
         const messageHash = 'tickers';
+        const messageHashes = [];
+        let symbolsSub = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push ('ticker:' + this.symbol (symbol));
+                symbolsSub.push (this.marketId (symbol));
+            }
+        } else {
+            symbolsSub = [ 'all' ];
+            messageHashes.push (messageHash);
+        }
         const request = {
             'type': 'subscribe',
             'payload': {
                 'channels': [
                     {
                         'name': subscriptionHash,
+                        'symbols': symbolsSub,
                     },
                 ],
             },
         };
-        const tickers = await this.watchMany (messageHash, request, subscriptionHash, symbols, params);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        const url = this.urls['api']['ws'];
+        const tickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), symbolsSub);
+        if (this.newUpdates) {
+            const result = {};
+            result[tickers['symbol']] = tickers;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
@@ -199,7 +218,7 @@ export default class delta extends deltaRest {
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
         this.tickers[symbol] = this.parseTicker (message);
-        client.resolve (this.tickers[symbol], symbol);
+        client.resolve (this.tickers[symbol], 'ticker:' + symbol);
         client.resolve (this.tickers, 'tickers');
     }
 
