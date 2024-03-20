@@ -1438,7 +1438,7 @@ export default class woo extends Exchange {
         //
         const data = this.safeValue (response, 'data', response);
         const orders = this.safeList (data, 'rows');
-        return this.parseOrders (orders, market, since, limit, params);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
