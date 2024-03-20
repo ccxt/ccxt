@@ -3052,7 +3052,7 @@ public partial class coinbase : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 100);
+            return await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 1000);
         }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))

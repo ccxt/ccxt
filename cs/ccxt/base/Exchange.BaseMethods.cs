@@ -3111,6 +3111,12 @@ public partial class Exchange
 
     public virtual object checkRequiredCredentials(object error = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @param {boolean} error throw an error that a credential is required if true
+        * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
+        */
         error ??= true;
         object keys = new List<object>(((IDictionary<string,object>)this.requiredCredentials).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))

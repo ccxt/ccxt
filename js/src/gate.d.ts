@@ -9,7 +9,7 @@ export default class gate extends Exchange {
     setSandboxMode(enable: boolean): void;
     convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     fetchMarkets(params?: {}): Promise<any>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchContractMarkets(params?: {}): Promise<any[]>;

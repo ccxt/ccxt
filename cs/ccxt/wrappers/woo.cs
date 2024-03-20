@@ -465,6 +465,12 @@ public partial class woo
     /// boolean : set to true if you want to fetch trailing orders
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : set to true if you want to fetch orders with pagination
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -573,6 +579,7 @@ public partial class woo
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -590,6 +597,12 @@ public partial class woo
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : set to true if you want to fetch trades with pagination
     /// </description>
     /// </item>
     /// </list>

@@ -1529,7 +1529,7 @@ export default class phemex extends phemexRest {
             if (!(messageHash in client.subscriptions)) {
                 client.subscriptions[subscriptionHash] = this.handleAuthenticate;
             }
-            future = this.watch (url, messageHash, message);
+            future = await this.watch (url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

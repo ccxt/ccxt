@@ -1364,9 +1364,15 @@ export default class woo extends Exchange {
          * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
          * @param {string} [params.side] 'buy' or 'sell'
          * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+         * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', 500) as Order[];
+        }
         const request = {};
         let market: Market = undefined;
         const stop = this.safeBool2 (params, 'stop', 'trigger');
@@ -1382,6 +1388,11 @@ export default class woo extends Exchange {
             } else {
                 request['start_t'] = since;
             }
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        } else {
+            request['size'] = 500;
         }
         if (stop) {
             request['algoType'] = 'stop';
@@ -1752,14 +1763,21 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchMyTrades
+         * @see https://docs.woo.org/#get-trades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
+        }
         const request = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -1768,6 +1786,11 @@ export default class woo extends Exchange {
         }
         if (since !== undefined) {
             request['start_t'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        } else {
+            request['size'] = 500;
         }
         const response = await this.v1PrivateGetClientTrades (this.extend (request, params));
         // {

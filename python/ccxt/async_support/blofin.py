@@ -1194,6 +1194,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: True if cancelling a trigger/conditional order/tp sl orders
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -1203,12 +1204,20 @@ class blofin(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
+        isTrigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl'], False)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
         else:
-            request['orderId'] = id
-        query = self.omit(params, ['orderId', 'clientOrderId'])
+            if not isTrigger:
+                request['orderId'] = str(id)
+            else:
+                request['tpslId'] = str(id)
+        query = self.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl'])
+        if isTrigger:
+            tpslResponse = await self.cancel_orders([id], symbol, params)
+            first = self.safe_dict(tpslResponse, 0)
+            return first
         response = await self.privatePostTradeCancelOrder(self.extend(request, query))
         data = self.safe_list(response, 'data', [])
         order = self.safe_dict(data, 0)

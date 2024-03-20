@@ -2931,7 +2931,7 @@ class coinbase extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100));
+                return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 1000));
             }
             $market = null;
             if ($symbol !== null) {

@@ -550,7 +550,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         #
         return [
-            self.safe_integer(ohlcv, 'T'),
+            self.safe_integer(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),
