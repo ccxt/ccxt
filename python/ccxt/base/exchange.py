@@ -1171,7 +1171,7 @@ class Exchange(object):
             return None
 
         try:
-            utc = datetime.datetime.utcfromtimestamp(timestamp // 1000)
+            utc = datetime.datetime.fromtimestamp(timestamp // 1000, datetime.timezone.utc)
             return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
         except (TypeError, OverflowError, OSError):
             return None
@@ -1187,13 +1187,13 @@ class Exchange(object):
 
     @staticmethod
     def dmy(timestamp, infix='-'):
-        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
         return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
 
     @staticmethod
     def ymd(timestamp, infix='-', fullYear=True):
         year_format = '%Y' if fullYear else '%y'
-        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
         return utc_datetime.strftime(year_format + infix + '%m' + infix + '%d')
 
     @staticmethod
@@ -1206,7 +1206,7 @@ class Exchange(object):
 
     @staticmethod
     def ymdhms(timestamp, infix=' '):
-        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
