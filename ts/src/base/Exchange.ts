@@ -551,6 +551,7 @@ export default class Exchange {
                 'fetchIndexOHLCV': undefined,
                 'fetchIsolatedBorrowRate': undefined,
                 'fetchIsolatedBorrowRates': undefined,
+                'fetchIsolatedMarginAdjustmentHistory': undefined,
                 'fetchIsolatedPositions': undefined,
                 'fetchL2OrderBook': true,
                 'fetchL3OrderBook': undefined,
@@ -589,6 +590,7 @@ export default class Exchange {
                 'fetchOrderWs': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionHistory': undefined,
                 'fetchPositionMode': undefined,
                 'fetchPositions': undefined,
                 'fetchPositionsForSymbol': undefined,
@@ -2391,6 +2393,31 @@ export default class Exchange {
 
     async setMargin (symbol: string, amount: number, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setMargin() is not supported yet');
+    }
+
+    async fetchIsolatedMarginAdjustmentHistory (symbol: Str = undefined, addOrReduce: Str = undefined, params = {}): Promise<[]> {
+        /**
+         * @method
+         * @name exchange#fetchIsolatedMarginAdjustmentHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {string} [addOrReduce] "add" or "reduce"
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        throw new NotSupported (this.id + ' fetchIsolatedMarginAdjustmentHistory() is not supported yet');
+    }
+
+    async fetchPositionHistory (symbol: Str = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        throw new NotSupported (this.id + ' fetchPositionHistory() is not supported yet');
     }
 
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<{}> {

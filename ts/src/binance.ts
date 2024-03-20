@@ -119,6 +119,7 @@ export default class binance extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
@@ -12238,5 +12239,24 @@ export default class binance extends Exchange {
             'symbol': market['symbol'],
             'marginMode': isIsolated ? 'isolated' : 'cross',
         };
+    }
+
+    async fetchIsolatedMarginAdjustmentHistory (symbol: Str = undefined, addOrReduce: Str = undefined, params = {}): Promise<[]> {
+        /**
+         * @method
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://binance-docs.github.io/apidocs/futures/en/#get-position-margin-change-history-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#get-position-margin-change-history-trade
+         * @param {string} [symbol] unified market symbol
+         * @param {string} [addOrReduce] "add" or "reduce"
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let response = undefined;
+        response = await this.fapiPrivateGetPositionMarginHistory (this.extend (request, params));
+        response = await this.dapiPrivateGetPositionMarginHistory (this.extend (request, params));
+        return response;
     }
 }

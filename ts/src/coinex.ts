@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Leverages, Num, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -5520,5 +5520,38 @@ export default class coinex extends Exchange {
             throw new ExchangeError (feedback);
         }
         return undefined;
+    }
+
+    async fetchIsolatedMarginAdjustmentHistory (symbol: Str = undefined, addOrReduce: Str = undefined, params = {}): Promise<[]> {
+        /**
+         * @method
+         * @name coinex#fetchIsolatedMarginAdjustmentHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history
+         * @param {string} [symbol] unified market symbol
+         * @param {string} [addOrReduce] "add" or "reduce"
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.perpetualPrivateGetPositionMarginHistory (this.extend (request, params));
+        return response;
+    }
+
+    async fetchPositionHistory (symbol: Str = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name coinex#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position
+         * @param {string} [symbol] unified market symbol
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.perpetualPrivateGetPositionFinished (this.extend (request, params));
+        return response;
     }
 }

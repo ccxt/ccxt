@@ -82,6 +82,7 @@ export default class bitget extends Exchange {
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': true,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedMarginAdjustmentHistory': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
@@ -8330,6 +8331,22 @@ export default class bitget extends Exchange {
             'symbol': market['symbol'],
             'marginMode': marginType,
         } as MarginMode;
+    }
+
+    async fetchPositionHistory (symbol: Str = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name bitget#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+         * @param {string} [symbol] unified market symbol
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.privateMixGetMixV1PositionHistoryPosition (this.extend (request, params));
+        return response;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

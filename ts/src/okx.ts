@@ -7470,4 +7470,26 @@ export default class okx extends Exchange {
         }
         return undefined;
     }
+
+    async fetchIsolatedMarginAdjustmentHistory (symbol: Str = undefined, addOrReduce: Str = undefined, params = {}): Promise<[]> {
+        /**
+         * @method
+         * @name okx#fetchIsolatedMarginAdjustmentHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+         * @param {string} [symbol] unified market symbol
+         * @param {string} [addOrReduce] "add" or "reduce"
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'subType': '160', // or 161/162
+        };
+        let response = undefined;
+        response = await this.privateGetAccountBills (this.extend (request, params));
+        response = await this.privateGetAccountBillsArchive (this.extend (request, params));
+        return response;
+    }
 }
