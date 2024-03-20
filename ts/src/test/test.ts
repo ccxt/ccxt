@@ -334,18 +334,19 @@ export default class testMainClass extends baseMainTestClass {
         const skippedFile = this.rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
         this.skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
+        const skippedSettingsForExchange = this.skippedSettingsForExchange;
         // others
-        const timeout = exchange.safeValue (this.skippedSettingsForExchange, 'timeout');
+        const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
             exchange.timeout = exchange.parseToInt (timeout);
         }
         if (getCliArgValue ('--useProxy')) {
-            exchange.httpProxy = exchange.safeString (this.skippedSettingsForExchange, 'httpProxy');
-            exchange.httpsProxy = exchange.safeString (this.skippedSettingsForExchange, 'httpsProxy');
-            exchange.wsProxy = exchange.safeString (this.skippedSettingsForExchange, 'wsProxy');
-            exchange.wssProxy = exchange.safeString (this.skippedSettingsForExchange, 'wssProxy');
+            exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
+            exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
+            exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
+            exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
         }
-        this.skippedMethods = exchange.safeValue (this.skippedSettingsForExchange, 'skipMethods', {});
+        this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
 
