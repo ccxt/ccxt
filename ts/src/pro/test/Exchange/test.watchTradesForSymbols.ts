@@ -3,7 +3,7 @@ import assert from 'assert';
 import testTrade from '../../../test/Exchange/base/test.trade.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 
-async function watchTradesForSymbols (exchange, skippedProperties, symbols) {
+async function testWatchTradesForSymbols (exchange, skippedProperties, symbols) {
     const method = 'watchTradesForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
@@ -31,4 +31,4 @@ async function watchTradesForSymbols (exchange, skippedProperties, symbols) {
     }
 }
 
-export default watchTradesForSymbols;
+export default testWatchTradesForSymbols;
