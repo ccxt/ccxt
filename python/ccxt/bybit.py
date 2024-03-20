@@ -7525,11 +7525,14 @@ class bybit(Exchange, ImplicitAPI):
             tier = info[i]
             marketId = self.safe_string(info, 'symbol')
             market = self.safe_market(marketId)
+            minNotional = self.parse_number('0')
+            if i != 0:
+                minNotional = self.safe_number(info[i - 1], 'riskLimitValue')
             tiers.append({
                 'tier': self.safe_integer(tier, 'id'),
                 'currency': market['settle'],
-                'minNotional': None,
-                'maxNotional': None,
+                'minNotional': minNotional,
+                'maxNotional': self.safe_number(tier, 'riskLimitValue'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMargin'),
                 'maxLeverage': self.safe_number(tier, 'maxLeverage'),
                 'info': tier,

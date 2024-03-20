@@ -8121,11 +8121,15 @@ class bybit extends Exchange {
             $tier = $info[$i];
             $marketId = $this->safe_string($info, 'symbol');
             $market = $this->safe_market($marketId);
+            $minNotional = $this->parse_number('0');
+            if ($i !== 0) {
+                $minNotional = $this->safe_number($info[$i - 1], 'riskLimitValue');
+            }
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'id'),
                 'currency' => $market['settle'],
-                'minNotional' => null,
-                'maxNotional' => null,
+                'minNotional' => $minNotional,
+                'maxNotional' => $this->safe_number($tier, 'riskLimitValue'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMargin'),
                 'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
                 'info' => $tier,

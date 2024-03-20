@@ -357,8 +357,8 @@ export interface Liquidation {
 }
 export interface OrderRequest {
     symbol: string;
-    type: Str;
-    side: Str;
+    type: OrderType;
+    side: OrderSide;
     amount?: number;
     price?: number | undefined;
     params?: any;

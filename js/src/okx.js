@@ -576,6 +576,7 @@ export default class okx extends Exchange {
                     '50027': PermissionDenied,
                     '50028': ExchangeError,
                     '50044': BadRequest,
+                    '50061': ExchangeError,
                     '50062': ExchangeError,
                     // API Class
                     '50100': ExchangeError,
@@ -763,6 +764,15 @@ export default class okx extends Exchange {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000': ExchangeError,
                     '54001': ExchangeError,
+                    // Trading bot Error Code from 55100 to 55999
+                    '55100': InvalidOrder,
+                    '55101': InvalidOrder,
+                    '55102': InvalidOrder,
+                    '55103': InvalidOrder,
+                    '55104': InvalidOrder,
+                    '55111': InvalidOrder,
+                    '55112': InvalidOrder,
+                    '55113': InvalidOrder,
                     // FUNDING error codes 58000-58999
                     '58000': ExchangeError,
                     '58001': AuthenticationError,
@@ -5024,6 +5034,14 @@ export default class okx extends Exchange {
             '3': 'pending',
             '4': 'pending',
             '5': 'pending',
+            '6': 'pending',
+            '7': 'pending',
+            '8': 'pending',
+            '9': 'pending',
+            '10': 'pending',
+            '12': 'pending',
+            '15': 'pending',
+            '16': 'pending',
         };
         return this.safeString(statuses, status, status);
     }

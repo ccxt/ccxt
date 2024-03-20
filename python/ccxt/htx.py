@@ -2848,63 +2848,68 @@ class htx(Exchange, ImplicitAPI):
             # 'from': int((since / str(1000))), spot only
             # 'to': self.seconds(), spot only
         }
-        price = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
+        priceType = self.safe_string_n(params, ['priceType', 'price'])
+        params = self.omit(params, ['priceType', 'price'])
+        until = None
+        until, params = self.handle_param_integer(params, 'until')
+        untilSeconds = self.parse_to_int(until / 1000) if (until is not None) else None
         if market['contract']:
             if limit is not None:
-                request['size'] = limit  # when using limit from and to are ignored
+                request['size'] = limit  # when using limit: from & to are ignored
                 # https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             else:
                 limit = 2000  # only used for from/to calculation
-            if price is None:
+            if priceType is None:
                 duration = self.parse_timeframe(timeframe)
+                calcualtedEnd = None
                 if since is None:
                     now = self.seconds()
                     request['from'] = now - duration * (limit - 1)
-                    request['to'] = now
+                    calcualtedEnd = now
                 else:
                     start = self.parse_to_int(since / 1000)
                     request['from'] = start
-                    request['to'] = self.sum(start, duration * (limit - 1))
+                    calcualtedEnd = self.sum(start, duration * (limit - 1))
+                request['to'] = untilSeconds if (untilSeconds is not None) else calcualtedEnd
         response = None
         if market['future']:
             if market['inverse']:
                 request['symbol'] = market['id']
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistoryMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
+                elif priceType == 'index':
                     response = self.contractPublicGetIndexMarketHistoryIndex(self.extend(request, params))
-                elif price == 'premiumIndex':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
+                elif priceType == 'premiumIndex':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
                 else:
                     response = self.contractPublicGetMarketHistoryKline(self.extend(request, params))
             elif market['linear']:
                 request['contract_code'] = market['id']
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
-                elif price == 'premiumIndex':
+                elif priceType == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
+                elif priceType == 'premiumIndex':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(self.extend(request, params))
                 else:
                     response = self.contractPublicGetLinearSwapExMarketHistoryKline(self.extend(request, params))
         elif market['swap']:
             request['contract_code'] = market['id']
             if market['inverse']:
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistorySwapMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
-                elif price == 'premiumIndex':
+                elif priceType == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
+                elif priceType == 'premiumIndex':
                     response = self.contractPublicGetIndexMarketHistorySwapPremiumIndexKline(self.extend(request, params))
                 else:
                     response = self.contractPublicGetSwapExMarketHistoryKline(self.extend(request, params))
             elif market['linear']:
-                if price == 'mark':
+                if priceType == 'mark':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(self.extend(request, params))
-                elif price == 'index':
-                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data')
-                elif price == 'premiumIndex':
+                elif priceType == 'index':
+                    raise BadRequest(self.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data')
+                elif priceType == 'premiumIndex':
                     response = self.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(self.extend(request, params))
                 else:
                     response = self.contractPublicGetLinearSwapExMarketHistoryKline(self.extend(request, params))
@@ -2913,15 +2918,17 @@ class htx(Exchange, ImplicitAPI):
             useHistorical = None
             useHistorical, params = self.handle_option_and_params(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', True)
             if not useHistorical:
-                # `limit` only available for the self endpoint
                 if limit is not None:
-                    request['size'] = limit  # max 2000
+                    request['size'] = min(2000, limit)  # max 2000
                 response = self.spotPublicGetMarketHistoryKline(self.extend(request, params))
             else:
-                # `since` only available for the self endpoint
+                # "from & to" only available for the self endpoint
                 if since is not None:
-                    # default 150 bars
                     request['from'] = self.parse_to_int(since / 1000)
+                if untilSeconds is not None:
+                    request['to'] = untilSeconds
+                if limit is not None:
+                    request['size'] = min(1000, limit)  # max 1000, otherwise default returns 150
                 response = self.spotPublicGetMarketHistoryCandles(self.extend(request, params))
         #
         #     {
@@ -2935,7 +2942,7 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_accounts(self, params={}) -> List[Account]:

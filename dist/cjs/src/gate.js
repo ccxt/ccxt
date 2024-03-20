@@ -49,6 +49,7 @@ class gate extends gate$1 {
                         'rebate': 'https://api.gateio.ws/api/v4',
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
+                        'loan': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {

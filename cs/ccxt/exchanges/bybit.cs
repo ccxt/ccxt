@@ -8711,11 +8711,16 @@ public partial class bybit : Exchange
             object tier = getValue(info, i);
             object marketId = this.safeString(info, "symbol");
             market = this.safeMarket(marketId);
+            object minNotional = this.parseNumber("0");
+            if (isTrue(!isEqual(i, 0)))
+            {
+                minNotional = this.safeNumber(getValue(info, subtract(i, 1)), "riskLimitValue");
+            }
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "id") },
                 { "currency", getValue(market, "settle") },
-                { "minNotional", null },
-                { "maxNotional", null },
+                { "minNotional", minNotional },
+                { "maxNotional", this.safeNumber(tier, "riskLimitValue") },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin") },
                 { "maxLeverage", this.safeNumber(tier, "maxLeverage") },
                 { "info", tier },
