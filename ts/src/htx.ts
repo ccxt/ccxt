@@ -2958,6 +2958,7 @@ export default class htx extends Exchange {
             // 'from': parseInt ((since / 1000).toString ()), spot only
             // 'to': this.seconds (), spot only
         };
+        let useHistorical = undefined;
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
         if (market['contract']) {
@@ -2977,6 +2978,23 @@ export default class htx extends Exchange {
                     const start = this.parseToInt (since / 1000);
                     request['from'] = start;
                     request['to'] = this.sum (start, duration * (limit - 1));
+                }
+            }
+        } else {
+            request['symbol'] = market['id'];
+            [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
+            if (!useHistorical) {
+                if (limit !== undefined) {
+                    request['size'] = Math.min (2000, limit); // max 2000
+                }
+            } else {
+                // `since` only available for the this endpoint
+                if (since !== undefined) {
+                    // default 150 bars
+                    request['from'] = this.parseToInt (since / 1000);
+                }
+                if (limit !== undefined) {
+                    request['size'] = Math.min (1000, limit); // max 1000
                 }
             }
         }
@@ -3029,21 +3047,9 @@ export default class htx extends Exchange {
                 }
             }
         } else {
-            request['symbol'] = market['id'];
-            let useHistorical = undefined;
-            [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
             if (!useHistorical) {
-                // `limit` only available for the this endpoint
-                if (limit !== undefined) {
-                    request['size'] = limit; // max 2000
-                }
                 response = await this.spotPublicGetMarketHistoryKline (this.extend (request, params));
             } else {
-                // `since` only available for the this endpoint
-                if (since !== undefined) {
-                    // default 150 bars
-                    request['from'] = this.parseToInt (since / 1000);
-                }
                 response = await this.spotPublicGetMarketHistoryCandles (this.extend (request, params));
             }
         }
