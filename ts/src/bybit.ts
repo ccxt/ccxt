@@ -8091,7 +8091,7 @@ export default class bybit extends Exchange {
                 'tier': this.safeInteger (tier, 'id'),
                 'currency': market['settle'],
                 'minNotional': undefined,
-                'maxNotional': undefined,
+                'maxNotional': this.safeNumber (tier, 'riskLimitValue'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
                 'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
                 'info': tier,
