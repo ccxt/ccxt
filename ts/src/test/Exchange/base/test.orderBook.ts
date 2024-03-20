@@ -19,7 +19,7 @@ function testOrderBook (exchange, skippedProperties, method, orderbook, symbol =
         'nonce': 134234234,
         // 'info': {},
     };
-    const emptyAllowedFor = [ 'symbol', 'nonce', 'datetime', 'timestamp' ]; // todo: make timestamp required
+    const emptyAllowedFor = [ 'nonce' ]; // todo: make timestamp required
     testSharedMethods.assertStructure (exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, orderbook, 'symbol', symbol);
