@@ -10,14 +10,7 @@
                 "url": "https://www.bitstamp.net/api/v2/account_balances/",
                 "input": [],
                 "output": "foo=bar"
-            },
-            {
-                "description": "Fetch subAccount balance",
-                "method": "fetchBalance",
-                "url": "https://www.bitstamp.net/api/v2/account_balances/",
-                "input": [],
-                "output": "foo=bar"
-              }
+            }
         ],
         "fetchLedger": [
             {
