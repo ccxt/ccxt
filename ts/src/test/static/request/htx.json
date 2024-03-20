@@ -1066,16 +1066,17 @@
                 ]
             },
             {
-                "description": "spot 1m +since +limit +until without useHistoricalEndpointForSpot",
+                "description": "+1m +since +limit +until (without useHistoricalEndpointForSpot)",
                 "method": "fetchOHLCV",
-                "url": "https://api.huobi.pro/market/history/kline?period=1min&size=5&symbol=btcusdt",      
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=btcusdt&from=1620000000&to=1620000000&size=5&useHistoricalEndpoint=false",
                 "input": [
                   "BTC/USDT",
                   "1m",
                   1620000000000,
                   5,
                   {
-                    "useHistoricalEndpointForSpot": false
+                    "until": 1620000000000,
+                    "useHistoricalEndpoint": false
                   }
                 ]
             },
