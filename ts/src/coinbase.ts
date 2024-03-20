@@ -2263,9 +2263,9 @@ export default class coinbase extends Exchange {
         };
     }
 
-    async findAccountId (code) {
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+    async findAccountId (code, params = {}) {
+        await this.loadMarkets (false, params);
+        await this.loadAccounts (false, params);
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
             if (account['code'] === code) {
@@ -2296,7 +2296,7 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code);
+            accountId = await this.findAccountId (code, params);
             if (accountId === undefined) {
                 throw new ExchangeError (this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code);
             }
@@ -3443,7 +3443,7 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code);
+            accountId = await this.findAccountId (code, params);
             if (accountId === undefined) {
                 throw new ExchangeError (this.id + ' withdraw() could not find account id for ' + code);
             }
@@ -3671,7 +3671,7 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' deposit() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code);
+            accountId = await this.findAccountId (code, params);
             if (accountId === undefined) {
                 throw new ExchangeError (this.id + ' deposit() could not find account id for ' + code);
             }
@@ -3742,7 +3742,7 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code);
+            accountId = await this.findAccountId (code, params);
             if (accountId === undefined) {
                 throw new ExchangeError (this.id + ' fetchDeposit() could not find account id for ' + code);
             }
