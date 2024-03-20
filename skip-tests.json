@@ -644,6 +644,7 @@
     },
     "coinex": {
         "skipWs": "timeouts",
+        "skipCSharp": "service busy: https://app.travis-ci.com/github/ccxt/ccxt/builds/269539760#L3513",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode":"broken",
