@@ -8,7 +8,6 @@ import Precise from '../../base/Precise.js';
 async function testFetchTrades (exchange, skippedProperties, symbol) {
     const method = 'fetchTrades';
     const trades = await exchange.fetchTrades (symbol, undefined, 12000); // lets test with unrealistically high amount
-    const logText = testSharedMethods.logTemplate (exchange, method, trades);
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, trades);
     await testFetchTrades_Structure (exchange, skippedProperties, symbol, method, trades);
     await testFetchTrades_ArrayValues (exchange, skippedProperties, symbol, method, trades);
@@ -16,7 +15,6 @@ async function testFetchTrades (exchange, skippedProperties, symbol) {
 }
 
 async function testFetchTrades_Structure (exchange, skippedProperties, symbol, method, trades) {
-    const logText = testSharedMethods.logTemplate (exchange, method, trades);
     const now = exchange.milliseconds ();
     for (let i = 0; i < trades.length; i++) {
         testTrade (exchange, skippedProperties, method, trades[i], symbol, now);
