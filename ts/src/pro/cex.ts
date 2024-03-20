@@ -1076,7 +1076,8 @@ export default class cex extends cexRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'ohlcv:' + symbol;
+        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
+        const messageHash = 'ohlcv-' + timeframe + ':' + symbol;
         const url = this.urls['api']['ws'];
         const request = {
             'e': 'init-ohlcv',
@@ -1163,7 +1164,7 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', {});
         const pair = this.safeString (data, 'pair');
         const symbol = this.pairToSymbol (pair);
-        const messageHash = 'ohlcv:' + symbol;
+        const messageHash = 'ohlcv-1m:' + symbol;
         const ohlcv = [
             this.safeTimestamp (data, 'time'),
             this.safeNumber (data, 'o'),
