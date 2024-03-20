@@ -173,7 +173,7 @@ public struct Trade
         cost = Exchange.SafeFloat(trade, "cost");
         id = Exchange.SafeString(trade, "id");
         orderId = Exchange.SafeString(trade, "orderId");
-        info = trade.ContainsKey("info") ? (Dictionary<string, object>)trade["info"] : null;
+        // info = trade.ContainsKey("info") ? (Dictionary<string, object>)trade["info"] : null;
         timestamp = Exchange.SafeInteger(trade, "timestamp");
         datetime = Exchange.SafeString(trade, "datetime");
         symbol = Exchange.SafeString(trade, "symbol");
@@ -181,6 +181,22 @@ public struct Trade
         side = Exchange.SafeString(trade, "side");
         takerOrMaker = Exchange.SafeString(trade, "takerOrMaker");
         fee = trade.ContainsKey("fee") ? new Fee(trade["fee"]) : null;
+
+        var tradeInfo = trade["info"];
+        if (tradeInfo is IDictionary<string, object>)
+        {
+            info = (Dictionary<string, object>)tradeInfo;
+        }
+        else if (tradeInfo is IList<object>)
+        {
+            info = new Dictionary<string, object> {
+                {"response", tradeInfo}
+            };
+        }
+        else
+        {
+            info = null;
+        }
     }
 }
 

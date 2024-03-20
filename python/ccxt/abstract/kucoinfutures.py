@@ -79,6 +79,7 @@ class ImplicitAPI:
     private_get_isolated_account_symbol = privateGetIsolatedAccountSymbol = Entry('isolated/account/{symbol}', 'private', 'GET', {'cost': 50})
     private_get_margin_borrow = privateGetMarginBorrow = Entry('margin/borrow', 'private', 'GET', {'cost': 15})
     private_get_margin_repay = privateGetMarginRepay = Entry('margin/repay', 'private', 'GET', {'cost': 15})
+    private_get_margin_interest = privateGetMarginInterest = Entry('margin/interest', 'private', 'GET', {'cost': 20})
     private_get_project_list = privateGetProjectList = Entry('project/list', 'private', 'GET', {'cost': 10})
     private_get_project_marketinterestrate = privateGetProjectMarketInterestRate = Entry('project/marketInterestRate', 'private', 'GET', {'cost': 7.5})
     private_get_redeem_orders = privateGetRedeemOrders = Entry('redeem/orders', 'private', 'GET', {'cost': 10})

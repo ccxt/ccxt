@@ -10,7 +10,7 @@ export default class okx extends Exchange {
     convertToInstrumentType(type: any): string;
     convertExpireDate(date: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     fetchStatus(params?: {}): Promise<{
         updated: any;
         status: string;

@@ -144,6 +144,16 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.delta.exchange/v2/deposits/address?asset_symbol=BTC",
+                "input": [
+                  "BTC"
+                ]
+            }
         ]
     }
 }

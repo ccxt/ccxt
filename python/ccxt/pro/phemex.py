@@ -1431,6 +1431,6 @@ class phemex(ccxt.async_support.phemex):
             message = self.extend(request, params)
             if not (messageHash in client.subscriptions):
                 client.subscriptions[subscriptionHash] = self.handle_authenticate
-            future = self.watch(url, messageHash, message)
+            future = await self.watch(url, messageHash, message, messageHash)
             client.subscriptions[messageHash] = future
         return future

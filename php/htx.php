@@ -2902,7 +2902,7 @@ class htx extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
          * @see https://huobiapi.github.io/docs/dm/v1/en/#get-kline-$data
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-$data
@@ -2931,48 +2931,53 @@ class htx extends Exchange {
             // 'from' => intval(($since / (string) 1000)), spot only
             // 'to' => $this->seconds(), spot only
         );
-        $price = $this->safe_string($params, 'price');
-        $params = $this->omit($params, 'price');
+        $priceType = $this->safe_string_n($params, array( 'priceType', 'price' ));
+        $params = $this->omit($params, array( 'priceType', 'price' ));
+        $until = null;
+        list($until, $params) = $this->handle_param_integer($params, 'until');
+        $untilSeconds = ($until !== null) ? $this->parse_to_int($until / 1000) : null;
         if ($market['contract']) {
             if ($limit !== null) {
-                $request['size'] = $limit; // when using $limit from and to are ignored
+                $request['size'] = $limit; // when using $limit => from & to are ignored
                 // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-$data
             } else {
                 $limit = 2000; // only used for from/to calculation
             }
-            if ($price === null) {
+            if ($priceType === null) {
                 $duration = $this->parse_timeframe($timeframe);
+                $calcualtedEnd = null;
                 if ($since === null) {
                     $now = $this->seconds();
                     $request['from'] = $now - $duration * ($limit - 1);
-                    $request['to'] = $now;
+                    $calcualtedEnd = $now;
                 } else {
                     $start = $this->parse_to_int($since / 1000);
                     $request['from'] = $start;
-                    $request['to'] = $this->sum($start, $duration * ($limit - 1));
+                    $calcualtedEnd = $this->sum($start, $duration * ($limit - 1));
                 }
+                $request['to'] = ($untilSeconds !== null) ? $untilSeconds : $calcualtedEnd;
             }
         }
         $response = null;
         if ($market['future']) {
             if ($market['inverse']) {
                 $request['symbol'] = $market['id'];
-                if ($price === 'mark') {
+                if ($priceType === 'mark') {
                     $response = $this->contractPublicGetIndexMarketHistoryMarkPriceKline (array_merge($request, $params));
-                } elseif ($price === 'index') {
+                } elseif ($priceType === 'index') {
                     $response = $this->contractPublicGetIndexMarketHistoryIndex (array_merge($request, $params));
-                } elseif ($price === 'premiumIndex') {
-                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
+                } elseif ($priceType === 'premiumIndex') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $priceType . ' kline data');
                 } else {
                     $response = $this->contractPublicGetMarketHistoryKline (array_merge($request, $params));
                 }
             } elseif ($market['linear']) {
                 $request['contract_code'] = $market['id'];
-                if ($price === 'mark') {
+                if ($priceType === 'mark') {
                     $response = $this->contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (array_merge($request, $params));
-                } elseif ($price === 'index') {
-                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-                } elseif ($price === 'premiumIndex') {
+                } elseif ($priceType === 'index') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $priceType . ' kline data');
+                } elseif ($priceType === 'premiumIndex') {
                     $response = $this->contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (array_merge($request, $params));
                 } else {
                     $response = $this->contractPublicGetLinearSwapExMarketHistoryKline (array_merge($request, $params));
@@ -2981,21 +2986,21 @@ class htx extends Exchange {
         } elseif ($market['swap']) {
             $request['contract_code'] = $market['id'];
             if ($market['inverse']) {
-                if ($price === 'mark') {
+                if ($priceType === 'mark') {
                     $response = $this->contractPublicGetIndexMarketHistorySwapMarkPriceKline (array_merge($request, $params));
-                } elseif ($price === 'index') {
-                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-                } elseif ($price === 'premiumIndex') {
+                } elseif ($priceType === 'index') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $priceType . ' kline data');
+                } elseif ($priceType === 'premiumIndex') {
                     $response = $this->contractPublicGetIndexMarketHistorySwapPremiumIndexKline (array_merge($request, $params));
                 } else {
                     $response = $this->contractPublicGetSwapExMarketHistoryKline (array_merge($request, $params));
                 }
             } elseif ($market['linear']) {
-                if ($price === 'mark') {
+                if ($priceType === 'mark') {
                     $response = $this->contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (array_merge($request, $params));
-                } elseif ($price === 'index') {
-                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $price . ' kline data');
-                } elseif ($price === 'premiumIndex') {
+                } elseif ($priceType === 'index') {
+                    throw new BadRequest($this->id . ' ' . $market['type'] . ' has no api endpoint for ' . $priceType . ' kline data');
+                } elseif ($priceType === 'premiumIndex') {
                     $response = $this->contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (array_merge($request, $params));
                 } else {
                     $response = $this->contractPublicGetLinearSwapExMarketHistoryKline (array_merge($request, $params));
@@ -3006,16 +3011,20 @@ class htx extends Exchange {
             $useHistorical = null;
             list($useHistorical, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
             if (!$useHistorical) {
-                // `$limit` only available for the this endpoint
                 if ($limit !== null) {
-                    $request['size'] = $limit; // max 2000
+                    $request['size'] = min (2000, $limit); // max 2000
                 }
                 $response = $this->spotPublicGetMarketHistoryKline (array_merge($request, $params));
             } else {
-                // `$since` only available for the this endpoint
+                // "from & to" only available for the this endpoint
                 if ($since !== null) {
-                    // default 150 bars
                     $request['from'] = $this->parse_to_int($since / 1000);
+                }
+                if ($untilSeconds !== null) {
+                    $request['to'] = $untilSeconds;
+                }
+                if ($limit !== null) {
+                    $request['size'] = min (1000, $limit); // max 1000, otherwise default returns 150
                 }
                 $response = $this->spotPublicGetMarketHistoryCandles (array_merge($request, $params));
             }
@@ -3032,7 +3041,7 @@ class htx extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 

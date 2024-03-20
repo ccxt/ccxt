@@ -103,7 +103,7 @@ class poloniex extends poloniex$1 {
                 },
             };
             const message = this.extend(request, params);
-            future = await this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             //
             //    {
             //        "data": {

@@ -415,7 +415,7 @@ public partial class kraken : Exchange
         * @method
         * @name kraken#fetchMarkets
         * @description retrieves data on all markets for kraken
-        * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs
+        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -628,7 +628,7 @@ public partial class kraken : Exchange
         * @method
         * @name kraken#fetchCurrencies
         * @description fetches all available currencies on an exchange
-        * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getAssetInfo
+        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an associative dictionary of currencies
         */
@@ -770,7 +770,7 @@ public partial class kraken : Exchange
         * @method
         * @name kraken#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
+        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -880,7 +880,7 @@ public partial class kraken : Exchange
         * @method
         * @name kraken#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -924,7 +924,7 @@ public partial class kraken : Exchange
         * @method
         * @name kraken#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -968,7 +968,7 @@ public partial class kraken : Exchange
         * @method
         * @name kraken#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
+        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1303,7 +1303,7 @@ public partial class kraken : Exchange
         * @method
         * @name kraken#fetchTrades
         * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
+        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -2604,7 +2604,7 @@ public partial class kraken : Exchange
         * @method
         * @name kraken#fetchTime
         * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime
+        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */

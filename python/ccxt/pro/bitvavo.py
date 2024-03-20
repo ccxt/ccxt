@@ -1140,7 +1140,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                 'timestamp': timestamp,
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
+            future = await self.watch(url, messageHash, message, messageHash)
             client.subscriptions[messageHash] = future
         return future
 

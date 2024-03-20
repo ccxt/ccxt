@@ -244,7 +244,7 @@ public partial class delta : Exchange
         };
     }
 
-    public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue(isTrue(isTrue((((string)marketId).EndsWith(((string)"-C")))) || isTrue((((string)marketId).EndsWith(((string)"-P"))))) || isTrue((((string)marketId).StartsWith(((string)"C-"))))) || isTrue((((string)marketId).StartsWith(((string)"P-"))))));
         if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
@@ -267,7 +267,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSettings(parameters);
         // full response sample under `fetchStatus`
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.safeIntegerProduct(result, "server_time", 0.001);
     }
 
@@ -335,7 +335,7 @@ public partial class delta : Exchange
         //         "success": true
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object underMaintenance = this.safeString(result, "under_maintenance");
         object status = ((bool) isTrue((isEqual(underMaintenance, "true")))) ? "maintenance" : "ok";
         object updated = this.safeIntegerProduct(result, "server_time", 0.001, this.milliseconds());
@@ -390,7 +390,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object currencies = this.safeValue(response, "result", new List<object>() {});
+        object currencies = this.safeList(response, "result", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
@@ -435,17 +435,39 @@ public partial class delta : Exchange
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         object markets = await base.loadMarkets(reload, parameters);
-        object currenciesByNumericId = this.safeValue(this.options, "currenciesByNumericId");
+        object currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
         if (isTrue(isTrue((isEqual(currenciesByNumericId, null))) || isTrue(reload)))
         {
-            ((IDictionary<string,object>)this.options)["currenciesByNumericId"] = this.indexBy(this.currencies, "numericId");
+            ((IDictionary<string,object>)this.options)["currenciesByNumericId"] = this.indexByStringifiedNumericId(this.currencies);
         }
-        object marketsByNumericId = this.safeValue(this.options, "marketsByNumericId");
+        object marketsByNumericId = this.safeDict(this.options, "marketsByNumericId");
         if (isTrue(isTrue((isEqual(marketsByNumericId, null))) || isTrue(reload)))
         {
-            ((IDictionary<string,object>)this.options)["marketsByNumericId"] = this.indexBy(this.markets, "numericId");
+            ((IDictionary<string,object>)this.options)["marketsByNumericId"] = this.indexByStringifiedNumericId(this.markets);
         }
         return markets;
+    }
+
+    public virtual object indexByStringifiedNumericId(object input)
+    {
+        object result = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(input, null)))
+        {
+            return null;
+        }
+        object keys = new List<object>(((IDictionary<string,object>)input).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object item = getValue(input, key);
+            object numericIdString = this.safeString(item, "numericId");
+            if (isTrue(isEqual(numericIdString, null)))
+            {
+                continue;
+            }
+            ((IDictionary<string,object>)result)[(string)numericIdString] = item;
+        }
+        return result;
     }
 
     public async override Task<object> fetchMarkets(object parameters = null)
@@ -638,7 +660,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object markets = this.safeValue(response, "result", new List<object>() {});
+        object markets = this.safeList(response, "result", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
@@ -649,10 +671,10 @@ public partial class delta : Exchange
                 continue;
             }
             // const settlingAsset = this.safeValue (market, 'settling_asset', {});
-            object quotingAsset = this.safeValue(market, "quoting_asset", new Dictionary<string, object>() {});
-            object underlyingAsset = this.safeValue(market, "underlying_asset", new Dictionary<string, object>() {});
-            object settlingAsset = this.safeValue(market, "settling_asset");
-            object productSpecs = this.safeValue(market, "product_specs", new Dictionary<string, object>() {});
+            object quotingAsset = this.safeDict(market, "quoting_asset", new Dictionary<string, object>() {});
+            object underlyingAsset = this.safeDict(market, "underlying_asset", new Dictionary<string, object>() {});
+            object settlingAsset = this.safeDict(market, "settling_asset");
+            object productSpecs = this.safeDict(market, "product_specs", new Dictionary<string, object>() {});
             object baseId = this.safeString(underlyingAsset, "symbol");
             object quoteId = this.safeString(quotingAsset, "symbol");
             object settleId = this.safeString(settlingAsset, "symbol");
@@ -892,7 +914,7 @@ public partial class delta : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object last = this.safeString(ticker, "close");
-        object quotes = this.safeValue(ticker, "quotes", new Dictionary<string, object>() {});
+        object quotes = this.safeDict(ticker, "quotes", new Dictionary<string, object>() {});
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1059,7 +1081,7 @@ public partial class delta : Exchange
         //         "success": true
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseTicker(result, market);
     }
 
@@ -1208,7 +1230,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object tickers = this.safeValue(response, "result", new List<object>() {});
+        object tickers = this.safeList(response, "result", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
@@ -1260,7 +1282,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrderBook(result, getValue(market, "symbol"), null, "buy", "sell", "price", "size");
     }
 
@@ -1319,7 +1341,7 @@ public partial class delta : Exchange
         timestamp = this.safeIntegerProduct(trade, "timestamp", 0.001, timestamp);
         object priceString = this.safeString(trade, "price");
         object amountString = this.safeString(trade, "size");
-        object product = this.safeValue(trade, "product", new Dictionary<string, object>() {});
+        object product = this.safeDict(trade, "product", new Dictionary<string, object>() {});
         object marketId = this.safeString(product, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object sellerRole = this.safeString(trade, "seller_role");
@@ -1335,7 +1357,7 @@ public partial class delta : Exchange
             }
         }
         object takerOrMaker = this.safeString(trade, "role");
-        object metaData = this.safeValue(trade, "meta_data", new Dictionary<string, object>() {});
+        object metaData = this.safeDict(trade, "meta_data", new Dictionary<string, object>() {});
         object type = this.safeString(metaData, "order_type");
         if (isTrue(!isEqual(type, null)))
         {
@@ -1345,7 +1367,7 @@ public partial class delta : Exchange
         object fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
-            object settlingAsset = this.safeValue(product, "settling_asset", new Dictionary<string, object>() {});
+            object settlingAsset = this.safeDict(product, "settling_asset", new Dictionary<string, object>() {});
             object feeCurrencyId = this.safeString(settlingAsset, "symbol");
             object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
@@ -1405,7 +1427,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseTrades(result, market, since, limit);
     }
 
@@ -1481,22 +1503,22 @@ public partial class delta : Exchange
         //         ]
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOHLCVs(result, market, timeframe, since, limit);
     }
 
     public override object parseBalance(object response)
     {
-        object balances = this.safeValue(response, "result", new List<object>() {});
+        object balances = this.safeList(response, "result", new List<object>() {});
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object currenciesByNumericId = this.safeValue(this.options, "currenciesByNumericId", new Dictionary<string, object>() {});
+        object currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId", new Dictionary<string, object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             object currencyId = this.safeString(balance, "asset_id");
-            object currency = this.safeValue(currenciesByNumericId, currencyId);
+            object currency = this.safeDict(currenciesByNumericId, currencyId);
             object code = ((bool) isTrue((isEqual(currency, null)))) ? currencyId : getValue(currency, "code");
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
@@ -1571,7 +1593,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parsePosition(result, market);
     }
 
@@ -1610,7 +1632,7 @@ public partial class delta : Exchange
         //         ]
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parsePositions(result, symbols);
     }
 
@@ -1740,7 +1762,7 @@ public partial class delta : Exchange
         object clientOrderId = this.safeString(order, "client_order_id");
         object timestamp = this.parse8601(this.safeString(order, "created_at"));
         object marketId = this.safeString(order, "product_id");
-        object marketsByNumericId = this.safeValue(this.options, "marketsByNumericId", new Dictionary<string, object>() {});
+        object marketsByNumericId = this.safeDict(this.options, "marketsByNumericId", new Dictionary<string, object>() {});
         market = this.safeValue(marketsByNumericId, marketId, market);
         object symbol = ((bool) isTrue((isEqual(market, null)))) ? marketId : getValue(market, "symbol");
         object status = this.parseOrderStatus(this.safeString(order, "state"));
@@ -1758,7 +1780,7 @@ public partial class delta : Exchange
             object feeCurrencyCode = null;
             if (isTrue(!isEqual(market, null)))
             {
-                object settlingAsset = this.safeValue(getValue(market, "info"), "settling_asset", new Dictionary<string, object>() {});
+                object settlingAsset = this.safeDict(getValue(market, "info"), "settling_asset", new Dictionary<string, object>() {});
                 object feeCurrencyId = this.safeString(settlingAsset, "symbol");
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             }
@@ -1825,7 +1847,7 @@ public partial class delta : Exchange
         {
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
-        object reduceOnly = this.safeValue(parameters, "reduceOnly");
+        object reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (isTrue(reduceOnly))
         {
             ((IDictionary<string,object>)request)["reduce_only"] = reduceOnly;
@@ -1868,7 +1890,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result, market);
     }
 
@@ -1921,7 +1943,7 @@ public partial class delta : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseOrder(result, market);
     }
 
@@ -1985,7 +2007,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseOrder(result, market);
     }
 
@@ -2104,7 +2126,7 @@ public partial class delta : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOrders(result, market, since, limit);
     }
 
@@ -2184,7 +2206,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseTrades(result, market, since, limit);
     }
 
@@ -2236,7 +2258,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseLedger(result, currency, since, limit);
     }
 
@@ -2274,7 +2296,7 @@ public partial class delta : Exchange
         object id = this.safeString(item, "uuid");
         object direction = null;
         object account = null;
-        object metaData = this.safeValue(item, "meta_data", new Dictionary<string, object>() {});
+        object metaData = this.safeDict(item, "meta_data", new Dictionary<string, object>() {});
         object referenceId = this.safeString(metaData, "transaction_id");
         object referenceAccount = null;
         object type = this.safeString(item, "transaction_type");
@@ -2286,8 +2308,8 @@ public partial class delta : Exchange
             direction = "out";
         }
         type = this.parseLedgerEntryType(type);
-        object currencyId = this.safeInteger(item, "asset_id");
-        object currenciesByNumericId = this.safeValue(this.options, "currenciesByNumericId");
+        object currencyId = this.safeString(item, "asset_id");
+        object currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
         currency = this.safeValue(currenciesByNumericId, currencyId, currency);
         object code = ((bool) isTrue((isEqual(currency, null)))) ? null : getValue(currency, "code");
         object amount = this.safeString(item, "amount");
@@ -2355,7 +2377,7 @@ public partial class delta : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseDepositAddress(result, currency);
     }
 
@@ -2455,7 +2477,7 @@ public partial class delta : Exchange
         //         "success": true
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseFundingRate(result, market);
     }
 
@@ -2524,7 +2546,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object rates = this.safeValue(response, "result", new List<object>() {});
+        object rates = this.safeList(response, "result", new List<object>() {});
         object result = this.parseFundingRates(rates);
         return this.filterByArray(result, "symbol", symbols);
     }
@@ -2668,7 +2690,7 @@ public partial class delta : Exchange
         //         "success": true
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseMarginModification(result, market);
     }
 
@@ -2781,7 +2803,7 @@ public partial class delta : Exchange
         //         "success": true
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOpenInterest(result, market);
     }
 
@@ -3021,7 +3043,7 @@ public partial class delta : Exchange
         //         "success": true
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         object settlements = this.parseSettlements(result, market);
         object sorted = this.sortBy(settlements, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
@@ -3173,7 +3195,7 @@ public partial class delta : Exchange
         //         "success": true
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseGreeks(result, market);
     }
 
@@ -3231,8 +3253,8 @@ public partial class delta : Exchange
         object timestamp = this.safeIntegerProduct(greeks, "timestamp", 0.001);
         object marketId = this.safeString(greeks, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object stats = this.safeValue(greeks, "greeks", new Dictionary<string, object>() {});
-        object quotes = this.safeValue(greeks, "quotes", new Dictionary<string, object>() {});
+        object stats = this.safeDict(greeks, "greeks", new Dictionary<string, object>() {});
+        object quotes = this.safeDict(greeks, "quotes", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -3277,7 +3299,7 @@ public partial class delta : Exchange
         //
         // {"result":{},"success":true}
         //
-        object position = this.parsePosition(this.safeValue(response, "result", new Dictionary<string, object>() {}));
+        object position = this.parsePosition(this.safeDict(response, "result", new Dictionary<string, object>() {}));
         return new List<object>() {position};
     }
 
@@ -3438,7 +3460,7 @@ public partial class delta : Exchange
         //
         // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
         //
-        object error = this.safeValue(response, "error", new Dictionary<string, object>() {});
+        object error = this.safeDict(response, "error", new Dictionary<string, object>() {});
         object errorCode = this.safeString(error, "code");
         if (isTrue(!isEqual(errorCode, null)))
         {

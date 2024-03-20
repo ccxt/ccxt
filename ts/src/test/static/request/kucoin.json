@@ -447,6 +447,24 @@
                 "url": "https://api.kucoin.com/api/v1/timestamp",
                 "input": []
             }
+        ],
+        "fetchBorrowRateHistory": [
+            {
+                "description": "fetchBorrowRateHistory",
+                "method": "fetchBorrowRateHistory",
+                "url": "https://api.kucoin.com/api/v3/margin/interest?isIsolated=false&currency=BTC",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchBorrowRateHistories": [
+            {
+                "description": "fetchBorrowRateHistories",
+                "method": "fetchBorrowRateHistories",
+                "url": "https://api.kucoin.com/api/v3/margin/interest?isIsolated=false",
+                "input": []
+            }
         ]
     }
 }
