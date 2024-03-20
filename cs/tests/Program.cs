@@ -61,6 +61,7 @@ public class Tests
         if (argsWithoutOptions.Count > 1)
         {
             string value = argsWithoutOptions[1];
+            // similar to PYTHON version arguments, we check method & symbol though same argument
             if (value.Contains("/")) {
                 symbol = value;
             } else {
