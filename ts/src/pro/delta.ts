@@ -175,12 +175,7 @@ export default class delta extends deltaRest {
             },
         };
         const url = this.urls['api']['ws'];
-        const tickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), symbolsSub);
-        if (this.newUpdates) {
-            const result = {};
-            result[tickers['symbol']] = tickers;
-            return result;
-        }
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), symbolsSub);
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
@@ -412,38 +407,6 @@ export default class delta extends deltaRest {
         const result = this.parseOHLCV (ohlcv, market);
         result[0] = this.safeIntegerProduct (ohlcv, 'candle_start_time', 0.001);
         return result;
-    }
-
-    async watchMany (messageHash, request, subscriptionHash, symbols = undefined, params = {}) {
-        let marketIds = [];
-        if (symbols === undefined) {
-            marketIds = Object.keys (this.markets_by_id);
-        } else {
-            marketIds = this.marketIds (symbols);
-        }
-        const url = this.urls['api']['ws'];
-        const client = this.safeDict (this.clients, url);
-        let subscription = {};
-        if (client !== undefined) {
-            subscription = this.safeDict (client.subscriptions, subscriptionHash);
-            if (subscription !== undefined) {
-                for (let i = 0; i < marketIds.length; i++) {
-                    const marketId = marketIds[i];
-                    const marketSubscribed = this.safeBool (subscription, marketId, false);
-                    if (!marketSubscribed) {
-                        client.subscriptions[subscriptionHash] = undefined;
-                    }
-                }
-            } else {
-                subscription = {};
-            }
-        }
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            subscription[marketId] = true;
-        }
-        request['payload']['channels'][0]['symbols'] = Object.keys (subscription);
-        return await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscription);
     }
 
     handleMessage (client: Client, message) {
