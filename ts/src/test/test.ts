@@ -430,7 +430,7 @@ export default class testMainClass extends baseMainTestClass {
 
     getSkips (exchange, methodName) {
         // get "method-specific" skips
-        const skipsForMethod = exchange.safeValue (this.skippedMethods, methodName, {});
+        let skipsForMethod = exchange.safeValue (this.skippedMethods, methodName, {});
         // get "object-specific" skips
         const objectSkips = {
             'orderBook': [ 'fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols' ],
@@ -447,7 +447,7 @@ export default class testMainClass extends baseMainTestClass {
             const objectMethods = objectSkips[objectName];
             if (exchange.inArray (methodName, objectMethods)) {
                 const extraSkips = exchange.safeDict (this.skippedMethods, objectName, {});
-                return exchange.deepExtend (skipsForMethod, extraSkips);
+                skipsForMethod = exchange.deepExtend (skipsForMethod, extraSkips);
             }
         }
         // extend related skips
