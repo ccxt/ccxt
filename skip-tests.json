@@ -67,11 +67,8 @@
             "ticker": {
                 "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
             },
-            "watchOrderBook": {
-                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539"
-            },
-            "watchOrderBookForSymbols": {
-                "timestamp": "same"
+            "orderBook": {
+                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539 & https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4119"
             }
         }
     },
@@ -81,6 +78,12 @@
         "skipMethods": {
             "orderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3463"
+            },
+            "watchOrderBook": {
+                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539"
+            },
+            "watchOrderBookForSymbols": {
+                "timestamp": "same"
             }
         }
     },
@@ -93,11 +96,8 @@
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
             },
-            "watchOrderBook": {
-                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458"
-            },
-            "watchOrderBookForSymbols": {
-                "timestamp": "same"
+            "orderBook": {
+                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458 https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
             },
             "fetchStatus": "private endpoints"
         }
@@ -146,12 +146,18 @@
                 "info":"null"
             },
             "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4034",
                 "bid":"sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
             }
         }
     },
     "tokocrypto": {
-        "httpsProxy": "http://5.75.153.75:8002"
+        "httpsProxy": "http://5.75.153.75:8002",
+        "skipMethods": {
+            "orderBook":{
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6195"
+            }
+        }
     },
     "bitbank": {
     },
@@ -188,13 +194,8 @@
                 "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262965121#L3179"
             },
             "orderBook":{
-                "symbol": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L3846"
-            },
-            "watchOrderBook": {
+                "symbol": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L3846",
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458"
-            },
-            "watchOrderBookForSymbols": {
-                "timestamp": "same"
             }
         }
     },
@@ -226,6 +227,9 @@
             "loadMarkets": "contract is true, but contractSize is undefined",
             "trade": {
                 "side": "side key has an null value, but is expected to have a value"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4205"
             }
         }
     },
@@ -246,6 +250,12 @@
                 "bid":"broken bid-ask",
                 "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269099593#L3833",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "watchOrderBook": {
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3729"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
             }
         }
     },
@@ -281,7 +291,11 @@
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3946"
             },
             "watchTrades":{
-                "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
+                "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
+                "timestamp": "messed order coming from exchange"
+            },
+            "watchTradesForSymbols":{
+                "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3602",
                 "timestamp": "messed order coming from exchange"
             }
         }
@@ -339,7 +353,10 @@
                 "currency": "undefined",
                 "currencyIdAndCode": "messes codes"
             },
-            "fetchTransactions": "skip"
+            "fetchTransactions": "skip",
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4458"
+            }
         }
     },
     "bitopro": {
@@ -354,7 +371,8 @@
             },
             "watchTicker": "datetime error: https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4373",
             "orderBook": {
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4373"
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4373",
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4373"
             }
         }
     },
@@ -392,6 +410,9 @@
             },
             "ticker": {
                 "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4978"
             }
         }
     },
@@ -432,6 +453,9 @@
             },
             "fetchTrades": {
                 "side": "side is undefined"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4831"
             }
         }
     },
@@ -449,6 +473,15 @@
             "ticker": {
                 "bid":"broken bid-ask",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing https://app.travis-ci.com/github/ccxt/ccxt/builds/266144312#L2220"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4685"
+            },
+            "watchOrderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3738"
+            },
+            "watchOrderBookForSymbols": {
+                "timestamp": "same"
             }
         }
     },
@@ -459,7 +492,8 @@
                 "maker":"not provided"
             },
             "orderBook": {
-                "bid": "messed bid-ask sequence"
+                "bid": "messed bid-ask sequence",
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4601"
             },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4517 and https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4562"
@@ -474,6 +508,7 @@
                 "info": "null"
             },
             "orderBook": {
+                "timestamp":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4820",
                 "bid":"bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0) <<< btcbox "
             },
             "ticker": {
@@ -533,7 +568,8 @@
             },
             "fetchBorrowRate": "does not work with unified account",
             "orderBook": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3669"
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3669",
+                "bid": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3794"
             }
         }
     },
@@ -551,7 +587,8 @@
             "ticker": {
                 "bid": "broken bid-ask",
                 "baseVolume": "negative value"
-            }
+            },
+            "orderBook": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
         }
     },
     "coincheck": {
@@ -563,6 +600,9 @@
                 "active":"is undefined",
                 "taker":"is undefined",
                 "maker":"is undefined"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4893"
             }
         }
     },
@@ -583,6 +623,9 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5064"
             }
         }
     },
@@ -603,6 +646,9 @@
         "skipMethods": {
             "fetchTrades": {
                 "side":"side is undefined"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5064"
             }
         }
     },
@@ -639,6 +685,9 @@
             },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5210"
             }
         }
     },
@@ -733,6 +782,9 @@
             },
             "watchTrades": {
                 "fees": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/269365378#L3601"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5510"
             }
         }
     },
@@ -741,6 +793,7 @@
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
             "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5295",
                 "bid": "bid more than ask"
             },
             "ticker": {
@@ -816,6 +869,9 @@
             },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4833"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5654"
             }
         }
     },
@@ -961,6 +1017,9 @@
             },
             "ticker":  {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "orderBook":{
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6363"
             }
         }
     },
@@ -975,6 +1034,16 @@
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "bid":"messed bid-ask"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5797"
+            }
+        }
+    },
+    "indodax": {
+        "skipMethods": {
+            "orderBook": {
+                "timestamp":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5881"
             }
         }
     },
@@ -1056,6 +1125,9 @@
                 "bid": "negative values",
                 "ask": "negative values",
                 "average": "negative values"
+            },
+            "orderBook":{
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6049"
             }
         }
     },
@@ -1107,7 +1179,8 @@
         "skipMethods": {
             "loadMarkets": "needs migration to v4, as raw info is not being used. granular can be used for skipping 'info'",
             "orderBook": {
-                "spread": "bid-ask crossing"
+                "spread": "bid-ask crossing",
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6133"
             },
             "ticker": {
                 "bid": "bid-ask crossing"
@@ -1236,6 +1309,9 @@
             },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4807"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5420"
             }
         }
     },
@@ -1294,6 +1370,9 @@
             },
             "ticker": {
                 "baseVolume": "quoteVolume <= baseVolume * high is failing"
+            },
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5965"
             }
         }
     },
@@ -1386,7 +1465,10 @@
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
             },
-            "fetchTickers": "all tickers request exceedes max url length"
+            "fetchTickers": "all tickers request exceedes max url length",
+            "orderBook":{
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6425"
+            }
         }
     },
     "zaif": {
@@ -1396,6 +1478,9 @@
             },
             "loadMarkets": {
                 "active": "is undefined"
+            },
+            "orderBook":{
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6279"
             }
         }
     },
