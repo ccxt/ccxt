@@ -87,6 +87,15 @@ export default class woo extends wooRest {
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name woo#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return.
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const name = 'orderbook';
         const market = this.market (symbol);
@@ -138,9 +147,18 @@ export default class woo extends wooRest {
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name woo#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
         await this.loadMarkets ();
         const name = 'ticker';
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const topic = market['id'] + '@' + name;
         const request = {
             'event': 'subscribe',
@@ -218,7 +236,16 @@ export default class woo extends wooRest {
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name woo#watchTickers
+         * @description n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const name = 'tickers';
         const topic = name;
         const request = {
@@ -341,8 +368,19 @@ export default class woo extends wooRest {
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name woo#watchTrades
+         * @description watches information on multiple trades made in a market
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const topic = market['id'] + '@trade';
         const request = {
             'event': 'subscribe',
