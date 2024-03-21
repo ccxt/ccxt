@@ -1265,7 +1265,7 @@ export default class bitso extends Exchange {
         //     }
         //
         const transactions = this.safeValue (response, 'payload', []);
-        const first = this.safeValue (transactions, 0, {});
+        const first = this.safeDict (transactions, 0, {});
         return this.parseTransaction (first);
     }
 
@@ -1634,7 +1634,7 @@ export default class bitso extends Exchange {
         //     }
         //
         const payload = this.safeValue (response, 'payload', []);
-        const first = this.safeValue (payload, 0);
+        const first = this.safeDict (payload, 0);
         return this.parseTransaction (first, currency);
     }
 

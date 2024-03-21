@@ -273,7 +273,7 @@ export default class oceanex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -662,7 +662,7 @@ export default class oceanex extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -901,7 +901,7 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostOrderDelete (this.extend ({ 'id': id }, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data);
     }
 

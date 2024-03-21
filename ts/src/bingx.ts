@@ -1400,7 +1400,7 @@ export default class bingx extends Exchange {
             response = await this.swapV2PublicGetQuoteTicker (this.extend (request, params));
         }
         const data = this.safeValue (response, 'data');
-        const ticker = this.safeValue (data, 0, data);
+        const ticker = this.safeDict (data, 0, data);
         return this.parseTicker (ticker, market);
     }
 
@@ -2067,7 +2067,7 @@ export default class bingx extends Exchange {
             response = this.parseJson (response);
         }
         const data = this.safeValue (response, 'data', {});
-        const order = this.safeValue (data, 'order', data);
+        const order = this.safeDict (data, 'order', data);
         return this.parseOrder (order, market);
     }
 
@@ -2564,7 +2564,7 @@ export default class bingx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const first = this.safeValue (data, 'order', data);
+        const first = this.safeDict (data, 'order', data);
         return this.parseOrder (first, market);
     }
 
@@ -2807,7 +2807,7 @@ export default class bingx extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data');
-        const first = this.safeValue (data, 'order', data);
+        const first = this.safeDict (data, 'order', data);
         return this.parseOrder (first, market);
     }
 

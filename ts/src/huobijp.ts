@@ -1187,7 +1187,7 @@ export default class huobijp extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId (this.extend (request, params));
-        const order = this.safeValue (response, 'data');
+        const order = this.safeDict (response, 'data');
         return this.parseOrder (order);
     }
 

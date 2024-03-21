@@ -505,7 +505,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -789,7 +789,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (this.extend (data, { 'order_id': id }), market);
     }
 

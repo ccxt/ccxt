@@ -404,7 +404,7 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseTicker (data, market);
     }
 
@@ -1047,7 +1047,7 @@ export default class coinmate extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privatePostOrderById (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 

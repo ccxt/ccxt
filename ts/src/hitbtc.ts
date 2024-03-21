@@ -1932,7 +1932,7 @@ export default class hitbtc extends Exchange {
         //       }
         //     ]
         //
-        const order = this.safeValue (response, 0);
+        const order = this.safeDict (response, 0);
         return this.parseOrder (order, market);
     }
 

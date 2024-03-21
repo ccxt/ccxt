@@ -703,7 +703,7 @@ export default class btcturk extends Exchange {
             request['newClientOrderId'] = this.uuid ();
         }
         const response = await this.privatePostOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 

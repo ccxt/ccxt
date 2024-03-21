@@ -4908,7 +4908,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             return this.parseTransfer (data);
         } else if (marketType === 'swap') {
             throw new BadRequest (this.id + ' fetchTransfer() is not supported for ' + marketType);

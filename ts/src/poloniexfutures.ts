@@ -1477,7 +1477,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const responseData = this.safeValue (response, 'data');
+        const responseData = this.safeDict (response, 'data');
         return this.parseOrder (responseData, market);
     }
 

@@ -733,7 +733,7 @@ export default class bitbns extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0);
+        const first = this.safeDict (data, 0);
         return this.parseOrder (first, market);
     }
 

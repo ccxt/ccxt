@@ -2283,7 +2283,7 @@ export default class coinex extends Exchange {
         //
         //     {"code":0,"data":{"status":"success"},"message":"OK"}
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2585,7 +2585,7 @@ export default class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2769,7 +2769,7 @@ export default class coinex extends Exchange {
         //
         //     {"code":0,"data":{},"message":"Success"}
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -2963,7 +2963,7 @@ export default class coinex extends Exchange {
         //         "message":"OK"
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -3252,7 +3252,7 @@ export default class coinex extends Exchange {
         //         },
         //         "message": "Success"
         //     }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
 
@@ -4387,7 +4387,7 @@ export default class coinex extends Exchange {
         //         "message": "Ok"
         //     }
         //
-        const transaction = this.safeValue (response, 'data', {});
+        const transaction = this.safeDict (response, 'data', {});
         return this.parseTransaction (transaction, currency);
     }
 

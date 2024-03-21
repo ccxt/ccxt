@@ -2802,7 +2802,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 
@@ -2991,7 +2991,7 @@ export default class bitrue extends Exchange {
         //         'data': null
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransfer (data, currency);
     }
 

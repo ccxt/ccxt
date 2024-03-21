@@ -524,7 +524,7 @@ export default class mercado extends Exchange {
         //     }
         //
         const responseData = this.safeValue (response, 'response_data', {});
-        const order = this.safeValue (responseData, 'order', {});
+        const order = this.safeDict (responseData, 'order', {});
         return this.parseOrder (order, market);
     }
 
@@ -630,7 +630,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostGetOrder (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
-        const order = this.safeValue (responseData, 'order');
+        const order = this.safeDict (responseData, 'order');
         return this.parseOrder (order, market);
     }
 
@@ -696,7 +696,7 @@ export default class mercado extends Exchange {
         //     }
         //
         const responseData = this.safeValue (response, 'response_data', {});
-        const withdrawal = this.safeValue (responseData, 'withdrawal');
+        const withdrawal = this.safeDict (responseData, 'withdrawal');
         return this.parseTransaction (withdrawal, currency);
     }
 

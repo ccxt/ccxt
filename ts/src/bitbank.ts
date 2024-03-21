@@ -304,7 +304,7 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetPairTicker (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -676,7 +676,7 @@ export default class bitbank extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostUserSpotOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -719,7 +719,7 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privateGetUserSpotOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -854,7 +854,7 @@ export default class bitbank extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 

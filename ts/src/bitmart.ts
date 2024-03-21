@@ -1324,7 +1324,7 @@ export default class bitmart extends Exchange {
         } else if (market['swap']) {
             tickersById = this.indexBy (tickers, 'contract_symbol');
         }
-        const ticker = this.safeValue (tickersById, market['id']);
+        const ticker = this.safeDict (tickersById, market['id']);
         return this.parseTicker (ticker, market);
     }
 
@@ -3065,7 +3065,7 @@ export default class bitmart extends Exchange {
         //         "trace": "4cad855075664097af6ba5257c47605d.63.14957831547451715"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -3109,7 +3109,7 @@ export default class bitmart extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
 
@@ -3303,7 +3303,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const record = this.safeValue (data, 'record', {});
+        const record = this.safeDict (data, 'record', {});
         return this.parseTransaction (record);
     }
 
@@ -3359,7 +3359,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const record = this.safeValue (data, 'record', {});
+        const record = this.safeDict (data, 'record', {});
         return this.parseTransaction (record);
     }
 
@@ -4038,7 +4038,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOpenInterest (data, market);
     }
 
@@ -4208,7 +4208,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }
 

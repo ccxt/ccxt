@@ -407,7 +407,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const orderBook = this.safeValue (response, 'attachment');
+        const orderBook = this.safeDict (response, 'attachment');
         return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
 
@@ -633,7 +633,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue (response, 'attachment');
+        const data = this.safeDict (response, 'attachment');
         return this.parseOrder (data, market);
     }
 
@@ -701,7 +701,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue (response, 'attachment');
+        const data = this.safeDict (response, 'attachment');
         return this.parseOrder (data, undefined);
     }
 

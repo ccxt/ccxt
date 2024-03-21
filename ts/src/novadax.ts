@@ -404,7 +404,7 @@ export default class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -838,7 +838,7 @@ export default class novadax extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -867,7 +867,7 @@ export default class novadax extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
     }
 
@@ -907,7 +907,7 @@ export default class novadax extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
     }
 

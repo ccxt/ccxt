@@ -940,7 +940,7 @@ export default class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parsePosition (data, market);
     }
 
@@ -1150,7 +1150,7 @@ export default class kucoinfutures extends kucoin {
         //        },
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -1702,7 +1702,7 @@ export default class kucoinfutures extends kucoin {
         //     }
         //
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const responseData = this.safeValue (response, 'data');
+        const responseData = this.safeDict (response, 'data');
         return this.parseOrder (responseData, market);
     }
 

@@ -639,7 +639,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parseTicker (first, market);
     }
 
@@ -1602,7 +1602,7 @@ export default class lbank extends Exchange {
         //          "ts":1648164471827
         //      }
         //
-        const result = this.safeValue (response, 'data', {});
+        const result = this.safeDict (response, 'data', {});
         return this.parseOrder (result);
     }
 

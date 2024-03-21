@@ -1125,7 +1125,7 @@ export default class probit extends Exchange {
         const query = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         const response = await this.privateGetOrder (this.extend (request, query));
         const data = this.safeValue (response, 'data', []);
-        const order = this.safeValue (data, 0);
+        const order = this.safeDict (data, 0);
         return this.parseOrder (order, market);
     }
 
@@ -1324,7 +1324,7 @@ export default class probit extends Exchange {
             'order_id': id,
         };
         const response = await this.privatePostCancelOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data);
     }
 
@@ -1469,7 +1469,7 @@ export default class probit extends Exchange {
             params = this.omit (params, 'network');
         }
         const response = await this.privatePostWithdrawal (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseTransaction (data, currency);
     }
 

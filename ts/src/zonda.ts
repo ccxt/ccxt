@@ -1569,7 +1569,7 @@ export default class zonda extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const first = this.safeValue (data, 0);
+        const first = this.safeDict (data, 0);
         return this.parseDepositAddress (first, currency);
     }
 
@@ -1758,7 +1758,7 @@ export default class zonda extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseTransaction (data, currency);
     }
 

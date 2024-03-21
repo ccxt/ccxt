@@ -486,7 +486,7 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeValue (response, 'ticker', {});
+        const ticker = this.safeDict (response, 'ticker', {});
         return this.parseTicker (ticker, market);
     }
 

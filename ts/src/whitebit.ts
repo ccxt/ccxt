@@ -746,7 +746,7 @@ export default class whitebit extends Exchange {
         //         },
         //     }
         //
-        const ticker = this.safeValue (response, 'result', {});
+        const ticker = this.safeDict (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
@@ -1970,7 +1970,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const records = this.safeValue (response, 'records', []);
-        const first = this.safeValue (records, 0, {});
+        const first = this.safeDict (records, 0, {});
         return this.parseTransaction (first, currency);
     }
 

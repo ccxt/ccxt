@@ -1467,7 +1467,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseTicker (result, market);
     }
 
@@ -2719,7 +2719,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2792,7 +2792,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.privatePutSpotOrders (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -2835,7 +2835,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.privateDeleteSpotOrders (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -4695,7 +4695,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 

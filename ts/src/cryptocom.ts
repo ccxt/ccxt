@@ -1020,7 +1020,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const order = this.safeValue (response, 'result', {});
+        const order = this.safeDict (response, 'result', {});
         return this.parseOrder (order, market);
     }
 
@@ -1156,7 +1156,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -1405,7 +1405,7 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -1638,7 +1638,7 @@ export default class cryptocom extends Exchange {
         //        }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseTransaction (result, currency);
     }
 
@@ -2759,7 +2759,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeDict (result, 'data', []);
         return this.parsePosition (data[0], market);
     }
 
@@ -2953,7 +2953,7 @@ export default class cryptocom extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result, market);
     }
 

@@ -1268,7 +1268,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseTicker (result, market);
     }
 
@@ -1903,7 +1903,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result, market);
     }
 
@@ -2142,7 +2142,7 @@ export default class deribit extends Exchange {
             'order_id': id,
         };
         const response = await this.privateGetCancel (this.extend (request, params));
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result);
     }
 
@@ -2658,7 +2658,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parsePosition (result);
     }
 
@@ -2909,7 +2909,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseTransfer (result, currency);
     }
 

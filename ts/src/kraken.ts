@@ -1406,7 +1406,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         return this.parseOrder (result);
     }
 
@@ -1832,7 +1832,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'result', {});
+        const data = this.safeDict (response, 'result', {});
         return this.parseOrder (data, market);
     }
 
@@ -2721,7 +2721,7 @@ export default class kraken extends Exchange {
             //         }
             //     }
             //
-            const result = this.safeValue (response, 'result', {});
+            const result = this.safeDict (response, 'result', {});
             return this.parseTransaction (result, currency);
         }
         throw new ExchangeError (this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");

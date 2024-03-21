@@ -1549,7 +1549,7 @@ export default class coinlist extends Exchange {
         //         "timestamp": "2023-10-26T11:30:55.376Z"
         //     }
         //
-        const order = this.safeValue (response, 'order', {});
+        const order = this.safeDict (response, 'order', {});
         return this.parseOrder (order, market);
     }
 
@@ -2014,7 +2014,7 @@ export default class coinlist extends Exchange {
         //         "transfer_id": "d4a2d8dd-7def-4545-a062-761683b9aa05"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 

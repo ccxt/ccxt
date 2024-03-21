@@ -1034,7 +1034,7 @@ export default class exmo extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const result = this.safeValue (response, market['id']);
+        const result = this.safeDict (response, market['id']);
         return this.parseOrderBook (result, market['symbol'], undefined, 'bid', 'ask');
     }
 
@@ -2491,7 +2491,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue (response, 'items', []);
-        const first = this.safeValue (items, 0, {});
+        const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
 
@@ -2544,7 +2544,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const items = this.safeValue (response, 'items', []);
-        const first = this.safeValue (items, 0, {});
+        const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
 

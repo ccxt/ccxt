@@ -288,7 +288,7 @@ export default class coinspot extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeValue (prices, id);
+        const ticker = this.safeDict (prices, id);
         return this.parseTicker (ticker, market);
     }
 

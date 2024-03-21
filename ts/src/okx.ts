@@ -3155,7 +3155,7 @@ export default class okx extends Exchange {
         const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeValue (response, 'data', []);
-        const order = this.safeValue (data, 0);
+        const order = this.safeDict (data, 0);
         return this.parseOrder (order, market);
     }
 
@@ -3641,7 +3641,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const order = this.safeValue (data, 0);
+        const order = this.safeDict (data, 0);
         return this.parseOrder (order, market);
     }
 
@@ -4751,7 +4751,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const transaction = this.safeValue (data, 0);
+        const transaction = this.safeDict (data, 0);
         return this.parseTransaction (transaction, currency);
     }
 
@@ -4859,7 +4859,7 @@ export default class okx extends Exchange {
         }
         const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        const deposit = this.safeValue (data, 0, {});
+        const deposit = this.safeDict (data, 0, {});
         return this.parseTransaction (deposit, currency);
     }
 
@@ -4980,7 +4980,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const withdrawal = this.safeValue (data, 0, {});
+        const withdrawal = this.safeDict (data, 0, {});
         return this.parseTransaction (withdrawal);
     }
 
@@ -5607,7 +5607,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const rawTransfer = this.safeValue (data, 0, {});
+        const rawTransfer = this.safeDict (data, 0, {});
         return this.parseTransfer (rawTransfer, currency);
     }
 
@@ -5724,7 +5724,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const transfer = this.safeValue (data, 0);
+        const transfer = this.safeDict (data, 0);
         return this.parseTransfer (transfer);
     }
 
@@ -7444,7 +7444,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const order = this.safeValue (data, 0);
+        const order = this.safeDict (data, 0);
         return this.parseOrder (order, market);
     }
 

@@ -662,7 +662,7 @@ export default class kuna extends Exchange {
         //          }
         //      }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 0, 1);
     }
 
@@ -786,7 +786,7 @@ export default class kuna extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', []);
-        const ticker = this.safeValue (data, 0);
+        const ticker = this.safeDict (data, 0);
         return this.parseTicker (ticker, market);
     }
 
@@ -1009,7 +1009,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -1219,7 +1219,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
     }
 
@@ -1466,7 +1466,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 
@@ -1576,7 +1576,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data);
     }
 
@@ -1605,7 +1605,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
 
@@ -1634,7 +1634,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
 
@@ -1780,7 +1780,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 

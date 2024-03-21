@@ -1223,7 +1223,7 @@ export default class tokocrypto extends Exchange {
         };
         const response = await this.binanceGetTicker24hr (this.extend (request, params));
         if (Array.isArray (response)) {
-            const firstTicker = this.safeValue (response, 0, {});
+            const firstTicker = this.safeDict (response, 0, {});
             return this.parseTicker (firstTicker, market);
         }
         return this.parseTicker (response, market);
@@ -1776,7 +1776,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1662710994975
         //     }
         //
-        const rawOrder = this.safeValue (response, 'data', {});
+        const rawOrder = this.safeDict (response, 'data', {});
         return this.parseOrder (rawOrder, market);
     }
 
@@ -1826,7 +1826,7 @@ export default class tokocrypto extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const list = this.safeValue (data, 'list', []);
-        const rawOrder = this.safeValue (list, 0, {});
+        const rawOrder = this.safeDict (list, 0, {});
         return this.parseOrder (rawOrder);
     }
 
@@ -1976,7 +1976,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1662710683634
         //     }
         //
-        const rawOrder = this.safeValue (response, 'data', {});
+        const rawOrder = this.safeDict (response, 'data', {});
         return this.parseOrder (rawOrder);
     }
 

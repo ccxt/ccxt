@@ -2087,7 +2087,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         const tickers = this.safeValue (result, 'list', []);
-        const rawTicker = this.safeValue (tickers, 0);
+        const rawTicker = this.safeDict (tickers, 0);
         return this.parseTicker (rawTicker, market);
     }
 
@@ -3540,7 +3540,7 @@ export default class bybit extends Exchange {
         //         "time": 1672211918471
         //     }
         //
-        const order = this.safeValue (response, 'result', {});
+        const order = this.safeDict (response, 'result', {});
         return this.parseOrder (order, market);
     }
 
@@ -3970,7 +3970,7 @@ export default class bybit extends Exchange {
         //            "tpTriggerBy":"UNKNOWN"
         //     }
         //
-        const order = this.safeValue (response, 'result', {});
+        const order = this.safeDict (response, 'result', {});
         return this.parseOrder (order, market);
     }
 
@@ -4026,7 +4026,7 @@ export default class bybit extends Exchange {
         //        "retExtMap": {}
         //   }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -4194,7 +4194,7 @@ export default class bybit extends Exchange {
         //         "retExtMap": {}
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -4260,7 +4260,7 @@ export default class bybit extends Exchange {
         //         "time": 1672217377164
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -5404,7 +5404,7 @@ export default class bybit extends Exchange {
         const chains = this.safeValue (result, 'chains', []);
         const chainsIndexedById = this.indexBy (chains, 'chain');
         const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
-        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId, {});
         return this.parseDepositAddress (addressObject, currency);
     }
 
@@ -5969,7 +5969,7 @@ export default class bybit extends Exchange {
         //         "time": "1666892894902"
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         return this.parseTransaction (result, currency);
     }
 
