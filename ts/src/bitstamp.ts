@@ -165,7 +165,7 @@ export default class bitstamp extends Exchange {
                         'transfer-from-main/': 1,
                         'my_trading_pairs/': 1,
                         'fees/trading/': 1,
-                        'fees/trading/{pair}': 1,
+                        'fees/trading/{market_symbol}': 1,
                         'fees/withdrawal/': 1,
                         'fees/withdrawal/{currency}/': 1,
                         'withdrawal-requests/': 1,
@@ -1175,7 +1175,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
+         * @see https://www.bitstamp.net/api/v2/fees/trading/
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1185,20 +1185,35 @@ export default class bitstamp extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await this.privatePostBalancePair (this.extend (request, params));
-        return this.parseTradingFee (response, market);
+        const response = await this.privatePostFeesTrading (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "currency_pair": "btcusd",
+        //             "fees": [
+        //                 {
+        //                     "maker": "0.15000",
+        //                     "taker": "0.16000"
+        //                 }
+        //             ],
+        //             "market": "btcusd"
+        //         }
+        //         ...
+        //     ]
+        //
+        const tradingFeesByMarketId = this.indexBy (response, 'currency_pair');
+        const tradingFee = this.safeDict (tradingFeesByMarketId, market['id']);
+        return this.parseTradingFee (tradingFee, market);
     }
 
     parseTradingFee (fee, market: Market = undefined) {
-        market = this.safeMarket (undefined, market);
-        const feeString = this.safeString (fee, market['id'] + '_fee');
-        const dividedFeeString = Precise.stringDiv (feeString, '100');
-        const tradeFee = this.parseNumber (dividedFeeString);
+        const marketId = this.safeString (fee, 'market');
+        const fees = this.safeDict (fee, 'fees', {});
         return {
             'info': fee,
-            'symbol': market['symbol'],
-            'maker': tradeFee,
-            'taker': tradeFee,
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': this.safeNumber (fees, 'maker'),
+            'taker': this.safeNumber (fees, 'taker'),
         };
     }
 
