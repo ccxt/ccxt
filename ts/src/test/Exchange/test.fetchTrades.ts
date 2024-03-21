@@ -17,8 +17,8 @@ async function testFetchTradesResponse (exchange, skippedProperties, symbol, met
     if (!('timestamp' in skippedProperties)) {
         testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades);
     }
-    if (!('side' in skippedProperties) && trades.length > 50) {
-        await testFetchTradesSideValues (exchange, skippedProperties, symbol, method, trades);
+    if (!('sideBuySell' in skippedProperties) && trades.length > 50) {
+        await testFetchTradesSidesBuySell (exchange, skippedProperties, symbol, method, trades);
     }
     if (('side' in skippedProperties) || ('timestamp' in skippedProperties)) {
         await testFetchTradesSideSequence (exchange, skippedProperties, symbol, method, trades);
@@ -33,7 +33,7 @@ async function testFetchTradesStructure (exchange, skippedProperties, symbol, me
     }
 }
 
-async function testFetchTradesSideValues (exchange, skippedProperties, symbol, method, trades) {
+async function testFetchTradesSidesBuySell (exchange, skippedProperties, symbol, method, trades) {
     //
     //    Check whether both "buy" and "sell" are returned from trades, when there are more than 50 trades
     //

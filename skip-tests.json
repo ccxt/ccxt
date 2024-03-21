@@ -1118,7 +1118,7 @@
                 "deposit": "not provided"
             },
             "fetchTrades": {
-                "bothSides": "todo https://app.travis-ci.com/github/ccxt/ccxt/builds/269557802#L3819"
+                "sideBuySell": "todo https://app.travis-ci.com/github/ccxt/ccxt/builds/269557802#L3819"
             }
         }
     },
