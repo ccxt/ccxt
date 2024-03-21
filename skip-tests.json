@@ -66,6 +66,12 @@
             },
             "ticker": {
                 "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
+            },
+            "watchOrderBook": {
+                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539"
+            },
+            "watchOrderBookForSymbols": {
+                "timestamp": "same"
             }
         }
     },
@@ -86,6 +92,12 @@
             },
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
+            },
+            "watchOrderBook": {
+                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458"
+            },
+            "watchOrderBookForSymbols": {
+                "timestamp": "same"
             },
             "fetchStatus": "private endpoints"
         }
@@ -177,6 +189,12 @@
             },
             "orderBook":{
                 "symbol": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L3846"
+            },
+            "watchOrderBook": {
+                "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458"
+            },
+            "watchOrderBookForSymbols": {
+                "timestamp": "same"
             }
         }
     },
