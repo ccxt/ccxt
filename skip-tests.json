@@ -625,7 +625,7 @@
         }
     },
     "cex": {
-        "skipWs": "timeouts",
+        "preferredSpotSymbol": "BTC/USD",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
@@ -639,6 +639,7 @@
                 "deposit": "not provided",
                 "networks": "missing"
             },
+            "watchOHLCV": "does not work for 1min",
             "fetchOHLCV": "unexpected issue"
         }
     },
