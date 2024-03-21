@@ -993,9 +993,10 @@ export default class binance extends binanceRest {
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name gate#watchBidsAsks
-         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
-         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+         * @name binance#watchBidsAsks
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-book-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-book-tickers-stream
          * @description watches best bid & ask for symbols
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
