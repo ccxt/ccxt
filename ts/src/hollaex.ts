@@ -1873,7 +1873,7 @@ export default class hollaex extends Exchange {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        const coins = this.safeValue (response, 'coins');
+        const coins = this.safeList (response, 'coins');
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 

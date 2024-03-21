@@ -7254,7 +7254,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransfers (data, currency, since, limit);
     }
 
@@ -7456,7 +7456,7 @@ export default class bitget extends Exchange {
         //         "requestTime": "1700120731773"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 

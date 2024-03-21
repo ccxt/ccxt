@@ -1841,7 +1841,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const transfers = this.safeValue (response, 'transfers', []);
+        const transfers = this.safeList (response, 'transfers', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 

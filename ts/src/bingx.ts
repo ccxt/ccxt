@@ -3748,7 +3748,7 @@ export default class bingx extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
-        const coins = this.safeValue (response, 'data');
+        const coins = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (coins, codes, 'coin');
     }
 

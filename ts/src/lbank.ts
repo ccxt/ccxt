@@ -2524,7 +2524,7 @@ export default class lbank extends Exchange {
         //        "code": 0
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 

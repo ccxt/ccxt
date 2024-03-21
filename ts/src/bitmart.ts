@@ -3918,7 +3918,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const records = this.safeValue (data, 'records', []);
+        const records = this.safeList (data, 'records', []);
         return this.parseTransfers (records, currency, since, limit);
     }
 

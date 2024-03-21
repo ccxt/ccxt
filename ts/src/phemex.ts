@@ -4209,7 +4209,7 @@ export default class phemex extends Exchange {
         //
         //
         const data = this.safeValue (response, 'data', {});
-        const riskLimits = this.safeValue (data, 'riskLimits');
+        const riskLimits = this.safeList (data, 'riskLimits');
         return this.parseLeverageTiers (riskLimits, symbols, 'symbol');
     }
 
@@ -4472,7 +4472,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const transfers = this.safeValue (data, 'rows', []);
+        const transfers = this.safeList (data, 'rows', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 

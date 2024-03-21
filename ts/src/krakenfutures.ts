@@ -2371,7 +2371,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        const data = this.safeValue (response, 'instruments');
+        const data = this.safeList (response, 'instruments');
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 

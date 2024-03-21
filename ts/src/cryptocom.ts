@@ -2320,7 +2320,7 @@ export default class cryptocom extends Exchange {
         await this.loadMarkets ();
         const response = await this.v1PrivatePostPrivateGetCurrencyNetworks (params);
         const data = this.safeValue (response, 'result');
-        const currencyMap = this.safeValue (data, 'currency_map');
+        const currencyMap = this.safeList (data, 'currency_map');
         return this.parseDepositWithdrawFees (currencyMap, codes, 'full_name');
     }
 

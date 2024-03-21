@@ -3734,7 +3734,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const transfers = this.safeValue (response, 'data', []);
+        const transfers = this.safeList (response, 'data', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
@@ -3992,7 +3992,7 @@ export default class digifinex extends Exchange {
         //       "code": 200,
         //   }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (data, codes);
     }
 

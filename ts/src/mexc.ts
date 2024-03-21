@@ -4348,7 +4348,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 

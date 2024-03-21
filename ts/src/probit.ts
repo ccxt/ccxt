@@ -1421,7 +1421,7 @@ export default class probit extends Exchange {
             request['currency_id'] = codes.join (',');
         }
         const response = await this.privateGetDepositAddress (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseDepositAddresses (data, codes);
     }
 
@@ -1722,7 +1722,7 @@ export default class probit extends Exchange {
         //     ]
         //  }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (data, codes, 'id');
     }
 

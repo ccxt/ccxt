@@ -3154,7 +3154,7 @@ export default class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.v2PublicGetAssets (params);
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (data, codes, 'assetCode');
     }
 

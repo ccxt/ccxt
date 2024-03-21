@@ -1598,7 +1598,7 @@ export default class zonda extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseDepositAddresses (data, codes);
     }
 

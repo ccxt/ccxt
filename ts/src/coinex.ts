@@ -3908,7 +3908,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeList (response, 'data', {});
         return this.parseLeverageTiers (data, symbols, undefined);
     }
 
@@ -4803,7 +4803,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const transfers = this.safeValue (data, 'records', []);
+        const transfers = this.safeList (data, 'records', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 

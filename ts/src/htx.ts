@@ -2370,7 +2370,7 @@ export default class htx extends Exchange {
             throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
         const tick = this.safeValue (response, 'tick', {});
-        const data = this.safeValue (tick, 'data', []);
+        const data = this.safeList (tick, 'data', []);
         return this.parseLastPrices (data, symbols);
     }
 
@@ -7978,7 +7978,7 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseLeverageTiers (data, symbols, 'contract_code');
     }
 
@@ -8183,7 +8183,7 @@ export default class htx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const tick = this.safeValue (data, 'tick');
+        const tick = this.safeList (data, 'tick');
         return this.parseOpenInterests (tick, market, since, limit);
     }
 
@@ -8695,7 +8695,7 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 

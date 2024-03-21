@@ -1599,7 +1599,7 @@ export default class latoken extends Exchange {
         //         "hasContent": true
         //     }
         //
-        const transfers = this.safeValue (response, 'content', []);
+        const transfers = this.safeList (response, 'content', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 

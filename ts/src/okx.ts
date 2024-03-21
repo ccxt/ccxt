@@ -5788,7 +5788,7 @@ export default class okx extends Exchange {
         //        "msg": ""
         //    }
         //
-        const transfers = this.safeValue (response, 'data', []);
+        const transfers = this.safeList (response, 'data', []);
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
@@ -6939,7 +6939,7 @@ export default class okx extends Exchange {
         //        "msg": ''
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOpenInterests (data, undefined, since, limit);
     }
 
@@ -7062,7 +7062,7 @@ export default class okx extends Exchange {
         //        "msg": ""
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (data, codes);
     }
 

@@ -7505,7 +7505,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'result', {});
-        const rows = this.safeValue (data, 'rows', []);
+        const rows = this.safeList (data, 'rows', []);
         return this.parseDepositWithdrawFees (rows, codes, 'coin');
     }
 

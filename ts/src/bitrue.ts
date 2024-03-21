@@ -2860,7 +2860,7 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.spotV1PublicGetExchangeInfo (params);
-        const coins = this.safeValue (response, 'coins');
+        const coins = this.safeList (response, 'coins');
         return this.parseDepositWithdrawFees (coins, codes, 'coin');
     }
 
