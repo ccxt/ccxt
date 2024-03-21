@@ -2395,13 +2395,15 @@ export default class Exchange {
         throw new NotSupported (this.id + ' setMargin() is not supported yet');
     }
 
-    async fetchIsolatedMarginAdjustmentHistory (symbol: Str = undefined, addOrReduce: Str = undefined, params = {}): Promise<[]> {
+    async fetchIsolatedMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<object[]> {
         /**
          * @method
          * @name exchange#fetchIsolatedMarginAdjustmentHistory
          * @description fetches the history of margin added or reduced from contract isolated positions
          * @param {string} [symbol] unified market symbol
-         * @param {string} [addOrReduce] "add" or "reduce"
+         * @param {string} [type] "add" or "reduce"
+         * @param {int} [since] timestamp in ms of the earliest change to fetch
+         * @param {int} [limit] the maximum amount of changes to fetch
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
@@ -6253,6 +6255,23 @@ export default class Exchange {
 
     parseLeverage (leverage, market: Market = undefined): Leverage {
         throw new NotSupported (this.id + ' parseLeverage() is not supported yet');
+    }
+
+    parseMarginModification (data, market: Market = undefined): object {
+        throw new NotSupported (this.id + ' parseMarginModification() is not supported yet');
+    }
+
+    parseMarginModifications (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): object[] {
+        const marginModifications = [];
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const marketId = this.safeString (info, symbolKey);
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
+                marginModifications.push (this.parseMarginModification (info, market));
+            }
+        }
+        return marginModifications;
     }
 }
 
