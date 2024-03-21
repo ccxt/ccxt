@@ -38,10 +38,9 @@ async function testFetchTradesSideValues (exchange, skippedProperties, symbol, m
     //    Check whether both "buy" and "sell" are returned from trades, when there are more than 50 trades
     //
     const grouped = exchange.groupBy (trades, 'side');
-    const keys = Object.keys (grouped);
     const msg = 'Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue' + testSharedMethods.logTemplate (exchange, method, trades);
-    assert (('buy' in keys), msg);
-    assert (('sell' in keys), msg);
+    assert (('buy' in grouped), msg);
+    assert (('sell' in grouped), msg);
 }
 
 async function testFetchTradesSideSequence (exchange, skippedProperties, symbol, method, trades) {
