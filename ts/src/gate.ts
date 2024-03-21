@@ -4217,7 +4217,8 @@ export default class gate extends Exchange {
             'account': account,
         };
         if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            const amountKey = (market['spot']) ? 'amount' : 'size';
+            request[amountKey] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
