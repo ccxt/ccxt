@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -112,6 +112,7 @@ export default class bybit extends Exchange {
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
+                'fetchFundingHistory': true,
                 'repayCrossMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -8102,6 +8103,107 @@ export default class bybit extends Exchange {
             });
         }
         return tiers;
+    }
+
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchFundingHistory
+         * @description fetch the history of funding payments paid and received on this account
+         * @see https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch funding history for
+         * @param {int} [limit] the maximum number of funding history structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 100) as FundingHistory[];
+        }
+        let request = {
+            'execType': 'Funding',
+        };
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let type = undefined;
+        [ type, params ] = this.getBybitType ('fetchFundingHistory', market, params);
+        request['category'] = type;
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        } else {
+            request['size'] = 100;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.privateGetV5ExecutionList (this.extend (request, params));
+        const fundings = this.addPaginationCursorToResult (response);
+        return this.parseIncomes (fundings, market, since, limit);
+    }
+
+    parseIncome (income, market: Market = undefined) {
+        //
+        // {
+        //     "symbol": "XMRUSDT",
+        //     "orderType": "UNKNOWN",
+        //     "underlyingPrice": "",
+        //     "orderLinkId": "",
+        //     "orderId": "a11e5fe2-1dbf-4bab-a9b2-af80a14efc5d",
+        //     "stopOrderType": "UNKNOWN",
+        //     "execTime": "1710950400000",
+        //     "feeCurrency": "",
+        //     "createType": "",
+        //     "feeRate": "-0.000761",
+        //     "tradeIv": "",
+        //     "blockTradeId": "",
+        //     "markPrice": "136.79",
+        //     "execPrice": "137.11",
+        //     "markIv": "",
+        //     "orderQty": "0",
+        //     "orderPrice": "0",
+        //     "execValue": "134.3678",
+        //     "closedSize": "0",
+        //     "execType": "Funding",
+        //     "seq": "28097658790",
+        //     "side": "Sell",
+        //     "indexPrice": "",
+        //     "leavesQty": "0",
+        //     "isMaker": false,
+        //     "execFee": "-0.10232512",
+        //     "execId": "8d1ef156-4ec6-4445-9a6c-1c0c24dbd046",
+        //     "marketUnit": "",
+        //     "execQty": "0.98",
+        //     "nextPageCursor": "5774437%3A0%2C5771289%3A0"
+        // }
+        //
+        const marketId = this.safeString (income, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'contract');
+        let code = 'USDT';
+        if (market['inverse']) {
+            code = market['quote'];
+        }
+        const timestamp = this.safeInteger (income, 'execTime');
+        return {
+            'info': income,
+            'symbol': this.safeSymbol (marketId, market, '-', 'swap'),
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (income, 'execId'),
+            'amount': this.safeNumber (income, 'execQty'),
+            'rate': this.safeNumber (income, 'feeRate'),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

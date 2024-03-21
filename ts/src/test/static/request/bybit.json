@@ -929,6 +929,16 @@
                   ]
                 ]
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "funding history linear",
+                "method": "fetchFundingHistory",
+                "url": "https://api-testnet.bybit.com/v5/execution/list?execType=Funding&symbol=LTCUSDT&category=linear&size=100",
+                "input": [
+                  "LTC/USDT:USDT"
+                ]
+            }
         ]
     },
     "disabled": []
