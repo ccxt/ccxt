@@ -980,7 +980,7 @@ export default class timex extends Exchange {
         //     }
         //
         const order = this.safeValue (response, 'order', {});
-        const trades = this.safeValue (response, 'trades', []);
+        const trades = this.safeList (response, 'trades', []);
         return this.parseOrder (this.extend (order, { 'trades': trades }));
     }
 

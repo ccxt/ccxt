@@ -4768,7 +4768,7 @@ export default class binance extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'newOrderResponse');
+        const data = this.safeDict (response, 'newOrderResponse');
         return this.parseOrder (data, market);
     }
 

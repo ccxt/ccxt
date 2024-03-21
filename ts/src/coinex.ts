@@ -3679,7 +3679,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parsePosition (data[0], market);
     }
 

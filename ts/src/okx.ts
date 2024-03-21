@@ -1863,7 +1863,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parseTicker (first, market);
     }
 
@@ -6869,7 +6869,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOpenInterest (data[0], market);
     }
 

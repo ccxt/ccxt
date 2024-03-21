@@ -2465,7 +2465,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
 
@@ -2753,7 +2753,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTicker (data[0], market);
     }
 
@@ -4157,7 +4157,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -4639,7 +4639,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -5090,7 +5090,7 @@ export default class bitget extends Exchange {
             response = JSON.parse (response);
         }
         const data = this.safeValue (response, 'data');
-        const first = this.safeValue (data, 0, data);
+        const first = this.safeDict (data, 0, data);
         return this.parseOrder (first, market);
     }
 
@@ -6220,7 +6220,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }
 
@@ -7168,7 +7168,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOpenInterest (data, market);
     }
 
@@ -8220,7 +8220,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const order = this.safeValue (data, 'successList', []);
+        const order = this.safeList (data, 'successList', []);
         return this.parseOrder (order[0], market);
     }
 
