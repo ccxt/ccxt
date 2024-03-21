@@ -7471,7 +7471,7 @@ export default class okx extends Exchange {
         return undefined;
     }
 
-    async fetchIsolatedMarginAdjustmentHistory (symbol: Str = undefined, addOrReduce: Str = undefined, params = {}): Promise<[]> {
+    async fetchIsolatedMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<object[]> {
         /**
          * @method
          * @name okx#fetchIsolatedMarginAdjustmentHistory
@@ -7479,7 +7479,7 @@ export default class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
          * @param {string} [symbol] unified market symbol
-         * @param {string} [addOrReduce] "add" or "reduce"
+         * @param {string} [type] "add" or "reduce"
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
