@@ -184,6 +184,7 @@ export default class bingx extends Exchange {
                             'post': {
                                 'trade/cancelReplace': 1,
                                 'positionSide/dual': 1,
+                                'trade/closePosition': 1,
                             },
                         },
                     },
