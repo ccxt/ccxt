@@ -2,7 +2,7 @@
 
 import cexRest from '../cex.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
@@ -166,16 +166,20 @@ export default class cex extends cexRest {
         //     {
         //         "e": "history",
         //         "data": [
-        //             "sell:1665467367741:3888551:19058.8:14541219",
-        //             "buy:1665467367741:1059339:19071.5:14541218",
+        //            'buy:1710255706095:444444:71222.2:14892622'
+        //            'sell:1710255658251:42530:71300:14892621'
+        //            'buy:1710252424241:87913:72800:14892620'
+        //            ... timestamp descending
         //         ]
         //     }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache (limit);
-        for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const index = dataLength - 1 - i;
+            const rawTrade = data[index];
             const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
         }
@@ -440,7 +444,7 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name cex#watchOrders
@@ -1206,7 +1210,7 @@ export default class cex extends cexRest {
         }
     }
 
-    async fetchOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOrderWs
@@ -1236,7 +1240,7 @@ export default class cex extends cexRest {
         return this.parseOrder (response, market);
     }
 
-    async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOpenOrdersWs
@@ -1268,7 +1272,7 @@ export default class cex extends cexRest {
         return this.parseOrders (response, market, since, limit, params);
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name cex#createOrderWs
@@ -1306,7 +1310,7 @@ export default class cex extends cexRest {
         return this.parseOrder (rawOrder, market);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name cex#editOrderWs
@@ -1348,7 +1352,7 @@ export default class cex extends cexRest {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name cex#cancelOrderWs
@@ -1379,7 +1383,7 @@ export default class cex extends cexRest {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}) {
+    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name cex#cancelOrdersWs

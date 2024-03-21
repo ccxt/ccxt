@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -575,6 +575,7 @@ export default class okx extends Exchange {
                     '50027': PermissionDenied, // The account is restricted from trading
                     '50028': ExchangeError, // Unable to take the order, please reach out to support center for details
                     '50044': BadRequest, // Must select one broker type
+                    '50061': ExchangeError, // You've reached the maximum order rate limit for this account.
                     '50062': ExchangeError, // This feature is currently unavailable.
                     // API Class
                     '50100': ExchangeError, // API frozen, please contact customer service
@@ -762,6 +763,15 @@ export default class okx extends Exchange {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000': ExchangeError, // Margin transactions unavailable
                     '54001': ExchangeError, // Only Multi-currency margin account can be set to borrow coins automatically
+                    // Trading bot Error Code from 55100 to 55999
+                    '55100': InvalidOrder, // Take profit % should be within the range of {parameter1}-{parameter2}
+                    '55101': InvalidOrder, // Stop loss % should be within the range of {parameter1}-{parameter2}
+                    '55102': InvalidOrder, // Take profit % should be greater than the current bot’s PnL%
+                    '55103': InvalidOrder, // Stop loss % should be less than the current bot’s PnL%
+                    '55104': InvalidOrder, // Only futures grid supports take profit or stop loss based on profit percentage
+                    '55111': InvalidOrder, // This signal name is in use, please try a new name
+                    '55112': InvalidOrder, // This signal does not exist
+                    '55113': InvalidOrder, // Create signal strategies with leverage greater than the maximum leverage of the instruments
                     // FUNDING error codes 58000-58999
                     '58000': ExchangeError, // Account type {0} does not supported when getting the sub-account balance
                     '58001': AuthenticationError, // Incorrect trade password
@@ -1182,7 +1192,7 @@ export default class okx extends Exchange {
         } as MarketInterface;
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
         if (isOption && !(marketId in this.markets_by_id)) {
             // handle expired option contracts
@@ -1272,7 +1282,7 @@ export default class okx extends Exchange {
         return this.safeInteger (first, 'ts');
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name okx#fetchAccounts
@@ -2243,7 +2253,7 @@ export default class okx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         const request = {
@@ -2588,7 +2598,7 @@ export default class okx extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
@@ -2831,7 +2841,7 @@ export default class okx extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name okx#createOrder
@@ -3037,7 +3047,7 @@ export default class okx extends Exchange {
         return this.extend (request, params);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrder
@@ -5008,6 +5018,14 @@ export default class okx extends Exchange {
             '3': 'pending',
             '4': 'pending',
             '5': 'pending',
+            '6': 'pending',
+            '7': 'pending',
+            '8': 'pending',
+            '9': 'pending',
+            '10': 'pending',
+            '12': 'pending',
+            '15': 'pending',
+            '16': 'pending',
         };
         return this.safeString (statuses, status, status);
     }

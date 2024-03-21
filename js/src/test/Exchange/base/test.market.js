@@ -63,7 +63,7 @@ function testMarket(exchange, skippedProperties, method, market) {
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate(exchange, method, market);
     //
-    const validTypes = ['spot', 'margin', 'swap', 'future', 'option'];
+    const validTypes = ['spot', 'margin', 'swap', 'future', 'option', 'index'];
     testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'type', validTypes);
     const hasIndex = ('index' in market); // todo: add in all
     // check if string is consistent with 'type'
@@ -206,7 +206,7 @@ function testMarket(exchange, skippedProperties, method, market) {
         }
     }
     // check whether valid currency ID and CODE is used
-    if (!('currencyIdAndCode' in skippedProperties)) {
+    if (!('currency' in skippedProperties) && !('currencyIdAndCode' in skippedProperties)) {
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['baseId'], market['base']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['settleId'], market['settle']);

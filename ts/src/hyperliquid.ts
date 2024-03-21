@@ -4,11 +4,11 @@
 import Exchange from './abstract/hyperliquid.js';
 import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE, ROUND } from './base/functions/number.js';
+import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ export default class hyperliquid extends Exchange {
             'version': 'v1',
             'rateLimit': 50, // 1200 requests per minute, 20 request per second
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -375,8 +375,8 @@ export default class hyperliquid extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': 0.00000001,
-                'price': 0.00000001,
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'szDecimals'))), // decimal places
+                'price': 5, // significant digits
             },
             'limits': {
                 'leverage': {
@@ -570,7 +570,7 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         return [
-            this.safeInteger (ohlcv, 'T'),
+            this.safeInteger (ohlcv, 't'),
             this.safeNumber (ohlcv, 'o'),
             this.safeNumber (ohlcv, 'h'),
             this.safeNumber (ohlcv, 'l'),
@@ -639,6 +639,13 @@ export default class hyperliquid extends Exchange {
 
     amountToPrecision (symbol, amount) {
         return this.decimalToPrecision (amount, ROUND, this.markets[symbol]['precision']['amount'], this.precisionMode);
+    }
+
+    priceToPrecision (symbol: string, price): string {
+        const market = this.market (symbol);
+        const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], SIGNIFICANT_DIGITS, this.paddingMode);
+        const decimalParsedResult = this.decimalToPrecision (result, ROUND, 6, DECIMAL_PLACES, this.paddingMode);
+        return decimalParsedResult;
     }
 
     hashMessage (message) {
@@ -764,7 +771,7 @@ export default class hyperliquid extends Exchange {
         return this.buildSig (chainId, messageTypes, message);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name hyperliquid#createOrder
@@ -780,8 +787,9 @@ export default class hyperliquid extends Exchange {
          * @param {bool} [params.postOnly] true or false whether the order is post-only
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @param {string} [params.clientOrderId] client order id, optional 128 bit hex string
+         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @param {string} [params.slippage] the slippage for market order
+         * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -832,7 +840,7 @@ export default class hyperliquid extends Exchange {
                 }
             }
         }
-        params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ]);
         const nonce = this.milliseconds ();
         const orderReq = [];
         for (let i = 0; i < orders.length; i++) {
@@ -867,6 +875,7 @@ export default class hyperliquid extends Exchange {
                     throw new ArgumentsRequired (this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
                 }
                 px = (isBuy) ? Precise.stringMul (price, Precise.stringAdd ('1', slippage)) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
+                px = this.priceToPrecision (symbol, px); // round after adding slippage
             } else {
                 px = this.priceToPrecision (symbol, price);
             }
@@ -956,7 +965,7 @@ export default class hyperliquid extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.clientOrderId] client order id (default undefined)
+         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.cancelOrders ([ id ], symbol, params);
@@ -972,7 +981,7 @@ export default class hyperliquid extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} [symbol] unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string|string[]} [params.clientOrderId] client order ids (default undefined)
+         * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials ();
@@ -1036,7 +1045,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    async editOrder (id: string, symbol: string, type: string, side: string, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name hyperliquid#editOrder
@@ -1055,6 +1064,7 @@ export default class hyperliquid extends Exchange {
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials ();

@@ -121,6 +121,7 @@ class bingx extends Exchange {
                     'v1' => array(
                         'public' => array(
                             'get' => array(
+                                'server/time' => 3,
                                 'common/symbols' => 3,
                                 'market/trades' => 3,
                                 'market/depth' => 3,
@@ -144,6 +145,7 @@ class bingx extends Exchange {
                                 'trade/order/cancelReplace' => 3,
                                 'trade/cancelOrders' => 3,
                                 'trade/cancelOpenOrders' => 3,
+                                'trade/cancelAllAfter' => 1,
                             ),
                         ),
                     ),
@@ -1788,15 +1790,16 @@ class bingx extends Exchange {
             $request[$exchangeClientOrderId] = $clientOrderId;
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        if ($timeInForce === 'IOC') {
+        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'PostOnly', $params);
+        if ($postOnly || ($timeInForce === 'PostOnly')) {
+            $request['timeInForce'] = 'PostOnly';
+        } elseif ($timeInForce === 'IOC') {
             $request['timeInForce'] = 'IOC';
+        } elseif ($timeInForce === 'GTC') {
+            $request['timeInForce'] = 'GTC';
         }
         $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         if ($isSpot) {
-            list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'POC', $params);
-            if ($postOnly || ($timeInForce === 'POC')) {
-                $request['timeInForce'] = 'POC';
-            }
             $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
             $params = $this->omit($params, 'cost');
             if ($cost !== null) {
@@ -1825,12 +1828,7 @@ class bingx extends Exchange {
                 }
             }
         } else {
-            list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'PostOnly', $params);
-            if ($postOnly || ($timeInForce === 'PostOnly')) {
-                $request['timeInForce'] = 'PostOnly';
-            } elseif ($timeInForce === 'GTC') {
-                $request['timeInForce'] = 'GTC';
-            } elseif ($timeInForce === 'FOK') {
+            if ($timeInForce === 'FOK') {
                 $request['timeInForce'] = 'FOK';
             }
             $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
@@ -1949,7 +1947,7 @@ class bingx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique id for the $order
          * @param {bool} [$params->postOnly] true to place a post only $order
-         * @param {string} [$params->timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+         * @param {string} [$params->timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
          * @param {bool} [$params->reduceOnly] *swap only* true or false whether the $order is reduce only
          * @param {float} [$params->triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss $order will be triggered
          * @param {float} [$params->stopLossPrice] *swap only* stop loss trigger $price
@@ -2430,7 +2428,7 @@ class bingx extends Exchange {
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
             'CANCELLED' => 'canceled',
-            'FAILED' => 'failed',
+            'FAILED' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -2934,7 +2932,7 @@ class bingx extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
@@ -3421,7 +3419,7 @@ class bingx extends Exchange {
         return $response;
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
@@ -3449,7 +3447,7 @@ class bingx extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         return array(
             'info' => $leverage,
@@ -4105,7 +4103,7 @@ class bingx extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): MarginMode {
+    public function fetch_margin_mode(string $symbol, $params = array ()): array {
         /**
          * fetches the margin mode of the trading pair
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode
@@ -4132,7 +4130,7 @@ class bingx extends Exchange {
         return $this->parse_margin_mode($data, $market);
     }
 
-    public function parse_margin_mode($marginMode, $market = null): MarginMode {
+    public function parse_margin_mode($marginMode, $market = null): array {
         $marginType = $this->safe_string_lower($marginMode, 'marginType');
         $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
         return array(

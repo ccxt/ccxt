@@ -55,6 +55,13 @@ class woo extends woo$1 {
                 'ping': this.ping,
                 'keepAlive': 10000,
             },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        'Auth is needed.': errors.AuthenticationError,
+                    },
+                },
+            },
         });
     }
     requestId(url) {
@@ -416,8 +423,9 @@ class woo extends woo$1 {
         const client = this.client(url);
         const messageHash = 'authenticated';
         const event = 'auth';
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const ts = this.nonce().toString();
             const auth = '|' + ts;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
@@ -430,10 +438,9 @@ class woo extends woo$1 {
                 },
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     async watchPrivate(messageHash, message, params = {}) {
         await this.authenticate(params);
@@ -446,6 +453,16 @@ class woo extends woo$1 {
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets();
         const topic = 'executionreport';
         let messageHash = topic;
@@ -798,7 +815,43 @@ class woo extends woo$1 {
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
     }
+    handleErrorMessage(client, message) {
+        //
+        // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
+        //
+        if (!('success' in message)) {
+            return false;
+        }
+        const success = this.safeBool(message, 'success');
+        if (success) {
+            return false;
+        }
+        const errorMessage = this.safeString(message, 'errorMsg');
+        try {
+            if (errorMessage !== undefined) {
+                const feedback = this.id + ' ' + this.json(message);
+                this.throwExactlyMatchedException(this.exceptions['exact'], errorMessage, feedback);
+            }
+            return false;
+        }
+        catch (error) {
+            if (error instanceof errors.AuthenticationError) {
+                const messageHash = 'authenticated';
+                client.reject(error, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
+                }
+            }
+            else {
+                client.reject(error);
+            }
+            return true;
+        }
+    }
     handleMessage(client, message) {
+        if (this.handleErrorMessage(client, message)) {
+            return;
+        }
         const methods = {
             'ping': this.handlePing,
             'pong': this.handlePong,
@@ -881,7 +934,9 @@ class woo extends woo$1 {
         const messageHash = 'authenticated';
         const success = this.safeValue(message, 'success');
         if (success) {
-            client.resolve(message, messageHash);
+            // client.resolve (message, messageHash);
+            const future = this.safeValue(client.futures, 'authenticated');
+            future.resolve(true);
         }
         else {
             const error = new errors.AuthenticationError(this.json(message));

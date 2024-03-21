@@ -652,28 +652,30 @@ class exmo extends \ccxt\async\exmo {
     }
 
     public function authenticate($params = array ()) {
-        $messageHash = 'authenticated';
-        list($type, $query) = $this->handle_market_type_and_params('authenticate', null, $params);
-        $url = $this->urls['api']['ws'][$type];
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $time = $this->milliseconds();
-            $this->check_required_credentials();
-            $requestId = $this->request_id();
-            $signData = $this->apiKey . (string) $time;
-            $sign = $this->hmac($this->encode($signData), $this->encode($this->secret), 'sha512', 'base64');
-            $request = array(
-                'method' => 'login',
-                'id' => $requestId,
-                'api_key' => $this->apiKey,
-                'sign' => $sign,
-                'nonce' => $time,
-            );
-            $message = array_merge($request, $query);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $messageHash = 'authenticated';
+            list($type, $query) = $this->handle_market_type_and_params('authenticate', null, $params);
+            $url = $this->urls['api']['ws'][$type];
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $time = $this->milliseconds();
+                $this->check_required_credentials();
+                $requestId = $this->request_id();
+                $signData = $this->apiKey . (string) $time;
+                $sign = $this->hmac($this->encode($signData), $this->encode($this->secret), 'sha512', 'base64');
+                $request = array(
+                    'method' => 'login',
+                    'id' => $requestId,
+                    'api_key' => $this->apiKey,
+                    'sign' => $sign,
+                    'nonce' => $time,
+                );
+                $message = array_merge($request, $query);
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+                $client->subscriptions[$messageHash] = $future;
+            }
+            return $future;
+        }) ();
     }
 }

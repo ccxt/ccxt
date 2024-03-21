@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -141,7 +141,7 @@ class bitflyer(Exchange, ImplicitAPI):
         month = self.safe_string(months, monthName)
         return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
 
-    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         # Bitflyer has a different type of conflict in markets, because
         # some of their ids(ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
         # Since they're the same we just need to return one
@@ -514,7 +514,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'taker': fee,
         }
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://lightning.bitflyer.com/docs?lang=en#send-a-new-order

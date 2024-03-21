@@ -545,7 +545,7 @@ public partial class deribit : Exchange
         };
     }
 
-    public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((((string)marketId).EndsWith(((string)"-C")))) || isTrue((((string)marketId).EndsWith(((string)"-P"))))));
         if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))

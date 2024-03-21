@@ -570,6 +570,7 @@ class okx extends Exchange {
                     '50027' => '\\ccxt\\PermissionDenied', // The account is restricted from trading
                     '50028' => '\\ccxt\\ExchangeError', // Unable to take the order, please reach out to support center for details
                     '50044' => '\\ccxt\\BadRequest', // Must select one broker type
+                    '50061' => '\\ccxt\\ExchangeError', // You've reached the maximum order rate limit for this account.
                     '50062' => '\\ccxt\\ExchangeError', // This feature is currently unavailable.
                     // API Class
                     '50100' => '\\ccxt\\ExchangeError', // API frozen, please contact customer service
@@ -758,6 +759,15 @@ class okx extends Exchange {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000' => '\\ccxt\\ExchangeError', // Margin transactions unavailable
                     '54001' => '\\ccxt\\ExchangeError', // Only Multi-currency margin account can be set to borrow coins automatically
+                    // Trading bot Error Code from 55100 to 55999
+                    '55100' => '\\ccxt\\InvalidOrder', // Take fmod(profit, should) be within the range of {parameter1}-{parameter2}
+                    '55101' => '\\ccxt\\InvalidOrder', // Stop fmod(loss, should) be within the range of {parameter1}-{parameter2}
+                    '55102' => '\\ccxt\\InvalidOrder', // Take fmod(profit, should) be greater than the current bot’s PnL%
+                    '55103' => '\\ccxt\\InvalidOrder', // Stop fmod(loss, should) be less than the current bot’s PnL%
+                    '55104' => '\\ccxt\\InvalidOrder', // Only futures grid supports take profit or stop loss based on profit percentage
+                    '55111' => '\\ccxt\\InvalidOrder', // This signal name is in use, please try a new name
+                    '55112' => '\\ccxt\\InvalidOrder', // This signal does not exist
+                    '55113' => '\\ccxt\\InvalidOrder', // Create signal strategies with leverage greater than the maximum leverage of the instruments
                     // FUNDING error codes 58000-58999
                     '58000' => '\\ccxt\\ExchangeError', // Account type {0} does not supported when getting the sub-account balance
                     '58001' => '\\ccxt\\AuthenticationError', // Incorrect trade password
@@ -1178,7 +1188,7 @@ class okx extends Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
@@ -1264,7 +1274,7 @@ class okx extends Exchange {
         return $this->safe_integer($first, 'ts');
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://www.okx.com/docs-v5/en/#trading-$account-rest-api-get-$account-configuration
@@ -2217,7 +2227,7 @@ class okx extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 100);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -4934,6 +4944,14 @@ class okx extends Exchange {
             '3' => 'pending',
             '4' => 'pending',
             '5' => 'pending',
+            '6' => 'pending',
+            '7' => 'pending',
+            '8' => 'pending',
+            '9' => 'pending',
+            '10' => 'pending',
+            '12' => 'pending',
+            '15' => 'pending',
+            '16' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -5034,7 +5052,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): Leverage {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
@@ -5076,7 +5094,7 @@ class okx extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = null;
         $marginMode = null;
         $longLeverage = null;
@@ -5450,7 +5468,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
@@ -7126,7 +7144,7 @@ class okx extends Exchange {
         return $underlyings[0];
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): Greeks {
+    public function fetch_greeks(string $symbol, $params = array ()): array {
         /**
          * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-option-$market-$data

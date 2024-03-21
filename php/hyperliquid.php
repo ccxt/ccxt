@@ -18,7 +18,7 @@ class hyperliquid extends Exchange {
             'version' => 'v1',
             'rateLimit' => 50, // 1200 requests per minute, 20 request per second
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -364,8 +364,8 @@ class hyperliquid extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => 0.00000001,
-                'price' => 0.00000001,
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'szDecimals'))), // decimal places
+                'price' => 5, // significant digits
             ),
             'limits' => array(
                 'leverage' => array(
@@ -553,7 +553,7 @@ class hyperliquid extends Exchange {
         //     }
         //
         return array(
-            $this->safe_integer($ohlcv, 'T'),
+            $this->safe_integer($ohlcv, 't'),
             $this->safe_number($ohlcv, 'o'),
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),
@@ -620,6 +620,13 @@ class hyperliquid extends Exchange {
 
     public function amount_to_precision($symbol, $amount) {
         return $this->decimal_to_precision($amount, ROUND, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
+    }
+
+    public function price_to_precision(string $symbol, $price): string {
+        $market = $this->market($symbol);
+        $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], SIGNIFICANT_DIGITS, $this->paddingMode);
+        $decimalParsedResult = $this->decimal_to_precision($result, ROUND, 6, DECIMAL_PLACES, $this->paddingMode);
+        return $decimalParsedResult;
     }
 
     public function hash_message($message) {
@@ -759,8 +766,9 @@ class hyperliquid extends Exchange {
          * @param {bool} [$params->postOnly] true or false whether the $order is post-only
          * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
          * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
-         * @param {string} [$params->clientOrderId] client $order id, optional 128 bit hex string
+         * @param {string} [$params->clientOrderId] client $order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @param {string} [$params->slippage] the slippage for $market $order
+         * @param {string} [$params->vaultAddress] the vault address for $order
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -809,7 +817,7 @@ class hyperliquid extends Exchange {
                 }
             }
         }
-        $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ));
         $nonce = $this->milliseconds();
         $orderReq = array();
         for ($i = 0; $i < count($orders); $i++) {
@@ -844,6 +852,7 @@ class hyperliquid extends Exchange {
                     throw new ArgumentsRequired($this->id . '  $market $orders require $price to calculate the max $slippage $price-> Default $slippage can be set in options (default is 5%).');
                 }
                 $px = ($isBuy) ? Precise::string_mul($price, Precise::string_add('1', $slippage)) : Precise::string_mul($price, Precise::string_sub('1', $slippage));
+                $px = $this->price_to_precision($symbol, $px); // round after adding $slippage
             } else {
                 $px = $this->price_to_precision($symbol, $price);
             }
@@ -931,7 +940,7 @@ class hyperliquid extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->clientOrderId] client order $id (default null)
+         * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         return $this->cancel_orders(array( $id ), $symbol, $params);
@@ -945,7 +954,7 @@ class hyperliquid extends Exchange {
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string|string[]} [$params->clientOrderId] client order $ids (default null)
+         * @param {string|string[]} [$params->clientOrderId] client order $ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->check_required_credentials();
@@ -1026,6 +1035,7 @@ class hyperliquid extends Exchange {
          * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
          * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @param {string} [$params->vaultAddress] the vault address for order
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->check_required_credentials();
@@ -1878,7 +1888,7 @@ class hyperliquid extends Exchange {
         // ));
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer currency internally between wallets on the same account
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer

@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -456,7 +456,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchMarkets
          * @description retrieves data on all markets for kraken
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -645,7 +645,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getAssetInfo
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -777,7 +777,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -881,7 +881,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -919,7 +919,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -966,7 +966,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1266,7 +1266,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1312,6 +1312,7 @@ export default class kraken extends Exchange {
         const lastTrade = trades[length - 1];
         const lastTradeId = this.safeString (result, 'last');
         lastTrade.push (lastTradeId);
+        trades[length - 1] = lastTrade;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1364,7 +1365,7 @@ export default class kraken extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name kraken#createOrder
@@ -1780,7 +1781,7 @@ export default class kraken extends Exchange {
         return [ request, params ];
     }
 
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name kraken#editOrder
@@ -2437,7 +2438,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime
+         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -2793,7 +2794,7 @@ export default class kraken extends Exchange {
         return result;
     }
 
-    parseAccount (account) {
+    parseAccountType (account) {
         const accountByType = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',
@@ -2829,8 +2830,8 @@ export default class kraken extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        fromAccount = this.parseAccount (fromAccount);
-        toAccount = this.parseAccount (toAccount);
+        fromAccount = this.parseAccountType (fromAccount);
+        toAccount = this.parseAccountType (toAccount);
         const request = {
             'amount': this.currencyToPrecision (code, amount),
             'from': fromAccount,

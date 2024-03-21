@@ -149,6 +149,22 @@
                     }
                 ],
                 "output": "{\"product_id\":\"DOGE-USDT\",\"side\":\"BUY\",\"order_configuration\":{\"limit_limit_gtc\":{\"base_size\":\"10\",\"limit_price\":\"0.05\",\"post_only\":false}}}"
+            },
+            {
+                "description": "create limit IOC order",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.05,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"client_order_id\":\"1cbeaa37-a49d-43ba-9cfd-bfb670d0614a\",\"product_id\":\"DOGE-USDT\",\"side\":\"BUY\",\"order_configuration\":{\"sor_limit_ioc\":{\"base_size\":\"10\",\"limit_price\":\"0.05\"}}}"
             }
         ],
         "createMarketBuyOrderWithCost": [

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Num, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -67,9 +67,11 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
-                'fetchLeverage': False,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': True,
                 'fetchLeverageTiers': True,
-                'fetchMarginMode': False,
+                'fetchMarginMode': 'emulated',
+                'fetchMarginModes': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -712,7 +714,7 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.safe_integer(data, 'requestReceiveAt')
 
-    def fetch_accounts(self, params={}):
+    def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -745,7 +747,7 @@ class ascendex(Exchange, ImplicitAPI):
             {
                 'id': accountGroup,
                 'type': None,
-                'currency': None,
+                'code': None,
                 'info': response,
             },
         ]
@@ -1438,7 +1440,7 @@ class ascendex(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build request
@@ -1510,7 +1512,7 @@ class ascendex(Exchange, ImplicitAPI):
         params = self.omit(params, ['reduceOnly', 'triggerPrice'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order on the exchange
         :see: https://ascendex.github.io/ascendex-pro-api/#place-order
@@ -2588,7 +2590,8 @@ class ascendex(Exchange, ImplicitAPI):
         notional = self.safe_string(position, 'buyOpenOrderNotional')
         if Precise.string_eq(notional, '0'):
             notional = self.safe_string(position, 'sellOpenOrderNotional')
-        marginMode = self.safe_string(position, 'marginType')
+        marginType = self.safe_string(position, 'marginType')
+        marginMode = 'cross' if (marginType == 'crossed') else 'isolated'
         collateral = None
         if marginMode == 'isolated':
             collateral = self.safe_string(position, 'isolatedMargin')
@@ -3097,6 +3100,147 @@ class ascendex(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'id': None,
             'amount': self.safe_number(income, 'paymentInUSDT'),
+        }
+
+    def fetch_margin_modes(self, symbols: List[str] = None, params={}) -> MarginModes:
+        """
+        fetches the set margin mode of the user
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `margin mode structures <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        """
+        self.load_markets()
+        self.load_accounts()
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_string(account, 'id')
+        request = {
+            'account-group': accountGroup,
+        }
+        response = self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #             "ac": "FUTURES",
+        #             "collaterals": [
+        #                 {
+        #                     "asset": "USDT",
+        #                     "balance": "44.570287262",
+        #                     "referencePrice": "1",
+        #                     "discountFactor": "1"
+        #                 }
+        #             ],
+        #             "contracts": [
+        #                 {
+        #                     "symbol": "BTC-PERP",
+        #                     "side": "LONG",
+        #                     "position": "0.0001",
+        #                     "referenceCost": "-3.12277254",
+        #                     "unrealizedPnl": "-0.001700233",
+        #                     "realizedPnl": "0",
+        #                     "avgOpenPrice": "31209",
+        #                     "marginType": "isolated",
+        #                     "isolatedMargin": "1.654972977",
+        #                     "leverage": "2",
+        #                     "takeProfitPrice": "0",
+        #                     "takeProfitTrigger": "market",
+        #                     "stopLossPrice": "0",
+        #                     "stopLossTrigger": "market",
+        #                     "buyOpenOrderNotional": "0",
+        #                     "sellOpenOrderNotional": "0",
+        #                     "markPrice": "31210.723063672",
+        #                     "indexPrice": "31223.148857925"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        marginModes = self.safe_list(data, 'contracts', [])
+        return self.parse_margin_modes(marginModes, symbols, 'symbol')
+
+    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+        marketId = self.safe_string(marginMode, 'symbol')
+        marginType = self.safe_string(marginMode, 'marginType')
+        margin = 'cross' if (marginType == 'crossed') else 'isolated'
+        return {
+            'info': marginMode,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': margin,
+        }
+
+    def fetch_leverages(self, symbols: List[str] = None, params={}) -> Leverages:
+        """
+        fetch the set leverage for all contract markets
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        self.load_markets()
+        self.load_accounts()
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_string(account, 'id')
+        request = {
+            'account-group': accountGroup,
+        }
+        response = self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #             "ac": "FUTURES",
+        #             "collaterals": [
+        #                 {
+        #                     "asset": "USDT",
+        #                     "balance": "44.570287262",
+        #                     "referencePrice": "1",
+        #                     "discountFactor": "1"
+        #                 }
+        #             ],
+        #             "contracts": [
+        #                 {
+        #                     "symbol": "BTC-PERP",
+        #                     "side": "LONG",
+        #                     "position": "0.0001",
+        #                     "referenceCost": "-3.12277254",
+        #                     "unrealizedPnl": "-0.001700233",
+        #                     "realizedPnl": "0",
+        #                     "avgOpenPrice": "31209",
+        #                     "marginType": "isolated",
+        #                     "isolatedMargin": "1.654972977",
+        #                     "leverage": "2",
+        #                     "takeProfitPrice": "0",
+        #                     "takeProfitTrigger": "market",
+        #                     "stopLossPrice": "0",
+        #                     "stopLossTrigger": "market",
+        #                     "buyOpenOrderNotional": "0",
+        #                     "sellOpenOrderNotional": "0",
+        #                     "markPrice": "31210.723063672",
+        #                     "indexPrice": "31223.148857925"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        leverages = self.safe_list(data, 'contracts', [])
+        return self.parse_leverages(leverages, symbols, 'symbol')
+
+    def parse_leverage(self, leverage, market=None) -> Leverage:
+        marketId = self.safe_string(leverage, 'symbol')
+        leverageValue = self.safe_integer(leverage, 'leverage')
+        marginType = self.safe_string(leverage, 'marginType')
+        marginMode = 'cross' if (marginType == 'crossed') else 'isolated'
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
