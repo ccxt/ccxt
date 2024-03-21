@@ -1018,15 +1018,9 @@ export default class binance extends binanceRest {
         if (symbolsDefined) {
             firstMarket = this.market (symbols[0]);
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params, undefined);
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
-        if ((this.inArray (marketType, [ 'swap', 'future' ]) && subType === undefined)) {
-            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a correct combination of params["defaultType"] and params["subType"]');
-        } else if (marketType === 'spot' && subType !== undefined) {
-            // when user calls i.e. watchTickers (undefined, { 'subType': 'linear' }), remove default 'spot' marketType
-            marketType = undefined;
-        }
         if (marketType === 'option') {
             throw new NotSupported (this.id + ' ' + methodName + '() does not support options markets');
         }
