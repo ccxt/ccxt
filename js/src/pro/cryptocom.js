@@ -1006,7 +1006,7 @@ export default class cryptocom extends cryptocomRest {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     handlePing(client, message) {
         this.spawn(this.pong, client, message);

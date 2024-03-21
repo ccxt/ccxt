@@ -79,6 +79,7 @@ import type {
     OrderType,
     Position,
     Str,
+    Strings,
     Ticker,
     Tickers,
     Trade,
@@ -206,9 +207,14 @@ const {
 } = functions;
 
 export type {
+    Account,
     Balance,
+    BalanceAccount,
     Balances,
+    BorrowInterest,
+    BorrowRate,
     Currency,
+    CurrencyInterface,
     DepositAddressResponse,
     Dictionary,
     Fee,
@@ -217,21 +223,36 @@ export type {
     Greeks,
     IndexType,
     Int,
+    LastPrice,
+    LastPrices,
+    LedgerEntry,
     Leverage,
     Leverages,
+    LeverageTier,
     Liquidation,
+    MarginMode,
+    MarginModes,
     Market,
+    MarketInterface,
+    MarketType,
     MinMax,
+    Num,
     OHLCV,
     OHLCVC,
+    OpenInterest,
     Order,
     OrderBook,
+    OrderRequest,
     OrderSide,
     OrderType,
     Position,
+    Str,
+    Strings,
     Ticker,
+    Tickers,
     Trade,
-    Transaction
+    Transaction,
+    TransferEntry,
 } from './types.js';
 // ----------------------------------------------------------------------------
 /**
@@ -2489,7 +2510,7 @@ export default class Exchange {
         return parseInt (stringVersion);
     }
 
-    isRoundNumber (value) {
+    isRoundNumber (value: number) {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         const res = this.parseToNumeric ((value % 1));
@@ -3458,7 +3479,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOHLCV() is not supported yet');
     }
 
-    convertTradingViewToOHLCV (ohlcvs, timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
+    convertTradingViewToOHLCV (ohlcvs: number[][], timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
         const result = [];
         const timestamps = this.safeList (ohlcvs, timestamp, []);
         const opens = this.safeList (ohlcvs, open, []);
@@ -3479,7 +3500,7 @@ export default class Exchange {
         return result;
     }
 
-    convertOHLCVToTradingView (ohlcvs, timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
+    convertOHLCVToTradingView (ohlcvs: number[][], timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
         const result = {};
         result[close] = [];
         result[high] = [];
@@ -3551,7 +3572,7 @@ export default class Exchange {
         }
     }
 
-    marketIds (symbols) {
+    marketIds (symbols: Strings = undefined) {
         if (symbols === undefined) {
             return symbols;
         }
@@ -3562,7 +3583,7 @@ export default class Exchange {
         return result;
     }
 
-    marketSymbols (symbols, type: Str = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
+    marketSymbols (symbols: Strings = undefined, type: Str = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
                 throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
@@ -3604,7 +3625,7 @@ export default class Exchange {
         return result;
     }
 
-    marketCodes (codes) {
+    marketCodes (codes: Strings = undefined) {
         if (codes === undefined) {
             return codes;
         }

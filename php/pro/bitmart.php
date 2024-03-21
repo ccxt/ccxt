@@ -1402,43 +1402,45 @@ class bitmart extends \ccxt\async\bitmart {
     }
 
     public function authenticate($type, $params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->implode_hostname($this->urls['api']['ws'][$type]['private']);
-        $messageHash = 'authenticated';
-        $client = $this->client($url);
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $timestamp = (string) $this->milliseconds();
-            $memo = $this->uid;
-            $path = 'bitmart.WebSocket';
-            $auth = $timestamp . '#' . $memo . '#' . $path;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $request = null;
-            if ($type === 'spot') {
-                $request = array(
-                    'op' => 'login',
-                    'args' => array(
-                        $this->apiKey,
-                        $timestamp,
-                        $signature,
-                    ),
-                );
-            } else {
-                $request = array(
-                    'action' => 'access',
-                    'args' => array(
-                        $this->apiKey,
-                        $timestamp,
-                        $signature,
-                        'web',
-                    ),
-                );
+        return Async\async(function () use ($type, $params) {
+            $this->check_required_credentials();
+            $url = $this->implode_hostname($this->urls['api']['ws'][$type]['private']);
+            $messageHash = 'authenticated';
+            $client = $this->client($url);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $timestamp = (string) $this->milliseconds();
+                $memo = $this->uid;
+                $path = 'bitmart.WebSocket';
+                $auth = $timestamp . '#' . $memo . '#' . $path;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $request = null;
+                if ($type === 'spot') {
+                    $request = array(
+                        'op' => 'login',
+                        'args' => array(
+                            $this->apiKey,
+                            $timestamp,
+                            $signature,
+                        ),
+                    );
+                } else {
+                    $request = array(
+                        'action' => 'access',
+                        'args' => array(
+                            $this->apiKey,
+                            $timestamp,
+                            $signature,
+                            'web',
+                        ),
+                    );
+                }
+                $message = array_merge($request, $params);
+                $this->watch($url, $messageHash, $message, $messageHash);
             }
-            $message = array_merge($request, $params);
-            $this->watch($url, $messageHash, $message, $messageHash);
-        }
-        return $future;
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_subscription_status(Client $client, $message) {

@@ -534,6 +534,7 @@ public partial class okx : Exchange
                     { "50027", typeof(PermissionDenied) },
                     { "50028", typeof(ExchangeError) },
                     { "50044", typeof(BadRequest) },
+                    { "50061", typeof(ExchangeError) },
                     { "50062", typeof(ExchangeError) },
                     { "50100", typeof(ExchangeError) },
                     { "50101", typeof(AuthenticationError) },
@@ -717,6 +718,14 @@ public partial class okx : Exchange
                     { "52000", typeof(ExchangeError) },
                     { "54000", typeof(ExchangeError) },
                     { "54001", typeof(ExchangeError) },
+                    { "55100", typeof(InvalidOrder) },
+                    { "55101", typeof(InvalidOrder) },
+                    { "55102", typeof(InvalidOrder) },
+                    { "55103", typeof(InvalidOrder) },
+                    { "55104", typeof(InvalidOrder) },
+                    { "55111", typeof(InvalidOrder) },
+                    { "55112", typeof(InvalidOrder) },
+                    { "55113", typeof(InvalidOrder) },
                     { "58000", typeof(ExchangeError) },
                     { "58001", typeof(AuthenticationError) },
                     { "58002", typeof(PermissionDenied) },
@@ -1111,7 +1120,7 @@ public partial class okx : Exchange
         };
     }
 
-    public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((isGreaterThan(getIndexOf(marketId, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(marketId, "-P"), -1)))));
         if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
@@ -5255,6 +5264,14 @@ public partial class okx : Exchange
             { "3", "pending" },
             { "4", "pending" },
             { "5", "pending" },
+            { "6", "pending" },
+            { "7", "pending" },
+            { "8", "pending" },
+            { "9", "pending" },
+            { "10", "pending" },
+            { "12", "pending" },
+            { "15", "pending" },
+            { "16", "pending" },
         };
         return this.safeString(statuses, status, status);
     }

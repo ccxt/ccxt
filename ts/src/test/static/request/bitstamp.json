@@ -5,26 +5,11 @@
     "methods": {
         "fetchBalance": [
             {
-                "description": "Fetch spot Balance",
+                "description": "Fetch main balance",
                 "method": "fetchBalance",
-                "url": "https://www.bitstamp.net/api/v2/balance/",
-                "input": [
-                    {
-                        "type": "spot"
-                    }
-                ],
-                "output": "type=spot"
-            },
-            {
-                "description": "Fetch swap Balance",
-                "method": "fetchBalance",
-                "url": "https://www.bitstamp.net/api/v2/balance/",
-                "input": [
-                    {
-                        "type": "swap"
-                    }
-                ],
-                "output": "type=swap"
+                "url": "https://www.bitstamp.net/api/v2/account_balances/",
+                "input": [],
+                "output": "foo=bar"
             }
         ],
         "fetchLedger": [

@@ -137,7 +137,7 @@ export default class kucoin extends Exchange {
         currency: string;
         rate: number;
         period: number;
-        timestamp: string;
+        timestamp: number;
         datetime: string;
         info: any;
     };
@@ -153,6 +153,9 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchBorrowRateHistories(codes?: any, since?: Int, limit?: Int, params?: {}): Promise<{}>;
+    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseBorrowRateHistories(response: any, codes: any, since: any, limit: any): {};
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{
         id: string;
         currency: string;

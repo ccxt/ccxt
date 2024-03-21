@@ -1133,16 +1133,18 @@ class bitstamp extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count($codes); $i++) {
-            $code = $codes[$i];
-            $currency = $this->currency($code);
-            $currencyId = $currency['id'];
+        if ($response === null) {
+            $response = array();
+        }
+        for ($i = 0; $i < count($response); $i++) {
+            $currencyBalance = $response[$i];
+            $currencyId = $this->safe_string($currencyBalance, 'currency');
+            $currencyCode = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_string($response, $currencyId . '_available');
-            $account['used'] = $this->safe_string($response, $currencyId . '_reserved');
-            $account['total'] = $this->safe_string($response, $currencyId . '_balance');
-            $result[$code] = $account;
+            $account['free'] = $this->safe_string($currencyBalance, 'available');
+            $account['used'] = $this->safe_string($currencyBalance, 'reserved');
+            $account['total'] = $this->safe_string($currencyBalance, 'total');
+            $result[$currencyCode] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -1156,24 +1158,17 @@ class bitstamp extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostBalance ($params));
+            $response = Async\await($this->privatePostAccountBalances ($params));
             //
-            //     {
-            //         "aave_available" => "0.00000000",
-            //         "aave_balance" => "0.00000000",
-            //         "aave_reserved" => "0.00000000",
-            //         "aave_withdrawal_fee" => "0.07000000",
-            //         "aavebtc_fee" => "0.000",
-            //         "aaveeur_fee" => "0.000",
-            //         "aaveusd_fee" => "0.000",
-            //         "bat_available" => "0.00000000",
-            //         "bat_balance" => "0.00000000",
-            //         "bat_reserved" => "0.00000000",
-            //         "bat_withdrawal_fee" => "5.00000000",
-            //         "batbtc_fee" => "0.000",
-            //         "bateur_fee" => "0.000",
-            //         "batusd_fee" => "0.000",
-            //     }
+            //     array(
+            //         array(
+            //             "currency" => "usdt",
+            //             "total" => "7.00000",
+            //             "available" => "7.00000",
+            //             "reserved" => "0.00000"
+            //         ),
+            //         ...
+            //     )
             //
             return $this->parse_balance($response);
         }) ();

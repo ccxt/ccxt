@@ -574,7 +574,7 @@ public partial class hyperliquid : Exchange
         //         "v": "591.6427"
         //     }
         //
-        return new List<object> {this.safeInteger(ohlcv, "T"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
+        return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
 
     public async override Task<object> fetchTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -820,8 +820,9 @@ public partial class hyperliquid : Exchange
         * @param {bool} [params.postOnly] true or false whether the order is post-only
         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-        * @param {string} [params.clientOrderId] client order id, optional 128 bit hex string
+        * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         * @param {string} [params.slippage] the slippage for market order
+        * @param {string} [params.vaultAddress] the vault address for order
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -880,7 +881,7 @@ public partial class hyperliquid : Exchange
                 }
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"});
+        parameters = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"});
         object nonce = this.milliseconds();
         object orderReq = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
@@ -1014,7 +1015,7 @@ public partial class hyperliquid : Exchange
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] client order id (default undefined)
+        * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1032,7 +1033,7 @@ public partial class hyperliquid : Exchange
         * @param {string[]} ids order ids
         * @param {string} [symbol] unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string|string[]} [params.clientOrderId] client order ids (default undefined)
+        * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1122,6 +1123,7 @@ public partial class hyperliquid : Exchange
         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+        * @param {string} [params.vaultAddress] the vault address for order
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();

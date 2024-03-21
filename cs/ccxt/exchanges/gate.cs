@@ -43,6 +43,7 @@ public partial class gate : Exchange
                         { "rebate", "https://api.gateio.ws/api/v4" },
                         { "earn", "https://api.gateio.ws/api/v4" },
                         { "account", "https://api.gateio.ws/api/v4" },
+                        { "loan", "https://api.gateio.ws/api/v4" },
                     } },
                 } },
                 { "test", new Dictionary<string, object>() {
@@ -301,6 +302,7 @@ public partial class gate : Exchange
                             { "loan_records", divide(20, 15) },
                             { "interest_records", divide(20, 15) },
                             { "estimate_rate", divide(20, 15) },
+                            { "currency_discount_tiers", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "account_mode", divide(20, 15) },
@@ -863,7 +865,7 @@ public partial class gate : Exchange
         };
     }
 
-    public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((isGreaterThan(getIndexOf(marketId, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(marketId, "-P"), -1)))));
         if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
@@ -4493,7 +4495,8 @@ public partial class gate : Exchange
         };
         if (isTrue(!isEqual(amount, null)))
         {
-            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+            object amountKey = ((bool) isTrue((getValue(market, "spot")))) ? "amount" : "size";
+            ((IDictionary<string,object>)request)[(string)amountKey] = this.amountToPrecision(symbol, amount);
         }
         if (isTrue(!isEqual(price, null)))
         {

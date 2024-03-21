@@ -1546,11 +1546,10 @@ public partial class testMainClass : BaseTest
     {
         Exchange exchange = this.initOfflineExchange("kucoin");
         object reqHeaders = null;
-        object optionsString = ((object)exchange.options).ToString();
         object spotId = getValue(getValue(getValue(exchange.options, "partner"), "spot"), "id");
         object spotKey = getValue(getValue(getValue(exchange.options, "partner"), "spot"), "key");
-        assert(isEqual(spotId, "ccxt"), add(add(add("kucoin - id: ", spotId), " not in options: "), optionsString));
-        assert(isEqual(spotKey, "9e58cc35-5b5e-4133-92ec-166e3f077cb8"), add(add(add("kucoin - key: ", spotKey), " not in options: "), optionsString));
+        assert(isEqual(spotId, "ccxt"), add(add("kucoin - id: ", spotId), " not in options"));
+        assert(isEqual(spotKey, "9e58cc35-5b5e-4133-92ec-166e3f077cb8"), add(add("kucoin - key: ", spotKey), " not in options."));
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -1570,11 +1569,10 @@ public partial class testMainClass : BaseTest
         Exchange exchange = this.initOfflineExchange("kucoinfutures");
         object reqHeaders = null;
         object id = "ccxtfutures";
-        object optionsString = ((object)getValue(getValue(exchange.options, "partner"), "future")).ToString();
         object futureId = getValue(getValue(getValue(exchange.options, "partner"), "future"), "id");
         object futureKey = getValue(getValue(getValue(exchange.options, "partner"), "future"), "key");
-        assert(isEqual(futureId, id), add(add(add("kucoinfutures - id: ", futureId), " not in options: "), optionsString));
-        assert(isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), add(add(add("kucoinfutures - key: ", futureKey), " not in options: "), optionsString));
+        assert(isEqual(futureId, id), add(add("kucoinfutures - id: ", futureId), " not in options."));
+        assert(isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), add(add("kucoinfutures - key: ", futureKey), " not in options."));
         try
         {
             await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
@@ -1592,8 +1590,7 @@ public partial class testMainClass : BaseTest
         Exchange exchange = this.initOfflineExchange("bitget");
         object reqHeaders = null;
         object id = "p4sve";
-        object optionsString = ((object)exchange.options).ToString();
-        assert(isEqual(getValue(exchange.options, "broker"), id), add(add(add("bitget - id: ", id), " not in options: "), optionsString));
+        assert(isEqual(getValue(exchange.options, "broker"), id), add(add("bitget - id: ", id), " not in options"));
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -1611,8 +1608,7 @@ public partial class testMainClass : BaseTest
         Exchange exchange = this.initOfflineExchange("mexc");
         object reqHeaders = null;
         object id = "CCXT";
-        object optionsString = ((object)exchange.options).ToString();
-        assert(isEqual(getValue(exchange.options, "broker"), id), add(add(add("mexc - id: ", id), " not in options: "), optionsString));
+        assert(isEqual(getValue(exchange.options, "broker"), id), add(add("mexc - id: ", id), " not in options"));
         await exchange.loadMarkets();
         try
         {
@@ -1621,8 +1617,7 @@ public partial class testMainClass : BaseTest
         {
             reqHeaders = exchange.last_request_headers;
         }
-        object reqHeadersString = ((bool) isTrue(!isEqual(reqHeaders, null))) ? ((object)reqHeaders).ToString() : "undefined";
-        assert(isEqual(getValue(reqHeaders, "source"), id), add(add(add("mexc - id: ", id), " not in headers: "), reqHeadersString));
+        assert(isEqual(getValue(reqHeaders, "source"), id), add(add("mexc - id: ", id), " not in headers."));
         await close(exchange);
         return true;
     }
@@ -1745,8 +1740,7 @@ public partial class testMainClass : BaseTest
         Exchange exchange = this.initOfflineExchange("bingx");
         object reqHeaders = null;
         object id = "CCXT";
-        object optionsString = ((object)exchange.options).ToString();
-        assert(isEqual(getValue(exchange.options, "broker"), id), add(add(add("bingx - id: ", id), " not in options: "), optionsString));
+        assert(isEqual(getValue(exchange.options, "broker"), id), add(add("bingx - id: ", id), " not in options"));
         try
         {
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -1755,8 +1749,7 @@ public partial class testMainClass : BaseTest
             // we expect an error here, we're only interested in the headers
             reqHeaders = exchange.last_request_headers;
         }
-        object reqHeadersString = ((bool) isTrue(!isEqual(reqHeaders, null))) ? ((object)reqHeaders).ToString() : "undefined";
-        assert(isEqual(getValue(reqHeaders, "X-SOURCE-KEY"), id), add(add(add("bingx - id: ", id), " not in headers: "), reqHeadersString));
+        assert(isEqual(getValue(reqHeaders, "X-SOURCE-KEY"), id), add(add("bingx - id: ", id), " not in headers."));
         await close(exchange);
     }
 

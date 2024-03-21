@@ -1122,16 +1122,18 @@ export default class bitstamp extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const codes = Object.keys(this.currencies);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const currency = this.currency(code);
-            const currencyId = currency['id'];
+        if (response === undefined) {
+            response = [];
+        }
+        for (let i = 0; i < response.length; i++) {
+            const currencyBalance = response[i];
+            const currencyId = this.safeString(currencyBalance, 'currency');
+            const currencyCode = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            account['free'] = this.safeString(response, currencyId + '_available');
-            account['used'] = this.safeString(response, currencyId + '_reserved');
-            account['total'] = this.safeString(response, currencyId + '_balance');
-            result[code] = account;
+            account['free'] = this.safeString(currencyBalance, 'available');
+            account['used'] = this.safeString(currencyBalance, 'reserved');
+            account['total'] = this.safeString(currencyBalance, 'total');
+            result[currencyCode] = account;
         }
         return this.safeBalance(result);
     }
@@ -1145,24 +1147,17 @@ export default class bitstamp extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
-        const response = await this.privatePostBalance(params);
+        const response = await this.privatePostAccountBalances(params);
         //
-        //     {
-        //         "aave_available": "0.00000000",
-        //         "aave_balance": "0.00000000",
-        //         "aave_reserved": "0.00000000",
-        //         "aave_withdrawal_fee": "0.07000000",
-        //         "aavebtc_fee": "0.000",
-        //         "aaveeur_fee": "0.000",
-        //         "aaveusd_fee": "0.000",
-        //         "bat_available": "0.00000000",
-        //         "bat_balance": "0.00000000",
-        //         "bat_reserved": "0.00000000",
-        //         "bat_withdrawal_fee": "5.00000000",
-        //         "batbtc_fee": "0.000",
-        //         "bateur_fee": "0.000",
-        //         "batusd_fee": "0.000",
-        //     }
+        //     [
+        //         {
+        //             "currency": "usdt",
+        //             "total": "7.00000",
+        //             "available": "7.00000",
+        //             "reserved": "0.00000"
+        //         },
+        //         ...
+        //     ]
         //
         return this.parseBalance(response);
     }

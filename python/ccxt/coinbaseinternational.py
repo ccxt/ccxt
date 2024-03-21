@@ -126,10 +126,10 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 },
                 'www': 'https://international.coinbase.com',
                 'doc': [
-                    'https://docs.cloud.coinbaseinternational.com/intx/docs',
+                    'https://docs.cloud.coinbase.com/intx/docs',
                 ],
                 'fees': [
-                    'https://help.coinbaseinternational.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
+                    'https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
                 ],
                 'referral': '',
             },

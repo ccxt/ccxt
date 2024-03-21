@@ -411,6 +411,105 @@
                     ]
                 ]
             }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open orders",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": {
+                  "success": true,
+                  "meta": {
+                    "total": "1",
+                    "records_per_page": "500",
+                    "current_page": "1"
+                  },
+                  "rows": [
+                    {
+                      "symbol": "SPOT_LTC_USDT",
+                      "status": "NEW",
+                      "side": "BUY",
+                      "created_time": "1710931373.834",
+                      "updated_time": "1710931373.834",
+                      "order_id": "1122668213",
+                      "order_tag": "default",
+                      "price": "60",
+                      "type": "LIMIT",
+                      "quantity": "0.1",
+                      "amount": null,
+                      "visible": "0.1",
+                      "executed": "0",
+                      "total_fee": "0",
+                      "fee_asset": "LTC",
+                      "client_order_id": null,
+                      "reduce_only": false,
+                      "realized_pnl": null,
+                      "average_executed_price": null,
+                      "position_side": "BOTH"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "id": "1122668213",
+                    "clientOrderId": null,
+                    "timestamp": 1710931373834,
+                    "datetime": "2024-03-20T10:42:53.834Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1710931373834,
+                    "status": "open",
+                    "symbol": "LTC/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 60,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": 0.1,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {
+                      "cost": "0",
+                      "currency": "LTC"
+                    },
+                    "info": {
+                      "symbol": "SPOT_LTC_USDT",
+                      "status": "NEW",
+                      "side": "BUY",
+                      "created_time": "1710931373.834",
+                      "updated_time": "1710931373.834",
+                      "order_id": "1122668213",
+                      "order_tag": "default",
+                      "price": "60",
+                      "type": "LIMIT",
+                      "quantity": "0.1",
+                      "amount": null,
+                      "visible": "0.1",
+                      "executed": "0",
+                      "total_fee": "0",
+                      "fee_asset": "LTC",
+                      "client_order_id": null,
+                      "reduce_only": false,
+                      "realized_pnl": null,
+                      "average_executed_price": null,
+                      "position_side": "BOTH"
+                    },
+                    "fees": [
+                      {
+                        "cost": 0,
+                        "currency": "LTC"
+                      }
+                    ]
+                  }
+                ]
+            }
         ]
     }
 }

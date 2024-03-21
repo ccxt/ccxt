@@ -129,6 +129,20 @@
                     55
                 ],
                 "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"price\":\"55\"}"
+            },
+            {
+                "description": "edit swap amount",
+                "method": "editOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders/436539451847",
+                "input": [
+                  "436539451847",
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  2,
+                  54
+                ],
+                "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"size\":\"2\",\"price\":\"54\"}"
             }
         ],
         "fetchPositions": [
