@@ -1143,8 +1143,24 @@ public partial class bybit : ccxt.bybit
         {
             object rawPosition = getValue(rawPositions, i);
             object position = this.parsePosition(rawPosition);
+            object side = this.safeString(position, "side");
+            // hacky solution to handle closing positions
+            // without crashing, we should handle this properly later
             ((IList<object>)newPositions).Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            if (isTrue(isTrue(isEqual(side, null)) || isTrue(isEqual(side, ""))))
+            {
+                // closing update, adding both sides to "reset" both sides
+                // since we don't know which side is being closed
+                ((IDictionary<string,object>)position)["side"] = "long";
+                callDynamically(cache, "append", new object[] {position});
+                ((IDictionary<string,object>)position)["side"] = "short";
+                callDynamically(cache, "append", new object[] {position});
+                ((IDictionary<string,object>)position)["side"] = null;
+            } else
+            {
+                // regular update
+                callDynamically(cache, "append", new object[] {position});
+            }
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))

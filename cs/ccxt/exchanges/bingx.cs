@@ -174,6 +174,7 @@ public partial class bingx : Exchange
                             { "post", new Dictionary<string, object>() {
                                 { "trade/cancelReplace", 1 },
                                 { "positionSide/dual", 1 },
+                                { "trade/closePosition", 1 },
                             } },
                         } },
                     } },
@@ -2325,6 +2326,8 @@ public partial class bingx : Exchange
             { "SELL", "sell" },
             { "SHORT", "sell" },
             { "LONG", "buy" },
+            { "ask", "sell" },
+            { "bid", "buy" },
         };
         return this.safeString(sides, side, side);
     }
@@ -4145,15 +4148,47 @@ public partial class bingx : Exchange
         * @param {string} symbol Unified CCXT market symbol
         * @param {string} [side] not used by bingx
         * @param {object} [params] extra parameters specific to the bingx api endpoint
+        * @param {string|undefined} [params.positionId] it is recommended to fill in this parameter when closing a position
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-        };
-        object response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
+        object positionId = this.safeString(parameters, "positionId");
+        parameters = this.omit(parameters, "positionId");
+        object response = null;
+        if (isTrue(!isEqual(positionId, null)))
+        {
+            object request = new Dictionary<string, object>() {
+                { "positionId", positionId },
+            };
+            response = await this.swapV1PrivatePostTradeClosePosition(this.extend(request, parameters));
+        } else
+        {
+            object market = this.market(symbol);
+            object request = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+            };
+            response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
+        }
+        //
+        // swapV1PrivatePostTradeClosePosition
+        //
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "timestamp": 1710992264190,
+        //        "data": {
+        //            "orderId": 1770656007907930112,
+        //            "positionId": "1751667128353910784",
+        //            "symbol": "LTC-USDT",
+        //            "side": "Ask",
+        //            "type": "MARKET",
+        //            "positionSide": "Long",
+        //            "origQty": "0.2"
+        //        }
+        //    }
+        //
+        // swapV2PrivatePostTradeCloseAllPositions
         //
         //    {
         //        "code": 0,

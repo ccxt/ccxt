@@ -1082,16 +1082,17 @@ class bitstamp(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = self.currency(code)
-            currencyId = currency['id']
+        if response is None:
+            response = []
+        for i in range(0, len(response)):
+            currencyBalance = response[i]
+            currencyId = self.safe_string(currencyBalance, 'currency')
+            currencyCode = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_string(response, currencyId + '_available')
-            account['used'] = self.safe_string(response, currencyId + '_reserved')
-            account['total'] = self.safe_string(response, currencyId + '_balance')
-            result[code] = account
+            account['free'] = self.safe_string(currencyBalance, 'available')
+            account['used'] = self.safe_string(currencyBalance, 'reserved')
+            account['total'] = self.safe_string(currencyBalance, 'total')
+            result[currencyCode] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1102,24 +1103,17 @@ class bitstamp(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        response = self.privatePostBalance(params)
+        response = self.privatePostAccountBalances(params)
         #
-        #     {
-        #         "aave_available": "0.00000000",
-        #         "aave_balance": "0.00000000",
-        #         "aave_reserved": "0.00000000",
-        #         "aave_withdrawal_fee": "0.07000000",
-        #         "aavebtc_fee": "0.000",
-        #         "aaveeur_fee": "0.000",
-        #         "aaveusd_fee": "0.000",
-        #         "bat_available": "0.00000000",
-        #         "bat_balance": "0.00000000",
-        #         "bat_reserved": "0.00000000",
-        #         "bat_withdrawal_fee": "5.00000000",
-        #         "batbtc_fee": "0.000",
-        #         "bateur_fee": "0.000",
-        #         "batusd_fee": "0.000",
-        #     }
+        #     [
+        #         {
+        #             "currency": "usdt",
+        #             "total": "7.00000",
+        #             "available": "7.00000",
+        #             "reserved": "0.00000"
+        #         },
+        #         ...
+        #     ]
         #
         return self.parse_balance(response)
 

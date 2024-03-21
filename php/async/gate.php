@@ -319,6 +319,7 @@ class gate extends Exchange {
                             'loan_records' => 20 / 15,
                             'interest_records' => 20 / 15,
                             'estimate_rate' => 20 / 15,
+                            'currency_discount_tiers' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
@@ -4230,7 +4231,8 @@ class gate extends Exchange {
                 'account' => $account,
             );
             if ($amount !== null) {
-                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                $amountKey = ($market['spot']) ? 'amount' : 'size';
+                $request[$amountKey] = $this->amount_to_precision($symbol, $amount);
             }
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);

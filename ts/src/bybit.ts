@@ -72,6 +72,7 @@ export default class bybit extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true, // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -112,7 +113,6 @@ export default class bybit extends Exchange {
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
-                'fetchFundingHistory': true,
                 'repayCrossMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,

@@ -1523,7 +1523,7 @@ class bitget(ccxt.async_support.bitget):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     async def watch_private(self, messageHash, subscriptionHash, args, params={}):
         await self.authenticate()

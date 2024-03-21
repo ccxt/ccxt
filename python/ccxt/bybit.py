@@ -84,6 +84,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,  # emulated in exchange
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -7538,6 +7539,97 @@ class bybit(Exchange, ImplicitAPI):
                 'info': tier,
             })
         return tiers
+
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 100)
+        request = {
+            'execType': 'Funding',
+        }
+        market: Market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        type = None
+        type, params = self.get_bybit_type('fetchFundingHistory', market, params)
+        request['category'] = type
+        if symbol is not None:
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['size'] = limit
+        else:
+            request['size'] = 100
+        request, params = self.handle_until_option('endTime', request, params)
+        response = self.privateGetV5ExecutionList(self.extend(request, params))
+        fundings = self.add_pagination_cursor_to_result(response)
+        return self.parse_incomes(fundings, market, since, limit)
+
+    def parse_income(self, income, market: Market = None):
+        #
+        # {
+        #     "symbol": "XMRUSDT",
+        #     "orderType": "UNKNOWN",
+        #     "underlyingPrice": "",
+        #     "orderLinkId": "",
+        #     "orderId": "a11e5fe2-1dbf-4bab-a9b2-af80a14efc5d",
+        #     "stopOrderType": "UNKNOWN",
+        #     "execTime": "1710950400000",
+        #     "feeCurrency": "",
+        #     "createType": "",
+        #     "feeRate": "-0.000761",
+        #     "tradeIv": "",
+        #     "blockTradeId": "",
+        #     "markPrice": "136.79",
+        #     "execPrice": "137.11",
+        #     "markIv": "",
+        #     "orderQty": "0",
+        #     "orderPrice": "0",
+        #     "execValue": "134.3678",
+        #     "closedSize": "0",
+        #     "execType": "Funding",
+        #     "seq": "28097658790",
+        #     "side": "Sell",
+        #     "indexPrice": "",
+        #     "leavesQty": "0",
+        #     "isMaker": False,
+        #     "execFee": "-0.10232512",
+        #     "execId": "8d1ef156-4ec6-4445-9a6c-1c0c24dbd046",
+        #     "marketUnit": "",
+        #     "execQty": "0.98",
+        #     "nextPageCursor": "5774437%3A0%2C5771289%3A0"
+        # }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        market = self.safe_market(marketId, market, None, 'contract')
+        code = 'USDT'
+        if market['inverse']:
+            code = market['quote']
+        timestamp = self.safe_integer(income, 'execTime')
+        return {
+            'info': income,
+            'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(income, 'execId'),
+            'amount': self.safe_number(income, 'execQty'),
+            'rate': self.safe_number(income, 'feeRate'),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
