@@ -5,24 +5,23 @@ import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js
 import { ArgumentsRequired } from '../../../base/errors.js';
 
 async function testWatchBidsAsks (exchange, skippedProperties, symbol) {
-    const withoutSymbol = testWatchTickersHelper (exchange, skippedProperties, undefined);
-    const withSymbol = testWatchTickersHelper (exchange, skippedProperties, [ symbol ]);
+    const withoutSymbol = testWatchBidsAsksHelper (exchange, skippedProperties, undefined);
+    const withSymbol = testWatchBidsAsksHelper (exchange, skippedProperties, [ symbol ]);
     await Promise.all ([ withSymbol, withoutSymbol ]);
 }
 
-async function testWatchTickersHelper (exchange, skippedProperties, argSymbols, argParams = {}) {
-    const method = 'watchTickers';
+async function testWatchBidsAsksHelper (exchange, skippedProperties, argSymbols, argParams = {}) {
+    const method = 'watchBidsAsks';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
         try {
-            response = await exchange.watchTickers (argSymbols, argParams);
+            response = await exchange.watchBidsAsks (argSymbols, argParams);
         } catch (e) {
-            // for some exchanges, specifically watchTickers method not subscribe
-            // to "all tickers" itself, and it requires symbols to be set
-            // so, in such case, if it's arguments-required exception, we don't
-            // mark tests as failed, but just skip them
+            // for some exchanges, multi symbol methods might require symbols array to be present, so
+            // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
+            // because tests will make a second call of this method with symbols array
             if ((e instanceof ArgumentsRequired) && (argSymbols === undefined || argSymbols.length === 0)) {
                 // todo: provide random symbols to try
                 return;
