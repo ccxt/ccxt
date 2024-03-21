@@ -17,7 +17,7 @@ async function testFetchTradesResponse (exchange, skippedProperties, symbol, met
     if (!('timestamp' in skippedProperties)) {
         testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades);
     }
-    if (!('sideBuySell' in skippedProperties) && trades.length > 50) {
+    if (!('requireBothSides' in skippedProperties) && trades.length > 50) {
         await testFetchTradesSidesBuySell (exchange, skippedProperties, symbol, method, trades);
     }
     if (('side' in skippedProperties) || ('timestamp' in skippedProperties)) {

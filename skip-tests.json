@@ -414,7 +414,7 @@
             },
             "fetchTrades": {
                 "side": "side is undefined",
-                "bothSides": "same"
+                "requireBothSides": "same"
             }
         }
     },
@@ -586,7 +586,7 @@
         "skipMethods": {
             "fetchTrades": {
                 "side":"side is undefined",
-                "bothSides": "same"
+                "uncheckrequireBothSides": "same"
             }
         }
     },
@@ -1033,7 +1033,7 @@
                 "deposit":"not provided"
             },
             "fetchTrades": {
-                "bothSides":"sometimes only one side trades happen"
+                "uncheckrequireBothSides":"sometimes only one side trades happen"
             },
             "ticker":{
                 "open": "negative values",
@@ -1120,7 +1120,7 @@
                 "deposit": "not provided"
             },
             "fetchTrades": {
-                "sideBuySell": "todo https://app.travis-ci.com/github/ccxt/ccxt/builds/269557802#L3819"
+                "uncheckrequireBothSides": "todo https://app.travis-ci.com/github/ccxt/ccxt/builds/269557802#L3819"
             }
         }
     },
@@ -1336,7 +1336,7 @@
             },
             "fetchTrades": {
                 "side": "sometimes does not have",
-                "bothSides":"sometimes only one side trades happen"
+                "uncheckrequireBothSides":"sometimes only one side trades happen"
             }
         }
     },
