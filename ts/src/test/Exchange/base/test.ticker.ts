@@ -3,7 +3,7 @@ import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
 
-function testTicker (exchange, skippedProperties, method, entry, symbol) {
+function testTicker (exchange, skippedProperties, method: string, entry, symbol) {
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',
@@ -28,7 +28,8 @@ function testTicker (exchange, skippedProperties, method, entry, symbol) {
     };
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
     const emptyAllowedFor = [ 'timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average' ];
-    if (!method.includes ('BidsAsks')) {
+    // trick csharp-transpiler for string
+    if (!(method + '').includes ('BidsAsks')) {
         emptyAllowedFor.push ('bid');
         emptyAllowedFor.push ('ask');
         emptyAllowedFor.push ('bidVolume');
