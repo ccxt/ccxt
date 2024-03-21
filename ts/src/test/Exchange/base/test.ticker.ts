@@ -28,7 +28,7 @@ function testTicker (exchange, skippedProperties, method, entry, symbol) {
     };
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
     const emptyAllowedFor = [ 'timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average' ];
-    if (!(method.indexOf ('BidsAsks') >= 0)) {
+    if (!method.includes ('BidsAsks')) {
         emptyAllowedFor.push ('bid');
         emptyAllowedFor.push ('ask');
         emptyAllowedFor.push ('bidVolume');
