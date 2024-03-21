@@ -4217,8 +4217,11 @@ export default class gate extends Exchange {
             'account': account,
         };
         if (amount !== undefined) {
-            const amountKey = (market['spot']) ? 'amount' : 'size';
-            request[amountKey] = this.amountToPrecision (symbol, amount);
+            if (market['spot']) {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            } else {
+                request['size'] = Precise.stringNeg (this.amountToPrecision (symbol, amount));
+            }
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -5001,8 +5004,8 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const [ request, requestParams ] = (type === 'spot') ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
         let response = undefined;
@@ -5320,7 +5323,7 @@ export default class gate extends Exchange {
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'realizedPnl': this.safeNumber (position, 'realised_pnl'),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
-            'contractSize': this.safeValue (market, 'contractSize'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
             // 'realisedPnl': position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
