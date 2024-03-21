@@ -413,7 +413,8 @@
                 "info": "null"
             },
             "fetchTrades": {
-                "side": "side is undefined"
+                "side": "side is undefined",
+                "bothSides": "same"
             }
         }
     },
@@ -584,7 +585,8 @@
     "coinmetro": {
         "skipMethods": {
             "fetchTrades": {
-                "side":"side is undefined"
+                "side":"side is undefined",
+                "bothSides": "same"
             }
         }
     },
@@ -1031,7 +1033,7 @@
                 "deposit":"not provided"
             },
             "fetchTrades": {
-                "side":"sometimes only one side trades happen"
+                "bothSides":"sometimes only one side trades happen"
             },
             "ticker":{
                 "open": "negative values",
@@ -1333,7 +1335,8 @@
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "fetchTrades": {
-                "side": "sometimes does not have"
+                "side": "sometimes does not have",
+                "bothSides":"sometimes only one side trades happen"
             }
         }
     },
