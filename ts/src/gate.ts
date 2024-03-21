@@ -4220,7 +4220,11 @@ export default class gate extends Exchange {
             if (market['spot']) {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             } else {
-                request['size'] = Precise.stringNeg (this.amountToPrecision (symbol, amount));
+                if (side === 'sell') {
+                    request['size'] = Precise.stringNeg (this.amountToPrecision (symbol, amount));
+                } else {
+                    request['size'] = this.amountToPrecision (symbol, amount);
+                }
             }
         }
         if (price !== undefined) {
