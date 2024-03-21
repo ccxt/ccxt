@@ -1304,7 +1304,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const rows = this.safeValue (data, 'rows', []);
+        const rows = this.safeList (data, 'rows', []);
         return this.parseOHLCVs (rows, market, timeframe, since, userLimit);
     }
 
@@ -1502,7 +1502,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.v2GetMdV2Ticker24hrAll (query);
         }
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         return this.parseTickers (result, symbols);
     }
 
@@ -2955,7 +2955,7 @@ export default class phemex extends Exchange {
             response = await this.privateGetSpotOrders (this.extend (request, params));
         }
         const data = this.safeValue (response, 'data', {});
-        const rows = this.safeValue (data, 'rows', data);
+        const rows = this.safeList (data, 'rows', data);
         return this.parseOrders (rows, market, since, limit);
     }
 
@@ -3001,7 +3001,7 @@ export default class phemex extends Exchange {
         if (Array.isArray (data)) {
             return this.parseOrders (data, market, since, limit);
         } else {
-            const rows = this.safeValue (data, 'rows', []);
+            const rows = this.safeList (data, 'rows', []);
             return this.parseOrders (rows, market, since, limit);
         }
     }
@@ -3087,7 +3087,7 @@ export default class phemex extends Exchange {
         if (Array.isArray (data)) {
             return this.parseOrders (data, market, since, limit);
         } else {
-            const rows = this.safeValue (data, 'rows', []);
+            const rows = this.safeList (data, 'rows', []);
             return this.parseOrders (rows, market, since, limit);
         }
     }

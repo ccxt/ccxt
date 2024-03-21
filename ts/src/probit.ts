@@ -630,7 +630,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -769,7 +769,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -823,7 +823,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1011,7 +1011,7 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1060,7 +1060,7 @@ export default class probit extends Exchange {
             request['market_id'] = market['id'];
         }
         const response = await this.privateGetOpenOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1094,7 +1094,7 @@ export default class probit extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetOrderHistory (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseOrders (data, market, since, limit);
     }
 

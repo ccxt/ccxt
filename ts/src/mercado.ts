@@ -804,7 +804,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostListOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
-        const orders = this.safeValue (responseData, 'orders', []);
+        const orders = this.safeList (responseData, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -830,7 +830,7 @@ export default class mercado extends Exchange {
         };
         const response = await this.privatePostListOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
-        const orders = this.safeValue (responseData, 'orders', []);
+        const orders = this.safeList (responseData, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 

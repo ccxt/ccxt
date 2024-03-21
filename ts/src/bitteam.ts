@@ -676,7 +676,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeList (result, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -860,7 +860,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (result, 'orders', []);
+        const orders = this.safeList (result, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1862,7 +1862,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
+        const trades = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2167,7 +2167,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const transactions = this.safeValue (result, 'transactions', []);
+        const transactions = this.safeList (result, 'transactions', []);
         return this.parseTransactions (transactions, currency, since, limit);
     }
 

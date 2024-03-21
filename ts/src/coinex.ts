@@ -1381,7 +1381,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -3183,7 +3183,7 @@ export default class coinex extends Exchange {
         //
         const tradeRequest = (marketType === 'swap') ? 'records' : 'data';
         const data = this.safeValue (response, 'data');
-        const orders = this.safeValue (data, tradeRequest, []);
+        const orders = this.safeList (data, tradeRequest, []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -3485,7 +3485,7 @@ export default class coinex extends Exchange {
         //
         const tradeRequest = swap ? 'records' : 'data';
         const data = this.safeValue (response, 'data');
-        const trades = this.safeValue (data, tradeRequest, []);
+        const trades = this.safeList (data, tradeRequest, []);
         return this.parseTrades (trades, market, since, limit);
     }
 

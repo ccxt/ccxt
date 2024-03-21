@@ -506,7 +506,7 @@ export default class oceanex extends Exchange {
         //          ]
         //      }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -819,7 +819,7 @@ export default class oceanex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicPostK (this.extend (request, params));
-        const ohlcvs = this.safeValue (response, 'data', []);
+        const ohlcvs = this.safeList (response, 'data', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -918,7 +918,7 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostOrderDeleteMulti (this.extend ({ 'ids': ids }, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseOrders (data);
     }
 
@@ -934,7 +934,7 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostOrdersClear (params);
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseOrders (data);
     }
 

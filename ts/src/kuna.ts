@@ -745,7 +745,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols, params);
     }
 
@@ -1071,7 +1071,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data);
     }
 
@@ -1280,7 +1280,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1366,7 +1366,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1413,7 +1413,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1535,7 +1535,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency);
     }
 
@@ -1735,7 +1735,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency);
     }
 

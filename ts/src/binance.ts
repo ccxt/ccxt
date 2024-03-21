@@ -12225,7 +12225,7 @@ export default class binance extends Exchange {
         } else {
             throw new BadRequest (this.id + ' fetchMarginModes () supports linear and inverse subTypes only');
         }
-        const assets = this.safeValue (response, 'positions', []);
+        const assets = this.safeList (response, 'positions', []);
         return this.parseMarginModes (assets, symbols, 'symbol', 'swap');
     }
 

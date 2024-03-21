@@ -905,7 +905,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const candles = this.safeValue (response, 'candles', []);
+        const candles = this.safeList (response, 'candles', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -1307,7 +1307,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, market['id'], []);
+        const data = this.safeList (response, market['id'], []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1688,7 +1688,7 @@ export default class exmo extends Exchange {
             //     }
             //
         }
-        const trades = this.safeValue (response, 'trades');
+        const trades = this.safeList (response, 'trades');
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2438,7 +2438,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseTransactions (items, currency, since, limit);
     }
 
@@ -2599,7 +2599,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseTransactions (items, currency, since, limit);
     }
 

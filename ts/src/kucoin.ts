@@ -2501,7 +2501,7 @@ export default class kucoin extends Exchange {
         //         }
         //    }
         const responseData = this.safeDict (response, 'data', {});
-        const orders = this.safeValue (responseData, 'items', responseData);
+        const orders = this.safeList (responseData, 'items', responseData);
         return this.parseOrders (orders, market, since, limit);
     }
 

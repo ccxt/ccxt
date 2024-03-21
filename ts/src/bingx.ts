@@ -1431,7 +1431,7 @@ export default class bingx extends Exchange {
         } else {
             response = await this.swapV2PublicGetQuoteTicker (params);
         }
-        const tickers = this.safeValue (response, 'data');
+        const tickers = this.safeList (response, 'data');
         return this.parseTickers (tickers, symbols);
     }
 
@@ -2989,7 +2989,7 @@ export default class bingx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', []);
-        const orders = this.safeValue (data, 'orders', []);
+        const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 

@@ -720,7 +720,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const candles = this.safeValue (response, 'candles', []);
+        const candles = this.safeList (response, 'candles', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -800,7 +800,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const auctions = this.safeValue (response, 'auctions', []);
+        const auctions = this.safeList (response, 'auctions', []);
         return this.parseTrades (auctions, market, since, limit);
     }
 
@@ -1212,7 +1212,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const fills = this.safeValue (response, 'fills', []);
+        const fills = this.safeList (response, 'fills', []);
         return this.parseTrades (fills, market, since, limit);
     }
 
@@ -1300,7 +1300,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 

@@ -362,7 +362,7 @@ export default class coinspot extends Exchange {
         //         ],
         //     }
         //
-        const trades = this.safeValue (response, 'orders', []);
+        const trades = this.safeList (response, 'orders', []);
         return this.parseTrades (trades, market, since, limit);
     }
 

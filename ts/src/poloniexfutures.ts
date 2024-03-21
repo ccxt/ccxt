@@ -684,7 +684,7 @@ export default class poloniexfutures extends Exchange {
         //        },
         //    }
         //
-        const trades = this.safeValue (response, 'data', []);
+        const trades = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -757,7 +757,7 @@ export default class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1021,7 +1021,7 @@ export default class poloniexfutures extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parsePositions (data, symbols);
     }
 
@@ -1716,7 +1716,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'items', {});
+        const trades = this.safeList (data, 'items', {});
         return this.parseTrades (trades, market, since, limit);
     }
 

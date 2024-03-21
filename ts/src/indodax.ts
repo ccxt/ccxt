@@ -518,7 +518,7 @@ export default class indodax extends Exchange {
         // }
         //
         const response = await this.publicGetApiTickerAll (params);
-        const tickers = this.safeValue (response, 'tickers');
+        const tickers = this.safeList (response, 'tickers');
         return this.parseTickers (tickers, symbols);
     }
 

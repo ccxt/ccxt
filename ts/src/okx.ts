@@ -1908,7 +1908,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeValue (response, 'data', []);
+        const tickers = this.safeList (response, 'data', []);
         return this.parseTickers (tickers, symbols);
     }
 
@@ -2099,7 +2099,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -2229,7 +2229,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -2949,7 +2949,7 @@ export default class okx extends Exchange {
         //     "msg": "",
         //     "outTime": "1697979038586493"
         // }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data);
     }
 
@@ -3271,7 +3271,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const ordersData = this.safeValue (response, 'data', []);
+        const ordersData = this.safeList (response, 'data', []);
         return this.parseOrders (ordersData, market, undefined, undefined, params);
     }
 
@@ -3804,7 +3804,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -3989,7 +3989,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -4175,7 +4175,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -4248,7 +4248,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit, query);
     }
 
@@ -4833,7 +4833,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -4933,7 +4933,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
 

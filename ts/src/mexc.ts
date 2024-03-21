@@ -2823,7 +2823,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeValue (response, 'data');
+            const data = this.safeList (response, 'data');
             return this.parseOrders (data, market);
         }
     }
@@ -3105,7 +3105,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeValue (response, 'data');
+            const data = this.safeList (response, 'data');
             return this.parseOrders (data, market);
         }
     }
@@ -3197,7 +3197,7 @@ export default class mexc extends Exchange {
             //         "code": "0"
             //     }
             //
-            const data = this.safeValue (response, 'data', []);
+            const data = this.safeList (response, 'data', []);
             return this.parseOrders (data, market);
         }
     }
@@ -4815,7 +4815,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parsePositions (data, symbols);
     }
 

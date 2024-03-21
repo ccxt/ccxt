@@ -897,7 +897,7 @@ export default class ace extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'attachment');
-        const trades = this.safeValue (data, 'trades', []);
+        const trades = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -957,7 +957,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const trades = this.safeValue (response, 'attachment', []);
+        const trades = this.safeList (response, 'attachment', []);
         return this.parseTrades (trades, market, since, limit);
     }
 

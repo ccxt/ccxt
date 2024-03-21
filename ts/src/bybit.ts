@@ -2184,7 +2184,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const tickerList = this.safeValue (result, 'list', []);
+        const tickerList = this.safeList (result, 'list', []);
         return this.parseTickers (tickerList, parsedSymbols);
     }
 
@@ -2319,7 +2319,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const ohlcvs = this.safeValue (result, 'list', []);
+        const ohlcvs = this.safeList (result, 'list', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -2793,7 +2793,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'list', []);
+        const trades = this.safeList (result, 'list', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -4558,7 +4558,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'dataList', []);
+        const data = this.safeList (result, 'dataList', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -5197,7 +5197,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const dataList = this.safeValue (result, 'dataList', []);
+        const dataList = this.safeList (result, 'dataList', []);
         return this.parseTrades (dataList, market, since, limit);
     }
 

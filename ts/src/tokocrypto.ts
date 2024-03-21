@@ -1343,7 +1343,7 @@ export default class tokocrypto extends Exchange {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        const data = this.safeValue (response, 'data', response);
+        const data = this.safeList (response, 'data', response);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1898,7 +1898,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (data, 'list', []);
+        const orders = this.safeList (data, 'list', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2038,7 +2038,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'list', []);
+        const trades = this.safeList (data, 'list', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2157,7 +2157,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const deposits = this.safeValue (data, 'list', []);
+        const deposits = this.safeList (data, 'list', []);
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
@@ -2215,7 +2215,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const withdrawals = this.safeValue (data, 'list', []);
+        const withdrawals = this.safeList (data, 'list', []);
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 

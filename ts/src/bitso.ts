@@ -695,7 +695,7 @@ export default class bitso extends Exchange {
         //         ]
         //     }
         //
-        const payload = this.safeValue (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         return this.parseOHLCVs (payload, market, timeframe, since, limit);
     }
 
@@ -1310,7 +1310,7 @@ export default class bitso extends Exchange {
         //         }]
         //     }
         //
-        const transactions = this.safeValue (response, 'payload', []);
+        const transactions = this.safeList (response, 'payload', []);
         return this.parseTransactions (transactions, currency, since, limit, params);
     }
 

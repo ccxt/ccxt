@@ -1011,7 +1011,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         const result = this.safeValue (response, 'result', {});
-        const ohlcvs = this.safeValue (result, market['id'], []);
+        const ohlcvs = this.safeList (result, market['id'], []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -2175,7 +2175,7 @@ export default class kraken extends Exchange {
             market = this.market (symbol);
         }
         const result = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (result, 'open', []);
+        const orders = this.safeList (result, 'open', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2249,7 +2249,7 @@ export default class kraken extends Exchange {
             market = this.market (symbol);
         }
         const result = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (result, 'closed', []);
+        const orders = this.safeList (result, 'closed', []);
         return this.parseOrders (orders, market, since, limit);
     }
 

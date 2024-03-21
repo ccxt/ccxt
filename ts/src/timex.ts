@@ -1036,7 +1036,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1097,7 +1097,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        const orders = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1161,7 +1161,7 @@ export default class timex extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue (response, 'trades', []);
+        const trades = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 

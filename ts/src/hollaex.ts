@@ -643,7 +643,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeValue (response, market['id'], []);
+        const trades = this.safeList (response, market['id'], []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1075,7 +1075,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1345,7 +1345,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1501,7 +1501,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1611,7 +1611,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 

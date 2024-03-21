@@ -1468,7 +1468,7 @@ export default class latoken extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const content = this.safeValue (response, 'content', []);
+        const content = this.safeList (response, 'content', []);
         return this.parseTransactions (content, currency, since, limit);
     }
 

@@ -519,7 +519,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'tickers', []);
+        const data = this.safeList (response, 'tickers', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -741,7 +741,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'transactions', []);
+        const data = this.safeList (response, 'transactions', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -991,7 +991,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const limitOrders = this.safeValue (response, 'limitOrders', []);
+        const limitOrders = this.safeList (response, 'limitOrders', []);
         return this.parseOrders (limitOrders, market, since, limit);
     }
 
@@ -1035,7 +1035,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const completeOrders = this.safeValue (response, 'completeOrders', []);
+        const completeOrders = this.safeList (response, 'completeOrders', []);
         return this.parseTrades (completeOrders, market, since, limit);
     }
 

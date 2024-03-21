@@ -981,7 +981,7 @@ export default class okcoin extends Exchange {
             'instType': 'SPOT',
         };
         const response = await this.publicGetMarketTickers (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols, params);
     }
 
@@ -1090,7 +1090,7 @@ export default class okcoin extends Exchange {
         } else {
             response = await this.publicGetMarketHistoryTrades (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1154,7 +1154,7 @@ export default class okcoin extends Exchange {
         } else {
             response = await this.publicGetMarketHistoryCandles (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1751,7 +1751,7 @@ export default class okcoin extends Exchange {
         //     }
         //
         //
-        const ordersData = this.safeValue (response, 'data', []);
+        const ordersData = this.safeList (response, 'data', []);
         return this.parseOrders (ordersData, market, undefined, undefined, params);
     }
 
@@ -2055,7 +2055,7 @@ export default class okcoin extends Exchange {
         } else {
             response = await this.privateGetTradeOrdersPending (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2143,7 +2143,7 @@ export default class okcoin extends Exchange {
         //         "msg":""
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2583,7 +2583,7 @@ export default class okcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -2650,7 +2650,7 @@ export default class okcoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -2821,7 +2821,7 @@ export default class okcoin extends Exchange {
         } else {
             response = await this.privateGetTradeFills (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
