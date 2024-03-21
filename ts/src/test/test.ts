@@ -450,6 +450,15 @@ export default class testMainClass extends baseMainTestClass {
                 return exchange.deepExtend (skipsForMethod, extraSkips);
             }
         }
+        // extend related skips
+        // - if 'timestamp' is skipped, we should do so for 'datetime' too
+        // - if 'bid' is skipped, skip 'ask' too
+        if (('timestamp' in skipsForMethod) && !('datetime' in skipsForMethod)) {
+            skipsForMethod['datetime'] = skipsForMethod['timestamp'];
+        }
+        if (('bid' in skipsForMethod) && !('ask' in skipsForMethod)) {
+            skipsForMethod['ask'] = skipsForMethod['bid'];
+        }
         return skipsForMethod;
     }
 
