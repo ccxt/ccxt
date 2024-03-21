@@ -17,8 +17,9 @@ function testOHLCV (exchange, skippedProperties, method, entry, symbol, now) {
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
     assert (entry.length >= 6, 'ohlcv array length should be >= 6;' + logText);
-    const ts = exchange.safeString (entry, 0);
-    assert ((('roundTimestamp' in skippedProperties) || ts.endsWith ('0000')), 'timestamp should be in milliseconds and is expected to end with 0000;' + logText);
+    if (!('roundTimestamp' in skippedProperties)) {
+        testSharedMethods.assertRoundMinuteTimestamp (exchange, skippedProperties, method, entry, '0');
+    }
     const high = exchange.safeString (entry, 2);
     const low = exchange.safeString (entry, 3);
     testSharedMethods.assertLessOrEqual (exchange, skippedProperties, method, entry, '1', high);
