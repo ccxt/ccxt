@@ -625,7 +625,7 @@
         }
     },
     "cex": {
-        "skipWs": "timeouts",
+        "preferredSpotSymbol": "BTC/USD",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
@@ -639,6 +639,7 @@
                 "deposit": "not provided",
                 "networks": "missing"
             },
+            "watchOHLCV": "does not work for 1min",
             "fetchOHLCV": "unexpected issue"
         }
     },
@@ -719,8 +720,7 @@
         }
     },
     "delta": {
-        "skip": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4301",
-        "until": "2024-03-19",
+        "skipCSharp": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4301 https://app.travis-ci.com/github/ccxt/ccxt/builds/269533613#L3622",
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
             "orderBook": {
@@ -729,6 +729,9 @@
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "bid": "failing the test"
+            },
+            "fetchOHLCV": {
+                "4":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269542746#L3512"
             }
         }
     },
@@ -1398,7 +1401,8 @@
                 "side": "undefined"
             },
             "ticker": {
-                "baseVolume": "not supported"
+                "baseVolume": "not supported",
+                "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581"
             },
             "fetchOHLCV": "spot not supported",
             "fetchCurrencies": {

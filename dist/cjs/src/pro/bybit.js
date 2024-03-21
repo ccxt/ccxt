@@ -1037,8 +1037,23 @@ class bybit extends bybit$1 {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition(rawPosition);
+            const side = this.safeString(position, 'side');
+            // hacky solution to handle closing positions
+            // without crashing, we should handle this properly later
             newPositions.push(position);
-            cache.append(position);
+            if (side === undefined || side === '') {
+                // closing update, adding both sides to "reset" both sides
+                // since we don't know which side is being closed
+                position['side'] = 'long';
+                cache.append(position);
+                position['side'] = 'short';
+                cache.append(position);
+                position['side'] = undefined;
+            }
+            else {
+                // regular update
+                cache.append(position);
+            }
         }
         const messageHashes = this.findMessageHashes(client, 'positions::');
         for (let i = 0; i < messageHashes.length; i++) {

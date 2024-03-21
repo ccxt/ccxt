@@ -58,6 +58,7 @@ class gate extends Exchange {
                         'rebate' => 'https://api.gateio.ws/api/v4',
                         'earn' => 'https://api.gateio.ws/api/v4',
                         'account' => 'https://api.gateio.ws/api/v4',
+                        'loan' => 'https://api.gateio.ws/api/v4',
                     ),
                 ),
                 'test' => array(
@@ -318,6 +319,7 @@ class gate extends Exchange {
                             'loan_records' => 20 / 15,
                             'interest_records' => 20 / 15,
                             'estimate_rate' => 20 / 15,
+                            'currency_discount_tiers' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
@@ -951,7 +953,7 @@ class gate extends Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
@@ -4229,7 +4231,8 @@ class gate extends Exchange {
                 'account' => $account,
             );
             if ($amount !== null) {
-                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                $amountKey = ($market['spot']) ? 'amount' : 'size';
+                $request[$amountKey] = $this->amount_to_precision($symbol, $amount);
             }
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);

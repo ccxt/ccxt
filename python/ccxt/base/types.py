@@ -53,6 +53,7 @@ Strings = Optional[List[str]]
 Int = Optional[int]
 Bool = Optional[bool]
 MarketType = Literal['spot', 'margin', 'swap', 'future', 'option']
+SubType = Literal['linear', 'inverse']
 
 
 class FeeInterface(TypedDict):

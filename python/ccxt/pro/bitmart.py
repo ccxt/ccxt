@@ -1312,7 +1312,7 @@ class bitmart(ccxt.async_support.bitmart):
                 }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_subscription_status(self, client: Client, message):
         #

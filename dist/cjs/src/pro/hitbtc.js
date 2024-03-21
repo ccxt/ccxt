@@ -113,7 +113,7 @@ class hitbtc extends hitbtc$1 {
             //    }
             //
         }
-        return future;
+        return await future;
     }
     async subscribePublic(name, messageHashPrefix, symbols = undefined, params = {}) {
         /**

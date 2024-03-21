@@ -49,6 +49,7 @@ class gate extends gate$1 {
                         'rebate': 'https://api.gateio.ws/api/v4',
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
+                        'loan': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -309,6 +310,7 @@ class gate extends gate$1 {
                             'loan_records': 20 / 15,
                             'interest_records': 20 / 15,
                             'estimate_rate': 20 / 15,
+                            'currency_discount_tiers': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
@@ -4229,7 +4231,8 @@ class gate extends gate$1 {
             'account': account,
         };
         if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision(symbol, amount);
+            const amountKey = (market['spot']) ? 'amount' : 'size';
+            request[amountKey] = this.amountToPrecision(symbol, amount);
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);

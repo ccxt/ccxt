@@ -157,16 +157,20 @@ class cex(ccxt.async_support.cex):
         #     {
         #         "e": "history",
         #         "data": [
-        #             "sell:1665467367741:3888551:19058.8:14541219",
-        #             "buy:1665467367741:1059339:19071.5:14541218",
+        #            'buy:1710255706095:444444:71222.2:14892622'
+        #            'sell:1710255658251:42530:71300:14892621'
+        #            'buy:1710252424241:87913:72800:14892620'
+        #            ... timestamp descending
         #         ]
         #     }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         limit = self.safe_integer(self.options, 'tradesLimit', 1000)
         stored = ArrayCache(limit)
-        for i in range(0, len(data)):
-            rawTrade = data[i]
+        dataLength = len(data)
+        for i in range(0, dataLength):
+            index = dataLength - 1 - i
+            rawTrade = data[index]
             parsed = self.parse_ws_old_trade(rawTrade)
             stored.append(parsed)
         messageHash = 'trades'

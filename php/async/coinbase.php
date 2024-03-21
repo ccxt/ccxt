@@ -1090,7 +1090,10 @@ class coinbase extends Exchange {
              * @return {array[]} an array of objects representing market data
              */
             $method = $this->safe_string($this->options, 'fetchMarkets', 'fetchMarketsV3');
-            return Async\await($this->$method ($params));
+            if ($method === 'fetchMarketsV3') {
+                return Async\await($this->fetch_markets_v3($params));
+            }
+            return Async\await($this->fetch_markets_v2($params));
         }) ();
     }
 
@@ -1171,7 +1174,13 @@ class coinbase extends Exchange {
 
     public function fetch_markets_v3($params = array ()) {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->v3PrivateGetBrokerageProducts ($params));
+            $promisesUnresolved = array(
+                $this->v3PrivateGetBrokerageProducts ($params),
+                $this->v3PrivateGetBrokerageTransactionSummary ($params),
+            );
+            // $response = Async\await($this->v3PrivateGetBrokerageProducts ($params));
+            $promises = Async\await(Promise\all($promisesUnresolved));
+            $response = $this->safe_dict($promises, 0, array());
             //
             //     array(
             //         array(
@@ -1206,7 +1215,8 @@ class coinbase extends Exchange {
             //         ...
             //     )
             //
-            $fees = Async\await($this->v3PrivateGetBrokerageTransactionSummary ($params));
+            // $fees = Async\await($this->v3PrivateGetBrokerageTransactionSummary ($params));
+            $fees = $this->safe_dict($promises, 1, array());
             //
             //     {
             //         "total_volume" => 0,
@@ -1941,6 +1951,9 @@ class coinbase extends Exchange {
             $response = Async\await($this->v2PrivateGetAccountsAccountIdTransactions (array_merge($request, $params)));
             $ledger = $this->parse_ledger($response['data'], $currency, $since, $limit);
             $length = count($ledger);
+            if ($length === 0) {
+                return $ledger;
+            }
             $lastIndex = $length - 1;
             $last = $this->safe_dict($ledger, $lastIndex);
             $pagination = $this->safe_dict($response, 'pagination', array());
@@ -2284,10 +2297,10 @@ class coinbase extends Exchange {
         );
     }
 
-    public function find_account_id($code) {
-        return Async\async(function () use ($code) {
+    public function find_account_id($code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
             Async\await($this->load_markets());
-            Async\await($this->load_accounts());
+            Async\await($this->load_accounts(false, $params));
             for ($i = 0; $i < count($this->accounts); $i++) {
                 $account = $this->accounts[$i];
                 if ($account['code'] === $code) {
@@ -2320,7 +2333,7 @@ class coinbase extends Exchange {
                 if ($code === null) {
                     throw new ArgumentsRequired($this->id . ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or $accountId) parameter OR a currency $code argument');
                 }
-                $accountId = Async\await($this->find_account_id($code));
+                $accountId = Async\await($this->find_account_id($code, $params));
                 if ($accountId === null) {
                     throw new ExchangeError($this->id . ' prepareAccountRequestWithCurrencyCode() could not find account id for ' . $code);
                 }
@@ -2931,7 +2944,7 @@ class coinbase extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100));
+                return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 1000));
             }
             $market = null;
             if ($symbol !== null) {
@@ -3469,7 +3482,7 @@ class coinbase extends Exchange {
                 if ($code === null) {
                     throw new ArgumentsRequired($this->id . ' withdraw() requires an account_id (or $accountId) parameter OR a $currency $code argument');
                 }
-                $accountId = Async\await($this->find_account_id($code));
+                $accountId = Async\await($this->find_account_id($code, $params));
                 if ($accountId === null) {
                     throw new ExchangeError($this->id . ' withdraw() could not find account id for ' . $code);
                 }
@@ -3697,7 +3710,7 @@ class coinbase extends Exchange {
                 if ($code === null) {
                     throw new ArgumentsRequired($this->id . ' deposit() requires an account_id (or $accountId) parameter OR a currency $code argument');
                 }
-                $accountId = Async\await($this->find_account_id($code));
+                $accountId = Async\await($this->find_account_id($code, $params));
                 if ($accountId === null) {
                     throw new ExchangeError($this->id . ' deposit() could not find account $id for ' . $code);
                 }
@@ -3768,7 +3781,7 @@ class coinbase extends Exchange {
                 if ($code === null) {
                     throw new ArgumentsRequired($this->id . ' fetchDeposit() requires an account_id (or $accountId) parameter OR a currency $code argument');
                 }
-                $accountId = Async\await($this->find_account_id($code));
+                $accountId = Async\await($this->find_account_id($code, $params));
                 if ($accountId === null) {
                     throw new ExchangeError($this->id . ' fetchDeposit() could not find account $id for ' . $code);
                 }

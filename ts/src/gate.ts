@@ -49,6 +49,7 @@ export default class gate extends Exchange {
                         'rebate': 'https://api.gateio.ws/api/v4',
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
+                        'loan': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -309,6 +310,7 @@ export default class gate extends Exchange {
                             'loan_records': 20 / 15,
                             'interest_records': 20 / 15,
                             'estimate_rate': 20 / 15,
+                            'currency_discount_tiers': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
@@ -4215,7 +4217,15 @@ export default class gate extends Exchange {
             'account': account,
         };
         if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            if (market['spot']) {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            } else {
+                if (side === 'sell') {
+                    request['size'] = Precise.stringNeg (this.amountToPrecision (symbol, amount));
+                } else {
+                    request['size'] = this.amountToPrecision (symbol, amount);
+                }
+            }
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -4998,8 +5008,8 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const [ request, requestParams ] = (type === 'spot') ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
         let response = undefined;
@@ -5317,7 +5327,7 @@ export default class gate extends Exchange {
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'realizedPnl': this.safeNumber (position, 'realised_pnl'),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
-            'contractSize': this.safeValue (market, 'contractSize'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
             // 'realisedPnl': position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
