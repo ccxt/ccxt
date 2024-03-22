@@ -3954,8 +3954,7 @@ export default class binance extends Exchange {
         } else if (type === 'spot') {
             const request = {};
             if (symbols !== undefined) {
-                const marketIds = this.marketIds (symbols);
-                request['symbols'] = this.json (marketIds);
+                request['symbols'] = this.json (this.marketIds (symbols));
             }
             response = await this.publicGetTickerBookTicker (this.extend (request, params));
         } else {
@@ -4097,8 +4096,7 @@ export default class binance extends Exchange {
         } else if (type === 'spot') {
             const request = {};
             if (symbols !== undefined) {
-                const marketIds = this.marketIds (symbols);
-                request['symbols'] = this.json (marketIds);
+                request['symbols'] = this.json (this.marketIds (symbols));
             }
             response = await this.publicGetTicker24hr (this.extend (request, params));
         } else if (type === 'option') {
