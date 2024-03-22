@@ -1021,14 +1021,15 @@ export default class binance extends binanceRest {
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
-        if (marketType === 'option') {
-            throw new NotSupported (this.id + ' ' + methodName + '() does not support options markets');
-        }
-        let rawMarketType = marketType;
+        let rawMarketType = undefined;
         if (this.isLinear (marketType, subType)) {
             rawMarketType = 'future';
         } else if (this.isInverse (marketType, subType)) {
             rawMarketType = 'delivery';
+        } else if (marketType === 'spot') {
+            rawMarketType = marketType;
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() does not support options markets');
         }
         const isBidAsk = (channelName === 'bookTicker');
         const subscriptionArgs = [];
