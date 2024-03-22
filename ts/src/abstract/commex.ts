@@ -17,6 +17,7 @@ interface Exchange {
     publicGetTrades (params?: {}): Promise<implicitReturnType>;
     publicGetAggTrades (params?: {}): Promise<implicitReturnType>;
     publicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
+    publicPostInnerGetAllAsset (params?: {}): Promise<implicitReturnType>;
     privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
     privateGetAccount (params?: {}): Promise<implicitReturnType>;
     privateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
