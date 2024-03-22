@@ -388,6 +388,7 @@ export default class testMainClass extends baseMainTestClass {
         if (methodName.indexOf ('OrderBook') >= 0 && this.ext === 'php') {
             return;
         }
+        const skippedPropertiesForMethod = this.getSkips (exchange, methodName);
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
@@ -401,7 +402,7 @@ export default class testMainClass extends baseMainTestClass {
             skipMessage = '[INFO] IGNORED_TEST';
         } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
-        } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
+        } else if (typeof skippedPropertiesForMethod === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
         } else if (!(methodName in this.testFiles)) {
             skipMessage = '[INFO] UNIMPLEMENTED_TEST';
@@ -420,7 +421,7 @@ export default class testMainClass extends baseMainTestClass {
             const argsStringified = '(' + args.join (',') + ')';
             dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), methodName, argsStringified);
         }
-        await callMethod (this.testFiles, methodName, exchange, this.getSkips (exchange, methodName), args);
+        await callMethod (this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         // if it was passed successfully, add to the list of successfull tests
         if (isPublic) {
             this.checkedPublicTests[methodName] = true;
@@ -428,7 +429,11 @@ export default class testMainClass extends baseMainTestClass {
         return;
     }
 
-    getSkips (exchange, methodName) {
+    getSkips (exchange: Exchange, methodName: string) {
+        // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
+        if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
+            return this.skippedMethods[methodName];
+        }
         // get "method-specific" skips
         let skipsForMethod = exchange.safeValue (this.skippedMethods, methodName, {});
         // get "object-specific" skips
@@ -446,6 +451,10 @@ export default class testMainClass extends baseMainTestClass {
             const objectName = objectNames[i];
             const objectMethods = objectSkips[objectName];
             if (exchange.inArray (methodName, objectMethods)) {
+                // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
+                if ((objectName in this.skippedMethods) && (typeof this.skippedMethods[objectName] === 'string')) {
+                    return this.skippedMethods[objectName];
+                }
                 const extraSkips = exchange.safeDict (this.skippedMethods, objectName, {});
                 skipsForMethod = exchange.deepExtend (skipsForMethod, extraSkips);
             }
