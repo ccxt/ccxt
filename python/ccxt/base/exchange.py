@@ -1728,6 +1728,9 @@ class Exchange(object):
         modifiedContent = modifiedContent.replace('}"', '}')
         return modifiedContent
 
+    def extend_exchange_options(self, newOptions):
+        self.options = self.extend(self.options, newOptions)
+
     # ########################################################################
     # ########################################################################
     # ########################################################################

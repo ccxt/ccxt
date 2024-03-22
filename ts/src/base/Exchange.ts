@@ -1716,6 +1716,11 @@ export default class Exchange {
 
     intToBase16(elem): string {
         return elem.toString(16);
+
+    }
+
+    extendExchangeOptions (newOptions) {
+        this.options = this.extend (this.options, newOptions);
     }
 
     /* eslint-enable */
