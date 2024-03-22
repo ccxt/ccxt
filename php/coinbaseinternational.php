@@ -114,10 +114,10 @@ class coinbaseinternational extends Exchange {
                 ),
                 'www' => 'https://international.coinbase.com',
                 'doc' => array(
-                    'https://docs.cloud.coinbaseinternational.com/intx/docs',
+                    'https://docs.cloud.coinbase.com/intx/docs',
                 ),
                 'fees' => array(
-                    'https://help.coinbaseinternational.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
+                    'https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
                 ),
                 'referral' => '',
             ),

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.77'
+__version__ = '4.2.80'
 
 # -----------------------------------------------------------------------------
 
@@ -982,6 +982,9 @@ class Exchange(BaseExchange):
     async def fetch_order_books(self, symbols: List[str] = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
 
+    async def watch_bids_asks(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' watchBidsAsks() is not supported yet')
+
     async def watch_tickers(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
 
@@ -1283,6 +1286,12 @@ class Exchange(BaseExchange):
 
     async def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
+
+    async def fetch_option_chain(self, code: str, params={}):
+        raise NotSupported(self.id + ' fetchOptionChain() is not supported yet')
+
+    async def fetch_option(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchOption() is not supported yet')
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """

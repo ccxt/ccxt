@@ -396,8 +396,8 @@ export interface Liquidation {
 
 export interface OrderRequest {
     symbol: string;
-    type: Str;
-    side: Str;
+    type: OrderType;
+    side: OrderSide;
     amount?: number;
     price?: number | undefined;
     params?: any;
@@ -441,6 +441,26 @@ export interface Greeks {
     info: any;
 }
 
+export interface Option {
+    info: any;
+    currency: string;
+    symbol: string;
+    timestamp?: number
+    datetime?: Str;
+    impliedVolatility: number;
+    openInterest: number;
+    bidPrice: number;
+    askPrice: number;
+    midPrice: number;
+    markPrice: number;
+    lastPrice: number;
+    underlyingPrice: number;
+    change: number;
+    percentage: number;
+    baseVolume: number;
+    quoteVolume: number;
+}
+
 export interface LastPrice {
     symbol: string,
     timestamp?: number,
@@ -465,6 +485,9 @@ export interface LastPrices extends Dictionary<LastPrice> {
 }
 
 export interface MarginModes extends Dictionary<MarginMode> {
+}
+
+export interface OptionChain extends Dictionary<Option> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

@@ -565,6 +565,22 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.staging.woo.org/v1/orders?size=500&status=INCOMPLETE",
+                "input": []
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.staging.woo.org/v1/orders?size=500&status=COMPLETED",
+                "input": []
+            }
         ]
     }
 }

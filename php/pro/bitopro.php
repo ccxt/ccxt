@@ -399,7 +399,8 @@ class bitopro extends \ccxt\async\bitopro {
                 ),
             ),
         );
-        $this->options = array_merge($defaultOptions, $this->options);
+        // $this->options = array_merge($defaultOptions, $this->options);
+        $this->extend_exchange_options($defaultOptions);
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(
             'X-BITOPRO-API' => 'ccxt',

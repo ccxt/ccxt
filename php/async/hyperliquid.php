@@ -785,12 +785,15 @@ class hyperliquid extends Exchange {
              * @param {bool} [$params->postOnly] true or false whether the $order is post-only
              * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
              * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
-             * @param {string} [$params->clientOrderId] client $order id, optional 128 bit hex string
+             * @param {string} [$params->clientOrderId] client $order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->slippage] the slippage for $market $order
+             * @param {string} [$params->vaultAddress] the vault address for $order
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $vaultAddress = $this->safe_string($params, 'vaultAddress');
+            $params = $this->omit($params, 'vaultAddress');
             $symbol = $market['symbol'];
             $order = array(
                 'symbol' => $symbol,
@@ -800,7 +803,11 @@ class hyperliquid extends Exchange {
                 'price' => $price,
                 'params' => $params,
             );
-            $response = Async\await($this->create_orders(array( $order ), $params));
+            $globalParams = array();
+            if ($vaultAddress !== null) {
+                $globalParams['vaultAddress'] = $vaultAddress;
+            }
+            $response = Async\await($this->create_orders(array( $order ), $globalParams));
             $first = $this->safe_dict($response, 0);
             return $first;
         }) ();
@@ -837,7 +844,7 @@ class hyperliquid extends Exchange {
                     }
                 }
             }
-            $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
+            $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ));
             $nonce = $this->milliseconds();
             $orderReq = array();
             for ($i = 0; $i < count($orders); $i++) {
@@ -852,7 +859,6 @@ class hyperliquid extends Exchange {
                 $amount = $this->safe_string($rawOrder, 'amount');
                 $price = $this->safe_string($rawOrder, 'price');
                 $orderParams = $this->safe_dict($rawOrder, 'params', array());
-                $orderParams = array_merge($params, $orderParams);
                 $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
                 $slippage = $this->safe_string($orderParams, 'slippage', $defaultSlippage);
                 $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
@@ -897,6 +903,7 @@ class hyperliquid extends Exchange {
                         'tif' => $timeInForce,
                     );
                 }
+                $orderParams = $this->omit($orderParams, array( 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id' ));
                 $orderObj = array(
                     'a' => $this->parse_to_int($market['baseId']),
                     'b' => $isBuy,
@@ -909,9 +916,9 @@ class hyperliquid extends Exchange {
                 if ($clientOrderId !== null) {
                     $orderObj['c'] = $clientOrderId;
                 }
-                $orderReq[] = $orderObj;
+                $orderReq[] = array_merge($orderObj, $orderParams);
             }
-            $vaultAddress = $this->safe_string($params, 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
             $orderAction = array(
                 'type' => 'order',
                 'orders' => $orderReq,
@@ -928,6 +935,10 @@ class hyperliquid extends Exchange {
                 'signature' => $signature,
                 // 'vaultAddress' => $vaultAddress,
             );
+            if ($vaultAddress !== null) {
+                $params = $this->omit($params, 'vaultAddress');
+                $request['vaultAddress'] = $vaultAddress;
+            }
             $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
             //
             //     {
@@ -962,7 +973,7 @@ class hyperliquid extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] client order $id (default null)
+             * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             return Async\await($this->cancel_orders(array( $id ), $symbol, $params));
@@ -978,7 +989,7 @@ class hyperliquid extends Exchange {
              * @param {string[]} $ids order $ids
              * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string|string[]} [$params->clientOrderId] client order $ids (default null)
+             * @param {string|string[]} [$params->clientOrderId] client order $ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $this->check_required_credentials();
@@ -1021,10 +1032,14 @@ class hyperliquid extends Exchange {
                 }
             }
             $cancelAction['cancels'] = $cancelReq;
-            $vaultAddress = $this->safe_string($params, 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
             $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
             $request['action'] = $cancelAction;
             $request['signature'] = $signature;
+            if ($vaultAddress !== null) {
+                $params = $this->omit($params, 'vaultAddress');
+                $request['vaultAddress'] = $vaultAddress;
+            }
             $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
             //
             //     {
@@ -1061,6 +1076,7 @@ class hyperliquid extends Exchange {
              * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+             * @param {string} [$params->vaultAddress] the vault address for order
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $this->check_required_credentials();
@@ -1139,7 +1155,7 @@ class hyperliquid extends Exchange {
                 'type' => 'batchModify',
                 'modifies' => array( $modifyReq ),
             );
-            $vaultAddress = $this->safe_string($params, 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
             $signature = $this->sign_l1_action($modifyAction, $nonce, $vaultAddress);
             $request = array(
                 'action' => $modifyAction,
@@ -1147,6 +1163,10 @@ class hyperliquid extends Exchange {
                 'signature' => $signature,
                 // 'vaultAddress' => $vaultAddress,
             );
+            if ($vaultAddress !== null) {
+                $params = $this->omit($params, 'vaultAddress');
+                $request['vaultAddress'] = $vaultAddress;
+            }
             $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
             //
             //     {
@@ -1755,7 +1775,7 @@ class hyperliquid extends Exchange {
             'isolated' => $isIsolated,
             'hedged' => null,
             'side' => $side,
-            'contracts' => $this->parse_number($quantity),
+            'contracts' => $this->safe_number($entry, 'szi'),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($entry, 'entryPx'),
             'markPrice' => null,
@@ -1803,6 +1823,12 @@ class hyperliquid extends Exchange {
                 'leverage' => $leverage,
             );
             $vaultAddress = $this->safe_string($params, 'vaultAddress');
+            if ($vaultAddress !== null) {
+                $params = $this->omit($params, 'vaultAddress');
+                if (str_starts_with($vaultAddress, '0x')) {
+                    $vaultAddress = str_replace('0x', '', $vaultAddress);
+                }
+            }
             $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
             $request = array(
                 'action' => $updateAction,
@@ -1810,6 +1836,9 @@ class hyperliquid extends Exchange {
                 'signature' => $signature,
                 // 'vaultAddress' => $vaultAddress,
             );
+            if ($vaultAddress !== null) {
+                $request['vaultAddress'] = $vaultAddress;
+            }
             $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
             //
             //     {
@@ -1849,7 +1878,7 @@ class hyperliquid extends Exchange {
                 'isCross' => $isCross,
                 'leverage' => $leverage,
             );
-            $vaultAddress = $this->safe_string($params, 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
             $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
             $request = array(
                 'action' => $updateAction,
@@ -1857,6 +1886,10 @@ class hyperliquid extends Exchange {
                 'signature' => $signature,
                 // 'vaultAddress' => $vaultAddress,
             );
+            if ($vaultAddress !== null) {
+                $params = $this->omit($params, 'vaultAddress');
+                $request['vaultAddress'] = $vaultAddress;
+            }
             $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
             //
             //     {
@@ -1914,7 +1947,7 @@ class hyperliquid extends Exchange {
                 'isBuy' => true,
                 'ntli' => $sz,
             );
-            $vaultAddress = $this->safe_string($params, 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
             $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
             $request = array(
                 'action' => $updateAction,
@@ -1922,6 +1955,10 @@ class hyperliquid extends Exchange {
                 'signature' => $signature,
                 // 'vaultAddress' => $vaultAddress,
             );
+            if ($vaultAddress !== null) {
+                $params = $this->omit($params, 'vaultAddress');
+                $request['vaultAddress'] = $vaultAddress;
+            }
             $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
             //
             //     {
@@ -2022,6 +2059,16 @@ class hyperliquid extends Exchange {
             $response = Async\await($this->privatePostExchange (array_merge($request, $params)));
             return $response;
         }) ();
+    }
+
+    public function format_vault_address(?string $address = null) {
+        if ($address === null) {
+            return null;
+        }
+        if (str_starts_with($address, '0x')) {
+            return str_replace('0x', '', $address);
+        }
+        return $address;
     }
 
     public function handle_public_address(string $methodName, array $params) {

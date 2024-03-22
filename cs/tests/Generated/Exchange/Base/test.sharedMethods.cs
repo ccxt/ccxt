@@ -454,6 +454,16 @@ public partial class testMainClass : BaseTest
             }
             assert(isGreaterThan(getArrayLength(entry), 0), add(add("response is expected to be a non-empty array", logText), " (add \"emptyResponse\" in skip-tests.json to skip this check)"));
         }
+        public void assertRoundMinuteTimestamp(Exchange exchange, object skippedProperties, object method, object entry, object key)
+        {
+            if (isTrue(inOp(skippedProperties, key)))
+            {
+                return;
+            }
+            object logText = logTemplate(exchange, method, entry);
+            object ts = exchange.safeString(entry, key);
+            assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
+        }
 
     }
 }

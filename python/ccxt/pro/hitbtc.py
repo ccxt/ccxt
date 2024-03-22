@@ -119,7 +119,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             #        }
             #    }
             #
-        return future
+        return await future
 
     async def subscribe_public(self, name: str, messageHashPrefix: str, symbols: Strings = None, params={}):
         """

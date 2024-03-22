@@ -768,7 +768,7 @@ class blockchaincom extends blockchaincom$1 {
             };
             return this.watch(url, messageHash, this.extend(request, params), messageHash);
         }
-        return future;
+        return await future;
     }
 }
 

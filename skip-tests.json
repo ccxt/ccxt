@@ -265,6 +265,9 @@
             "watchTrades":{
                 "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
                 "timestamp": "messed order coming from exchange"
+            },
+            "ohlcv": {
+                "roundTimestamp": "are not rounded: https://app.travis-ci.com/github/ccxt/ccxt/builds/269583057#L4318"
             }
         }
     },
@@ -625,7 +628,7 @@
         }
     },
     "cex": {
-        "skipWs": "timeouts",
+        "preferredSpotSymbol": "BTC/USD",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
@@ -639,6 +642,7 @@
                 "deposit": "not provided",
                 "networks": "missing"
             },
+            "watchOHLCV": "does not work for 1min",
             "fetchOHLCV": "unexpected issue"
         }
     },
@@ -728,6 +732,9 @@
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "bid": "failing the test"
+            },
+            "fetchOHLCV": {
+                "4":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269542746#L3512"
             }
         }
     },
@@ -1391,13 +1398,15 @@
             "loadMarkets": {
                 "taker": "is undefined",
                 "maker": "is undefined",
-                "currencyIdAndCode": "not all currencies are available"
+                "currencyIdAndCode": "not all currencies are available",
+                "contractSize": "returns zero for BTC/USDT:USDT https://app.travis-ci.com/github/ccxt/ccxt/builds/269614608#L3778"
             },
             "fetchTrades": {
                 "side": "undefined"
             },
             "ticker": {
-                "baseVolume": "not supported"
+                "baseVolume": "not supported",
+                "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581"
             },
             "fetchOHLCV": "spot not supported",
             "fetchCurrencies": {
