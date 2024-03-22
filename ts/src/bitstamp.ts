@@ -1183,19 +1183,18 @@ export default class bitstamp extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pair': market['id'],
+            'market_symbol': market['id'],
         };
         const response = await this.privatePostFeesTrading (this.extend (request, params));
         //
         //     [
         //         {
         //             "currency_pair": "btcusd",
-        //             "fees": [
+        //             "fees":
         //                 {
         //                     "maker": "0.15000",
         //                     "taker": "0.16000"
-        //                 }
-        //             ],
+        //                 },
         //             "market": "btcusd"
         //         }
         //         ...
