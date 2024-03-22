@@ -2907,6 +2907,30 @@
                   "BTC/USDT:USDT-241227-80000-C"
                 ]
             }
+        ],
+        "fetchMarginAdjustmentHistory": [
+            {
+                "description": "Fetch margin adjustment history with since, limit, until defined",
+                "method": "fetchMarginAdjustmentHistory",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin/history?timestamp=1711146115814&symbol=XRPUSDT&startTime=1710460800000&limit=3&endTime=1711146090000&recvWindow=10000&signature=92bf15fd223dd6acf7e2c1b2ac116fbaf1441f54128691283ddc981b8c993b8f",
+                "input": [
+                    "XRP/USDT:USDT",
+                    null,
+                    1710460800000,
+                    3,
+                    {
+                        "until": "1711146090000"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch margin adjustment history",
+                "method": "fetchMarginAdjustmentHistory",
+                "url": "https://testnet.binancefuture.com/fapi/v1/positionMargin/history?timestamp=1711146515429&symbol=XRPUSDT&recvWindow=10000&signature=2ef24563a8dd25319ed4d7269866c117e086c0104ce37d7822c5b4e05620efe0",
+                "input": [
+                  "XRP/USDT:USDT"
+                ]
+            }
         ]
     }
 }

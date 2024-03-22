@@ -86,6 +86,7 @@ export default class htx extends Exchange {
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
