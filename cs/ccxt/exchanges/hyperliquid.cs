@@ -574,7 +574,7 @@ public partial class hyperliquid : Exchange
         //         "v": "591.6427"
         //     }
         //
-        return new List<object> {this.safeInteger(ohlcv, "T"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
+        return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
 
     public async override Task<object> fetchTrades(object symbol = null, object since = null, object limit = null, object parameters = null)

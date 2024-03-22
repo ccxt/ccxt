@@ -1918,6 +1918,9 @@ export default class coinbase extends Exchange {
         const response = await this.v2PrivateGetAccountsAccountIdTransactions (this.extend (request, params));
         const ledger = this.parseLedger (response['data'], currency, since, limit);
         const length = ledger.length;
+        if (length === 0) {
+            return ledger;
+        }
         const lastIndex = length - 1;
         const last = this.safeDict (ledger, lastIndex);
         const pagination = this.safeDict (response, 'pagination', {});
@@ -2904,7 +2907,7 @@ export default class coinbase extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
+            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 1000) as Order[];
         }
         let market = undefined;
         if (symbol !== undefined) {

@@ -92,7 +92,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     'api_key' => $this->apiKey,
                 );
                 $message = array_merge($request, $params);
-                $future = Async\await($this->watch($url, $messageHash, $message));
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
                 $client->subscriptions[$messageHash] = $future;
             }
             return $future;

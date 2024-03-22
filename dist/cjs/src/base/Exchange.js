@@ -3837,6 +3837,12 @@ class Exchange {
         return result;
     }
     checkRequiredCredentials(error = true) {
+        /**
+         * @ignore
+         * @method
+         * @param {boolean} error throw an error that a credential is required if true
+         * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
+         */
         const keys = Object.keys(this.requiredCredentials);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
