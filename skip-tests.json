@@ -264,7 +264,7 @@
             },
             "watchTrades":{
                 "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
-                "timestamp": "messed order coming from exchange"
+                "sortedTimestamp": "messed order coming from exchange"
             }
         }
     },
@@ -641,7 +641,10 @@
                 "deposit": "not provided",
                 "networks": "missing"
             },
-            "fetchOHLCV": "unexpected issue"
+            "fetchOHLCV": "unexpected issue",
+            "watchTrades": {
+                "sortedTimestamp": "broken sequence"
+            }
         }
     },
     "coinex": {
@@ -1061,7 +1064,8 @@
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "watchTrades": {
-                "timestamp": "ts several hours ahead in in future :)"
+                "timestamp": "ts several hours ahead in in future :)",
+                "sortedTimestamp":"same"
             },
             "orderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612"
@@ -1299,7 +1303,7 @@
                 "deposit": "undefined"
             },
             "watchTrades": {
-                "timestamp": "timestamp reversed: https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3681"
+                "sortedTimestamp": "timestamp reversed: https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3697"
             }
         },
         "timeout": 120000
