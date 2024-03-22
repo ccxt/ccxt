@@ -153,6 +153,9 @@ export default class commex extends Exchange {
                         'aggTrades',
                         'ticker/24hr',
                     ],
+                    'post': [
+                        'inner/getAllAsset',
+                    ],
                 },
                 'private': {
                     'get': [
@@ -398,12 +401,12 @@ export default class commex extends Exchange {
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name binance#fetchTrades
+         * @name commex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * Default fetchTradesMethod
-         * @see https://binance-docs.github.io/apidocs/spot/en/#compressed-aggregate-trades-list        // publicGetAggTrades (spot)
+         * @see https://www.commex.com/api-docs/en/#compressed-aggregate-trades-list
          * Other fetchTradesMethod
-         * @see https://binance-docs.github.io/apidocs/spot/en/#recent-trades-list                      // publicGetTrades (spot)
+         * @see https://www.commex.com/api-docs/en/#recent-trades-list                      // publicGetTrades (spot)
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] not used by commex
          * @param {int} [limit] default 500, max 1000
@@ -415,27 +418,13 @@ export default class commex extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
-        // let paginate = false;
-        // [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
-            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            // 'limit': 500,     // default = 500, maximum = 1000
         };
-        // let method = this.safeString (this.options, 'fetchTradesMethod');
-        // ????
-        // let method = this.safeString2 (params, 'fetchTradesMethod', 'method');
         const method = this.safeString (params, 'fetchTradesMethod', 'publicGetAggTrades');
-        // if (method === undefined) {
-        //     method = 'publicGetAggTrades';
-        // }
         if (since !== undefined) {
             request['startTime'] = since;
-            // https://github.com/ccxt/ccxt/issues/6400
-            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
             request['endTime'] = this.sum (since, 3600000);
         }
         const until = this.safeInteger (params, 'until');
@@ -446,40 +435,7 @@ export default class commex extends Exchange {
             request['limit'] = limit; // default = 500, maximum = 1000
         }
         params = this.omit (params, [ 'until', 'fetchTradesMethod' ]);
-        //
-        // Caveats:
-        // - default limit (500) applies only if no other parameters set, trades up
-        //   to the maximum limit may be returned to satisfy other parameters
-        // - if both limit and time window is set and time window contains more
-        //   trades than the limit then the last trades from the window are returned
-        // - "tradeId" accepted and returned by this method is "aggregate" trade id
-        //   which is different from actual trade id
-        // - setting both fromId and time window results in error
         const response = await this[method] (this.extend (request, params));
-        // Aggregated trades
-        // [
-        //     {
-        //       "a": 26129,          // Aggregate tradeId
-        //       "p": "0.01633102",   // Price
-        //       "q": "4.70443515",   // Quantity
-        //       "f": 27781,          // First tradeId
-        //       "l": 27781,          // First tradeId
-        //       "T": 1498793709153,  // Timestamp
-        //       "m": true            // Was the buyer the maker?
-        //     }
-        //   ]
-        // Recent trades
-        // [
-        //     {
-        //       "id": 28457,
-        //       "price": "4.00000100",
-        //       "qty": "12.00000000",
-        //       "quoteQty": "48.000012",
-        //       "time": 1499865549590,
-        //       "isBuyerMaker": true,
-        //       "isBestMatch": true
-        //     }
-        //   ]
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1593,9 +1549,6 @@ export default class commex extends Exchange {
             currency = this.currency (code);
         }
         request['transactionType'] = 1;
-        if (since !== undefined) {
-            request['beginTime'] = since;
-        }
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -1653,4 +1606,32 @@ export default class commex extends Exchange {
         }
         return this.parseTransactions (response, currency, since, limit);
   }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name commex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://www.commex.com/api-docs/en/#get-all-asset
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicPostInnerGetAllAsset (params);
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const enableWithdraw = this.safeBool (entry, 'enableWithdraw');
+            const id = this.safeString (entry, 'assetCode');
+            const assetName = this.safeString (entry, 'assetName');
+            const assetCode = this.safeCurrencyCode (id);
+            result[assetCode] = {
+                'id': id,
+                'name': assetName,
+                'code': assetCode,
+                'info': entry,
+                'withdraw': enableWithdraw,
+            };
+        }
+        return result;
+    }
 }
