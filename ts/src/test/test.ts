@@ -430,12 +430,20 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     getSkips (exchange: Exchange, methodName: string) {
-        // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
-        if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
-            return this.skippedMethods[methodName];
+        let finalSkips = {};
+        // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
+        const methodNames = [ methodName, methodName + '.' + this.ext ];
+        for (let i = 0; i < methodNames.length; i++) {
+            const mName = methodNames[i];
+            if (mName in this.skippedMethods) {
+                // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
+                if (typeof this.skippedMethods[mName] === 'string') {
+                    return this.skippedMethods[mName];
+                } else {
+                    finalSkips = exchange.deepExtend (finalSkips, this.skippedMethods[mName]);
+                }
+            }
         }
-        // get "method-specific" skips
-        let skipsForMethod = exchange.safeValue (this.skippedMethods, methodName, {});
         // get "object-specific" skips
         const objectSkips = {
             'orderBook': [ 'fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols' ],
@@ -456,19 +464,19 @@ export default class testMainClass extends baseMainTestClass {
                     return this.skippedMethods[objectName];
                 }
                 const extraSkips = exchange.safeDict (this.skippedMethods, objectName, {});
-                skipsForMethod = exchange.deepExtend (skipsForMethod, extraSkips);
+                finalSkips = exchange.deepExtend (finalSkips, extraSkips);
             }
         }
         // extend related skips
         // - if 'timestamp' is skipped, we should do so for 'datetime' too
         // - if 'bid' is skipped, skip 'ask' too
-        if (('timestamp' in skipsForMethod) && !('datetime' in skipsForMethod)) {
-            skipsForMethod['datetime'] = skipsForMethod['timestamp'];
+        if (('timestamp' in finalSkips) && !('datetime' in finalSkips)) {
+            finalSkips['datetime'] = finalSkips['timestamp'];
         }
-        if (('bid' in skipsForMethod) && !('ask' in skipsForMethod)) {
-            skipsForMethod['ask'] = skipsForMethod['bid'];
+        if (('bid' in finalSkips) && !('ask' in finalSkips)) {
+            finalSkips['ask'] = finalSkips['bid'];
         }
-        return skipsForMethod;
+        return finalSkips;
     }
 
     async testSafe (methodName, exchange, args = [], isPublic = false) {
