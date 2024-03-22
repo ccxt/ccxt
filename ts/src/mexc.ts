@@ -71,6 +71,7 @@ export default class mexc extends Exchange {
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedMarginAdjustmentHistory': false,
                 'fetchL2OrderBook': true,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
@@ -5493,6 +5494,22 @@ export default class mexc extends Exchange {
             marginMode = 'isolated';
         }
         return [ marginMode, params ];
+    }
+
+    async fetchPositionHistory (symbol: Str = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name mexc#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+         * @param {string} [symbol] unified market symbol
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.contractPrivateGetPositionListHistoryPositions (this.extend (request, params));
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

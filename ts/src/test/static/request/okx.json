@@ -1255,6 +1255,37 @@
                 "url": "https://www.okx.com/api/v5/public/time",
                 "input": []
             }
+        ],
+        "fetchIsolatedMarginAdjustmentHistory": [
+            {
+                "description": "Fetching margin reductions",
+                "method": "fetchIsolatedMarginAdjustmentHistory",
+                "url": "https://www.okx.com/api/v5/account/bills?subType=161&mgnMode=isolated",
+                "input": [
+                  null,
+                  "reduce"
+                ]
+            },
+            {
+                "description": "Fetching margin additions",
+                "method": "fetchIsolatedMarginAdjustmentHistory",
+                "url": "https://www.okx.com/api/v5/account/bills?subType=160&mgnMode=isolated",
+                "input": [
+                  null,
+                  "add"
+                ]
+            },
+            {
+                "description": "Fetching 3 margin additions older than a week",
+                "method": "fetchIsolatedMarginAdjustmentHistory",
+                "url": "https://www.okx.com/api/v5/account/bills-archive?subType=160&mgnMode=isolated&startTime=1709251200000&limit=3",
+                "input": [
+                  null,
+                  "add",
+                  1709251200000,
+                  3
+                ]
+            }
         ]
     }
 }
