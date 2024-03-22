@@ -265,6 +265,9 @@
             "watchTrades":{
                 "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
                 "timestamp": "messed order coming from exchange"
+            },
+            "ohlcv": {
+                "roundTimestamp": "are not rounded: https://app.travis-ci.com/github/ccxt/ccxt/builds/269583057#L4318"
             }
         }
     },
@@ -1395,7 +1398,8 @@
             "loadMarkets": {
                 "taker": "is undefined",
                 "maker": "is undefined",
-                "currencyIdAndCode": "not all currencies are available"
+                "currencyIdAndCode": "not all currencies are available",
+                "contractSize": "returns zero for BTC/USDT:USDT https://app.travis-ci.com/github/ccxt/ccxt/builds/269614608#L3778"
             },
             "fetchTrades": {
                 "side": "undefined"

@@ -2402,7 +2402,7 @@ class binance extends binance$1 {
     }
     isInverse(type, subType = undefined) {
         if (subType === undefined) {
-            return type === 'delivery';
+            return (type === 'delivery');
         }
         else {
             return subType === 'inverse';

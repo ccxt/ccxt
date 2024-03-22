@@ -72,6 +72,8 @@ import type {
     OHLCV,
     OHLCVC,
     OpenInterest,
+    Option,
+    OptionChain,
     Order,
     OrderBook,
     OrderRequest,
@@ -240,6 +242,8 @@ export type {
     OHLCV,
     OHLCVC,
     OpenInterest,
+    Option,
+    OptionChain,
     Order,
     OrderBook,
     OrderRequest,
@@ -661,6 +665,8 @@ export default class Exchange {
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOpenOrdersWs': undefined,
+                'fetchOption': undefined,
+                'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
@@ -1789,6 +1795,15 @@ export default class Exchange {
 
     intToBase16(elem): string {
         return elem.toString(16);
+
+    }
+
+    extendExchangeOptions (newOptions) {
+        this.options = this.extend (this.options, newOptions);
+    }
+
+    createSafeDictionary () {
+        return {};
     }
 
     /* eslint-enable */
@@ -4634,6 +4649,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrderBooks() is not supported yet');
     }
 
+    async watchBidsAsks (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+        throw new NotSupported (this.id + ' watchBidsAsks() is not supported yet');
+    }
+
     async watchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
@@ -5022,6 +5041,14 @@ export default class Exchange {
 
     async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
         throw new NotSupported (this.id + ' fetchGreeks() is not supported yet');
+    }
+
+    async fetchOptionChain (code: string, params = {}): Promise<OptionChain> {
+        throw new NotSupported (this.id + ' fetchOptionChain() is not supported yet');
+    }
+
+    async fetchOption (symbol: string, params = {}): Promise<Option> {
+        throw new NotSupported (this.id + ' fetchOption() is not supported yet');
     }
 
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -6265,6 +6292,23 @@ export default class Exchange {
 
     parseGreeks (greeks, market: Market = undefined): Greeks {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
+    }
+
+    parseOption (chain, currency: Currency = undefined, market: Market = undefined): Option {
+        throw new NotSupported (this.id + ' parseOption () is not supported yet');
+    }
+
+    parseOptionChain (response: object[], currencyKey: Str = undefined, symbolKey: Str = undefined): OptionChain {
+        const optionStructures = {};
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const currencyId = this.safeString (info, currencyKey);
+            const currency = this.safeCurrency (currencyId);
+            const marketId = this.safeString (info, symbolKey);
+            const market = this.safeMarket (marketId, undefined, undefined, 'option');
+            optionStructures[market['symbol']] = this.parseOption (info, currency, market);
+        }
+        return optionStructures;
     }
 
     parseMarginModes (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModes {
