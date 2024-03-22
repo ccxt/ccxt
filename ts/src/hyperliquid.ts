@@ -1758,7 +1758,7 @@ export default class hyperliquid extends Exchange {
             'isolated': isIsolated,
             'hedged': undefined,
             'side': side,
-            'contracts': this.parseNumber (quantity),
+            'contracts': this.safeNumber (entry, 'szi'),
             'contractSize': undefined,
             'entryPrice': this.safeNumber (entry, 'entryPx'),
             'markPrice': undefined,
