@@ -5,7 +5,6 @@ import bithumbRest from '../bithumb.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { AuthenticationError } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
