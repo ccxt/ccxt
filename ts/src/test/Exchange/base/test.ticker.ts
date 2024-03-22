@@ -29,13 +29,13 @@ function testTicker (exchange, skippedProperties, method: string, entry, symbol)
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
     const emptyAllowedFor = [ 'timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average' ];
     // trick csharp-transpiler for string
-    let methodName = '';
+    let isBidsAsks = false;
     try {
-        methodName = method.toString ();
+        isBidsAsks = method.toString ().includes ('BidsAsks');
     } catch (e) {
-        methodName = method;
+        isBidsAsks = method.includes ('BidsAsks');
     }
-    if (!methodName.includes ('BidsAsks')) {
+    if (!isBidsAsks) {
         emptyAllowedFor.push ('bid');
         emptyAllowedFor.push ('ask');
         emptyAllowedFor.push ('bidVolume');
