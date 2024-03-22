@@ -588,7 +588,9 @@
                 "bid": "broken bid-ask",
                 "baseVolume": "negative value"
             },
-            "orderBook": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
+            "fetchOrderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
+            }
         }
     },
     "coincheck": {

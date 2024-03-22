@@ -19,7 +19,9 @@ function testOrderBook (exchange, skippedProperties, method, orderbook, symbol =
         'nonce': 134234234,
         // 'info': {},
     };
-    const emptyAllowedFor = [ 'nonce' ]; // todo: make timestamp required
+    const emptyAllowedFor = [ 'nonce' ];
+    // turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
+    orderbook = exchange.deepExtend ({}, orderbook);
     testSharedMethods.assertStructure (exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, orderbook, 'symbol', symbol);
