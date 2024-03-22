@@ -459,7 +459,6 @@ export interface Option {
     percentage: number;
     baseVolume: number;
     quoteVolume: number;
-
 }
 
 export interface LastPrice {
