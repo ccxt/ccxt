@@ -805,6 +805,10 @@ public partial class Exchange
         this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(extended);
     }
 
+    public IDictionary<string, object> createSafeDictionary()
+    {
+        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+    }
     public class DynamicInvoker
     {
         public static object InvokeMethod(object action, object[] parameters)

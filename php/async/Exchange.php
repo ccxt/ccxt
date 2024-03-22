@@ -336,8 +336,8 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function extend_exchange_options($newOptions) {
-        $this->options = array_merge($this->options, $newOptions);
+    public function create_safe_dictionary() {
+        return array();
     }
 
     public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {

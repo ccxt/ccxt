@@ -1731,6 +1731,9 @@ class Exchange(object):
     def extend_exchange_options(self, newOptions):
         self.options = self.extend(self.options, newOptions)
 
+    def create_safe_dictionary(self):
+        return {}
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
