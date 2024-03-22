@@ -568,6 +568,7 @@ export default class testMainClass extends baseMainTestClass {
                 'watchOHLCV': [ symbol ],
                 'watchTicker': [ symbol ],
                 'watchTickers': [ symbol ],
+                'watchBidsAsks': [ symbol ],
                 'watchOrderBook': [ symbol ],
                 'watchTrades': [ symbol ],
             };
