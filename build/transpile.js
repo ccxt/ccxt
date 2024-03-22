@@ -205,6 +205,7 @@ class Transpiler {
             [ /\.fetchTicker\s/g, '.fetch_ticker'],
             [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
             [ /\.fetchStatus\s/g, '.fetch_status'],
+            [ /\.fetchMarginAdjustmentHistory\s/g, '.fetch_margin_adjustment_history'],
             [ /\.numberToString\s/g, '.number_to_string' ],
             [ /\.decimalToPrecision\s/g, '.decimal_to_precision'],
             [ /\.priceToPrecision\s/g, '.price_to_precision'],
