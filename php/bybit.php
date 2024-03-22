@@ -66,6 +66,7 @@ class bybit extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true, // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -7974,6 +7975,105 @@ class bybit extends Exchange {
             );
         }
         return $tiers;
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         * @see https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 100);
+        }
+        $request = array(
+            'execType' => 'Funding',
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $type = null;
+        list($type, $params) = $this->get_bybit_type('fetchFundingHistory', $market, $params);
+        $request['category'] = $type;
+        if ($symbol !== null) {
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        } else {
+            $request['size'] = 100;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $response = $this->privateGetV5ExecutionList (array_merge($request, $params));
+        $fundings = $this->add_pagination_cursor_to_result($response);
+        return $this->parse_incomes($fundings, $market, $since, $limit);
+    }
+
+    public function parse_income($income, ?array $market = null) {
+        //
+        // {
+        //     "symbol" => "XMRUSDT",
+        //     "orderType" => "UNKNOWN",
+        //     "underlyingPrice" => "",
+        //     "orderLinkId" => "",
+        //     "orderId" => "a11e5fe2-1dbf-4bab-a9b2-af80a14efc5d",
+        //     "stopOrderType" => "UNKNOWN",
+        //     "execTime" => "1710950400000",
+        //     "feeCurrency" => "",
+        //     "createType" => "",
+        //     "feeRate" => "-0.000761",
+        //     "tradeIv" => "",
+        //     "blockTradeId" => "",
+        //     "markPrice" => "136.79",
+        //     "execPrice" => "137.11",
+        //     "markIv" => "",
+        //     "orderQty" => "0",
+        //     "orderPrice" => "0",
+        //     "execValue" => "134.3678",
+        //     "closedSize" => "0",
+        //     "execType" => "Funding",
+        //     "seq" => "28097658790",
+        //     "side" => "Sell",
+        //     "indexPrice" => "",
+        //     "leavesQty" => "0",
+        //     "isMaker" => false,
+        //     "execFee" => "-0.10232512",
+        //     "execId" => "8d1ef156-4ec6-4445-9a6c-1c0c24dbd046",
+        //     "marketUnit" => "",
+        //     "execQty" => "0.98",
+        //     "nextPageCursor" => "5774437%3A0%2C5771289%3A0"
+        // }
+        //
+        $marketId = $this->safe_string($income, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'contract');
+        $code = 'USDT';
+        if ($market['inverse']) {
+            $code = $market['quote'];
+        }
+        $timestamp = $this->safe_integer($income, 'execTime');
+        return array(
+            'info' => $income,
+            'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
+            'code' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($income, 'execId'),
+            'amount' => $this->safe_number($income, 'execQty'),
+            'rate' => $this->safe_number($income, 'feeRate'),
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

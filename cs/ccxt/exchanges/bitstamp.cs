@@ -1126,17 +1126,20 @@ public partial class bitstamp : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        if (isTrue(isEqual(response, null)))
         {
-            object code = getValue(codes, i);
-            object currency = this.currency(code);
-            object currencyId = getValue(currency, "id");
+            response = new List<object>() {};
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object currencyBalance = getValue(response, i);
+            object currencyId = this.safeString(currencyBalance, "currency");
+            object currencyCode = this.safeCurrencyCode(currencyId);
             object account = this.account();
-            ((IDictionary<string,object>)account)["free"] = this.safeString(response, add(currencyId, "_available"));
-            ((IDictionary<string,object>)account)["used"] = this.safeString(response, add(currencyId, "_reserved"));
-            ((IDictionary<string,object>)account)["total"] = this.safeString(response, add(currencyId, "_balance"));
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            ((IDictionary<string,object>)account)["free"] = this.safeString(currencyBalance, "available");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(currencyBalance, "reserved");
+            ((IDictionary<string,object>)account)["total"] = this.safeString(currencyBalance, "total");
+            ((IDictionary<string,object>)result)[(string)currencyCode] = account;
         }
         return this.safeBalance(result);
     }
@@ -1153,24 +1156,17 @@ public partial class bitstamp : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privatePostBalance(parameters);
+        object response = await this.privatePostAccountBalances(parameters);
         //
-        //     {
-        //         "aave_available": "0.00000000",
-        //         "aave_balance": "0.00000000",
-        //         "aave_reserved": "0.00000000",
-        //         "aave_withdrawal_fee": "0.07000000",
-        //         "aavebtc_fee": "0.000",
-        //         "aaveeur_fee": "0.000",
-        //         "aaveusd_fee": "0.000",
-        //         "bat_available": "0.00000000",
-        //         "bat_balance": "0.00000000",
-        //         "bat_reserved": "0.00000000",
-        //         "bat_withdrawal_fee": "5.00000000",
-        //         "batbtc_fee": "0.000",
-        //         "bateur_fee": "0.000",
-        //         "batusd_fee": "0.000",
-        //     }
+        //     [
+        //         {
+        //             "currency": "usdt",
+        //             "total": "7.00000",
+        //             "available": "7.00000",
+        //             "reserved": "0.00000"
+        //         },
+        //         ...
+        //     ]
         //
         return this.parseBalance(response);
     }

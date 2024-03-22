@@ -313,6 +313,7 @@ export default class gate extends Exchange {
                             'loan_records': 20 / 15,
                             'interest_records': 20 / 15,
                             'estimate_rate': 20 / 15,
+                            'currency_discount_tiers': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
@@ -4233,7 +4234,8 @@ export default class gate extends Exchange {
             'account': account,
         };
         if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision(symbol, amount);
+            const amountKey = (market['spot']) ? 'amount' : 'size';
+            request[amountKey] = this.amountToPrecision(symbol, amount);
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);

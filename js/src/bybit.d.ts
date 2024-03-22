@@ -1,5 +1,5 @@
 import Exchange from './abstract/bybit.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory } from './base/types.js';
 /**
  * @class bybit
  * @augments Exchange
@@ -256,6 +256,17 @@ export default class bybit extends Exchange {
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
     parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): {};
     parseMarketLeverageTiers(info: any, market?: Market): any[];
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    parseIncome(income: any, market?: Market): {
+        info: any;
+        symbol: string;
+        code: string;
+        timestamp: number;
+        datetime: string;
+        id: string;
+        amount: number;
+        rate: number;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

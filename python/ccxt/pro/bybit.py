@@ -974,8 +974,21 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_position(rawPosition)
+            side = self.safe_string(position, 'side')
+            # hacky solution to handle closing positions
+            # without crashing, we should handle self properly later
             newPositions.append(position)
-            cache.append(position)
+            if side is None or side == '':
+                # closing update, adding both sides to "reset" both sides
+                # since we don't know which side is being closed
+                position['side'] = 'long'
+                cache.append(position)
+                position['side'] = 'short'
+                cache.append(position)
+                position['side'] = None
+            else:
+                # regular update
+                cache.append(position)
         messageHashes = self.find_message_hashes(client, 'positions::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]

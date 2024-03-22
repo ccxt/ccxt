@@ -931,7 +931,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)

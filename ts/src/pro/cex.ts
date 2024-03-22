@@ -166,16 +166,20 @@ export default class cex extends cexRest {
         //     {
         //         "e": "history",
         //         "data": [
-        //             "sell:1665467367741:3888551:19058.8:14541219",
-        //             "buy:1665467367741:1059339:19071.5:14541218",
+        //            'buy:1710255706095:444444:71222.2:14892622'
+        //            'sell:1710255658251:42530:71300:14892621'
+        //            'buy:1710252424241:87913:72800:14892620'
+        //            ... timestamp descending
         //         ]
         //     }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache (limit);
-        for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const index = dataLength - 1 - i;
+            const rawTrade = data[index];
             const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
         }
