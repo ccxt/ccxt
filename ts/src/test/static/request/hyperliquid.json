@@ -257,7 +257,7 @@
                     "vaultAddress": "eba57e1d6bd242ba5f41b61ff1d30b481a535b58"
                   }
                 ],
-                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\"},\"nonce\":1711104140105,\"signature\":{\"r\":\"0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af\",\"s\":\"0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\"},\"nonce\":1711104140105,\"signature\":{\"r\":\"0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af\",\"s\":\"0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
             },
             {
                 "description": "order in vaultadress with 0x",
@@ -273,7 +273,23 @@
                     "vaultAddress": "0xeba57e1d6bd242ba5f41b61ff1d30b481a535b58"
                   }
                 ],
-                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\"},\"nonce\":1711105150669,\"signature\":{\"r\":\"0xc10726b93896904251f8b6ec474ed428c448e5029a2d549d0e00a9f6580ac493\",\"s\":\"0x759e02cc811372410582ee28dc5b8c965bbdd87606570e8d2a8f31663f268ed0\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\"},\"nonce\":1711105150669,\"signature\":{\"r\":\"0xc10726b93896904251f8b6ec474ed428c448e5029a2d549d0e00a9f6580ac493\",\"s\":\"0x759e02cc811372410582ee28dc5b8c965bbdd87606570e8d2a8f31663f268ed0\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
+            },
+            {
+                "description": "order with custom params",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "buy",
+                  0.1,
+                  175,
+                  {
+                    "r": true
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":true,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711107892157,\"signature\":{\"r\":\"0x1d1c230fb2d472d613b875c24f83527ed788180b90468be9bfb22d36e8259c71\",\"s\":\"0x3682f2286381b7f20ee1e703f48addb42554348cda438bab9da0d51eb5081938\",\"v\":27}}"
             }
         ],
         "createOrders": [
@@ -332,7 +348,7 @@
                     "vaultAddress": "0xeba57e1d6bd242ba5f41b61ff1d30b481a535b58"
                   }
                 ],
-                "output": "{\"action\":{\"type\":\"batchModify\",\"modifies\":[{\"oid\":8553833906,\"order\":{\"a\":0,\"b\":true,\"p\":\"151\",\"s\":\"0.2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}}]},\"nonce\":1711105489002,\"signature\":{\"r\":\"0x1d07b1ae45cc8551b3d6d610780cc32d12a263cdabbe4013f4f927122215dfa8\",\"s\":\"0x33df2aea44f821de5e3b80e290ce2da30d8bd35f0358e04fec4c0daf60811f03\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
+                "output": "{\"action\":{\"type\":\"batchModify\",\"modifies\":[{\"oid\":8553833906,\"order\":{\"a\":5,\"b\":true,\"p\":\"151\",\"s\":\"0.2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}}]},\"nonce\":1711105489002,\"signature\":{\"r\":\"0x1d07b1ae45cc8551b3d6d610780cc32d12a263cdabbe4013f4f927122215dfa8\",\"s\":\"0x33df2aea44f821de5e3b80e290ce2da30d8bd35f0358e04fec4c0daf60811f03\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
             }
         ],
         "cancelOrder": [
@@ -551,7 +567,7 @@
                     "vaultAddress": "0xeba57e1d6bd242ba5f41b61ff1d30b481a535b58"
                   }
                 ],
-                "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":0,\"isCross\":true,\"leverage\":5},\"nonce\":1711105382021,\"signature\":{\"r\":\"0xafbc0ef20e0b277cf4722f4ceb4fcf2f085c55a1ed41fa1a21fb9429772c5aa5\",\"s\":\"0x1975ac7cc0a533162ac24bb1457c4785d531f46e59eef33bf4a4131f1ea4b249\",\"v\":28},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
+                "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":5,\"isCross\":true,\"leverage\":5},\"nonce\":1711105382021,\"signature\":{\"r\":\"0xafbc0ef20e0b277cf4722f4ceb4fcf2f085c55a1ed41fa1a21fb9429772c5aa5\",\"s\":\"0x1975ac7cc0a533162ac24bb1457c4785d531f46e59eef33bf4a4131f1ea4b249\",\"v\":28},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
             }
         ]
     }
