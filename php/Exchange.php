@@ -2162,6 +2162,14 @@ class Exchange {
         return $modifiedContent;
     }
 
+    public function extend_exchange_options($newOptions) {
+        $this->options = array_merge($this->options, $newOptions);
+    }
+
+    public function create_safe_dictionary() {
+        return array();
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -3929,7 +3937,7 @@ class Exchange {
         }
     }
 
-    public function market_ids($symbols) {
+    public function market_ids(?array $symbols = null) {
         if ($symbols === null) {
             return $symbols;
         }
@@ -3940,7 +3948,7 @@ class Exchange {
         return $result;
     }
 
-    public function market_symbols($symbols, ?string $type = null, $allowEmpty = true, $sameTypeOnly = false, $sameSubTypeOnly = false) {
+    public function market_symbols(?array $symbols = null, ?string $type = null, $allowEmpty = true, $sameTypeOnly = false, $sameSubTypeOnly = false) {
         if ($symbols === null) {
             if (!$allowEmpty) {
                 throw new ArgumentsRequired($this->id . ' empty list of $symbols is not supported');
@@ -3982,7 +3990,7 @@ class Exchange {
         return $result;
     }
 
-    public function market_codes($codes) {
+    public function market_codes(?array $codes = null) {
         if ($codes === null) {
             return $codes;
         }
