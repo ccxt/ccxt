@@ -2288,7 +2288,7 @@ public partial class binance : Exchange
     {
         if (isTrue(isEqual(subType, null)))
         {
-            return isEqual(type, "delivery");
+            return (isEqual(type, "delivery"));
         } else
         {
             return isEqual(subType, "inverse");

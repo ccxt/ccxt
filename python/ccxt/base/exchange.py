@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.79'
+__version__ = '4.2.80'
 
 # -----------------------------------------------------------------------------
 
@@ -4031,6 +4031,9 @@ class Exchange(object):
     def fetch_order_books(self, symbols: List[str] = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
 
+    def watch_bids_asks(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' watchBidsAsks() is not supported yet')
+
     def watch_tickers(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
 
@@ -4332,6 +4335,12 @@ class Exchange(object):
 
     def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
+
+    def fetch_option_chain(self, code: str, params={}):
+        raise NotSupported(self.id + ' fetchOptionChain() is not supported yet')
+
+    def fetch_option(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchOption() is not supported yet')
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -5329,6 +5338,20 @@ class Exchange(object):
 
     def parse_greeks(self, greeks, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
+
+    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+        raise NotSupported(self.id + ' parseOption() is not supported yet')
+
+    def parse_option_chain(self, response: List[object], currencyKey: Str = None, symbolKey: Str = None):
+        optionStructures = {}
+        for i in range(0, len(response)):
+            info = response[i]
+            currencyId = self.safe_string(info, currencyKey)
+            currency = self.safe_currency(currencyId)
+            marketId = self.safe_string(info, symbolKey)
+            market = self.safe_market(marketId, None, None, 'option')
+            optionStructures[market['symbol']] = self.parseOption(info, currency, market)
+        return optionStructures
 
     def parse_margin_modes(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):
         marginModeStructures = {}

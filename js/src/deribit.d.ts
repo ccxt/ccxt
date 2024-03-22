@@ -1,5 +1,5 @@
 import Exchange from './abstract/deribit.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain } from './base/types.js';
 /**
  * @class deribit
  * @augments Exchange
@@ -166,6 +166,27 @@ export default class deribit extends Exchange {
         lastPrice: number;
         underlyingPrice: number;
         info: any;
+    };
+    fetchOption(symbol: string, params?: {}): Promise<Option>;
+    fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
+    parseOption(chain: any, currency?: Currency, market?: Market): {
+        info: any;
+        currency: any;
+        symbol: string;
+        timestamp: number;
+        datetime: string;
+        impliedVolatility: any;
+        openInterest: number;
+        bidPrice: number;
+        askPrice: number;
+        midPrice: number;
+        markPrice: number;
+        lastPrice: number;
+        underlyingPrice: number;
+        change: any;
+        percentage: number;
+        baseVolume: number;
+        quoteVolume: number;
     };
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

@@ -38,7 +38,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.79';
+$version = '4.2.80';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -57,7 +57,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.79';
+    const VERSION = '4.2.80';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4991,6 +4991,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchOrderBooks() is not supported yet');
     }
 
+    public function watch_bids_asks(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchBidsAsks() is not supported yet');
+    }
+
     public function watch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTickers() is not supported yet');
     }
@@ -5361,6 +5365,14 @@ class Exchange {
 
     public function fetch_greeks(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' fetchGreeks() is not supported yet');
+    }
+
+    public function fetch_option_chain(string $code, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOptionChain() is not supported yet');
+    }
+
+    public function fetch_option(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOption() is not supported yet');
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -6581,6 +6593,23 @@ class Exchange {
 
     public function parse_greeks($greeks, ?array $market = null) {
         throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseOption () is not supported yet');
+    }
+
+    public function parse_option_chain(mixed $response, ?string $currencyKey = null, ?string $symbolKey = null) {
+        $optionStructures = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $info = $response[$i];
+            $currencyId = $this->safe_string($info, $currencyKey);
+            $currency = $this->safe_currency($currencyId);
+            $marketId = $this->safe_string($info, $symbolKey);
+            $market = $this->safe_market($marketId, null, null, 'option');
+            $optionStructures[$market['symbol']] = $this->parseOption ($info, $currency, $market);
+        }
+        return $optionStructures;
     }
 
     public function parse_margin_modes(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {

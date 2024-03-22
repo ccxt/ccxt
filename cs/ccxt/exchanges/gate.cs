@@ -4495,8 +4495,19 @@ public partial class gate : Exchange
         };
         if (isTrue(!isEqual(amount, null)))
         {
-            object amountKey = ((bool) isTrue((getValue(market, "spot")))) ? "amount" : "size";
-            ((IDictionary<string,object>)request)[(string)amountKey] = this.amountToPrecision(symbol, amount);
+            if (isTrue(getValue(market, "spot")))
+            {
+                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+            } else
+            {
+                if (isTrue(isEqual(side, "sell")))
+                {
+                    ((IDictionary<string,object>)request)["size"] = Precise.stringNeg(this.amountToPrecision(symbol, amount));
+                } else
+                {
+                    ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
+                }
+            }
         }
         if (isTrue(!isEqual(price, null)))
         {
@@ -5362,8 +5373,8 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeValue(parameters, "stop");
-        parameters = this.omit(parameters, "stop");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
@@ -5723,7 +5734,7 @@ public partial class gate : Exchange
             { "unrealizedPnl", this.parseNumber(unrealisedPnl) },
             { "realizedPnl", this.safeNumber(position, "realised_pnl") },
             { "contracts", this.parseNumber(Precise.stringAbs(size)) },
-            { "contractSize", this.safeValue(market, "contractSize") },
+            { "contractSize", this.safeNumber(market, "contractSize") },
             { "marginRatio", null },
             { "liquidationPrice", this.safeNumber(position, "liq_price") },
             { "markPrice", this.safeNumber(position, "mark_price") },

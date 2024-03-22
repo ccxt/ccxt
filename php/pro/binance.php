@@ -87,7 +87,7 @@ class binance extends \ccxt\async\binance {
                     'future' => 200,
                     'delivery' => 200,
                 ),
-                'streamBySubscriptionsHash' => array(),
+                'streamBySubscriptionsHash' => $this->create_safe_dictionary(),
                 'streamIndex' => -1,
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
@@ -95,7 +95,7 @@ class binance extends \ccxt\async\binance {
                 'tradesLimit' => 1000,
                 'ordersLimit' => 1000,
                 'OHLCVLimit' => 1000,
-                'requestId' => array(),
+                'requestId' => $this->create_safe_dictionary(),
                 'watchOrderBookLimit' => 1000, // default limit
                 'watchTrades' => array(
                     'name' => 'trade', // 'trade' or 'aggTrade'
@@ -130,7 +130,7 @@ class binance extends \ccxt\async\binance {
     }
 
     public function request_id($url) {
-        $options = $this->safe_value($this->options, 'requestId', array());
+        $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
         $this->options['requestId'][$url] = $newValue;
@@ -138,7 +138,7 @@ class binance extends \ccxt\async\binance {
     }
 
     public function stream($type, $subscriptionHash, $numSubscriptions = 1) {
-        $streamBySubscriptionsHash = $this->safe_value($this->options, 'streamBySubscriptionsHash', array());
+        $streamBySubscriptionsHash = $this->safe_dict($this->options, 'streamBySubscriptionsHash', $this->create_safe_dictionary());
         $stream = $this->safe_string($streamBySubscriptionsHash, $subscriptionHash);
         if ($stream === null) {
             $streamIndex = $this->safe_integer($this->options, 'streamIndex', -1);
@@ -151,7 +151,7 @@ class binance extends \ccxt\async\binance {
             $this->options['streamBySubscriptionsHash'][$subscriptionHash] = $stream;
             $subscriptionsByStreams = $this->safe_value($this->options, 'numSubscriptionsByStream');
             if ($subscriptionsByStreams === null) {
-                $this->options['numSubscriptionsByStream'] = array();
+                $this->options['numSubscriptionsByStream'] = $this->create_safe_dictionary();
             }
             $subscriptionsByStream = $this->safe_integer($this->options['numSubscriptionsByStream'], $stream, 0);
             $newNumSubscriptions = $subscriptionsByStream . $numSubscriptions;

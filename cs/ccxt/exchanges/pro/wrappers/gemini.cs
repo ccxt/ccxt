@@ -150,10 +150,9 @@ public partial class gemini
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Tickers> WatchBidsAsks(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.watchBidsAsks(symbols, limit, parameters);
+        var res = await this.watchBidsAsks(symbols, parameters);
         return new Tickers(res);
     }
     public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
