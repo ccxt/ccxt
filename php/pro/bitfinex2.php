@@ -864,27 +864,29 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws']['private'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $nonce = $this->milliseconds();
-            $payload = 'AUTH' . (string) $nonce;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
-            $event = 'auth';
-            $request = array(
-                'apiKey' => $this->apiKey,
-                'authSig' => $signature,
-                'authNonce' => $nonce,
-                'authPayload' => $payload,
-                'event' => $event,
-            );
-            $message = array_merge($request, $params);
-            $this->watch($url, $messageHash, $message, $messageHash);
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws']['private'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $nonce = $this->milliseconds();
+                $payload = 'AUTH' . (string) $nonce;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
+                $event = 'auth';
+                $request = array(
+                    'apiKey' => $this->apiKey,
+                    'authSig' => $signature,
+                    'authNonce' => $nonce,
+                    'authPayload' => $payload,
+                    'event' => $event,
+                );
+                $message = array_merge($request, $params);
+                $this->watch($url, $messageHash, $message, $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_authentication_message(Client $client, $message) {

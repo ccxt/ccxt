@@ -89,6 +89,13 @@ class woo(ccxt.async_support.woo):
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int [limit]: the maximum amount of order book entries to return.
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         name = 'orderbook'
         market = self.market(symbol)
@@ -137,9 +144,16 @@ class woo(ccxt.async_support.woo):
         client.resolve(orderbook, topic)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
         await self.load_markets()
         name = 'ticker'
         market = self.market(symbol)
+        symbol = market['symbol']
         topic = market['id'] + '@' + name
         request = {
             'event': 'subscribe',
@@ -214,7 +228,14 @@ class woo(ccxt.async_support.woo):
         return message
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         name = 'tickers'
         topic = name
         request = {
@@ -329,8 +350,17 @@ class woo(ccxt.async_support.woo):
         client.resolve(stored, topic)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        watches information on multiple trades made in a market
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         topic = market['id'] + '@trade'
         request = {
             'event': 'subscribe',

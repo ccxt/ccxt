@@ -62,6 +62,7 @@ class baseMainTestClass {
     public $lang = 'PHP';
     public $is_synchronous = is_synchronous;
     public $test_files = [];
+    public $skipped_settings_for_exchange = [];
     public $skipped_methods = [];
     public $checked_public_tests = [];
     public $public_tests = [];

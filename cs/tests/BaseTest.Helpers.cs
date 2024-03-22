@@ -15,7 +15,7 @@ public partial class testMainClass : BaseTest
     public Exchange exchange = new Exchange();
     public string rootDir = Tests.ccxtBaseDir + "/";
     public string rootDirForSkips = Tests.ccxtBaseDir + "/";
-    public object skipMethods = null;
+    public object skippedSettingsForExchange = null;
     public object skippedMethods = null;
     public object publicTests = null;
     public object checkedPublicTests = null;

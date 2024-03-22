@@ -1568,7 +1568,7 @@ public partial class bitmart : ccxt.bitmart
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public virtual object handleSubscriptionStatus(WebSocketClient client, object message)

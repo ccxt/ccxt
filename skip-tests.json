@@ -306,6 +306,9 @@
             "watchTradesForSymbols":{
                 "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3602",
                 "timestamp": "messed order coming from exchange"
+            },
+            "ohlcv": {
+                "roundTimestamp": "are not rounded: https://app.travis-ci.com/github/ccxt/ccxt/builds/269583057#L4318"
             }
         }
     },
@@ -703,7 +706,7 @@
         }
     },
     "cex": {
-        "skipWs": "timeouts",
+        "preferredSpotSymbol": "BTC/USD",
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
@@ -717,6 +720,7 @@
                 "deposit": "not provided",
                 "networks": "missing"
             },
+            "watchOHLCV": "does not work for 1min",
             "fetchOHLCV": "unexpected issue"
         }
     },

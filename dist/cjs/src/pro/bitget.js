@@ -1607,7 +1607,7 @@ class bitget extends bitget$1 {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     async watchPrivate(messageHash, subscriptionHash, args, params = {}) {
         await this.authenticate();

@@ -3,7 +3,7 @@ import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
 
-function testTicker (exchange, skippedProperties, method, entry, symbol) {
+function testTicker (exchange, skippedProperties, method: string, entry, symbol) {
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',
@@ -27,7 +27,14 @@ function testTicker (exchange, skippedProperties, method, entry, symbol) {
         'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
-    const emptyAllowedFor = [ 'timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'ask', 'bid', 'bidVolume', 'askVolume', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average' ];
+    const emptyAllowedFor = [ 'timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average' ];
+    // trick csharp-transpiler for string
+    if (!method.toString ().includes ('BidsAsks')) {
+        emptyAllowedFor.push ('bid');
+        emptyAllowedFor.push ('ask');
+        emptyAllowedFor.push ('bidVolume');
+        emptyAllowedFor.push ('askVolume');
+    }
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
