@@ -57,6 +57,7 @@ class baseMainTestClass {
     privateTestOnly = false;
     loadKeys = false;
     sandbox = false;
+    skippedSettingsForExchange = {};
     skippedMethods = {};
     checkedPublicTests = {};
     testFiles = {};
@@ -332,7 +333,8 @@ export default class testMainClass extends baseMainTestClass {
         // skipped tests
         const skippedFile = this.rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
-        const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
+        this.skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
+        const skippedSettingsForExchange = this.skippedSettingsForExchange;
         // others
         const timeout = exchange.safeValue (skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
@@ -566,6 +568,7 @@ export default class testMainClass extends baseMainTestClass {
                 'watchOHLCV': [ symbol ],
                 'watchTicker': [ symbol ],
                 'watchTickers': [ symbol ],
+                'watchBidsAsks': [ symbol ],
                 'watchOrderBook': [ symbol ],
                 'watchTrades': [ symbol ],
             };
@@ -623,54 +626,20 @@ export default class testMainClass extends baseMainTestClass {
         if (!result) {
             return false;
         }
-        const symbols = [
-            'BTC/USDT',
-            'BTC/USDC',
-            'BTC/CNY',
-            'BTC/USD',
-            'BTC/EUR',
-            'BTC/ETH',
-            'ETH/BTC',
-            'BTC/JPY',
-            'ETH/EUR',
-            'ETH/JPY',
-            'ETH/CNY',
-            'ETH/USD',
-            'LTC/CNY',
-            'DASH/BTC',
-            'DOGE/BTC',
-            'BTC/AUD',
-            'BTC/PLN',
-            'USD/SLL',
-            'BTC/RUB',
-            'BTC/UAH',
-            'LTC/BTC',
-            'EUR/USD',
-        ];
-        const resultSymbols = [];
-        const exchangeSpecificSymbols = exchange.symbols;
-        for (let i = 0; i < exchangeSpecificSymbols.length; i++) {
-            const symbol = exchangeSpecificSymbols[i];
-            if (exchange.inArray (symbol, symbols)) {
-                resultSymbols.push (symbol);
-            }
-        }
-        let resultMsg = '';
-        const resultLength = resultSymbols.length;
         const exchangeSymbolsLength = exchange.symbols.length;
-        if (resultLength > 0) {
-            if (exchangeSymbolsLength > resultLength) {
-                resultMsg = resultSymbols.join (', ') + ' + more...';
-            } else {
-                resultMsg = resultSymbols.join (', ');
-            }
-        }
-        dump ('[INFO:MAIN] Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
+        dump ('[INFO:MAIN] Exchange loaded', exchangeSymbolsLength, 'symbols');
         return true;
     }
 
     getTestSymbol (exchange, isSpot, symbols) {
         let symbol = undefined;
+        const preferredSpotSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSpotSymbol');
+        const preferredSwapSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSwapSymbol');
+        if (isSpot && preferredSpotSymbol) {
+            return preferredSpotSymbol;
+        } else if (!isSpot && preferredSwapSymbol) {
+            return preferredSwapSymbol;
+        }
         for (let i = 0; i < symbols.length; i++) {
             const s = symbols[i];
             const market = exchange.safeValue (exchange.markets, s);
@@ -721,32 +690,20 @@ export default class testMainClass extends baseMainTestClass {
             'ETH',
             'XRP',
             'LTC',
-            'BCH',
-            'EOS',
             'BNB',
-            'BSV',
-            'USDT',
-            'ATOM',
-            'BAT',
-            'BTG',
             'DASH',
             'DOGE',
             'ETC',
-            'IOTA',
-            'LSK',
-            'MKR',
-            'NEO',
-            'PAX',
-            'QTUM',
             'TRX',
-            'TUSD',
-            'USD',
+            // fiats
+            'USDT',
             'USDC',
-            'WAVES',
-            'XEM',
-            'XMR',
-            'ZEC',
-            'ZRX',
+            'USD',
+            'EUR',
+            'TUSD',
+            'CNY',
+            'JPY',
+            'BRL',
         ];
         const spotSymbols = [
             'BTC/USDT',
@@ -754,24 +711,37 @@ export default class testMainClass extends baseMainTestClass {
             'BTC/USD',
             'BTC/CNY',
             'BTC/EUR',
+            'BTC/AUD',
+            'BTC/BRL',
+            'BTC/JPY',
+            'ETH/USDT',
+            'ETH/USDC',
+            'ETH/USD',
+            'ETH/CNY',
+            'ETH/EUR',
+            'ETH/AUD',
+            'ETH/BRL',
+            'ETH/JPY',
+            // fiats
+            'EUR/USDT',
+            'EUR/USD',
+            'EUR/USDC',
+            'USDT/EUR',
+            'USD/EUR',
+            'USDC/EUR',
+            // non-fiats
             'BTC/ETH',
             'ETH/BTC',
-            'ETH/USD',
-            'ETH/USDT',
-            'BTC/JPY',
-            'LTC/BTC',
-            'ZRX/WETH',
-            'EUR/USD',
         ];
         const swapSymbols = [
+            // linear
             'BTC/USDT:USDT',
             'BTC/USDC:USDC',
             'BTC/USD:USD',
             'ETH/USDT:USDT',
+            'ETH/USDC:USDC',
             'ETH/USD:USD',
-            'LTC/USDT:USDT',
-            'DOGE/USDT:USDT',
-            'ADA/USDT:USDT',
+            // inverse
             'BTC/USD:BTC',
             'ETH/USD:ETH',
         ];

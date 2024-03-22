@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num
+from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings
 
 # -----------------------------------------------------------------------------
 
@@ -3187,7 +3187,7 @@ class Exchange(object):
         else:
             raise BadResponse(errorMessage)
 
-    def market_ids(self, symbols):
+    def market_ids(self, symbols: Strings = None):
         if symbols is None:
             return symbols
         result = []
@@ -3195,7 +3195,7 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols, type: Str = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
+    def market_symbols(self, symbols: Strings = None, type: Str = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
         if symbols is None:
             if not allowEmpty:
                 raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
@@ -3225,7 +3225,7 @@ class Exchange(object):
             result.append(symbol)
         return result
 
-    def market_codes(self, codes):
+    def market_codes(self, codes: Strings = None):
         if codes is None:
             return codes
         result = []
