@@ -4,7 +4,7 @@ import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError, NotSupported } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Order, Trade, OHLCV, Tickers } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -427,7 +427,7 @@ export default class gemini extends geminiRest {
         return orderbook.limit ();
     }
 
-    async watchBidsAsks (symbols: string[], limit: Int = undefined, params = {}): Promise<Tickers> {
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name gemini#watchBidsAsks

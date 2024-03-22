@@ -129,6 +129,7 @@ class baseMainTestClass():
     response_tests = False
     ws_tests = False
     load_keys = False
+    skipped_settings_for_exchange = {}
     skipped_methods = {}
     check_public_tests = {}
     test_files = {}

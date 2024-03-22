@@ -1332,7 +1332,7 @@ class onetrading extends onetrading$1 {
             };
             this.watch(url, messageHash, this.extend(request, params), messageHash);
         }
-        return future;
+        return await future;
     }
 }
 

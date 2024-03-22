@@ -2403,15 +2403,15 @@ export default class binance extends Exchange {
         });
     }
 
-    isInverse (type, subType = undefined): boolean {
+    isInverse (type: string, subType: Str = undefined): boolean {
         if (subType === undefined) {
-            return type === 'delivery';
+            return (type === 'delivery');
         } else {
             return subType === 'inverse';
         }
     }
 
-    isLinear (type, subType = undefined): boolean {
+    isLinear (type: string, subType: Str = undefined): boolean {
         if (subType === undefined) {
             return (type === 'future') || (type === 'swap');
         } else {

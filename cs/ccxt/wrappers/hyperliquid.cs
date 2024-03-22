@@ -217,13 +217,19 @@ public partial class hyperliquid
     /// <item>
     /// <term>params.clientOrderId</term>
     /// <description>
-    /// string : client order id, optional 128 bit hex string
+    /// string : client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.slippage</term>
     /// <description>
     /// string : the slippage for market order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : the vault address for order
     /// </description>
     /// </item>
     /// </list>
@@ -265,7 +271,7 @@ public partial class hyperliquid
     /// <item>
     /// <term>params.clientOrderId</term>
     /// <description>
-    /// string : client order id (default undefined)
+    /// string : client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
     /// </description>
     /// </item>
     /// </list>
@@ -350,6 +356,12 @@ public partial class hyperliquid
     /// <term>params.clientOrderId</term>
     /// <description>
     /// string : client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : the vault address for order
     /// </description>
     /// </item>
     /// </list>

@@ -161,6 +161,11 @@ public partial class bingx : Exchange
         return await this.callAsync ("swapV1PrivatePostPositionSideDual",parameters);
     }
 
+    public async Task<object> swapV1PrivatePostTradeClosePosition (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivatePostTradeClosePosition",parameters);
+    }
+
     public async Task<object> swapV2PublicGetServerTime (object parameters = null)
     {
         return await this.callAsync ("swapV2PublicGetServerTime",parameters);

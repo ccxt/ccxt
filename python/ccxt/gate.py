@@ -67,6 +67,7 @@ class gate(Exchange, ImplicitAPI):
                         'rebate': 'https://api.gateio.ws/api/v4',
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
+                        'loan': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -327,6 +328,7 @@ class gate(Exchange, ImplicitAPI):
                             'loan_records': 20 / 15,
                             'interest_records': 20 / 15,
                             'estimate_rate': 20 / 15,
+                            'currency_discount_tiers': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
@@ -3957,7 +3959,8 @@ class gate(Exchange, ImplicitAPI):
             'account': account,
         }
         if amount is not None:
-            request['amount'] = self.amount_to_precision(symbol, amount)
+            amountKey = 'amount' if (market['spot']) else 'size'
+            request[amountKey] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         response = None

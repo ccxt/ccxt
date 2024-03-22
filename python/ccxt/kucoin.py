@@ -464,6 +464,56 @@ class kucoin(Exchange, ImplicitAPI):
                     '130202': ExchangeError,  # The system is renewing the loan automatically. Please try again later
                     '130203': InsufficientFunds,  # Insufficient account balance
                     '130204': BadRequest,  # As the total lending amount for platform leverage reaches the platform's maximum position limit, the system suspends the borrowing function of leverage
+                    '130301': InsufficientFunds,  # Insufficient account balance
+                    '130302': PermissionDenied,  # Your relevant permission rights have been restricted, you can contact customer service for processing
+                    '130303': NotSupported,  # The current trading pair does not support isolated positions
+                    '130304': NotSupported,  # The trading function of the current trading pair is not enabled
+                    '130305': NotSupported,  # The current trading pair does not support cross position
+                    '130306': NotSupported,  # The account has not opened leveraged trading
+                    '130307': NotSupported,  # Please reopen the leverage agreement
+                    '130308': InvalidOrder,  # Position renewal freeze
+                    '130309': InvalidOrder,  # Position forced liquidation freeze
+                    '130310': ExchangeError,  # Abnormal leverage account status
+                    '130311': InvalidOrder,  # Failed to place an order, triggering buy limit
+                    '130312': InvalidOrder,  # Trigger global position limit, suspend buying
+                    '130313': InvalidOrder,  # Trigger global position limit, suspend selling
+                    '130314': InvalidOrder,  # Trigger the global position limit and prompt the remaining quantity available for purchase
+                    '130315': NotSupported,  # This feature has been suspended due to country restrictions
+                    '126000': ExchangeError,  # Abnormal margin trading
+                    '126001': NotSupported,  # Users currently do not support high frequency
+                    '126002': ExchangeError,  # There is a risk problem in your account and transactions are temporarily not allowed!
+                    '126003': InvalidOrder,  # The commission amount is less than the minimum transaction amount for a single commission
+                    '126004': ExchangeError,  # Trading pair does not exist or is prohibited
+                    '126005': PermissionDenied,  # This trading pair requires advanced KYC certification before trading
+                    '126006': ExchangeError,  # Trading pair is not available
+                    '126007': ExchangeError,  # Trading pair suspended
+                    '126009': ExchangeError,  # Trading pair is suspended from creating orders
+                    '126010': ExchangeError,  # Trading pair suspended order cancellation
+                    '126011': ExchangeError,  # There are too many orders in the order
+                    '126013': InsufficientFunds,  # Insufficient account balance
+                    '126015': ExchangeError,  # It is prohibited to place orders on self trading pair
+                    '126021': NotSupported,  # This digital asset does not support user participation in your region, thank you for your understanding!
+                    '126022': InvalidOrder,  # The final transaction price of your order will trigger the price protection strategy. To protect the price from deviating too much, please place an order again.
+                    '126027': InvalidOrder,  # Only limit orders are supported
+                    '126028': InvalidOrder,  # Only limit orders are supported before the specified time
+                    '126029': InvalidOrder,  # The maximum order price is: xxx
+                    '126030': InvalidOrder,  # The minimum order price is: xxx
+                    '126033': InvalidOrder,  # Duplicate order
+                    '126034': InvalidOrder,  # Failed to create take profit and stop loss order
+                    '126036': InvalidOrder,  # Failed to create margin order
+                    '126037': ExchangeError,  # Due to country and region restrictions, self function has been suspended!
+                    '126038': ExchangeError,  # Third-party service call failed(internal exception)
+                    '126039': ExchangeError,  # Third-party service call failed, reason: xxx
+                    '126041': ExchangeError,  # clientTimestamp parameter error
+                    '126042': ExchangeError,  # Exceeded maximum position limit
+                    '126043': OrderNotFound,  # Order does not exist
+                    '126044': InvalidOrder,  # clientOid duplicate
+                    '126045': NotSupported,  # This digital asset does not support user participation in your region, thank you for your understanding!
+                    '126046': NotSupported,  # This digital asset does not support your IP region, thank you for your understanding!
+                    '126047': PermissionDenied,  # Please complete identity verification
+                    '126048': PermissionDenied,  # Please complete authentication for the master account
+                    '135005': ExchangeError,  # Margin order query business abnormality
+                    '135018': ExchangeError,  # Margin order query service abnormality
                     '200004': InsufficientFunds,
                     '210014': InvalidOrder,  # {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
                     '210021': InsufficientFunds,  # {"code":"210021","msg":"Balance not enough"}
@@ -485,10 +535,12 @@ class kucoin(Exchange, ImplicitAPI):
                     '400350': InvalidOrder,  # {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400370': InvalidOrder,  # {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
                     '400400': BadRequest,  # Parameter error
+                    '400401': AuthenticationError,  # User is not logged in
                     '400500': InvalidOrder,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of self token"}
                     '400600': BadSymbol,  # {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
                     '400760': InvalidOrder,  # {"code":"400760","msg":"order price should be more than XX"}
                     '401000': BadRequest,  # {"code":"401000","msg":"The interface has been deprecated"}
+                    '408000': BadRequest,  # Network timeout, please try again later
                     '411100': AccountSuspended,
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                     '400303': PermissionDenied,  # {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
