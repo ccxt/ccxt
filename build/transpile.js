@@ -1002,6 +1002,8 @@ class Transpiler {
             'MarketInterface': /-> MarketInterface:/,
             'MarketType': /: MarketType/,
             'Num': /: Num =/,
+            'Option': /-> Option:/,
+            'OptionChain': /-> OptionChain:/,
             'Order': /-> (?:List\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
