@@ -61,6 +61,7 @@ export default class bingx extends Exchange {
                 'fetchFundingRates': true,
                 'fetchLeverage': true,
                 'fetchLiquidations': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
