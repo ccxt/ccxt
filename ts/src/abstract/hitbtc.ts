@@ -119,6 +119,7 @@ interface Exchange {
     privateDeleteWalletCryptoWithdrawId (params?: {}): Promise<implicitReturnType>;
     privatePutMarginAccountIsolatedSymbol (params?: {}): Promise<implicitReturnType>;
     privatePutFuturesAccountIsolatedSymbol (params?: {}): Promise<implicitReturnType>;
+    privatePutFuturesAccountMarginModeSymbol (params?: {}): Promise<implicitReturnType>;
     privatePutWalletCryptoWithdrawId (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
