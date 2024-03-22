@@ -336,10 +336,6 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function create_safe_dictionary() {
-        return array();
-    }
-
     public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {
         /**
          * @ignore
