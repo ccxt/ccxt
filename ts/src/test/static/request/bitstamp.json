@@ -20,7 +20,7 @@
                 "input": [
                     "BTC/USDT"
                 ],
-                "output": "pair=btcusdt"
+                "output": "market_symbol=btcusdt"
             }
         ],
         "fetchTradingFees": [
