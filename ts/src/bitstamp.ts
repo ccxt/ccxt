@@ -1221,8 +1221,7 @@ export default class bitstamp extends Exchange {
         const symbols = this.symbols;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = this.market (symbol);
-            const fee = this.parseTradingFee (fees, market);
+            const fee = this.parseTradingFee (fees[i]);
             result[symbol] = fee;
         }
         return result;
@@ -1238,7 +1237,21 @@ export default class bitstamp extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+        const response = await this.privatePostFeesTrading (params);
+        //
+        //     [
+        //         {
+        //             "currency_pair": "btcusd",
+        //             "fees":
+        //                 {
+        //                     "maker": "0.15000",
+        //                     "taker": "0.16000"
+        //                 },
+        //             "market": "btcusd"
+        //         }
+        //         ...
+        //     ]
+        //
         return this.parseTradingFees (response);
     }
 
