@@ -1855,16 +1855,29 @@ class okx extends okx$1 {
         const first = this.safeValue(data, 0, {});
         return this.parseTicker(first, market);
     }
-    async fetchTickersByType(type, symbols = undefined, params = {}) {
+    async fetchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const market = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         const request = {
-            'instType': this.convertToInstrumentType(type),
+            'instType': this.convertToInstrumentType(marketType),
         };
-        if (type === 'option') {
+        if (marketType === 'option') {
             const defaultUnderlying = this.safeValue(this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2(params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchTickersByType() requires an underlying uly or marketId parameter for options markets');
+                throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
             }
             else {
                 request['uly'] = currencyId;
@@ -1897,28 +1910,8 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const tickers = this.safeValue(response, 'data', []);
+        const tickers = this.safeList(response, 'data', []);
         return this.parseTickers(tickers, symbols);
-    }
-    async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name okx#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        const first = this.safeString(symbols, 0);
-        let market = undefined;
-        if (first !== undefined) {
-            market = this.market(first);
-        }
-        const [type, query] = this.handleMarketTypeAndParams('fetchTickers', market, params);
-        return await this.fetchTickersByType(type, symbols, query);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -4737,23 +4730,7 @@ class okx extends okx$1 {
             }
         }
         request['fee'] = this.numberToString(fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
-        if ('password' in params) {
-            request['pwd'] = params['password'];
-        }
-        else if ('pwd' in params) {
-            request['pwd'] = params['pwd'];
-        }
-        else {
-            const options = this.safeValue(this.options, 'withdraw', {});
-            const password = this.safeString2(options, 'password', 'pwd');
-            if (password !== undefined) {
-                request['pwd'] = password;
-            }
-        }
-        const query = this.omit(params, ['fee', 'password', 'pwd']);
-        if (!('pwd' in request)) {
-            throw new errors.ExchangeError(this.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase');
-        }
+        const query = this.omit(params, ['fee']);
         const response = await this.privatePostAssetWithdrawal(this.extend(request, query));
         //
         //     {
