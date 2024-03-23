@@ -374,7 +374,7 @@ export default class p2b extends Exchange {
         //        current_time: '1699252644.487566'
         //    }
         //
-        const result = this.safeList (response, 'result', {});
+        const result = this.safeValue (response, 'result', {});
         return this.parseTickers (result, symbols);
     }
 

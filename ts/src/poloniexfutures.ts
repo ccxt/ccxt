@@ -1716,7 +1716,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeList (data, 'items', {});
+        const trades = this.safeList (data, 'items', []);
         return this.parseTrades (trades, market, since, limit);
     }
 

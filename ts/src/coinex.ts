@@ -3908,7 +3908,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeList (response, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         return this.parseLeverageTiers (data, symbols, undefined);
     }
 

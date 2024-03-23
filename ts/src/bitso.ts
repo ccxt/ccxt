@@ -1496,7 +1496,7 @@ export default class bitso extends Exchange {
         //        }
         //    }
         //
-        const payload = this.safeList (response, 'payload', {});
+        const payload = this.safeList (response, 'payload', []);
         return this.parseDepositWithdrawFees (payload, codes);
     }
 

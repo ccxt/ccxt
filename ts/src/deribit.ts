@@ -2283,7 +2283,7 @@ export default class deribit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeList (response, 'result', {});
+        const result = this.safeList (response, 'result', []);
         return this.parseTrades (result, undefined, since, limit);
     }
 
@@ -3047,7 +3047,7 @@ export default class deribit extends Exchange {
         //      "testnet": true
         //    }
         //
-        const data = this.safeList (response, 'result', {});
+        const data = this.safeList (response, 'result', []);
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
