@@ -1256,6 +1256,46 @@
                 "input": []
             }
         ],
+        "fetchTicker": [
+            {
+                "description": "swap fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT-SWAP",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://www.okx.com/api/v5/market/tickers?instType=SPOT",
+                "input": [
+                  [
+                    "BTC/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://www.okx.com/api/v5/market/tickers?instType=SWAP",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+            }
+        ],
         "withdraw": [
             {
                 "description": "withdraw usdt-trc20",
