@@ -4231,8 +4231,15 @@ class gate extends Exchange {
                 'account' => $account,
             );
             if ($amount !== null) {
-                $amountKey = ($market['spot']) ? 'amount' : 'size';
-                $request[$amountKey] = $this->amount_to_precision($symbol, $amount);
+                if ($market['spot']) {
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                } else {
+                    if ($side === 'sell') {
+                        $request['size'] = Precise::string_neg($this->amount_to_precision($symbol, $amount));
+                    } else {
+                        $request['size'] = $this->amount_to_precision($symbol, $amount);
+                    }
+                }
             }
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
@@ -5017,8 +5024,8 @@ class gate extends Exchange {
              */
             Async\await($this->load_markets());
             $market = ($symbol === null) ? null : $this->market($symbol);
-            $stop = $this->safe_value($params, 'stop');
-            $params = $this->omit($params, 'stop');
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
             list($request, $requestParams) = ($type === 'spot') ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
             $response = null;
@@ -5337,7 +5344,7 @@ class gate extends Exchange {
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'realizedPnl' => $this->safe_number($position, 'realised_pnl'),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
-            'contractSize' => $this->safe_value($market, 'contractSize'),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
             // 'realisedPnl' => $position['realised_pnl'],
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),

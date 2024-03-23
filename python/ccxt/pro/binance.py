@@ -89,7 +89,7 @@ class binance(ccxt.async_support.binance):
                     'future': 200,
                     'delivery': 200,
                 },
-                'streamBySubscriptionsHash': {},
+                'streamBySubscriptionsHash': self.create_safe_dictionary(),
                 'streamIndex': -1,
                 # get updates every 1000ms or 100ms
                 # or every 0ms in real-time for futures
@@ -97,7 +97,7 @@ class binance(ccxt.async_support.binance):
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'requestId': {},
+                'requestId': self.create_safe_dictionary(),
                 'watchOrderBookLimit': 1000,  # default limit
                 'watchTrades': {
                     'name': 'trade',  # 'trade' or 'aggTrade'
@@ -131,14 +131,14 @@ class binance(ccxt.async_support.binance):
         })
 
     def request_id(self, url):
-        options = self.safe_value(self.options, 'requestId', {})
+        options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         self.options['requestId'][url] = newValue
         return newValue
 
     def stream(self, type, subscriptionHash, numSubscriptions=1):
-        streamBySubscriptionsHash = self.safe_value(self.options, 'streamBySubscriptionsHash', {})
+        streamBySubscriptionsHash = self.safe_dict(self.options, 'streamBySubscriptionsHash', self.create_safe_dictionary())
         stream = self.safe_string(streamBySubscriptionsHash, subscriptionHash)
         if stream is None:
             streamIndex = self.safe_integer(self.options, 'streamIndex', -1)
@@ -151,7 +151,7 @@ class binance(ccxt.async_support.binance):
             self.options['streamBySubscriptionsHash'][subscriptionHash] = stream
             subscriptionsByStreams = self.safe_value(self.options, 'numSubscriptionsByStream')
             if subscriptionsByStreams is None:
-                self.options['numSubscriptionsByStream'] = {}
+                self.options['numSubscriptionsByStream'] = self.create_safe_dictionary()
             subscriptionsByStream = self.safe_integer(self.options['numSubscriptionsByStream'], stream, 0)
             newNumSubscriptions = subscriptionsByStream + numSubscriptions
             subscriptionLimitByStream = self.safe_integer(self.options['subscriptionLimitByStream'], type, 200)

@@ -1720,6 +1720,8 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchCrossBorrowRates (params)`
 - `fetchIsolatedBorrowRate (symbol, params)`
 - `fetchIsolatedBorrowRates (params)`
+- `fetchOption (symbol, params)`
+- `fetchOptionChain (code, params)`
 - ...
 
 ```text
@@ -2091,6 +2093,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Underlying Assets](#underlying-assets)
 - [Liquidations](#liquidations)
 - [Greeks](#greeks)
+- [OptionChain](#option-chain)
 
 ## Order Book
 
@@ -3313,6 +3316,64 @@ Returns
     'lastPrice': 0.215,                         // the last price of the option
     'underlyingPrice': 39165.86,                // the current market price of the underlying asset
     'info': { ... },                            // the original decoded JSON as is
+}
+```
+
+## Option Chain
+
+*option only*
+
+Use the `fetchOption` method to get the public details of a single option contract from the exchange.
+
+```javascript
+fetchOption (symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USD:BTC-240927-40000-C"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"category": "options"}`)
+
+Returns
+
+- An [option chain structure](#option-chain-structure)
+
+Use the `fetchOptionChain` method to get the public option chain data of an underlying currency from the exchange.
+
+```javascript
+fetchOptionChain (code, params = {})
+```
+
+Parameters
+
+- **code** (String) Unified CCXT currency code (e.g. `"BTC"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"category": "options"}`)
+
+Returns
+
+- A list of [option chain structures](#option-chain-structure)
+
+### Option Chain Structure
+
+```javascript
+{
+    'info': { ... },                            // the original decoded JSON as is
+    'currency': 'BTC',                          // unified CCXT currency code
+    'symbol': 'BTC/USD:BTC-240927-40000-C',     // unified CCXT market symbol
+    'timestamp': 1699593511632,                 // unix timestamp in milliseconds
+    'datetime': '2023-11-10T05:18:31.632Z',     // ISO8601 datetime with milliseconds
+    'impliedVolatility': 60.06,                 // the expected percentage price change of the underlying asset, over the remaining life of the option
+    'openInterest': 10,                         // the number of open options contracts that have not been settled
+    'bidPrice': 0.214,                          // the bid price of the option
+    'askPrice': 0.2205,                         // the ask price of the option
+    'midPrice': 0.2205,                         // the price in between the bid and the ask
+    'markPrice': 0.2169,                        // the mark price of the option
+    'lastPrice': 0.215,                         // the last price of the option
+    'underlyingPrice': 39165.86,                // the current market price of the underlying asset
+    'change': 15.43,                            // the 24 hour price change in a dollar amount
+    'percentage': 11.86,                        // the 24 hour price change as a percentage
+    'baseVolume': 100.86,                       // the volume in units of the base currency
+    'quoteVolume': 23772.86,                    // the volume in units of the quote currency
 }
 ```
 

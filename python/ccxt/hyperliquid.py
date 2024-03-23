@@ -754,6 +754,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
+        vaultAddress = self.safe_string(params, 'vaultAddress')
+        params = self.omit(params, 'vaultAddress')
         symbol = market['symbol']
         order = {
             'symbol': symbol,
@@ -763,7 +765,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             'price': price,
             'params': params,
         }
-        response = self.create_orders([order], params)
+        globalParams = {}
+        if vaultAddress is not None:
+            globalParams['vaultAddress'] = vaultAddress
+        response = self.create_orders([order], globalParams)
         first = self.safe_dict(response, 0)
         return first
 
@@ -807,7 +812,6 @@ class hyperliquid(Exchange, ImplicitAPI):
             amount = self.safe_string(rawOrder, 'amount')
             price = self.safe_string(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
-            orderParams = self.extend(params, orderParams)
             clientOrderId = self.safe_string_2(orderParams, 'clientOrderId', 'client_id')
             slippage = self.safe_string(orderParams, 'slippage', defaultSlippage)
             defaultTimeInForce = 'ioc' if (isMarket) else 'gtc'
@@ -847,6 +851,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 orderType['limit'] = {
                     'tif': timeInForce,
                 }
+            orderParams = self.omit(orderParams, ['clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id'])
             orderObj = {
                 'a': self.parse_to_int(market['baseId']),
                 'b': isBuy,
@@ -858,8 +863,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             }
             if clientOrderId is not None:
                 orderObj['c'] = clientOrderId
-            orderReq.append(orderObj)
-        vaultAddress = self.safe_string(params, 'vaultAddress')
+            orderReq.append(self.extend(orderObj, orderParams))
+        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
         orderAction = {
             'type': 'order',
             'orders': orderReq,
@@ -875,6 +880,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             'signature': signature,
             # 'vaultAddress': vaultAddress,
         }
+        if vaultAddress is not None:
+            params = self.omit(params, 'vaultAddress')
+            request['vaultAddress'] = vaultAddress
         response = self.privatePostExchange(self.extend(request, params))
         #
         #     {
@@ -957,10 +965,13 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'o': self.parse_to_numeric(ids[i]),
                 })
         cancelAction['cancels'] = cancelReq
-        vaultAddress = self.safe_string(params, 'vaultAddress')
+        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
         signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)
         request['action'] = cancelAction
         request['signature'] = signature
+        if vaultAddress is not None:
+            params = self.omit(params, 'vaultAddress')
+            request['vaultAddress'] = vaultAddress
         response = self.privatePostExchange(self.extend(request, params))
         #
         #     {
@@ -1066,7 +1077,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'type': 'batchModify',
             'modifies': [modifyReq],
         }
-        vaultAddress = self.safe_string(params, 'vaultAddress')
+        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
         signature = self.sign_l1_action(modifyAction, nonce, vaultAddress)
         request = {
             'action': modifyAction,
@@ -1074,6 +1085,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             'signature': signature,
             # 'vaultAddress': vaultAddress,
         }
+        if vaultAddress is not None:
+            params = self.omit(params, 'vaultAddress')
+            request['vaultAddress'] = vaultAddress
         response = self.privatePostExchange(self.extend(request, params))
         #
         #     {
@@ -1643,7 +1657,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'isolated': isIsolated,
             'hedged': None,
             'side': side,
-            'contracts': self.parse_number(quantity),
+            'contracts': self.safe_number(entry, 'szi'),
             'contractSize': None,
             'entryPrice': self.safe_number(entry, 'entryPx'),
             'markPrice': None,
@@ -1687,6 +1701,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             'leverage': leverage,
         }
         vaultAddress = self.safe_string(params, 'vaultAddress')
+        if vaultAddress is not None:
+            params = self.omit(params, 'vaultAddress')
+            if vaultAddress.startswith('0x'):
+                vaultAddress = vaultAddress.replace('0x', '')
         signature = self.sign_l1_action(updateAction, nonce, vaultAddress)
         request = {
             'action': updateAction,
@@ -1694,6 +1712,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'signature': signature,
             # 'vaultAddress': vaultAddress,
         }
+        if vaultAddress is not None:
+            request['vaultAddress'] = vaultAddress
         response = self.privatePostExchange(self.extend(request, params))
         #
         #     {
@@ -1729,7 +1749,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'isCross': isCross,
             'leverage': leverage,
         }
-        vaultAddress = self.safe_string(params, 'vaultAddress')
+        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
         signature = self.sign_l1_action(updateAction, nonce, vaultAddress)
         request = {
             'action': updateAction,
@@ -1737,6 +1757,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             'signature': signature,
             # 'vaultAddress': vaultAddress,
         }
+        if vaultAddress is not None:
+            params = self.omit(params, 'vaultAddress')
+            request['vaultAddress'] = vaultAddress
         response = self.privatePostExchange(self.extend(request, params))
         #
         #     {
@@ -1784,7 +1807,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'isBuy': True,
             'ntli': sz,
         }
-        vaultAddress = self.safe_string(params, 'vaultAddress')
+        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
         signature = self.sign_l1_action(updateAction, nonce, vaultAddress)
         request = {
             'action': updateAction,
@@ -1792,6 +1815,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             'signature': signature,
             # 'vaultAddress': vaultAddress,
         }
+        if vaultAddress is not None:
+            params = self.omit(params, 'vaultAddress')
+            request['vaultAddress'] = vaultAddress
         response = self.privatePostExchange(self.extend(request, params))
         #
         #     {
@@ -1881,6 +1907,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         response = self.privatePostExchange(self.extend(request, params))
         return response
+
+    def format_vault_address(self, address: Str = None):
+        if address is None:
+            return None
+        if address.startswith('0x'):
+            return address.replace('0x', '')
+        return address
 
     def handle_public_address(self, methodName: str, params: dict):
         userAux = None
