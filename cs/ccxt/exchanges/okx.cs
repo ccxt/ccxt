@@ -1844,20 +1844,35 @@ public partial class okx : Exchange
         return this.parseTicker(first, market);
     }
 
-    public async virtual Task<object> fetchTickersByType(object type, object symbols = null, object parameters = null)
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name okx#fetchTickers
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object market = this.getMarketFromSymbols(symbols);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
-            { "instType", this.convertToInstrumentType(type) },
+            { "instType", this.convertToInstrumentType(marketType) },
         };
-        if (isTrue(isEqual(type, "option")))
+        if (isTrue(isEqual(marketType, "option")))
         {
             object defaultUnderlying = this.safeValue(this.options, "defaultUnderlying", "BTC-USD");
             object currencyId = this.safeString2(parameters, "uly", "marketId", defaultUnderlying);
             if (isTrue(isEqual(currencyId, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " fetchTickersByType() requires an underlying uly or marketId parameter for options markets")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires an underlying uly or marketId parameter for options markets")) ;
             } else
             {
                 ((IDictionary<string,object>)request)["uly"] = currencyId;
@@ -1890,34 +1905,8 @@ public partial class okx : Exchange
         //         ]
         //     }
         //
-        object tickers = this.safeValue(response, "data", new List<object>() {});
+        object tickers = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(tickers, symbols);
-    }
-
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name okx#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        object first = this.safeString(symbols, 0);
-        object market = null;
-        if (isTrue(!isEqual(first, null)))
-        {
-            market = this.market(first);
-        }
-        var typequeryVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-        var type = ((IList<object>) typequeryVariable)[0];
-        var query = ((IList<object>) typequeryVariable)[1];
-        return await this.fetchTickersByType(type, symbols, query);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -4947,26 +4936,7 @@ public partial class okx : Exchange
             }
         }
         ((IDictionary<string,object>)request)["fee"] = this.numberToString(fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
-        if (isTrue(inOp(parameters, "password")))
-        {
-            ((IDictionary<string,object>)request)["pwd"] = getValue(parameters, "password");
-        } else if (isTrue(inOp(parameters, "pwd")))
-        {
-            ((IDictionary<string,object>)request)["pwd"] = getValue(parameters, "pwd");
-        } else
-        {
-            object options = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
-            object password = this.safeString2(options, "password", "pwd");
-            if (isTrue(!isEqual(password, null)))
-            {
-                ((IDictionary<string,object>)request)["pwd"] = password;
-            }
-        }
-        object query = this.omit(parameters, new List<object>() {"fee", "password", "pwd"});
-        if (!isTrue((inOp(request, "pwd"))))
-        {
-            throw new ExchangeError ((string)add(this.id, " withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase")) ;
-        }
+        object query = this.omit(parameters, new List<object>() {"fee"});
         object response = await this.privatePostAssetWithdrawal(this.extend(request, query));
         //
         //     {

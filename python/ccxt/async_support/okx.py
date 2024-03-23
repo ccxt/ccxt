@@ -1834,16 +1834,27 @@ class okx(Exchange, ImplicitAPI):
         first = self.safe_value(data, 0, {})
         return self.parse_ticker(first, market)
 
-    async def fetch_tickers_by_type(self, type, symbols: Strings = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        market = self.get_market_from_symbols(symbols)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchTickers', market, params)
         request = {
-            'instType': self.convert_to_instrument_type(type),
+            'instType': self.convert_to_instrument_type(marketType),
         }
-        if type == 'option':
+        if marketType == 'option':
             defaultUnderlying = self.safe_value(self.options, 'defaultUnderlying', 'BTC-USD')
             currencyId = self.safe_string_2(params, 'uly', 'marketId', defaultUnderlying)
             if currencyId is None:
-                raise ArgumentsRequired(self.id + ' fetchTickersByType() requires an underlying uly or marketId parameter for options markets')
+                raise ArgumentsRequired(self.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets')
             else:
                 request['uly'] = currencyId
         response = await self.publicGetMarketTickers(self.extend(request, params))
@@ -1873,25 +1884,8 @@ class okx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickers = self.safe_value(response, 'data', [])
+        tickers = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
-
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
-        """
-        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
-        """
-        await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        first = self.safe_string(symbols, 0)
-        market = None
-        if first is not None:
-            market = self.market(first)
-        type, query = self.handle_market_type_and_params('fetchTickers', market, params)
-        return await self.fetch_tickers_by_type(type, symbols, query)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
         #
@@ -4439,18 +4433,7 @@ class okx(Exchange, ImplicitAPI):
             if fee is None:
                 raise ArgumentsRequired(self.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.')
         request['fee'] = self.number_to_string(fee)  # withdrawals to OKCoin or OKX are fee-free, please set 0
-        if 'password' in params:
-            request['pwd'] = params['password']
-        elif 'pwd' in params:
-            request['pwd'] = params['pwd']
-        else:
-            options = self.safe_value(self.options, 'withdraw', {})
-            password = self.safe_string_2(options, 'password', 'pwd')
-            if password is not None:
-                request['pwd'] = password
-        query = self.omit(params, ['fee', 'password', 'pwd'])
-        if not ('pwd' in request):
-            raise ExchangeError(self.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase')
+        query = self.omit(params, ['fee'])
         response = await self.privatePostAssetWithdrawal(self.extend(request, query))
         #
         #     {

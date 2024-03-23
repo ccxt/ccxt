@@ -1875,17 +1875,28 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers_by_type($type, ?array $symbols = null, $params = array ()) {
-        return Async\async(function () use ($type, $symbols, $params) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-$tickers
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
             Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $market = $this->get_market_from_symbols($symbols);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $request = array(
-                'instType' => $this->convert_to_instrument_type($type),
+                'instType' => $this->convert_to_instrument_type($marketType),
             );
-            if ($type === 'option') {
+            if ($marketType === 'option') {
                 $defaultUnderlying = $this->safe_value($this->options, 'defaultUnderlying', 'BTC-USD');
                 $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
                 if ($currencyId === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchTickersByType() requires an underlying uly or marketId parameter for options markets');
+                    throw new ArgumentsRequired($this->id . ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
                 } else {
                     $request['uly'] = $currencyId;
                 }
@@ -1917,29 +1928,8 @@ class okx extends Exchange {
             //         )
             //     }
             //
-            $tickers = $this->safe_value($response, 'data', array());
+            $tickers = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($tickers, $symbols);
-        }) ();
-    }
-
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-tickers
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $first = $this->safe_string($symbols, 0);
-            $market = null;
-            if ($first !== null) {
-                $market = $this->market($first);
-            }
-            list($type, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            return Async\await($this->fetch_tickers_by_type($type, $symbols, $query));
         }) ();
     }
 
@@ -4728,21 +4718,7 @@ class okx extends Exchange {
                 }
             }
             $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
-            if (is_array($params) && array_key_exists('password', $params)) {
-                $request['pwd'] = $params['password'];
-            } elseif (is_array($params) && array_key_exists('pwd', $params)) {
-                $request['pwd'] = $params['pwd'];
-            } else {
-                $options = $this->safe_value($this->options, 'withdraw', array());
-                $password = $this->safe_string_2($options, 'password', 'pwd');
-                if ($password !== null) {
-                    $request['pwd'] = $password;
-                }
-            }
-            $query = $this->omit($params, array( 'fee', 'password', 'pwd' ));
-            if (!(is_array($request) && array_key_exists('pwd', $request))) {
-                throw new ExchangeError($this->id . ' withdraw() requires a $password parameter or a pwd parameter, it must be the funding $password, not the API passphrase');
-            }
+            $query = $this->omit($params, array( 'fee' ));
             $response = Async\await($this->privatePostAssetWithdrawal (array_merge($request, $query)));
             //
             //     {

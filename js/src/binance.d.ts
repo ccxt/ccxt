@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -436,4 +436,24 @@ export default class binance extends Exchange {
     }>;
     fetchMarginModes(symbols?: string[], params?: {}): Promise<MarginModes>;
     parseMarginMode(marginMode: any, market?: any): MarginMode;
+    fetchOption(symbol: string, params?: {}): Promise<Option>;
+    parseOption(chain: any, currency?: Currency, market?: Market): {
+        info: any;
+        currency: any;
+        symbol: string;
+        timestamp: any;
+        datetime: any;
+        impliedVolatility: any;
+        openInterest: any;
+        bidPrice: number;
+        askPrice: number;
+        midPrice: any;
+        markPrice: any;
+        lastPrice: number;
+        underlyingPrice: number;
+        change: number;
+        percentage: number;
+        baseVolume: number;
+        quoteVolume: any;
+    };
 }
