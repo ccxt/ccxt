@@ -1017,6 +1017,12 @@
             },
             "orderBook": {
                 "symbol": "undefined, todo fix https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3670"
+            },
+            "watchOrderBook": {
+                "timestamp": "not provided"
+            },
+            "watchOrderBookForSymbols": {
+                "timestamp": "not provided"
             }
         }
     },
