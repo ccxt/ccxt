@@ -154,6 +154,16 @@
                   "BTC"
                 ]
             }
+        ],
+        "fetchOption": [
+            {
+                "description": "Fetch an option contract",
+                "method": "fetchOption",
+                "url": "https://api.delta.exchange/v2/tickers/C-BTC-47000-290324",
+                "input": [
+                  "BTC/USDT:USDT-240329-47000-C"
+                ]
+            }
         ]
     }
 }
