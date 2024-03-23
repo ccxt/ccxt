@@ -23,6 +23,15 @@
                 "output": "pair=btcusdt"
             }
         ],
+        "fetchTradingFees": [
+            {
+                "description": "Fetch trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/trading/",
+                "input": [],
+                "output": "foo=bar"
+            }
+        ],
         "fetchLedger": [
             {
                 "description": "fetch USDT ledger",
