@@ -887,8 +887,8 @@ export default class mexc extends Exchange {
                     '30032': InvalidOrder, // Cannot exceed the maximum position
                     '30041': InvalidOrder, // current order type can not place order
                     '60005': ExchangeError, // your account is abnormal
-                    '700001': AuthenticationError, // API-key format invalid
-                    '700002': AuthenticationError, // Signature for this request is not valid
+                    '700001': AuthenticationError, // {"code":700002,"msg":"Signature for this request is not valid."} // same message for expired API keys
+                    '700002': AuthenticationError, // Signature for this request is not valid // or the API secret is incorrect
                     '700004': BadRequest, // Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
                     '700005': InvalidNonce, // recvWindow must less than 60000
                     '700006': BadRequest, // IP non white list
