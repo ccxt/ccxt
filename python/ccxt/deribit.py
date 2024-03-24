@@ -3403,7 +3403,7 @@ class deribit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(chain, 'timestamp')
         return {
             'info': chain,
-            'currency': code['code'],
+            'currency': code,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
