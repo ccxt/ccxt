@@ -905,7 +905,7 @@ export default class hyperliquid extends Exchange {
                     'tif': timeInForce,
                 };
             }
-            orderParams = this.omit (orderParams, [ 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly' ]);
+            orderParams = this.omit (orderParams, [ 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ]);
             const orderObj = {
                 'a': this.parseToInt (market['baseId']),
                 'b': isBuy,
