@@ -3624,7 +3624,7 @@ class deribit extends Exchange {
         $timestamp = $this->safe_integer($chain, 'timestamp');
         return array(
             'info' => $chain,
-            'currency' => $code['code'],
+            'currency' => $code,
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

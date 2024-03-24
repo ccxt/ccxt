@@ -35,7 +35,7 @@ public partial class hyperliquid : Exchange
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createOrders", true },
-                { "createReduceOnlyOrder", false },
+                { "createReduceOnlyOrder", true },
                 { "editOrder", true },
                 { "fetchAccounts", false },
                 { "fetchBalance", true },
@@ -956,7 +956,7 @@ public partial class hyperliquid : Exchange
                     { "tif", timeInForce },
                 };
             }
-            orderParams = this.omit(orderParams, new List<object>() {"clientOrderId", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce", "client_id"});
+            orderParams = this.omit(orderParams, new List<object>() {"clientOrderId", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce", "client_id", "reduceOnly", "postOnly"});
             object orderObj = new Dictionary<string, object>() {
                 { "a", this.parseToInt(getValue(market, "baseId")) },
                 { "b", isBuy },
@@ -2223,11 +2223,11 @@ public partial class hyperliquid : Exchange
         var userparametersVariable = this.handleOptionAndParams(parameters, methodName, "address", userAux);
         user = ((IList<object>)userparametersVariable)[0];
         parameters = ((IList<object>)userparametersVariable)[1];
-        if (isTrue(!isEqual(user, null)))
+        if (isTrue(isTrue((!isEqual(user, null))) && isTrue((!isEqual(user, "")))))
         {
             return new List<object>() {user, parameters};
         }
-        if (isTrue(!isEqual(this.walletAddress, null)))
+        if (isTrue(isTrue((!isEqual(this.walletAddress, null))) && isTrue((!isEqual(this.walletAddress, "")))))
         {
             return new List<object>() {this.walletAddress, parameters};
         }

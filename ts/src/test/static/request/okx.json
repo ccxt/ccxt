@@ -1256,6 +1256,26 @@
                 "input": []
             }
         ],
+        "fetchOption": [
+            {
+                "description": "Fetch an option contract",
+                "method": "fetchOption",
+                "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USD-241227-60000-P",
+                "input": [
+                  "BTC/USD:BTC-241227-60000-P"
+                ]
+            }
+        ],
+        "fetchOptionChain": [
+            {
+                "description": "Fetch an option chain",
+                "method": "fetchOptionChain",
+                "url": "https://www.okx.com/api/v5/market/tickers?uly=BTC-USD&instType=OPTION",
+                "input": [
+                  "BTC"
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "swap fetch ticker",

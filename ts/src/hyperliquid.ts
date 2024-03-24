@@ -46,7 +46,7 @@ export default class hyperliquid extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
-                'createReduceOnlyOrder': false,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -905,7 +905,7 @@ export default class hyperliquid extends Exchange {
                     'tif': timeInForce,
                 };
             }
-            orderParams = this.omit (orderParams, [ 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id' ]);
+            orderParams = this.omit (orderParams, [ 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ]);
             const orderObj = {
                 'a': this.parseToInt (market['baseId']),
                 'b': isBuy,
@@ -2075,10 +2075,10 @@ export default class hyperliquid extends Exchange {
         [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
-        if (user !== undefined) {
+        if ((user !== undefined) && (user !== '')) {
             return [ user, params ];
         }
-        if (this.walletAddress !== undefined) {
+        if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
             return [ this.walletAddress, params ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');

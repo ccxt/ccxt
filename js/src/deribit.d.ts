@@ -171,7 +171,7 @@ export default class deribit extends Exchange {
     fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
     parseOption(chain: any, currency?: Currency, market?: Market): {
         info: any;
-        currency: any;
+        currency: string;
         symbol: string;
         timestamp: number;
         datetime: string;
