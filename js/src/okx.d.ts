@@ -28,7 +28,6 @@ export default class okx extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickersByType(type: any, symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

@@ -149,11 +149,6 @@ public partial class okx
         var res = await this.fetchTicker(symbol, parameters);
         return new Ticker(res);
     }
-    public async Task<Dictionary<string, Ticker>> FetchTickersByType(object type, List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickersByType(type, symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
-    }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>

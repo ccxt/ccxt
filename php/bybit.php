@@ -88,6 +88,8 @@ class bybit extends Exchange {
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => true,
+                'fetchOptionChain' => true,
                 'fetchOrder' => false,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
@@ -8073,6 +8075,180 @@ class bybit extends Exchange {
             'id' => $this->safe_string($income, 'execId'),
             'amount' => $this->safe_number($income, 'execQty'),
             'rate' => $this->safe_number($income, 'feeRate'),
+        );
+    }
+
+    public function fetch_option(string $symbol, $params = array ()): Option {
+        /**
+         * fetches option data that is commonly found in an option $chain
+         * @see https://bybit-exchange.github.io/docs/v5/market/tickers
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-$chain-structure option $chain structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'category' => 'option',
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetV5MarketTickers (array_merge($request, $params));
+        //
+        //     {
+        //         "retCode" => 0,
+        //         "retMsg" => "SUCCESS",
+        //         "result" => {
+        //             "category" => "option",
+        //             "list" => array(
+        //                 array(
+        //                     "symbol" => "BTC-27DEC24-55000-P",
+        //                     "bid1Price" => "0",
+        //                     "bid1Size" => "0",
+        //                     "bid1Iv" => "0",
+        //                     "ask1Price" => "0",
+        //                     "ask1Size" => "0",
+        //                     "ask1Iv" => "0",
+        //                     "lastPrice" => "10980",
+        //                     "highPrice24h" => "0",
+        //                     "lowPrice24h" => "0",
+        //                     "markPrice" => "11814.66756236",
+        //                     "indexPrice" => "63838.92",
+        //                     "markIv" => "0.8866",
+        //                     "underlyingPrice" => "71690.55303594",
+        //                     "openInterest" => "0.01",
+        //                     "turnover24h" => "0",
+        //                     "volume24h" => "0",
+        //                     "totalVolume" => "2",
+        //                     "totalTurnover" => "78719",
+        //                     "delta" => "-0.23284954",
+        //                     "gamma" => "0.0000055",
+        //                     "vega" => "191.70757975",
+        //                     "theta" => "-30.43617927",
+        //                     "predictedDeliveryPrice" => "0",
+        //                     "change24h" => "0"
+        //                 }
+        //             )
+        //         ),
+        //         "retExtInfo" => array(),
+        //         "time" => 1711162003672
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $resultList = $this->safe_list($result, 'list', array());
+        $chain = $this->safe_dict($resultList, 0, array());
+        return $this->parse_option($chain, null, $market);
+    }
+
+    public function fetch_option_chain(string $code, $params = array ()): OptionChain {
+        /**
+         * fetches data for an underlying asset that is commonly found in an option chain
+         * @see https://bybit-exchange.github.io/docs/v5/market/tickers
+         * @param {string} $currency base $currency to fetch an option chain for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structures~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'category' => 'option',
+            'baseCoin' => $currency['id'],
+        );
+        $response = $this->publicGetV5MarketTickers (array_merge($request, $params));
+        //
+        //     {
+        //         "retCode" => 0,
+        //         "retMsg" => "SUCCESS",
+        //         "result" => array(
+        //             "category" => "option",
+        //             "list" => array(
+        //                 array(
+        //                     "symbol" => "BTC-27DEC24-55000-P",
+        //                     "bid1Price" => "0",
+        //                     "bid1Size" => "0",
+        //                     "bid1Iv" => "0",
+        //                     "ask1Price" => "0",
+        //                     "ask1Size" => "0",
+        //                     "ask1Iv" => "0",
+        //                     "lastPrice" => "10980",
+        //                     "highPrice24h" => "0",
+        //                     "lowPrice24h" => "0",
+        //                     "markPrice" => "11814.66756236",
+        //                     "indexPrice" => "63838.92",
+        //                     "markIv" => "0.8866",
+        //                     "underlyingPrice" => "71690.55303594",
+        //                     "openInterest" => "0.01",
+        //                     "turnover24h" => "0",
+        //                     "volume24h" => "0",
+        //                     "totalVolume" => "2",
+        //                     "totalTurnover" => "78719",
+        //                     "delta" => "-0.23284954",
+        //                     "gamma" => "0.0000055",
+        //                     "vega" => "191.70757975",
+        //                     "theta" => "-30.43617927",
+        //                     "predictedDeliveryPrice" => "0",
+        //                     "change24h" => "0"
+        //                 ),
+        //             )
+        //         ),
+        //         "retExtInfo" => array(),
+        //         "time" => 1711162003672
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $resultList = $this->safe_list($result, 'list', array());
+        return $this->parse_option_chain($resultList, null, 'symbol');
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTC-27DEC24-55000-P",
+        //         "bid1Price" => "0",
+        //         "bid1Size" => "0",
+        //         "bid1Iv" => "0",
+        //         "ask1Price" => "0",
+        //         "ask1Size" => "0",
+        //         "ask1Iv" => "0",
+        //         "lastPrice" => "10980",
+        //         "highPrice24h" => "0",
+        //         "lowPrice24h" => "0",
+        //         "markPrice" => "11814.66756236",
+        //         "indexPrice" => "63838.92",
+        //         "markIv" => "0.8866",
+        //         "underlyingPrice" => "71690.55303594",
+        //         "openInterest" => "0.01",
+        //         "turnover24h" => "0",
+        //         "volume24h" => "0",
+        //         "totalVolume" => "2",
+        //         "totalTurnover" => "78719",
+        //         "delta" => "-0.23284954",
+        //         "gamma" => "0.0000055",
+        //         "vega" => "191.70757975",
+        //         "theta" => "-30.43617927",
+        //         "predictedDeliveryPrice" => "0",
+        //         "change24h" => "0"
+        //     }
+        //
+        $marketId = $this->safe_string($chain, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        return array(
+            'info' => $chain,
+            'currency' => null,
+            'symbol' => $market['symbol'],
+            'timestamp' => null,
+            'datetime' => null,
+            'impliedVolatility' => $this->safe_number($chain, 'markIv'),
+            'openInterest' => $this->safe_number($chain, 'openInterest'),
+            'bidPrice' => $this->safe_number($chain, 'bid1Price'),
+            'askPrice' => $this->safe_number($chain, 'ask1Price'),
+            'midPrice' => null,
+            'markPrice' => $this->safe_number($chain, 'markPrice'),
+            'lastPrice' => $this->safe_number($chain, 'lastPrice'),
+            'underlyingPrice' => $this->safe_number($chain, 'underlyingPrice'),
+            'change' => $this->safe_number($chain, 'change24h'),
+            'percentage' => null,
+            'baseVolume' => $this->safe_number($chain, 'totalVolume'),
+            'quoteVolume' => null,
         );
     }
 
