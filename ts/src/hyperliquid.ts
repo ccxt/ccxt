@@ -2075,10 +2075,10 @@ export default class hyperliquid extends Exchange {
         [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
-        if (user !== undefined) {
+        if ((user !== undefined) && (user !== '')) {
             return [ user, params ];
         }
-        if (this.walletAddress !== undefined) {
+        if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
             return [ this.walletAddress, params ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');
