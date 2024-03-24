@@ -111,7 +111,7 @@ class Stream {
         }
     }
 
-    public function addWatchFunction($watchFn, $args) {
+    public function add_watch_function($watchFn, $args) {
         $this->active_watch_functions[] = array('method' => $watchFn, 'args' => $args);
     }
 

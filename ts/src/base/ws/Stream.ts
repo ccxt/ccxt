@@ -8,11 +8,9 @@ export class Stream implements BaseStream {
 
     public verbose: boolean;
 
-    public autoreconnect: boolean;
-
     public consumers: Dictionary<Consumer[]>;
 
-    public activeWatchFunctions: any[];
+    public activeWatchFunctions: any[] = [];
 
     constructor (maxMessagesPerTopic = 10000, verbose = false) {
         this.init (maxMessagesPerTopic, verbose);

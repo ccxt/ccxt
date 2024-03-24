@@ -16,17 +16,30 @@ public partial class Exchange
     {
         return (Message message) =>
         {
-            var payload = message.payload as dict;
-            if (payload.TryGetValue("symbol", out object symbolObj))
+            if (message != null && message.payload != null)
             {
-                var symbol = symbolObj as string;
-                if (!string.IsNullOrEmpty(symbol))
+                var payload = message.payload as dict;
+                if (payload != null && payload.TryGetValue("symbol", out object symbolObj))
                 {
-                    var newTopic = $"{topic}::{symbol}";
-                    this.streamProduce(newTopic, payload);
+                    var symbol = symbolObj as string;
+                    if (!string.IsNullOrEmpty(symbol))
+                    {
+                        var newTopic = $"{topic}::{symbol}";
+                        this.streamProduce(newTopic, payload);
+                    }
                 }
             }
             return Task.CompletedTask;
+        };
+    }
+    public ConsumerFunction streamReconnectOnError()
+    {
+        return async (Message message) =>
+        {
+            var error = message.error as dict;
+            if (error != null) {
+                await this.streamReconnect();
+            }
         };
     }
 }

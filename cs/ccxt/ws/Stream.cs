@@ -23,6 +23,7 @@ public class Stream : IBaseStream
         this.verbose = verbose ?? false;
         this.topics = new Dictionary<string, List<Message>>();
         this.consumers = new Dictionary<string, List<Consumer>>();
+        this.activeWatchFunctions = new List<Dictionary<string, object>>();
         if (verbose.HasValue && verbose.Value)
         {
             Console.WriteLine("Stream initialized");

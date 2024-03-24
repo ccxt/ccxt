@@ -1616,14 +1616,15 @@ export default class Exchange {
     }
 
     onClose (client, error) {
-        this.stream.produce ('errors', 'onClose', error);
         if (client.error) {
+            this.streamProduce ('errors', undefined, client.error);
             // connection closed due to an error, do nothing
         } else {
             // server disconnected a working connection
             if (this.clients[client.url]) {
                 delete this.clients[client.url];
             }
+            this.streamProduce ('errors', undefined, new NetworkError ('connection closed by remote server'));
         }
     }
 
@@ -1726,6 +1727,20 @@ export default class Exchange {
         return callback.bind (this);
     }
 
+    streamReconnectOnError () {
+        const callback = async (message:Message) => {
+            const error = message.payload;
+            if (error !== undefined && !(message.error instanceof ExchangeClosedByUser)) {
+                try{
+                    await this.streamReconnect ();
+                } catch (e) {
+                    console.log ('Failed to reconnect to stream: ', e);
+                }
+            }
+        }
+        return callback.bind(this);
+    }
+
     ethAbiEncode (types, args) {
         return this.base16ToBinary (ethers.encode (types, args).slice (2));
     }
@@ -1791,6 +1806,11 @@ export default class Exchange {
             stream.subscribe ('trades', this.streamToSymbol ('trades'), true);
             stream.subscribe ('myTrades', this.streamToSymbol ('myTrades'), true);
         }
+        const options = this.safeDict (this.options, 'streaming', {});
+        const reconnect = this.safeBool (options, 'autoreconnect', true);
+        if (reconnect) {
+            stream.subscribe ('errors', this.streamReconnectOnError (), true);
+        }
     }
 
     streamProduce (topic: Topic, payload: any = undefined, error: any = undefined) {
@@ -1800,7 +1820,7 @@ export default class Exchange {
 
     async streamReconnect () {
         if (this.verbose) {
-            this.log ('reconnecting active watch functions');
+            this.log ('Stream reconnecting active watch functions');
         }
         const stream = this.stream;
         const activeFunctions = stream.activeWatchFunctions;

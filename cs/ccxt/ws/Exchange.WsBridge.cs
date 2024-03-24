@@ -28,6 +28,7 @@ public partial class Exchange
         if (client.error)
         {
             // what do we do here?
+            this.streamProduce("erros", null, client.error);
         }
         else
         {
@@ -36,6 +37,7 @@ public partial class Exchange
             {
                 this.clients.Remove(client.url);
             }
+            this.streamProduce("closed", null, new NetworkError("connection closed by remote server"));
         }
     }
 
@@ -47,6 +49,7 @@ public partial class Exchange
         {
             this.clients.Remove(client.url);
         }
+        this.streamProduce("errors", null, error);
     }
 
     public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)

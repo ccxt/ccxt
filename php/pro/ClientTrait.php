@@ -6,6 +6,7 @@ use ccxt\async\Throttler;
 use ccxt\BaseError;
 use ccxt\ExchangeClosedByUser;
 use ccxt\ExchangeError;
+use ccxt\NetworkError;
 use Exception;
 use React\Async;
 use React\EventLoop\Loop;
@@ -73,14 +74,13 @@ trait ClientTrait {
         $promise = Async\async(function () use ($method, $args) {
             return Async\await($method(...$args));
         }) ();
-        $promise->done(function ($result) use ($future){
+        $promise->then(function ($result) use ($future){
             $future->resolve($result);
         }, function ($error) use ($future) {
             $future->reject($error);
         });
         return $future;
     }
-
     public function delay($timeout, $method, ... $args) {
         Loop::addTimer($timeout / 1000, function () use ($method, $args) {
             $this->spawn($method, ...$args);
@@ -217,14 +217,15 @@ trait ClientTrait {
     }
 
     public function on_close(Client $client, $message) {
-        $this->stream->produce('errors', 'on_close', $message);
         if ($client->error) {
+            $this->streamProduce('errors', null, $client->error);
             // connection closed by the user or due to an error, do nothing
         } else {
             // server disconnected a working connection
             if (array_key_exists($client->url, $this->clients)) {
                 unset($this->clients[$client->url]);
             }
+            $this->streamProduce('errors', null, new NetworkError('connection closed by remote server'));
         }
     }
 

@@ -7,7 +7,9 @@ function printMessage (message: Message) {
     if (message.error) {
         console.log ('Received error, should reconnect. Error: ', message.error);
     }
-    console.log ('Received message: ', ' from: ', message.metadata.topic, ' : ', message.payload.toString (), ' : index : ', message.metadata.index, ' : history.length ', message.metadata.history.length);
+    if (message.payload !== undefined) {
+        console.log ('Received message: ', ' from: ', message.metadata.topic, ' : ', message.payload.toString (), ' : index : ', message.metadata.index, ' : history.length ', message.metadata.history.length);
+    }
 }
 
 async function example () {
@@ -23,26 +25,29 @@ async function example () {
     exchange.subscribeRaw (printMessage);
 
     // public subscriptions
-    await exchange.subscribeOHLCV (symbol, '1m', printMessage);
-    await exchange.subscribeOrderBook (symbol, printMessage);
-    await exchange.subscribeTicker (symbol, printMessage);
-    await exchange.subscribeTickers (undefined, printMessage);
-    await exchange.subscribeTrades (symbol, printMessage);
+    try {
+        await exchange.subscribeOHLCV (symbol, '1m', printMessage);
+        await exchange.subscribeOrderBook (symbol, printMessage);
+        await exchange.subscribeTicker (symbol, printMessage);
+        await exchange.subscribeTickers (undefined, printMessage);
+        await exchange.subscribeTrades (symbol, printMessage);
+    } catch (e) {
+        console.log ('subscribe error:', e);
+    }
 
     // private subscriptions
     console.log ('---- start private subscriptions asynchrounously -----');
-    await exchange.subscribeBalance (printMessage);
-    await exchange.subscribeMyTrades (symbol, printMessage);
-    await exchange.subscribeOrders (symbol, printMessage);
-    await exchange.subscribePositionForSymbols (undefined, printMessage);
+    // await exchange.subscribeBalance (printMessage);
+    // await exchange.subscribeMyTrades (symbol, printMessage);
+    // await exchange.subscribeOrders (symbol, printMessage);
+    // await exchange.subscribePositionForSymbols (undefined, printMessage);
 
     await exchange.sleep (5000);
 
     console.log ('---- create Market order -----');
-    const res = await exchange.createOrder (symbol, 'market', 'buy', 0.01);
-    console.log (res);
-
-    await exchange.sleep (5000);
+    // const res = await exchange.createOrder (symbol, 'market', 'buy', 0.01);
+    // console.log (res);
+    // await exchange.close ();
 
     // subscribe to error?
     console.log ('---- closing exchange -----');
