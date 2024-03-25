@@ -1511,7 +1511,7 @@ export default class deribit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        const request = {
             'instrument_name': market['id'],
             'include_old': true,
         };
@@ -1521,7 +1521,11 @@ export default class deribit extends Exchange {
         if (limit !== undefined) {
             request['count'] = Math.min (limit, 1000); // default 10
         }
-        [ request, params ] = this.handleUntilOption ('end_timestamp', request, params);
+        const until = this.safeInteger2 (params, 'until', 'end_timestamp');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until' ]);
+            request['end_timestamp'] = until;
+        }
         let response = undefined;
         if ((since === undefined) && !('end_timestamp' in request)) {
             response = await this.publicGetGetLastTradesByInstrument (this.extend (request, params));
