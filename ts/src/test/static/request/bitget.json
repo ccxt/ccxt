@@ -1511,6 +1511,7 @@
                 "input": [
                     null,
                     {
+                        "defaultType": "swap",
                         "productType": "USDC-FUTURES"
                     }
                 ]
