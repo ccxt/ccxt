@@ -63,6 +63,19 @@
                     }
                 ],
                 "output": "{\"clientOid\":\"5d7a8110-1ea6-46e7-8d8f-1ba53267f20c\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\",\"hf\":true}"
+            },
+            {
+                "description": "limit order with weird price/amoutn",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/orders",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1323432432423434,
+                  65.423423423
+                ],
+                "output": "{\"clientOid\":\"fd193ee6-6822-4e6c-96c3-90e2490a678a\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.13\",\"price\":\"65.423\"}"
             }
         ],
         "createOrders": [
