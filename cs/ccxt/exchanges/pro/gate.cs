@@ -354,7 +354,7 @@ public partial class gate : ccxt.gate
         this.handleTickerAndBidAsk("ticker", client, message);
     }
 
-    public async virtual Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         /**
         * @method

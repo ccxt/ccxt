@@ -196,6 +196,7 @@ class bingx(Exchange, ImplicitAPI):
                             'post': {
                                 'trade/cancelReplace': 1,
                                 'positionSide/dual': 1,
+                                'trade/closePosition': 1,
                             },
                         },
                     },
@@ -2032,6 +2033,8 @@ class bingx(Exchange, ImplicitAPI):
             'SELL': 'sell',
             'SHORT': 'sell',
             'LONG': 'buy',
+            'ask': 'sell',
+            'bid': 'buy',
         }
         return self.safe_string(sides, side, side)
 
@@ -2324,7 +2327,7 @@ class bingx(Exchange, ImplicitAPI):
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'CANCELLED': 'canceled',
-            'FAILED': 'failed',
+            'FAILED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -3656,14 +3659,43 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: Unified CCXT market symbol
         :param str [side]: not used by bingx
         :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param str|None [params.positionId]: it is recommended to hasattr(self, fill) parameter when closing a position
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id'],
-        }
-        response = await self.swapV2PrivatePostTradeCloseAllPositions(self.extend(request, params))
+        positionId = self.safe_string(params, 'positionId')
+        params = self.omit(params, 'positionId')
+        response = None
+        if positionId is not None:
+            request: dict = {
+                'positionId': positionId,
+            }
+            response = await self.swapV1PrivatePostTradeClosePosition(self.extend(request, params))
+        else:
+            market = self.market(symbol)
+            request: dict = {
+                'symbol': market['id'],
+            }
+            response = await self.swapV2PrivatePostTradeCloseAllPositions(self.extend(request, params))
+        #
+        # swapV1PrivatePostTradeClosePosition
+        #
+        #    {
+        #        "code": 0,
+        #        "msg": "",
+        #        "timestamp": 1710992264190,
+        #        "data": {
+        #            "orderId": 1770656007907930112,
+        #            "positionId": "1751667128353910784",
+        #            "symbol": "LTC-USDT",
+        #            "side": "Ask",
+        #            "type": "MARKET",
+        #            "positionSide": "Long",
+        #            "origQty": "0.2"
+        #        }
+        #    }
+        #
+        # swapV2PrivatePostTradeCloseAllPositions
         #
         #    {
         #        "code": 0,

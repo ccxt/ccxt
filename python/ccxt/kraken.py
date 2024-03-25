@@ -468,7 +468,7 @@ class kraken(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for kraken
-        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs
+        :see: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -644,7 +644,7 @@ class kraken(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getAssetInfo
+        :see: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -767,7 +767,7 @@ class kraken(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
+        :see: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -864,7 +864,7 @@ class kraken(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+        :see: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -895,7 +895,7 @@ class kraken(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+        :see: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -937,7 +937,7 @@ class kraken(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
+        :see: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1212,7 +1212,7 @@ class kraken(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
+        :see: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -2264,7 +2264,7 @@ class kraken(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime
+        :see: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """

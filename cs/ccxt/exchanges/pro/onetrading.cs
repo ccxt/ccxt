@@ -1422,6 +1422,6 @@ public partial class onetrading : ccxt.onetrading
             };
             this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 }

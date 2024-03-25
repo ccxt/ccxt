@@ -1,10 +1,11 @@
 namespace ccxt;
 using System.Net.WebSockets;
 using ccxt.pro;
+using System.Collections.Concurrent;
 
 public partial class Exchange
 {
-    public Dictionary<string, WebSocketClient> clients = new Dictionary<string, WebSocketClient>();
+    public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
     public static ClientWebSocket ws = null;
 
     public ccxt.pro.OrderBook orderBook(object snapshot = null, object depth = null)
@@ -35,7 +36,8 @@ public partial class Exchange
             var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
             if (urlClient != null)
             {
-                this.clients.Remove(client.url);
+                // this.clients.Remove(client.url);
+                this.clients.TryRemove(client.url, out _);
             }
             this.streamProduce("closed", null, new NetworkError("connection closed by remote server"));
         }
@@ -47,7 +49,8 @@ public partial class Exchange
         var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
         if (urlClient != null && urlClient.error)
         {
-            this.clients.Remove(client.url);
+            // this.clients.Remove(client.url);
+            this.clients.TryRemove(client.url, out _);
         }
         this.streamProduce("errors", null, error);
     }
@@ -134,11 +137,12 @@ public partial class Exchange
         if (!this.clients.ContainsKey(url))
         {
             this.clients[url] = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose);
-            object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() {});
-            object wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() {});
-            var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() {});
+            object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() { });
+            object wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() { });
+            var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
-            if (wsHeaders != null) {
+            if (wsHeaders != null)
+            {
                 var headers = wsHeaders as Dictionary<string, object>;
                 foreach (var key in headers.Keys)
                 {

@@ -101,6 +101,8 @@ class okx extends Exchange {
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
+                'fetchOption' => true,
+                'fetchOptionChain' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
@@ -580,6 +582,7 @@ class okx extends Exchange {
                     '50027' => '\\ccxt\\PermissionDenied', // The account is restricted from trading
                     '50028' => '\\ccxt\\ExchangeError', // Unable to take the order, please reach out to support center for details
                     '50044' => '\\ccxt\\BadRequest', // Must select one broker type
+                    '50061' => '\\ccxt\\ExchangeError', // You've reached the maximum order rate limit for this account.
                     '50062' => '\\ccxt\\ExchangeError', // This feature is currently unavailable.
                     // API Class
                     '50100' => '\\ccxt\\ExchangeError', // API frozen, please contact customer service
@@ -768,6 +771,15 @@ class okx extends Exchange {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000' => '\\ccxt\\ExchangeError', // Margin transactions unavailable
                     '54001' => '\\ccxt\\ExchangeError', // Only Multi-currency margin account can be set to borrow coins automatically
+                    // Trading bot Error Code from 55100 to 55999
+                    '55100' => '\\ccxt\\InvalidOrder', // Take fmod(profit, should) be within the range of {parameter1}-{parameter2}
+                    '55101' => '\\ccxt\\InvalidOrder', // Stop fmod(loss, should) be within the range of {parameter1}-{parameter2}
+                    '55102' => '\\ccxt\\InvalidOrder', // Take fmod(profit, should) be greater than the current bot’s PnL%
+                    '55103' => '\\ccxt\\InvalidOrder', // Stop fmod(loss, should) be less than the current bot’s PnL%
+                    '55104' => '\\ccxt\\InvalidOrder', // Only futures grid supports take profit or stop loss based on profit percentage
+                    '55111' => '\\ccxt\\InvalidOrder', // This signal name is in use, please try a new name
+                    '55112' => '\\ccxt\\InvalidOrder', // This signal does not exist
+                    '55113' => '\\ccxt\\InvalidOrder', // Create signal strategies with leverage greater than the maximum leverage of the instruments
                     // FUNDING error codes 58000-58999
                     '58000' => '\\ccxt\\ExchangeError', // Account type {0} does not supported when getting the sub-account balance
                     '58001' => '\\ccxt\\AuthenticationError', // Incorrect trade password
@@ -1188,7 +1200,7 @@ class okx extends Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
@@ -1865,17 +1877,28 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers_by_type($type, ?array $symbols = null, $params = array ()) {
-        return Async\async(function () use ($type, $symbols, $params) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-$tickers
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
             Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $market = $this->get_market_from_symbols($symbols);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $request = array(
-                'instType' => $this->convert_to_instrument_type($type),
+                'instType' => $this->convert_to_instrument_type($marketType),
             );
-            if ($type === 'option') {
+            if ($marketType === 'option') {
                 $defaultUnderlying = $this->safe_value($this->options, 'defaultUnderlying', 'BTC-USD');
                 $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
                 if ($currencyId === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchTickersByType() requires an underlying uly or marketId parameter for options markets');
+                    throw new ArgumentsRequired($this->id . ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
                 } else {
                     $request['uly'] = $currencyId;
                 }
@@ -1907,29 +1930,8 @@ class okx extends Exchange {
             //         )
             //     }
             //
-            $tickers = $this->safe_value($response, 'data', array());
+            $tickers = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($tickers, $symbols);
-        }) ();
-    }
-
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-tickers
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $first = $this->safe_string($symbols, 0);
-            $market = null;
-            if ($first !== null) {
-                $market = $this->market($first);
-            }
-            list($type, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            return Async\await($this->fetch_tickers_by_type($type, $symbols, $query));
         }) ();
     }
 
@@ -4718,21 +4720,7 @@ class okx extends Exchange {
                 }
             }
             $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
-            if (is_array($params) && array_key_exists('password', $params)) {
-                $request['pwd'] = $params['password'];
-            } elseif (is_array($params) && array_key_exists('pwd', $params)) {
-                $request['pwd'] = $params['pwd'];
-            } else {
-                $options = $this->safe_value($this->options, 'withdraw', array());
-                $password = $this->safe_string_2($options, 'password', 'pwd');
-                if ($password !== null) {
-                    $request['pwd'] = $password;
-                }
-            }
-            $query = $this->omit($params, array( 'fee', 'password', 'pwd' ));
-            if (!(is_array($request) && array_key_exists('pwd', $request))) {
-                throw new ExchangeError($this->id . ' withdraw() requires a $password parameter or a pwd parameter, it must be the funding $password, not the API passphrase');
-            }
+            $query = $this->omit($params, array( 'fee' ));
             $response = Async\await($this->privatePostAssetWithdrawal (array_merge($request, $query)));
             //
             //     {
@@ -5016,6 +5004,14 @@ class okx extends Exchange {
             '3' => 'pending',
             '4' => 'pending',
             '5' => 'pending',
+            '6' => 'pending',
+            '7' => 'pending',
+            '8' => 'pending',
+            '9' => 'pending',
+            '10' => 'pending',
+            '12' => 'pending',
+            '15' => 'pending',
+            '16' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -7439,6 +7435,146 @@ class okx extends Exchange {
             $order = $this->safe_value($data, 0);
             return $this->parse_order($order, $market);
         }) ();
+    }
+
+    public function fetch_option(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches option data that is commonly found in an option $chain
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-ticker
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-$chain-structure option $chain structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instId' => $market['id'],
+            );
+            $response = Async\await($this->publicGetMarketTicker (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "",
+            //         "data" => array(
+            //             {
+            //                 "instType" => "OPTION",
+            //                 "instId" => "BTC-USD-241227-60000-P",
+            //                 "last" => "",
+            //                 "lastSz" => "0",
+            //                 "askPx" => "",
+            //                 "askSz" => "0",
+            //                 "bidPx" => "",
+            //                 "bidSz" => "0",
+            //                 "open24h" => "",
+            //                 "high24h" => "",
+            //                 "low24h" => "",
+            //                 "volCcy24h" => "0",
+            //                 "vol24h" => "0",
+            //                 "ts" => "1711176035035",
+            //                 "sodUtc0" => "",
+            //                 "sodUtc8" => ""
+            //             }
+            //         )
+            //     }
+            //
+            $result = $this->safe_list($response, 'data', array());
+            $chain = $this->safe_dict($result, 0, array());
+            return $this->parse_option($chain, null, $market);
+        }) ();
+    }
+
+    public function fetch_option_chain(string $code, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetches data for an underlying asset that is commonly found in an option chain
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+             * @param {string} $currency base $currency to fetch an option chain for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structures~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'uly' => $currency['code'] . '-USD',
+                'instType' => 'OPTION',
+            );
+            $response = Async\await($this->publicGetMarketTickers (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "",
+            //         "data" => array(
+            //             array(
+            //                 "instType" => "OPTION",
+            //                 "instId" => "BTC-USD-240323-52000-C",
+            //                 "last" => "",
+            //                 "lastSz" => "0",
+            //                 "askPx" => "",
+            //                 "askSz" => "0",
+            //                 "bidPx" => "",
+            //                 "bidSz" => "0",
+            //                 "open24h" => "",
+            //                 "high24h" => "",
+            //                 "low24h" => "",
+            //                 "volCcy24h" => "0",
+            //                 "vol24h" => "0",
+            //                 "ts" => "1711176207008",
+            //                 "sodUtc0" => "",
+            //                 "sodUtc8" => ""
+            //             ),
+            //         )
+            //     }
+            //
+            $result = $this->safe_list($response, 'data', array());
+            return $this->parse_option_chain($result, null, 'instId');
+        }) ();
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        //
+        //     {
+        //         "instType" => "OPTION",
+        //         "instId" => "BTC-USD-241227-60000-P",
+        //         "last" => "",
+        //         "lastSz" => "0",
+        //         "askPx" => "",
+        //         "askSz" => "0",
+        //         "bidPx" => "",
+        //         "bidSz" => "0",
+        //         "open24h" => "",
+        //         "high24h" => "",
+        //         "low24h" => "",
+        //         "volCcy24h" => "0",
+        //         "vol24h" => "0",
+        //         "ts" => "1711176035035",
+        //         "sodUtc0" => "",
+        //         "sodUtc8" => ""
+        //     }
+        //
+        $marketId = $this->safe_string($chain, 'instId');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($chain, 'ts');
+        return array(
+            'info' => $chain,
+            'currency' => null,
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'impliedVolatility' => null,
+            'openInterest' => null,
+            'bidPrice' => $this->safe_number($chain, 'bidPx'),
+            'askPrice' => $this->safe_number($chain, 'askPx'),
+            'midPrice' => null,
+            'markPrice' => null,
+            'lastPrice' => $this->safe_number($chain, 'last'),
+            'underlyingPrice' => null,
+            'change' => null,
+            'percentage' => null,
+            'baseVolume' => $this->safe_number($chain, 'volCcy24h'),
+            'quoteVolume' => null,
+        );
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

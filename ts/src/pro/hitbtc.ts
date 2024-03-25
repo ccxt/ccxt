@@ -118,7 +118,7 @@ export default class hitbtc extends hitbtcRest {
             //    }
             //
         }
-        return future;
+        return await future;
     }
 
     async subscribePublic (name: string, messageHashPrefix: string, symbols: Strings = undefined, params = {}) {

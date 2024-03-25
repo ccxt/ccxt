@@ -911,6 +911,6 @@ class ascendex(ccxt.async_support.ascendex):
                 'key': self.apiKey,
                 'sig': signature,
             }
-            future = self.watch(url, messageHash, self.extend(request, params))
+            future = await self.watch(url, messageHash, self.extend(request, params), messageHash)
             client.subscriptions[messageHash] = future
         return future

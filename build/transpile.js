@@ -348,6 +348,8 @@ class Transpiler {
             [ /\.intToBase16\s/g, '.int_to_base16'],
             [ /\.handleParamString\s/g, '.handle_param_string'],
             [ /\.fetchIsolatedBorrowRates\s/g, '.fetch_isolated_borrow_rates'],
+            [ /\.extendExchangeOptions\s/g, '.extend_exchange_options'],
+            [ /\.createSafeDictionary\s/g, '.create_safe_dictionary'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -605,7 +607,7 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number|Dict|any);\n/mg, '' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any);\n/mg, '' ],
             [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -1008,6 +1010,8 @@ class Transpiler {
             'MarketInterface': /-> MarketInterface:/,
             'MarketType': /: MarketType/,
             'Num': /: Num =/,
+            'Option': /-> Option:/,
+            'OptionChain': /-> OptionChain:/,
             'Order': /-> (?:List\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
@@ -1016,6 +1020,7 @@ class Transpiler {
             'Position': /-> (?:List\[)?Position/,
             'Str': /: Str =/,
             'Strings': /: Strings =/,
+            'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'Trade': /-> (?:List\[)?Trade/,
@@ -1660,6 +1665,7 @@ class Transpiler {
                 'any': 'mixed',
                 'string': 'string',
                 'MarketType': 'string',
+                'SubType': 'string',
                 'Str': '?string',
                 'Num': '?float',
                 'Strings': '?array',

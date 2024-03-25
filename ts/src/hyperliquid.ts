@@ -46,7 +46,7 @@ export default class hyperliquid extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
-                'createReduceOnlyOrder': false,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -570,7 +570,7 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         return [
-            this.safeInteger (ohlcv, 'T'),
+            this.safeInteger (ohlcv, 't'),
             this.safeNumber (ohlcv, 'o'),
             this.safeNumber (ohlcv, 'h'),
             this.safeNumber (ohlcv, 'l'),
@@ -787,12 +787,15 @@ export default class hyperliquid extends Exchange {
          * @param {bool} [params.postOnly] true or false whether the order is post-only
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @param {string} [params.clientOrderId] client order id, optional 128 bit hex string
+         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @param {string} [params.slippage] the slippage for market order
+         * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        params = this.omit (params, 'vaultAddress');
         symbol = market['symbol'];
         const order = {
             'symbol': symbol as string,
@@ -802,7 +805,11 @@ export default class hyperliquid extends Exchange {
             'price': price,
             'params': params,
         } as OrderRequest;
-        const response = await this.createOrders ([ order ], params);
+        const globalParams = {};
+        if (vaultAddress !== undefined) {
+            globalParams['vaultAddress'] = vaultAddress;
+        }
+        const response = await this.createOrders ([ order ], globalParams);
         const first = this.safeDict (response, 0);
         return first as Order;
     }
@@ -839,7 +846,7 @@ export default class hyperliquid extends Exchange {
                 }
             }
         }
-        params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ]);
         const nonce = this.milliseconds ();
         const orderReq = [];
         for (let i = 0; i < orders.length; i++) {
@@ -854,7 +861,6 @@ export default class hyperliquid extends Exchange {
             const amount = this.safeString (rawOrder, 'amount');
             const price = this.safeString (rawOrder, 'price');
             let orderParams = this.safeDict (rawOrder, 'params', {});
-            orderParams = this.extend (params, orderParams);
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
             const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
             let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
@@ -899,6 +905,7 @@ export default class hyperliquid extends Exchange {
                     'tif': timeInForce,
                 };
             }
+            orderParams = this.omit (orderParams, [ 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ]);
             const orderObj = {
                 'a': this.parseToInt (market['baseId']),
                 'b': isBuy,
@@ -911,9 +918,9 @@ export default class hyperliquid extends Exchange {
             if (clientOrderId !== undefined) {
                 orderObj['c'] = clientOrderId;
             }
-            orderReq.push (orderObj);
+            orderReq.push (this.extend (orderObj, orderParams));
         }
-        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
         const orderAction = {
             'type': 'order',
             'orders': orderReq,
@@ -930,6 +937,10 @@ export default class hyperliquid extends Exchange {
             'signature': signature,
             // 'vaultAddress': vaultAddress,
         };
+        if (vaultAddress !== undefined) {
+            params = this.omit (params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
         const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
@@ -964,7 +975,7 @@ export default class hyperliquid extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.clientOrderId] client order id (default undefined)
+         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.cancelOrders ([ id ], symbol, params);
@@ -980,7 +991,7 @@ export default class hyperliquid extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} [symbol] unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string|string[]} [params.clientOrderId] client order ids (default undefined)
+         * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials ();
@@ -1023,10 +1034,14 @@ export default class hyperliquid extends Exchange {
             }
         }
         cancelAction['cancels'] = cancelReq;
-        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
+        if (vaultAddress !== undefined) {
+            params = this.omit (params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
         const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
@@ -1063,6 +1078,7 @@ export default class hyperliquid extends Exchange {
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials ();
@@ -1141,7 +1157,7 @@ export default class hyperliquid extends Exchange {
             'type': 'batchModify',
             'modifies': [ modifyReq ],
         };
-        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
         const signature = this.signL1Action (modifyAction, nonce, vaultAddress);
         const request = {
             'action': modifyAction,
@@ -1149,6 +1165,10 @@ export default class hyperliquid extends Exchange {
             'signature': signature,
             // 'vaultAddress': vaultAddress,
         };
+        if (vaultAddress !== undefined) {
+            params = this.omit (params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
         const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
@@ -1756,7 +1776,7 @@ export default class hyperliquid extends Exchange {
             'isolated': isIsolated,
             'hedged': undefined,
             'side': side,
-            'contracts': this.parseNumber (quantity),
+            'contracts': this.safeNumber (entry, 'szi'),
             'contractSize': undefined,
             'entryPrice': this.safeNumber (entry, 'entryPx'),
             'markPrice': undefined,
@@ -1804,7 +1824,13 @@ export default class hyperliquid extends Exchange {
             'isCross': isCross,
             'leverage': leverage,
         };
-        const vaultAddress = this.safeString (params, 'vaultAddress');
+        let vaultAddress = this.safeString (params, 'vaultAddress');
+        if (vaultAddress !== undefined) {
+            params = this.omit (params, 'vaultAddress');
+            if (vaultAddress.startsWith ('0x')) {
+                vaultAddress = vaultAddress.replace ('0x', '');
+            }
+        }
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -1812,6 +1838,9 @@ export default class hyperliquid extends Exchange {
             'signature': signature,
             // 'vaultAddress': vaultAddress,
         };
+        if (vaultAddress !== undefined) {
+            request['vaultAddress'] = vaultAddress;
+        }
         const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
@@ -1851,7 +1880,7 @@ export default class hyperliquid extends Exchange {
             'isCross': isCross,
             'leverage': leverage,
         };
-        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -1859,6 +1888,10 @@ export default class hyperliquid extends Exchange {
             'signature': signature,
             // 'vaultAddress': vaultAddress,
         };
+        if (vaultAddress !== undefined) {
+            params = this.omit (params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
         const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
@@ -1914,7 +1947,7 @@ export default class hyperliquid extends Exchange {
             'isBuy': true,
             'ntli': sz,
         };
-        const vaultAddress = this.safeString (params, 'vaultAddress');
+        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -1922,6 +1955,10 @@ export default class hyperliquid extends Exchange {
             'signature': signature,
             // 'vaultAddress': vaultAddress,
         };
+        if (vaultAddress !== undefined) {
+            params = this.omit (params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
         const response = await this.privatePostExchange (this.extend (request, params));
         //
         //     {
@@ -2023,15 +2060,25 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
+    formatVaultAddress (address: Str = undefined) {
+        if (address === undefined) {
+            return undefined;
+        }
+        if (address.startsWith ('0x')) {
+            return address.replace ('0x', '');
+        }
+        return address;
+    }
+
     handlePublicAddress (methodName: string, params: Dict) {
         let userAux = undefined;
         [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
-        if (user !== undefined) {
+        if ((user !== undefined) && (user !== '')) {
             return [ user, params ];
         }
-        if (this.walletAddress !== undefined) {
+        if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
             return [ this.walletAddress, params ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');

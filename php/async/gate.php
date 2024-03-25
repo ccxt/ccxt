@@ -58,6 +58,7 @@ class gate extends Exchange {
                         'rebate' => 'https://api.gateio.ws/api/v4',
                         'earn' => 'https://api.gateio.ws/api/v4',
                         'account' => 'https://api.gateio.ws/api/v4',
+                        'loan' => 'https://api.gateio.ws/api/v4',
                     ),
                 ),
                 'test' => array(
@@ -140,6 +141,8 @@ class gate extends Exchange {
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => true,
+                'fetchOptionChain' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => true,
@@ -318,6 +321,7 @@ class gate extends Exchange {
                             'loan_records' => 20 / 15,
                             'interest_records' => 20 / 15,
                             'estimate_rate' => 20 / 15,
+                            'currency_discount_tiers' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
@@ -951,7 +955,7 @@ class gate extends Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
@@ -4229,7 +4233,15 @@ class gate extends Exchange {
                 'account' => $account,
             );
             if ($amount !== null) {
-                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                if ($market['spot']) {
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                } else {
+                    if ($side === 'sell') {
+                        $request['size'] = Precise::string_neg($this->amount_to_precision($symbol, $amount));
+                    } else {
+                        $request['size'] = $this->amount_to_precision($symbol, $amount);
+                    }
+                }
             }
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
@@ -5014,8 +5026,8 @@ class gate extends Exchange {
              */
             Async\await($this->load_markets());
             $market = ($symbol === null) ? null : $this->market($symbol);
-            $stop = $this->safe_value($params, 'stop');
-            $params = $this->omit($params, 'stop');
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
             list($request, $requestParams) = ($type === 'spot') ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
             $response = null;
@@ -5334,7 +5346,7 @@ class gate extends Exchange {
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'realizedPnl' => $this->safe_number($position, 'realised_pnl'),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
-            'contractSize' => $this->safe_value($market, 'contractSize'),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
             // 'realisedPnl' => $position['realised_pnl'],
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
@@ -7178,6 +7190,193 @@ class gate extends Exchange {
             'marginMode' => null,
             'longLeverage' => $leverageValue,
             'shortLeverage' => $leverageValue,
+        );
+    }
+
+    public function fetch_option(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches option data that is commonly found in an option chain
+             * @see https://www.gate.io/docs/developers/apiv4/en/#query-specified-contract-detail
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'contract' => $market['id'],
+            );
+            $response = Async\await($this->publicOptionsGetContractsContract (array_merge($request, $params)));
+            //
+            //     {
+            //         "is_active" => true,
+            //         "mark_price_round" => "0.01",
+            //         "settle_fee_rate" => "0.00015",
+            //         "bid1_size" => 30,
+            //         "taker_fee_rate" => "0.0003",
+            //         "price_limit_fee_rate" => "0.1",
+            //         "order_price_round" => "0.1",
+            //         "tag" => "month",
+            //         "ref_rebate_rate" => "0",
+            //         "name" => "ETH_USDT-20240628-4500-C",
+            //         "strike_price" => "4500",
+            //         "ask1_price" => "280.5",
+            //         "ref_discount_rate" => "0",
+            //         "order_price_deviate" => "0.2",
+            //         "ask1_size" => -19,
+            //         "mark_price_down" => "155.45",
+            //         "orderbook_id" => 11724695,
+            //         "is_call" => true,
+            //         "last_price" => "188.7",
+            //         "mark_price" => "274.26",
+            //         "underlying" => "ETH_USDT",
+            //         "create_time" => 1688024882,
+            //         "settle_limit_fee_rate" => "0.1",
+            //         "orders_limit" => 10,
+            //         "mark_price_up" => "403.83",
+            //         "position_size" => 80,
+            //         "order_size_max" => 10000,
+            //         "position_limit" => 100000,
+            //         "multiplier" => "0.01",
+            //         "order_size_min" => 1,
+            //         "trade_size" => 229,
+            //         "underlying_price" => "3326.6",
+            //         "maker_fee_rate" => "0.0003",
+            //         "expiration_time" => 1719561600,
+            //         "trade_id" => 15,
+            //         "bid1_price" => "269.3"
+            //     }
+            //
+            return $this->parse_option($response, null, $market);
+        }) ();
+    }
+
+    public function fetch_option_chain(string $code, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetches data for an underlying asset that is commonly found in an option chain
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
+             * @param {string} $currency base $currency to fetch an option chain for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->underlying] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+             * @param {int} [$params->expiration] unix timestamp of the expiration time
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structures~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'underlying' => $currency['code'] . '_USDT',
+            );
+            $response = Async\await($this->publicOptionsGetContracts (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "is_active" => true,
+            //             "mark_price_round" => "0.1",
+            //             "settle_fee_rate" => "0.00015",
+            //             "bid1_size" => 434,
+            //             "taker_fee_rate" => "0.0003",
+            //             "price_limit_fee_rate" => "0.1",
+            //             "order_price_round" => "1",
+            //             "tag" => "day",
+            //             "ref_rebate_rate" => "0",
+            //             "name" => "BTC_USDT-20240324-63500-P",
+            //             "strike_price" => "63500",
+            //             "ask1_price" => "387",
+            //             "ref_discount_rate" => "0",
+            //             "order_price_deviate" => "0.15",
+            //             "ask1_size" => -454,
+            //             "mark_price_down" => "124.3",
+            //             "orderbook_id" => 29600,
+            //             "is_call" => false,
+            //             "last_price" => "0",
+            //             "mark_price" => "366.6",
+            //             "underlying" => "BTC_USDT",
+            //             "create_time" => 1711118829,
+            //             "settle_limit_fee_rate" => "0.1",
+            //             "orders_limit" => 10,
+            //             "mark_price_up" => "630",
+            //             "position_size" => 0,
+            //             "order_size_max" => 10000,
+            //             "position_limit" => 10000,
+            //             "multiplier" => "0.01",
+            //             "order_size_min" => 1,
+            //             "trade_size" => 0,
+            //             "underlying_price" => "64084.65",
+            //             "maker_fee_rate" => "0.0003",
+            //             "expiration_time" => 1711267200,
+            //             "trade_id" => 0,
+            //             "bid1_price" => "307"
+            //         ),
+            //     )
+            //
+            return $this->parse_option_chain($response, null, 'name');
+        }) ();
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        //
+        //     {
+        //         "is_active" => true,
+        //         "mark_price_round" => "0.1",
+        //         "settle_fee_rate" => "0.00015",
+        //         "bid1_size" => 434,
+        //         "taker_fee_rate" => "0.0003",
+        //         "price_limit_fee_rate" => "0.1",
+        //         "order_price_round" => "1",
+        //         "tag" => "day",
+        //         "ref_rebate_rate" => "0",
+        //         "name" => "BTC_USDT-20240324-63500-P",
+        //         "strike_price" => "63500",
+        //         "ask1_price" => "387",
+        //         "ref_discount_rate" => "0",
+        //         "order_price_deviate" => "0.15",
+        //         "ask1_size" => -454,
+        //         "mark_price_down" => "124.3",
+        //         "orderbook_id" => 29600,
+        //         "is_call" => false,
+        //         "last_price" => "0",
+        //         "mark_price" => "366.6",
+        //         "underlying" => "BTC_USDT",
+        //         "create_time" => 1711118829,
+        //         "settle_limit_fee_rate" => "0.1",
+        //         "orders_limit" => 10,
+        //         "mark_price_up" => "630",
+        //         "position_size" => 0,
+        //         "order_size_max" => 10000,
+        //         "position_limit" => 10000,
+        //         "multiplier" => "0.01",
+        //         "order_size_min" => 1,
+        //         "trade_size" => 0,
+        //         "underlying_price" => "64084.65",
+        //         "maker_fee_rate" => "0.0003",
+        //         "expiration_time" => 1711267200,
+        //         "trade_id" => 0,
+        //         "bid1_price" => "307"
+        //     }
+        //
+        $marketId = $this->safe_string($chain, 'name');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_timestamp($chain, 'create_time');
+        return array(
+            'info' => $chain,
+            'currency' => null,
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'impliedVolatility' => null,
+            'openInterest' => null,
+            'bidPrice' => $this->safe_number($chain, 'bid1_price'),
+            'askPrice' => $this->safe_number($chain, 'ask1_price'),
+            'midPrice' => null,
+            'markPrice' => $this->safe_number($chain, 'mark_price'),
+            'lastPrice' => $this->safe_number($chain, 'last_price'),
+            'underlyingPrice' => $this->safe_number($chain, 'underlying_price'),
+            'change' => null,
+            'percentage' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
         );
     }
 

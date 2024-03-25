@@ -89,7 +89,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 'api_key': this.apiKey,
             };
             const message = this.extend (request, params);
-            future = await this.watch (url, messageHash, message);
+            future = await this.watch (url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

@@ -1016,8 +1016,12 @@ class coinex extends coinex$1 {
         //
         const messageHashSpot = 'authenticated:spot';
         const messageHashSwap = 'authenticated:swap';
-        client.resolve(message, messageHashSpot);
-        client.resolve(message, messageHashSwap);
+        // client.resolve (message, messageHashSpot);
+        // client.resolve (message, messageHashSwap);
+        const spotFuture = this.safeValue(client.futures, messageHashSpot);
+        spotFuture.resolve(true);
+        const swapFutures = this.safeValue(client.futures, messageHashSwap);
+        swapFutures.resolve(true);
         return message;
     }
     handleSubscriptionStatus(client, message) {
@@ -1042,16 +1046,20 @@ class coinex extends coinex$1 {
         const url = this.urls['api']['ws'][type];
         const client = this.client(url);
         const time = this.milliseconds();
+        const isSpot = (type === 'spot');
+        const spotMessageHash = 'authenticated:spot';
+        const swapMessageHash = 'authenticated:swap';
+        const messageHash = isSpot ? spotMessageHash : swapMessageHash;
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (type === 'spot') {
-            const messageHash = 'authenticated:spot';
-            let future = this.safeValue(client.subscriptions, messageHash);
-            if (future !== undefined) {
+            if (authenticated !== undefined) {
                 return await future;
             }
             const requestId = this.requestId();
             const subscribe = {
                 'id': requestId,
-                'future': 'authenticated:spot',
+                'future': spotMessageHash,
             };
             const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString(time) + '&secret_key=' + this.secret;
             const hash = this.hash(this.encode(signData), md5.md5);
@@ -1064,20 +1072,18 @@ class coinex extends coinex$1 {
                 ],
                 'id': requestId,
             };
-            future = this.watch(url, messageHash, request, requestId, subscribe);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, request, requestId, subscribe);
+            client.subscriptions[messageHash] = true;
             return await future;
         }
         else {
-            const messageHash = 'authenticated:swap';
-            let future = this.safeValue(client.subscriptions, messageHash);
-            if (future !== undefined) {
+            if (authenticated !== undefined) {
                 return await future;
             }
             const requestId = this.requestId();
             const subscribe = {
                 'id': requestId,
-                'future': 'authenticated:swap',
+                'future': swapMessageHash,
             };
             const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString(time) + '&secret_key=' + this.secret;
             const hash = this.hash(this.encode(signData), sha256.sha256, 'hex');
@@ -1090,8 +1096,8 @@ class coinex extends coinex$1 {
                 ],
                 'id': requestId,
             };
-            future = this.watch(url, messageHash, request, requestId, subscribe);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, request, requestId, subscribe);
+            client.subscriptions[messageHash] = true;
             return await future;
         }
     }

@@ -238,6 +238,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function private_get_margin_repay($params = array()) {
         return $this->request('margin/repay', 'private', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function private_get_margin_interest($params = array()) {
+        return $this->request('margin/interest', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_get_project_list($params = array()) {
         return $this->request('project/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -873,6 +876,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     }
     public function privateGetMarginRepay($params = array()) {
         return $this->request('margin/repay', 'private', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function privateGetMarginInterest($params = array()) {
+        return $this->request('margin/interest', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetProjectList($params = array()) {
         return $this->request('project/list', 'private', 'GET', $params, null, null, array("cost" => 10));

@@ -820,6 +820,17 @@ public partial class Exchange
         // return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
 
+    public void extendExchangeOptions(object options2)
+    {
+        var options = (dict)options2;
+        var extended = this.extend(this.options, options);
+        this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(extended);
+    }
+
+    public IDictionary<string, object> createSafeDictionary()
+    {
+        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+    }
     public class DynamicInvoker
     {
         public static object InvokeMethod(object action, object[] parameters)

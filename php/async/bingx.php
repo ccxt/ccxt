@@ -188,6 +188,7 @@ class bingx extends Exchange {
                             'post' => array(
                                 'trade/cancelReplace' => 1,
                                 'positionSide/dual' => 1,
+                                'trade/closePosition' => 1,
                             ),
                         ),
                     ),
@@ -2173,6 +2174,8 @@ class bingx extends Exchange {
             'SELL' => 'sell',
             'SHORT' => 'sell',
             'LONG' => 'buy',
+            'ask' => 'sell',
+            'bid' => 'buy',
         );
         return $this->safe_string($sides, $side, $side);
     }
@@ -2479,7 +2482,7 @@ class bingx extends Exchange {
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
             'CANCELLED' => 'canceled',
-            'FAILED' => 'failed',
+            'FAILED' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -3936,14 +3939,44 @@ class bingx extends Exchange {
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} [$side] not used by bingx
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             * @param {string|null} [$params->positionId] it is recommended to property_exists($this, fill) parameter when closing a position
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions (array_merge($request, $params)));
+            $positionId = $this->safe_string($params, 'positionId');
+            $params = $this->omit($params, 'positionId');
+            $response = null;
+            if ($positionId !== null) {
+                $request = array(
+                    'positionId' => $positionId,
+                );
+                $response = Async\await($this->swapV1PrivatePostTradeClosePosition (array_merge($request, $params)));
+            } else {
+                $market = $this->market($symbol);
+                $request = array(
+                    'symbol' => $market['id'],
+                );
+                $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions (array_merge($request, $params)));
+            }
+            //
+            // swapV1PrivatePostTradeClosePosition
+            //
+            //    {
+            //        "code" => 0,
+            //        "msg" => "",
+            //        "timestamp" => 1710992264190,
+            //        "data" => {
+            //            "orderId" => 1770656007907930112,
+            //            "positionId" => "1751667128353910784",
+            //            "symbol" => "LTC-USDT",
+            //            "side" => "Ask",
+            //            "type" => "MARKET",
+            //            "positionSide" => "Long",
+            //            "origQty" => "0.2"
+            //        }
+            //    }
+            //
+            // swapV2PrivatePostTradeCloseAllPositions
             //
             //    {
             //        "code" => 0,

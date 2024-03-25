@@ -106,7 +106,7 @@ export default class poloniex extends poloniexRest {
                 },
             };
             const message = this.extend(request, params);
-            future = await this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             //
             //    {
             //        "data": {

@@ -880,7 +880,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             const message = this.extend (request, params);
             this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     handleAuthenticationMessage (client: Client, message) {
