@@ -591,6 +591,7 @@ export default class Exchange {
                 'fetchOrderWs': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionHistory': undefined,
                 'fetchPositionMode': undefined,
                 'fetchPositions': undefined,
                 'fetchPositionsForSymbol': undefined,
@@ -6349,6 +6350,20 @@ export default class Exchange {
         const day = date.slice (5, 7);
         const reconstructedDate = day + month + year;
         return reconstructedDate;
+    }
+
+    async fetchPositionHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        throw new NotSupported (this.id + ' fetchPositionHistory () is not supported yet');
     }
 }
 
