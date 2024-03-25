@@ -232,6 +232,7 @@
         }
     },
     "bithumb": {
+        "skipWs": "timeouts",
         "skipMethods": {
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
