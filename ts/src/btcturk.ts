@@ -146,7 +146,7 @@ export default class btcturk extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name btcturk#fetchMarkets

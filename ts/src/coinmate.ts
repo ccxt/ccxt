@@ -225,7 +225,7 @@ export default class coinmate extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name coinmate#fetchMarkets

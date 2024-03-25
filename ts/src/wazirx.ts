@@ -185,7 +185,7 @@ export default class wazirx extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name wazirx#fetchMarkets

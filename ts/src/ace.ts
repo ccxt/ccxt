@@ -170,7 +170,7 @@ export default class ace extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name ace#fetchMarkets

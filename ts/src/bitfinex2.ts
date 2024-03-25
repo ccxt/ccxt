@@ -499,7 +499,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitfinex2#fetchMarkets
