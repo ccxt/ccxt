@@ -365,6 +365,9 @@ export default class bithumb extends bithumbRest {
         //        "resmsg" : "Invalid Filter Syntax"
         //    }
         //
+        if (!('status' in message)) {
+            return true;
+        }
         const errorCode = this.safeString (message, 'status');
         try {
             if (errorCode !== '0000') {
@@ -375,7 +378,7 @@ export default class bithumb extends bithumbRest {
         } catch (e) {
             client.reject (e);
         }
-        return false;
+        return true;
     }
 
     handleMessage (client: Client, message) {
