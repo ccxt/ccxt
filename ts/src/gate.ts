@@ -955,7 +955,7 @@ export default class gate extends Exchange {
         return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name gate#fetchMarkets

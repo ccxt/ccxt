@@ -1427,7 +1427,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bybit
          * @see https://bybit-exchange.github.io/docs/v5/market/instrument

@@ -1330,7 +1330,7 @@ export default class okx extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name okx#fetchMarkets

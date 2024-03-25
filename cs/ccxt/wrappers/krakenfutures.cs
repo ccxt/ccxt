@@ -21,10 +21,10 @@ public partial class krakenfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// Fetches a list of open orders in a market

@@ -237,7 +237,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitteam
          * @see https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs

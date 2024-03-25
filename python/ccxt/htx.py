@@ -1600,7 +1600,7 @@ class htx(Exchange, ImplicitAPI):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for huobi
         :param dict [params]: extra parameters specific to the exchange API endpoint

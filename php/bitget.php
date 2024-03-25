@@ -1500,7 +1500,7 @@ class bitget extends Exchange {
         return $this->safe_integer($data, 'serverTime');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bitget
          * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols

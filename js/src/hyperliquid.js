@@ -1785,7 +1785,7 @@ export default class hyperliquid extends Exchange {
             throw new ArgumentsRequired(this.id + ' setMarginMode() requires a leverage parameter');
         }
         const asset = this.parseToInt(market['baseId']);
-        const isCross = (marginMode === 'isolated');
+        const isCross = (marginMode === 'cross');
         const nonce = this.milliseconds();
         params = this.omit(params, ['leverage']);
         const updateAction = {
@@ -1801,9 +1801,10 @@ export default class hyperliquid extends Exchange {
                 vaultAddress = vaultAddress.replace('0x', '');
             }
         }
-        const signature = this.signL1Action(updateAction, nonce, vaultAddress);
+        const extendedAction = this.extend(updateAction, params);
+        const signature = this.signL1Action(extendedAction, nonce, vaultAddress);
         const request = {
-            'action': updateAction,
+            'action': extendedAction,
             'nonce': nonce,
             'signature': signature,
             // 'vaultAddress': vaultAddress,
@@ -1811,7 +1812,7 @@ export default class hyperliquid extends Exchange {
         if (vaultAddress !== undefined) {
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(this.extend(request, params));
+        const response = await this.privatePostExchange(request);
         //
         //     {
         //         'response': {

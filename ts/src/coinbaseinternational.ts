@@ -966,7 +966,7 @@ export default class coinbaseinternational extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name coinbaseinternational#fetchMarkets

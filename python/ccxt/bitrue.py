@@ -713,7 +713,7 @@ class bitrue(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitrue
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint

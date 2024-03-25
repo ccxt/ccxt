@@ -280,7 +280,7 @@ class bitopro(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitopro
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md

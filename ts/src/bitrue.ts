@@ -714,7 +714,7 @@ export default class bitrue extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitrue#fetchMarkets

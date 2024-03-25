@@ -461,7 +461,7 @@ export default class bitmex extends Exchange {
         return this.convertFromRawQuantity (symbol, rawQuantity, 'quote');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitmex#fetchMarkets

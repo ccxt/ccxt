@@ -687,7 +687,7 @@ class bingx(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bingx
         :see: https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols

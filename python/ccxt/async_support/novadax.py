@@ -238,7 +238,7 @@ class novadax(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'data')
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for novadax
         :see: https://doc.novadax.com/en-US/#get-all-supported-trading-symbol

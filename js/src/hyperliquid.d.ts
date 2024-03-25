@@ -8,7 +8,7 @@ export default class hyperliquid extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;

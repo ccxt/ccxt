@@ -1420,7 +1420,7 @@ class bybit(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bybit
         :see: https://bybit-exchange.github.io/docs/v5/market/instrument

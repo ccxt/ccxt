@@ -18,7 +18,7 @@ export default class bybit extends Exchange {
     getBybitType(method: any, market: any, params?: {}): any[];
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params: any): Promise<any[]>;
     fetchFutureMarkets(params: any): Promise<any[]>;
     fetchOptionMarkets(params: any): Promise<any[]>;
