@@ -2,8 +2,9 @@
 //  ---------------------------------------------------------------------------
 
 import bithumbRest from '../bithumb.js';
+import { ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Ticker, Trade } from '../base/types.js';
+import type { Int, OrderBook, Ticker, Trade, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -14,10 +15,10 @@ export default class bithumb extends bithumbRest {
             'has': {
                 'ws': true,
                 'watchBalance': false,
-                'watchTicker': false,
-                'watchTickers': false,
-                'watchTrades': false,
-                'watchOrderBook': false,
+                'watchTicker': true,
+                'watchTickers': true,
+                'watchTrades': true,
+                'watchOrderBook': true,
                 'watchOHLCV': false,
             },
             'urls': {
@@ -51,6 +52,42 @@ export default class bithumb extends bithumbRest {
             'tickTypes': [ this.safeString (params, 'tickTypes', '24H') ],
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name binance#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        let marketIds = [];
+        let messageHashes = [];
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            marketIds.push (market['base'] + '_' + market['quote']);
+            messageHashes.push ('ticker:' + market['symbol']);
+        }
+        if (marketIds === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols');
+        }
+        const request = {
+            'type': 'ticker',
+            'symbols': marketIds,
+            'tickTypes': [ this.safeString (params, 'tickTypes', '24H') ],
+        };
+        const message = this.extend (request, params);
+        const newTickers = await this.watchMultiple (url, messageHashes, message, messageHashes);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
