@@ -64,7 +64,7 @@ We also provide webpack minified and tree-shaken versions of the library startin
 | mexc.min.js    | ~200kb |
 | okx.min.js     | ~250kb |
 
-Note: the the file sizes are subject to change.
+Note: the file sizes are subject to change.
 
 ```html
 <script type="text/javascript" src="https://cdn.ccxt.com/3.0.35/ccxt.min.js"></script>
