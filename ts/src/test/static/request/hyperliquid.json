@@ -601,6 +601,34 @@
                 ],
                 "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":5,\"isCross\":true,\"leverage\":5},\"nonce\":1711105382021,\"signature\":{\"r\":\"0xafbc0ef20e0b277cf4722f4ceb4fcf2f085c55a1ed41fa1a21fb9429772c5aa5\",\"s\":\"0x1975ac7cc0a533162ac24bb1457c4785d531f46e59eef33bf4a4131f1ea4b249\",\"v\":28},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set cross margin mode",
+                "method": "setMarginMode",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "cross",
+                  "SOL/USDC:USDC",
+                  {
+                    "leverage": 5
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":5,\"isCross\":true,\"leverage\":5},\"nonce\":1711360550230,\"signature\":{\"r\":\"0x4ecdba9896ecf5c2e3a8b00502039aff269d0878371953f505a4d70795893fa6\",\"s\":\"0x10a2b8fc5448ab711bcacadd24929c1d31d20fc8f45d3fd45e6f86e4c9e724ac\",\"v\":28}}"
+            },
+            {
+                "description": "set isolated margin mode",
+                "method": "setMarginMode",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "isolated",
+                  "SOL/USDC:USDC",
+                  {
+                    "leverage": 5
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":5,\"isCross\":false,\"leverage\":5},\"nonce\":1711360592621,\"signature\":{\"r\":\"0x233801ff1dc0ce66c1ee523317721e282f52ee3542a9195d3467430d1c70cad1\",\"s\":\"0x2c01401e469679d99893ceaaf5603c2e28279fd83c7802f43603ec6b3b4019b9\",\"v\":28}}"
+            }
         ]
     }
 }
