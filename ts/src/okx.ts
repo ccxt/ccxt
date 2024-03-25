@@ -7704,7 +7704,7 @@ export default class okx extends Exchange {
         const now = this.milliseconds ();
         const oneWeekAgo = now - 604800000;
         const threeMonthsAgo = now - 7776000000;
-        if ((since > oneWeekAgo) || (since === undefined)) {
+        if ((since === undefined) || (since > oneWeekAgo)) {
             response = await this.privateGetAccountBills (this.extend (request, params));
         } else if (since > threeMonthsAgo) {
             response = await this.privateGetAccountBillsArchive (this.extend (request, params));
