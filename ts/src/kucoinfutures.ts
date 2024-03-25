@@ -921,24 +921,25 @@ export default class kucoinfutures extends kucoin {
         //
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
-        const last = this.safeNumber (ticker, 'lastTradePrice');
+        const last = this.safeString (ticker, 'lastTradePrice');
+        const timestamp = this.safeIntegerProduct (ticker, 'ts', 0.000001);
         return this.safeTicker ({
             'symbol': market['symbol'],
-            'timestamp': undefined,
-            'datetime': undefined,
-            'high': this.safeNumber (ticker, 'highPrice'),
-            'low': this.safeNumber (ticker, 'lowPrice'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': this.safeString (ticker, 'bestBidPrice'),
+            'bidVolume': this.safeString (ticker, 'bestBidSize'),
+            'ask': this.safeString (ticker, 'bestAskPrice'),
+            'askVolume': this.safeString (ticker, 'bestAskSize'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 'priceChg'),
-            'percentage': this.safeNumber (ticker, 'priceChgPct'),
+            'change': this.safeString (ticker, 'priceChg'),
+            'percentage': this.safeString (ticker, 'priceChgPct'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volumeOf24h'),
             'quoteVolume': this.safeString (ticker, 'turnoverOf24h'),
