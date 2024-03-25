@@ -340,7 +340,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for lbank
@@ -2732,7 +2732,7 @@ class lbank extends Exchange {
             $uppercaseHash = strtoupper($hash);
             $sign = null;
             if ($signatureMethod === 'RSA') {
-                $cacheSecretAsPem = $this->safe_value($this->options, 'cacheSecretAsPem', true);
+                $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
                 $pem = null;
                 if ($cacheSecretAsPem) {
                     $pem = $this->safe_value($this->options, 'pem');

@@ -14,6 +14,7 @@ sys.path.append(root)
 
 import asyncio
 from ccxt.test.base import test_ticker  # noqa E402
+from ccxt.test.base import test_shared_methods  # noqa E402
 
 async def test_fetch_tickers(exchange, skipped_properties, symbol):
     without_symbol = test_fetch_tickers_helper(exchange, skipped_properties, None)
@@ -29,6 +30,7 @@ async def test_fetch_tickers_helper(exchange, skipped_properties, arg_symbols, a
     checked_symbol = None
     if arg_symbols is not None and len(arg_symbols) == 1:
         checked_symbol = arg_symbols[0]
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values, checked_symbol)
     for i in range(0, len(values)):
         # todo: symbol check here
         ticker = values[i]

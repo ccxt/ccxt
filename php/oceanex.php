@@ -147,7 +147,7 @@ class oceanex extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for oceanex
          * @see https://api.oceanex.pro/doc/v1/#$markets-post

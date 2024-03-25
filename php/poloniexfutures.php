@@ -202,7 +202,7 @@ class poloniexfutures extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for poloniexfutures
          * @see https://futures-docs.poloniex.com/#symbol-2

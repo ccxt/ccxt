@@ -42,7 +42,6 @@ class blockchaincom(ccxt.async_support.blockchaincom):
                     },
                     'noOriginHeader': False,
                 },
-                'sequenceNumbers': {},
             },
             'streaming': {
             },
@@ -655,19 +654,18 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #     }
         #
         event = self.safe_string(message, 'event')
+        if event == 'subscribed':
+            return
         type = self.safe_string(message, 'channel')
         marketId = self.safe_string(message, 'symbol')
         symbol = self.safe_symbol(marketId)
         messageHash = 'orderbook:' + symbol + ':' + type
         datetime = self.safe_string(message, 'timestamp')
         timestamp = self.parse8601(datetime)
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.counted_order_book({})
-            self.orderbooks[symbol] = orderbook
-        if event == 'subscribed':
-            return
-        elif event == 'snapshot':
+        if self.safe_value(self.orderbooks, symbol) is None:
+            self.orderbooks[symbol] = self.counted_order_book()
+        orderbook = self.orderbooks[symbol]
+        if event == 'snapshot':
             snapshot = self.parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num')
             orderbook.reset(snapshot)
         elif event == 'updated':
@@ -689,20 +687,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def check_sequence_number(self, client: Client, message):
-        seqnum = self.safe_integer(message, 'seqnum', 0)
-        channel = self.safe_string(message, 'channel', '')
-        sequenceNumbersByChannel = self.safe_value(self.options, 'sequenceNumbers', {})
-        lastSeqnum = self.safe_integer(sequenceNumbersByChannel, channel)
-        if lastSeqnum is None:
-            self.options['sequenceNumbers'][channel] = seqnum
-        else:
-            if seqnum != lastSeqnum + 1:
-                raise ExchangeError(self.id + ' ' + channel + ' seqnum ' + seqnum + ' is not the expected ' + (lastSeqnum + 1))
-            self.options['sequenceNumbers'][channel] = seqnum
-
     def handle_message(self, client: Client, message):
-        self.check_sequence_number(client, message)
         channel = self.safe_string(message, 'channel')
         handlers = {
             'ticker': self.handle_ticker,
@@ -750,4 +735,4 @@ class blockchaincom(ccxt.async_support.blockchaincom):
                 'token': self.secret,
             }
             return self.watch(url, messageHash, self.extend(request, params), messageHash)
-        return future
+        return await future

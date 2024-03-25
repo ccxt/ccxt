@@ -1,4 +1,7 @@
 namespace ccxt;
+
+using System.Collections.Concurrent;
+
 using dict = Dictionary<string, object>;
 using list = List<object>;
 
@@ -47,7 +50,7 @@ public partial class Exchange
 
     public object limits { get; set; } = new dict();
 
-    public object precisionMode { get; set; } = SIGNIFICANT_DIGITS;
+    public object precisionMode { get; set; } = DECIMAL_PLACES;
 
     public object currencies_by_id { get; set; } = new dict();
 
@@ -57,11 +60,11 @@ public partial class Exchange
 
     public object status { get; set; } = new dict();
 
-    public int paddingMode { get; set; } = 0;
+    public int paddingMode { get; set; } = NO_PADDING;
 
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
-    public Dictionary<string, object> options { get; set; } = new dict();
+    public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
     public object markets { get; set; } = null;
     public object currencies { get; set; } = null;
     public object fees { get; set; } = new dict();
@@ -281,7 +284,7 @@ public partial class Exchange
                 { "fetchPositions", null },
                 { "fetchPositionsRisk", null },
                 { "fetchPremiumIndexOHLCV", null },
-                { "fetchStatus", "emulated" },
+                { "fetchStatus", null },
                 { "fetchTicker", true },
                 { "fetchTickers", null },
                 { "fetchTime", null },
@@ -429,7 +432,15 @@ public partial class Exchange
         this.api = SafeValue(extendedProperties, "api") as dict;
         this.hostname = SafeString(extendedProperties, "hostname");
         this.urls = SafeValue(extendedProperties, "urls") as dict;
-        this.options = SafeValue(extendedProperties, "options") as dict ?? new dict();
+
+        // handle options
+        var extendedOptions = safeDict(extendedProperties, "options");
+        if (extendedOptions != null)
+        {
+            var extendedDict = extendedOptions as dict;
+            var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
+            this.options = concurrentExtendedDict;
+        }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;
         this.fees = SafeValue(extendedProperties, "fees") as dict;
@@ -446,6 +457,7 @@ public partial class Exchange
         this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
         this.status = SafeValue(extendedProperties, "status") as dict;
         this.precisionMode = SafeInteger(extendedProperties, "precisionMode", this.precisionMode);
+        this.paddingMode = ((int)SafeInteger(extendedProperties, "paddingMode", this.paddingMode));
         this.commonCurrencies = SafeValue(extendedProperties, "commonCurrencies") as dict;
         var subVal = SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true);
         this.substituteCommonCurrencyCodes = subVal != null ? (bool)subVal : true;

@@ -486,7 +486,7 @@ class wavesexchange extends Exchange {
         }
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for wavesexchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1372,7 +1372,7 @@ class wavesexchange extends Exchange {
             'amountAsset' => $amountAsset,
             'priceAsset' => $priceAsset,
         );
-        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $chainId = ($sandboxMode) ? 84 : 87;
         $body = array(
             'senderPublicKey' => $this->apiKey,

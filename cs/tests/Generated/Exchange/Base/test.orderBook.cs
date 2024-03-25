@@ -27,6 +27,7 @@ public partial class testMainClass : BaseTest
         {
             return;
         }
+        // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         object bids = getValue(orderbook, "bids");
         object bidsLength = getArrayLength(bids);
         for (object i = 0; isLessThan(i, bidsLength); postFixIncrement(ref i))
@@ -57,16 +58,15 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(asks, i), 0, "0");
             testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(asks, i), 1, "0");
         }
-        if (isTrue(inOp(skippedProperties, "spread")))
+        if (!isTrue((inOp(skippedProperties, "spread"))))
         {
-            return;
-        }
-        if (isTrue(isTrue(bidsLength) && isTrue(asksLength)))
-        {
-            object firstBid = exchange.safeString(getValue(bids, 0), 0);
-            object firstAsk = exchange.safeString(getValue(asks, 0), 0);
-            // check bid-ask spread
-            assert(Precise.stringLt(firstBid, firstAsk), add(add(add(add(add("bids[0][0] (", firstAsk), ") should be < than asks[0][0] ("), firstAsk), ")"), logText));
+            if (isTrue(isTrue(bidsLength) && isTrue(asksLength)))
+            {
+                object firstBid = exchange.safeString(getValue(bids, 0), 0);
+                object firstAsk = exchange.safeString(getValue(asks, 0), 0);
+                // check bid-ask spread
+                assert(Precise.stringLt(firstBid, firstAsk), add(add(add(add(add("bids[0][0] (", firstAsk), ") should be < than asks[0][0] ("), firstAsk), ")"), logText));
+            }
         }
     }
 

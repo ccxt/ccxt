@@ -6,7 +6,6 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -264,7 +263,7 @@ class mexc extends \ccxt\async\mexc {
         //        "d" => {
         //            "e" => "spot@public.kline.v3.api",
         //            "k" => array(
-        //                "t" => 1678642260,
+        //                "t" => 1678642261,
         //                "o" => 20626.94,
         //                "c" => 20599.69,
         //                "h" => 20626.94,
@@ -481,7 +480,7 @@ class mexc extends \ccxt\async\mexc {
             $client->subscriptions[$messageHash] = 1;
             $this->orderbooks[$symbol] = $this->counted_order_book(array());
         }
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        $storedOrderBook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
@@ -524,10 +523,12 @@ class mexc extends \ccxt\async\mexc {
     }
 
     public function handle_delta($orderbook, $delta) {
-        $nonce = $this->safe_integer($orderbook, 'nonce');
+        $existingNonce = $this->safe_integer($orderbook, 'nonce');
         $deltaNonce = $this->safe_integer_2($delta, 'r', 'version');
-        if ($deltaNonce !== $nonce && $deltaNonce !== $nonce + 1) {
-            throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
+        if ($deltaNonce < $existingNonce) {
+            // even when doing < comparison, this happens => https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         $orderbook['nonce'] = $deltaNonce;
         $asks = $this->safe_value($delta, 'asks', array());

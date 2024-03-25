@@ -546,6 +546,6 @@ class probit(ccxt.async_support.probit):
                 'type': 'authorization',
                 'token': accessToken,
             }
-            future = self.watch(url, messageHash, self.extend(request, params))
+            future = await self.watch(url, messageHash, self.extend(request, params), messageHash)
             client.subscriptions[messageHash] = future
         return future

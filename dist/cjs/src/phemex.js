@@ -2419,7 +2419,7 @@ class phemex extends phemex$1 {
     }
     parseOrder(order, market = undefined) {
         const isSwap = this.safeBool(market, 'swap', false);
-        const hasPnl = ('closedPnl' in order);
+        const hasPnl = ('closedPnl' in order) || ('closedPnlRv' in order) || ('totalPnlRv' in order);
         if (isSwap || hasPnl) {
             return this.parseSwapOrder(order, market);
         }
@@ -3358,7 +3358,7 @@ class phemex extends phemex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3398,7 +3398,7 @@ class phemex extends phemex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     parseTransactionStatus(status) {

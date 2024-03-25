@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -229,6 +229,7 @@ export default class whitebit extends Exchange {
                     'account': 'spot',
                 },
                 'accountsByType': {
+                    'funding': 'main',
                     'main': 'main',
                     'spot': 'spot',
                     'margin': 'collateral',
@@ -270,7 +271,7 @@ export default class whitebit extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name whitebit#fetchMarkets
@@ -1182,7 +1183,7 @@ export default class whitebit extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#createOrder
@@ -1332,9 +1333,9 @@ export default class whitebit extends Exchange {
         } else {
             const options = this.safeValue (this.options, 'fetchBalance', {});
             const defaultAccount = this.safeString (options, 'account');
-            const account = this.safeString (params, 'account', defaultAccount);
-            params = this.omit (params, 'account');
-            if (account === 'main') {
+            const account = this.safeString2 (params, 'account', 'type', defaultAccount);
+            params = this.omit (params, [ 'account', 'type' ]);
+            if (account === 'main' || account === 'funding') {
                 response = await this.v4PrivatePostMainAccountBalance (params);
             } else {
                 response = await this.v4PrivatePostTradeAccountBalance (params);

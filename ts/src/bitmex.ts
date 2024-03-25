@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -61,7 +61,8 @@ export default class bitmex extends Exchange {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
                 'fetchMarketLeverageTiers': false,
@@ -460,7 +461,7 @@ export default class bitmex extends Exchange {
         return this.convertFromRawQuantity (symbol, rawQuantity, 'quote');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitmex#fetchMarkets
@@ -1526,7 +1527,7 @@ export default class bitmex extends Exchange {
             request['endTime'] = this.iso8601 (until);
         }
         const duration = this.parseTimeframe (timeframe) * 1000;
-        const fetchOHLCVOpenTimestamp = this.safeValue (this.options, 'fetchOHLCVOpenTimestamp', true);
+        const fetchOHLCVOpenTimestamp = this.safeBool (this.options, 'fetchOHLCVOpenTimestamp', true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
             let timestamp = since;
@@ -1866,7 +1867,7 @@ export default class bitmex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#createOrder
@@ -1955,7 +1956,7 @@ export default class bitmex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let trailingAmount = this.safeString2 (params, 'trailingAmount', 'pegOffsetValue');
@@ -2128,6 +2129,32 @@ export default class bitmex extends Exchange {
         //     ]
         //
         return this.parseOrders (response, market);
+    }
+
+    async fetchLeverages (symbols: string[] = undefined, params = {}): Promise<Leverages> {
+        /**
+         * @method
+         * @name bitmex#fetchLeverages
+         * @description fetch the set leverage for all contract markets
+         * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const leverages = await this.fetchPositions (symbols, params);
+        return this.parseLeverages (leverages, symbols, 'symbol');
+    }
+
+    parseLeverage (leverage, market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverage, 'marginMode'),
+            'longLeverage': this.safeInteger (leverage, 'leverage'),
+            'shortLeverage': this.safeInteger (leverage, 'leverage'),
+        } as Leverage;
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
@@ -2540,7 +2567,9 @@ export default class bitmex extends Exchange {
         if (until !== undefined) {
             request['endTime'] = this.iso8601 (until);
         }
-        request['reverse'] = true;
+        if ((since === undefined) && (until === undefined)) {
+            request['reverse'] = true;
+        }
         const response = await this.publicGetFunding (this.extend (request, params));
         //
         //    [

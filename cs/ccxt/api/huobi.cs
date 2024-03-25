@@ -966,6 +966,11 @@ public partial class huobi : htx
         return await this.callAsync ("spotPrivatePostV1SubuserTransfer",parameters);
     }
 
+    public async Task<object> spotPrivatePostV1TrustUserActiveCredit (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostV1TrustUserActiveCredit",parameters);
+    }
+
     public async Task<object> spotPrivatePostV1OrderOrdersPlace (object parameters = null)
     {
         return await this.callAsync ("spotPrivatePostV1OrderOrdersPlace",parameters);

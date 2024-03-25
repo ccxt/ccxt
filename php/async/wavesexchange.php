@@ -502,7 +502,7 @@ class wavesexchange extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for wavesexchange
@@ -1405,7 +1405,7 @@ class wavesexchange extends Exchange {
                 'amountAsset' => $amountAsset,
                 'priceAsset' => $priceAsset,
             );
-            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $chainId = ($sandboxMode) ? 84 : 87;
             $body = array(
                 'senderPublicKey' => $this->apiKey,

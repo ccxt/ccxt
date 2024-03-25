@@ -176,7 +176,7 @@ class luno extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for luno
          * @see https://www.luno.com/en/developers/api#tag/Market/operation/Markets
@@ -266,7 +266,7 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances

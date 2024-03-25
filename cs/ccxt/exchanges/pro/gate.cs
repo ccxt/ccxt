@@ -354,7 +354,7 @@ public partial class gate : ccxt.gate
         this.handleTickerAndBidAsk("ticker", client, message);
     }
 
-    public async virtual Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         /**
         * @method
@@ -436,8 +436,9 @@ public partial class gate : ccxt.gate
         object parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeString(parts, 0);
         object marketType = ((bool) isTrue((isEqual(rawMarketType, "futures")))) ? "contract" : "spot";
+        object result = this.safeValue(message, "result");
         object results = new List<object>() {};
-        if (isTrue(isEqual(marketType, "contract")))
+        if (isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             results = this.safeList(message, "result", new List<object>() {});
         } else
@@ -937,7 +938,7 @@ public partial class gate : ccxt.gate
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, type, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeValue("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
         object cache = this.safeValue(this.positions, type);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(cache, null))))
         {

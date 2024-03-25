@@ -2383,6 +2383,6 @@ export default class htx extends htxRest {
             };
             this.watch(url, messageHash, request, messageHash, subscription);
         }
-        return future;
+        return await future;
     }
 }

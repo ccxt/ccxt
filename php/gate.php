@@ -43,10 +43,11 @@ class gate extends Exchange {
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
                         'subAccounts' => 'https://api.gateio.ws/api/v4',
-                        'portfolio' => 'https://api.gateio.ws/api/v4',
+                        'unified' => 'https://api.gateio.ws/api/v4',
                         'rebate' => 'https://api.gateio.ws/api/v4',
                         'earn' => 'https://api.gateio.ws/api/v4',
                         'account' => 'https://api.gateio.ws/api/v4',
+                        'loan' => 'https://api.gateio.ws/api/v4',
                     ),
                 ),
                 'test' => array(
@@ -113,7 +114,8 @@ class gate extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
-                'fetchLeverage' => false,
+                'fetchLeverage' => true,
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
                 'fetchLiquidations' => true,
                 'fetchMarginMode' => false,
@@ -128,6 +130,8 @@ class gate extends Exchange {
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => true,
+                'fetchOptionChain' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => true,
@@ -266,11 +270,14 @@ class gate extends Exchange {
                             'saved_address' => 1,
                             'fee' => 1,
                             'total_balance' => 2.5,
+                            'small_balance' => 1,
+                            'small_balance_history' => 1,
                         ),
                         'post' => array(
                             'transfers' => 2.5, // 8r/s cost = 20 / 8 = 2.5
                             'sub_account_transfers' => 2.5,
                             'sub_account_to_sub_account' => 2.5,
+                            'small_balance' => 1,
                         ),
                     ),
                     'subAccounts' => array(
@@ -293,7 +300,7 @@ class gate extends Exchange {
                             'sub_accounts/{user_id}/keys/{key}' => 2.5,
                         ),
                     ),
-                    'portfolio' => array(
+                    'unified' => array(
                         'get' => array(
                             'accounts' => 20 / 15,
                             'account_mode' => 20 / 15,
@@ -302,6 +309,8 @@ class gate extends Exchange {
                             'loans' => 20 / 15,
                             'loan_records' => 20 / 15,
                             'interest_records' => 20 / 15,
+                            'estimate_rate' => 20 / 15,
+                            'currency_discount_tiers' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
@@ -856,7 +865,7 @@ class gate extends Exchange {
         ));
     }
 
-    public function set_sandbox_mode($enable) {
+    public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
     }
@@ -935,7 +944,7 @@ class gate extends Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
         if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
             // handle expired option contracts
@@ -944,7 +953,7 @@ class gate extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for gate
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     // spot
@@ -955,7 +964,7 @@ class gate extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $rawPromises = array(
             $this->fetch_contract_markets($params),
             $this->fetch_option_markets($params),
@@ -2226,7 +2235,8 @@ class gate extends Exchange {
         list($request, $requestParams) = $this->prepare_request($market, $type, $query);
         $request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if ($since !== null) {
-            $request['from'] = $since / 1000;
+            // from should be integer
+            $request['from'] = $this->parse_to_int($since / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2869,7 +2879,7 @@ class gate extends Exchange {
         $request = array();
         list($request, $params) = $this->prepare_request($market, null, $params);
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $maxLimit = 1000;
+        $maxLimit = $market['contract'] ? 1999 : 1000;
         $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
@@ -4149,7 +4159,15 @@ class gate extends Exchange {
             'account' => $account,
         );
         if ($amount !== null) {
-            $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            if ($market['spot']) {
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            } else {
+                if ($side === 'sell') {
+                    $request['size'] = Precise::string_neg($this->amount_to_precision($symbol, $amount));
+                } else {
+                    $request['size'] = $this->amount_to_precision($symbol, $amount);
+                }
+            }
         }
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -4206,6 +4224,7 @@ class gate extends Exchange {
             'failed' => 'canceled',
             'expired' => 'canceled',
             'finished' => 'closed',
+            'finish' => 'closed',
             'succeeded' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -4402,7 +4421,10 @@ class gate extends Exchange {
         if ($lastTradeTimestamp === null) {
             $lastTradeTimestamp = $this->safe_timestamp_2($order, 'update_time', 'finish_time');
         }
-        $marketType = (is_array($order) && array_key_exists('currency_pair', $order)) ? 'spot' : 'contract';
+        $marketType = 'contract';
+        if ((is_array($order) && array_key_exists('currency_pair', $order)) || (is_array($order) && array_key_exists('market', $order))) {
+            $marketType = 'spot';
+        }
         $exchangeSymbol = $this->safe_string_2($order, 'currency_pair', 'market', $contract);
         $symbol = $this->safe_symbol($exchangeSymbol, $market, '_', $marketType);
         // Everything below this(above return) is related to $fees
@@ -4918,8 +4940,8 @@ class gate extends Exchange {
          */
         $this->load_markets();
         $market = ($symbol === null) ? null : $this->market($symbol);
-        $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, 'stop');
+        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
         list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         list($request, $requestParams) = ($type === 'spot') ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
         $response = null;
@@ -4977,7 +4999,7 @@ class gate extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
@@ -5233,7 +5255,7 @@ class gate extends Exchange {
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'realizedPnl' => $this->safe_number($position, 'realised_pnl'),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
-            'contractSize' => $this->safe_value($market, 'contractSize'),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
             // 'realisedPnl' => $position['realised_pnl'],
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
@@ -6015,6 +6037,7 @@ class gate extends Exchange {
          * @param {int} [$since] the time(ms) of the earliest record to retrieve unix timestamp
          * @param {int} [$limit] default 30
          * @param {array} [$params] exchange specific parameters
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
          */
         $this->load_markets();
@@ -6752,7 +6775,7 @@ class gate extends Exchange {
         ));
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): Greeks {
+    public function fetch_greeks(string $symbol, $params = array ()): array {
         /**
          * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
@@ -6864,6 +6887,356 @@ class gate extends Exchange {
             $side = ''; // $side is not used but needs to be present, otherwise crashes in php
         }
         return $this->create_order($symbol, 'market', $side, 0, null, $params);
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()): array {
+        /**
+         * fetch the set leverage for a $market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-unified-account-information
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-detail-of-lending-$market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-one-single-margin-currency-pair-deprecated
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->unified] default false, set to true for fetching the unified accounts leverage
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            // unified account does not require a $symbol
+            $market = $this->market($symbol);
+        }
+        $request = array();
+        $response = null;
+        $isUnified = $this->safe_bool($params, 'unified');
+        $params = $this->omit($params, 'unified');
+        if ($market['spot']) {
+            $request['currency_pair'] = $market['id'];
+            if ($isUnified) {
+                $response = $this->publicMarginGetUniCurrencyPairsCurrencyPair (array_merge($request, $params));
+                //
+                //     {
+                //         "currency_pair" => "BTC_USDT",
+                //         "base_min_borrow_amount" => "0.0001",
+                //         "quote_min_borrow_amount" => "1",
+                //         "leverage" => "10"
+                //     }
+                //
+            } else {
+                $response = $this->publicMarginGetCurrencyPairsCurrencyPair (array_merge($request, $params));
+                //
+                //     {
+                //         "id" => "BTC_USDT",
+                //         "base" => "BTC",
+                //         "quote" => "USDT",
+                //         "leverage" => 10,
+                //         "min_base_amount" => "0.0001",
+                //         "min_quote_amount" => "1",
+                //         "max_quote_amount" => "40000000",
+                //         "status" => 1
+                //     }
+                //
+            }
+        } elseif ($isUnified) {
+            $response = $this->privateUnifiedGetAccounts (array_merge($request, $params));
+            //
+            //     {
+            //         "user_id" => 10001,
+            //         "locked" => false,
+            //         "balances" => {
+            //             "ETH" => array(
+            //                 "available" => "0",
+            //                 "freeze" => "0",
+            //                 "borrowed" => "0.075393666654",
+            //                 "negative_liab" => "0",
+            //                 "futures_pos_liab" => "0",
+            //                 "equity" => "1016.1",
+            //                 "total_freeze" => "0",
+            //                 "total_liab" => "0"
+            //             ),
+            //             "POINT" => array(
+            //                 "available" => "9999999999.017023138734",
+            //                 "freeze" => "0",
+            //                 "borrowed" => "0",
+            //                 "negative_liab" => "0",
+            //                 "futures_pos_liab" => "0",
+            //                 "equity" => "12016.1",
+            //                 "total_freeze" => "0",
+            //                 "total_liab" => "0"
+            //             ),
+            //             "USDT" => array(
+            //                 "available" => "0.00000062023",
+            //                 "freeze" => "0",
+            //                 "borrowed" => "0",
+            //                 "negative_liab" => "0",
+            //                 "futures_pos_liab" => "0",
+            //                 "equity" => "16.1",
+            //                 "total_freeze" => "0",
+            //                 "total_liab" => "0"
+            //             }
+            //         ),
+            //         "total" => "230.94621713",
+            //         "borrowed" => "161.66395521",
+            //         "total_initial_margin" => "1025.0524665088",
+            //         "total_margin_balance" => "3382495.944473949183",
+            //         "total_maintenance_margin" => "205.01049330176",
+            //         "total_initial_margin_rate" => "3299.827135672679",
+            //         "total_maintenance_margin_rate" => "16499.135678363399",
+            //         "total_available_margin" => "3381470.892007440383",
+            //         "unified_account_total" => "3381470.892007440383",
+            //         "unified_account_total_liab" => "0",
+            //         "unified_account_total_equity" => "100016.1",
+            //         "leverage" => "2"
+            //     }
+            //
+        } else {
+            throw new NotSupported($this->id . ' fetchLeverage() does not support ' . $market['type'] . ' markets');
+        }
+        return $this->parse_leverage($response, $market);
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetch the set leverage for all leverage markets, only spot margin is supported on gate
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-lending-markets
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated
+         * @param {string[]} $symbols a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->unified] default false, set to true for fetching unified account leverages
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $response = null;
+        $isUnified = $this->safe_bool($params, 'unified');
+        $params = $this->omit($params, 'unified');
+        $marketIdRequest = 'id';
+        if ($isUnified) {
+            $marketIdRequest = 'currency_pair';
+            $response = $this->publicMarginGetUniCurrencyPairs ($params);
+            //
+            //     array(
+            //         array(
+            //             "currency_pair" => "1INCH_USDT",
+            //             "base_min_borrow_amount" => "8",
+            //             "quote_min_borrow_amount" => "1",
+            //             "leverage" => "3"
+            //         ),
+            //     )
+            //
+        } else {
+            $response = $this->publicMarginGetCurrencyPairs ($params);
+            //
+            //     array(
+            //         array(
+            //             "id" => "1CAT_USDT",
+            //             "base" => "1CAT",
+            //             "quote" => "USDT",
+            //             "leverage" => 3,
+            //             "min_base_amount" => "71",
+            //             "min_quote_amount" => "1",
+            //             "max_quote_amount" => "10000",
+            //             "status" => 1
+            //         ),
+            //     )
+            //
+        }
+        return $this->parse_leverages($response, $symbols, $marketIdRequest, 'spot');
+    }
+
+    public function parse_leverage($leverage, $market = null): array {
+        $marketId = $this->safe_string_2($leverage, 'currency_pair', 'id');
+        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market, '_', 'spot'),
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
+    }
+
+    public function fetch_option(string $symbol, $params = array ()): Option {
+        /**
+         * fetches option data that is commonly found in an option chain
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-specified-contract-detail
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'contract' => $market['id'],
+        );
+        $response = $this->publicOptionsGetContractsContract (array_merge($request, $params));
+        //
+        //     {
+        //         "is_active" => true,
+        //         "mark_price_round" => "0.01",
+        //         "settle_fee_rate" => "0.00015",
+        //         "bid1_size" => 30,
+        //         "taker_fee_rate" => "0.0003",
+        //         "price_limit_fee_rate" => "0.1",
+        //         "order_price_round" => "0.1",
+        //         "tag" => "month",
+        //         "ref_rebate_rate" => "0",
+        //         "name" => "ETH_USDT-20240628-4500-C",
+        //         "strike_price" => "4500",
+        //         "ask1_price" => "280.5",
+        //         "ref_discount_rate" => "0",
+        //         "order_price_deviate" => "0.2",
+        //         "ask1_size" => -19,
+        //         "mark_price_down" => "155.45",
+        //         "orderbook_id" => 11724695,
+        //         "is_call" => true,
+        //         "last_price" => "188.7",
+        //         "mark_price" => "274.26",
+        //         "underlying" => "ETH_USDT",
+        //         "create_time" => 1688024882,
+        //         "settle_limit_fee_rate" => "0.1",
+        //         "orders_limit" => 10,
+        //         "mark_price_up" => "403.83",
+        //         "position_size" => 80,
+        //         "order_size_max" => 10000,
+        //         "position_limit" => 100000,
+        //         "multiplier" => "0.01",
+        //         "order_size_min" => 1,
+        //         "trade_size" => 229,
+        //         "underlying_price" => "3326.6",
+        //         "maker_fee_rate" => "0.0003",
+        //         "expiration_time" => 1719561600,
+        //         "trade_id" => 15,
+        //         "bid1_price" => "269.3"
+        //     }
+        //
+        return $this->parse_option($response, null, $market);
+    }
+
+    public function fetch_option_chain(string $code, $params = array ()): OptionChain {
+        /**
+         * fetches data for an underlying asset that is commonly found in an option chain
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
+         * @param {string} $currency base $currency to fetch an option chain for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->underlying] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+         * @param {int} [$params->expiration] unix timestamp of the expiration time
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structures~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'underlying' => $currency['code'] . '_USDT',
+        );
+        $response = $this->publicOptionsGetContracts (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             "is_active" => true,
+        //             "mark_price_round" => "0.1",
+        //             "settle_fee_rate" => "0.00015",
+        //             "bid1_size" => 434,
+        //             "taker_fee_rate" => "0.0003",
+        //             "price_limit_fee_rate" => "0.1",
+        //             "order_price_round" => "1",
+        //             "tag" => "day",
+        //             "ref_rebate_rate" => "0",
+        //             "name" => "BTC_USDT-20240324-63500-P",
+        //             "strike_price" => "63500",
+        //             "ask1_price" => "387",
+        //             "ref_discount_rate" => "0",
+        //             "order_price_deviate" => "0.15",
+        //             "ask1_size" => -454,
+        //             "mark_price_down" => "124.3",
+        //             "orderbook_id" => 29600,
+        //             "is_call" => false,
+        //             "last_price" => "0",
+        //             "mark_price" => "366.6",
+        //             "underlying" => "BTC_USDT",
+        //             "create_time" => 1711118829,
+        //             "settle_limit_fee_rate" => "0.1",
+        //             "orders_limit" => 10,
+        //             "mark_price_up" => "630",
+        //             "position_size" => 0,
+        //             "order_size_max" => 10000,
+        //             "position_limit" => 10000,
+        //             "multiplier" => "0.01",
+        //             "order_size_min" => 1,
+        //             "trade_size" => 0,
+        //             "underlying_price" => "64084.65",
+        //             "maker_fee_rate" => "0.0003",
+        //             "expiration_time" => 1711267200,
+        //             "trade_id" => 0,
+        //             "bid1_price" => "307"
+        //         ),
+        //     )
+        //
+        return $this->parse_option_chain($response, null, 'name');
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        //
+        //     {
+        //         "is_active" => true,
+        //         "mark_price_round" => "0.1",
+        //         "settle_fee_rate" => "0.00015",
+        //         "bid1_size" => 434,
+        //         "taker_fee_rate" => "0.0003",
+        //         "price_limit_fee_rate" => "0.1",
+        //         "order_price_round" => "1",
+        //         "tag" => "day",
+        //         "ref_rebate_rate" => "0",
+        //         "name" => "BTC_USDT-20240324-63500-P",
+        //         "strike_price" => "63500",
+        //         "ask1_price" => "387",
+        //         "ref_discount_rate" => "0",
+        //         "order_price_deviate" => "0.15",
+        //         "ask1_size" => -454,
+        //         "mark_price_down" => "124.3",
+        //         "orderbook_id" => 29600,
+        //         "is_call" => false,
+        //         "last_price" => "0",
+        //         "mark_price" => "366.6",
+        //         "underlying" => "BTC_USDT",
+        //         "create_time" => 1711118829,
+        //         "settle_limit_fee_rate" => "0.1",
+        //         "orders_limit" => 10,
+        //         "mark_price_up" => "630",
+        //         "position_size" => 0,
+        //         "order_size_max" => 10000,
+        //         "position_limit" => 10000,
+        //         "multiplier" => "0.01",
+        //         "order_size_min" => 1,
+        //         "trade_size" => 0,
+        //         "underlying_price" => "64084.65",
+        //         "maker_fee_rate" => "0.0003",
+        //         "expiration_time" => 1711267200,
+        //         "trade_id" => 0,
+        //         "bid1_price" => "307"
+        //     }
+        //
+        $marketId = $this->safe_string($chain, 'name');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_timestamp($chain, 'create_time');
+        return array(
+            'info' => $chain,
+            'currency' => null,
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'impliedVolatility' => null,
+            'openInterest' => null,
+            'bidPrice' => $this->safe_number($chain, 'bid1_price'),
+            'askPrice' => $this->safe_number($chain, 'ask1_price'),
+            'midPrice' => null,
+            'markPrice' => $this->safe_number($chain, 'mark_price'),
+            'lastPrice' => $this->safe_number($chain, 'last_price'),
+            'underlyingPrice' => $this->safe_number($chain, 'underlying_price'),
+            'change' => null,
+            'percentage' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

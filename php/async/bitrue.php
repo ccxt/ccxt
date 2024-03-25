@@ -408,7 +408,7 @@ class bitrue extends Exchange {
                     '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
                     '-1100' => '\\ccxt\\BadRequest', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101' => '\\ccxt\\BadRequest', // Too many parameters; expected %s and received %s.
-                    '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty
+                    '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty // array("code":-1102,"msg":"timestamp IllegalArgumentException.","data":null)
                     '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
                     '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105' => '\\ccxt\\BadRequest', // Parameter %s was empty.
@@ -719,7 +719,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitrue
@@ -2587,20 +2587,29 @@ class bitrue extends Exchange {
             }
             $response = Async\await($this->spotV1PrivateGetWithdrawHistory (array_merge($request, $params)));
             //
-            //     {
-            //         "code" => 200,
-            //         "msg" => "succ",
-            //         "data" => {
-            //             "msg" => null,
-            //             "amount" => 1000,
-            //             "fee" => 1,
-            //             "ctime" => null,
-            //             "coin" => "usdt_erc20",
-            //             "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-            //         }
-            //     }
+            //    {
+            //        "code" => 200,
+            //        "msg" => "succ",
+            //        "data" => array(
+            //            {
+            //                "id" => 183745,
+            //                "symbol" => "usdt_erc20",
+            //                "amount" => "8.4000000000000000",
+            //                "fee" => "1.6000000000000000",
+            //                "payAmount" => "0.0000000000000000",
+            //                "createdAt" => 1595336441000,
+            //                "updatedAt" => 1595336576000,
+            //                "addressFrom" => "",
+            //                "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+            //                "txid" => "",
+            //                "confirmations" => 0,
+            //                "status" => 6,
+            //                "tagType" => null
+            //            }
+            //        )
+            //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transactions($data, $currency);
         }) ();
     }
@@ -2950,7 +2959,7 @@ class bitrue extends Exchange {
             //         )]
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_transfers($data, $currency, $since, $limit);
         }) ();
     }

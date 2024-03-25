@@ -547,7 +547,7 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bitfinex
          * @see https://docs.bitfinex.com/v1/reference/rest-public-symbols
@@ -730,7 +730,7 @@ class bitfinex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-transfer-between-wallets

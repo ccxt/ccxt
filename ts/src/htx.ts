@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency } from './base/types.js';
+import type { BorrowRate, TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -469,6 +469,7 @@ export default class htx extends Exchange {
                             'v2/sub-user/api-key-modification': 1,
                             'v2/sub-user/api-key-deletion': 1,
                             'v1/subuser/transfer': 10,
+                            'v1/trust/user/active/credit': 10,
                             // Trading
                             'v1/order/orders/place': 0.2,
                             'v1/order/batch-orders': 0.4,
@@ -950,6 +951,9 @@ export default class htx extends Exchange {
                         },
                     },
                 },
+                'fetchOHLCV': {
+                    'useHistoricalEndpointForSpot': true,
+                },
                 'withdraw': {
                     'includeFee': false,
                 },
@@ -1234,9 +1238,10 @@ export default class htx extends Exchange {
     async fetchStatus (params = {}) {
         await this.loadMarkets ();
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
+        const enabledForContracts = this.handleOption ('fetchStatus', 'enableForContracts', false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
         let response = undefined;
-        if (marketType !== 'spot') {
+        if (marketType !== 'spot' && enabledForContracts) {
             const subType = this.safeString (params, 'subType', this.options['defaultSubType']);
             if (marketType === 'swap') {
                 if (subType === 'linear') {
@@ -1253,7 +1258,7 @@ export default class htx extends Exchange {
             } else if (marketType === 'contract') {
                 response = await this.contractPublicGetHeartbeat ();
             }
-        } else {
+        } else if (marketType === 'spot') {
             response = await this.statusPublicSpotGetApiV2SummaryJson ();
         }
         //
@@ -1422,7 +1427,11 @@ export default class htx extends Exchange {
         let url = undefined;
         if (marketType === 'contract') {
             const statusRaw = this.safeString (response, 'status');
-            status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            if (statusRaw === undefined) {
+                status = undefined;
+            } else {
+                status = (statusRaw === 'ok') ? 'ok' : 'maintenance'; // 'ok', 'error'
+            }
             updated = this.safeString (response, 'ts');
         } else {
             const statusData = this.safeValue (response, 'status', {});
@@ -1597,7 +1606,7 @@ export default class htx extends Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name huobi#fetchMarkets
@@ -2570,7 +2579,10 @@ export default class htx extends Exchange {
         amountString = this.safeString (trade, 'trade_volume', amountString);
         const costString = this.safeString (trade, 'trade_turnover');
         let fee = undefined;
-        let feeCost = this.safeString2 (trade, 'filled-fees', 'trade_fee');
+        let feeCost = this.safeString (trade, 'filled-fees');
+        if (feeCost === undefined) {
+            feeCost = Precise.stringNeg (this.safeString (trade, 'trade_fee'));
+        }
         const feeCurrencyId = this.safeString2 (trade, 'fee-currency', 'fee_asset');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         const filledPoints = this.safeString (trade, 'filled-points');
@@ -2928,6 +2940,7 @@ export default class htx extends Exchange {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {string} [params.useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -2945,48 +2958,53 @@ export default class htx extends Exchange {
             // 'from': parseInt ((since / 1000).toString ()), spot only
             // 'to': this.seconds (), spot only
         };
-        const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
+        const priceType = this.safeStringN (params, [ 'priceType', 'price' ]);
+        params = this.omit (params, [ 'priceType', 'price' ]);
+        let until = undefined;
+        [ until, params ] = this.handleParamInteger (params, 'until');
+        const untilSeconds = (until !== undefined) ? this.parseToInt (until / 1000) : undefined;
         if (market['contract']) {
             if (limit !== undefined) {
-                request['size'] = limit; // when using limit from and to are ignored
+                request['size'] = limit; // when using limit: from & to are ignored
                 // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             } else {
                 limit = 2000; // only used for from/to calculation
             }
-            if (price === undefined) {
+            if (priceType === undefined) {
                 const duration = this.parseTimeframe (timeframe);
+                let calcualtedEnd = undefined;
                 if (since === undefined) {
                     const now = this.seconds ();
                     request['from'] = now - duration * (limit - 1);
-                    request['to'] = now;
+                    calcualtedEnd = now;
                 } else {
                     const start = this.parseToInt (since / 1000);
                     request['from'] = start;
-                    request['to'] = this.sum (start, duration * (limit - 1));
+                    calcualtedEnd = this.sum (start, duration * (limit - 1));
                 }
+                request['to'] = (untilSeconds !== undefined) ? untilSeconds : calcualtedEnd;
             }
         }
         let response = undefined;
         if (market['future']) {
             if (market['inverse']) {
                 request['symbol'] = market['id'];
-                if (price === 'mark') {
+                if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryMarkPriceKline (this.extend (request, params));
-                } else if (price === 'index') {
+                } else if (priceType === 'index') {
                     response = await this.contractPublicGetIndexMarketHistoryIndex (this.extend (request, params));
-                } else if (price === 'premiumIndex') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
+                } else if (priceType === 'premiumIndex') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
                 } else {
                     response = await this.contractPublicGetMarketHistoryKline (this.extend (request, params));
                 }
             } else if (market['linear']) {
                 request['contract_code'] = market['id'];
-                if (price === 'mark') {
+                if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (this.extend (request, params));
-                } else if (price === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                } else if (price === 'premiumIndex') {
+                } else if (priceType === 'index') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
+                } else if (priceType === 'premiumIndex') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (this.extend (request, params));
                 } else {
                     response = await this.contractPublicGetLinearSwapExMarketHistoryKline (this.extend (request, params));
@@ -2995,39 +3013,46 @@ export default class htx extends Exchange {
         } else if (market['swap']) {
             request['contract_code'] = market['id'];
             if (market['inverse']) {
-                if (price === 'mark') {
+                if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistorySwapMarkPriceKline (this.extend (request, params));
-                } else if (price === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                } else if (price === 'premiumIndex') {
+                } else if (priceType === 'index') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
+                } else if (priceType === 'premiumIndex') {
                     response = await this.contractPublicGetIndexMarketHistorySwapPremiumIndexKline (this.extend (request, params));
                 } else {
                     response = await this.contractPublicGetSwapExMarketHistoryKline (this.extend (request, params));
                 }
             } else if (market['linear']) {
-                if (price === 'mark') {
+                if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (this.extend (request, params));
-                } else if (price === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + price + ' kline data');
-                } else if (price === 'premiumIndex') {
+                } else if (priceType === 'index') {
+                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
+                } else if (priceType === 'premiumIndex') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (this.extend (request, params));
                 } else {
                     response = await this.contractPublicGetLinearSwapExMarketHistoryKline (this.extend (request, params));
                 }
             }
         } else {
-            if (since !== undefined) {
-                request['from'] = this.parseToInt (since / 1000);
-            }
-            if (limit !== undefined) {
-                request['size'] = limit; // max 2000
-            }
             request['symbol'] = market['id'];
-            if (timeframe === '1M' || timeframe === '1y') {
-                // for some reason 1M and 1Y does not work with the regular endpoint
-                // https://github.com/ccxt/ccxt/issues/18006
+            let useHistorical = undefined;
+            [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
+            if (!useHistorical) {
+                if (limit !== undefined) {
+                    request['size'] = Math.min (2000, limit); // max 2000
+                }
                 response = await this.spotPublicGetMarketHistoryKline (this.extend (request, params));
             } else {
+                // "from & to" only available for the this endpoint
+                if (since !== undefined) {
+                    request['from'] = this.parseToInt (since / 1000);
+                }
+                if (untilSeconds !== undefined) {
+                    request['to'] = untilSeconds;
+                }
+                if (limit !== undefined) {
+                    request['size'] = Math.min (1000, limit); // max 1000, otherwise default returns 150
+                }
                 response = await this.spotPublicGetMarketHistoryCandles (this.extend (request, params));
             }
         }
@@ -3043,11 +3068,11 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name huobi#fetchAccounts
@@ -5019,7 +5044,7 @@ export default class htx extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name htx#createTrailingPercentOrder
@@ -5045,7 +5070,7 @@ export default class htx extends Exchange {
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
-    async createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -5163,7 +5188,7 @@ export default class htx extends Exchange {
         return this.extend (request, params);
     }
 
-    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -5259,7 +5284,7 @@ export default class htx extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name huobi#createOrder
@@ -6614,6 +6639,7 @@ export default class htx extends Exchange {
          * @param {int} [since] not used by huobi, but filtered internally by ccxt
          * @param {int} [limit] not used by huobi, but filtered internally by ccxt
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
         if (symbol === undefined) {

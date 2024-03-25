@@ -220,7 +220,7 @@ public partial class bybit : ccxt.bybit
         /**
         * @method
         * @name bybit#watchTickers
-        * @description n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -354,15 +354,29 @@ public partial class bybit : ccxt.bybit
         //             "price24hPcnt": "-0.0388"
         //         }
         //     }
+        // swap delta
+        //     {
+        //         "topic":"tickers.AAVEUSDT",
+        //         "type":"delta",
+        //         "data":{
+        //            "symbol":"AAVEUSDT",
+        //            "bid1Price":"112.89",
+        //            "bid1Size":"2.12",
+        //            "ask1Price":"112.90",
+        //            "ask1Size":"5.02"
+        //         },
+        //         "cs":78039939929,
+        //         "ts":1709210212704
+        //     }
         //
         object topic = this.safeString(message, "topic", "");
         object updateType = this.safeString(message, "type", "");
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object isSpot = isEqual(this.safeString(data, "fundingRate"), null);
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object isSpot = !isEqual(this.safeString(data, "usdIndexPrice"), null);
         object type = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object symbol = null;
         object parsed = null;
-        if (isTrue(isTrue((isEqual(updateType, "snapshot"))) || isTrue(isSpot)))
+        if (isTrue((isEqual(updateType, "snapshot"))))
         {
             parsed = this.parseTicker(data);
             symbol = getValue(parsed, "symbol");
@@ -374,8 +388,8 @@ public partial class bybit : ccxt.bybit
             object market = this.safeMarket(marketId, null, null, type);
             symbol = getValue(market, "symbol");
             // update the info in place
-            object ticker = this.safeValue(this.tickers, symbol, new Dictionary<string, object>() {});
-            object rawTicker = this.safeValue(ticker, "info", new Dictionary<string, object>() {});
+            object ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
+            object rawTicker = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
             object merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged);
         }
@@ -1013,7 +1027,7 @@ public partial class bybit : ccxt.bybit
         this.setPositionsCache(client as WebSocketClient, symbols);
         object cache = this.positions;
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeValue("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(cache, null))))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
@@ -1129,8 +1143,24 @@ public partial class bybit : ccxt.bybit
         {
             object rawPosition = getValue(rawPositions, i);
             object position = this.parsePosition(rawPosition);
+            object side = this.safeString(position, "side");
+            // hacky solution to handle closing positions
+            // without crashing, we should handle this properly later
             ((IList<object>)newPositions).Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            if (isTrue(isTrue(isEqual(side, null)) || isTrue(isEqual(side, ""))))
+            {
+                // closing update, adding both sides to "reset" both sides
+                // since we don't know which side is being closed
+                ((IDictionary<string,object>)position)["side"] = "long";
+                callDynamically(cache, "append", new object[] {position});
+                ((IDictionary<string,object>)position)["side"] = "short";
+                callDynamically(cache, "append", new object[] {position});
+                ((IDictionary<string,object>)position)["side"] = null;
+            } else
+            {
+                // regular update
+                callDynamically(cache, "append", new object[] {position});
+            }
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))

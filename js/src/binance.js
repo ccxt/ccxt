@@ -44,11 +44,16 @@ export default class binance extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
+                'createMarketSellOrder': true,
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -65,6 +70,7 @@ export default class binance extends Exchange {
                 'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': true,
+                'fetchCanceledAndClosedOrders': 'emulated',
                 'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
@@ -90,9 +96,13 @@ export default class binance extends Exchange {
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLedgerEntry': true,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
+                'fetchMarginMode': 'emulated',
+                'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -104,12 +114,15 @@ export default class binance extends Exchange {
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
+                'fetchOption': true,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -121,10 +134,11 @@ export default class binance extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined,
-                'fetchTransactionFee': undefined,
+                'fetchTradingLimits': 'emulated',
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
+                'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
@@ -288,8 +302,6 @@ export default class binance extends Exchange {
                         'loan/flexible/borrow/history': 40,
                         'loan/flexible/repay/history': 40,
                         'loan/flexible/ltv/adjustment/history': 40,
-                        'loan/flexible/loanable/data': 40,
-                        'loan/flexible/collateral/data': 40,
                         'loan/vip/ongoing/orders': 40,
                         'loan/vip/repay/history': 40,
                         'loan/vip/collateral/account': 600,
@@ -474,6 +486,10 @@ export default class binance extends Exchange {
                         'simple-earn/flexible/history/rewardsRecord': 15,
                         'simple-earn/locked/history/rewardsRecord': 15,
                         'simple-earn/flexible/history/collateralRecord': 0.1,
+                        // Convert
+                        'dci/product/list': 0.1,
+                        'dci/product/positions': 0.1,
+                        'dci/product/accounts': 0.1,
                     },
                     'post': {
                         'asset/dust': 0.06667,
@@ -577,7 +593,6 @@ export default class binance extends Exchange {
                         'loan/repay': 40.002,
                         'loan/adjust/ltv': 40.002,
                         'loan/customize/margin_call': 40.002,
-                        'loan/flexible/borrow': 40.002,
                         'loan/flexible/repay': 40.002,
                         'loan/flexible/adjust/ltv': 40.002,
                         'loan/vip/repay': 40.002,
@@ -602,6 +617,9 @@ export default class binance extends Exchange {
                         'simple-earn/locked/redeem': 0.1,
                         'simple-earn/flexible/setAutoSubscribe': 15,
                         'simple-earn/locked/setAutoSubscribe': 15,
+                        // convert
+                        'dci/product/subscribe': 0.1,
+                        'dci/product/auto_compound/edit': 0.1,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -629,10 +647,19 @@ export default class binance extends Exchange {
                         'sub-account/futures/account': 0.1,
                         'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
+                        'loan/flexible/ongoing/orders': 30,
+                        'loan/flexible/borrow/history': 40,
+                        'loan/flexible/repay/history': 40,
+                        'loan/flexible/ltv/adjustment/history': 40,
+                        'loan/flexible/loanable/data': 40,
+                        'loan/flexible/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                     },
                     'post': {
                         'eth-staking/eth/stake': 15,
-                        'sub-account/subAccountApi/ipRestriction': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'sub-account/subAccountApi/ipRestriction': 20.001,
+                        'loan/flexible/borrow': 40.002,
+                        'loan/flexible/repay': 40.002,
+                        'loan/flexible/adjust/ltv': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                     },
                 },
                 'sapiV3': {
@@ -786,6 +813,7 @@ export default class binance extends Exchange {
                         'userTrades': 5,
                         'income': 30,
                         'commissionRate': 20,
+                        'rateLimit/order': 1,
                         'apiTradingStatus': 1,
                         'multiAssetsMargin': 30,
                         // broker endpoints
@@ -1437,63 +1465,30 @@ export default class binance extends Exchange {
             },
             'exceptions': {
                 'spot': {
-                    // https://binance-docs.github.io/apidocs/spot/en/#error-codes
                     'exact': {
-                        '-1000': OperationFailed,
-                        '-1001': OperationFailed,
-                        '-1002': AuthenticationError,
-                        '-1003': RateLimitExceeded,
+                        //
+                        //        1xxx
+                        //
                         '-1004': OperationFailed,
-                        '-1006': OperationFailed,
-                        '-1007': RequestTimeout,
                         '-1008': OperationFailed,
-                        '-1010': OperationFailed,
-                        '-1013': OperationFailed,
-                        '-1014': InvalidOrder,
-                        '-1015': RateLimitExceeded,
-                        '-1016': BadRequest,
-                        '-1020': BadRequest,
-                        '-1021': InvalidNonce,
-                        '-1022': AuthenticationError,
                         '-1099': AuthenticationError,
-                        '-1100': BadRequest,
-                        '-1101': BadRequest,
-                        '-1102': BadRequest,
-                        '-1103': BadRequest,
-                        '-1104': BadRequest,
-                        '-1105': BadRequest,
-                        '-1106': BadRequest,
                         '-1108': BadRequest,
-                        '-1111': BadRequest,
-                        '-1112': OperationFailed,
-                        '-1114': BadRequest,
-                        '-1115': BadRequest,
-                        '-1116': BadRequest,
-                        '-1117': BadRequest,
-                        '-1118': BadRequest,
-                        '-1119': BadRequest,
-                        '-1120': BadRequest,
-                        '-1121': BadSymbol,
-                        '-1125': AuthenticationError,
-                        '-1127': BadRequest,
-                        '-1128': BadRequest,
-                        '-1130': BadRequest,
                         '-1131': BadRequest,
                         '-1134': BadRequest,
                         '-1135': BadRequest,
                         '-1145': BadRequest,
                         '-1151': BadSymbol,
+                        //
+                        //        2xxx
+                        //
                         '-2008': AuthenticationError,
-                        '-2010': InvalidOrder,
-                        '-2011': OrderNotFound,
-                        '-2013': OrderNotFound,
-                        '-2014': AuthenticationError,
-                        '-2015': AuthenticationError,
                         '-2016': OperationRejected,
                         '-2021': BadResponse,
                         '-2022': BadResponse,
                         '-2026': InvalidOrder,
-                        // 3xxx errors are available only for spot
+                        //
+                        //        3xxx (these errors are available only for spot atm)
+                        //
                         '-3000': OperationFailed,
                         '-3001': AuthenticationError,
                         '-3002': BadSymbol,
@@ -1533,6 +1528,10 @@ export default class binance extends Exchange {
                         '-3044': OperationFailed,
                         '-3045': OperationFailed,
                         '-3999': PermissionDenied,
+                        //
+                        //        4xxx (different from contract markets)
+                        //
+                        '-4000': ExchangeError,
                         '-4001': BadRequest,
                         '-4002': BadRequest,
                         '-4003': BadRequest,
@@ -1552,6 +1551,7 @@ export default class binance extends Exchange {
                         '-4017': PermissionDenied,
                         '-4018': BadSymbol,
                         '-4019': BadRequest,
+                        '-4020': ExchangeError,
                         '-4021': BadRequest,
                         '-4022': BadRequest,
                         '-4023': OperationFailed,
@@ -1579,7 +1579,108 @@ export default class binance extends Exchange {
                         '-4045': OperationFailed,
                         '-4046': AuthenticationError,
                         '-4047': BadRequest,
+                        '-4048': ExchangeError,
+                        '-4049': ExchangeError,
+                        '-4050': ExchangeError,
+                        '-4051': ExchangeError,
+                        '-4052': ExchangeError,
+                        '-4053': ExchangeError,
+                        '-4054': ExchangeError,
+                        '-4055': ExchangeError,
+                        '-4056': ExchangeError,
+                        '-4057': ExchangeError,
+                        '-4058': ExchangeError,
+                        '-4059': ExchangeError,
                         '-4060': OperationFailed,
+                        '-4061': ExchangeError,
+                        '-4062': ExchangeError,
+                        '-4063': ExchangeError,
+                        '-4064': ExchangeError,
+                        '-4065': ExchangeError,
+                        '-4066': ExchangeError,
+                        '-4067': ExchangeError,
+                        '-4068': ExchangeError,
+                        '-4069': ExchangeError,
+                        '-4070': ExchangeError,
+                        '-4071': ExchangeError,
+                        '-4072': ExchangeError,
+                        '-4073': ExchangeError,
+                        '-4074': ExchangeError,
+                        '-4075': ExchangeError,
+                        '-4076': ExchangeError,
+                        '-4077': ExchangeError,
+                        '-4078': ExchangeError,
+                        '-4079': ExchangeError,
+                        '-4080': ExchangeError,
+                        '-4081': ExchangeError,
+                        '-4082': ExchangeError,
+                        '-4083': ExchangeError,
+                        '-4084': ExchangeError,
+                        '-4085': ExchangeError,
+                        '-4086': ExchangeError,
+                        '-4087': ExchangeError,
+                        '-4088': ExchangeError,
+                        '-4089': ExchangeError,
+                        '-4091': ExchangeError,
+                        '-4092': ExchangeError,
+                        '-4093': ExchangeError,
+                        '-4094': ExchangeError,
+                        '-4095': ExchangeError,
+                        '-4096': ExchangeError,
+                        '-4097': ExchangeError,
+                        '-4098': ExchangeError,
+                        '-4099': ExchangeError,
+                        '-4101': ExchangeError,
+                        '-4102': ExchangeError,
+                        '-4103': ExchangeError,
+                        '-4104': ExchangeError,
+                        '-4105': ExchangeError,
+                        '-4106': ExchangeError,
+                        '-4107': ExchangeError,
+                        '-4108': ExchangeError,
+                        '-4109': ExchangeError,
+                        '-4110': ExchangeError,
+                        '-4112': ExchangeError,
+                        '-4113': ExchangeError,
+                        '-4114': ExchangeError,
+                        '-4115': ExchangeError,
+                        '-4116': ExchangeError,
+                        '-4117': ExchangeError,
+                        '-4118': ExchangeError,
+                        '-4119': ExchangeError,
+                        '-4120': ExchangeError,
+                        '-4121': ExchangeError,
+                        '-4122': ExchangeError,
+                        '-4123': ExchangeError,
+                        '-4124': ExchangeError,
+                        '-4125': ExchangeError,
+                        '-4126': ExchangeError,
+                        '-4127': ExchangeError,
+                        '-4128': ExchangeError,
+                        '-4129': ExchangeError,
+                        '-4130': ExchangeError,
+                        '-4131': ExchangeError,
+                        '-4132': ExchangeError,
+                        '-4133': ExchangeError,
+                        '-4134': ExchangeError,
+                        '-4135': ExchangeError,
+                        '-4136': ExchangeError,
+                        '-4137': ExchangeError,
+                        '-4138': ExchangeError,
+                        '-4139': ExchangeError,
+                        '-4141': ExchangeError,
+                        '-4142': ExchangeError,
+                        '-4143': ExchangeError,
+                        '-4144': ExchangeError,
+                        '-4145': ExchangeError,
+                        '-4146': ExchangeError,
+                        '-4147': ExchangeError,
+                        '-4148': ExchangeError,
+                        '-4149': ExchangeError,
+                        '-4150': ExchangeError,
+                        //
+                        //        5xxx
+                        //
                         '-5001': BadRequest,
                         '-5002': InsufficientFunds,
                         '-5003': InsufficientFunds,
@@ -1595,6 +1696,9 @@ export default class binance extends Exchange {
                         '-5013': InsufficientFunds,
                         '-5021': BadRequest,
                         '-5022': BadRequest,
+                        //
+                        //        6xxx
+                        //
                         '-6001': BadSymbol,
                         '-6003': PermissionDenied,
                         '-6004': BadRequest,
@@ -1613,8 +1717,14 @@ export default class binance extends Exchange {
                         '-6018': InsufficientFunds,
                         '-6019': OperationRejected,
                         '-6020': BadRequest,
+                        //
+                        //        7xxx
+                        //
                         '-7001': BadRequest,
                         '-7002': BadRequest,
+                        //
+                        //        1xxxx
+                        //
                         '-10001': OperationFailed,
                         '-10002': BadRequest,
                         '-10005': BadResponse,
@@ -1670,17 +1780,10 @@ export default class binance extends Exchange {
                         '-18005': PermissionDenied,
                         '-18006': OperationRejected,
                         '-18007': OperationRejected,
-                        // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
-                        '-20121': BadSymbol,
-                        '-20124': BadRequest,
-                        '-20130': BadRequest,
-                        '-20132': BadRequest,
-                        '-20194': BadRequest,
-                        '-20195': BadRequest,
-                        '-20196': BadRequest,
-                        '-20198': OperationRejected,
-                        '-20204': BadRequest,
-                        // 21xxx - PORTFOLIO MARGIN
+                        //
+                        //        2xxxx
+                        //
+                        //   21xxx - PORTFOLIO MARGIN (documented in spot docs)
                         '-21001': BadRequest,
                         '-21002': BadRequest,
                         '-21003': BadResponse,
@@ -1688,6 +1791,9 @@ export default class binance extends Exchange {
                         '-21005': InsufficientFunds,
                         '-21006': OperationFailed,
                         '-21007': OperationFailed,
+                        //
+                        //        misc
+                        //
                         '-32603': BadRequest,
                         '400002': BadRequest,
                         '100001003': AuthenticationError,
@@ -1695,62 +1801,25 @@ export default class binance extends Exchange {
                     },
                 },
                 'linear': {
-                    // https://binance-docs.github.io/apidocs/futures/en/#error-codes
                     'exact': {
-                        '-1000': OperationFailed,
-                        '-1001': OperationFailed,
-                        '-1002': AuthenticationError,
-                        '-1003': RateLimitExceeded,
-                        '-1004': OperationRejected,
+                        //
+                        //        1xxx
+                        //
                         '-1005': PermissionDenied,
-                        '-1006': OperationFailed,
-                        '-1007': RequestTimeout,
                         '-1008': OperationFailed,
-                        '-1010': OperationFailed,
                         '-1011': PermissionDenied,
-                        '-1013': BadRequest,
-                        '-1014': InvalidOrder,
-                        '-1015': RateLimitExceeded,
-                        '-1016': BadRequest,
-                        '-1020': BadRequest,
-                        '-1021': InvalidNonce,
-                        '-1022': AuthenticationError,
                         '-1023': BadRequest,
                         '-1099': AuthenticationError,
-                        '-1100': BadRequest,
-                        '-1101': BadRequest,
-                        '-1102': BadRequest,
-                        '-1103': BadRequest,
-                        '-1104': BadRequest,
-                        '-1105': BadRequest,
-                        '-1106': BadRequest,
-                        '-1108': BadSymbol,
                         '-1109': PermissionDenied,
                         '-1110': BadRequest,
-                        '-1111': BadRequest,
-                        '-1112': OperationFailed,
                         '-1113': BadRequest,
-                        '-1114': BadRequest,
-                        '-1115': BadRequest,
-                        '-1116': BadRequest,
-                        '-1117': BadRequest,
-                        '-1118': BadRequest,
-                        '-1119': BadRequest,
-                        '-1120': BadRequest,
-                        '-1121': BadSymbol,
                         '-1122': BadRequest,
-                        '-1125': AuthenticationError,
                         '-1126': BadSymbol,
-                        '-1127': BadRequest,
-                        '-1128': BadRequest,
-                        '-1130': BadRequest,
                         '-1136': BadRequest,
-                        '-2010': OrderNotFound,
-                        '-2011': OrderNotFound,
+                        //
+                        //        2xxx
+                        //
                         '-2012': OperationFailed,
-                        '-2013': OrderNotFound,
-                        '-2014': AuthenticationError,
-                        '-2015': AuthenticationError,
                         '-2016': OperationRejected,
                         '-2017': PermissionDenied,
                         '-2018': InsufficientFunds,
@@ -1764,65 +1833,13 @@ export default class binance extends Exchange {
                         '-2026': InvalidOrder,
                         '-2027': OperationRejected,
                         '-2028': OperationRejected,
-                        '-4000': InvalidOrder,
-                        '-4001': BadRequest,
-                        '-4002': BadRequest,
-                        '-4003': BadRequest,
-                        '-4004': BadRequest,
-                        '-4005': BadRequest,
-                        '-4006': BadRequest,
-                        '-4007': BadRequest,
-                        '-4008': BadRequest,
-                        '-4009': BadRequest,
-                        '-4010': BadRequest,
-                        '-4011': BadRequest,
-                        '-4012': BadRequest,
-                        '-4013': BadRequest,
-                        '-4014': BadRequest,
-                        '-4015': BadRequest,
-                        '-4016': OperationRejected,
-                        '-4017': BadRequest,
-                        '-4018': BadRequest,
-                        '-4019': OperationRejected,
-                        '-4020': BadRequest,
-                        '-4021': BadRequest,
-                        '-4022': BadRequest,
-                        '-4023': BadRequest,
-                        '-4024': BadRequest,
-                        '-4025': BadRequest,
-                        '-4026': BadRequest,
-                        '-4027': BadRequest,
-                        '-4028': BadRequest,
-                        '-4029': BadRequest,
-                        '-4030': BadRequest,
-                        '-4031': BadRequest,
-                        '-4032': OperationRejected,
-                        '-4033': BadRequest,
-                        '-4044': BadRequest,
-                        '-4045': OperationRejected,
-                        '-4046': OperationRejected,
-                        '-4047': OperationRejected,
-                        '-4048': OperationRejected,
-                        '-4049': BadRequest,
-                        '-4050': InsufficientFunds,
-                        '-4051': InsufficientFunds,
-                        '-4052': OperationRejected,
-                        '-4053': BadRequest,
-                        '-4054': OperationRejected,
-                        '-4055': BadRequest,
-                        '-4056': AuthenticationError,
-                        '-4057': AuthenticationError,
-                        '-4058': BadRequest,
-                        '-4059': OperationRejected,
-                        '-4060': BadRequest,
-                        '-4061': BadRequest,
-                        '-4062': BadRequest,
+                        //
+                        //        4xxx
+                        //
                         '-4063': BadRequest,
                         '-4064': BadRequest,
                         '-4065': BadRequest,
                         '-4066': BadRequest,
-                        '-4067': OperationRejected,
-                        '-4068': OperationRejected,
                         '-4069': BadRequest,
                         '-4070': BadRequest,
                         '-4071': BadRequest,
@@ -1836,25 +1853,15 @@ export default class binance extends Exchange {
                         '-4079': BadRequest,
                         '-4080': PermissionDenied,
                         '-4081': BadRequest,
-                        '-4082': OperationRejected,
-                        '-4083': OperationFailed,
-                        '-4084': BadRequest,
                         '-4085': BadRequest,
-                        '-4086': BadRequest,
                         '-4087': PermissionDenied,
                         '-4088': PermissionDenied,
-                        '-4104': BadRequest,
                         '-4114': BadRequest,
                         '-4115': BadRequest,
                         '-4118': OperationRejected,
                         '-4131': OperationRejected,
-                        '-4135': BadRequest,
-                        '-4137': BadRequest,
-                        '-4138': BadRequest,
-                        '-4139': BadRequest,
                         '-4140': BadRequest,
                         '-4141': OperationRejected,
-                        '-4142': OrderImmediatelyFillable,
                         '-4144': BadSymbol,
                         '-4164': OperationRejected,
                         '-4165': BadRequest,
@@ -1863,7 +1870,7 @@ export default class binance extends Exchange {
                         '-4169': OperationRejected,
                         '-4170': OperationRejected,
                         '-4171': OperationRejected,
-                        '-4172 ': OperationRejected,
+                        '-4172': OperationRejected,
                         '-4183': BadRequest,
                         '-4184': BadRequest,
                         '-4192': PermissionDenied,
@@ -1879,6 +1886,9 @@ export default class binance extends Exchange {
                         '-4401': PermissionDenied,
                         '-4402': PermissionDenied,
                         '-4403': PermissionDenied,
+                        //
+                        //        5xxx
+                        //
                         '-5021': OrderNotFillable,
                         '-5022': OrderNotFillable,
                         '-5024': OperationRejected,
@@ -1890,73 +1900,25 @@ export default class binance extends Exchange {
                         '-5038': BadRequest,
                         '-5039': BadRequest,
                         '-5040': BadRequest,
-                        '-5041': OperationFailed,
-                        //
-                        // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
-                        //
-                        '-20121': BadSymbol,
-                        '-20124': BadRequest,
-                        '-20130': BadRequest,
-                        '-20132': BadRequest,
-                        '-20194': BadRequest,
-                        '-20195': BadRequest,
-                        '-20196': BadRequest,
-                        '-20198': OperationRejected,
-                        '-20204': BadRequest, // The notional of USD is less or more than the limit.
+                        '-5041': OperationFailed, // No depth matches this BBO order
                     },
                 },
                 'inverse': {
-                    // https://binance-docs.github.io/apidocs/delivery/en/#error-codes
                     'exact': {
-                        '-1000': OperationFailed,
-                        '-1001': OperationFailed,
-                        '-1002': AuthenticationError,
-                        '-1003': RateLimitExceeded,
-                        '-1004': OperationRejected,
+                        //
+                        //        1xxx
+                        //
                         '-1005': PermissionDenied,
-                        '-1006': OperationFailed,
-                        '-1007': RequestTimeout,
-                        '-1010': OperationFailed,
                         '-1011': PermissionDenied,
-                        '-1013': BadRequest,
-                        '-1014': InvalidOrder,
-                        '-1015': RateLimitExceeded,
-                        '-1016': BadRequest,
-                        '-1020': BadRequest,
-                        '-1021': InvalidNonce,
-                        '-1022': AuthenticationError,
                         '-1023': BadRequest,
-                        '-1100': BadRequest,
-                        '-1101': BadRequest,
-                        '-1102': BadRequest,
-                        '-1103': BadRequest,
-                        '-1104': BadRequest,
-                        '-1105': BadRequest,
-                        '-1106': BadRequest,
-                        '-1108': BadSymbol,
                         '-1109': AuthenticationError,
                         '-1110': BadSymbol,
-                        '-1111': BadRequest,
-                        '-1112': OperationFailed,
                         '-1113': BadRequest,
-                        '-1114': BadRequest,
-                        '-1115': BadRequest,
-                        '-1116': BadRequest,
-                        '-1117': BadRequest,
-                        '-1118': BadRequest,
-                        '-1119': BadRequest,
-                        '-1120': BadRequest,
-                        '-1121': BadSymbol,
-                        '-1125': AuthenticationError,
-                        '-1127': BadRequest,
                         '-1128': BadRequest,
-                        '-1130': BadRequest,
                         '-1136': BadRequest,
-                        '-2010': InvalidOrder,
-                        '-2011': OrderNotFound,
-                        '-2013': OrderNotFound,
-                        '-2014': AuthenticationError,
-                        '-2015': AuthenticationError,
+                        //
+                        //        2xxx
+                        //
                         '-2016': OperationRejected,
                         '-2018': InsufficientFunds,
                         '-2019': InsufficientFunds,
@@ -1969,86 +1931,25 @@ export default class binance extends Exchange {
                         '-2026': InvalidOrder,
                         '-2027': OperationRejected,
                         '-2028': OperationRejected,
-                        '-4000': InvalidOrder,
-                        '-4001': BadRequest,
-                        '-4002': BadRequest,
-                        '-4003': BadRequest,
-                        '-4004': BadRequest,
-                        '-4005': BadRequest,
-                        '-4006': BadRequest,
-                        '-4007': BadRequest,
-                        '-4008': BadRequest,
-                        '-4009': BadRequest,
-                        '-4010': BadRequest,
-                        '-4011': BadRequest,
-                        '-4012': BadRequest,
-                        '-4013': BadRequest,
-                        '-4014': BadRequest,
-                        '-4015': BadRequest,
-                        '-4016': BadRequest,
-                        '-4017': BadRequest,
-                        '-4018': BadRequest,
-                        '-4019': OperationRejected,
-                        '-4020': BadRequest,
-                        '-4021': BadRequest,
-                        '-4022': BadRequest,
-                        '-4023': BadRequest,
-                        '-4024': BadRequest,
-                        '-4025': BadRequest,
-                        '-4026': BadRequest,
-                        '-4027': BadRequest,
-                        '-4028': BadRequest,
-                        '-4029': BadRequest,
-                        '-4030': BadRequest,
-                        '-4031': BadRequest,
-                        '-4032': OperationRejected,
-                        '-4033': BadRequest,
-                        '-4044': BadRequest,
-                        '-4045': OperationRejected,
-                        '-4046': BadRequest,
-                        '-4047': OperationRejected,
-                        '-4048': OperationRejected,
-                        '-4049': OperationRejected,
-                        '-4050': InsufficientFunds,
-                        '-4051': InsufficientFunds,
-                        '-4052': OperationRejected,
-                        '-4053': OperationRejected,
-                        '-4054': OperationRejected,
-                        '-4055': BadRequest,
-                        '-4056': AuthenticationError,
-                        '-4057': AuthenticationError,
-                        '-4058': BadRequest,
-                        '-4059': OperationRejected,
-                        '-4060': BadRequest,
-                        '-4061': OperationRejected,
-                        '-4062': BadRequest,
                         //
-                        '-4067': OperationRejected,
-                        '-4068': OperationRejected,
-                        '-4082': OperationRejected,
-                        '-4083': OperationRejected,
-                        '-4084': BadRequest,
+                        //        4xxx
+                        //
                         '-4086': BadRequest,
                         '-4087': BadSymbol,
                         '-4088': BadRequest,
                         '-4089': PermissionDenied,
                         '-4090': PermissionDenied,
-                        '-4104': BadRequest,
                         '-4110': BadRequest,
                         '-4111': BadRequest,
                         '-4112': OperationRejected,
                         '-4113': OperationRejected,
-                        '-4135': BadRequest,
-                        '-4137': BadRequest,
-                        '-4138': BadRequest,
-                        '-4139': BadRequest,
-                        '-4142': OrderImmediatelyFillable,
                         '-4150': OperationRejected,
                         '-4151': BadRequest,
                         '-4152': BadRequest,
                         '-4154': BadRequest,
                         '-4155': BadRequest,
                         '-4178': BadRequest,
+                        '-4188': BadRequest,
                         '-4192': PermissionDenied,
                         '-4194': PermissionDenied,
                         '-4195': PermissionDenied,
@@ -2058,125 +1959,216 @@ export default class binance extends Exchange {
                         '-4199': BadRequest,
                         '-4200': PermissionDenied,
                         '-4201': PermissionDenied,
-                        '-4202': OperationRejected,
-                        '-4188': BadRequest,
-                        //
-                        // spot & futures algo
-                        //
-                        '-20121': BadSymbol,
-                        '-20124': BadRequest,
-                        '-20130': BadRequest,
-                        '-20132': BadRequest,
-                        '-20194': BadRequest,
-                        '-20195': BadRequest,
-                        '-20196': BadRequest,
-                        '-20198': OperationRejected,
-                        '-20204': BadRequest, // The notional of USD is less or more than the limit.
+                        '-4202': OperationRejected, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
                     },
                 },
                 'option': {
-                    // https://binance-docs.github.io/apidocs/voptions/en/#error-codes
                     'exact': {
-                        '-1000': OperationFailed,
-                        '-1001': OperationFailed,
-                        '-1002': AuthenticationError,
+                        //
+                        //        1xxx
+                        //
+                        '-1003': ExchangeError,
+                        '-1004': ExchangeError,
+                        '-1006': ExchangeError,
+                        '-1007': ExchangeError,
                         '-1008': RateLimitExceeded,
-                        '-1014': InvalidOrder,
-                        '-1015': RateLimitExceeded,
-                        '-1016': BadRequest,
-                        '-1020': BadRequest,
-                        '-1021': InvalidNonce,
-                        '-1022': AuthenticationError,
-                        '-1100': BadRequest,
-                        '-1101': BadRequest,
-                        '-1102': BadRequest,
-                        '-1103': BadRequest,
-                        '-1104': BadRequest,
-                        '-1105': BadRequest,
-                        '-1106': BadRequest,
-                        '-1111': BadRequest,
-                        '-1115': BadRequest,
-                        '-1116': BadRequest,
-                        '-1117': BadRequest,
-                        '-1118': BadRequest,
-                        '-1119': BadRequest,
-                        '-1120': BadRequest,
-                        '-1121': BadSymbol,
-                        '-1125': AuthenticationError,
-                        '-1127': BadRequest,
+                        '-1010': ExchangeError,
+                        '-1013': ExchangeError,
+                        '-1108': ExchangeError,
+                        '-1112': ExchangeError,
+                        '-1114': ExchangeError,
                         '-1128': BadSymbol,
                         '-1129': BadSymbol,
-                        '-1130': BadRequest,
                         '-1131': BadRequest,
-                        '-2010': InvalidOrder,
-                        '-2013': OrderNotFound,
-                        '-2014': AuthenticationError,
-                        '-2015': AuthenticationError,
+                        //
+                        //        2xxx
+                        //
+                        '-2011': ExchangeError,
                         '-2018': InsufficientFunds,
                         '-2027': InsufficientFunds,
+                        //
+                        //        3xxx
+                        //
                         '-3029': OperationFailed,
-                        '-4001': BadRequest,
-                        '-4002': BadRequest,
-                        '-4003': BadRequest,
-                        '-4004': BadRequest,
-                        '-4005': BadRequest,
-                        '-4013': BadRequest,
-                        '-4029': BadRequest,
-                        '-4030': BadRequest,
-                        '-4055': BadRequest, // AMOUNT_MUST_BE_POSITIVE
+                        //
+                        //        4xxx
+                        //
+                        // -4001 inherited
+                        // -4002 inherited
+                        // -4003 inherited
+                        // -4004 inherited
+                        // -4005 inherited
+                        '-4006': ExchangeError,
+                        '-4007': ExchangeError,
+                        '-4008': ExchangeError,
+                        '-4009': ExchangeError,
+                        '-4010': ExchangeError,
+                        '-4011': ExchangeError,
+                        '-4012': ExchangeError,
+                        // -4013 inherited
+                        '-4014': ExchangeError,
+                        '-4015': ExchangeError,
+                        '-4016': ExchangeError,
+                        '-4017': ExchangeError,
+                        '-4018': ExchangeError,
+                        '-4019': ExchangeError,
+                        '-4020': ExchangeError,
+                        '-4021': ExchangeError,
+                        '-4022': ExchangeError,
+                        '-4023': ExchangeError,
+                        '-4024': ExchangeError,
+                        '-4025': ExchangeError,
+                        '-4026': ExchangeError,
+                        '-4027': ExchangeError,
+                        '-4028': ExchangeError,
+                        // -4029 inherited
+                        // -4030 inherited
+                        '-4031': ExchangeError,
+                        '-4032': ExchangeError,
+                        '-4033': ExchangeError,
+                        '-4034': ExchangeError,
+                        '-4035': ExchangeError,
+                        '-4036': ExchangeError,
+                        '-4037': ExchangeError,
+                        '-4038': ExchangeError,
+                        '-4039': ExchangeError,
+                        '-4040': ExchangeError,
+                        '-4041': ExchangeError,
+                        '-4042': ExchangeError,
+                        '-4043': ExchangeError,
+                        '-4044': ExchangeError,
+                        '-4045': ExchangeError,
+                        '-4046': ExchangeError,
+                        '-4047': ExchangeError,
+                        '-4048': ExchangeError,
+                        '-4049': ExchangeError,
+                        '-4050': ExchangeError,
+                        '-4051': ExchangeError,
+                        '-4052': ExchangeError,
+                        '-4053': ExchangeError,
+                        '-4054': ExchangeError,
+                        // -4055 inherited
+                        '-4056': ExchangeError,
+                        '-4057': ExchangeError,
+                        '-4058': ExchangeError,
+                        '-4059': ExchangeError,
+                        '-4060': ExchangeError,
+                        '-4061': ExchangeError,
+                        '-4062': ExchangeError,
+                        '-4063': ExchangeError,
+                        '-4064': ExchangeError,
+                        '-4065': ExchangeError,
+                        '-4066': ExchangeError,
+                        '-4067': ExchangeError,
+                        '-4068': ExchangeError,
+                        '-4069': ExchangeError,
+                        '-4070': ExchangeError,
+                        '-4071': ExchangeError,
+                        '-4072': ExchangeError,
+                        '-4073': ExchangeError,
+                        '-4074': ExchangeError,
+                        '-4075': ExchangeError,
+                        '-4076': ExchangeError,
+                        '-4077': ExchangeError,
+                        '-4078': ExchangeError,
+                        '-4079': ExchangeError,
+                        '-4080': ExchangeError,
+                        '-4081': ExchangeError,
+                        '-4082': ExchangeError,
+                        '-4083': ExchangeError,
+                        '-4084': ExchangeError,
+                        '-4085': ExchangeError,
+                        '-4086': ExchangeError,
+                        '-4087': ExchangeError,
+                        '-4088': ExchangeError,
+                        '-4089': ExchangeError,
+                        '-4091': ExchangeError,
+                        '-4092': ExchangeError,
+                        '-4093': ExchangeError,
+                        '-4094': ExchangeError,
+                        '-4095': ExchangeError,
+                        '-4096': ExchangeError,
+                        '-4097': ExchangeError,
+                        '-4098': ExchangeError,
+                        '-4099': ExchangeError,
+                        '-4101': ExchangeError,
+                        '-4102': ExchangeError,
+                        '-4103': ExchangeError,
+                        '-4104': ExchangeError,
+                        '-4105': ExchangeError,
+                        '-4106': ExchangeError,
+                        '-4107': ExchangeError,
+                        '-4108': ExchangeError,
+                        '-4109': ExchangeError,
+                        '-4110': ExchangeError,
+                        '-4112': ExchangeError,
+                        '-4113': ExchangeError,
+                        '-4114': ExchangeError,
+                        '-4115': ExchangeError,
+                        '-4116': ExchangeError,
+                        '-4117': ExchangeError,
+                        '-4118': ExchangeError,
+                        '-4119': ExchangeError,
+                        '-4120': ExchangeError,
+                        '-4121': ExchangeError,
+                        '-4122': ExchangeError,
+                        '-4123': ExchangeError,
+                        '-4124': ExchangeError,
+                        '-4125': ExchangeError,
+                        '-4126': ExchangeError,
+                        '-4127': ExchangeError,
+                        '-4128': ExchangeError,
+                        '-4129': ExchangeError,
+                        '-4130': ExchangeError,
+                        '-4131': ExchangeError,
+                        '-4132': ExchangeError,
+                        '-4133': ExchangeError,
+                        '-4134': ExchangeError,
+                        '-4135': ExchangeError,
+                        '-4136': ExchangeError,
+                        '-4137': ExchangeError,
+                        '-4138': ExchangeError,
+                        '-4139': ExchangeError,
+                        '-4141': ExchangeError,
+                        '-4142': ExchangeError,
+                        '-4143': ExchangeError,
+                        '-4144': ExchangeError,
+                        '-4145': ExchangeError,
+                        '-4146': ExchangeError,
+                        '-4147': ExchangeError,
+                        '-4148': ExchangeError,
+                        '-4149': ExchangeError,
+                        '-4150': ExchangeError,
+                        //
+                        //        2xxxx
+                        //
+                        '-20121': ExchangeError,
+                        '-20124': ExchangeError,
+                        '-20130': ExchangeError,
+                        '-20132': ExchangeError,
+                        '-20194': ExchangeError,
+                        '-20195': ExchangeError,
+                        '-20196': ExchangeError,
+                        '-20198': ExchangeError,
+                        '-20204': ExchangeError, // override commons
                     },
                 },
                 'portfolioMargin': {
                     'exact': {
-                        '-1000': OperationFailed,
-                        '-1001': OperationFailed,
-                        '-1002': AuthenticationError,
-                        '-1003': RateLimitExceeded,
-                        '-1004': OperationRejected,
+                        //
+                        //        1xxx
+                        //
                         '-1005': PermissionDenied,
-                        '-1006': OperationFailed,
-                        '-1007': RequestTimeout,
-                        '-1010': OperationFailed,
                         '-1011': PermissionDenied,
-                        '-1013': OperationFailed,
-                        '-1014': InvalidOrder,
-                        '-1015': RateLimitExceeded,
-                        '-1016': BadRequest,
-                        '-1020': BadRequest,
-                        '-1021': InvalidNonce,
-                        '-1022': AuthenticationError,
                         '-1023': BadRequest,
-                        '-1100': BadRequest,
-                        '-1101': BadRequest,
-                        '-1102': BadRequest,
-                        '-1103': BadRequest,
-                        '-1104': BadRequest,
-                        '-1105': BadRequest,
-                        '-1106': BadRequest,
-                        '-1108': BadSymbol,
                         '-1109': BadRequest,
                         '-1110': BadSymbol,
-                        '-1111': BadRequest,
-                        '-1112': OperationFailed,
                         '-1113': BadRequest,
-                        '-1114': BadRequest,
-                        '-1115': BadRequest,
-                        '-1116': BadRequest,
-                        '-1117': BadRequest,
-                        '-1118': BadRequest,
-                        '-1119': BadRequest,
-                        '-1120': BadRequest,
-                        '-1121': BadSymbol,
-                        '-1125': AuthenticationError,
-                        '-1127': BadRequest,
                         '-1128': BadRequest,
-                        '-1130': BadRequest,
                         '-1136': BadRequest,
-                        '-2010': InvalidOrder,
-                        '-2011': OrderNotFound,
-                        '-2013': OrderNotFound,
-                        '-2014': AuthenticationError,
-                        '-2015': AuthenticationError,
+                        //
+                        //        2xxx
+                        //
                         '-2016': OperationRejected,
                         '-2018': InsufficientFunds,
                         '-2019': InsufficientFunds,
@@ -2189,65 +2181,13 @@ export default class binance extends Exchange {
                         '-2026': InvalidOrder,
                         '-2027': OperationRejected,
                         '-2028': OperationRejected,
-                        '-4000': InvalidOrder,
-                        '-4001': BadRequest,
-                        '-4002': BadRequest,
-                        '-4003': BadRequest,
-                        '-4004': BadRequest,
-                        '-4005': BadRequest,
-                        '-4006': BadRequest,
-                        '-4007': BadRequest,
-                        '-4008': BadRequest,
-                        '-4009': BadRequest,
-                        '-4010': BadRequest,
-                        '-4011': BadRequest,
-                        '-4012': BadRequest,
-                        '-4013': BadRequest,
-                        '-4014': BadRequest,
-                        '-4015': BadRequest,
-                        '-4016': BadRequest,
-                        '-4017': BadRequest,
-                        '-4018': BadRequest,
-                        '-4019': OperationRejected,
-                        '-4020': BadRequest,
-                        '-4021': BadRequest,
-                        '-4022': BadRequest,
-                        '-4023': BadRequest,
-                        '-4024': BadRequest,
-                        '-4025': BadRequest,
-                        '-4026': BadRequest,
-                        '-4027': BadRequest,
-                        '-4028': BadRequest,
-                        '-4029': BadRequest,
-                        '-4030': BadRequest,
-                        '-4031': BadRequest,
-                        '-4032': OperationRejected,
-                        '-4033': BadRequest,
-                        '-4044': BadRequest,
-                        '-4045': OperationRejected,
-                        '-4046': OperationRejected,
-                        '-4047': OperationRejected,
-                        '-4048': OperationRejected,
-                        '-4049': BadRequest,
-                        '-4050': InsufficientFunds,
-                        '-4051': InsufficientFunds,
-                        '-4052': OperationRejected,
-                        '-4053': BadRequest,
-                        '-4054': OperationRejected,
-                        '-4055': BadRequest,
-                        '-4056': AuthenticationError,
-                        '-4057': AuthenticationError,
-                        '-4058': BadRequest,
-                        '-4059': OperationRejected,
-                        '-4060': BadRequest,
-                        '-4061': BadRequest,
-                        '-4062': BadRequest,
+                        //
+                        //        4xxx
+                        //
                         '-4063': BadRequest,
                         '-4064': BadRequest,
                         '-4065': BadRequest,
                         '-4066': BadRequest,
-                        '-4067': OperationRejected,
-                        '-4068': OperationRejected,
                         '-4069': BadRequest,
                         '-4070': BadRequest,
                         '-4071': BadRequest,
@@ -2261,36 +2201,183 @@ export default class binance extends Exchange {
                         '-4079': BadRequest,
                         '-4080': PermissionDenied,
                         '-4081': BadRequest,
-                        '-4082': BadRequest,
-                        '-4083': OperationFailed,
-                        '-4084': BadRequest,
                         '-4085': BadRequest,
                         '-4086': BadRequest,
                         '-4087': PermissionDenied,
                         '-4088': PermissionDenied,
-                        '-4104': BadRequest,
                         '-4114': BadRequest,
                         '-4115': BadRequest,
                         '-4118': OperationRejected,
                         '-4131': OperationRejected,
-                        '-4135': BadRequest,
-                        '-4137': BadRequest,
-                        '-4138': BadRequest,
-                        '-4139': BadRequest,
                         '-4140': BadRequest,
                         '-4141': BadRequest,
-                        '-4142': OrderImmediatelyFillable,
                         '-4144': BadSymbol,
                         '-4161': OperationRejected,
                         '-4164': OperationRejected,
                         '-4165': BadRequest,
                         '-4183': BadRequest,
                         '-4184': BadRequest,
+                        //
+                        //        5xxx
+                        //
                         '-5021': OrderNotFillable,
-                        '-5022': OrderNotFillable, // Due to the order could not be executed as maker, the Post Only order will be rejected.
+                        '-5022': OrderNotFillable,
+                        //
+                        //        2xxxx
+                        //
+                        '-20121': ExchangeError,
+                        '-20124': ExchangeError,
+                        '-20130': ExchangeError,
+                        '-20132': ExchangeError,
+                        '-20194': ExchangeError,
+                        '-20195': ExchangeError,
+                        '-20196': ExchangeError,
+                        '-20198': ExchangeError,
+                        '-20204': ExchangeError,
+                        //   21xxx - PORTFOLIO MARGIN (documented in spot docs)
+                        '-21001': BadRequest,
+                        '-21002': BadRequest,
+                        '-21003': BadResponse,
+                        '-21004': OperationRejected,
+                        '-21005': InsufficientFunds,
+                        '-21006': OperationFailed,
+                        '-21007': OperationFailed, // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
                     },
                 },
                 'exact': {
+                    // error codes to cover ALL market types (however, specific market type might have override)
+                    //
+                    //        1xxx
+                    //
+                    '-1000': OperationFailed,
+                    '-1001': OperationFailed,
+                    '-1002': AuthenticationError,
+                    '-1003': RateLimitExceeded,
+                    '-1004': OperationRejected,
+                    '-1006': OperationFailed,
+                    '-1007': RequestTimeout,
+                    '-1010': OperationFailed,
+                    '-1013': BadRequest,
+                    '-1014': InvalidOrder,
+                    '-1015': RateLimitExceeded,
+                    '-1016': BadRequest,
+                    '-1020': BadRequest,
+                    '-1021': InvalidNonce,
+                    '-1022': AuthenticationError,
+                    '-1100': BadRequest,
+                    '-1101': BadRequest,
+                    '-1102': BadRequest,
+                    '-1103': BadRequest,
+                    '-1104': BadRequest,
+                    '-1105': BadRequest,
+                    '-1106': BadRequest,
+                    '-1108': BadSymbol,
+                    '-1111': BadRequest,
+                    '-1112': OperationFailed,
+                    '-1114': BadRequest,
+                    '-1115': BadRequest,
+                    '-1116': BadRequest,
+                    '-1117': BadRequest,
+                    '-1118': BadRequest,
+                    '-1119': BadRequest,
+                    '-1120': BadRequest,
+                    '-1121': BadSymbol,
+                    '-1125': AuthenticationError,
+                    '-1127': BadRequest,
+                    '-1128': BadRequest,
+                    '-1130': BadRequest,
+                    //
+                    //        2xxx
+                    //
+                    '-2010': InvalidOrder,
+                    '-2011': OrderNotFound,
+                    '-2013': OrderNotFound,
+                    '-2014': AuthenticationError,
+                    '-2015': AuthenticationError,
+                    //
+                    //        4xxx (common for linear, inverse, pm)
+                    //
+                    '-4000': InvalidOrder,
+                    '-4001': BadRequest,
+                    '-4002': BadRequest,
+                    '-4003': BadRequest,
+                    '-4004': BadRequest,
+                    '-4005': BadRequest,
+                    '-4006': BadRequest,
+                    '-4007': BadRequest,
+                    '-4008': BadRequest,
+                    '-4009': BadRequest,
+                    '-4010': BadRequest,
+                    '-4011': BadRequest,
+                    '-4012': BadRequest,
+                    '-4013': BadRequest,
+                    '-4014': BadRequest,
+                    '-4015': BadRequest,
+                    '-4016': BadRequest,
+                    '-4017': BadRequest,
+                    '-4018': BadRequest,
+                    '-4019': OperationRejected,
+                    '-4020': BadRequest,
+                    '-4021': BadRequest,
+                    '-4022': BadRequest,
+                    '-4023': BadRequest,
+                    '-4024': BadRequest,
+                    '-4025': BadRequest,
+                    '-4026': BadRequest,
+                    '-4027': BadRequest,
+                    '-4028': BadRequest,
+                    '-4029': BadRequest,
+                    '-4030': BadRequest,
+                    '-4031': BadRequest,
+                    '-4032': OperationRejected,
+                    '-4033': BadRequest,
+                    '-4044': BadRequest,
+                    '-4045': OperationRejected,
+                    '-4046': OperationRejected,
+                    '-4047': OperationRejected,
+                    '-4048': OperationRejected,
+                    '-4049': BadRequest,
+                    '-4050': InsufficientFunds,
+                    '-4051': InsufficientFunds,
+                    '-4052': OperationRejected,
+                    '-4053': BadRequest,
+                    '-4054': OperationRejected,
+                    '-4055': BadRequest,
+                    '-4056': AuthenticationError,
+                    '-4057': AuthenticationError,
+                    '-4058': BadRequest,
+                    '-4059': OperationRejected,
+                    '-4060': BadRequest,
+                    '-4061': OperationRejected,
+                    '-4062': BadRequest,
+                    '-4067': OperationRejected,
+                    '-4068': OperationRejected,
+                    '-4082': BadRequest,
+                    '-4083': OperationRejected,
+                    '-4084': BadRequest,
+                    '-4086': BadRequest,
+                    '-4104': BadRequest,
+                    '-4135': BadRequest,
+                    '-4137': BadRequest,
+                    '-4138': BadRequest,
+                    '-4139': BadRequest,
+                    '-4142': OrderImmediatelyFillable,
+                    //
+                    //        2xxxx
+                    //
+                    // 20xxx - spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
+                    '-20121': BadSymbol,
+                    '-20124': BadRequest,
+                    '-20130': BadRequest,
+                    '-20132': BadRequest,
+                    '-20194': BadRequest,
+                    '-20195': BadRequest,
+                    '-20196': BadRequest,
+                    '-20198': OperationRejected,
+                    '-20204': BadRequest,
+                    //
+                    // strings
+                    //
                     'System is under maintenance.': OnMaintenance,
                     'System abnormality': OperationFailed,
                     'You are not authorized to execute this request.': PermissionDenied,
@@ -2320,7 +2407,7 @@ export default class binance extends Exchange {
     }
     isInverse(type, subType = undefined) {
         if (subType === undefined) {
-            return type === 'delivery';
+            return (type === 'delivery');
         }
         else {
             return subType === 'inverse';
@@ -2503,6 +2590,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const defaultType = this.safeString2(this.options, 'fetchTime', 'defaultType', 'spot');
@@ -2763,14 +2851,12 @@ export default class binance extends Exchange {
             }
         }
         const promises = await Promise.all(promisesRaw);
-        const spotMarkets = this.safeValue(this.safeValue(promises, 0), 'symbols', []);
-        const futureMarkets = this.safeValue(this.safeValue(promises, 1), 'symbols', []);
-        const deliveryMarkets = this.safeValue(this.safeValue(promises, 2), 'symbols', []);
-        const optionMarkets = this.safeValue(this.safeValue(promises, 3), 'optionSymbols', []);
-        let markets = spotMarkets;
-        markets = this.arrayConcat(markets, futureMarkets);
-        markets = this.arrayConcat(markets, deliveryMarkets);
-        markets = this.arrayConcat(markets, optionMarkets);
+        let markets = [];
+        for (let i = 0; i < fetchMarkets.length; i++) {
+            const promise = this.safeDict(promises, i);
+            const promiseMarkets = this.safeList2(promise, 'symbols', 'optionSymbols', []);
+            markets = this.arrayConcat(markets, promiseMarkets);
+        }
         //
         // spot / margin
         //
@@ -3300,6 +3386,7 @@ export default class binance extends Exchange {
          * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
@@ -3878,6 +3965,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    // future
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -3918,6 +4006,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of lastprices structures
          */
         await this.loadMarkets();
@@ -4023,6 +4112,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -4108,9 +4198,10 @@ export default class binance extends Exchange {
         //         "closeTime": 1677097200000
         //     }
         //
-        const volumeIndex = (market['inverse']) ? 7 : 5;
+        const inverse = this.safeBool(market, 'inverse');
+        const volumeIndex = inverse ? 7 : 5;
         return [
-            this.safeInteger2(ohlcv, 0, 'closeTime'),
+            this.safeInteger2(ohlcv, 0, 'openTime'),
             this.safeNumber2(ohlcv, 1, 'open'),
             this.safeNumber2(ohlcv, 2, 'high'),
             this.safeNumber2(ohlcv, 3, 'low'),
@@ -4787,7 +4878,7 @@ export default class binance extends Exchange {
         let stopPriceIsRequired = false;
         let quantityIsRequired = false;
         if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
+            const quoteOrderQty = this.safeBool(this.options, 'quoteOrderQty', true);
             if (quoteOrderQty) {
                 const quoteOrderQtyNew = this.safeValue2(params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
@@ -6448,6 +6539,7 @@ export default class binance extends Exchange {
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
          * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account conditional orders
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -6810,6 +6902,38 @@ export default class binance extends Exchange {
         const orders = await this.fetchOrders(symbol, since, undefined, params);
         const filteredOrders = this.filterBy(orders, 'status', 'canceled');
         return this.filterBySinceLimit(filteredOrders, since, limit);
+    }
+    async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchCanceledAndClosedOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-um-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-cm-conditional-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#query-all-margin-account-orders-user_data
+         * @param {string} symbol unified market symbol of the market the orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+         * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
+        }
+        const orders = await this.fetchOrders(symbol, since, undefined, params);
+        const canceledOrders = this.filterBy(orders, 'status', 'canceled');
+        const closedOrders = this.filterBy(orders, 'status', 'closed');
+        const filteredOrders = this.arrayConcat(canceledOrders, closedOrders);
+        const sortedOrders = this.sortBy(filteredOrders, 'timestamp');
+        return this.filterBySinceLimit(sortedOrders, since, limit);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -8094,7 +8218,6 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchTransfers
-         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
          * @description fetch a history of internal transfers made on an account
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
          * @param {string} code unified currency code of the currency transferred
@@ -8560,6 +8683,7 @@ export default class binance extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
@@ -8628,6 +8752,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -8885,6 +9010,7 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding rate
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
         await this.loadMarkets();
@@ -8958,6 +9084,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets();
@@ -9581,6 +9708,7 @@ export default class binance extends Exchange {
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
@@ -9895,6 +10023,7 @@ export default class binance extends Exchange {
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} data on account positions
          */
         if (symbols !== undefined) {
@@ -9948,6 +10077,7 @@ export default class binance extends Exchange {
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} data on the positions risk
          */
         if (symbols !== undefined) {
@@ -10107,6 +10237,7 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding history entry
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets();
@@ -10264,7 +10395,7 @@ export default class binance extends Exchange {
             // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
             // binanceusdm
             if (e instanceof MarginModeAlreadySet) {
-                const throwMarginModeAlreadySet = this.safeValue(this.options, 'throwMarginModeAlreadySet', false);
+                const throwMarginModeAlreadySet = this.safeBool(this.options, 'throwMarginModeAlreadySet', false);
                 if (throwMarginModeAlreadySet) {
                     throw e;
                 }
@@ -10291,6 +10422,7 @@ export default class binance extends Exchange {
          * @param {string} symbol not used by binance setPositionMode ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} response from the exchange
          */
         const defaultType = this.safeString(this.options, 'defaultType', 'future');
@@ -10319,13 +10451,16 @@ export default class binance extends Exchange {
                 response = await this.dapiPrivatePostPositionSideDual(this.extend(request, params));
             }
         }
-        else {
+        else if (this.isLinear(type, subType)) {
             if (isPortfolioMargin) {
                 response = await this.papiPostUmPositionSideDual(this.extend(request, params));
             }
             else {
                 response = await this.fapiPrivatePostPositionSideDual(this.extend(request, params));
             }
+        }
+        else {
+            throw new BadRequest(this.id + ' setPositionMode() supports linear and inverse contracts only');
         }
         //
         //     {
@@ -10334,6 +10469,80 @@ export default class binance extends Exchange {
         //     }
         //
         return response;
+    }
+    async fetchLeverages(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchLeverages
+         * @description fetch the set leverage for all markets
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+         * @see https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
+         * @param {string[]} [symbols] a list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        await this.loadLeverageBrackets(false, params);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchLeverages', undefined, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchLeverages', undefined, params, 'linear');
+        let isPortfolioMargin = undefined;
+        [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchLeverages', 'papi', 'portfolioMargin', false);
+        let response = undefined;
+        if (this.isLinear(type, subType)) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetUmAccount(params);
+            }
+            else {
+                response = await this.fapiPrivateV2GetAccount(params);
+            }
+        }
+        else if (this.isInverse(type, subType)) {
+            if (isPortfolioMargin) {
+                response = await this.papiGetCmAccount(params);
+            }
+            else {
+                response = await this.dapiPrivateGetAccount(params);
+            }
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchLeverages() supports linear and inverse contracts only');
+        }
+        const leverages = this.safeList(response, 'positions', []);
+        return this.parseLeverages(leverages, symbols, 'symbol');
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        const marginModeRaw = this.safeBool(leverage, 'isolated');
+        let marginMode = undefined;
+        if (marginModeRaw !== undefined) {
+            marginMode = marginModeRaw ? 'isolated' : 'cross';
+        }
+        const side = this.safeStringLower(leverage, 'positionSide');
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        const leverageValue = this.safeInteger(leverage, 'leverage');
+        if (side === 'both') {
+            longLeverage = leverageValue;
+            shortLeverage = leverageValue;
+        }
+        else if (side === 'long') {
+            longLeverage = leverageValue;
+        }
+        else if (side === 'short') {
+            shortLeverage = leverageValue;
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
     }
     async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -10517,6 +10726,19 @@ export default class binance extends Exchange {
         }
         return result;
     }
+    async fetchLedgerEntry(id, code = undefined, params = {}) {
+        await this.loadMarkets();
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchLedgerEntry', undefined, params);
+        const query = {
+            'recordId': id,
+            'type': type,
+        };
+        if (type !== 'option') {
+            throw new BadRequest(this.id + ' fetchLedgerEntry () can only be used for type option');
+        }
+        return await this.fetchLedger(code, undefined, undefined, this.extend(query, params));
+    }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -10534,6 +10756,7 @@ export default class binance extends Exchange {
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -11506,6 +11729,7 @@ export default class binance extends Exchange {
          * @param {int} [limit] default 30, max 500
          * @param {object} [params] exchange specific parameters
          * @param {int} [params.until] the time(ms) of the latest record to retrieve as a unix timestamp
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} an array of [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
         if (timeframe === '1m') {
@@ -11677,6 +11901,8 @@ export default class binance extends Exchange {
          * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch liquidations in a portfolio margin account
+         * @param {string} [params.type] "spot"
+         * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets();
@@ -11981,6 +12207,298 @@ export default class binance extends Exchange {
             'lastPrice': undefined,
             'underlyingPrice': undefined,
             'info': greeks,
+        };
+    }
+    async fetchTradingLimits(symbols = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
+        const markets = await this.fetchMarkets();
+        const tradingLimits = {};
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const symbol = market['symbol'];
+            if ((symbols === undefined) || (this.inArray(symbol, symbols))) {
+                tradingLimits[symbol] = market['limits']['amount'];
+            }
+        }
+        return tradingLimits;
+    }
+    async fetchPositionMode(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchPositionMode
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchPositionMode', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.fapiPrivateGetPositionSideDual(params);
+        }
+        else if (subType === 'inverse') {
+            response = await this.dapiPrivateGetPositionSideDual(params);
+        }
+        else {
+            throw new BadRequest(this.id + ' fetchPositionMode requires either a symbol argument or params["subType"]');
+        }
+        //
+        //    {
+        //        dualSidePosition: false
+        //    }
+        //
+        const dualSidePosition = this.safeBool(response, 'dualSidePosition');
+        return {
+            'info': response,
+            'hedged': dualSidePosition,
+        };
+    }
+    async fetchMarginModes(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchMarginMode
+         * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols(symbols);
+            market = this.market(symbols[0]);
+        }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchMarginMode', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.fapiPrivateV2GetAccount(params);
+            //
+            //    {
+            //        feeTier: '0',
+            //        canTrade: true,
+            //        canDeposit: true,
+            //        canWithdraw: true,
+            //        tradeGroupId: '-1',
+            //        updateTime: '0',
+            //        multiAssetsMargin: true,
+            //        totalInitialMargin: '438.31134352',
+            //        totalMaintMargin: '5.90847101',
+            //        totalWalletBalance: '4345.15626338',
+            //        totalUnrealizedProfit: '376.45220224',
+            //        totalMarginBalance: '4721.60846562',
+            //        totalPositionInitialMargin: '425.45252687',
+            //        totalOpenOrderInitialMargin: '12.85881664',
+            //        totalCrossWalletBalance: '4345.15626338',
+            //        totalCrossUnPnl: '376.45220224',
+            //        availableBalance: '4281.84764041',
+            //        maxWithdrawAmount: '4281.84764041',
+            //        assets: [
+            //            {
+            //                asset: 'ETH',
+            //                walletBalance: '0.00000000',
+            //                unrealizedProfit: '0.00000000',
+            //                marginBalance: '0.00000000',
+            //                maintMargin: '0.00000000',
+            //                initialMargin: '0.00000000',
+            //                positionInitialMargin: '0.00000000',
+            //                openOrderInitialMargin: '0.00000000',
+            //                maxWithdrawAmount: '0.00000000',
+            //                crossWalletBalance: '0.00000000',
+            //                crossUnPnl: '0.00000000',
+            //                availableBalance: '1.26075574',
+            //                marginAvailable: true,
+            //                updateTime: '0'
+            //            },
+            //        ...
+            //        ],
+            //        positions: [
+            //            {
+            //              symbol: 'SNTUSDT',
+            //              initialMargin: '0',
+            //              maintMargin: '0',
+            //              unrealizedProfit: '0.00000000',
+            //              positionInitialMargin: '0',
+            //              openOrderInitialMargin: '0',
+            //              leverage: '20',
+            //              isolated: false,
+            //              entryPrice: '0.0',
+            //              breakEvenPrice: '0.0',
+            //              maxNotional: '25000',
+            //              positionSide: 'BOTH',
+            //              positionAmt: '0',
+            //              notional: '0',
+            //              isolatedWallet: '0',
+            //              updateTime: '0',
+            //              bidNotional: '0',
+            //              askNotional: '0'
+            //            },
+            //            ...
+            //        ]
+            //    }
+            //
+        }
+        else if (subType === 'inverse') {
+            response = await this.dapiPrivateGetAccount(params);
+            //
+            //    {
+            //        feeTier: '0',
+            //        canTrade: true,
+            //        canDeposit: true,
+            //        canWithdraw: true,
+            //        updateTime: '0',
+            //        assets: [
+            //            {
+            //                asset: 'APT',
+            //                walletBalance: '0.00000000',
+            //                unrealizedProfit: '0.00000000',
+            //                marginBalance: '0.00000000',
+            //                maintMargin: '0.00000000',
+            //                initialMargin: '0.00000000',
+            //                positionInitialMargin: '0.00000000',
+            //                openOrderInitialMargin: '0.00000000',
+            //                maxWithdrawAmount: '0.00000000',
+            //                crossWalletBalance: '0.00000000',
+            //                crossUnPnl: '0.00000000',
+            //                availableBalance: '0.00000000',
+            //                updateTime: '0'
+            //            },
+            //            ...
+            //        ],
+            //        positions: [
+            //            {
+            //                symbol: 'BCHUSD_240329',
+            //                initialMargin: '0',
+            //                maintMargin: '0',
+            //                unrealizedProfit: '0.00000000',
+            //                positionInitialMargin: '0',
+            //                openOrderInitialMargin: '0',
+            //                leverage: '20',
+            //                isolated: false,
+            //                positionSide: 'BOTH',
+            //                entryPrice: '0.00000000',
+            //                maxQty: '1000',
+            //                notionalValue: '0',
+            //                isolatedWallet: '0',
+            //                updateTime: '0',
+            //                positionAmt: '0',
+            //                breakEvenPrice: '0.00000000'
+            //            },
+            //            ...
+            //        ]
+            //    }
+            //
+        }
+        else {
+            throw new BadRequest(this.id + ' fetchMarginModes () supports linear and inverse subTypes only');
+        }
+        const assets = this.safeValue(response, 'positions', []);
+        return this.parseMarginModes(assets, symbols, 'symbol', 'swap');
+    }
+    parseMarginMode(marginMode, market = undefined) {
+        const marketId = this.safeString(marginMode, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const isIsolated = this.safeBool(marginMode, 'isolated');
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': isIsolated ? 'isolated' : 'cross',
+        };
+    }
+    async fetchOption(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOption
+         * @description fetches option data that is commonly found in an option chain
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.eapiPublicGetTicker(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-241227-80000-C",
+        //             "priceChange": "0",
+        //             "priceChangePercent": "0",
+        //             "lastPrice": "2750",
+        //             "lastQty": "0",
+        //             "open": "2750",
+        //             "high": "2750",
+        //             "low": "2750",
+        //             "volume": "0",
+        //             "amount": "0",
+        //             "bidPrice": "4880",
+        //             "askPrice": "0",
+        //             "openTime": 0,
+        //             "closeTime": 0,
+        //             "firstTradeId": 0,
+        //             "tradeCount": 0,
+        //             "strikePrice": "80000",
+        //             "exercisePrice": "63944.09893617"
+        //         }
+        //     ]
+        //
+        const chain = this.safeDict(response, 0, {});
+        return this.parseOption(chain, undefined, market);
+    }
+    parseOption(chain, currency = undefined, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-241227-80000-C",
+        //         "priceChange": "0",
+        //         "priceChangePercent": "0",
+        //         "lastPrice": "2750",
+        //         "lastQty": "0",
+        //         "open": "2750",
+        //         "high": "2750",
+        //         "low": "2750",
+        //         "volume": "0",
+        //         "amount": "0",
+        //         "bidPrice": "4880",
+        //         "askPrice": "0",
+        //         "openTime": 0,
+        //         "closeTime": 0,
+        //         "firstTradeId": 0,
+        //         "tradeCount": 0,
+        //         "strikePrice": "80000",
+        //         "exercisePrice": "63944.09893617"
+        //     }
+        //
+        const marketId = this.safeString(chain, 'symbol');
+        market = this.safeMarket(marketId, market);
+        return {
+            'info': chain,
+            'currency': undefined,
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'impliedVolatility': undefined,
+            'openInterest': undefined,
+            'bidPrice': this.safeNumber(chain, 'bidPrice'),
+            'askPrice': this.safeNumber(chain, 'askPrice'),
+            'midPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': this.safeNumber(chain, 'lastPrice'),
+            'underlyingPrice': this.safeNumber(chain, 'exercisePrice'),
+            'change': this.safeNumber(chain, 'priceChange'),
+            'percentage': this.safeNumber(chain, 'priceChangePercent'),
+            'baseVolume': this.safeNumber(chain, 'volume'),
+            'quoteVolume': undefined,
         };
     }
 }

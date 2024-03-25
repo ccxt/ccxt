@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kuna import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -517,7 +517,7 @@ class kuna(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for kuna
         :see: https://docs.kuna.io/docs/get-all-traded-markets
@@ -793,25 +793,28 @@ class kuna(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'pair': market['id'],
+            'pairs': market['id'],
         }
         if limit is not None:
             request['limit'] = limit
         response = await self.v4PublicGetTradePublicBookPairs(self.extend(request, params))
         #
         #    {
-        #        "data": {
-        #            "id": "3e5591ba-2778-4d85-8851-54284045ea44",       # Unique identifier of a trade
-        #            "pair": "BTC_USDT",                                 # Market pair that is being traded
-        #            "quoteQuantity": "11528.8118",                      # Qty of the quote asset, hasattr(self, USDT) example
-        #            "matchPrice": "18649",                              # Exchange price at the moment of execution
-        #            "matchQuantity": "0.6182",                          # Qty of the base asset, hasattr(self, BTC) example
-        #            "createdAt": "2022-09-23T14:30:41.486Z",            # Date-time of trade execution, UTC
-        #            "side": "Ask"                                       # Trade type: `Ask` or `Bid`. Bid for buying base asset, Ask for selling base asset(e.g. for BTC_USDT trading pair, BTC is the base asset).
-        #        }
+        #        'data': [
+        #            {
+        #                'createdAt': '2024-03-02T00:10:49.385Z',
+        #                'id': '3b42878a-3688-4bc1-891e-5cc2fc902142',
+        #                'matchPrice': '62181.31',
+        #                'matchQuantity': '0.00568',
+        #                'pair': 'BTC_USDT',
+        #                'quoteQuantity': '353.1898408',
+        #                'side': 'Bid'
+        #            },
+        #            ...
+        #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
     def parse_trade(self, trade, market: Market = None) -> Trade:
@@ -913,7 +916,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_balance(data)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.kuna.io/docs/create-a-new-order-private

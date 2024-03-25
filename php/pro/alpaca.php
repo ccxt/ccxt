@@ -585,30 +585,32 @@ class alpaca extends \ccxt\async\alpaca {
     }
 
     public function authenticate($url, $params = array ()) {
-        $this->check_required_credentials();
-        $messageHash = 'authenticated';
-        $client = $this->client($url);
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $request = array(
-                'action' => 'auth',
-                'key' => $this->apiKey,
-                'secret' => $this->secret,
-            );
-            if ($url === $this->urls['api']['ws']['trading']) {
-                // this auth $request is being deprecated in test environment
+        return Async\async(function () use ($url, $params) {
+            $this->check_required_credentials();
+            $messageHash = 'authenticated';
+            $client = $this->client($url);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
                 $request = array(
-                    'action' => 'authenticate',
-                    'data' => array(
-                        'key_id' => $this->apiKey,
-                        'secret_key' => $this->secret,
-                    ),
+                    'action' => 'auth',
+                    'key' => $this->apiKey,
+                    'secret' => $this->secret,
                 );
+                if ($url === $this->urls['api']['ws']['trading']) {
+                    // this auth $request is being deprecated in test environment
+                    $request = array(
+                        'action' => 'authenticate',
+                        'data' => array(
+                            'key_id' => $this->apiKey,
+                            'secret_key' => $this->secret,
+                        ),
+                    );
+                }
+                $this->watch($url, $messageHash, $request, $messageHash, $future);
             }
-            $this->watch($url, $messageHash, $request, $messageHash, $future);
-        }
-        return $future;
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_error_message(Client $client, $message) {
@@ -638,7 +640,7 @@ class alpaca extends \ccxt\async\alpaca {
         for ($i = 0; $i < count($message); $i++) {
             $data = $message[$i];
             $T = $this->safe_string($data, 'T');
-            $msg = $this->safe_value($data, 'msg', array());
+            $msg = $this->safe_string($data, 'msg');
             if ($T === 'subscription') {
                 $this->handle_subscription($client, $data);
                 return;

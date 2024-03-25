@@ -1,0 +1,236 @@
+{
+    "exchange": "coinbase",
+    "skipKeys": ["client_order_id"],
+    "outputType": "both",
+    "options": {
+      "portfolio": "1wp37qsc-1-0"
+    },
+    "methods": {
+       "fetchAccounts": [
+        {
+          "description": "fetchAccounts",
+          "method": "fetchAccounts",
+          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios",
+          "input": []
+        }
+       ],
+       "fetchFundingRateHistory": [
+        {
+          "description": "fetch funding rate history",
+          "method": "fetchFundingRateHistory",
+          "url": "https://api.international.coinbase.com/api/v1/instruments/BTC-PERP/funding?result_offset=0",
+          "input": [
+            "BTC/USDC:USDC"
+          ]
+        }
+       ],
+       "fetchPosition": [
+        {
+          "description": "fetchPosition",
+          "method": "fetchPosition",
+          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/positions/BTC-PERP",
+          "input": [
+            "BTC/USDC:USDC"
+          ]
+        }
+       ],
+       "fetchPositions": [
+        {
+          "description": "fetchPositions with symbols undefined",
+          "method": "fetchPositions",
+          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/positions",
+          "input": []
+        },
+        {
+          "description": "fetchPositions with symbol",
+          "method": "fetchPositions",
+          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/positions",
+          "input": [
+            ["BTC/USDC:USDC"]
+          ]
+        }
+       ],
+       "fetchTicker": [
+        {
+          "description": "Fill this with a description of the method call",
+          "method": "fetchTicker",
+          "url": "https://api-n5e1.coinbase.com/api/v1/instruments/BTC-PERP/quote",
+          "input": [
+            "BTC/USDC:USDC"
+          ]
+        }
+       ],
+       "fetchTickers": [
+        {
+          "description": "fetchTickers with one symbol",
+          "method": "fetchTickers",
+          "url": "https://api-n5e1.coinbase.com/api/v1/instruments",
+          "input": [
+            [
+              "BTC/USDC:USDC"
+            ]
+          ]
+        }
+       ],
+       "fetchBalance": [
+        {
+          "description": "fetchBalance",
+          "method": "fetchBalance",
+          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/1wp37qsc-1-0/balances",
+          "input": []
+        }
+       ],
+       "createOrder": [
+        {
+          "description": "createOrder market buy",
+          "method": "createOrder",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
+          "input": [
+            "BTC/USDC:USDC",
+            "market",
+            "buy",
+            0.01,
+            54000
+          ],
+          "output": "{\"client_order_id\":\"ccxt3523937d-859d-\",\"side\":\"BUY\",\"instrument\":\"BTC-PERP\",\"size\":\"0.01\",\"type\":\"MARKET\",\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"IOC\"}"
+        },
+        {
+          "description": "createOrder limit sell",
+          "method": "createOrder",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
+          "input": [
+            "BTC/USDC:USDC",
+            "limit",
+            "sell",
+            0.01,
+            54000
+          ],
+          "output": "{\"client_order_id\":\"ccxtd0dd4b5d-8e5f-\",\"side\":\"SELL\",\"instrument\":\"BTC-PERP\",\"size\":\"0.01\",\"type\":\"LIMIT\",\"price\":54000,\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"GTC\"}"
+        },
+        {
+          "description": "stop limit order",
+          "method": "createOrder",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
+          "input": [
+            "ETH/USDC:USDC",
+            "limit",
+            "buy",
+            0.1,
+            5001,
+            {
+              "triggerPrice": 5000
+            }
+          ],
+          "output": "{\"client_order_id\":\"ccxt3dc5d350-1921-\",\"side\":\"BUY\",\"instrument\":\"ETH-PERP\",\"size\":\"0.1\",\"stop_price\":5000,\"type\":\"STOP_LIMIT\",\"price\":5001,\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"GTC\",\"triggerPrice\":5000}"
+        },
+        {
+          "description": "spot market order",
+          "method": "createOrder",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
+          "input": [
+            "ETH/USDC",
+            "market",
+            "buy",
+            0.1
+          ],
+          "output": "{\"client_order_id\":\"nfqkvdjp-4b03ab8a\",\"side\":\"BUY\",\"instrument\":\"ETH-USDC\",\"size\":\"0.1\",\"type\":\"MARKET\",\"portfolio\":\"1wp37qsc-1-0\",\"tif\":\"IOC\"}"
+        },
+        {
+          "description": "spot postOnly limit order",
+          "method": "createOrder",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders",
+          "input": [
+            "ETH/USDC",
+            "limit",
+            "buy",
+            0.1,
+            3500,
+            {
+              "postOnly": true
+            }
+          ],
+          "output": "{\"client_order_id\":\"nfqkvdjp-5f13356c\",\"side\":\"BUY\",\"instrument\":\"ETH-USDC\",\"size\":\"0.1\",\"type\":\"LIMIT\",\"price\":3500,\"portfolio\":\"1wp37qsc-1-0\",\"post_only\":true,\"tif\":\"GTC\"}"
+        }
+       ],
+       "fetchOpenOrders": [
+        {
+          "description": "fetchOpenOrders",
+          "method": "fetchOpenOrders",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders?portfolio=1wp37qsc-1-0&result_offset=0",
+          "input": []
+        }
+       ],
+       "fetchMyTrades": [
+        {
+          "description": "fetchMyTrades",
+          "method": "fetchMyTrades",
+          "url": "https://api-n5e1.coinbase.com/api/v1/portfolios/fills?result_offset=0",
+          "input": []
+        }
+       ],
+       "cancelOrder": [
+        {
+          "description": "cancel stop limit order",
+          "method": "cancelOrder",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders/1yuhgvhn-1-0?portfolio=1wp37qsc-1-0",
+          "input": [
+            "1yuhgvhn-1-0"
+          ],
+          "output": "{\"portfolio\":\"1wp37qsc-1-0\"}"
+        }
+       ],
+       "cancelAllOrders": [
+        {
+          "description": "cancel all orders",
+          "method": "cancelAllOrders",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders?portfolio=1wp37qsc-1-0",
+          "input": [],
+          "output": "{\"portfolio\":\"1wp37qsc-1-0\"}"
+        }
+       ],
+       "editOrder": [
+        {
+          "description": "editOrder",
+          "method": "editOrder",
+          "url": "https://api-n5e1.coinbase.com/api/v1/orders/1yujb23q-1-0",
+          "input": [
+            "1yujb23q-1-0",
+            "ADA/USDC:USDC",
+            "limit",
+            "buy",
+            101,
+            0.35,
+            {
+              "clientOrderId": "ccxtaf8edcec-ce94-"
+            }
+          ],
+          "output": "{\"portfolio\":\"1wp37qsc-1-0\",\"size\":\"101\",\"price\":\"0.35\",\"client_order_id\":\"ccxtaf8edcec-ce94-\",\"clientOrderId\":\"ccxtaf8edcec-ce94-\"}"
+        }
+       ],
+       "fetchDepositsWithdrawals": [
+          {
+            "description": "fetch deposit withdrawals",
+            "method": "fetchDepositsWithdrawals",
+            "url": "https://api.international.coinbase.com/api/v1/transfers?result_offset=0",
+            "input": []
+          }
+       ]
+    },
+    "withdraw": [
+      {
+        "description": "withdraw USDC",
+        "method": "withdraw",
+        "url": "https://api.international.coinbase.com/api/v1/transfers/withdraw",
+        "input": [
+          "USDC",
+          5,
+          "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
+          null,
+          {
+            "network": "ARBITRUM"
+          }
+        ],
+        "output": "{\"portfolio\":\"1yun54bb-1-6\",\"type\":\"send\",\"asset\":\"USDC\",\"address\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"amount\":5,\"currency\":\"USDC\",\"network_arn_id\":\"networks/arbitrum-mainnet/assets/5f9ba01c-4cfe-5519-977e-21af64a3a2a8\",\"nonce\":1710440664,\"network\":\"ARBITRUM\"}"
+      }
+    ]
+}

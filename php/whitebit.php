@@ -224,6 +224,7 @@ class whitebit extends Exchange {
                     'account' => 'spot',
                 ),
                 'accountsByType' => array(
+                    'funding' => 'main',
                     'main' => 'main',
                     'spot' => 'spot',
                     'margin' => 'collateral',
@@ -265,7 +266,7 @@ class whitebit extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for whitebit
          * @see https://docs.whitebit.com/public/http-v4/#market-info
@@ -1294,9 +1295,9 @@ class whitebit extends Exchange {
         } else {
             $options = $this->safe_value($this->options, 'fetchBalance', array());
             $defaultAccount = $this->safe_string($options, 'account');
-            $account = $this->safe_string($params, 'account', $defaultAccount);
-            $params = $this->omit($params, 'account');
-            if ($account === 'main') {
+            $account = $this->safe_string_2($params, 'account', 'type', $defaultAccount);
+            $params = $this->omit($params, array( 'account', 'type' ));
+            if ($account === 'main' || $account === 'funding') {
                 $response = $this->v4PrivatePostMainAccountBalance ($params);
             } else {
                 $response = $this->v4PrivatePostTradeAccountBalance ($params);
@@ -1680,7 +1681,7 @@ class whitebit extends Exchange {
         //     }
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.whitebit.com/private/http-main-v4/#transfer-between-main-and-trade-balances

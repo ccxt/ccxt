@@ -65,6 +65,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
         for i in range(0, len(format)):
             empty_allowed_for_this_key = exchange.in_array(i, empty_allowed_for)
             value = entry[i]
+            if i in skipped_properties:
+                continue
             # check when:
             # - it's not inside "allowe empty values" list
             # - it's not undefined
@@ -72,7 +74,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
                 continue
             assert value is not None, str(i) + ' index is expected to have a value' + log_text
             # because of other langs, this is needed for arrays
-            assert assert_type(exchange, skipped_properties, entry, i, format), str(i) + ' index does not have an expected type ' + log_text
+            type_assertion = assert_type(exchange, skipped_properties, entry, i, format)
+            assert type_assertion, str(i) + ' index does not have an expected type ' + log_text
     else:
         assert isinstance(entry, dict), 'entry is not an object' + log_text
         keys = list(format.keys())
@@ -81,6 +84,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             if key in skipped_properties:
                 continue
             assert key in entry, '\"' + string_value(key) + '\" key is missing from structure' + log_text
+            if key in skipped_properties:
+                continue
             empty_allowed_for_this_key = exchange.in_array(key, empty_allowed_for)
             value = entry[key]
             # check when:
@@ -92,7 +97,8 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             assert value is not None, '\"' + string_value(key) + '\" key is expected to have a value' + log_text
             # add exclusion for info key, as it can be any type
             if key != 'info':
-                assert assert_type(exchange, skipped_properties, entry, key, format), '\"' + string_value(key) + '\" key is neither undefined, neither of expected type' + log_text
+                type_assertion = assert_type(exchange, skipped_properties, entry, key, format)
+                assert type_assertion, '\"' + string_value(key) + '\" key is neither undefined, neither of expected type' + log_text
 
 
 def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=None, key_name_or_index='timestamp'):
@@ -111,7 +117,7 @@ def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=N
         assert isinstance(ts, numbers.Real), 'timestamp is not numeric' + log_text
         assert isinstance(ts, int), 'timestamp should be an integer' + log_text
         min_ts = 1230940800000  # 03 Jan 2009 - first block
-        max_ts = 2147483648000  # 03 Jan 2009 - first block
+        max_ts = 2147483648000  # 19 Jan 2038 - max int
         assert ts > min_ts, 'timestamp is impossible to be before ' + str(min_ts) + ' (03.01.2009)' + log_text  # 03 Jan 2009 - first block
         assert ts < max_ts, 'timestamp more than ' + str(max_ts) + ' (19.01.2038)' + log_text  # 19 Jan 2038 - int32 overflows # 7258118400000  -> Jan 1 2200
         if now_to_check is not None:
@@ -141,7 +147,7 @@ def assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, n
 
 
 def assert_currency_code(exchange, skipped_properties, method, entry, actual_code, expected_code=None):
-    if 'currency' in skipped_properties:
+    if ('currency' in skipped_properties) or ('currencyIdAndCode' in skipped_properties):
         return
     log_text = log_template(exchange, method, entry)
     if actual_code is not None:
@@ -153,7 +159,7 @@ def assert_currency_code(exchange, skipped_properties, method, entry, actual_cod
 
 def assert_valid_currency_id_and_code(exchange, skipped_properties, method, entry, currency_id, currency_code):
     # this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-    if 'currencyIdAndCode' in skipped_properties:
+    if ('currency' in skipped_properties) or ('currencyIdAndCode' in skipped_properties):
         return
     log_text = log_template(exchange, method, entry)
     undefined_values = currency_id is None and currency_code is None
@@ -270,10 +276,10 @@ def assert_fee_structure(exchange, skipped_properties, method, entry, key):
 def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=True):
     for i in range(0, len(items)):
         if i > 0:
-            ascending_or_descending = 'ascending' if ascending else 'descending'
             current_ts = items[i - 1]['timestamp']
             next_ts = items[i]['timestamp']
             if current_ts is not None and next_ts is not None:
+                ascending_or_descending = 'ascending' if ascending else 'descending'
                 comparison = (current_ts <= next_ts) if ascending else (current_ts >= next_ts)
                 assert comparison, exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp, but ' + str(current_ts) + ' is opposite with its next ' + str(next_ts) + ' ' + exchange.json(items)
 
@@ -327,3 +333,21 @@ def set_proxy_options(exchange, skipped_properties, proxy_url, http_proxy, https
     exchange.http_proxy = http_proxy
     exchange.https_proxy = https_proxy
     exchange.socks_proxy = socks_proxy
+
+
+def assert_non_emtpy_array(exchange, skipped_properties, method, entry, hint=None):
+    log_text = log_template(exchange, method, entry)
+    if hint is not None:
+        log_text = log_text + ' ' + hint
+    assert isinstance(entry, list), 'response is expected to be an array' + log_text
+    if not ('emptyResponse' in skipped_properties):
+        return
+    assert len(entry) > 0, 'response is expected to be a non-empty array' + log_text + ' (add \"emptyResponse\" in skip-tests.json to skip this check)'
+
+
+def assert_round_minute_timestamp(exchange, skipped_properties, method, entry, key):
+    if key in skipped_properties:
+        return
+    log_text = log_template(exchange, method, entry)
+    ts = exchange.safe_string(entry, key)
+    assert Precise.string_mod(ts, '60000') == '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + log_text

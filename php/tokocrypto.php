@@ -613,7 +613,7 @@ class tokocrypto extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://www.tokocrypto.com/apidocs/#get-all-supported-trading-$symbol
          * retrieves $data on all markets for tokocrypto
@@ -985,14 +985,14 @@ class tokocrypto extends Exchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * @see https://www.tokocrypto.com/apidocs/#recent-trades-list
-         * @see https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-list
-         * get the list of most recent trades for a particular $symbol
+         * @see https://www.tokocrypto.com/apidocs/#recent-trades-$list
+         * @see https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-$list
+         * get the $list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a $list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1008,8 +1008,28 @@ class tokocrypto extends Exchange {
                 $request['limit'] = $limit;
             }
             $responseInner = $this->publicGetOpenV1MarketTrades (array_merge($request, $params));
-            $data = $this->safe_value($responseInner, 'data', array());
-            return $this->parse_trades($data, $market, $since, $limit);
+            //
+            //    {
+            //       "code" => 0,
+            //       "msg" => "success",
+            //       "data" => {
+            //           "list" => array(
+            //                array(
+            //                    "id" => 28457,
+            //                    "price" => "4.00000100",
+            //                    "qty" => "12.00000000",
+            //                    "time" => 1499865549590,
+            //                    "isBuyerMaker" => true,
+            //                    "isBestMatch" => true
+            //                }
+            //            )
+            //        ),
+            //        "timestamp" => 1571921637091
+            //    }
+            //
+            $data = $this->safe_dict($responseInner, 'data', array());
+            $list = $this->safe_list($data, 'list', array());
+            return $this->parse_trades($list, $market, $since, $limit);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 500, maximum = 1000
@@ -1020,7 +1040,7 @@ class tokocrypto extends Exchange {
         if (($method === 'binanceGetAggTrades') && ($since !== null)) {
             $request['startTime'] = $since;
             // https://github.com/ccxt/ccxt/issues/6400
-            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-$list
             $request['endTime'] = $this->sum($since, 3600000);
             $response = $this->binanceGetAggTrades (array_merge($request, $params));
         } else {

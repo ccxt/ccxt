@@ -232,6 +232,7 @@ class whitebit extends Exchange {
                     'account' => 'spot',
                 ),
                 'accountsByType' => array(
+                    'funding' => 'main',
                     'main' => 'main',
                     'spot' => 'spot',
                     'margin' => 'collateral',
@@ -273,7 +274,7 @@ class whitebit extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for whitebit
@@ -1333,9 +1334,9 @@ class whitebit extends Exchange {
             } else {
                 $options = $this->safe_value($this->options, 'fetchBalance', array());
                 $defaultAccount = $this->safe_string($options, 'account');
-                $account = $this->safe_string($params, 'account', $defaultAccount);
-                $params = $this->omit($params, 'account');
-                if ($account === 'main') {
+                $account = $this->safe_string_2($params, 'account', 'type', $defaultAccount);
+                $params = $this->omit($params, array( 'account', 'type' ));
+                if ($account === 'main' || $account === 'funding') {
                     $response = Async\await($this->v4PrivatePostMainAccountBalance ($params));
                 } else {
                     $response = Async\await($this->v4PrivatePostTradeAccountBalance ($params));

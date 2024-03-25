@@ -15,7 +15,7 @@ public partial class testMainClass : BaseTest
     public Exchange exchange = new Exchange();
     public string rootDir = Tests.ccxtBaseDir + "/";
     public string rootDirForSkips = Tests.ccxtBaseDir + "/";
-    public object skipMethods = null;
+    public object skippedSettingsForExchange = null;
     public object skippedMethods = null;
     public object publicTests = null;
     public object checkedPublicTests = null;
@@ -42,8 +42,8 @@ public partial class testMainClass : BaseTest
 
     public bool isSynchronous = false;
 
-    public object onlySpecificTests = null;
-    public object proxyTestFileName = null;
+    public List<object> onlySpecificTests = new List<object>();
+    public string proxyTestFileName = "proxies";
 
     public string lang = "C#";
 
@@ -241,12 +241,16 @@ public partial class testMainClass : BaseTest
     {
         try
         {
-            var value = exchange.GetType().GetProperty(prop as string).GetValue(exchange);
-            if (value == null)
+            var propertyInfo = exchange.GetType().GetProperty(prop as string);
+            if (propertyInfo != null) 
+            {
+                var value = propertyInfo.GetValue(exchange);
+                return value != null ? value : defaultValue;
+            }
+            else 
             {
                 return defaultValue;
             }
-            return value;
         }
         catch (Exception)
         {

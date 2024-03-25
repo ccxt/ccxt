@@ -107,9 +107,10 @@ public partial class bitmart : ccxt.bitmart
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
-    public async virtual Task<object> subscribeMultiple(object channel, object type, object symbols, object parameters = null)
+    public async virtual Task<object> subscribeMultiple(object channel, object type, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        symbols = this.marketSymbols(symbols, type, false, true);
         object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "public"));
         object channelType = ((bool) isTrue((isEqual(type, "spot")))) ? "spot" : "futures";
         object actionType = ((bool) isTrue((isEqual(type, "spot")))) ? "op" : "action";
@@ -121,6 +122,11 @@ public partial class bitmart : ccxt.bitmart
             object message = add(add(add(add(channelType, "/"), channel), ":"), getValue(market, "id"));
             ((IList<object>)rawSubscriptions).Add(message);
             ((IList<object>)messageHashes).Add(add(add(channel, ":"), getValue(market, "symbol")));
+        }
+        // as an exclusion, futures "tickers" need one generic request for all symbols
+        if (isTrue(isTrue((!isEqual(type, "spot"))) && isTrue((isEqual(channel, "ticker")))))
+        {
+            rawSubscriptions = new List<object>() {add(add(channelType, "/"), channel)};
         }
         object request = new Dictionary<string, object>() {
             { "args", rawSubscriptions },
@@ -369,16 +375,8 @@ public partial class bitmart : ccxt.bitmart
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbol = this.symbol(symbol);
-        object market = this.market(symbol);
-        object type = "spot";
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchTicker", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isEqual(type, "swap")))
-        {
-            throw new NotSupported ((string)add(add(add(this.id, " watchTicker() does not support "), type), " markets. Use watchTickers() instead")) ;
-        }
-        return await this.subscribe("ticker", symbol, type, parameters);
+        object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
+        return getValue(tickers, symbol);
     }
 
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
@@ -395,47 +393,15 @@ public partial class bitmart : ccxt.bitmart
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.getMarketFromSymbols(symbols);
-        object type = "spot";
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "public"));
-        symbols = this.marketSymbols(symbols);
-        object messageHash = add("tickers::", type);
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
-        }
-        object request = null;
-        object tickers = null;
-        object isSpot = (isEqual(type, "spot"));
-        if (isTrue(isSpot))
-        {
-            if (isTrue(isEqual(symbols, null)))
-            {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchTickers() for "), type), " market type requires symbols argument to be provided")) ;
-            }
-            object marketIds = this.marketIds(symbols);
-            object finalArray = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
-            {
-                ((IList<object>)finalArray).Add(add("spot/ticker:", getValue(marketIds, i)));
-            }
-            request = new Dictionary<string, object>() {
-                { "op", "subscribe" },
-                { "args", finalArray },
-            };
-            tickers = await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
-        } else
-        {
-            request = new Dictionary<string, object>() {
-                { "action", "subscribe" },
-                { "args", new List<object>() {"futures/ticker"} },
-            };
-            tickers = await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
-        }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object ticker = await this.subscribeMultiple("ticker", marketType, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(ticker, "symbol")] = ticker;
             return tickers;
         }
         return this.filterByArray(this.tickers, "symbol", symbols);
@@ -826,11 +792,11 @@ public partial class bitmart : ccxt.bitmart
         //    }
         //
         object data = this.safeValue(message, "data", new List<object>() {});
-        object cache = this.positions;
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
+        object cache = this.positions;
         object newPositions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -953,23 +919,40 @@ public partial class bitmart : ccxt.bitmart
         {
             return;
         }
-        object stored = null;
         object symbol = null;
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        object length = getArrayLength(data);
+        object isSwap = (inOp(message, "group"));
+        if (isTrue(isSwap))
         {
-            object trade = this.parseWsTrade(getValue(data, i));
-            symbol = getValue(trade, "symbol");
-            object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-            stored = this.safeValue(this.trades, symbol);
-            if (isTrue(isEqual(stored, null)))
+            // in swap, chronologically decreasing: 1709536849322, 1709536848954,
+            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
             {
-                stored = new ArrayCache(tradesLimit);
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+                object index = subtract(subtract(length, i), 1);
+                symbol = this.handleTradeLoop(getValue(data, index));
             }
-            callDynamically(stored, "append", new object[] {trade});
+        } else
+        {
+            // in spot, chronologically increasing: 1709536771200, 1709536771226,
+            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+            {
+                symbol = this.handleTradeLoop(getValue(data, i));
+            }
         }
-        object messageHash = add("trade:", symbol);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), add("trade:", symbol)});
+    }
+
+    public virtual object handleTradeLoop(object entry)
+    {
+        object trade = this.parseWsTrade(entry);
+        object symbol = getValue(trade, "symbol");
+        object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+        if (isTrue(isEqual(this.safeValue(this.trades, symbol), null)))
+        {
+            ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(tradesLimit);
+        }
+        object stored = getValue(this.trades, symbol);
+        callDynamically(stored, "append", new object[] {trade});
+        return symbol;
     }
 
     public override object parseWsTrade(object trade, object market = null)
@@ -1052,52 +1035,25 @@ public partial class bitmart : ccxt.bitmart
         //
         object table = this.safeString(message, "table");
         object isSpot = (!isEqual(table, null));
-        object data = this.safeValue(message, "data");
-        if (isTrue(isEqual(data, null)))
+        object rawTickers = new List<object>() {};
+        if (isTrue(isSpot))
+        {
+            rawTickers = this.safeList(message, "data", new List<object>() {});
+        } else
+        {
+            rawTickers = new List<object> {this.safeValue(message, "data", new Dictionary<string, object>() {})};
+        }
+        if (!isTrue(getArrayLength(rawTickers)))
         {
             return;
         }
-        if (isTrue(isSpot))
+        for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
-            {
-                object ticker = this.parseTicker(getValue(data, i));
-                object symbol = getValue(ticker, "symbol");
-                object marketId = this.safeString(getValue(ticker, "info"), "symbol");
-                object messageHash = add(add(table, ":"), marketId);
-                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-                callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
-                this.resolveMessageHashesForSymbol(client as WebSocketClient, symbol, ticker, "tickers::");
-            }
-        } else
-        {
-            // on each update for contract markets, single ticker is provided
-            object ticker = this.parseWsSwapTicker(data);
-            object symbol = this.safeString(ticker, "symbol");
+            object ticker = ((bool) isTrue(isSpot)) ? this.parseTicker(getValue(rawTickers, i)) : this.parseWsSwapTicker(getValue(rawTickers, i));
+            object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, "tickers::swap"});
-            this.resolveMessageHashesForSymbol(client as WebSocketClient, symbol, ticker, "tickers::");
-        }
-    }
-
-    public virtual void resolveMessageHashesForSymbol(WebSocketClient client, object symbol, object result, object prexif)
-    {
-        object prefixSeparator = "::";
-        object symbolsSeparator = ",";
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, prexif);
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
-        {
-            object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)prefixSeparator)}, StringSplitOptions.None).ToList<object>();
-            object length = getArrayLength(parts);
-            object symbolsString = getValue(parts, subtract(length, 1));
-            object symbols = ((string)symbolsString).Split(new [] {((string)symbolsSeparator)}, StringSplitOptions.None).ToList<object>();
-            if (isTrue(this.inArray(symbol, symbols)))
-            {
-                object response = new Dictionary<string, object>() {};
-                ((IDictionary<string,object>)response)[(string)symbol] = result;
-                callDynamically(client as WebSocketClient, "resolve", new object[] {response, messageHash});
-            }
+            object messageHash = add("ticker:", symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
     }
 
@@ -1612,7 +1568,7 @@ public partial class bitmart : ccxt.bitmart
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
@@ -1691,7 +1647,17 @@ public partial class bitmart : ccxt.bitmart
         }
         //
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
-        //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
+        //
+        // subscribe events on spot:
+        //
+        //     {"event":"subscribe", "topic":"spot/kline1m:BTC_USDT" }
+        //
+        // subscribe on contracts:
+        //
+        //     {"action":"subscribe", "group":"futures/klineBin1m:BTCUSDT", "success":true, "request":{"action":"subscribe", "args":[ "futures/klineBin1m:BTCUSDT" ] } }
+        //
+        // regular updates - spot
+        //
         //     {
         //         "table": "spot/depth",
         //         "action": "partial",
@@ -1712,10 +1678,21 @@ public partial class bitmart : ccxt.bitmart
         //         ]
         //     }
         //
+        // regular updates - contracts
+        //
+        //     {
+        //         group: "futures/klineBin1m:BTCUSDT",
+        //         data: {
+        //           symbol: "BTCUSDT",
+        //           items: [ { o: "67944.7", "h": .... } ],
+        //         },
+        //       }
+        //
         //     { data: '', table: "spot/user/order" }
         //
-        object channel = this.safeString2(message, "table", "group");
-        if (isTrue(isEqual(channel, null)))
+        // the only realiable way (for both spot & swap) is to check 'data' key
+        object isDataUpdate = (inOp(message, "data"));
+        if (!isTrue(isDataUpdate))
         {
             object eventVar = this.safeString2(message, "event", "action");
             if (isTrue(!isEqual(eventVar, null)))
@@ -1733,6 +1710,7 @@ public partial class bitmart : ccxt.bitmart
             }
         } else
         {
+            object channel = this.safeString2(message, "table", "group");
             object methods = new Dictionary<string, object>() {
                 { "depth", this.handleOrderBook },
                 { "ticker", this.handleTicker },

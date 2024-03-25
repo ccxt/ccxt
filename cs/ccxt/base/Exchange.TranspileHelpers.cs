@@ -715,6 +715,27 @@ public partial class Exchange
                 return null;
             }
         }
+        else if (value2 is System.Collections.IDictionary)
+        {
+
+            IDictionary<string, object> dict = ConvertToDictionaryOfStringObject(value2);
+            var keys = dict.Keys;
+            foreach (var key2 in keys)
+            {
+                if (key2 == null)
+                    continue;
+                var dictKey = key2.ToString();
+                if (dict.ContainsKey(dictKey))
+                {
+                    var returnValue = dict[dictKey];
+                    if (returnValue == null || returnValue.ToString().Length == 0)
+                        continue;
+
+                    return returnValue;
+                }
+            }
+            return null;
+        }
         else if (value is IList<object>)
         {
             // check here if index is out of bounds
@@ -864,6 +885,12 @@ public partial class Exchange
                 return ((IDictionary<string, object>)obj).ContainsKey((string)key);
             else
                 return false;
+        }
+        else if (obj is System.Collections.IDictionary || (obj.GetType().IsGenericType && obj.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) // is the second cond needed?
+        {
+            // check if this is a dictionary regardless of the value type
+            IDictionary<string, object> dict = ConvertToDictionaryOfStringObject(obj);
+            return dict.ContainsKey((string)key);
         }
         else
         {

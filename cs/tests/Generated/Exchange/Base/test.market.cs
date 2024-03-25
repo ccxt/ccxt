@@ -61,7 +61,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, "symbol");
         object logText = testSharedMethods.logTemplate(exchange, method, market);
         //
-        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option"};
+        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index"};
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         object hasIndex = (inOp(market, "index")); // todo: add in all
         // check if string is consistent with 'type'
@@ -139,14 +139,14 @@ public partial class testMainClass : BaseTest
         } else
         {
             // linear & inverse needs to be undefined
-            assert(isTrue((isEqual(getValue(market, "linear"), null))) && isTrue((isEqual(getValue(market, "inverse"), null))), add("market linear and inverse must be undefined when \"contract\" is true", logText));
+            assert(isTrue((isEqual(getValue(market, "linear"), null))) && isTrue((isEqual(getValue(market, "inverse"), null))), add("market linear and inverse must be undefined when \"contract\" is false", logText));
             // contract size should be undefined
             if (!isTrue((inOp(skippedProperties, "contractSize"))))
             {
                 assert(isEqual(contractSize, null), add("\"contractSize\" must be undefined when \"contract\" is false", logText));
             }
             // settle should be undefined
-            assert(isTrue((isEqual(getValue(market, "settle"), null))) && isTrue((isEqual(getValue(market, "settleId"), null))), add("\"settle\" must be undefined when \"contract\" is true", logText));
+            assert(isTrue((isEqual(getValue(market, "settle"), null))) && isTrue((isEqual(getValue(market, "settleId"), null))), add("\"settle\" must be undefined when \"contract\" is false", logText));
             // spot should be true
             assert(getValue(market, "spot"), add("\"spot\" must be true when \"contract\" is false", logText));
         }
@@ -221,7 +221,7 @@ public partial class testMainClass : BaseTest
             }
         }
         // check whether valid currency ID and CODE is used
-        if (!isTrue((inOp(skippedProperties, "currencyIdAndCode"))))
+        if (isTrue(!isTrue((inOp(skippedProperties, "currency"))) && !isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
         {
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "baseId"), getValue(market, "base"));
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "quoteId"), getValue(market, "quote"));

@@ -586,7 +586,7 @@ class okx extends \ccxt\async\okx {
         $storedBids = $orderbook['bids'];
         $this->handle_deltas($storedAsks, $asks);
         $this->handle_deltas($storedBids, $bids);
-        $checksum = $this->safe_value($this->options, 'checksum', true);
+        $checksum = $this->safe_bool($this->options, 'checksum', true);
         if ($checksum) {
             $asksLength = count($storedAsks);
             $bidsLength = count($storedBids);
@@ -940,9 +940,6 @@ class okx extends \ccxt\async\okx {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            if ($this->is_empty($symbols)) {
-                throw new ArgumentsRequired($this->id . ' watchPositions requires a list of symbols');
-            }
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
             $symbols = $this->market_symbols($symbols);
@@ -950,7 +947,22 @@ class okx extends \ccxt\async\okx {
                 'instType' => 'ANY',
             );
             $channel = 'positions';
-            $newPositions = Async\await($this->subscribe_multiple('private', $channel, $symbols, array_merge($request, $params)));
+            $newPositions = null;
+            if ($symbols === null) {
+                $arg = array(
+                    'channel' => 'positions',
+                    'instType' => 'ANY',
+                );
+                $args = array( $arg );
+                $nonSymbolRequest = array(
+                    'op' => 'subscribe',
+                    'args' => $args,
+                );
+                $url = $this->get_url($channel, 'private');
+                $newPositions = Async\await($this->watch($url, $channel, $nonSymbolRequest, $channel));
+            } else {
+                $newPositions = Async\await($this->subscribe_multiple('private', $channel, $symbols, array_merge($request, $params)));
+            }
             if ($this->newUpdates) {
                 return $newPositions;
             }
@@ -1050,6 +1062,7 @@ class okx extends \ccxt\async\okx {
                 $client->resolve ($positions, $messageHash);
             }
         }
+        $client->resolve ($newPositions, $channel);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -1347,7 +1360,8 @@ class okx extends \ccxt\async\okx {
             $this->handle_errors(null, null, $client->url, $method, null, $stringMsg, $stringMsg, null, null);
         }
         $orders = $this->parse_orders($args, null, null, null);
-        $client->resolve ($orders, $messageHash);
+        $first = $this->safe_dict($orders, 0, array());
+        $client->resolve ($first, $messageHash);
     }
 
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {

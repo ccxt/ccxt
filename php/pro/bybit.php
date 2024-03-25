@@ -207,7 +207,7 @@ class bybit extends \ccxt\async\bybit {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * n watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-$ticker
              * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
@@ -338,15 +338,29 @@ class bybit extends \ccxt\async\bybit {
         //             "price24hPcnt" => "-0.0388"
         //         }
         //     }
+        // swap delta
+        //     {
+        //         "topic":"tickers.AAVEUSDT",
+        //         "type":"delta",
+        //         "data":array(
+        //            "symbol":"AAVEUSDT",
+        //            "bid1Price":"112.89",
+        //            "bid1Size":"2.12",
+        //            "ask1Price":"112.90",
+        //            "ask1Size":"5.02"
+        //         ),
+        //         "cs":78039939929,
+        //         "ts":1709210212704
+        //     }
         //
         $topic = $this->safe_string($message, 'topic', '');
         $updateType = $this->safe_string($message, 'type', '');
-        $data = $this->safe_value($message, 'data', array());
-        $isSpot = $this->safe_string($data, 'fundingRate') === null;
+        $data = $this->safe_dict($message, 'data', array());
+        $isSpot = $this->safe_string($data, 'usdIndexPrice') !== null;
         $type = $isSpot ? 'spot' : 'contract';
         $symbol = null;
         $parsed = null;
-        if (($updateType === 'snapshot') || $isSpot) {
+        if (($updateType === 'snapshot')) {
             $parsed = $this->parse_ticker($data);
             $symbol = $parsed['symbol'];
         } elseif ($updateType === 'delta') {
@@ -356,8 +370,8 @@ class bybit extends \ccxt\async\bybit {
             $market = $this->safe_market($marketId, null, null, $type);
             $symbol = $market['symbol'];
             // update the info in place
-            $ticker = $this->safe_value($this->tickers, $symbol, array());
-            $rawTicker = $this->safe_value($ticker, 'info', array());
+            $ticker = $this->safe_dict($this->tickers, $symbol, array());
+            $rawTicker = $this->safe_dict($ticker, 'info', array());
             $merged = array_merge($rawTicker, $data);
             $parsed = $this->parse_ticker($merged);
         }
@@ -943,7 +957,7 @@ class bybit extends \ccxt\async\bybit {
             $this->set_positions_cache($client, $symbols);
             $cache = $this->positions;
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_value('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
@@ -1020,7 +1034,7 @@ class bybit extends \ccxt\async\bybit {
         //            positionValue => '0.00015497',
         //            riskId => 1,
         //            riskLimitValue => '150',
-        //            side => 'Buy',
+        //            $side => 'Buy',
         //            size => '3',
         //            stopLoss => '0.00',
         //            symbol => 'BTCUSD',
@@ -1046,8 +1060,22 @@ class bybit extends \ccxt\async\bybit {
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
             $position = $this->parse_position($rawPosition);
+            $side = $this->safe_string($position, 'side');
+            // hacky solution to handle closing $positions
+            // without crashing, we should handle this properly later
             $newPositions[] = $position;
-            $cache->append ($position);
+            if ($side === null || $side === '') {
+                // closing update, adding both sides to "reset" both sides
+                // since we don't know which $side is being closed
+                $position['side'] = 'long';
+                $cache->append ($position);
+                $position['side'] = 'short';
+                $cache->append ($position);
+                $position['side'] = null;
+            } else {
+                // regular update
+                $cache->append ($position);
+            }
         }
         $messageHashes = $this->find_message_hashes($client, 'positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {

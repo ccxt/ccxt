@@ -412,15 +412,18 @@ public partial class coinex : ccxt.coinex
         object keysLength = getArrayLength(keys);
         if (isTrue(isEqual(keysLength, 0)))
         {
+            ((IDictionary<string,object>)this.ohlcvs)["unknown"] = new Dictionary<string, object>() {};
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            this.ohlcvs = new ArrayCacheByTimestamp(limit);
+            var stored = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)getValue(this.ohlcvs, "unknown"))["unknown"] = stored;
         }
+        object ohlcv = getValue(getValue(this.ohlcvs, "unknown"), "unknown");
         for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
         {
             object candle = getValue(ohlcvs, i);
-            callDynamically(this.ohlcvs, "append", new object[] {candle});
+            callDynamically(ohlcv, "append", new object[] {candle});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.ohlcvs, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcv, messageHash});
     }
 
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -599,7 +602,7 @@ public partial class coinex : ccxt.coinex
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         object messageHash = "ohlcv";
-        object watchOHLCVWarning = this.safeValue(this.options, "watchOHLCVWarning", true);
+        object watchOHLCVWarning = this.safeBool(this.options, "watchOHLCVWarning", true);
         var client = this.safeValue(this.clients, url, new Dictionary<string, object>() {});
         object clientSub = this.safeValue(client as WebSocketClient, "subscriptions", new Dictionary<string, object>() {});
         object existingSubscription = this.safeValue(clientSub, messageHash);
@@ -1101,8 +1104,12 @@ public partial class coinex : ccxt.coinex
         //
         object messageHashSpot = "authenticated:spot";
         object messageHashSwap = "authenticated:swap";
-        callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHashSpot});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHashSwap});
+        // client.resolve (message, messageHashSpot);
+        // client.resolve (message, messageHashSwap);
+        object spotFuture = this.safeValue((client as WebSocketClient).futures, messageHashSpot);
+        callDynamically(spotFuture, "resolve", new object[] {true});
+        object swapFutures = this.safeValue((client as WebSocketClient).futures, messageHashSwap);
+        callDynamically(swapFutures, "resolve", new object[] {true});
         return message;
     }
 
@@ -1137,18 +1144,22 @@ public partial class coinex : ccxt.coinex
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         var client = this.client(url);
         object time = this.milliseconds();
+        object isSpot = (isEqual(type, "spot"));
+        object spotMessageHash = "authenticated:spot";
+        object swapMessageHash = "authenticated:swap";
+        object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
+        var future = client.future(messageHash);
+        object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(type, "spot")))
         {
-            object messageHash = "authenticated:spot";
-            var future = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
-            if (isTrue(!isEqual(future, null)))
+            if (isTrue(!isEqual(authenticated, null)))
             {
-                return future;
+                return await (future as Exchange.Future);
             }
             object requestId = this.requestId();
             object subscribe = new Dictionary<string, object>() {
                 { "id", requestId },
-                { "future", "authenticated:spot" },
+                { "future", spotMessageHash },
             };
             object signData = add(add(add(add(add("access_id=", this.apiKey), "&tonce="), this.numberToString(time)), "&secret_key="), this.secret);
             object hash = this.hash(this.encode(signData), md5);
@@ -1157,21 +1168,19 @@ public partial class coinex : ccxt.coinex
                 { "params", new List<object>() {this.apiKey, ((string)hash).ToUpper(), time} },
                 { "id", requestId },
             };
-            future = this.watch(url, messageHash, request, requestId, subscribe);
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
-            return future;
+            this.watch(url, messageHash, request, requestId, subscribe);
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = true;
+            return await (future as Exchange.Future);
         } else
         {
-            object messageHash = "authenticated:swap";
-            var future = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
-            if (isTrue(!isEqual(future, null)))
+            if (isTrue(!isEqual(authenticated, null)))
             {
-                return future;
+                return await (future as Exchange.Future);
             }
             object requestId = this.requestId();
             object subscribe = new Dictionary<string, object>() {
                 { "id", requestId },
-                { "future", "authenticated:swap" },
+                { "future", swapMessageHash },
             };
             object signData = add(add(add(add(add("access_id=", this.apiKey), "&timestamp="), this.numberToString(time)), "&secret_key="), this.secret);
             object hash = this.hash(this.encode(signData), sha256, "hex");
@@ -1180,9 +1189,9 @@ public partial class coinex : ccxt.coinex
                 { "params", new List<object>() {this.apiKey, ((string)hash).ToLower(), time} },
                 { "id", requestId },
             };
-            future = this.watch(url, messageHash, request, requestId, subscribe);
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
-            return future;
+            this.watch(url, messageHash, request, requestId, subscribe);
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = true;
+            return await (future as Exchange.Future);
         }
     }
 }

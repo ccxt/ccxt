@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -247,6 +247,16 @@ export default class okcoin extends Exchange {
                     '50026': ExchangeNotAvailable, // System error, please try again later.
                     '50027': PermissionDenied, // The account is restricted from trading
                     '50028': ExchangeError, // Unable to take the order, please reach out to support center for details
+                    '50029': ExchangeError, // This instrument ({0}) is unavailable at present due to risk management. Please contact customer service for help.
+                    '50030': PermissionDenied, // No permission to use this API
+                    '50032': AccountSuspended, // This asset is blocked, allow its trading and try again
+                    '50033': AccountSuspended, // This instrument is blocked, allow its trading and try again
+                    '50035': BadRequest, // This endpoint requires that APIKey must be bound to IP
+                    '50036': BadRequest, // Invalid expTime
+                    '50037': BadRequest, // Order expired
+                    '50038': ExchangeError, // This feature is temporarily unavailable in demo trading
+                    '50039': ExchangeError, // The before parameter is not available for implementing timestamp pagination
+                    '50041': ExchangeError, // You are not currently on the whitelist, please contact customer service
                     '50044': BadRequest, // Must select one broker type
                     // API Class
                     '50100': ExchangeError, // API frozen, please contact customer service
@@ -290,9 +300,25 @@ export default class okcoin extends Exchange {
                     '51024': AccountSuspended, // Unified accountblocked
                     '51025': ExchangeError, // Order count exceeds the limit
                     '51026': BadSymbol, // Instrument type does not match underlying index
+                    '51030': InvalidOrder, // Funding fee is being settled.
+                    '51031': InvalidOrder, // This order price is not within the closing price range
+                    '51032': InvalidOrder, // Closing all positions at market price.
+                    '51033': InvalidOrder, // The total amount per order for this pair has reached the upper limit.
+                    '51037': InvalidOrder, // The current account risk status only supports you to place IOC orders that can reduce the risk of your account.
+                    '51038': InvalidOrder, // There is already an IOC order under the current risk module that reduces the risk of the account.
+                    '51044': InvalidOrder, // The order type {0}, {1} is not allowed to set stop loss and take profit
                     '51046': InvalidOrder, // The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder, // The stop loss trigger price must be lower than the order price
-                    '51031': InvalidOrder, // This order price is not within the closing price range
+                    '51048': InvalidOrder, // The take profit trigger price should be lower than the order price
+                    '51049': InvalidOrder, // The stop loss trigger price should be higher than the order price
+                    '51050': InvalidOrder, // The take profit trigger price should be higher than the best ask price
+                    '51051': InvalidOrder, // The stop loss trigger price should be lower than the best ask price
+                    '51052': InvalidOrder, // The take profit trigger price should be lower than the best bid price
+                    '51053': InvalidOrder, // The stop loss trigger price should be higher than the best bid price
+                    '51054': BadRequest, // Getting information timed out, please try again later
+                    '51056': InvalidOrder, // Action not allowed
+                    '51058': InvalidOrder, // No available position for this algo order
+                    '51059': InvalidOrder, // Strategy for the current state does not support this operation
                     '51100': InvalidOrder, // Trading amount does not meet the min tradable amount
                     '51102': InvalidOrder, // Entered amount exceeds the max pending count
                     '51103': InvalidOrder, // Entered amount exceeds the max pending order count of the underlying asset
@@ -588,7 +614,7 @@ export default class okcoin extends Exchange {
         return this.parse8601 (this.safeString (response, 'iso'));
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name okcoin#fetchMarkets
@@ -1302,7 +1328,7 @@ export default class okcoin extends Exchange {
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#createOrder
@@ -1363,7 +1389,7 @@ export default class okcoin extends Exchange {
         return order;
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],

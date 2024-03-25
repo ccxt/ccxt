@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using dict = Dictionary<string, object>;
 using list = List<object>;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 public static class Program
 {
@@ -28,7 +29,7 @@ public static class Program
             // instance.verbose = true;
             verbose = true;
         }
-        if (args.Contains("--sandbox"))
+        if (args.Contains("--sandbox") || args.Contains("--test") || args.Contains("--testnet"))
         {
             instance.setSandboxMode(true);
         }
@@ -36,6 +37,20 @@ public static class Program
 
     public static void SetCredentials(Exchange instance)
     {
+        JObject localKeys = null;
+        try
+        {
+            if (File.Exists("keys.local.json"))
+            {
+                var jsonText = File.ReadAllText("keys.local.json");
+                localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
+            }
+        }
+        catch (JsonException je)
+        {
+            Console.WriteLine($"Error parsing keys.local.json: {je.Message}");
+        }
+
         var credentials = instance.requiredCredentials as dict;
         foreach (var credential in credentials)
         {
@@ -44,11 +59,31 @@ public static class Program
             var boolValue = (bool)value;
             if (boolValue)
             {
-                var parsedKey = instance.id.ToUpper() + "_" + key.ToUpper();
-                var env = Environment.GetEnvironmentVariable(parsedKey);
-                if (env != null)
+                string credentialValue = null;
+
+                // The instance ID in lowercase is used as the key in the JSON file
+                var instanceIdKey = instance.id.ToLower();
+                if (localKeys != null && localKeys.ContainsKey(instanceIdKey))
                 {
-                    instance.GetType().GetProperty(key).SetValue(instance, env, null);
+                    var instanceCredentials = localKeys[instanceIdKey] as JObject;
+                    // The specific credential key is sought within the instance's credentials
+                    if (instanceCredentials.ContainsKey(key))
+                    {
+                        credentialValue = instanceCredentials[key].ToString();
+                    }
+                }
+
+                // If the credential is not found in the JSON file, fall back to environment variables
+                if (credentialValue == null)
+                {
+                    var parsedKey = instance.id.ToUpper() + "_" + key.ToUpper();
+                    credentialValue = Environment.GetEnvironmentVariable(parsedKey);
+                }
+
+                // If a value was found, set the property on the instance
+                if (credentialValue != null)
+                {
+                    instance.GetType().GetProperty(key).SetValue(instance, credentialValue, null);
                 }
             }
         }

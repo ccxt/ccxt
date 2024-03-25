@@ -385,7 +385,7 @@ class currencycom extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for currencycom
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/exchangeInfoUsingGET
@@ -573,7 +573,7 @@ class currencycom extends Exchange {
         return $result;
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the $accounts associated with a profile
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
@@ -1776,7 +1776,7 @@ class currencycom extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/leverageSettingsUsingGET
@@ -1791,12 +1791,23 @@ class currencycom extends Exchange {
         );
         $response = $this->privateGetV2LeverageSettings (array_merge($request, $params));
         //
-        // {
-        //     "values" => array( 1, 2, 5, 10, ),
-        //     "value" => "10",
-        // }
+        //     {
+        //         "values" => array( 1, 2, 5, 10, ),
+        //         "value" => "10",
+        //     }
         //
-        return $this->safe_number($response, 'value');
+        return $this->parse_leverage($response, $market);
+    }
+
+    public function parse_leverage($leverage, $market = null): array {
+        $leverageValue = $this->safe_integer($leverage, 'value');
+        return array(
+            'info' => $leverage,
+            'symbol' => $market['symbol'],
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function fetch_deposit_address(string $code, $params = array ()) {

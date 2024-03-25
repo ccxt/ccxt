@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okcoin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -266,6 +266,16 @@ class okcoin(Exchange, ImplicitAPI):
                     '50026': ExchangeNotAvailable,  # System error, please try again later.
                     '50027': PermissionDenied,  # The account is restricted from trading
                     '50028': ExchangeError,  # Unable to take the order, please reach out to support center for details
+                    '50029': ExchangeError,  # This instrument({0}) is unavailable at present due to risk management. Please contact customer service for help.
+                    '50030': PermissionDenied,  # No permission to use self API
+                    '50032': AccountSuspended,  # This asset is blocked, allow its trading and try again
+                    '50033': AccountSuspended,  # This instrument is blocked, allow its trading and try again
+                    '50035': BadRequest,  # This endpoint requires that APIKey must be bound to IP
+                    '50036': BadRequest,  # Invalid expTime
+                    '50037': BadRequest,  # Order expired
+                    '50038': ExchangeError,  # This feature is temporarily unavailable in demo trading
+                    '50039': ExchangeError,  # The before parameter is not available for implementing timestamp pagination
+                    '50041': ExchangeError,  # You are not currently on the whitelist, please contact customer service
                     '50044': BadRequest,  # Must select one broker type
                     # API Class
                     '50100': ExchangeError,  # API frozen, please contact customer service
@@ -309,9 +319,25 @@ class okcoin(Exchange, ImplicitAPI):
                     '51024': AccountSuspended,  # Unified accountblocked
                     '51025': ExchangeError,  # Order count exceeds the limit
                     '51026': BadSymbol,  # Instrument type does not match underlying index
+                    '51030': InvalidOrder,  # Funding fee is being settled.
+                    '51031': InvalidOrder,  # This order price is not within the closing price range
+                    '51032': InvalidOrder,  # Closing all positions at market price.
+                    '51033': InvalidOrder,  # The total amount per order for self pair has reached the upper limit.
+                    '51037': InvalidOrder,  # The current account risk status only supports you to place IOC orders that can reduce the risk of your account.
+                    '51038': InvalidOrder,  # There is already an IOC order under the current risk module that reduces the risk of the account.
+                    '51044': InvalidOrder,  # The order type {0}, {1} is not allowed to set stop loss and take profit
                     '51046': InvalidOrder,  # The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder,  # The stop loss trigger price must be lower than the order price
-                    '51031': InvalidOrder,  # This order price is not within the closing price range
+                    '51048': InvalidOrder,  # The take profit trigger price should be lower than the order price
+                    '51049': InvalidOrder,  # The stop loss trigger price should be higher than the order price
+                    '51050': InvalidOrder,  # The take profit trigger price should be higher than the best ask price
+                    '51051': InvalidOrder,  # The stop loss trigger price should be lower than the best ask price
+                    '51052': InvalidOrder,  # The take profit trigger price should be lower than the best bid price
+                    '51053': InvalidOrder,  # The stop loss trigger price should be higher than the best bid price
+                    '51054': BadRequest,  # Getting information timed out, please try again later
+                    '51056': InvalidOrder,  # Action not allowed
+                    '51058': InvalidOrder,  # No available position for self algo order
+                    '51059': InvalidOrder,  # Strategy for the current state does not support self operation
                     '51100': InvalidOrder,  # Trading amount does not meet the min tradable amount
                     '51102': InvalidOrder,  # Entered amount exceeds the max pending count
                     '51103': InvalidOrder,  # Entered amount exceeds the max pending order count of the underlying asset
@@ -603,7 +629,7 @@ class okcoin(Exchange, ImplicitAPI):
         #
         return self.parse8601(self.safe_string(response, 'iso'))
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
         retrieves data on all markets for okcoin
@@ -1261,7 +1287,7 @@ class okcoin(Exchange, ImplicitAPI):
         params['tgtCcy'] = 'quote_ccy'
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
@@ -1316,7 +1342,7 @@ class okcoin(Exchange, ImplicitAPI):
         order['side'] = side
         return order
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         request = {
             'instId': market['id'],

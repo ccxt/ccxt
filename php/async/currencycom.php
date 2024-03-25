@@ -397,7 +397,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for currencycom
@@ -587,7 +587,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the $accounts associated with a profile
@@ -1826,7 +1826,7 @@ class currencycom extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -1842,13 +1842,24 @@ class currencycom extends Exchange {
             );
             $response = Async\await($this->privateGetV2LeverageSettings (array_merge($request, $params)));
             //
-            // {
-            //     "values" => array( 1, 2, 5, 10, ),
-            //     "value" => "10",
-            // }
+            //     {
+            //         "values" => array( 1, 2, 5, 10, ),
+            //         "value" => "10",
+            //     }
             //
-            return $this->safe_number($response, 'value');
+            return $this->parse_leverage($response, $market);
         }) ();
+    }
+
+    public function parse_leverage($leverage, $market = null): array {
+        $leverageValue = $this->safe_integer($leverage, 'value');
+        return array(
+            'info' => $leverage,
+            'symbol' => $market['symbol'],
+            'marginMode' => null,
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function fetch_deposit_address(string $code, $params = array ()) {

@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -528,7 +528,7 @@ class okx(ccxt.async_support.okx):
         storedBids = orderbook['bids']
         self.handle_deltas(storedAsks, asks)
         self.handle_deltas(storedBids, bids)
-        checksum = self.safe_value(self.options, 'checksum', True)
+        checksum = self.safe_bool(self.options, 'checksum', True)
         if checksum:
             asksLength = len(storedAsks)
             bidsLength = len(storedBids)
@@ -851,8 +851,6 @@ class okx(ccxt.async_support.okx):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        if self.is_empty(symbols):
-            raise ArgumentsRequired(self.id + ' watchPositions requires a list of symbols')
         await self.load_markets()
         await self.authenticate(params)
         symbols = self.market_symbols(symbols)
@@ -860,7 +858,21 @@ class okx(ccxt.async_support.okx):
             'instType': 'ANY',
         }
         channel = 'positions'
-        newPositions = await self.subscribe_multiple('private', channel, symbols, self.extend(request, params))
+        newPositions = None
+        if symbols is None:
+            arg = {
+                'channel': 'positions',
+                'instType': 'ANY',
+            }
+            args = [arg]
+            nonSymbolRequest = {
+                'op': 'subscribe',
+                'args': args,
+            }
+            url = self.get_url(channel, 'private')
+            newPositions = await self.watch(url, channel, nonSymbolRequest, channel)
+        else:
+            newPositions = await self.subscribe_multiple('private', channel, symbols, self.extend(request, params))
         if self.newUpdates:
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
@@ -953,6 +965,7 @@ class okx(ccxt.async_support.okx):
             positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
             if not self.is_empty(positions):
                 client.resolve(positions, messageHash)
+        client.resolve(newPositions, channel)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1162,7 +1175,7 @@ class okx(ccxt.async_support.okx):
             symbolMessageHash = messageHash + '::' + tradeSymbols[i]
             client.resolve(self.orders, symbolMessageHash)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         :see: https://www.okx.com/docs-v5/en/#websocket-api-trade-place-order
         create a trade order
@@ -1223,9 +1236,10 @@ class okx(ccxt.async_support.okx):
             stringMsg = self.json(message)
             self.handle_errors(None, None, client.url, method, None, stringMsg, stringMsg, None, None)
         orders = self.parse_orders(args, None, None, None)
-        client.resolve(orders, messageHash)
+        first = self.safe_dict(orders, 0, {})
+        client.resolve(first, messageHash)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         edit a trade order
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-amend-order

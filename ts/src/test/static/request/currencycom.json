@@ -36,6 +36,14 @@
                     "USD"
                 ]
             }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api-adapter.backend.currency.com/api/v2/time",
+                "input": []
+            }
         ]
     }
 }

@@ -41,6 +41,7 @@ class mexc extends mexc$1 {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
@@ -71,6 +72,8 @@ class mexc extends mexc$1 {
                 'fetchL2OrderBook': true,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
+                'fetchLeverage': true,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': true,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': undefined,
@@ -889,6 +892,7 @@ class mexc extends mexc$1 {
                     '700006': errors.BadRequest,
                     '700007': errors.AuthenticationError,
                     '700008': errors.BadRequest,
+                    '700013': errors.AuthenticationError,
                     '730001': errors.BadRequest,
                     '730002': errors.BadRequest,
                     '730000': errors.ExchangeError,
@@ -914,7 +918,7 @@ class mexc extends mexc$1 {
                     'Combination of optional parameters invalid': errors.BadRequest,
                     'api market order is disabled': errors.BadRequest,
                     'Contract not allow place order!': errors.InvalidOrder,
-                    'Oversold': errors.InvalidOrder,
+                    'Oversold': errors.InsufficientFunds,
                     'Insufficient position': errors.InsufficientFunds,
                     'Insufficient balance!': errors.InsufficientFunds,
                     'Bid price is great than max allow price': errors.InvalidOrder,
@@ -2204,6 +2208,14 @@ class mexc extends mexc$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+         * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
+         * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
+         * @param {string} [params.externalOid] *contract only* external order ID
+         * @param {int} [params.positionMode] *contract only*  1:hedge, 2:one-way, default: the user's current config
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -5372,6 +5384,79 @@ class mexc extends mexc$1 {
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }
+    async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractPrivateGetPositionLeverage(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             },
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 2,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseLeverage(data, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        let marginMode = undefined;
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        for (let i = 0; i < leverage.length; i++) {
+            const entry = leverage[i];
+            const openType = this.safeInteger(entry, 'openType');
+            const positionType = this.safeInteger(entry, 'positionType');
+            if (positionType === 1) {
+                longLeverage = this.safeInteger(entry, 'leverage');
+            }
+            else if (positionType === 2) {
+                shortLeverage = this.safeInteger(entry, 'leverage');
+            }
+            marginMode = (openType === 1) ? 'isolated' : 'cross';
+        }
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
+    }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
         /**
          * @ignore
@@ -5420,7 +5505,7 @@ class mexc extends mexc$1 {
                     'source': this.safeString(this.options, 'broker', 'CCXT'),
                 };
             }
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 headers['Content-Type'] = 'application/json';
             }
         }

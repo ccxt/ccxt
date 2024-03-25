@@ -60,15 +60,9 @@ public partial class bitmex : ccxt.bitmex
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object name = "instrument";
-        object messageHash = add(add(name, ":"), getValue(market, "id"));
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        object request = new Dictionary<string, object>() {
-            { "op", "subscribe" },
-            { "args", new List<object>() {messageHash} },
-        };
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        symbol = this.symbol(symbol);
+        object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
+        return getValue(tickers, symbol);
     }
 
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
@@ -87,30 +81,30 @@ public partial class bitmex : ccxt.bitmex
         object name = "instrument";
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHashes = new List<object>() {};
+        object rawSubscriptions = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 object market = this.market(symbol);
-                object hash = add(add(name, ":"), getValue(market, "id"));
-                ((IList<object>)messageHashes).Add(hash);
+                object subscription = add(add(name, ":"), getValue(market, "id"));
+                ((IList<object>)rawSubscriptions).Add(subscription);
+                object messageHash = add("ticker:", symbol);
+                ((IList<object>)messageHashes).Add(messageHash);
             }
         } else
         {
-            ((IList<object>)messageHashes).Add(name);
+            ((IList<object>)rawSubscriptions).Add(name);
+            ((IList<object>)messageHashes).Add("alltickers");
         }
         object request = new Dictionary<string, object>() {
             { "op", "subscribe" },
-            { "args", messageHashes },
+            { "args", rawSubscriptions },
         };
-        object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), rawSubscriptions);
         if (isTrue(this.newUpdates))
         {
-            if (isTrue(isEqual(symbols, null)))
-            {
-                return ticker;
-            }
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
             return result;
@@ -346,24 +340,25 @@ public partial class bitmex : ccxt.bitmex
         //         ]
         //     }
         //
-        object table = this.safeString(message, "table");
         object data = this.safeList(message, "data", new List<object>() {});
         object tickers = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object update = getValue(data, i);
             object marketId = this.safeString(update, "symbol");
-            object market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
-            object messageHash = add(add(table, ":"), marketId);
-            object ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
-            object info = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
-            object parsedTicker = this.parseTicker(this.extend(info, update), market);
-            ((IDictionary<string,object>)tickers)[(string)symbol] = parsedTicker;
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
-            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+            object symbol = this.safeSymbol(marketId);
+            if (!isTrue((inOp(this.tickers, symbol))))
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {});
+            }
+            object updatedTicker = this.parseTicker(update);
+            object fullParsedTicker = this.deepExtend(getValue(this.tickers, symbol), updatedTicker);
+            ((IDictionary<string,object>)tickers)[(string)symbol] = fullParsedTicker;
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = fullParsedTicker;
+            object messageHash = add("ticker:", symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {fullParsedTicker, messageHash});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {fullParsedTicker, "alltickers"});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, "instrument"});
         return message;
     }
 
@@ -634,7 +629,7 @@ public partial class bitmex : ccxt.bitmex
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
@@ -1397,7 +1392,7 @@ public partial class bitmex : ccxt.bitmex
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             object messageHash = add(add(table, ":"), getValue(market, "id"));
-            object result = new List<object>() {subtract(this.parse8601(this.safeString(candle, "timestamp")), multiply(duration, 1000)), this.safeFloat(candle, "open"), this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
+            object result = new List<object>() {subtract(this.parse8601(this.safeString(candle, "timestamp")), multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))

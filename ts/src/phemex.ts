@@ -739,7 +739,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name phemex#fetchMarkets
@@ -2429,14 +2429,14 @@ export default class phemex extends Exchange {
 
     parseOrder (order, market: Market = undefined): Order {
         const isSwap = this.safeBool (market, 'swap', false);
-        const hasPnl = ('closedPnl' in order);
+        const hasPnl = ('closedPnl' in order) || ('closedPnlRv' in order) || ('totalPnlRv' in order);
         if (isSwap || hasPnl) {
             return this.parseSwapOrder (order, market);
         }
         return this.parseSpotOrder (order, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name phemex#createOrder
@@ -2723,7 +2723,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id: string, symbol: string, type: OrderType = undefined, side: OrderSide = undefined, amount: number = undefined, price: number = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType = undefined, side: OrderSide = undefined, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name phemex#editOrder
@@ -3336,7 +3336,7 @@ export default class phemex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -3377,7 +3377,7 @@ export default class phemex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
