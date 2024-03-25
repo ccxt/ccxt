@@ -185,7 +185,7 @@ export default class bitbns extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitbns#fetchMarkets

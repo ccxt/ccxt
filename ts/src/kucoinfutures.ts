@@ -361,7 +361,7 @@ export default class kucoinfutures extends kucoin {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name kucoinfutures#fetchMarkets
