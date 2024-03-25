@@ -114,6 +114,30 @@
                 "output": "{\"clientOid\":\"8c981786-2534-4bd8-b3ee-fea9ecaf5b8c\",\"side\":\"sell\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"funds\":\"5\"}"
             }
         ],
+        "createMarketOrderWithCost":[
+            {
+                "description": "buy order with too many decimals",
+                "method": "createMarketOrderWithCost",
+                "url": "https://api.kucoin.com/api/v1/orders",
+                "input": [
+                  "BTC/USDT",
+                  "buy",
+                  0.8993321164324234
+                ],
+                "output": "{\"clientOid\":\"2f3bad3a-e17e-4546-8584-54985289c2e3\",\"side\":\"buy\",\"symbol\":\"BTC-USDT\",\"type\":\"market\",\"funds\":\"0.899332\"}"
+            },
+            {
+                "description": "market sell order",
+                "method": "createMarketOrderWithCost",
+                "url": "https://api.kucoin.com/api/v1/orders",
+                "input": [
+                  "BTC/USDT",
+                  "sell",
+                  0.8993321164324234
+                ],
+                "output": "{\"clientOid\":\"0e825b40-2d4a-4479-a07f-293979dc279d\",\"side\":\"sell\",\"symbol\":\"BTC-USDT\",\"type\":\"market\",\"funds\":\"0.899332\"}"
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Spot open orders",
