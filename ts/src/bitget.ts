@@ -2794,7 +2794,7 @@ export default class bitget extends Exchange {
         let productType = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         // only if passedSubType && productType is undefined, then use spot
-        if (type === 'spot' && passedSubType === undefined && productType === undefined) {
+        if (type === 'spot' && passedSubType === undefined) {
             response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
         } else {
             request['productType'] = productType;
