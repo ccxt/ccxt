@@ -369,6 +369,14 @@ function assertNonEmtpyArray(exchange, skippedProperties, method, entry, hint = 
     }
     assert(entry.length > 0, 'response is expected to be a non-empty array' + logText + ' (add "emptyResponse" in skip-tests.json to skip this check)');
 }
+function assertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, key) {
+    if (key in skippedProperties) {
+        return;
+    }
+    const logText = logTemplate(exchange, method, entry);
+    const ts = exchange.safeString(entry, key);
+    assert(Precise.stringMod(ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
+}
 export default {
     logTemplate,
     isTemporaryFailure,
@@ -394,4 +402,5 @@ export default {
     removeProxyOptions,
     setProxyOptions,
     assertNonEmtpyArray,
+    assertRoundMinuteTimestamp,
 };

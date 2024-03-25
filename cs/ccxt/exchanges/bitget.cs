@@ -1254,6 +1254,7 @@ public partial class bitget : Exchange
             { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "JADE", "Jade Protocol" },
+                { "DEGEN", "DegenReborn" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "timeframes", new Dictionary<string, object>() {

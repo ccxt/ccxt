@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, Market, MarketInterface, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Leverages, MarginMode, MarginModes, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -134,6 +134,8 @@ class binance(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
+                'fetchOption': True,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
@@ -2423,13 +2425,13 @@ class binance(Exchange, ImplicitAPI):
             },
         })
 
-    def is_inverse(self, type, subType=None) -> bool:
+    def is_inverse(self, type: str, subType: Str = None) -> bool:
         if subType is None:
-            return type == 'delivery'
+            return(type == 'delivery')
         else:
             return subType == 'inverse'
 
-    def is_linear(self, type, subType=None) -> bool:
+    def is_linear(self, type: str, subType: Str = None) -> bool:
         if subType is None:
             return(type == 'future') or (type == 'swap')
         else:
@@ -11410,4 +11412,90 @@ class binance(Exchange, ImplicitAPI):
             'info': marginMode,
             'symbol': market['symbol'],
             'marginMode': 'isolated' if isIsolated else 'cross',
+        }
+
+    async def fetch_option(self, symbol: str, params={}) -> Option:
+        """
+        fetches option data that is commonly found in an option chain
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.eapiPublicGetTicker(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "BTC-241227-80000-C",
+        #             "priceChange": "0",
+        #             "priceChangePercent": "0",
+        #             "lastPrice": "2750",
+        #             "lastQty": "0",
+        #             "open": "2750",
+        #             "high": "2750",
+        #             "low": "2750",
+        #             "volume": "0",
+        #             "amount": "0",
+        #             "bidPrice": "4880",
+        #             "askPrice": "0",
+        #             "openTime": 0,
+        #             "closeTime": 0,
+        #             "firstTradeId": 0,
+        #             "tradeCount": 0,
+        #             "strikePrice": "80000",
+        #             "exercisePrice": "63944.09893617"
+        #         }
+        #     ]
+        #
+        chain = self.safe_dict(response, 0, {})
+        return self.parse_option(chain, None, market)
+
+    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+        #
+        #     {
+        #         "symbol": "BTC-241227-80000-C",
+        #         "priceChange": "0",
+        #         "priceChangePercent": "0",
+        #         "lastPrice": "2750",
+        #         "lastQty": "0",
+        #         "open": "2750",
+        #         "high": "2750",
+        #         "low": "2750",
+        #         "volume": "0",
+        #         "amount": "0",
+        #         "bidPrice": "4880",
+        #         "askPrice": "0",
+        #         "openTime": 0,
+        #         "closeTime": 0,
+        #         "firstTradeId": 0,
+        #         "tradeCount": 0,
+        #         "strikePrice": "80000",
+        #         "exercisePrice": "63944.09893617"
+        #     }
+        #
+        marketId = self.safe_string(chain, 'symbol')
+        market = self.safe_market(marketId, market)
+        return {
+            'info': chain,
+            'currency': None,
+            'symbol': market['symbol'],
+            'timestamp': None,
+            'datetime': None,
+            'impliedVolatility': None,
+            'openInterest': None,
+            'bidPrice': self.safe_number(chain, 'bidPrice'),
+            'askPrice': self.safe_number(chain, 'askPrice'),
+            'midPrice': None,
+            'markPrice': None,
+            'lastPrice': self.safe_number(chain, 'lastPrice'),
+            'underlyingPrice': self.safe_number(chain, 'exercisePrice'),
+            'change': self.safe_number(chain, 'priceChange'),
+            'percentage': self.safe_number(chain, 'priceChangePercent'),
+            'baseVolume': self.safe_number(chain, 'volume'),
+            'quoteVolume': None,
         }
