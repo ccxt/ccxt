@@ -1343,9 +1343,15 @@ export default class deribit extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] whether to paginate the results, set to false by default
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 5000) as OHLCV[];
+        }
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
@@ -1367,6 +1373,11 @@ export default class deribit extends Exchange {
             } else {
                 request['end_timestamp'] = this.sum (since, limit * duration * 1000);
             }
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['end_timestamp'] = until;
         }
         const response = await this.publicGetGetTradingviewChartData (this.extend (request, params));
         //
