@@ -89,6 +89,7 @@ export default class kucoin extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrdersByStatus': true,
                 'fetchOrderTrades': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,

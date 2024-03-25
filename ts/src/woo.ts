@@ -83,6 +83,7 @@ export default class woo extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,

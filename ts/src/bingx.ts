@@ -71,6 +71,7 @@ export default class bingx extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchTicker': true,

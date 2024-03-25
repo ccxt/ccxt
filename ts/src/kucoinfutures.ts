@@ -79,6 +79,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,

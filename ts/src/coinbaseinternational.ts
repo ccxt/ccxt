@@ -91,6 +91,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchOrderBook': false,
                 'fetchOrders': false,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
