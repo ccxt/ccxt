@@ -290,6 +290,38 @@
                   }
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":true,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711107892157,\"signature\":{\"r\":\"0x1d1c230fb2d472d613b875c24f83527ed788180b90468be9bfb22d36e8259c71\",\"s\":\"0x3682f2286381b7f20ee1e703f48addb42554348cda438bab9da0d51eb5081938\",\"v\":27}}"
+            },
+            {
+                "description": "order with reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "market",
+                  "buy",
+                  0.1,
+                  175,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":true,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711269186132,\"signature\":{\"r\":\"0x3bd6ec400ce752dc85c4d3a72559f46960ba692b6dd7b750ef45cf6ed6dbd527\",\"s\":\"0x298f5ea4cfb6b7b756b137e64e20ac84cd4a18e6d0def82929f21145a8cd58ec\",\"v\":27}}"
+            },
+            {
+                "description": "post only order",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "SOL/USDC:USDC",
+                  "limit",
+                  "buy",
+                  0.1,
+                  170,
+                  {
+                    "postOnly": true
+                  }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"170\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Alo\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1711269437173,\"signature\":{\"r\":\"0x7ad22203bcece7b94016458e6080be8bee0724807186bcb7a64f1a9f9a83c1b9\",\"s\":\"0x1ae3889c08d3a9ce6bf50260b9e4b2947e55a10fe8c6640e6254a0ab829febb9\",\"v\":28}}"
             }
         ],
         "createOrders": [

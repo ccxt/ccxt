@@ -3813,7 +3813,7 @@ public partial class deribit : Exchange
         object timestamp = this.safeInteger(chain, "timestamp");
         return new Dictionary<string, object>() {
             { "info", chain },
-            { "currency", getValue(code, "code") },
+            { "currency", code },
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

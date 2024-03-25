@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -106,6 +106,8 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
+                'fetchOption': True,
+                'fetchOptionChain': True,
                 'fetchOrder': False,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
@@ -7629,6 +7631,177 @@ class bybit(Exchange, ImplicitAPI):
             'id': self.safe_string(income, 'execId'),
             'amount': self.safe_number(income, 'execQty'),
             'rate': self.safe_number(income, 'feeRate'),
+        }
+
+    def fetch_option(self, symbol: str, params={}) -> Option:
+        """
+        fetches option data that is commonly found in an option chain
+        :see: https://bybit-exchange.github.io/docs/v5/market/tickers
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'category': 'option',
+            'symbol': market['id'],
+        }
+        response = self.publicGetV5MarketTickers(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "SUCCESS",
+        #         "result": {
+        #             "category": "option",
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTC-27DEC24-55000-P",
+        #                     "bid1Price": "0",
+        #                     "bid1Size": "0",
+        #                     "bid1Iv": "0",
+        #                     "ask1Price": "0",
+        #                     "ask1Size": "0",
+        #                     "ask1Iv": "0",
+        #                     "lastPrice": "10980",
+        #                     "highPrice24h": "0",
+        #                     "lowPrice24h": "0",
+        #                     "markPrice": "11814.66756236",
+        #                     "indexPrice": "63838.92",
+        #                     "markIv": "0.8866",
+        #                     "underlyingPrice": "71690.55303594",
+        #                     "openInterest": "0.01",
+        #                     "turnover24h": "0",
+        #                     "volume24h": "0",
+        #                     "totalVolume": "2",
+        #                     "totalTurnover": "78719",
+        #                     "delta": "-0.23284954",
+        #                     "gamma": "0.0000055",
+        #                     "vega": "191.70757975",
+        #                     "theta": "-30.43617927",
+        #                     "predictedDeliveryPrice": "0",
+        #                     "change24h": "0"
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1711162003672
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        resultList = self.safe_list(result, 'list', [])
+        chain = self.safe_dict(resultList, 0, {})
+        return self.parse_option(chain, None, market)
+
+    def fetch_option_chain(self, code: str, params={}) -> OptionChain:
+        """
+        fetches data for an underlying asset that is commonly found in an option chain
+        :see: https://bybit-exchange.github.io/docs/v5/market/tickers
+        :param str currency: base currency to fetch an option chain for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `option chain structures <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'category': 'option',
+            'baseCoin': currency['id'],
+        }
+        response = self.publicGetV5MarketTickers(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "SUCCESS",
+        #         "result": {
+        #             "category": "option",
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTC-27DEC24-55000-P",
+        #                     "bid1Price": "0",
+        #                     "bid1Size": "0",
+        #                     "bid1Iv": "0",
+        #                     "ask1Price": "0",
+        #                     "ask1Size": "0",
+        #                     "ask1Iv": "0",
+        #                     "lastPrice": "10980",
+        #                     "highPrice24h": "0",
+        #                     "lowPrice24h": "0",
+        #                     "markPrice": "11814.66756236",
+        #                     "indexPrice": "63838.92",
+        #                     "markIv": "0.8866",
+        #                     "underlyingPrice": "71690.55303594",
+        #                     "openInterest": "0.01",
+        #                     "turnover24h": "0",
+        #                     "volume24h": "0",
+        #                     "totalVolume": "2",
+        #                     "totalTurnover": "78719",
+        #                     "delta": "-0.23284954",
+        #                     "gamma": "0.0000055",
+        #                     "vega": "191.70757975",
+        #                     "theta": "-30.43617927",
+        #                     "predictedDeliveryPrice": "0",
+        #                     "change24h": "0"
+        #                 },
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1711162003672
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        resultList = self.safe_list(result, 'list', [])
+        return self.parse_option_chain(resultList, None, 'symbol')
+
+    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+        #
+        #     {
+        #         "symbol": "BTC-27DEC24-55000-P",
+        #         "bid1Price": "0",
+        #         "bid1Size": "0",
+        #         "bid1Iv": "0",
+        #         "ask1Price": "0",
+        #         "ask1Size": "0",
+        #         "ask1Iv": "0",
+        #         "lastPrice": "10980",
+        #         "highPrice24h": "0",
+        #         "lowPrice24h": "0",
+        #         "markPrice": "11814.66756236",
+        #         "indexPrice": "63838.92",
+        #         "markIv": "0.8866",
+        #         "underlyingPrice": "71690.55303594",
+        #         "openInterest": "0.01",
+        #         "turnover24h": "0",
+        #         "volume24h": "0",
+        #         "totalVolume": "2",
+        #         "totalTurnover": "78719",
+        #         "delta": "-0.23284954",
+        #         "gamma": "0.0000055",
+        #         "vega": "191.70757975",
+        #         "theta": "-30.43617927",
+        #         "predictedDeliveryPrice": "0",
+        #         "change24h": "0"
+        #     }
+        #
+        marketId = self.safe_string(chain, 'symbol')
+        market = self.safe_market(marketId, market)
+        return {
+            'info': chain,
+            'currency': None,
+            'symbol': market['symbol'],
+            'timestamp': None,
+            'datetime': None,
+            'impliedVolatility': self.safe_number(chain, 'markIv'),
+            'openInterest': self.safe_number(chain, 'openInterest'),
+            'bidPrice': self.safe_number(chain, 'bid1Price'),
+            'askPrice': self.safe_number(chain, 'ask1Price'),
+            'midPrice': None,
+            'markPrice': self.safe_number(chain, 'markPrice'),
+            'lastPrice': self.safe_number(chain, 'lastPrice'),
+            'underlyingPrice': self.safe_number(chain, 'underlyingPrice'),
+            'change': self.safe_number(chain, 'change24h'),
+            'percentage': None,
+            'baseVolume': self.safe_number(chain, 'totalVolume'),
+            'quoteVolume': None,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
