@@ -1299,6 +1299,7 @@
         "skipMethods": {
             "loadMarkets" :{
                 "active": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4502",
+                "contractSize":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269640396#L3857",
                 "currencyIdAndCode": "messed"
             },
             "fetchCurrencies": {
