@@ -413,7 +413,7 @@
                         "isolated": false,
                         "hedged": null,
                         "side": null,
-                        "contracts": null,
+                        "contracts": 3.34,
                         "contractSize": 1,
                         "entryPrice": 112.0945,
                         "markPrice": null,

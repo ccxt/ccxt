@@ -458,7 +458,7 @@ export default class bitstamp extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitstamp#fetchMarkets

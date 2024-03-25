@@ -22,6 +22,7 @@ declare function checkPrecisionAccuracy(exchange: any, skippedProperties: any, m
 declare function removeProxyOptions(exchange: any, skippedProperties: any): any[];
 declare function setProxyOptions(exchange: any, skippedProperties: any, proxyUrl: any, httpProxy: any, httpsProxy: any, socksProxy: any): void;
 declare function assertNonEmtpyArray(exchange: any, skippedProperties: any, method: any, entry: any, hint?: any): void;
+declare function assertRoundMinuteTimestamp(exchange: any, skippedProperties: any, method: any, entry: any, key: any): void;
 declare const _default: {
     logTemplate: typeof logTemplate;
     isTemporaryFailure: typeof isTemporaryFailure;
@@ -47,5 +48,6 @@ declare const _default: {
     removeProxyOptions: typeof removeProxyOptions;
     setProxyOptions: typeof setProxyOptions;
     assertNonEmtpyArray: typeof assertNonEmtpyArray;
+    assertRoundMinuteTimestamp: typeof assertRoundMinuteTimestamp;
 };
 export default _default;

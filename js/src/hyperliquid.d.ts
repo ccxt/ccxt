@@ -73,6 +73,7 @@ export default class hyperliquid extends Exchange {
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<any>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
+    formatVaultAddress(address?: Str): string;
     handlePublicAddress(methodName: string, params: Dict): any[];
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

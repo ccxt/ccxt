@@ -1295,6 +1295,7 @@ export default class bitget extends Exchange {
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'JADE': 'Jade Protocol',
+                'DEGEN': 'DegenReborn',
             },
             'options': {
                 'timeframes': {
@@ -1506,7 +1507,7 @@ export default class bitget extends Exchange {
         return this.safeInteger (data, 'serverTime');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitget#fetchMarkets

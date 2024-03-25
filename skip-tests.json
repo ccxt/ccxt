@@ -222,7 +222,8 @@
             "fetchCurrencies": {
                 "precision": "not provided",
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "currencyIdAndCode": "broken currencies"
             },
             "ticker": {
                 "bid":"broken bid-ask",
@@ -232,12 +233,16 @@
         }
     },
     "bithumb": {
+        "skipWs": "timeouts",
         "skipMethods": {
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
             "orderBook": {
                 "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4074"
+            },
+            "watchTrades":{
+                "timestamp": "it could be ahead of the current time"
             }
         }
     },
@@ -265,6 +270,9 @@
             "watchTrades":{
                 "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
                 "timestamp": "messed order coming from exchange"
+            },
+            "ohlcv": {
+                "roundTimestamp": "are not rounded: https://app.travis-ci.com/github/ccxt/ccxt/builds/269583057#L4318"
             }
         }
     },
@@ -561,10 +569,14 @@
     "coinbasepro": {
         "skipWs": "needs auth",
         "skipMethods": {
+            "loadMarkets":{
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269568596#L3551"
+            },
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269568596#L3551"
             }
         }
     },
@@ -1014,6 +1026,9 @@
             "fetchPositions": {
                 "percentage": "percentage is not provided"
             },
+            "fetchTickers": {
+                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269634788#L1898"
+            },
             "watchOrderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
             }
@@ -1395,6 +1410,7 @@
             "loadMarkets": {
                 "taker": "is undefined",
                 "maker": "is undefined",
+                "contractSize": "returns zero for BTC/USDT:USDT https://app.travis-ci.com/github/ccxt/ccxt/builds/269614608#L3778",
                 "currencyIdAndCode": "not all currencies are available"
             },
             "fetchTrades": {

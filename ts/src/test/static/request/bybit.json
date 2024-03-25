@@ -939,6 +939,26 @@
                   "LTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOptionChain": [
+            {
+                "description": "Fetch an entire option chain for an underlying asset",
+                "method": "fetchOptionChain",
+                "url": "https://api-testnet.bybit.com/v5/market/tickers?category=option&baseCoin=BTC",
+                "input": [
+                  "BTC"
+                ]
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "Fetch an option contract",
+                "method": "fetchOption",
+                "url": "https://api-testnet.bybit.com/v5/market/tickers?category=option&symbol=BTC-27DEC24-55000-P",
+                "input": [
+                  "BTC/USDC:USDC-241227-55000-P"
+                ]
+            }
         ]
     },
     "disabled": []

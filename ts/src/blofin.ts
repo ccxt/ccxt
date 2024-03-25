@@ -349,7 +349,7 @@ export default class blofin extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name blofin#fetchMarkets

@@ -159,7 +159,7 @@ export default class bitbank extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitbank#fetchMarkets

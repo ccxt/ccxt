@@ -313,7 +313,7 @@ export default class bitvavo extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitvavo#fetchMarkets

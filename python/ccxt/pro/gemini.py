@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, Order, OrderBook, Str, Tickers, Trade
+from ccxt.base.types import Int, Order, OrderBook, Str, Strings, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -393,7 +393,7 @@ class gemini(ccxt.async_support.gemini):
         orderbook = await self.helper_for_watch_multiple_construct('orderbook', symbols, params)
         return orderbook.limit()
 
-    async def watch_bids_asks(self, symbols: List[str], limit: Int = None, params={}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches best bid & ask for symbols
         :see: https://docs.gemini.com/websocket-api/#multi-market-data
@@ -851,7 +851,8 @@ class gemini(ccxt.async_support.gemini):
                 },
             },
         }
-        self.options = self.extend(defaultOptions, self.options)
+        # self.options = self.extend(defaultOptions, self.options)
+        self.extend_exchange_options(defaultOptions)
         originalHeaders = self.options['ws']['options']['headers']
         headers = {
             'X-GEMINI-APIKEY': self.apiKey,
