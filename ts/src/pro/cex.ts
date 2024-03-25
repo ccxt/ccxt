@@ -152,7 +152,6 @@ export default class cex extends cexRest {
             'e': 'subscribe',
             'rooms': [ 'pair-' + market['base'] + '-' + market['quote'] ],
         };
-        this.options['currentWatchTradeSymbol'] = symbol;
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
         // assing symbol to the trades as message does not contain symbol information
@@ -167,25 +166,21 @@ export default class cex extends cexRest {
         //     {
         //         "e": "history",
         //         "data": [
-        //             "sell:1665467367741:3888551:19058.8:14541219",
-        //             "buy:1665467367741:1059339:19071.5:14541218",
+        //            'buy:1710255706095:444444:71222.2:14892622'
+        //            'sell:1710255658251:42530:71300:14892621'
+        //            'buy:1710252424241:87913:72800:14892620'
+        //            ... timestamp descending
         //         ]
         //     }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache (limit);
-        const symbol = this.safeString (this.options, 'currentWatchTradeSymbol');
-        if (symbol === undefined) {
-            return;
-        }
-        const market = this.market (symbol);
-        // fix chronological order
         const dataLength = data.length;
-        const maxLength = Math.max (0, dataLength - 1);
-        for (let i = maxLength; i >= 0; i--) {
-            const rawTrade = data[i];
-            const parsed = this.parseWsOldTrade (rawTrade, market);
+        for (let i = 0; i < dataLength; i++) {
+            const index = dataLength - 1 - i;
+            const rawTrade = data[index];
+            const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
         }
         const messageHash = 'trades';
@@ -213,7 +208,7 @@ export default class cex extends cexRest {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': undefined,
             'type': undefined,
             'side': side,
             'order': undefined,
@@ -236,10 +231,7 @@ export default class cex extends cexRest {
         //
         const data = this.safeValue (message, 'data', []);
         const stored = this.trades as any; // to do fix this, this.trades is not meant to be used like this
-        // fix chronological order
-        const dataLength = data.length;
-        const maxLength = Math.max (0, dataLength - 1);
-        for (let i = maxLength; i >= 0; i--) {
+        for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
@@ -360,17 +352,12 @@ export default class cex extends cexRest {
         const data = this.safeValue (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
-        if (symbol === undefined) {
-            return;
-        }
         this.tickers[symbol] = ticker;
         let messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
         client.resolve (ticker, 'tickers');
         messageHash = this.safeString (message, 'oid');
-        if (messageHash !== undefined) {
-            client.resolve (ticker, messageHash);
-        }
+        client.resolve (ticker, messageHash);
     }
 
     parseWsTicker (ticker, market = undefined) {
