@@ -2783,13 +2783,16 @@ export default class bitget extends Exchange {
                 market = this.market (symbol);
             }
         }
+        let response = undefined;
         const request = {};
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
-        let response = undefined;
-        if (type === 'spot' && subType === undefined) {
+        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
+        // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
+        // with higher priority and only default to spot, if `subType` is not set in params
+        const passedSubType = this.safeString (params, 'subType');
+        // only if passedSubType is undefined, then use spot
+        if (type === 'spot' && passedSubType === undefined) {
             response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
         } else {
             let productType = undefined;
