@@ -20,7 +20,7 @@ export default class phemex extends Exchange {
             'id': 'phemex',
             'name': 'Phemex',
             'countries': [ 'CN' ], // China
-            'rateLimit': 120.5,
+            'rateLimit': 60, // vapi -> 60, original api -> 120
             'version': 'v1',
             'certified': false,
             'pro': true,
