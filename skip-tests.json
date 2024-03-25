@@ -1401,6 +1401,7 @@
             "loadMarkets": {
                 "taker": "is undefined",
                 "maker": "is undefined",
+                "contractSize": "returns zero for BTC/USDT:USDT https://app.travis-ci.com/github/ccxt/ccxt/builds/269614608#L3778",
                 "currencyIdAndCode": "not all currencies are available"
             },
             "fetchTrades": {
