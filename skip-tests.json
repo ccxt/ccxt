@@ -238,6 +238,9 @@
             },
             "orderBook": {
                 "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4074"
+            },
+            "watchTrades":{
+                "timestamp": "it could be ahead of the current time"
             }
         }
     },
