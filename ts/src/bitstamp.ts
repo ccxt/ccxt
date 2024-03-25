@@ -1175,7 +1175,7 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @see https://www.bitstamp.net/api/v2/fees/trading/
+         * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
