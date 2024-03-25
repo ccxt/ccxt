@@ -81,9 +81,9 @@ class btcturk extends Exchange {
                 '30m' => 30,
                 '1h' => 60,
                 '4h' => 240,
-                '1d' => '1 day',
-                '1w' => '1 week',
-                '1y' => '1 year',
+                '1d' => '1 d',
+                '1w' => '1 w',
+                '1y' => '1 y',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg',
@@ -146,7 +146,7 @@ class btcturk extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all $markets for btcturk

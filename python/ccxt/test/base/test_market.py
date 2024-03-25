@@ -68,7 +68,7 @@ def test_market(exchange, skipped_properties, method, market):
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
     #
-    valid_types = ['spot', 'margin', 'swap', 'future', 'option']
+    valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index']
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'type', valid_types)
     has_index = ('index' in market)  # todo: add in all
     # check if string is consistent with 'type'
@@ -183,7 +183,7 @@ def test_market(exchange, skipped_properties, method, market):
             if min_string is not None:
                 test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, limit_entry, 'max', min_string)
     # check whether valid currency ID and CODE is used
-    if not ('currencyIdAndCode' in skipped_properties):
+    if not ('currency' in skipped_properties) and not ('currencyIdAndCode' in skipped_properties):
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])

@@ -75,6 +75,8 @@ public partial class blofin : Exchange
                 { "fetchLeverage", true },
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", false },
+                { "fetchMarginMode", true },
+                { "fetchMarginModes", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -178,6 +180,7 @@ public partial class blofin : Exchange
                         { "account/balance", 1 },
                         { "account/positions", 1 },
                         { "account/leverage-info", 1 },
+                        { "account/margin-mode", 1 },
                         { "account/batch-leverage-info", 1 },
                         { "trade/orders-tpsl-pending", 1 },
                         { "trade/orders-history", 1 },
@@ -1344,6 +1347,7 @@ public partial class blofin : Exchange
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1356,15 +1360,28 @@ public partial class blofin : Exchange
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
         };
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"}, false);
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
         } else
         {
-            ((IDictionary<string,object>)request)["orderId"] = id;
+            if (!isTrue(isTrigger))
+            {
+                ((IDictionary<string,object>)request)["orderId"] = ((object)id).ToString();
+            } else
+            {
+                ((IDictionary<string,object>)request)["tpslId"] = ((object)id).ToString();
+            }
         }
-        object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId"});
+        object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"});
+        if (isTrue(isTrigger))
+        {
+            object tpslResponse = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+            object first = this.safeDict(tpslResponse, 0);
+            return first;
+        }
         object response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         object data = this.safeList(response, "data", new List<object>() {});
         object order = this.safeDict(data, 0);
@@ -2349,6 +2366,43 @@ public partial class blofin : Exchange
         }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
+    }
+
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name blofin#fetchMarginMode
+        * @description fetches the margin mode of a trading pair
+        * @see https://docs.blofin.com/index.html#get-margin-mode
+        * @param {string} symbol unified symbol of the market to fetch the margin mode for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object response = await this.privateGetAccountMarginMode(parameters);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "marginMode": "cross"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseMarginMode(data, market);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", this.safeString(marginMode, "marginMode") },
+        };
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

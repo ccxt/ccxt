@@ -194,7 +194,7 @@ class currencycom(ccxt.async_support.currencycom):
             'fee': None,
         }
 
-    def handle_trades(self, client: Client, message, subscription):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         "status": "OK",

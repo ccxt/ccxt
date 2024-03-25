@@ -141,7 +141,7 @@ public partial class testMainClass : BaseTest
                 assert((ts is Int64 || ts is int || ts is float || ts is double), add("timestamp is not numeric", logText));
                 assert(((ts is int) || (ts is long) || (ts is Int32) || (ts is Int64)), add("timestamp should be an integer", logText));
                 object minTs = 1230940800000; // 03 Jan 2009 - first block
-                object maxTs = 2147483648000; // 03 Jan 2009 - first block
+                object maxTs = 2147483648000; // 19 Jan 2038 - max int
                 assert(isGreaterThan(ts, minTs), add(add(add("timestamp is impossible to be before ", ((object)minTs).ToString()), " (03.01.2009)"), logText)); // 03 Jan 2009 - first block
                 assert(isLessThan(ts, maxTs), add(add(add("timestamp more than ", ((object)maxTs).ToString()), " (19.01.2038)"), logText)); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
                 if (isTrue(!isEqual(nowToCheck, null)))
@@ -181,7 +181,7 @@ public partial class testMainClass : BaseTest
         }
         public void assertCurrencyCode(Exchange exchange, object skippedProperties, object method, object entry, object actualCode, object expectedCode = null)
         {
-            if (isTrue(inOp(skippedProperties, "currency")))
+            if (isTrue(isTrue((inOp(skippedProperties, "currency"))) || isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
             {
                 return;
             }
@@ -199,7 +199,7 @@ public partial class testMainClass : BaseTest
         public void assertValidCurrencyIdAndCode(Exchange exchange, object skippedProperties, object method, object entry, object currencyId, object currencyCode)
         {
             // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-            if (isTrue(inOp(skippedProperties, "currencyIdAndCode")))
+            if (isTrue(isTrue((inOp(skippedProperties, "currency"))) || isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
             {
                 return;
             }
@@ -439,6 +439,30 @@ public partial class testMainClass : BaseTest
             exchange.httpProxy = httpProxy;
             exchange.httpsProxy = httpsProxy;
             exchange.socksProxy = socksProxy;
+        }
+        public void assertNonEmtpyArray(Exchange exchange, object skippedProperties, object method, object entry, object hint = null)
+        {
+            object logText = logTemplate(exchange, method, entry);
+            if (isTrue(!isEqual(hint, null)))
+            {
+                logText = add(add(logText, " "), hint);
+            }
+            assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("response is expected to be an array", logText));
+            if (!isTrue((inOp(skippedProperties, "emptyResponse"))))
+            {
+                return;
+            }
+            assert(isGreaterThan(getArrayLength(entry), 0), add(add("response is expected to be a non-empty array", logText), " (add \"emptyResponse\" in skip-tests.json to skip this check)"));
+        }
+        public void assertRoundMinuteTimestamp(Exchange exchange, object skippedProperties, object method, object entry, object key)
+        {
+            if (isTrue(inOp(skippedProperties, key)))
+            {
+                return;
+            }
+            object logText = logTemplate(exchange, method, entry);
+            object ts = exchange.safeString(entry, key);
+            assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
         }
 
     }

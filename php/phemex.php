@@ -734,7 +734,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for phemex
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4274,7 +4274,7 @@ class phemex extends Exchange {
         return $response;
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code

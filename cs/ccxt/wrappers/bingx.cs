@@ -52,10 +52,10 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<Dictionary<string, object>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -473,7 +473,7 @@ public partial class bingx
     /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
-    /// string : spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+    /// string : spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
     /// </description>
     /// </item>
     /// <item>
@@ -528,6 +528,12 @@ public partial class bingx
     /// <term>params.stopLoss</term>
     /// <description>
     /// object : *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.test</term>
+    /// <description>
+    /// boolean : *swap only* whether to use the test endpoint or not, default is false
     /// </description>
     /// </item>
     /// </list>
@@ -1278,7 +1284,7 @@ public partial class bingx
     /// <item>
     /// <term>params.priceRate</term>
     /// <description>
-    /// float : *contract only* for type TRAILING_STOP_Market, Max = 1
+    /// float : *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
     /// </description>
     /// </item>
     /// <item>

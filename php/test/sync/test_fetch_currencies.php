@@ -16,6 +16,7 @@ function test_fetch_currencies($exchange, $skipped_properties) {
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     if ($currencies !== null) {
         $values = is_array($currencies) ? array_values($currencies) : array();
+        assert_non_emtpy_array($exchange, $skipped_properties, $method, $values);
         for ($i = 0; $i < count($values); $i++) {
             test_currency($exchange, $skipped_properties, $method, $values[$i]);
         }

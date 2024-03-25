@@ -5,7 +5,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -87,7 +87,7 @@ export default class binance extends binanceRest {
                     'future': 200,
                     'delivery': 200,
                 },
-                'streamBySubscriptionsHash': {},
+                'streamBySubscriptionsHash': this.createSafeDictionary (),
                 'streamIndex': -1,
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
@@ -95,7 +95,7 @@ export default class binance extends binanceRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'requestId': {},
+                'requestId': this.createSafeDictionary (),
                 'watchOrderBookLimit': 1000, // default limit
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
@@ -130,7 +130,7 @@ export default class binance extends binanceRest {
     }
 
     requestId (url) {
-        const options = this.safeValue (this.options, 'requestId', {});
+        const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
@@ -138,7 +138,7 @@ export default class binance extends binanceRest {
     }
 
     stream (type, subscriptionHash, numSubscriptions = 1) {
-        const streamBySubscriptionsHash = this.safeValue (this.options, 'streamBySubscriptionsHash', {});
+        const streamBySubscriptionsHash = this.safeDict (this.options, 'streamBySubscriptionsHash', this.createSafeDictionary ());
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
             let streamIndex = this.safeInteger (this.options, 'streamIndex', -1);
@@ -151,7 +151,7 @@ export default class binance extends binanceRest {
             this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
             const subscriptionsByStreams = this.safeValue (this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {
-                this.options['numSubscriptionsByStream'] = {};
+                this.options['numSubscriptionsByStream'] = this.createSafeDictionary ();
             }
             const subscriptionsByStream = this.safeInteger (this.options['numSubscriptionsByStream'], stream, 0);
             const newNumSubscriptions = subscriptionsByStream + numSubscriptions;
@@ -1662,7 +1662,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name binance#createOrderWs
@@ -1806,7 +1806,7 @@ export default class binance extends binanceRest {
         client.resolve (orders, messageHash);
     }
 
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name binance#editOrderWs

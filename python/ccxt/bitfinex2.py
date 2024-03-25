@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -508,7 +508,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitfinex2
         :see: https://docs.bitfinex.com/reference/rest-public-conf
@@ -1347,9 +1347,10 @@ class bitfinex2(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
-            'start': since,
             'limit': limit,
         }
+        if since is not None:
+            request['start'] = since
         request, params = self.handle_until_option('end', request, params)
         response = self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         #
@@ -1482,7 +1483,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
          * @ignore
         helper function to build an order request
@@ -1560,7 +1561,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'trailingAmount', 'clientOrderId'])
         return self.extend(request, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create an order on the exchange
         :see: https://docs.bitfinex.com/reference/rest-auth-submit-order
@@ -2906,10 +2907,10 @@ class bitfinex2(Exchange, ImplicitAPI):
             rates.append(rate)
         reversedArray = []
         rawRates = self.filter_by_symbol_since_limit(rates, symbol, since, limit)
-        rawRatesLength = len(rawRates)
-        ratesLength = max(rawRatesLength - 1, 0)
-        for i in range(ratesLength, 0):
-            valueAtIndex = rawRates[i]
+        ratesLength = len(rawRates)
+        for i in range(0, ratesLength):
+            index = ratesLength - i - 1
+            valueAtIndex = rawRates[index]
             reversedArray.append(valueAtIndex)
         return reversedArray
 
@@ -3318,7 +3319,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'status': marginStatus,
         }
 
-    def fetch_order(self, id: str, symbol: str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -3381,7 +3382,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         order = self.safe_list(response, 0)
         return self.parse_order(order, market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
         :see: https://docs.bitfinex.com/reference/rest-auth-update-order

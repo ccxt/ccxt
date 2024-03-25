@@ -127,6 +127,7 @@ export default class bingx extends Exchange {
                     'v1': {
                         'public': {
                             'get': {
+                                'server/time': 3,
                                 'common/symbols': 3,
                                 'market/trades': 3,
                                 'market/depth': 3,
@@ -150,6 +151,7 @@ export default class bingx extends Exchange {
                                 'trade/order/cancelReplace': 3,
                                 'trade/cancelOrders': 3,
                                 'trade/cancelOpenOrders': 3,
+                                'trade/cancelAllAfter': 1,
                             },
                         },
                     },
@@ -183,6 +185,7 @@ export default class bingx extends Exchange {
                             'post': {
                                 'trade/cancelReplace': 1,
                                 'positionSide/dual': 1,
+                                'trade/closePosition': 1,
                             },
                         },
                     },
@@ -1812,15 +1815,18 @@ export default class bingx extends Exchange {
             request[exchangeClientOrderId] = clientOrderId;
         }
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
-        if (timeInForce === 'IOC') {
+        [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'PostOnly', params);
+        if (postOnly || (timeInForce === 'PostOnly')) {
+            request['timeInForce'] = 'PostOnly';
+        }
+        else if (timeInForce === 'IOC') {
             request['timeInForce'] = 'IOC';
+        }
+        else if (timeInForce === 'GTC') {
+            request['timeInForce'] = 'GTC';
         }
         const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         if (isSpot) {
-            [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'POC', params);
-            if (postOnly || (timeInForce === 'POC')) {
-                request['timeInForce'] = 'POC';
-            }
             const cost = this.safeNumber2(params, 'cost', 'quoteOrderQty');
             params = this.omit(params, 'cost');
             if (cost !== undefined) {
@@ -1853,20 +1859,14 @@ export default class bingx extends Exchange {
             }
         }
         else {
-            [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'PostOnly', params);
-            if (postOnly || (timeInForce === 'PostOnly')) {
-                request['timeInForce'] = 'PostOnly';
-            }
-            else if (timeInForce === 'GTC') {
-                request['timeInForce'] = 'GTC';
-            }
-            else if (timeInForce === 'FOK') {
+            if (timeInForce === 'FOK') {
                 request['timeInForce'] = 'FOK';
             }
             const stopLossPrice = this.safeString(params, 'stopLossPrice');
             const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
             const trailingAmount = this.safeString(params, 'trailingAmount');
             const trailingPercent = this.safeString2(params, 'trailingPercent', 'priceRate');
+            const trailingType = this.safeString(params, 'trailingType', 'TRAILING_STOP_MARKET');
             const isTriggerOrder = triggerPrice !== undefined;
             const isStopLossPriceOrder = stopLossPrice !== undefined;
             const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
@@ -1913,7 +1913,7 @@ export default class bingx extends Exchange {
                 }
             }
             else if (isTrailing) {
-                request['type'] = 'TRAILING_STOP_MARKET';
+                request['type'] = trailingType;
                 if (isTrailingAmountOrder) {
                     request['price'] = this.parseToNumeric(trailingAmount);
                 }
@@ -1968,7 +1968,7 @@ export default class bingx extends Exchange {
             }
             request['positionSide'] = positionSide;
             request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
-            params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'takeProfit', 'stopLoss', 'clientOrderId']);
+            params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId']);
         }
         return this.extend(request, params);
     }
@@ -1987,7 +1987,7 @@ export default class bingx extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] a unique id for the order
          * @param {bool} [params.postOnly] true to place a post only order
-         * @param {string} [params.timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+         * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
          * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
          * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
@@ -1999,14 +1999,22 @@ export default class bingx extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        const test = this.safeBool(params, 'test', false);
+        params = this.omit(params, 'test');
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['swap']) {
-            response = await this.swapV2PrivatePostTradeOrder(request);
+            if (test) {
+                response = await this.swapV2PrivatePostTradeOrderTest(request);
+            }
+            else {
+                response = await this.swapV2PrivatePostTradeOrder(request);
+            }
         }
         else {
             response = await this.spotV1PrivatePostTradeOrder(request);
@@ -2159,6 +2167,8 @@ export default class bingx extends Exchange {
             'SELL': 'sell',
             'SHORT': 'sell',
             'LONG': 'buy',
+            'ask': 'sell',
+            'bid': 'buy',
         };
         return this.safeString(sides, side, side);
     }
@@ -2464,7 +2474,7 @@ export default class bingx extends Exchange {
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'CANCELLED': 'canceled',
-            'FAILED': 'failed',
+            'FAILED': 'canceled',
         };
         return this.safeString(statuses, status, status);
     }
@@ -3906,14 +3916,45 @@ export default class bingx extends Exchange {
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} [side] not used by bingx
          * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {string|undefined} [params.positionId] it is recommended to fill in this parameter when closing a position
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, params));
+        const positionId = this.safeString(params, 'positionId');
+        params = this.omit(params, 'positionId');
+        let response = undefined;
+        if (positionId !== undefined) {
+            const request = {
+                'positionId': positionId,
+            };
+            response = await this.swapV1PrivatePostTradeClosePosition(this.extend(request, params));
+        }
+        else {
+            const market = this.market(symbol);
+            const request = {
+                'symbol': market['id'],
+            };
+            response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, params));
+        }
+        //
+        // swapV1PrivatePostTradeClosePosition
+        //
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "timestamp": 1710992264190,
+        //        "data": {
+        //            "orderId": 1770656007907930112,
+        //            "positionId": "1751667128353910784",
+        //            "symbol": "LTC-USDT",
+        //            "side": "Ask",
+        //            "type": "MARKET",
+        //            "positionSide": "Long",
+        //            "origQty": "0.2"
+        //        }
+        //    }
+        //
+        // swapV2PrivatePostTradeCloseAllPositions
         //
         //    {
         //        "code": 0,
@@ -4060,7 +4101,7 @@ export default class bingx extends Exchange {
          * @param {string} [params.newClientOrderId] custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
          * @param {string} [params.positionSide] *contract only* position direction, required for single position as BOTH, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
          * @param {string} [params.reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
-         * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market, Max = 1
+         * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
          * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

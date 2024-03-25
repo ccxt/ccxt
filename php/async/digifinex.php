@@ -524,7 +524,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for digifinex
@@ -1530,7 +1530,8 @@ class digifinex extends Exchange {
                 } elseif ($limit !== null) {
                     $endTime = $this->seconds();
                     $duration = $this->parse_timeframe($timeframe);
-                    $request['start_time'] = $this->sum($endTime, -$limit * $duration);
+                    $auxLimit = $limit; // in c# -$limit is mutating the arg
+                    $request['start_time'] = $this->sum($endTime, -$auxLimit * $duration);
                 }
                 $response = Async\await($this->publicSpotGetKline (array_merge($request, $params)));
             }

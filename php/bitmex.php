@@ -454,7 +454,7 @@ class bitmex extends Exchange {
         return $this->convert_from_raw_quantity($symbol, $rawQuantity, 'quote');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bitmex
          * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActive
@@ -2087,7 +2087,7 @@ class bitmex extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): Leverages {
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the set leverage for all contract markets
          * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
@@ -2100,7 +2100,7 @@ class bitmex extends Exchange {
         return $this->parse_leverages($leverages, $symbols, 'symbol');
     }
 
-    public function parse_leverage($leverage, $market = null): Leverage {
+    public function parse_leverage($leverage, $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         return array(
             'info' => $leverage,
@@ -2513,7 +2513,9 @@ class bitmex extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $this->iso8601($until);
         }
-        $request['reverse'] = true;
+        if (($since === null) && ($until === null)) {
+            $request['reverse'] = true;
+        }
         $response = $this->publicGetFunding (array_merge($request, $params));
         //
         //    array(

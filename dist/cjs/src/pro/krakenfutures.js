@@ -86,7 +86,7 @@ class krakenfutures extends krakenfutures$1 {
                 'api_key': this.apiKey,
             };
             const message = this.extend(request, params);
-            future = await this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;
@@ -467,16 +467,17 @@ class krakenfutures extends krakenfutures$1 {
             const market = this.market(marketId);
             const symbol = market['symbol'];
             const messageHash = 'trade:' + symbol;
-            let tradesArray = this.safeValue(this.trades, symbol);
-            if (tradesArray === undefined) {
+            if (this.safeList(this.trades, symbol) === undefined) {
                 const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
-                tradesArray = new Cache.ArrayCache(tradesLimit);
-                this.trades[symbol] = tradesArray;
+                this.trades[symbol] = new Cache.ArrayCache(tradesLimit);
             }
+            const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
-                const trades = this.safeValue(message, 'trades', []);
-                for (let i = 0; i < trades.length; i++) {
-                    const item = trades[i];
+                const trades = this.safeList(message, 'trades', []);
+                const length = trades.length;
+                for (let i = 0; i < length; i++) {
+                    const index = length - 1 - i; // need reverse to correct chronology
+                    const item = trades[index];
                     const trade = this.parseWsTrade(item);
                     tradesArray.append(trade);
                 }

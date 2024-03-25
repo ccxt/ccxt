@@ -279,6 +279,7 @@ public partial class hitbtc : Exchange
                     { "2012", typeof(BadRequest) },
                     { "2020", typeof(BadRequest) },
                     { "2022", typeof(BadRequest) },
+                    { "2024", typeof(InvalidOrder) },
                     { "10001", typeof(BadRequest) },
                     { "10021", typeof(AccountSuspended) },
                     { "10022", typeof(BadRequest) },
@@ -296,6 +297,7 @@ public partial class hitbtc : Exchange
                     { "20012", typeof(ExchangeError) },
                     { "20014", typeof(ExchangeError) },
                     { "20016", typeof(ExchangeError) },
+                    { "20018", typeof(ExchangeError) },
                     { "20031", typeof(ExchangeError) },
                     { "20032", typeof(ExchangeError) },
                     { "20033", typeof(ExchangeError) },
@@ -306,10 +308,15 @@ public partial class hitbtc : Exchange
                     { "20043", typeof(ExchangeError) },
                     { "20044", typeof(PermissionDenied) },
                     { "20045", typeof(InvalidOrder) },
+                    { "20047", typeof(InvalidOrder) },
+                    { "20048", typeof(InvalidOrder) },
+                    { "20049", typeof(InvalidOrder) },
                     { "20080", typeof(ExchangeError) },
                     { "21001", typeof(ExchangeError) },
                     { "21003", typeof(AccountSuspended) },
                     { "21004", typeof(AccountSuspended) },
+                    { "22004", typeof(ExchangeError) },
+                    { "22008", typeof(ExchangeError) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
@@ -1646,13 +1653,13 @@ public partial class hitbtc : Exchange
             { "symbol", getValue(market, "id") },
             { "period", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
+        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;

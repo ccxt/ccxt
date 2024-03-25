@@ -61,7 +61,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, "symbol");
         object logText = testSharedMethods.logTemplate(exchange, method, market);
         //
-        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option"};
+        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index"};
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         object hasIndex = (inOp(market, "index")); // todo: add in all
         // check if string is consistent with 'type'
@@ -221,7 +221,7 @@ public partial class testMainClass : BaseTest
             }
         }
         // check whether valid currency ID and CODE is used
-        if (!isTrue((inOp(skippedProperties, "currencyIdAndCode"))))
+        if (isTrue(!isTrue((inOp(skippedProperties, "currency"))) && !isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
         {
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "baseId"), getValue(market, "base"));
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "quoteId"), getValue(market, "quote"));

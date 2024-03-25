@@ -583,7 +583,7 @@ class alpaca extends alpaca$1 {
             }
             this.watch(url, messageHash, request, messageHash, future);
         }
-        return future;
+        return await future;
     }
     handleErrorMessage(client, message) {
         //

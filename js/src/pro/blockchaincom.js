@@ -771,6 +771,6 @@ export default class blockchaincom extends blockchaincomRest {
             };
             return this.watch(url, messageHash, this.extend(request, params), messageHash);
         }
-        return future;
+        return await future;
     }
 }

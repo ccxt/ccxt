@@ -1,0 +1,206 @@
+{
+    "exchange": "deribit",
+    "skipKeys": [],
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "public spot trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "has_more": true,
+                        "trades": [
+                            {
+                                "trade_id": "BTC_USDT-1097032",
+                                "contracts": "1.0",
+                                "instrument_name": "BTC_USDT",
+                                "tick_direction": "3",
+                                "trade_seq": "53466",
+                                "mark_price": "73147.6867",
+                                "index_price": "73147.6867",
+                                "direction": "sell",
+                                "amount": "0.0001",
+                                "price": "73260.86",
+                                "timestamp": "1710326420359"
+                            }
+                        ]
+                    },
+                    "usIn": "1710327659195248",
+                    "usOut": "1710327659195489",
+                    "usDiff": "241",
+                    "testnet": false
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC_USDT-1097032",
+                        "info": {
+                            "trade_id": "BTC_USDT-1097032",
+                            "contracts": "1.0",
+                            "instrument_name": "BTC_USDT",
+                            "tick_direction": "3",
+                            "trade_seq": "53466",
+                            "mark_price": "73147.6867",
+                            "index_price": "73147.6867",
+                            "direction": "sell",
+                            "amount": "0.0001",
+                            "price": "73260.86",
+                            "timestamp": "1710326420359"
+                        },
+                        "timestamp": 1710326420359,
+                        "datetime": "2024-03-13T10:40:20.359Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 73260.86,
+                        "amount": 0.0001,
+                        "cost": 1.364985341e-9,
+                        "fee": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "best_bid_amount": "0.0003",
+                        "best_ask_amount": "0.4904",
+                        "best_bid_price": "73418.58",
+                        "best_ask_price": "73521.05",
+                        "max_price": "74835.36",
+                        "min_price": "71900.63",
+                        "last_price": "73448.39",
+                        "instrument_name": "BTC_USDT",
+                        "mark_price": "73367.995",
+                        "index_price": "73367.995",
+                        "stats": {
+                            "volume_notional": "1871802.929506",
+                            "volume_usd": "1871769.37",
+                            "volume": "25.9035",
+                            "price_change": "1.7593",
+                            "low": "68933.02",
+                            "high": "73641.74"
+                        },
+                        "state": "open",
+                        "timestamp": "1710328244150"
+                    },
+                    "usIn": "1710328245071604",
+                    "usOut": "1710328245071795",
+                    "usDiff": "191",
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1710328244150,
+                    "datetime": "2024-03-13T11:10:44.150Z",
+                    "high": 73641.74,
+                    "low": 68933.02,
+                    "bid": 73418.58,
+                    "bidVolume": 0.0003,
+                    "ask": 73521.05,
+                    "askVolume": 0.4904,
+                    "vwap": null,
+                    "open": null,
+                    "close": 73448.39,
+                    "last": 73448.39,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": 25.9035,
+                    "info": {
+                        "best_bid_amount": "0.0003",
+                        "best_ask_amount": "0.4904",
+                        "best_bid_price": "73418.58",
+                        "best_ask_price": "73521.05",
+                        "max_price": "74835.36",
+                        "min_price": "71900.63",
+                        "last_price": "73448.39",
+                        "instrument_name": "BTC_USDT",
+                        "mark_price": "73367.995",
+                        "index_price": "73367.995",
+                        "stats": {
+                            "volume_notional": "1871802.929506",
+                            "volume_usd": "1871769.37",
+                            "volume": "25.9035",
+                            "price_change": "1.7593",
+                            "low": "68933.02",
+                            "high": "73641.74"
+                        },
+                        "state": "open",
+                        "timestamp": "1710328244150"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "usOut": "1710328421483471",
+                    "usIn": "1710328421482111",
+                    "usDiff": "1360",
+                    "testnet": false,
+                    "result": {
+                        "volume": [
+                            0.008
+                        ],
+                        "ticks": [
+                            1710327600000
+                        ],
+                        "status": "ok",
+                        "open": [
+                            73427.75
+                        ],
+                        "low": [
+                            73427.75
+                        ],
+                        "high": [
+                            73448.39
+                        ],
+                        "cost": [
+                            587.580928
+                        ],
+                        "close": [
+                            73448.39
+                        ]
+                    },
+                    "jsonrpc": "2.0"
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73427.75,
+                        73448.39,
+                        73427.75,
+                        73448.39,
+                        0.008
+                    ]
+                ]
+            }
+        ]
+    }
+}

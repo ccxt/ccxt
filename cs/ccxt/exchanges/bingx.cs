@@ -116,6 +116,7 @@ public partial class bingx : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
+                                { "server/time", 3 },
                                 { "common/symbols", 3 },
                                 { "market/trades", 3 },
                                 { "market/depth", 3 },
@@ -139,6 +140,7 @@ public partial class bingx : Exchange
                                 { "trade/order/cancelReplace", 3 },
                                 { "trade/cancelOrders", 3 },
                                 { "trade/cancelOpenOrders", 3 },
+                                { "trade/cancelAllAfter", 1 },
                             } },
                         } },
                     } },
@@ -172,6 +174,7 @@ public partial class bingx : Exchange
                             { "post", new Dictionary<string, object>() {
                                 { "trade/cancelReplace", 1 },
                                 { "positionSide/dual", 1 },
+                                { "trade/closePosition", 1 },
                             } },
                         } },
                     } },
@@ -1932,20 +1935,22 @@ public partial class bingx : Exchange
             ((IDictionary<string,object>)request)[(string)exchangeClientOrderId] = clientOrderId;
         }
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        if (isTrue(isEqual(timeInForce, "IOC")))
+        var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(timeInForce, "PostOnly"), parameters);
+        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        parameters = ((IList<object>)postOnlyparametersVariable)[1];
+        if (isTrue(isTrue(postOnly) || isTrue((isEqual(timeInForce, "PostOnly")))))
+        {
+            ((IDictionary<string,object>)request)["timeInForce"] = "PostOnly";
+        } else if (isTrue(isEqual(timeInForce, "IOC")))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "IOC";
+        } else if (isTrue(isEqual(timeInForce, "GTC")))
+        {
+            ((IDictionary<string,object>)request)["timeInForce"] = "GTC";
         }
         object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         if (isTrue(isSpot))
         {
-            var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(timeInForce, "POC"), parameters);
-            postOnly = ((IList<object>)postOnlyparametersVariable)[0];
-            parameters = ((IList<object>)postOnlyparametersVariable)[1];
-            if (isTrue(isTrue(postOnly) || isTrue((isEqual(timeInForce, "POC")))))
-            {
-                ((IDictionary<string,object>)request)["timeInForce"] = "POC";
-            }
             object cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
             parameters = this.omit(parameters, "cost");
             if (isTrue(!isEqual(cost, null)))
@@ -1984,16 +1989,7 @@ public partial class bingx : Exchange
             }
         } else
         {
-            var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(timeInForce, "PostOnly"), parameters);
-            postOnly = ((IList<object>)postOnlyparametersVariable)[0];
-            parameters = ((IList<object>)postOnlyparametersVariable)[1];
-            if (isTrue(isTrue(postOnly) || isTrue((isEqual(timeInForce, "PostOnly")))))
-            {
-                ((IDictionary<string,object>)request)["timeInForce"] = "PostOnly";
-            } else if (isTrue(isEqual(timeInForce, "GTC")))
-            {
-                ((IDictionary<string,object>)request)["timeInForce"] = "GTC";
-            } else if (isTrue(isEqual(timeInForce, "FOK")))
+            if (isTrue(isEqual(timeInForce, "FOK")))
             {
                 ((IDictionary<string,object>)request)["timeInForce"] = "FOK";
             }
@@ -2001,6 +1997,7 @@ public partial class bingx : Exchange
             object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             object trailingAmount = this.safeString(parameters, "trailingAmount");
             object trailingPercent = this.safeString2(parameters, "trailingPercent", "priceRate");
+            object trailingType = this.safeString(parameters, "trailingType", "TRAILING_STOP_MARKET");
             object isTriggerOrder = !isEqual(triggerPrice, null);
             object isStopLossPriceOrder = !isEqual(stopLossPrice, null);
             object isTakeProfitPriceOrder = !isEqual(takeProfitPrice, null);
@@ -2053,7 +2050,7 @@ public partial class bingx : Exchange
                 }
             } else if (isTrue(isTrailing))
             {
-                ((IDictionary<string,object>)request)["type"] = "TRAILING_STOP_MARKET";
+                ((IDictionary<string,object>)request)["type"] = trailingType;
                 if (isTrue(isTrailingAmountOrder))
                 {
                     ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(trailingAmount);
@@ -2115,7 +2112,7 @@ public partial class bingx : Exchange
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
             ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
-            parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "takeProfit", "stopLoss", "clientOrderId"});
+            parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         }
         return this.extend(request, parameters);
     }
@@ -2136,7 +2133,7 @@ public partial class bingx : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.clientOrderId] a unique id for the order
         * @param {bool} [params.postOnly] true to place a post only order
-        * @param {string} [params.timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+        * @param {string} [params.timeInForce] spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
         * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
         * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
         * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
@@ -2148,16 +2145,25 @@ public partial class bingx : Exchange
         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+        * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object test = this.safeBool(parameters, "test", false);
+        parameters = this.omit(parameters, "test");
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.swapV2PrivatePostTradeOrder(request);
+            if (isTrue(test))
+            {
+                response = await this.swapV2PrivatePostTradeOrderTest(request);
+            } else
+            {
+                response = await this.swapV2PrivatePostTradeOrder(request);
+            }
         } else
         {
             response = await this.spotV1PrivatePostTradeOrder(request);
@@ -2320,6 +2326,8 @@ public partial class bingx : Exchange
             { "SELL", "sell" },
             { "SHORT", "sell" },
             { "LONG", "buy" },
+            { "ask", "sell" },
+            { "bid", "buy" },
         };
         return this.safeString(sides, side, side);
     }
@@ -2642,7 +2650,7 @@ public partial class bingx : Exchange
             { "FILLED", "closed" },
             { "CANCELED", "canceled" },
             { "CANCELLED", "canceled" },
-            { "FAILED", "failed" },
+            { "FAILED", "canceled" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -4140,15 +4148,47 @@ public partial class bingx : Exchange
         * @param {string} symbol Unified CCXT market symbol
         * @param {string} [side] not used by bingx
         * @param {object} [params] extra parameters specific to the bingx api endpoint
+        * @param {string|undefined} [params.positionId] it is recommended to fill in this parameter when closing a position
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-        };
-        object response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
+        object positionId = this.safeString(parameters, "positionId");
+        parameters = this.omit(parameters, "positionId");
+        object response = null;
+        if (isTrue(!isEqual(positionId, null)))
+        {
+            object request = new Dictionary<string, object>() {
+                { "positionId", positionId },
+            };
+            response = await this.swapV1PrivatePostTradeClosePosition(this.extend(request, parameters));
+        } else
+        {
+            object market = this.market(symbol);
+            object request = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+            };
+            response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
+        }
+        //
+        // swapV1PrivatePostTradeClosePosition
+        //
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "timestamp": 1710992264190,
+        //        "data": {
+        //            "orderId": 1770656007907930112,
+        //            "positionId": "1751667128353910784",
+        //            "symbol": "LTC-USDT",
+        //            "side": "Ask",
+        //            "type": "MARKET",
+        //            "positionSide": "Long",
+        //            "origQty": "0.2"
+        //        }
+        //    }
+        //
+        // swapV2PrivatePostTradeCloseAllPositions
         //
         //    {
         //        "code": 0,
@@ -4313,7 +4353,7 @@ public partial class bingx : Exchange
         * @param {string} [params.newClientOrderId] custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId.
         * @param {string} [params.positionSide] *contract only* position direction, required for single position as BOTH, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
         * @param {string} [params.reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
-        * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market, Max = 1
+        * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
         * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */

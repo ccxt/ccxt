@@ -663,9 +663,9 @@ class bitmart(ccxt.async_support.bitmart):
         #    }
         #
         data = self.safe_value(message, 'data', [])
-        cache = self.positions
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
         newPositions = []
         for i in range(0, len(data)):
             rawPosition = data[i]
@@ -781,9 +781,9 @@ class bitmart(ccxt.async_support.bitmart):
         isSwap = ('group' in message)
         if isSwap:
             # in swap, chronologically decreasing: 1709536849322, 1709536848954,
-            maxLen = max(length - 1, 0)
-            for i in range(maxLen, 0):
-                symbol = self.handle_trade_loop(data[i])
+            for i in range(0, length):
+                index = length - i - 1
+                symbol = self.handle_trade_loop(data[index])
         else:
             # in spot, chronologically increasing: 1709536771200, 1709536771226,
             for i in range(0, length):
@@ -1312,7 +1312,7 @@ class bitmart(ccxt.async_support.bitmart):
                 }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_subscription_status(self, client: Client, message):
         #
@@ -1370,7 +1370,17 @@ class bitmart(ccxt.async_support.bitmart):
             return
         #
         #     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
-        #     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
+        #
+        # subscribe events on spot:
+        #
+        #     {"event":"subscribe", "topic":"spot/kline1m:BTC_USDT"}
+        #
+        # subscribe on contracts:
+        #
+        #     {"action":"subscribe", "group":"futures/klineBin1m:BTCUSDT", "success":true, "request":{"action":"subscribe", "args":["futures/klineBin1m:BTCUSDT"]}}
+        #
+        # regular updates - spot
+        #
         #     {
         #         "table": "spot/depth",
         #         "action": "partial",
@@ -1391,10 +1401,21 @@ class bitmart(ccxt.async_support.bitmart):
         #         ]
         #     }
         #
+        # regular updates - contracts
+        #
+        #     {
+        #         group: "futures/klineBin1m:BTCUSDT",
+        #         data: {
+        #           symbol: "BTCUSDT",
+        #           items: [{o: "67944.7", "h": ....}],
+        #         },
+        #       }
+        #
         #     {data: '', table: "spot/user/order"}
         #
-        channel = self.safe_string_2(message, 'table', 'group')
-        if channel is None:
+        # the only realiable way(for both spot & swap) is to check 'data' key
+        isDataUpdate = ('data' in message)
+        if not isDataUpdate:
             event = self.safe_string_2(message, 'event', 'action')
             if event is not None:
                 methods = {
@@ -1407,6 +1428,7 @@ class bitmart(ccxt.async_support.bitmart):
                 if method is not None:
                     method(client, message)
         else:
+            channel = self.safe_string_2(message, 'table', 'group')
             methods = {
                 'depth': self.handle_order_book,
                 'ticker': self.handle_ticker,

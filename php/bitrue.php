@@ -398,7 +398,7 @@ class bitrue extends Exchange {
                     '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
                     '-1100' => '\\ccxt\\BadRequest', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101' => '\\ccxt\\BadRequest', // Too many parameters; expected %s and received %s.
-                    '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty
+                    '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty // array("code":-1102,"msg":"timestamp IllegalArgumentException.","data":null)
                     '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
                     '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105' => '\\ccxt\\BadRequest', // Parameter %s was empty.
@@ -703,7 +703,7 @@ class bitrue extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitrue
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
@@ -2906,7 +2906,7 @@ class bitrue extends Exchange {
         return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256

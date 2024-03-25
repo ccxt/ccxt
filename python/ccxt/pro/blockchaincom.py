@@ -735,4 +735,4 @@ class blockchaincom(ccxt.async_support.blockchaincom):
                 'token': self.secret,
             }
             return self.watch(url, messageHash, self.extend(request, params), messageHash)
-        return future
+        return await future

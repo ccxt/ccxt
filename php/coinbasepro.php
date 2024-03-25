@@ -296,7 +296,7 @@ class coinbasepro extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for coinbasepro
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
@@ -416,7 +416,7 @@ class coinbasepro extends Exchange {
         return $result;
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts

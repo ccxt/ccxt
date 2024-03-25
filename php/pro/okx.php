@@ -1360,7 +1360,8 @@ class okx extends \ccxt\async\okx {
             $this->handle_errors(null, null, $client->url, $method, null, $stringMsg, $stringMsg, null, null);
         }
         $orders = $this->parse_orders($args, null, null, null);
-        $client->resolve ($orders, $messageHash);
+        $first = $this->safe_dict($orders, 0, array());
+        $client->resolve ($first, $messageHash);
     }
 
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {

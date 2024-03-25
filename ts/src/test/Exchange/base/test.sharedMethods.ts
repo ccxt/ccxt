@@ -114,7 +114,7 @@ function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck
         assert (typeof ts === 'number', 'timestamp is not numeric' + logText);
         assert (Number.isInteger (ts), 'timestamp should be an integer' + logText);
         const minTs = 1230940800000; // 03 Jan 2009 - first block
-        const maxTs = 2147483648000; // 03 Jan 2009 - first block
+        const maxTs = 2147483648000; // 19 Jan 2038 - max int
         assert (ts > minTs, 'timestamp is impossible to be before ' + minTs.toString () + ' (03.01.2009)' + logText); // 03 Jan 2009 - first block
         assert (ts < maxTs, 'timestamp more than ' + maxTs.toString () + ' (19.01.2038)' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if (nowToCheck !== undefined) {
@@ -149,7 +149,7 @@ function assertTimestampAndDatetime (exchange, skippedProperties, method, entry,
 }
 
 function assertCurrencyCode (exchange, skippedProperties, method, entry, actualCode, expectedCode = undefined) {
-    if ('currency' in skippedProperties) {
+    if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
     }
     const logText = logTemplate (exchange, method, entry);
@@ -164,7 +164,7 @@ function assertCurrencyCode (exchange, skippedProperties, method, entry, actualC
 
 function assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, currencyId, currencyCode) {
     // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-    if ('currencyIdAndCode' in skippedProperties) {
+    if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
     }
     const logText = logTemplate (exchange, method, entry);
@@ -373,6 +373,27 @@ function setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, http
     exchange.socksProxy = socksProxy;
 }
 
+function assertNonEmtpyArray (exchange, skippedProperties, method, entry, hint = undefined) {
+    let logText = logTemplate (exchange, method, entry);
+    if (hint !== undefined) {
+        logText = logText + ' ' + hint;
+    }
+    assert (Array.isArray (entry), 'response is expected to be an array' + logText);
+    if (!('emptyResponse' in skippedProperties)) {
+        return;
+    }
+    assert (entry.length > 0, 'response is expected to be a non-empty array' + logText + ' (add "emptyResponse" in skip-tests.json to skip this check)');
+}
+
+function assertRoundMinuteTimestamp (exchange, skippedProperties, method, entry, key) {
+    if (key in skippedProperties) {
+        return;
+    }
+    const logText = logTemplate (exchange, method, entry);
+    const ts = exchange.safeString (entry, key);
+    assert (Precise.stringMod (ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
+}
+
 export default {
     logTemplate,
     isTemporaryFailure,
@@ -397,4 +418,6 @@ export default {
     assertType,
     removeProxyOptions,
     setProxyOptions,
+    assertNonEmtpyArray,
+    assertRoundMinuteTimestamp,
 };

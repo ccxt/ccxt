@@ -39,11 +39,9 @@ setup(
 
     name=package['name'],
     version=package['version'],
-    data_files=[('ccxt', ['ccxt/static_dependencies/ethereum/utils/__json/eth_networks.json'])],
     description=package['description'],
     long_description=long_description,
     long_description_content_type='text/markdown',
-    include_package_data=True,
 
     # will switch from rst to md shortly
     # long_description_content_type='text/markdown',
