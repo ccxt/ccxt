@@ -2168,7 +2168,7 @@ public partial class Exchange
         }
     }
 
-    public virtual object marketIds(object symbols)
+    public virtual object marketIds(object symbols = null)
     {
         if (isTrue(isEqual(symbols, null)))
         {
@@ -2182,7 +2182,7 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object marketSymbols(object symbols, object type = null, object allowEmpty = null, object sameTypeOnly = null, object sameSubTypeOnly = null)
+    public virtual object marketSymbols(object symbols = null, object type = null, object allowEmpty = null, object sameTypeOnly = null, object sameSubTypeOnly = null)
     {
         allowEmpty ??= true;
         sameTypeOnly ??= false;
@@ -2239,7 +2239,7 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object marketCodes(object codes)
+    public virtual object marketCodes(object codes = null)
     {
         if (isTrue(isEqual(codes, null)))
         {
@@ -3111,6 +3111,12 @@ public partial class Exchange
 
     public virtual object checkRequiredCredentials(object error = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @param {boolean} error throw an error that a credential is required if true
+        * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
+        */
         error ??= true;
         object keys = new List<object>(((IDictionary<string,object>)this.requiredCredentials).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -3526,6 +3532,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderBooks() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchBidsAsks() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchTickers(object symbols = null, object parameters = null)
@@ -4024,6 +4036,18 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchGreeks() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOptionChain(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOptionChain() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOption(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOption() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
@@ -5610,6 +5634,26 @@ public partial class Exchange
     public virtual object parseGreeks(object greeks, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parseGreeks () is not supported yet")) ;
+    }
+
+    public virtual object parseOption(object chain, object currency = null, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseOption () is not supported yet")) ;
+    }
+
+    public virtual object parseOptionChain(object response, object currencyKey = null, object symbolKey = null)
+    {
+        object optionStructures = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object info = getValue(response, i);
+            object currencyId = this.safeString(info, currencyKey);
+            object currency = this.safeCurrency(currencyId);
+            object marketId = this.safeString(info, symbolKey);
+            object market = this.safeMarket(marketId, null, null, "option");
+            ((IDictionary<string,object>)optionStructures)[(string)getValue(market, "symbol")] = this.parseOption(info, currency, market);
+        }
+        return optionStructures;
     }
 
     public virtual object parseMarginModes(object response, object symbols = null, object symbolKey = null, object marketType = null)

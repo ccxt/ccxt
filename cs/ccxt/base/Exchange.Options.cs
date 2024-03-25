@@ -1,4 +1,7 @@
 namespace ccxt;
+
+using System.Collections.Concurrent;
+
 using dict = Dictionary<string, object>;
 using list = List<object>;
 
@@ -61,7 +64,7 @@ public partial class Exchange
 
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
-    public Dictionary<string, object> options { get; set; } = new dict();
+    public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
     public object markets { get; set; } = null;
     public object currencies { get; set; } = null;
     public object fees { get; set; } = new dict();
@@ -281,7 +284,7 @@ public partial class Exchange
                 { "fetchPositions", null },
                 { "fetchPositionsRisk", null },
                 { "fetchPremiumIndexOHLCV", null },
-                { "fetchStatus", "emulated" },
+                { "fetchStatus", null },
                 { "fetchTicker", true },
                 { "fetchTickers", null },
                 { "fetchTime", null },
@@ -429,7 +432,15 @@ public partial class Exchange
         this.api = SafeValue(extendedProperties, "api") as dict;
         this.hostname = SafeString(extendedProperties, "hostname");
         this.urls = SafeValue(extendedProperties, "urls") as dict;
-        this.options = SafeValue(extendedProperties, "options") as dict ?? new dict();
+
+        // handle options
+        var extendedOptions = safeDict(extendedProperties, "options");
+        if (extendedOptions != null)
+        {
+            var extendedDict = extendedOptions as dict;
+            var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
+            this.options = concurrentExtendedDict;
+        }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;
         this.fees = SafeValue(extendedProperties, "fees") as dict;

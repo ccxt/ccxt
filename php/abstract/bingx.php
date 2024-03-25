@@ -97,6 +97,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function swap_v1_private_post_positionside_dual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function swap_v1_private_post_trade_closeposition($params = array()) {
+        return $this->request('trade/closePosition', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function swap_v2_public_get_server_time($params = array()) {
         return $this->request('server/time', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -390,6 +393,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swapV1PrivatePostPositionSideDual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PrivatePostTradeClosePosition($params = array()) {
+        return $this->request('trade/closePosition', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function swapV2PublicGetServerTime($params = array()) {
         return $this->request('server/time', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 3));

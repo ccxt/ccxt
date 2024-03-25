@@ -650,7 +650,7 @@ class exmo extends exmo$1 {
                 'nonce': time,
             };
             const message = this.extend(request, query);
-            future = this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

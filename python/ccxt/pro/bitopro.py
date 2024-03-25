@@ -364,7 +364,8 @@ class bitopro(ccxt.async_support.bitopro):
                 },
             },
         }
-        self.options = self.extend(defaultOptions, self.options)
+        # self.options = self.extend(defaultOptions, self.options)
+        self.extend_exchange_options(defaultOptions)
         originalHeaders = self.options['ws']['options']['headers']
         headers = {
             'X-BITOPRO-API': 'ccxt',

@@ -18,6 +18,7 @@ declare class baseMainTestClass {
     privateTestOnly: boolean;
     loadKeys: boolean;
     sandbox: boolean;
+    skippedSettingsForExchange: {};
     skippedMethods: {};
     checkedPublicTests: {};
     testFiles: {};

@@ -174,17 +174,21 @@ public partial class cex : ccxt.cex
         //     {
         //         "e": "history",
         //         "data": [
-        //             "sell:1665467367741:3888551:19058.8:14541219",
-        //             "buy:1665467367741:1059339:19071.5:14541218",
+        //            'buy:1710255706095:444444:71222.2:14892622'
+        //            'sell:1710255658251:42530:71300:14892621'
+        //            'buy:1710252424241:87913:72800:14892620'
+        //            ... timestamp descending
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        object data = this.safeList(message, "data", new List<object>() {});
         object limit = this.safeInteger(this.options, "tradesLimit", 1000);
         var stored = new ArrayCache(limit);
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        object dataLength = getArrayLength(data);
+        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
-            object rawTrade = getValue(data, i);
+            object index = subtract(subtract(dataLength, 1), i);
+            object rawTrade = getValue(data, index);
             object parsed = this.parseWsOldTrade(rawTrade);
             callDynamically(stored, "append", new object[] {parsed});
         }

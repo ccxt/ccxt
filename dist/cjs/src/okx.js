@@ -94,6 +94,8 @@ class okx extends okx$1 {
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
+                'fetchOption': true,
+                'fetchOptionChain': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -573,6 +575,7 @@ class okx extends okx$1 {
                     '50027': errors.PermissionDenied,
                     '50028': errors.ExchangeError,
                     '50044': errors.BadRequest,
+                    '50061': errors.ExchangeError,
                     '50062': errors.ExchangeError,
                     // API Class
                     '50100': errors.ExchangeError,
@@ -760,6 +763,15 @@ class okx extends okx$1 {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000': errors.ExchangeError,
                     '54001': errors.ExchangeError,
+                    // Trading bot Error Code from 55100 to 55999
+                    '55100': errors.InvalidOrder,
+                    '55101': errors.InvalidOrder,
+                    '55102': errors.InvalidOrder,
+                    '55103': errors.InvalidOrder,
+                    '55104': errors.InvalidOrder,
+                    '55111': errors.InvalidOrder,
+                    '55112': errors.InvalidOrder,
+                    '55113': errors.InvalidOrder,
                     // FUNDING error codes 58000-58999
                     '58000': errors.ExchangeError,
                     '58001': errors.AuthenticationError,
@@ -1845,16 +1857,29 @@ class okx extends okx$1 {
         const first = this.safeValue(data, 0, {});
         return this.parseTicker(first, market);
     }
-    async fetchTickersByType(type, symbols = undefined, params = {}) {
+    async fetchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const market = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         const request = {
-            'instType': this.convertToInstrumentType(type),
+            'instType': this.convertToInstrumentType(marketType),
         };
-        if (type === 'option') {
+        if (marketType === 'option') {
             const defaultUnderlying = this.safeValue(this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2(params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchTickersByType() requires an underlying uly or marketId parameter for options markets');
+                throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
             }
             else {
                 request['uly'] = currencyId;
@@ -1887,28 +1912,8 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
-        const tickers = this.safeValue(response, 'data', []);
+        const tickers = this.safeList(response, 'data', []);
         return this.parseTickers(tickers, symbols);
-    }
-    async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name okx#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        const first = this.safeString(symbols, 0);
-        let market = undefined;
-        if (first !== undefined) {
-            market = this.market(first);
-        }
-        const [type, query] = this.handleMarketTypeAndParams('fetchTickers', market, params);
-        return await this.fetchTickersByType(type, symbols, query);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -4727,23 +4732,7 @@ class okx extends okx$1 {
             }
         }
         request['fee'] = this.numberToString(fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
-        if ('password' in params) {
-            request['pwd'] = params['password'];
-        }
-        else if ('pwd' in params) {
-            request['pwd'] = params['pwd'];
-        }
-        else {
-            const options = this.safeValue(this.options, 'withdraw', {});
-            const password = this.safeString2(options, 'password', 'pwd');
-            if (password !== undefined) {
-                request['pwd'] = password;
-            }
-        }
-        const query = this.omit(params, ['fee', 'password', 'pwd']);
-        if (!('pwd' in request)) {
-            throw new errors.ExchangeError(this.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase');
-        }
+        const query = this.omit(params, ['fee']);
         const response = await this.privatePostAssetWithdrawal(this.extend(request, query));
         //
         //     {
@@ -5021,6 +5010,14 @@ class okx extends okx$1 {
             '3': 'pending',
             '4': 'pending',
             '5': 'pending',
+            '6': 'pending',
+            '7': 'pending',
+            '8': 'pending',
+            '9': 'pending',
+            '10': 'pending',
+            '12': 'pending',
+            '15': 'pending',
+            '16': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
@@ -7414,6 +7411,143 @@ class okx extends okx$1 {
         const data = this.safeValue(response, 'data');
         const order = this.safeValue(data, 0);
         return this.parseOrder(order, market);
+    }
+    async fetchOption(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchOption
+         * @description fetches option data that is commonly found in an option chain
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'instId': market['id'],
+        };
+        const response = await this.publicGetMarketTicker(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "OPTION",
+        //                 "instId": "BTC-USD-241227-60000-P",
+        //                 "last": "",
+        //                 "lastSz": "0",
+        //                 "askPx": "",
+        //                 "askSz": "0",
+        //                 "bidPx": "",
+        //                 "bidSz": "0",
+        //                 "open24h": "",
+        //                 "high24h": "",
+        //                 "low24h": "",
+        //                 "volCcy24h": "0",
+        //                 "vol24h": "0",
+        //                 "ts": "1711176035035",
+        //                 "sodUtc0": "",
+        //                 "sodUtc8": ""
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeList(response, 'data', []);
+        const chain = this.safeDict(result, 0, {});
+        return this.parseOption(chain, undefined, market);
+    }
+    async fetchOptionChain(code, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchOptionChain
+         * @description fetches data for an underlying asset that is commonly found in an option chain
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+         * @param {string} currency base currency to fetch an option chain for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+         * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'uly': currency['code'] + '-USD',
+            'instType': 'OPTION',
+        };
+        const response = await this.publicGetMarketTickers(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "OPTION",
+        //                 "instId": "BTC-USD-240323-52000-C",
+        //                 "last": "",
+        //                 "lastSz": "0",
+        //                 "askPx": "",
+        //                 "askSz": "0",
+        //                 "bidPx": "",
+        //                 "bidSz": "0",
+        //                 "open24h": "",
+        //                 "high24h": "",
+        //                 "low24h": "",
+        //                 "volCcy24h": "0",
+        //                 "vol24h": "0",
+        //                 "ts": "1711176207008",
+        //                 "sodUtc0": "",
+        //                 "sodUtc8": ""
+        //             },
+        //         ]
+        //     }
+        //
+        const result = this.safeList(response, 'data', []);
+        return this.parseOptionChain(result, undefined, 'instId');
+    }
+    parseOption(chain, currency = undefined, market = undefined) {
+        //
+        //     {
+        //         "instType": "OPTION",
+        //         "instId": "BTC-USD-241227-60000-P",
+        //         "last": "",
+        //         "lastSz": "0",
+        //         "askPx": "",
+        //         "askSz": "0",
+        //         "bidPx": "",
+        //         "bidSz": "0",
+        //         "open24h": "",
+        //         "high24h": "",
+        //         "low24h": "",
+        //         "volCcy24h": "0",
+        //         "vol24h": "0",
+        //         "ts": "1711176035035",
+        //         "sodUtc0": "",
+        //         "sodUtc8": ""
+        //     }
+        //
+        const marketId = this.safeString(chain, 'instId');
+        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(chain, 'ts');
+        return {
+            'info': chain,
+            'currency': undefined,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'impliedVolatility': undefined,
+            'openInterest': undefined,
+            'bidPrice': this.safeNumber(chain, 'bidPx'),
+            'askPrice': this.safeNumber(chain, 'askPx'),
+            'midPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': this.safeNumber(chain, 'last'),
+            'underlyingPrice': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'baseVolume': this.safeNumber(chain, 'volCcy24h'),
+            'quoteVolume': undefined,
+        };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

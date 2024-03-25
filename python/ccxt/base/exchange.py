@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.76'
+__version__ = '4.2.82'
 
 # -----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num
+from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings
 
 # -----------------------------------------------------------------------------
 
@@ -1171,7 +1171,7 @@ class Exchange(object):
             return None
 
         try:
-            utc = datetime.datetime.utcfromtimestamp(timestamp // 1000)
+            utc = datetime.datetime.fromtimestamp(timestamp // 1000, datetime.timezone.utc)
             return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
         except (TypeError, OverflowError, OSError):
             return None
@@ -1187,13 +1187,13 @@ class Exchange(object):
 
     @staticmethod
     def dmy(timestamp, infix='-'):
-        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
         return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
 
     @staticmethod
     def ymd(timestamp, infix='-', fullYear=True):
         year_format = '%Y' if fullYear else '%y'
-        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
         return utc_datetime.strftime(year_format + infix + '%m' + infix + '%d')
 
     @staticmethod
@@ -1206,7 +1206,7 @@ class Exchange(object):
 
     @staticmethod
     def ymdhms(timestamp, infix=' '):
-        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
@@ -1727,6 +1727,12 @@ class Exchange(object):
         modifiedContent = modifiedContent.replace('"{', '{')
         modifiedContent = modifiedContent.replace('}"', '}')
         return modifiedContent
+
+    def extend_exchange_options(self, newOptions):
+        self.options = self.extend(self.options, newOptions)
+
+    def create_safe_dictionary(self):
+        return {}
 
     # ########################################################################
     # ########################################################################
@@ -2287,7 +2293,7 @@ class Exchange(object):
             return float(stringVersion)
         return int(stringVersion)
 
-    def is_round_number(self, value):
+    def is_round_number(self, value: float):
         # self method is similar to isInteger, but self is more loyal and does not check for types.
         # i.e. isRoundNumber(1.000) returns True, while isInteger(1.000) returns False
         res = self.parse_to_numeric((value % 1))
@@ -3109,7 +3115,7 @@ class Exchange(object):
     def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
-    def convert_trading_view_to_ohlcv(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
+    def convert_trading_view_to_ohlcv(self, ohlcvs: List[List[float]], timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
         result = []
         timestamps = self.safe_list(ohlcvs, timestamp, [])
         opens = self.safe_list(ohlcvs, open, [])
@@ -3128,7 +3134,7 @@ class Exchange(object):
             ])
         return result
 
-    def convert_ohlcv_to_trading_view(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
+    def convert_ohlcv_to_trading_view(self, ohlcvs: List[List[float]], timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
         result = {}
         result[timestamp] = []
         result[open] = []
@@ -3187,7 +3193,7 @@ class Exchange(object):
         else:
             raise BadResponse(errorMessage)
 
-    def market_ids(self, symbols):
+    def market_ids(self, symbols: Strings = None):
         if symbols is None:
             return symbols
         result = []
@@ -3195,7 +3201,7 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols, type: Str = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
+    def market_symbols(self, symbols: Strings = None, type: Str = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
         if symbols is None:
             if not allowEmpty:
                 raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
@@ -3225,7 +3231,7 @@ class Exchange(object):
             result.append(symbol)
         return result
 
-    def market_codes(self, codes):
+    def market_codes(self, codes: Strings = None):
         if codes is None:
             return codes
         result = []
@@ -3779,6 +3785,11 @@ class Exchange(object):
         return result
 
     def check_required_credentials(self, error=True):
+        """
+         * @ignore
+        :param boolean error: raise an error that a credential is required if True
+        :returns boolean: True if all required credentials have been set, otherwise False or an error is thrown is param error=true
+        """
         keys = list(self.requiredCredentials.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -4019,6 +4030,9 @@ class Exchange(object):
 
     def fetch_order_books(self, symbols: List[str] = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
+
+    def watch_bids_asks(self, symbols: List[str] = None, params={}):
+        raise NotSupported(self.id + ' watchBidsAsks() is not supported yet')
 
     def watch_tickers(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
@@ -4321,6 +4335,12 @@ class Exchange(object):
 
     def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
+
+    def fetch_option_chain(self, code: str, params={}):
+        raise NotSupported(self.id + ' fetchOptionChain() is not supported yet')
+
+    def fetch_option(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchOption() is not supported yet')
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -5318,6 +5338,20 @@ class Exchange(object):
 
     def parse_greeks(self, greeks, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
+
+    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+        raise NotSupported(self.id + ' parseOption() is not supported yet')
+
+    def parse_option_chain(self, response: List[object], currencyKey: Str = None, symbolKey: Str = None):
+        optionStructures = {}
+        for i in range(0, len(response)):
+            info = response[i]
+            currencyId = self.safe_string(info, currencyKey)
+            currency = self.safe_currency(currencyId)
+            marketId = self.safe_string(info, symbolKey)
+            market = self.safe_market(marketId, None, None, 'option')
+            optionStructures[market['symbol']] = self.parseOption(info, currency, market)
+        return optionStructures
 
     def parse_margin_modes(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):
         marginModeStructures = {}

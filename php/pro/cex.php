@@ -170,16 +170,20 @@ class cex extends \ccxt\async\cex {
         //     {
         //         "e" => "history",
         //         "data" => array(
-        //             "sell:1665467367741:3888551:19058.8:14541219",
-        //             "buy:1665467367741:1059339:19071.5:14541218",
+        //            'buy:1710255706095:444444:71222.2:14892622'
+        //            'sell:1710255658251:42530:71300:14892621'
+        //            'buy:1710252424241:87913:72800:14892620'
+        //            ... timestamp descending
         //         )
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         $stored = new ArrayCache ($limit);
-        for ($i = 0; $i < count($data); $i++) {
-            $rawTrade = $data[$i];
+        $dataLength = count($data);
+        for ($i = 0; $i < $dataLength; $i++) {
+            $index = $dataLength - 1 - $i;
+            $rawTrade = $data[$index];
             $parsed = $this->parse_ws_old_trade($rawTrade);
             $stored->append ($parsed);
         }

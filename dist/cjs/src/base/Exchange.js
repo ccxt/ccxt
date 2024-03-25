@@ -468,6 +468,8 @@ class Exchange {
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOpenOrdersWs': undefined,
+                'fetchOption': undefined,
+                'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
@@ -1436,6 +1438,12 @@ class Exchange {
     }
     intToBase16(elem) {
         return elem.toString(16);
+    }
+    extendExchangeOptions(newOptions) {
+        this.options = this.extend(this.options, newOptions);
+    }
+    createSafeDictionary() {
+        return {};
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -3137,7 +3145,7 @@ class Exchange {
             throw new errors.BadResponse(errorMessage);
         }
     }
-    marketIds(symbols) {
+    marketIds(symbols = undefined) {
         if (symbols === undefined) {
             return symbols;
         }
@@ -3147,7 +3155,7 @@ class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols, type = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
+    marketSymbols(symbols = undefined, type = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
                 throw new errors.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
@@ -3188,7 +3196,7 @@ class Exchange {
         }
         return result;
     }
-    marketCodes(codes) {
+    marketCodes(codes = undefined) {
         if (codes === undefined) {
             return codes;
         }
@@ -3837,6 +3845,12 @@ class Exchange {
         return result;
     }
     checkRequiredCredentials(error = true) {
+        /**
+         * @ignore
+         * @method
+         * @param {boolean} error throw an error that a credential is required if true
+         * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
+         */
         const keys = Object.keys(this.requiredCredentials);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -4121,6 +4135,9 @@ class Exchange {
     }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrderBooks() is not supported yet');
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchBidsAsks() is not supported yet');
     }
     async watchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTickers() is not supported yet');
@@ -4473,6 +4490,12 @@ class Exchange {
     }
     async fetchGreeks(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchGreeks() is not supported yet');
+    }
+    async fetchOptionChain(code, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOptionChain() is not supported yet');
+    }
+    async fetchOption(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOption() is not supported yet');
     }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -5651,6 +5674,21 @@ class Exchange {
     }
     parseGreeks(greeks, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseGreeks () is not supported yet');
+    }
+    parseOption(chain, currency = undefined, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseOption () is not supported yet');
+    }
+    parseOptionChain(response, currencyKey = undefined, symbolKey = undefined) {
+        const optionStructures = {};
+        for (let i = 0; i < response.length; i++) {
+            const info = response[i];
+            const currencyId = this.safeString(info, currencyKey);
+            const currency = this.safeCurrency(currencyId);
+            const marketId = this.safeString(info, symbolKey);
+            const market = this.safeMarket(marketId, undefined, undefined, 'option');
+            optionStructures[market['symbol']] = this.parseOption(info, currency, market);
+        }
+        return optionStructures;
     }
     parseMarginModes(response, symbols = undefined, symbolKey = undefined, marketType = undefined) {
         const marginModeStructures = {};

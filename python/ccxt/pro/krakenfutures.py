@@ -92,7 +92,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 'api_key': self.apiKey,
             }
             message = self.extend(request, params)
-            future = await self.watch(url, messageHash, message)
+            future = await self.watch(url, messageHash, message, messageHash)
             client.subscriptions[messageHash] = future
         return future
 

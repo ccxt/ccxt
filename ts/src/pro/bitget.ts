@@ -1632,7 +1632,7 @@ export default class bitget extends bitgetRest {
             const message = this.extend (request, params);
             this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     async watchPrivate (messageHash, subscriptionHash, args, params = {}) {

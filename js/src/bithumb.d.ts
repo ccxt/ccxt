@@ -1,12 +1,12 @@
 import Exchange from './abstract/bithumb.js';
-import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bithumb
  * @augments Exchange
  */
 export default class bithumb extends Exchange {
     describe(): any;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): import("./base/types.js").MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     amountToPrecision(symbol: any, amount: any): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): Balances;

@@ -2205,4 +2205,4 @@ class htx(ccxt.async_support.htx):
                 'params': params,
             }
             self.watch(url, messageHash, request, messageHash, subscription)
-        return future
+        return await future
