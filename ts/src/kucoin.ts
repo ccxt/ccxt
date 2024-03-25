@@ -425,6 +425,7 @@ export default class kucoin extends Exchange {
                     'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
                     'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
+                    'The amount increment is invalid.': BadRequest,
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
