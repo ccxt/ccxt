@@ -974,7 +974,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for kucoin
          * @see https://docs.kucoin.com/#get-symbols-list-deprecated

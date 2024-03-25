@@ -156,7 +156,7 @@ class oceanex(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for oceanex
         :see: https://api.oceanex.pro/doc/v1/#markets-post

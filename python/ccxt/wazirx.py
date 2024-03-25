@@ -196,7 +196,7 @@ class wazirx(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://docs.wazirx.com/#exchange-info
         retrieves data on all markets for wazirx

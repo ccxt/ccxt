@@ -453,7 +453,7 @@ class bitmex(Exchange, ImplicitAPI):
     def convert_from_raw_cost(self, symbol, rawQuantity):
         return self.convert_from_raw_quantity(symbol, rawQuantity, 'quote')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitmex
         :see: https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_getActive

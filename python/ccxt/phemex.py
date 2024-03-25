@@ -747,7 +747,7 @@ class phemex(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for phemex
         :param dict [params]: extra parameters specific to the exchange API endpoint

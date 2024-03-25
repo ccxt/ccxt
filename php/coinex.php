@@ -480,7 +480,7 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for coinex
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info

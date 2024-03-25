@@ -300,7 +300,7 @@ class zonda extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.zondacrypto.exchange/reference/ticker-1

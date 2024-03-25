@@ -518,7 +518,7 @@ class bigone(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bigone
         :see: https://open.big.one/docs/spot_asset_pair.html

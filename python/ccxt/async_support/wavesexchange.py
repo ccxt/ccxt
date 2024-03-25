@@ -495,7 +495,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             self.options['quotes'] = quotes
             return quotes
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for wavesexchange
         :param dict [params]: extra parameters specific to the exchange API endpoint

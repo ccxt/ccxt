@@ -158,7 +158,7 @@ class tradeogre extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bigone
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
