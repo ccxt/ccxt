@@ -3,7 +3,7 @@
 import p2bRest from '../p2b.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, OrderBook, Trade, Ticker } from '../base/types.js';
+import type { Int, OHLCV, OrderBook, Trade, Ticker, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -131,7 +131,7 @@ export default class p2b extends p2bRest {
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         const market = this.market (symbol);
         symbol = market['symbol'];
-        this.options['tickerSubs'][market['id']] = true;
+        this.options['tickerSubs'][market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         const tickerSubs = this.options['tickerSubs'];
         const request = Object.keys (tickerSubs);
         const messageHash = name + '::' + market['symbol'];
