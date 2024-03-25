@@ -2138,11 +2138,16 @@ export default class bybit extends Exchange {
         };
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
+        // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
+        // with higher priority and only default to spot, if `subType` is not set in params
+        const passedSubType = this.safeString (params, 'subType');
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
-        if (type === 'spot' && subType === undefined) {
+        // only if passedSubType is undefined, then use spot
+        if (type === 'spot' && passedSubType === undefined) {
             request['category'] = 'spot';
-        } else if (type === 'swap' || type === 'future') {
+        } else if (type === 'swap' || type === 'future' || subType !== undefined) {
             request['category'] = subType;
         } else if (type === 'option') {
             request['category'] = 'option';
