@@ -1017,6 +1017,9 @@
             "fetchPositions": {
                 "percentage": "percentage is not provided"
             },
+            "fetchTickers": {
+                "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269634788#L1898"
+            },
             "watchOrderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269407124#L3464"
             }
@@ -1398,8 +1401,7 @@
             "loadMarkets": {
                 "taker": "is undefined",
                 "maker": "is undefined",
-                "currencyIdAndCode": "not all currencies are available",
-                "contractSize": "returns zero for BTC/USDT:USDT https://app.travis-ci.com/github/ccxt/ccxt/builds/269614608#L3778"
+                "currencyIdAndCode": "not all currencies are available"
             },
             "fetchTrades": {
                 "side": "undefined"
