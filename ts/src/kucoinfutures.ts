@@ -921,7 +921,7 @@ export default class kucoinfutures extends kucoin {
         //
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
-        const last = this.safeString (ticker, 'lastTradePrice');
+        const last = this.safeString2 (ticker, 'price', 'lastTradePrice');
         const timestamp = this.safeIntegerProduct (ticker, 'ts', 0.000001);
         return this.safeTicker ({
             'symbol': market['symbol'],
