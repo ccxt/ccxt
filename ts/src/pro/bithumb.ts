@@ -5,6 +5,7 @@ import bithumbRest from '../bithumb.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Ticker, Trade, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { ExchangeError } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -365,8 +366,14 @@ export default class bithumb extends bithumbRest {
         //    }
         //
         const errorCode = this.safeString (message, 'status');
-        if (errorCode !== '0000') {
+        try {
+            if (errorCode !== '0000') {
+                const msg = this.safeString (message, 'resmsg');
+                throw new ExchangeError (this.id + ' ' + msg);
+            }
             return true;
+        } catch (e) {
+            client.reject (e);
         }
         return false;
     }
