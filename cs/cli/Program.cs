@@ -37,11 +37,14 @@ public static class Program
 
     public static void SetCredentials(Exchange instance)
     {
-         JObject localKeys = null;
+        JObject localKeys = null;
         try
         {
-            var jsonText = File.ReadAllText("keys.local.json");
-            localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
+            if (File.Exists("keys.local.json"))
+            {
+                var jsonText = File.ReadAllText("keys.local.json");
+                localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
+            }
         }
         catch (JsonException je)
         {
@@ -57,7 +60,7 @@ public static class Program
             if (boolValue)
             {
                 string credentialValue = null;
-            
+
                 // The instance ID in lowercase is used as the key in the JSON file
                 var instanceIdKey = instance.id.ToLower();
                 if (localKeys != null && localKeys.ContainsKey(instanceIdKey))
