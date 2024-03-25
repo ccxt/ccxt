@@ -1623,7 +1623,7 @@ export default class latoken extends Exchange {
         const request = {
             'currency': currency['id'],
             'recipient': toAccount,
-            'value': this.currencyToPrecision (code, amount),
+            'value': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         let response = undefined;
         if (toAccount.indexOf ('@') >= 0) {

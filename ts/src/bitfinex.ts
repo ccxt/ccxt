@@ -767,7 +767,7 @@ export default class bitfinex extends Exchange {
         const currency = this.currency (code);
         const fromCurrencyId = this.convertDerivativesId (currency['id'], fromAccount);
         const toCurrencyId = this.convertDerivativesId (currency['id'], toAccount);
-        const requestedAmount = this.currencyToPrecision (code, amount);
+        const requestedAmount = this.currencyToPrecision (code, this.numberToString (amount));
         const request = {
             'amount': requestedAmount,
             'currency': fromCurrencyId,

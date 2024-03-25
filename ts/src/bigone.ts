@@ -2122,7 +2122,7 @@ export default class bigone extends Exchange {
         const guid = this.safeString (params, 'guid', this.uuid ());
         const request = {
             'symbol': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'from': fromId,
             'to': toId,
             'guid': guid,
@@ -2195,7 +2195,7 @@ export default class bigone extends Exchange {
         const request = {
             'symbol': currency['id'],
             'target_address': address,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
         };
         if (tag !== undefined) {
             request['memo'] = tag;

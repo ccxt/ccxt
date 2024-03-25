@@ -2934,7 +2934,7 @@ export default class digifinex extends Exchange {
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
             'currency_mark': currency['id'],
-            'num': this.currencyToPrecision (code, amount),
+            'num': this.currencyToPrecision (code, this.numberToString (amount)),
             'from': fromId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
             'to': toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
         };
@@ -2966,7 +2966,7 @@ export default class digifinex extends Exchange {
         const request = {
             // 'chain': 'ERC20', 'OMNI', 'TRC20', // required for USDT
             'address': address,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, this.numberToString (amount)),
             'currency': currency['id'],
         };
         if (tag !== undefined) {

@@ -99,7 +99,7 @@
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
-    "strictNullChecks":false
+    "strictNullChecks":false,
   },
   "include": [
     "ts/**/*"
@@ -107,5 +107,5 @@
   "exclude": [
     "node_modules",
     "./ts/src/static_dependencies/**/*.cjs"
-  ]
+  ],
 }

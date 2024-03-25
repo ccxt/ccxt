@@ -156,6 +156,44 @@
                 "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"buy\",\"type\":\"MARKET\",\"amount\":\"10\"}"
             }
         ],
+        "transfer": [
+            {
+                "description": "Transfer from spot to futures",
+                "method": "transfer",
+                "url": "https://api.poloniex.com/accounts/transfer",
+                "input": [
+                    "USDT",
+                    0.00001,
+                    "spot",
+                    "futures"
+                ],
+                "output": "{\"amount\":\"0.00001\",\"currency\":\"USDT\",\"fromAccount\":\"spot\",\"toAccount\":\"futures\"}"
+            },
+            {
+                "description": "Transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.poloniex.com/accounts/transfer",
+                "input": [
+                  "USDT",
+                  0.00001,
+                  "spot",
+                  "swap"
+                ],
+                "output": "{\"amount\":\"0.00001\",\"currency\":\"USDT\",\"fromAccount\":\"spot\",\"toAccount\":\"futures\"}"
+            },
+            {
+                "description": "Transfer from spot to future",
+                "method": "transfer",
+                "url": "https://api.poloniex.com/accounts/transfer",
+                "input": [
+                  "USDT",
+                  0.00001,
+                  "spot",
+                  "future"
+                ],
+                "output": "{\"amount\":\"0.00001\",\"currency\":\"USDT\",\"fromAccount\":\"spot\",\"toAccount\":\"futures\"}"
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",
