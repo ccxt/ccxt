@@ -613,7 +613,7 @@ class tokocrypto extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * @see https://www.tokocrypto.com/apidocs/#get-all-supported-trading-$symbol
          * retrieves $data on all markets for tokocrypto

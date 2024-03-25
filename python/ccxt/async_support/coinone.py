@@ -268,7 +268,7 @@ class coinone(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinone
         :see: https://docs.coinone.co.kr/v1.0/reference/tickers

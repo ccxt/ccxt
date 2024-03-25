@@ -13,7 +13,7 @@ export default class btcmarkets extends Exchange {
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchTime(params?: {}): Promise<number>;
     parseBalance(response: any): Balances;

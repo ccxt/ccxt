@@ -6,7 +6,7 @@ import type { Balances, Currency, Int, Market, Num, OHLCV, Order, OrderBook, Ord
  */
 export default class probit extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchCurrencies(params?: {}): Promise<{}>;
     parseBalance(response: any): Balances;

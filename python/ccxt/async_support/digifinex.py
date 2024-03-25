@@ -523,7 +523,7 @@ class digifinex(Exchange, ImplicitAPI):
             result[code]['precision'] = precision if (result[code]['precision'] is None) else max(result[code]['precision'], precision)
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for digifinex
         :param dict [params]: extra parameters specific to the exchange API endpoint

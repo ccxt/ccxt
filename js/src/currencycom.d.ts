@@ -9,7 +9,7 @@ export default class currencycom extends Exchange {
     nonce(): number;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
     parseBalance(response: any, type?: any): Balances;

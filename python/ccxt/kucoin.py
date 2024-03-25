@@ -991,7 +991,7 @@ class kucoin(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for kucoin
         :see: https://docs.kucoin.com/#get-symbols-list-deprecated

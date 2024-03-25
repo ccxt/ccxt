@@ -330,7 +330,7 @@ class lbank extends Exchange {
         return $this->safe_integer($response, 'data');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for lbank
          * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs

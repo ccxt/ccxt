@@ -236,7 +236,7 @@ class p2b(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bigone
         :see: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets

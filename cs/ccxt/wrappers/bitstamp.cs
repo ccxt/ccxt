@@ -21,10 +21,10 @@ public partial class bitstamp
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<Dictionary<string, object>> FetchMarketsFromCache(Dictionary<string, object> parameters = null)
     {
@@ -190,7 +190,7 @@ public partial class bitstamp
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees"/>  <br/>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

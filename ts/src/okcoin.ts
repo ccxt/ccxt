@@ -614,7 +614,7 @@ export default class okcoin extends Exchange {
         return this.parse8601 (this.safeString (response, 'iso'));
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name okcoin#fetchMarkets

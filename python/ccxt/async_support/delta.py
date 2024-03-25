@@ -513,7 +513,7 @@ class delta(Exchange, ImplicitAPI):
             result[numericIdString] = item
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for delta
         :see: https://docs.delta.exchange/#get-list-of-products

@@ -1236,7 +1236,8 @@ class okx(ccxt.async_support.okx):
             stringMsg = self.json(message)
             self.handle_errors(None, None, client.url, method, None, stringMsg, stringMsg, None, None)
         orders = self.parse_orders(args, None, None, None)
-        client.resolve(orders, messageHash)
+        first = self.safe_dict(orders, 0, {})
+        client.resolve(first, messageHash)
 
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """

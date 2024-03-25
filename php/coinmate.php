@@ -220,7 +220,7 @@ class coinmate extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for coinmate
          * @see https://coinmate.docs.apiary.io/#reference/trading-pairs/get-trading-pairs/get
