@@ -1315,6 +1315,7 @@ class bitget(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'JADE': 'Jade Protocol',
+                'DEGEN': 'DegenReborn',
             },
             'options': {
                 'timeframes': {
