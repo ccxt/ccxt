@@ -6010,7 +6010,7 @@ Ledger Entry Structure
        'before': 0,                            // amount of currency on balance before
        'after': 0,                             // amount of currency on balance after
        'status': 'ok',                         // 'ok, 'pending', 'canceled'
-       'fee': {                                // object or undefined
+       'fee': {                                // object or or undefined
            'cost': 54.321,                     // absolute number on top of the amount
            'currency': 'ETH',                  // string, unified currency code, 'ETH', 'USDT'...
        },
@@ -6020,7 +6020,7 @@ Ledger Entry Structure
 Notes on Ledger Entry Structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is associated with a corresponding transaction.
+The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
 
 
  * ``trade``
