@@ -1344,6 +1344,7 @@ export default class deribit extends Exchange {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.paginate] whether to paginate the results, set to false by default
+         * @param {int} [params.until] the latest time in ms to fetch ohlcv for
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1505,11 +1506,12 @@ export default class deribit extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'instrument_name': market['id'],
             'include_old': true,
         };
@@ -1519,8 +1521,9 @@ export default class deribit extends Exchange {
         if (limit !== undefined) {
             request['count'] = Math.min (limit, 1000); // default 10
         }
+        [ request, params ] = this.handleUntilOption ('end_timestamp', request, params);
         let response = undefined;
-        if (since === undefined) {
+        if ((since === undefined) && !('end_timestamp' in request)) {
             response = await this.publicGetGetLastTradesByInstrument (this.extend (request, params));
         } else {
             response = await this.publicGetGetLastTradesByInstrumentAndTime (this.extend (request, params));
