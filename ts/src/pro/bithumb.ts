@@ -2,7 +2,6 @@
 //  ---------------------------------------------------------------------------
 
 import bithumbRest from '../bithumb.js';
-import { ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Ticker, Trade, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -65,8 +64,8 @@ export default class bithumb extends bithumbRest {
          */
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
-        let marketIds = [];
-        let messageHashes = [];
+        const marketIds = [];
+        const messageHashes = [];
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
