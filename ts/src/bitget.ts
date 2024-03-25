@@ -2787,7 +2787,7 @@ export default class bitget extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
         if (type === 'spot' && subType === undefined) {
             response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
