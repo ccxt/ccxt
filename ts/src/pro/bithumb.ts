@@ -67,15 +67,12 @@ export default class bithumb extends bithumbRest {
         const url = this.urls['api']['ws'];
         let marketIds = [];
         let messageHashes = [];
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
             marketIds.push (market['base'] + '_' + market['quote']);
             messageHashes.push ('ticker:' + market['symbol']);
-        }
-        if (marketIds === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols');
         }
         const request = {
             'type': 'ticker',
@@ -83,9 +80,11 @@ export default class bithumb extends bithumbRest {
             'tickTypes': [ this.safeString (params, 'tickTypes', '24H') ],
         };
         const message = this.extend (request, params);
-        const newTickers = await this.watchMultiple (url, messageHashes, message, messageHashes);
+        const newTicker = await this.watchMultiple (url, messageHashes, message, messageHashes);
         if (this.newUpdates) {
-            return newTickers;
+            const result = {};
+            result[newTicker['symbol']] = newTicker;
+            return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
