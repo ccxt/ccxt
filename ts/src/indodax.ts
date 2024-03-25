@@ -227,7 +227,7 @@ export default class indodax extends Exchange {
         return this.safeInteger (response, 'server_time');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name indodax#fetchMarkets

@@ -101,6 +101,8 @@ class okx extends Exchange {
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
+                'fetchOption' => true,
+                'fetchOptionChain' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
@@ -7433,6 +7435,146 @@ class okx extends Exchange {
             $order = $this->safe_value($data, 0);
             return $this->parse_order($order, $market);
         }) ();
+    }
+
+    public function fetch_option(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches option data that is commonly found in an option $chain
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-ticker
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-$chain-structure option $chain structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instId' => $market['id'],
+            );
+            $response = Async\await($this->publicGetMarketTicker (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "",
+            //         "data" => array(
+            //             {
+            //                 "instType" => "OPTION",
+            //                 "instId" => "BTC-USD-241227-60000-P",
+            //                 "last" => "",
+            //                 "lastSz" => "0",
+            //                 "askPx" => "",
+            //                 "askSz" => "0",
+            //                 "bidPx" => "",
+            //                 "bidSz" => "0",
+            //                 "open24h" => "",
+            //                 "high24h" => "",
+            //                 "low24h" => "",
+            //                 "volCcy24h" => "0",
+            //                 "vol24h" => "0",
+            //                 "ts" => "1711176035035",
+            //                 "sodUtc0" => "",
+            //                 "sodUtc8" => ""
+            //             }
+            //         )
+            //     }
+            //
+            $result = $this->safe_list($response, 'data', array());
+            $chain = $this->safe_dict($result, 0, array());
+            return $this->parse_option($chain, null, $market);
+        }) ();
+    }
+
+    public function fetch_option_chain(string $code, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetches data for an underlying asset that is commonly found in an option chain
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+             * @param {string} $currency base $currency to fetch an option chain for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structures~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'uly' => $currency['code'] . '-USD',
+                'instType' => 'OPTION',
+            );
+            $response = Async\await($this->publicGetMarketTickers (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "",
+            //         "data" => array(
+            //             array(
+            //                 "instType" => "OPTION",
+            //                 "instId" => "BTC-USD-240323-52000-C",
+            //                 "last" => "",
+            //                 "lastSz" => "0",
+            //                 "askPx" => "",
+            //                 "askSz" => "0",
+            //                 "bidPx" => "",
+            //                 "bidSz" => "0",
+            //                 "open24h" => "",
+            //                 "high24h" => "",
+            //                 "low24h" => "",
+            //                 "volCcy24h" => "0",
+            //                 "vol24h" => "0",
+            //                 "ts" => "1711176207008",
+            //                 "sodUtc0" => "",
+            //                 "sodUtc8" => ""
+            //             ),
+            //         )
+            //     }
+            //
+            $result = $this->safe_list($response, 'data', array());
+            return $this->parse_option_chain($result, null, 'instId');
+        }) ();
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        //
+        //     {
+        //         "instType" => "OPTION",
+        //         "instId" => "BTC-USD-241227-60000-P",
+        //         "last" => "",
+        //         "lastSz" => "0",
+        //         "askPx" => "",
+        //         "askSz" => "0",
+        //         "bidPx" => "",
+        //         "bidSz" => "0",
+        //         "open24h" => "",
+        //         "high24h" => "",
+        //         "low24h" => "",
+        //         "volCcy24h" => "0",
+        //         "vol24h" => "0",
+        //         "ts" => "1711176035035",
+        //         "sodUtc0" => "",
+        //         "sodUtc8" => ""
+        //     }
+        //
+        $marketId = $this->safe_string($chain, 'instId');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($chain, 'ts');
+        return array(
+            'info' => $chain,
+            'currency' => null,
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'impliedVolatility' => null,
+            'openInterest' => null,
+            'bidPrice' => $this->safe_number($chain, 'bidPx'),
+            'askPrice' => $this->safe_number($chain, 'askPx'),
+            'midPrice' => null,
+            'markPrice' => null,
+            'lastPrice' => $this->safe_number($chain, 'last'),
+            'underlyingPrice' => null,
+            'change' => null,
+            'percentage' => null,
+            'baseVolume' => $this->safe_number($chain, 'volCcy24h'),
+            'quoteVolume' => null,
+        );
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

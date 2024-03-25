@@ -695,7 +695,7 @@ export default class bingx extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bingx#fetchMarkets

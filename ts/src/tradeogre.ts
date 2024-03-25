@@ -162,7 +162,7 @@ export default class tradeogre extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name tradeogre#fetchMarkets

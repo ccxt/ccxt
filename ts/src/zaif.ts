@@ -143,7 +143,7 @@ export default class zaif extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name zaif#fetchMarkets

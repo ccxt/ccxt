@@ -405,7 +405,7 @@ export default class upbit extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name upbit#fetchMarkets

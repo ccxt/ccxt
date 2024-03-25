@@ -344,7 +344,7 @@ export default class yobit extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name yobit#fetchMarkets

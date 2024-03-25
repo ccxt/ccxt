@@ -241,7 +241,7 @@ export default class bitteam extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitteam#fetchMarkets

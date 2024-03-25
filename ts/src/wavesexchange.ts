@@ -491,7 +491,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name wavesexchange#fetchMarkets

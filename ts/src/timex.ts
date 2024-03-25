@@ -281,7 +281,7 @@ export default class timex extends Exchange {
         return this.parseToInt (response) * 1000;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name timex#fetchMarkets

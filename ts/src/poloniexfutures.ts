@@ -206,7 +206,7 @@ export default class poloniexfutures extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name poloniexfutures#fetchMarkets

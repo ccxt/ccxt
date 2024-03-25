@@ -210,7 +210,7 @@ export default class hollaex extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name hollaex#fetchMarkets

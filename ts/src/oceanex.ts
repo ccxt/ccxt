@@ -152,7 +152,7 @@ export default class oceanex extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name oceanex#fetchMarkets

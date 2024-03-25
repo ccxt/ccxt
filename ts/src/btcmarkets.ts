@@ -365,7 +365,7 @@ export default class btcmarkets extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name btcmarkets#fetchMarkets

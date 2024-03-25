@@ -230,7 +230,7 @@ export default class novadax extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name novadax#fetchMarkets

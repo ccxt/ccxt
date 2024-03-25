@@ -50,7 +50,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
-                'createReduceOnlyOrder': False,
+                'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
@@ -851,7 +851,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 orderType['limit'] = {
                     'tif': timeInForce,
                 }
-            orderParams = self.omit(orderParams, ['clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id'])
+            orderParams = self.omit(orderParams, ['clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly'])
             orderObj = {
                 'a': self.parse_to_int(market['baseId']),
                 'b': isBuy,
@@ -1920,9 +1920,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         userAux, params = self.handle_option_and_params(params, methodName, 'user')
         user = userAux
         user, params = self.handle_option_and_params(params, methodName, 'address', userAux)
-        if user is not None:
+        if (user is not None) and (user != ''):
             return [user, params]
-        if self.walletAddress is not None:
+        if (self.walletAddress is not None) and (self.walletAddress != ''):
             return [self.walletAddress, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set')
 

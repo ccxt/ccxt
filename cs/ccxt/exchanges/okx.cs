@@ -87,6 +87,8 @@ public partial class okx : Exchange
                 { "fetchOpenInterestHistory", true },
                 { "fetchOpenOrder", null },
                 { "fetchOpenOrders", true },
+                { "fetchOption", true },
+                { "fetchOptionChain", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
@@ -7804,6 +7806,151 @@ public partial class okx : Exchange
         object data = this.safeValue(response, "data");
         object order = this.safeValue(data, 0);
         return this.parseOrder(order, market);
+    }
+
+    public async override Task<object> fetchOption(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchOption
+        * @description fetches option data that is commonly found in an option chain
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "instId", getValue(market, "id") },
+        };
+        object response = await this.publicGetMarketTicker(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "OPTION",
+        //                 "instId": "BTC-USD-241227-60000-P",
+        //                 "last": "",
+        //                 "lastSz": "0",
+        //                 "askPx": "",
+        //                 "askSz": "0",
+        //                 "bidPx": "",
+        //                 "bidSz": "0",
+        //                 "open24h": "",
+        //                 "high24h": "",
+        //                 "low24h": "",
+        //                 "volCcy24h": "0",
+        //                 "vol24h": "0",
+        //                 "ts": "1711176035035",
+        //                 "sodUtc0": "",
+        //                 "sodUtc8": ""
+        //             }
+        //         ]
+        //     }
+        //
+        object result = this.safeList(response, "data", new List<object>() {});
+        object chain = this.safeDict(result, 0, new Dictionary<string, object>() {});
+        return this.parseOption(chain, null, market);
+    }
+
+    public async override Task<object> fetchOptionChain(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchOptionChain
+        * @description fetches data for an underlying asset that is commonly found in an option chain
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+        * @param {string} currency base currency to fetch an option chain for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+        * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "uly", add(getValue(currency, "code"), "-USD") },
+            { "instType", "OPTION" },
+        };
+        object response = await this.publicGetMarketTickers(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "OPTION",
+        //                 "instId": "BTC-USD-240323-52000-C",
+        //                 "last": "",
+        //                 "lastSz": "0",
+        //                 "askPx": "",
+        //                 "askSz": "0",
+        //                 "bidPx": "",
+        //                 "bidSz": "0",
+        //                 "open24h": "",
+        //                 "high24h": "",
+        //                 "low24h": "",
+        //                 "volCcy24h": "0",
+        //                 "vol24h": "0",
+        //                 "ts": "1711176207008",
+        //                 "sodUtc0": "",
+        //                 "sodUtc8": ""
+        //             },
+        //         ]
+        //     }
+        //
+        object result = this.safeList(response, "data", new List<object>() {});
+        return this.parseOptionChain(result, null, "instId");
+    }
+
+    public override object parseOption(object chain, object currency = null, object market = null)
+    {
+        //
+        //     {
+        //         "instType": "OPTION",
+        //         "instId": "BTC-USD-241227-60000-P",
+        //         "last": "",
+        //         "lastSz": "0",
+        //         "askPx": "",
+        //         "askSz": "0",
+        //         "bidPx": "",
+        //         "bidSz": "0",
+        //         "open24h": "",
+        //         "high24h": "",
+        //         "low24h": "",
+        //         "volCcy24h": "0",
+        //         "vol24h": "0",
+        //         "ts": "1711176035035",
+        //         "sodUtc0": "",
+        //         "sodUtc8": ""
+        //     }
+        //
+        object marketId = this.safeString(chain, "instId");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(chain, "ts");
+        return new Dictionary<string, object>() {
+            { "info", chain },
+            { "currency", null },
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "impliedVolatility", null },
+            { "openInterest", null },
+            { "bidPrice", this.safeNumber(chain, "bidPx") },
+            { "askPrice", this.safeNumber(chain, "askPx") },
+            { "midPrice", null },
+            { "markPrice", null },
+            { "lastPrice", this.safeNumber(chain, "last") },
+            { "underlyingPrice", null },
+            { "change", null },
+            { "percentage", null },
+            { "baseVolume", this.safeNumber(chain, "volCcy24h") },
+            { "quoteVolume", null },
+        };
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

@@ -339,7 +339,7 @@ export default class lbank extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name lbank#fetchMarkets

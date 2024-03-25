@@ -3593,7 +3593,7 @@ class deribit extends deribit$1 {
         const timestamp = this.safeInteger(chain, 'timestamp');
         return {
             'info': chain,
-            'currency': code['code'],
+            'currency': code,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

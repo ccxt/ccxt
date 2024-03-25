@@ -180,7 +180,7 @@ export default class luno extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name luno#fetchMarkets

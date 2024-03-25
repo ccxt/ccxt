@@ -1293,6 +1293,7 @@ class bitget extends bitget$1 {
             'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {
                 'JADE': 'Jade Protocol',
+                'DEGEN': 'DegenReborn',
             },
             'options': {
                 'timeframes': {

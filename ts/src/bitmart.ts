@@ -973,7 +973,7 @@ export default class bitmart extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitmart#fetchMarkets

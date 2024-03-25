@@ -378,7 +378,7 @@ export default class cryptocom extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name cryptocom#fetchMarkets

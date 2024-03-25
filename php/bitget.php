@@ -1290,6 +1290,7 @@ class bitget extends Exchange {
             'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
                 'JADE' => 'Jade Protocol',
+                'DEGEN' => 'DegenReborn',
             ),
             'options' => array(
                 'timeframes' => array(

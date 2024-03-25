@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currency, Greeks, Int, Leverage, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -116,6 +116,8 @@ class okx(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
+                'fetchOption': True,
+                'fetchOptionChain': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
@@ -6908,6 +6910,139 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         order = self.safe_value(data, 0)
         return self.parse_order(order, market)
+
+    def fetch_option(self, symbol: str, params={}) -> Option:
+        """
+        fetches option data that is commonly found in an option chain
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instId': market['id'],
+        }
+        response = self.publicGetMarketTicker(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
+        #             {
+        #                 "instType": "OPTION",
+        #                 "instId": "BTC-USD-241227-60000-P",
+        #                 "last": "",
+        #                 "lastSz": "0",
+        #                 "askPx": "",
+        #                 "askSz": "0",
+        #                 "bidPx": "",
+        #                 "bidSz": "0",
+        #                 "open24h": "",
+        #                 "high24h": "",
+        #                 "low24h": "",
+        #                 "volCcy24h": "0",
+        #                 "vol24h": "0",
+        #                 "ts": "1711176035035",
+        #                 "sodUtc0": "",
+        #                 "sodUtc8": ""
+        #             }
+        #         ]
+        #     }
+        #
+        result = self.safe_list(response, 'data', [])
+        chain = self.safe_dict(result, 0, {})
+        return self.parse_option(chain, None, market)
+
+    def fetch_option_chain(self, code: str, params={}) -> OptionChain:
+        """
+        fetches data for an underlying asset that is commonly found in an option chain
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
+        :param str currency: base currency to fetch an option chain for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.uly]: the underlying asset, can be obtained from fetchUnderlyingAssets()
+        :returns dict: a list of `option chain structures <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'uly': currency['code'] + '-USD',
+            'instType': 'OPTION',
+        }
+        response = self.publicGetMarketTickers(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "",
+        #         "data": [
+        #             {
+        #                 "instType": "OPTION",
+        #                 "instId": "BTC-USD-240323-52000-C",
+        #                 "last": "",
+        #                 "lastSz": "0",
+        #                 "askPx": "",
+        #                 "askSz": "0",
+        #                 "bidPx": "",
+        #                 "bidSz": "0",
+        #                 "open24h": "",
+        #                 "high24h": "",
+        #                 "low24h": "",
+        #                 "volCcy24h": "0",
+        #                 "vol24h": "0",
+        #                 "ts": "1711176207008",
+        #                 "sodUtc0": "",
+        #                 "sodUtc8": ""
+        #             },
+        #         ]
+        #     }
+        #
+        result = self.safe_list(response, 'data', [])
+        return self.parse_option_chain(result, None, 'instId')
+
+    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+        #
+        #     {
+        #         "instType": "OPTION",
+        #         "instId": "BTC-USD-241227-60000-P",
+        #         "last": "",
+        #         "lastSz": "0",
+        #         "askPx": "",
+        #         "askSz": "0",
+        #         "bidPx": "",
+        #         "bidSz": "0",
+        #         "open24h": "",
+        #         "high24h": "",
+        #         "low24h": "",
+        #         "volCcy24h": "0",
+        #         "vol24h": "0",
+        #         "ts": "1711176035035",
+        #         "sodUtc0": "",
+        #         "sodUtc8": ""
+        #     }
+        #
+        marketId = self.safe_string(chain, 'instId')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(chain, 'ts')
+        return {
+            'info': chain,
+            'currency': None,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'impliedVolatility': None,
+            'openInterest': None,
+            'bidPrice': self.safe_number(chain, 'bidPx'),
+            'askPrice': self.safe_number(chain, 'askPx'),
+            'midPrice': None,
+            'markPrice': None,
+            'lastPrice': self.safe_number(chain, 'last'),
+            'underlyingPrice': None,
+            'change': None,
+            'percentage': None,
+            'baseVolume': self.safe_number(chain, 'volCcy24h'),
+            'quoteVolume': None,
+        }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

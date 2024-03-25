@@ -394,7 +394,7 @@ export default class currencycom extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name currencycom#fetchMarkets

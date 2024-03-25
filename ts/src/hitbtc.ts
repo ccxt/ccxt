@@ -649,7 +649,7 @@ export default class hitbtc extends Exchange {
         return this.milliseconds ();
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name hitbtc#fetchMarkets

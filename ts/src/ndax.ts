@@ -403,7 +403,7 @@ export default class ndax extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name ndax#fetchMarkets

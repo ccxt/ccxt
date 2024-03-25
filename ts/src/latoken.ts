@@ -249,7 +249,7 @@ export default class latoken extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name latoken#fetchMarkets

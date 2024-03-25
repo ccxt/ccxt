@@ -522,7 +522,7 @@ export default class kuna extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name kuna#fetchMarkets

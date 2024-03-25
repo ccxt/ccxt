@@ -267,7 +267,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name krakenfutures#fetchMarkets

@@ -148,7 +148,7 @@ export default class bitflyer extends Exchange {
         return super.safeMarket (marketId, market, delimiter, 'spot');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitflyer#fetchMarkets

@@ -1084,5 +1084,80 @@
             "tickSz": "0.0001",
             "uly": "SUSHI-USDT"
         }
+    },
+    "BTC/USD:BTC-241227-60000-P": {
+        "id": "BTC-USD-241227-60000-P",
+        "symbol": "BTC/USD:BTC-241227-60000-P",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "BTC",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "BTC",
+        "type": "option",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": true,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "taker": 0.0015,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 1
+            },
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1710491430426,
+        "expiry": 1735286400000,
+        "expiryDatetime": "2024-12-27T08:00:00.000Z",
+        "strike": 60000,
+        "optionType": "put",
+        "info": {
+            "alias": "",
+            "baseCcy": "",
+            "category": "1",
+            "ctMult": "0.01",
+            "ctType": "",
+            "ctVal": "1",
+            "ctValCcy": "BTC",
+            "expTime": "1735286400000",
+            "instFamily": "BTC-USD",
+            "instId": "BTC-USD-241227-60000-P",
+            "instType": "OPTION",
+            "lever": "",
+            "listTime": "1710491430426",
+            "lotSz": "1",
+            "maxIcebergSz": "1000000.0000000000000000",
+            "maxLmtAmt": "1000000",
+            "maxLmtSz": "1000000",
+            "maxMktAmt": "",
+            "maxMktSz": "5000",
+            "maxStopSz": "5000",
+            "maxTriggerSz": "1000000.0000000000000000",
+            "maxTwapSz": "1000000.0000000000000000",
+            "minSz": "1",
+            "optType": "P",
+            "quoteCcy": "",
+            "settleCcy": "BTC",
+            "state": "live",
+            "stk": "60000",
+            "tickSz": "0.0001",
+            "uly": "BTC-USD"
+        }
     }
 }

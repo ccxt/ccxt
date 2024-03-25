@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option } from './base/types.js';
 /**
  * @class okx
  * @augments Exchange
@@ -315,5 +315,26 @@ export default class okx extends Exchange {
         info: any;
     };
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    fetchOption(symbol: string, params?: {}): Promise<Option>;
+    fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
+    parseOption(chain: any, currency?: Currency, market?: Market): {
+        info: any;
+        currency: any;
+        symbol: string;
+        timestamp: number;
+        datetime: string;
+        impliedVolatility: any;
+        openInterest: any;
+        bidPrice: number;
+        askPrice: number;
+        midPrice: any;
+        markPrice: any;
+        lastPrice: number;
+        underlyingPrice: any;
+        change: any;
+        percentage: any;
+        baseVolume: number;
+        quoteVolume: any;
+    };
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

@@ -234,7 +234,7 @@ export default class p2b extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name p2b#fetchMarkets

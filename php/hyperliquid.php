@@ -39,7 +39,7 @@ class hyperliquid extends Exchange {
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
-                'createReduceOnlyOrder' => false,
+                'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
@@ -882,7 +882,7 @@ class hyperliquid extends Exchange {
                     'tif' => $timeInForce,
                 );
             }
-            $orderParams = $this->omit($orderParams, array( 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id' ));
+            $orderParams = $this->omit($orderParams, array( 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ));
             $orderObj = array(
                 'a' => $this->parse_to_int($market['baseId']),
                 'b' => $isBuy,
@@ -2020,10 +2020,10 @@ class hyperliquid extends Exchange {
         list($userAux, $params) = $this->handle_option_and_params($params, $methodName, 'user');
         $user = $userAux;
         list($user, $params) = $this->handle_option_and_params($params, $methodName, 'address', $userAux);
-        if ($user !== null) {
+        if (($user !== null) && ($user !== '')) {
             return array( $user, $params );
         }
-        if ($this->walletAddress !== null) {
+        if (($this->walletAddress !== null) && ($this->walletAddress !== '')) {
             return array( $this->walletAddress, $params );
         }
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $user parameter inside \'params\' or the wallet address set');
