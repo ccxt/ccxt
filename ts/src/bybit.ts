@@ -2101,6 +2101,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/market/tickers
          * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] *contract only* 'linear', 'inverse'
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -2137,11 +2138,11 @@ export default class bybit extends Exchange {
         };
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        if (type === 'spot') {
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
+        if (type === 'spot' && subType === undefined) {
             request['category'] = 'spot';
         } else if (type === 'swap' || type === 'future') {
-            let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
             request['category'] = subType;
         } else if (type === 'option') {
             request['category'] = 'option';
