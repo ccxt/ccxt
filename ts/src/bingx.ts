@@ -1399,9 +1399,11 @@ export default class bingx extends Exchange {
         } else {
             response = await this.swapV2PublicGetQuoteTicker (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data');
-        const ticker = this.safeDict (data, 0, data);
-        return this.parseTicker (ticker, market);
+        const data = this.safeDict (response, 'data');
+        if (data !== undefined) {
+            return this.parseTicker (data, market);
+        }
+        return this.parseTicker (response, market);
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {

@@ -808,7 +808,7 @@ export default class zonda extends Exchange {
         } else {
             throw new BadRequest (this.id + ' fetchTickers params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"');
         }
-        const items = this.safeList (response, 'items');
+        const items = this.safeDict (response, 'items');
         return this.parseTickers (items, symbols);
     }
 
