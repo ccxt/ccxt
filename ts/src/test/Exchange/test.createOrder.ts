@@ -125,7 +125,7 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
         //
         //
         const symbol = market['symbol'];
-        const entryAmount = getMinimumAmountForLimitPrice (exchange, market, entryorderPrice);
+        const entryAmount = getMinimumAmountForLimitPrice (exchange, market, entryorderPrice) * 1.03; // add around 3% for possible spread existence in chosen market, to ensure the market order amount will not be below minimum cost
         const entryorderFilled = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', entrySide, entryAmount, entryorderPrice, {}, skippedProperties);
         // just for case, cancel any possible unfilled amount (though it is not be expected because the order was fillable)
         await testCreateOrderTryCancelOrder (exchange, symbol, entryorderFilled, skippedProperties);
