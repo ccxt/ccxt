@@ -39,7 +39,18 @@
                 "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
                 "input": [],
                 "output": "foo=bar"
-              }
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Fetch deposit withdraw fees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [
+                    "eth"
+                ],
+                "output": "foo=bar"
+            }
         ],
         "fetchLedger": [
             {
