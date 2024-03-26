@@ -3933,28 +3933,25 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        let market = undefined;
-        if (symbols !== undefined) {
-            const first = this.safeString (symbols, 0);
-            market = this.market (first);
-        }
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols (symbols);
         let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let response = undefined;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetTickerBookTicker (params);
         } else if (this.isInverse (type, subType)) {
             response = await this.dapiPublicGetTickerBookTicker (params);
-        } else {
+        } else if (type === 'spot') {
             const request = {};
             if (symbols !== undefined) {
-                const marketIds = this.marketIds (symbols);
-                request['symbols'] = this.json (marketIds);
+                request['symbols'] = this.json (this.marketIds (symbols));
             }
             response = await this.publicGetTickerBookTicker (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchBidsAsks() does not support ' + type + ' markets yet');
         }
         return this.parseTickers (response, symbols);
     }
@@ -3973,12 +3970,12 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of lastprices structures
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbols);
         let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         let response = undefined;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPublicV2GetTickerPrice (params);
@@ -4078,30 +4075,27 @@ export default class binance extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        let type = undefined;
-        let market = undefined;
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        if (symbols !== undefined) {
-            const first = this.safeString (symbols, 0);
-            market = this.market (first);
-        }
+        const market = this.getMarketFromSymbols (symbols);
+        let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
-        if (type === 'option') {
-            response = await this.eapiPublicGetTicker (params);
-        } else if (this.isLinear (type, subType)) {
+        if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetTicker24hr (params);
         } else if (this.isInverse (type, subType)) {
             response = await this.dapiPublicGetTicker24hr (params);
-        } else {
+        } else if (type === 'spot') {
             const request = {};
             if (symbols !== undefined) {
-                const marketIds = this.marketIds (symbols);
-                request['symbols'] = this.json (marketIds);
+                request['symbols'] = this.json (this.marketIds (symbols));
             }
             response = await this.publicGetTicker24hr (this.extend (request, params));
+        } else if (type === 'option') {
+            response = await this.eapiPublicGetTicker (params);
+        } else {
+            throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets yet');
         }
         return this.parseTickers (response, symbols);
     }
