@@ -397,7 +397,7 @@ class coinlist(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinlist
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols

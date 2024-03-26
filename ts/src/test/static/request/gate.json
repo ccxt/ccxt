@@ -87,6 +87,19 @@
                     55000
                 ],
                 "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"sell\",\"amount\":\"0.0001\",\"price\":\"55000\"}"
+            },
+            {
+                "description": "swap limit sell",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  100
+                ],
+                "output": "{\"contract\":\"LTC_USDT\",\"size\":-1,\"price\":\"100\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -143,6 +156,20 @@
                   54
                 ],
                 "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"size\":\"2\",\"price\":\"54\"}"
+            },
+            {
+                "description": "edit swap sell order",
+                "method": "editOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders/436745134770",
+                "input": [
+                  "436745134770",
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  2,
+                  101
+                ],
+                "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"size\":\"-2\",\"price\":\"101\"}"
             }
         ],
         "fetchPositions": [
@@ -1319,6 +1346,26 @@
                 "method": "fetchLeverages",
                 "url": "https://api.gateio.ws/api/v4/margin/currency_pairs",
                 "input": []
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "Fetch an option contract",
+                "method": "fetchOption",
+                "url": "https://api.gateio.ws/api/v4/options/contracts/ETH_USDT-20240628-4500-C",
+                "input": [
+                  "ETH/USDT:USDT-240628-4500-C"
+                ]
+            }
+        ],
+        "fetchOptionChain": [
+            {
+                "description": "Fetch an option chain",
+                "method": "fetchOptionChain",
+                "url": "https://api.gateio.ws/api/v4/options/contracts?underlying=BTC_USDT",
+                "input": [
+                  "BTC"
+                ]
             }
         ]
     }

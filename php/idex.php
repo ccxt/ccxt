@@ -189,7 +189,7 @@ class idex extends Exchange {
         return $this->decimal_to_precision($price, TRUNCATE, $quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for idex
          * @see https://api-docs-v3.idex.io/#get-markets

@@ -229,7 +229,7 @@ class woo(ccxt.async_support.woo):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`

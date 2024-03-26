@@ -390,7 +390,7 @@ export default class coinlist extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name coinlist#fetchMarkets

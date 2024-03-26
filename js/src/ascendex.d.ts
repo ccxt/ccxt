@@ -8,7 +8,7 @@ export default class ascendex extends Exchange {
     describe(): any;
     getAccount(params?: {}): string;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchTime(params?: {}): Promise<number>;
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseBalance(response: any): Balances;

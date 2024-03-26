@@ -212,6 +212,12 @@ public partial class Exchange
         {
             var tcs = this.connected;
             // Run the connection logic in a background task
+
+            if (this.webSocket.State == WebSocketState.Open)
+            {
+                return; // already connected, return. Might happen when we call connect multiple times in a row
+
+            }
             Task.Run(async () =>
             {
                 try
@@ -352,6 +358,30 @@ public partial class Exchange
                 }
                 this.isConnected = false;
                 this.onError(this, ex);
+            }
+        }
+
+        public async Task Close()
+        {
+            if (this.webSocket.State == WebSocketState.Open)
+            {
+                try
+                {
+                    await this.webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    // Console.WriteLine(e);
+                }
+
+            }
+            foreach (var future in this.futures.Values)
+            {
+                if (!future.task.IsCompleted)
+                {
+                    future.reject(new ExchangeClosedByUser("Connection closed by the user"));
+
+                }
             }
         }
     }

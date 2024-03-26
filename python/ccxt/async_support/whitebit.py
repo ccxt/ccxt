@@ -281,7 +281,7 @@ class whitebit(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for whitebit
         :see: https://docs.whitebit.com/public/http-v4/#market-info

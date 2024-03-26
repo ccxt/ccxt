@@ -403,7 +403,7 @@ export default class bitrue extends Exchange {
                     '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
                     '-1100': BadRequest, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101': BadRequest, // Too many parameters; expected %s and received %s.
-                    '-1102': BadRequest, // Param %s or %s must be sent, but both were empty
+                    '-1102': BadRequest, // Param %s or %s must be sent, but both were empty // {"code":-1102,"msg":"timestamp IllegalArgumentException.","data":null}
                     '-1103': BadRequest, // An unknown parameter was sent.
                     '-1104': BadRequest, // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105': BadRequest, // Parameter %s was empty.
@@ -714,7 +714,7 @@ export default class bitrue extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitrue#fetchMarkets

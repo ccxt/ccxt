@@ -388,7 +388,7 @@ export default class woo extends Exchange {
         return this.safeInteger (response, 'timestamp');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name woo#fetchMarkets

@@ -341,7 +341,7 @@ export default class bitso extends Exchange {
         }, currency);
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitso#fetchMarkets

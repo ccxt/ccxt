@@ -144,7 +144,7 @@ export default class independentreserve extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name independentreserve#fetchMarkets

@@ -311,7 +311,7 @@ class zonda(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://docs.zondacrypto.exchange/reference/ticker-1
         retrieves data on all markets for zonda

@@ -619,7 +619,7 @@ export default class tokocrypto extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name tokocrypto#fetchMarkets

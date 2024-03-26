@@ -739,7 +739,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name phemex#fetchMarkets

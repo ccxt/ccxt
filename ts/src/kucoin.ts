@@ -4,7 +4,7 @@
 import Exchange from './abstract/kucoin.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account } from './base/types.js';
 
@@ -425,6 +425,7 @@ export default class kucoin extends Exchange {
                     'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
                     'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
+                    'The amount increment is invalid.': BadRequest,
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -983,7 +984,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name kucoin#fetchMarkets
@@ -2177,6 +2178,15 @@ export default class kucoin extends Exchange {
         return this.parseOrders (data);
     }
 
+    marketOrderAmountToPrecision (symbol: string, amount) {
+        const market = this.market (symbol);
+        const result = this.decimalToPrecision (amount, TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+        }
+        return result;
+    }
+
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         // required param, cannot be used twice
@@ -2197,7 +2207,7 @@ export default class kucoin extends Exchange {
             if (quoteAmount !== undefined) {
                 params = this.omit (params, [ 'cost', 'funds' ]);
                 // kucoin uses base precision even for quote values
-                costString = this.amountToPrecision (symbol, quoteAmount);
+                costString = this.marketOrderAmountToPrecision (symbol, quoteAmount);
                 request['funds'] = costString;
             } else {
                 amountString = this.amountToPrecision (symbol, amount);

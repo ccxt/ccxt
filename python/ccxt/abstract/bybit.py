@@ -265,7 +265,7 @@ class ImplicitAPI:
     private_post_v5_account_set_hedging_mode = privatePostV5AccountSetHedgingMode = Entry('v5/account/set-hedging-mode', 'private', 'POST', {'cost': 5})
     private_post_v5_account_mmp_modify = privatePostV5AccountMmpModify = Entry('v5/account/mmp-modify', 'private', 'POST', {'cost': 5})
     private_post_v5_account_mmp_reset = privatePostV5AccountMmpReset = Entry('v5/account/mmp-reset', 'private', 'POST', {'cost': 5})
-    private_post_v5_asset_transfer_inter_transfer = privatePostV5AssetTransferInterTransfer = Entry('v5/asset/transfer/inter-transfer', 'private', 'POST', {'cost': 150})
+    private_post_v5_asset_transfer_inter_transfer = privatePostV5AssetTransferInterTransfer = Entry('v5/asset/transfer/inter-transfer', 'private', 'POST', {'cost': 50})
     private_post_v5_asset_transfer_save_transfer_sub_member = privatePostV5AssetTransferSaveTransferSubMember = Entry('v5/asset/transfer/save-transfer-sub-member', 'private', 'POST', {'cost': 150})
     private_post_v5_asset_transfer_universal_transfer = privatePostV5AssetTransferUniversalTransfer = Entry('v5/asset/transfer/universal-transfer', 'private', 'POST', {'cost': 10})
     private_post_v5_asset_deposit_deposit_to_account = privatePostV5AssetDepositDepositToAccount = Entry('v5/asset/deposit/deposit-to-account', 'private', 'POST', {'cost': 5})

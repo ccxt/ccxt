@@ -338,7 +338,7 @@ class bitso(Exchange, ImplicitAPI):
             'info': item,
         }, currency)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitso
         :see: https://docs.bitso.com/bitso-api/docs/list-available-books

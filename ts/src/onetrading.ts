@@ -361,7 +361,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name onetrading#fetchMarkets

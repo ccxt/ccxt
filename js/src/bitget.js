@@ -1296,6 +1296,7 @@ export default class bitget extends Exchange {
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'JADE': 'Jade Protocol',
+                'DEGEN': 'DegenReborn',
             },
             'options': {
                 'timeframes': {
@@ -2770,6 +2771,7 @@ export default class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] *contract only* 'linear', 'inverse'
          * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -2786,16 +2788,21 @@ export default class bitget extends Exchange {
                 market = this.market(symbol);
             }
         }
+        let response = undefined;
         const request = {};
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
-        let response = undefined;
-        if (type === 'spot') {
+        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
+        // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
+        // with higher priority and only default to spot, if `subType` is not set in params
+        const passedSubType = this.safeString(params, 'subType');
+        let productType = undefined;
+        [productType, params] = this.handleProductTypeAndParams(market, params);
+        // only if passedSubType && productType is undefined, then use spot
+        if (type === 'spot' && passedSubType === undefined) {
             response = await this.publicSpotGetV2SpotMarketTickers(this.extend(request, params));
         }
         else {
-            let productType = undefined;
-            [productType, params] = this.handleProductTypeAndParams(market, params);
             request['productType'] = productType;
             response = await this.publicMixGetV2MixMarketTickers(this.extend(request, params));
         }

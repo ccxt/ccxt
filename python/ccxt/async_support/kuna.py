@@ -517,7 +517,7 @@ class kuna(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for kuna
         :see: https://docs.kuna.io/docs/get-all-traded-markets
