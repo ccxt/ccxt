@@ -1261,61 +1261,42 @@ export default class bitstamp extends Exchange {
          * @name bitstamp#fetchTransactionFees
          * @deprecated
          * @description please use fetchDepositWithdrawFees instead
-         * @see https://www.bitstamp.net/api/#balance
+         * @see https://www.bitstamp.net/api/#tag/Fees
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance (params);
-        return this.parseTransactionFees (balance);
+        const response = await this.privatePostFeesWithdrawal (params);
+        //
+        //     [
+        //         {
+        //             "currency": "btc",
+        //             "fee": "0.00015000",
+        //             "network": "bitcoin"
+        //         }
+        //         ...
+        //     ]
+        //
+        return this.parseTransactionFees (response);
     }
 
     parseTransactionFees (response, codes = undefined) {
-        //
-        //  {
-        //     "yfi_available": "0.00000000",
-        //     "yfi_balance": "0.00000000",
-        //     "yfi_reserved": "0.00000000",
-        //     "yfi_withdrawal_fee": "0.00070000",
-        //     "yfieur_fee": "0.000",
-        //     "yfiusd_fee": "0.000",
-        //     "zrx_available": "0.00000000",
-        //     "zrx_balance": "0.00000000",
-        //     "zrx_reserved": "0.00000000",
-        //     "zrx_withdrawal_fee": "12.00000000",
-        //     "zrxeur_fee": "0.000",
-        //     "zrxusd_fee": "0.000",
-        //     ...
-        //  }
-        //
-        if (codes === undefined) {
-            codes = Object.keys (this.currencies);
-        }
         const result = {};
-        let mainCurrencyId = undefined;
-        const ids = Object.keys (response);
+        const currencies = this.indexBy (response, 'currency');
+        const ids = Object.keys (currencies);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const currencyId = id.split ('_')[0];
-            const code = this.safeCurrencyCode (currencyId);
-            if (codes !== undefined && !this.inArray (code, codes)) {
+            const fees = this.safeValue (response, i, {});
+            const code = this.safeCurrencyCode (id);
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
-            if (id.indexOf ('_available') >= 0) {
-                mainCurrencyId = currencyId;
-                result[code] = {
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'info': {},
-                };
-            }
-            if (currencyId === mainCurrencyId) {
-                result[code]['info'][id] = this.safeNumber (response, id);
-            }
-            if (id.indexOf ('_withdrawal_fee') >= 0) {
-                result[code]['withdraw'] = this.safeNumber (response, id);
-            }
+            result[code] = {
+                'withdraw_fee': this.safeNumber (fees, 'fee'),
+                'deposit': {},
+                'info': this.safeDict (currencies, id),
+            };
         }
         return result;
     }
