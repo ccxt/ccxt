@@ -91,25 +91,23 @@ async function testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix
         if (maximumPrice !== undefined && limitSellPrice_nonFillable > maximumPrice) {
             limitSellPrice_nonFillable = maximumPrice;
         }
-        let nonFillableOrder = undefined;
+        let createdOrder = undefined;
         if (buyOrSell === 'buy') {
             const orderAmount = getMinimumAmountForLimitPrice (exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
-            nonFillableOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'buy', orderAmount, limitBuyPrice_nonFillable, {}, skippedProperties);
+            createdOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'buy', orderAmount, limitBuyPrice_nonFillable, {}, skippedProperties);
         } else {
             const orderAmount = getMinimumAmountForLimitPrice (exchange, market, limitSellPrice_nonFillable, predefinedAmount);
-            nonFillableOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'sell', orderAmount, limitSellPrice_nonFillable, {}, skippedProperties);
+            createdOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'sell', orderAmount, limitSellPrice_nonFillable, {}, skippedProperties);
         }
-        const nonFillableOrder_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, nonFillableOrder['id'], skippedProperties);
+        const fetchedOrder = await testSharedMethods.tryFetchOrder (exchange, symbol, createdOrder['id'], skippedProperties);
         // ensure that order is not filled
-        const isClosed = testSharedMethods.confirmOrderState (exchange, nonFillableOrder, 'closed');
-        const isClosedFetched = testSharedMethods.confirmOrderState (exchange, nonFillableOrder_fetched, 'closed');
-        assert (!isClosed, logPrefix + ' createOrder: order should not be filled, but it is. ' + JSON.stringify (nonFillableOrder));
-        assert (!isClosedFetched, logPrefix + ' fetchOrder: order should not be filled, but it is. ' + JSON.stringify (nonFillableOrder_fetched));
+        testSharedMethods.assertOrderState (exchange, skippedProperties, 'createdOrder',  createdOrder, 'canceled', false);
+        testSharedMethods.assertOrderState (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'canceled', true);
         // ensure that order side matches
-        testSharedMethods.assertInArray (exchange, skippedProperties, 'createOrder', nonFillableOrder, 'side', [ undefined, buyOrSell ]);
-        testSharedMethods.assertInArray (exchange, skippedProperties, 'fetchOrder', nonFillableOrder_fetched, 'side', [ undefined, buyOrSell ]);
+        testSharedMethods.assertInArray (exchange, skippedProperties, 'createdOrder', createdOrder, 'side', [ undefined, buyOrSell ]);
+        testSharedMethods.assertInArray (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'side', [ undefined, buyOrSell ]);
         // cancel the order
-        await testCreateOrderCancelOrder (exchange, symbol, nonFillableOrder['id']);
+        await testCreateOrderCancelOrder (exchange, symbol, createdOrder['id']);
         verboseOutput (exchange, symbol, 'SCENARIO 1 PASSED !!!');
     } catch (e) {
         throw new Error (logPrefix + ' failed for Scenario 1: ' + e.toString ());
@@ -164,15 +162,14 @@ function testCreateOrderVerifyFullExecution (exchange, market, logPrefix, skippe
     // and also considering possible roundings in implementation, then filled amount should be between 99 and 101
     const maxExpectedFilledAmount = Precise.stringAdd (entryorderAmountString, precisionAmount);
     const minExpectedFilledAmount = Precise.stringSub (entryorderAmountString, precisionAmount);
-    assert (Precise.stringGe (maxExpectedFilledAmount, filledString), logPrefix + ' filled amount is more than expected, possibly some implementation issue. ' + exchange.json (fetchedOrder));
-    assert (Precise.stringLe (minExpectedFilledAmount, filledString), logPrefix + ' filled amount is less than expected, possibly some implementation issue. ' + exchange.json (fetchedOrder));
-    // order state should be confirmed too
-    const isClosedFetched = testSharedMethods.confirmOrderState (exchange, fetchedOrder, 'closed');
-    const isOpenFetched = testSharedMethods.confirmOrderState (exchange, fetchedOrder, 'open');
-    assert (isClosedFetched || (isOpenFetched === undefined), logPrefix + ' order should be filled, but it is not. ' + exchange.json (fetchedOrder));
+    assert (Precise.stringLe (filledString, maxExpectedFilledAmount), logPrefix + ' filled amount is more than expected, possibly some implementation issue. ' + exchange.json (fetchedOrder));
+    assert (Precise.stringGe (filledString, minExpectedFilledAmount), logPrefix + ' filled amount is less than expected, possibly some implementation issue. ' + exchange.json (fetchedOrder));
+    // order state should be "closed"
+    testSharedMethods.assertOrderState (exchange, skippedProperties, 'createdOrder',  createdOrder, 'closed', false);
+    testSharedMethods.assertOrderState (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'closed', true);
     // ensure that order side matches
-    testSharedMethods.assertInArray (exchange, skippedProperties, 'createOrder', createdOrder, 'side', [ undefined, requestedSide ]);
-    testSharedMethods.assertInArray (exchange, skippedProperties, 'fetchOrder', fetchedOrder, 'side', [ undefined, requestedSide ]);
+    testSharedMethods.assertInArray (exchange, skippedProperties, 'createdOrder', createdOrder, 'side', [ undefined, requestedSide ]);
+    testSharedMethods.assertInArray (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'side', [ undefined, requestedSide ]);
 }
 
 
@@ -284,10 +281,9 @@ async function testCreateOrderTryCancelOrder (exchange, symbol, order, skippedPr
     // fetch order for maximum accuracy
     const orderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, order['id'], skippedProperties);
     // check their status
-    const isClosedFetched = testSharedMethods.confirmOrderState (exchange, orderFetched, 'closed');
-    const isOpenFetched = testSharedMethods.confirmOrderState (exchange, orderFetched, 'open');
+    const needsCancel = exchange.inArray (orderFetched['state'], [ 'open', 'pending', undefined ]);
     // if it was not reported as closed/filled, then try to cancel it
-    if (isClosedFetched === undefined || isOpenFetched) {
+    if (needsCancel) {
         verboseOutput (exchange, symbol, 'trying to cancel the remaining amount of partially filled order...');
         try {
             await testCreateOrderCancelOrder (exchange, symbol, order['id']);
