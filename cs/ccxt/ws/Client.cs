@@ -222,6 +222,11 @@ public partial class Exchange
             {
                 try
                 {
+                    if (this.webSocket.State == WebSocketState.Open)
+                    {
+                        return; // already connected, return. Might happen when we call connect multiple times in a row
+
+                    }
                     await webSocket.ConnectAsync(new Uri(url), CancellationToken.None);
                     if (this.verbose)
                     {
