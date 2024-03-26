@@ -1337,6 +1337,146 @@
                     ]
                 ]
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch spot order",
+                "method": "fetchOrder",
+                "input": [
+                  "1770683446830788608",
+                  "LTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "data": {
+                    "order": {
+                      "symbol": "LTC-USDT",
+                      "orderId": "1770683446830788608",
+                      "side": "SELL",
+                      "positionSide": "LONG",
+                      "type": "MARKET",
+                      "origQty": "0.1",
+                      "price": "83.69",
+                      "executedQty": "0.1",
+                      "avgPrice": "83.71",
+                      "cumQuote": "8",
+                      "stopPrice": "",
+                      "profit": "0.0000",
+                      "commission": "-0.004186",
+                      "status": "FILLED",
+                      "time": "1710998806000",
+                      "updateTime": "1710998806000",
+                      "clientOrderId": "",
+                      "leverage": "5X",
+                      "takeProfit": {
+                        "type": "",
+                        "quantity": "0",
+                        "stopPrice": "0",
+                        "price": "0",
+                        "workingType": ""
+                      },
+                      "stopLoss": {
+                        "type": "",
+                        "quantity": "0",
+                        "stopPrice": "0",
+                        "price": "0",
+                        "workingType": ""
+                      },
+                      "advanceAttr": "0",
+                      "positionID": "0",
+                      "takeProfitEntrustPrice": "0",
+                      "stopLossEntrustPrice": "0",
+                      "orderType": "",
+                      "workingType": "MARK_PRICE",
+                      "onlyOnePosition": false,
+                      "reduceOnly": true,
+                      "stopGuaranteed": "false",
+                      "triggerOrderId": "0"
+                    }
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "LTC-USDT",
+                    "orderId": "1770683446830788608",
+                    "side": "SELL",
+                    "positionSide": "LONG",
+                    "type": "MARKET",
+                    "origQty": "0.1",
+                    "price": "83.69",
+                    "executedQty": "0.1",
+                    "avgPrice": "83.71",
+                    "cumQuote": "8",
+                    "stopPrice": "",
+                    "profit": "0.0000",
+                    "commission": "-0.004186",
+                    "status": "FILLED",
+                    "time": "1710998806000",
+                    "updateTime": "1710998806000",
+                    "clientOrderId": "",
+                    "leverage": "5X",
+                    "takeProfit": {
+                      "type": "",
+                      "quantity": "0",
+                      "stopPrice": "0",
+                      "price": "0",
+                      "workingType": ""
+                    },
+                    "stopLoss": {
+                      "type": "",
+                      "quantity": "0",
+                      "stopPrice": "0",
+                      "price": "0",
+                      "workingType": ""
+                    },
+                    "advanceAttr": "0",
+                    "positionID": "0",
+                    "takeProfitEntrustPrice": "0",
+                    "stopLossEntrustPrice": "0",
+                    "orderType": "",
+                    "workingType": "MARK_PRICE",
+                    "onlyOnePosition": false,
+                    "reduceOnly": true,
+                    "stopGuaranteed": "false",
+                    "triggerOrderId": "0"
+                  },
+                  "id": "1770683446830788608",
+                  "clientOrderId": null,
+                  "symbol": "LTC/USDT:USDT",
+                  "timestamp": 1710998806000,
+                  "datetime": "2024-03-21T05:26:46.000Z",
+                  "lastTradeTimestamp": 1710998806000,
+                  "lastUpdateTimestamp": 1710998806000,
+                  "type": "market",
+                  "timeInForce": "IOC",
+                  "postOnly": null,
+                  "side": "sell",
+                  "price": 83.69,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "stopLossPrice": 0,
+                  "takeProfitPrice": 0,
+                  "average": 83.71,
+                  "cost": 0,
+                  "amount": 0.1,
+                  "filled": 0.1,
+                  "remaining": 0,
+                  "status": "closed",
+                  "fee": {
+                    "currency": "USDT",
+                    "cost": "0.004186"
+                  },
+                  "trades": [],
+                  "reduceOnly": true,
+                  "fees": [
+                    {
+                      "currency": "USDT",
+                      "cost": 0.004186
+                    }
+                  ]
+                }
+            }
         ]
     }
 }
