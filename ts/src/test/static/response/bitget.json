@@ -1226,6 +1226,70 @@
                         }
                     ]
                 }
+            },
+            {
+                "description": "fetch spot order",
+                "method": "fetchOrder",
+                "input": [
+                  "1134354173590421508",
+                  "LTC/USDT"
+                ],
+                "httpResponse": "{\"code\":\"00000\",\"msg\":\"success\",\"requestTime\":1711468234260,\"data\":[{\"userId\":\"7393346635\",\"symbol\":\"LTCUSDT\",\"orderId\":\"1134354173590421508\",\"clientOid\":\"84e6d418-b92b-480c-9169-6082702b32b7\",\"price\":\"0\",\"size\":\"6.0000000000000000\",\"orderType\":\"market\",\"side\":\"buy\",\"status\":\"filled\",\"priceAvg\":\"65.5210000000000000\",\"baseVolume\":\"0.0915000000000000\",\"quoteVolume\":\"5.9951715000000000\",\"enterPointSource\":\"API\",\"feeDetail\":\"{\\\"newFees\\\":{\\\"c\\\":0,\\\"d\\\":0,\\\"deduction\\\":false,\\\"r\\\":-0.0000915,\\\"t\\\":-0.0000915,\\\"totalDeductionFee\\\":0},\\\"LTC\\\":{\\\"deduction\\\":false,\\\"feeCoinCode\\\":\\\"LTC\\\",\\\"totalDeductionFee\\\":0,\\\"totalFee\\\":-0.0000915000000000}}\",\"orderSource\":\"market\",\"cTime\":\"1706177030942\",\"uTime\":\"1706177031075\"}]}",
+                "parsedResponse": {
+                  "info": {
+                    "userId": "7393346635",
+                    "symbol": "LTCUSDT",
+                    "orderId": "1134354173590421508",
+                    "clientOid": "84e6d418-b92b-480c-9169-6082702b32b7",
+                    "price": "0",
+                    "size": "6.0000000000000000",
+                    "orderType": "market",
+                    "side": "buy",
+                    "status": "filled",
+                    "priceAvg": "65.5210000000000000",
+                    "baseVolume": "0.0915000000000000",
+                    "quoteVolume": "5.9951715000000000",
+                    "enterPointSource": "API",
+                    "feeDetail": "{\"newFees\":{\"c\":0,\"d\":0,\"deduction\":false,\"r\":-0.0000915,\"t\":-0.0000915,\"totalDeductionFee\":0},\"LTC\":{\"deduction\":false,\"feeCoinCode\":\"LTC\",\"totalDeductionFee\":0,\"totalFee\":-0.0000915000000000}}",
+                    "orderSource": "market",
+                    "cTime": "1706177030942",
+                    "uTime": "1706177031075"
+                  },
+                  "id": "1134354173590421508",
+                  "clientOrderId": "84e6d418-b92b-480c-9169-6082702b32b7",
+                  "timestamp": 1706177030942,
+                  "datetime": "2024-01-25T10:03:50.942Z",
+                  "lastTradeTimestamp": 1706177031075,
+                  "lastUpdateTimestamp": 1706177031075,
+                  "symbol": "LTC/USDT",
+                  "type": "market",
+                  "side": "buy",
+                  "price": 65.521,
+                  "amount": 6,
+                  "cost": 5.9951715,
+                  "average": 65.521,
+                  "filled": 0.0915,
+                  "remaining": 5.9085,
+                  "timeInForce": "IOC",
+                  "postOnly": null,
+                  "reduceOnly": null,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null,
+                  "status": "closed",
+                  "fee": {
+                    "cost": 0.0000915,
+                    "currency": "LTC"
+                  },
+                  "trades": [],
+                  "fees": [
+                    {
+                      "cost": 0.0000915,
+                      "currency": "LTC"
+                    }
+                  ]
+                }
             }
         ],
         "fetchTrades": [
