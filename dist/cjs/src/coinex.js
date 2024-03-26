@@ -3760,8 +3760,7 @@ class coinex extends coinex$1 {
         //     }
         //
         const marketId = this.safeString(position, 'market');
-        const defaultType = this.safeString(this.options, 'defaultType');
-        market = this.safeMarket(marketId, market, undefined, defaultType);
+        market = this.safeMarket(marketId, market, undefined, 'swap');
         const symbol = market['symbol'];
         const positionId = this.safeInteger(position, 'position_id');
         const marginModeInteger = this.safeInteger(position, 'type');

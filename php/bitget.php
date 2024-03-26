@@ -2738,6 +2738,7 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
@@ -2753,15 +2754,20 @@ class bitget extends Exchange {
                 $market = $this->market($symbol);
             }
         }
+        $response = null;
         $request = array();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        $response = null;
-        if ($type === 'spot') {
+        // Calls like `.fetch_tickers(null, array(subType:'inverse'))` should be supported for this exchange, so
+        // as "options.defaultSubType" is also set in exchange options, we should consider `$params->subType`
+        // with higher priority and only default to spot, if `subType` is not set in $params
+        $passedSubType = $this->safe_string($params, 'subType');
+        $productType = null;
+        list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+        // only if $passedSubType && $productType is null, then use spot
+        if ($type === 'spot' && $passedSubType === null) {
             $response = $this->publicSpotGetV2SpotMarketTickers (array_merge($request, $params));
         } else {
-            $productType = null;
-            list($productType, $params) = $this->handle_product_type_and_params($market, $params);
             $request['productType'] = $productType;
             $response = $this->publicMixGetV2MixMarketTickers (array_merge($request, $params));
         }
