@@ -7,8 +7,9 @@ import Precise from '../../base/Precise.js';
 // ----------------------------------------------------------------------------
 
 // just for debugging purposes
-function verboseOutput (exchange, symbol, message) {
-    if (exchange.verbose) {
+const debug = true;
+function debugOutput (exchange, symbol, message) {
+    if (debug) {
         console.log (' >>>>> testCreateOrder [' + exchange['id'] + ' : ' + symbol + '] ', message);
     }
 }
@@ -31,7 +32,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     const initialBaseBalance = balance[market['base']]['free'];
     const initialQuoteBalance = balance[market['quote']]['free'];
     // assert (initialQuoteBalance !== undefined, logPrefix + ' - testing account not have balance of' + market['quote'] + ' in fetchBalance() which is required to test');
-    verboseOutput (exchange, symbol, 'fetched balance for ' + symbol + ' : ' +  initialBaseBalance.toString () + ' ' + market['base'] + '/' + initialQuoteBalance  + ' ' + market['quote']);
+    debugOutput (exchange, symbol, 'fetched balance for ' + symbol + ' : ' +  initialBaseBalance.toString () + ' ' + market['base'] + '/' + initialQuoteBalance  + ' ' + market['quote']);
     // get best bid & ask
     const [ bestBid, bestAsk ] = await testSharedMethods.tryFetchBestBidAsk (exchange, 'createOrder', symbol);
 
@@ -108,7 +109,7 @@ async function testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix
         testSharedMethods.assertInArray (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'side', [ undefined, buyOrSell ]);
         // cancel the order
         await testCreateOrderCancelOrder (exchange, symbol, createdOrder['id']);
-        verboseOutput (exchange, symbol, 'SCENARIO 1 PASSED !!!');
+        debugOutput (exchange, symbol, 'SCENARIO 1 PASSED !!!');
     } catch (e) {
         throw new Error (logPrefix + ' failed for Scenario 1: ' + e.toString ());
     }
@@ -145,7 +146,7 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
         const exitorderFilled = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'market', exitSide, amountToClose, exitorderPrice, params, skippedProperties);
         const exitorderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, exitorderFilled['id'], skippedProperties);
         testCreateOrderVerifyFullExecution (exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
-        verboseOutput (exchange, symbol, 'SCENARIO 2 PASSED !!!');
+        debugOutput (exchange, symbol, 'SCENARIO 2 PASSED !!!');
     } catch (e) {
         throw new Error ('failed for Scenario 2: ' + e.toString ());
     }
@@ -196,7 +197,7 @@ async function testCreateOrderCancelOrder (exchange, symbol, orderId = undefined
             cancelResult = await exchange.cancelOrders ([ orderId ], symbol);
         }
     }
-    verboseOutput (exchange, symbol, 'canceled order using ' + usedMethod + ' : ' + exchange.json (cancelResult));
+    debugOutput (exchange, symbol, 'canceled order using ' + usedMethod);
     // todo: assert canceled & closed status
     // testSharedMethods.assertOrderState (exchange, skippedProperties, 'createdOrder',  createdOrder, 'open', false);
     // testSharedMethods.assertOrderState (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'open', true);
@@ -208,7 +209,7 @@ async function testCreateOrderCancelOrder (exchange, symbol, orderId = undefined
 // ----------------------------------------------------------------------------
 
 async function testCreateOrderSubmitSafeOrder (exchange, symbol, orderType, side, amount, price = undefined, params = {}, skippedProperties = {}) {
-    verboseOutput (exchange, symbol, 'Executing createOrder ' + orderType + ' ' + side + ' ' + amount + ' ' + price + ' ' + exchange.json (params));
+    debugOutput (exchange, symbol, 'Executing createOrder ' + orderType + ' ' + side + ' ' + amount + ' ' + price + ' ' + exchange.json (params));
     const order = await exchange.createOrder (symbol, orderType, side, amount, price, params);
     try {
         // test through regular order object test
@@ -259,14 +260,7 @@ function getMinimumAmountForLimitPrice (exchange, market, price, predefinedAmoun
     const isTickSizePrecision = exchange.precisionMode === 4;
     // if precision is not defined, then calculate it from amount value
     if (amountPrecision === undefined) {
-        let digitsOfPrecision = undefined;
-        // if it is not TICK-SIZE, then convert it to amount
-        if (!isTickSizePrecision) {
-            digitsOfPrecision = parseInt (exchange.precisionFromString (exchange.numberToString (finalAmount)));
-        } else {
-            digitsOfPrecision = getTickSizeFromString (exchange.numberToString (finalAmount));
-        }
-        amountPrecision = 1 / Math.pow (10, digitsOfPrecision);
+        amountPrecision = 0.000000000000001; // todo: revise this for better way in future
     } else {
         // if not TICK-SIZE, then convert into value
         if (!isTickSizePrecision) {
@@ -287,7 +281,7 @@ async function testCreateOrderTryCancelOrder (exchange, symbol, order, skippedPr
     const needsCancel = exchange.inArray (orderFetched['state'], [ 'open', 'pending', undefined ]);
     // if it was not reported as closed/filled, then try to cancel it
     if (needsCancel) {
-        verboseOutput (exchange, symbol, 'trying to cancel the remaining amount of partially filled order...');
+        debugOutput (exchange, symbol, 'trying to cancel the remaining amount of partially filled order...');
         try {
             await testCreateOrderCancelOrder (exchange, symbol, order['id']);
         } catch (e) {
@@ -295,14 +289,8 @@ async function testCreateOrderTryCancelOrder (exchange, symbol, order, skippedPr
             console.log (logPrefix + ' order ' + order['id'] + ' a moment ago order was reported as pending, but could not be cancelled at this moment: ' + exchange.json (order) + '. Exception message: ' + e.toString ());
         }
     } else {
-        verboseOutput (exchange, symbol, 'order is already closed/filled, no need to cancel it');
+        debugOutput (exchange, symbol, 'order is already closed/filled, no need to cancel it');
     }
-}
-
-function getTickSizeFromString (str) {
-    const parts = str.split ('.');
-    const afterDot = parts[1];
-    return afterDot.length + ''; // transpiler trick
 }
 
 export default testCreateOrder;
