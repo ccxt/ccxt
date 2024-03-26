@@ -7,9 +7,9 @@ import Precise from '../../base/Precise.js';
 // ----------------------------------------------------------------------------
 
 // just for debugging purposes
-const debug = true;
+const debugCreateOrder = true;
 function debugOutput (exchange, symbol, message) {
-    if (debug) {
+    if (debugCreateOrder) {
         console.log (' >>>>> testCreateOrder [' + exchange['id'] + ' : ' + symbol + '] ', message);
     }
 }
