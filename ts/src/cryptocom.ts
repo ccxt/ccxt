@@ -2758,8 +2758,8 @@ export default class cryptocom extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const data = this.safeDict (result, 'data', []);
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'data', []);
         return this.parsePosition (data[0], market);
     }
 
