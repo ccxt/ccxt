@@ -311,9 +311,10 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             # initial snapshot
             trades = self.safe_list(message, 1, [])
             # needs to be reversed to make chronological order
-            trades = trades.reverse()
-            for i in range(0, len(trades)):
-                parsed = self.parse_ws_trade(trades[i], market)
+            length = len(trades)
+            for i in range(0, length):
+                index = length - i - 1
+                parsed = self.parse_ws_trade(trades[index], market)
                 stored.append(parsed)
         else:
             # update
@@ -811,7 +812,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_authentication_message(self, client: Client, message):
         messageHash = 'authenticated'

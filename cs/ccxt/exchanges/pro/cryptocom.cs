@@ -1144,7 +1144,7 @@ public partial class cryptocom : ccxt.cryptocom
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public virtual void handlePing(WebSocketClient client, object message)

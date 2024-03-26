@@ -32,6 +32,7 @@ def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
     #
     if ('bid' in skipped_properties) or ('ask' in skipped_properties):
         return
+    # todo: check non-emtpy arrays for bids/asks for toptier exchanges
     bids = orderbook['bids']
     bids_length = len(bids)
     for i in range(0, bids_length):

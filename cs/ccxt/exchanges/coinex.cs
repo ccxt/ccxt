@@ -118,7 +118,7 @@ public partial class coinex : Exchange
                     { "perpetualPrivate", "https://api.coinex.com/perpetual" },
                 } },
                 { "www", "https://www.coinex.com" },
-                { "doc", "https://github.com/coinexcom/coinex_exchange_api/wiki" },
+                { "doc", "https://viabtc.github.io/coinex_api_en_doc" },
                 { "fees", "https://www.coinex.com/fees" },
                 { "referral", "https://www.coinex.com/register?refer_code=yw5fz" },
             } },
@@ -331,6 +331,7 @@ public partial class coinex : Exchange
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "ip not allow visit", typeof(PermissionDenied) },
+                    { "service too busy", typeof(ExchangeNotAvailable) },
                 } },
             } },
         });
@@ -5536,7 +5537,7 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#borrowIsolatedMargin
         * @description create a loan to borrow margin
-        * @see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
+        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account017_margin_loan
         * @param {string} symbol unified market symbol, required for coinex
         * @param {string} code unified currency code of the currency to borrow
         * @param {float} amount the amount to borrow
@@ -5576,7 +5577,7 @@ public partial class coinex : Exchange
         * @method
         * @name coinex#repayIsolatedMargin
         * @description repay borrowed margin and interest
-        * @see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
+        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account018_margin_flat
         * @param {string} symbol unified market symbol, required for coinex
         * @param {string} code unified currency code of the currency to repay
         * @param {float} amount the amount to repay

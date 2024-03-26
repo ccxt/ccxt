@@ -12,6 +12,7 @@ public partial class testMainClass : BaseTest
         object method = "fetchLedgerEntry";
         object items = await exchange.fetchLedger(code);
         object length = getArrayLength(items);
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         if (isTrue(isGreaterThan(length, 0)))
         {
             object firstItem = getValue(items, 0);

@@ -207,7 +207,7 @@ class bybit extends \ccxt\async\bybit {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * n watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-$ticker
              * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
@@ -1034,7 +1034,7 @@ class bybit extends \ccxt\async\bybit {
         //            positionValue => '0.00015497',
         //            riskId => 1,
         //            riskLimitValue => '150',
-        //            side => 'Buy',
+        //            $side => 'Buy',
         //            size => '3',
         //            stopLoss => '0.00',
         //            symbol => 'BTCUSD',
@@ -1060,8 +1060,22 @@ class bybit extends \ccxt\async\bybit {
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
             $position = $this->parse_position($rawPosition);
+            $side = $this->safe_string($position, 'side');
+            // hacky solution to handle closing $positions
+            // without crashing, we should handle this properly later
             $newPositions[] = $position;
-            $cache->append ($position);
+            if ($side === null || $side === '') {
+                // closing update, adding both sides to "reset" both sides
+                // since we don't know which $side is being closed
+                $position['side'] = 'long';
+                $cache->append ($position);
+                $position['side'] = 'short';
+                $cache->append ($position);
+                $position['side'] = null;
+            } else {
+                // regular update
+                $cache->append ($position);
+            }
         }
         $messageHashes = $this->find_message_hashes($client, 'positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {

@@ -80,13 +80,13 @@ public partial class binance : ccxt.binance
                     { "future", 200 },
                     { "delivery", 200 },
                 } },
-                { "streamBySubscriptionsHash", new Dictionary<string, object>() {} },
+                { "streamBySubscriptionsHash", this.createSafeDictionary() },
                 { "streamIndex", -1 },
                 { "watchOrderBookRate", 100 },
                 { "tradesLimit", 1000 },
                 { "ordersLimit", 1000 },
                 { "OHLCVLimit", 1000 },
-                { "requestId", new Dictionary<string, object>() {} },
+                { "requestId", this.createSafeDictionary() },
                 { "watchOrderBookLimit", 1000 },
                 { "watchTrades", new Dictionary<string, object>() {
                     { "name", "trade" },
@@ -122,7 +122,7 @@ public partial class binance : ccxt.binance
 
     public virtual object requestId(object url)
     {
-        object options = this.safeValue(this.options, "requestId", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         object previousValue = this.safeInteger(options, url, 0);
         object newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
@@ -132,7 +132,7 @@ public partial class binance : ccxt.binance
     public virtual object stream(object type, object subscriptionHash, object numSubscriptions = null)
     {
         numSubscriptions ??= 1;
-        object streamBySubscriptionsHash = this.safeValue(this.options, "streamBySubscriptionsHash", new Dictionary<string, object>() {});
+        object streamBySubscriptionsHash = this.safeDict(this.options, "streamBySubscriptionsHash", this.createSafeDictionary());
         object stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (isTrue(isEqual(stream, null)))
         {
@@ -147,7 +147,7 @@ public partial class binance : ccxt.binance
             object subscriptionsByStreams = this.safeValue(this.options, "numSubscriptionsByStream");
             if (isTrue(isEqual(subscriptionsByStreams, null)))
             {
-                ((IDictionary<string,object>)this.options)["numSubscriptionsByStream"] = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)this.options)["numSubscriptionsByStream"] = this.createSafeDictionary();
             }
             object subscriptionsByStream = this.safeInteger(getValue(this.options, "numSubscriptionsByStream"), stream, 0);
             object newNumSubscriptions = add(subscriptionsByStream, numSubscriptions);

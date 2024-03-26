@@ -1043,8 +1043,12 @@ class coinex extends \ccxt\async\coinex {
         //
         $messageHashSpot = 'authenticated:spot';
         $messageHashSwap = 'authenticated:swap';
-        $client->resolve ($message, $messageHashSpot);
-        $client->resolve ($message, $messageHashSwap);
+        // $client->resolve ($message, $messageHashSpot);
+        // $client->resolve ($message, $messageHashSwap);
+        $spotFuture = $this->safe_value($client->futures, $messageHashSpot);
+        $spotFuture->resolve (true);
+        $swapFutures = $this->safe_value($client->futures, $messageHashSwap);
+        $swapFutures->resolve (true);
         return $message;
     }
 
@@ -1072,16 +1076,20 @@ class coinex extends \ccxt\async\coinex {
             $url = $this->urls['api']['ws'][$type];
             $client = $this->client($url);
             $time = $this->milliseconds();
+            $isSpot = ($type === 'spot');
+            $spotMessageHash = 'authenticated:spot';
+            $swapMessageHash = 'authenticated:swap';
+            $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($type === 'spot') {
-                $messageHash = 'authenticated:spot';
-                $future = $this->safe_value($client->subscriptions, $messageHash);
-                if ($future !== null) {
+                if ($authenticated !== null) {
                     return Async\await($future);
                 }
                 $requestId = $this->request_id();
                 $subscribe = array(
                     'id' => $requestId,
-                    'future' => 'authenticated:spot',
+                    'future' => $spotMessageHash,
                 );
                 $signData = 'access_id=' . $this->apiKey . '&tonce=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
                 $hash = $this->hash($this->encode($signData), 'md5');
@@ -1094,19 +1102,17 @@ class coinex extends \ccxt\async\coinex {
                     ),
                     'id' => $requestId,
                 );
-                $future = $this->watch($url, $messageHash, $request, $requestId, $subscribe);
-                $client->subscriptions[$messageHash] = $future;
+                $this->watch($url, $messageHash, $request, $requestId, $subscribe);
+                $client->subscriptions[$messageHash] = true;
                 return Async\await($future);
             } else {
-                $messageHash = 'authenticated:swap';
-                $future = $this->safe_value($client->subscriptions, $messageHash);
-                if ($future !== null) {
+                if ($authenticated !== null) {
                     return Async\await($future);
                 }
                 $requestId = $this->request_id();
                 $subscribe = array(
                     'id' => $requestId,
-                    'future' => 'authenticated:swap',
+                    'future' => $swapMessageHash,
                 );
                 $signData = 'access_id=' . $this->apiKey . '&timestamp=' . $this->number_to_string($time) . '&secret_key=' . $this->secret;
                 $hash = $this->hash($this->encode($signData), 'sha256', 'hex');
@@ -1119,8 +1125,8 @@ class coinex extends \ccxt\async\coinex {
                     ),
                     'id' => $requestId,
                 );
-                $future = $this->watch($url, $messageHash, $request, $requestId, $subscribe);
-                $client->subscriptions[$messageHash] = $future;
+                $this->watch($url, $messageHash, $request, $requestId, $subscribe);
+                $client->subscriptions[$messageHash] = true;
                 return Async\await($future);
             }
         }) ();

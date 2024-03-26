@@ -266,7 +266,7 @@ class whitebit extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for whitebit
          * @see https://docs.whitebit.com/public/http-v4/#market-info
@@ -1681,7 +1681,7 @@ class whitebit extends Exchange {
         //     }
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.whitebit.com/private/http-main-v4/#transfer-between-main-and-trade-balances

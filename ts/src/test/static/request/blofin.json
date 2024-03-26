@@ -9,19 +9,19 @@
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order",
                 "input": [
-                  "LTC/USDT:USDT",
-                  "market",
-                  "buy",
-                  1,
-                  null,
-                  {
-                    "takeProfit": {
-                      "triggerPrice": 100
-                    },
-                    "stopLoss": {
-                      "triggerPrice": 30
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "takeProfit": {
+                            "triggerPrice": 100
+                        },
+                        "stopLoss": {
+                            "triggerPrice": 30
+                        }
                     }
-                  }
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"market\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"slTriggerPrice\":\"30\",\"slOrderPrice\":\"-1\",\"tpTriggerPrice\":\"100\",\"tpOrderPrice\":\"-1\"}"
             },
@@ -30,14 +30,14 @@
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order",
                 "input": [
-                  "LTC/USDT:USDT",
-                  "limit",
-                  "buy",
-                  1,
-                  50,
-                  {
-                    "clientOrderId": "myorder1"
-                  }
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    50,
+                    {
+                        "clientOrderId": "myorder1"
+                    }
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"limit\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"price\":\"50\",\"clientOrderId\":\"myorder1\"}"
             },
@@ -46,10 +46,10 @@
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order",
                 "input": [
-                  "LTC/USDT:USDT",
-                  "market",
-                  "sell",
-                  1
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"orderType\":\"market\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\"}"
             },
@@ -58,48 +58,48 @@
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order",
                 "input": [
-                  "LTC/USDT:USDT",
-                  "market",
-                  "buy",
-                  1,
-                  null,
-                  {
-                    "reduceOnly": true
-                  }
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"market\",\"size\":\"1\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\",\"reduceOnly\":true}"
             },
             {
-              "description": "create take profit (type2) order",
-              "method": "createOrder",
-              "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
-              "input": [
-                "LTC/USDT:USDT",
-                "market",
-                "sell",
-                1,
-                null,
-                {
-                  "takeProfitPrice": 200
-                }
-              ],
-              "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"1\",\"tpTriggerPrice\":\"200\",\"tpOrderPrice\":\"-1\",\"marginMode\":\"cross\"}"
+                "description": "create take profit (type2) order",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "takeProfitPrice": 200
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"1\",\"tpTriggerPrice\":\"200\",\"tpOrderPrice\":\"-1\",\"marginMode\":\"cross\"}"
             },
             {
-              "description": "create stop loss (type2) order",
-              "method": "createOrder",
-              "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
-              "input": [
-                "LTC/USDT:USDT",
-                "market",
-                "sell",
-                1,
-                null,
-                {
-                  "stopLossPrice": 50
-                }
-              ],
-              "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"1\",\"slTriggerPrice\":\"50\",\"slOrderPrice\":\"-1\",\"marginMode\":\"cross\"}"
+                "description": "create stop loss (type2) order",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "stopLossPrice": 50
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"size\":\"1\",\"slTriggerPrice\":\"50\",\"slOrderPrice\":\"-1\",\"marginMode\":\"cross\"}"
             }
         ],
         "cancelOrder": [
@@ -108,25 +108,38 @@
                 "method": "cancelOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/cancel-order",
                 "input": [
-                  "2075628262",
-                  "LTC/USDT:USDT"
+                    "2075628262",
+                    "LTC/USDT:USDT"
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"orderId\":\"2075628262\"}"
+            },
+            {
+                "description": "cancel tpsl order",
+                "method": "cancelOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/cancel-tpsl",
+                "input": [
+                  "10811191",
+                  "LTC/USDT:USDT",
+                  {
+                    "trigger": true
+                  }
+                ],
+                "output": "[{\"tpslId\":\"10811191\",\"instId\":\"LTC-USDT\"}]"
             }
         ],
         "cancelOrders": [
-          {
-            "description": "cancel orders",
-            "method": "cancelOrders",
-            "url": "https://openapi.blofin.com/api/v1/trade/cancel-batch-orders",
-            "input": [
-              [
-                "2075704519"
-              ],
-              "LTC/USDT:USDT"
-            ],
-            "output": "[{\"orderId\":\"2075704519\",\"instId\":\"LTC-USDT\"}]"
-          }
+            {
+                "description": "cancel orders",
+                "method": "cancelOrders",
+                "url": "https://openapi.blofin.com/api/v1/trade/cancel-batch-orders",
+                "input": [
+                    [
+                        "2075704519"
+                    ],
+                    "LTC/USDT:USDT"
+                ],
+                "output": "[{\"orderId\":\"2075704519\",\"instId\":\"LTC-USDT\"}]"
+            }
         ],
         "fetchMyTrades": [
             {
@@ -134,7 +147,7 @@
                 "method": "fetchMyTrades",
                 "url": "https://openapi.blofin.com/api/v1/trade/fills-history?instId=LTC-USDT",
                 "input": [
-                  "LTC/USDT:USDT"
+                    "LTC/USDT:USDT"
                 ]
             }
         ],
@@ -152,8 +165,8 @@
                 "method": "setLeverage",
                 "url": "https://openapi.blofin.com/api/v1/account/set-leverage",
                 "input": [
-                  5,
-                  "BTC/USDT:USDT"
+                    5,
+                    "BTC/USDT:USDT"
                 ],
                 "output": "{\"leverage\":5,\"marginMode\":\"cross\",\"instId\":\"BTC-USDT\"}"
             }
@@ -164,22 +177,22 @@
                 "method": "fetchLeverage",
                 "url": "https://openapi.blofin.com/api/v1/account/leverage-info?instId=BTC-USDT&marginMode=cross",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
         "fetchLeverages": [
-          {
-            "description": "fetch multiple leverages at once",
-            "method": "fetchLeverages",
-            "url": "https://openapi.blofin.com/api/v1/account/batch-leverage-info?instId=BTC-USDT%2CETH-USDT&marginMode=cross",
-            "input": [
-              [
-                "BTC/USDT:USDT",
-                "ETH/USDT:USDT"
-              ]
-            ]
-          }
+            {
+                "description": "fetch multiple leverages at once",
+                "method": "fetchLeverages",
+                "url": "https://openapi.blofin.com/api/v1/account/batch-leverage-info?instId=BTC-USDT%2CETH-USDT&marginMode=cross",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
+            }
         ],
         "closePosition": [
             {
@@ -187,19 +200,19 @@
                 "method": "closePosition",
                 "url": "https://openapi.blofin.com/api/v1/trade/close-position",
                 "input": [
-                  "LTC/USDT:USDT"
+                    "LTC/USDT:USDT"
                 ],
                 "output": "{\"instId\":\"LTC-USDT\",\"marginMode\":\"cross\"}"
             }
         ],
         "fetchPosition": [
             {
-              "description": "fetch position",
-              "method": "fetchPosition",
-              "url": "https://openapi.blofin.com/api/v1/account/positions?instId=LTC-USDT",
-              "input": [
-                "LTC/USDT:USDT"
-              ]
+                "description": "fetch position",
+                "method": "fetchPosition",
+                "url": "https://openapi.blofin.com/api/v1/account/positions?instId=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
             }
         ],
         "fetchPositions": [
@@ -208,9 +221,9 @@
                 "method": "fetchPositions",
                 "url": "https://openapi.blofin.com/api/v1/account/positions",
                 "input": [
-                  [
-                    "LTC/USDT:USDT"
-                  ]
+                    [
+                        "LTC/USDT:USDT"
+                    ]
                 ]
             }
         ],
@@ -220,9 +233,17 @@
                 "method": "fetchTrades",
                 "url": "https://openapi.blofin.com/api/v1/market/trades?instId=BTC-USDT&limit=5",
                 "input": [
-                  "BTC/USDT:USDT",
-                  null,
-                  5
+                    "BTC/USDT:USDT",
+                    null,
+                    5
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://openapi.blofin.com/api/v1/market/trades?instId=BTC-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -232,8 +253,16 @@
                 "method": "fetchOrderBook",
                 "url": "https://openapi.blofin.com/api/v1/market/books?instId=BTC-USDT&size=5",
                 "input": [
-                  "BTC/USDT:USDT",
-                  5
+                    "BTC/USDT:USDT",
+                    5
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://openapi.blofin.com/api/v1/market/books?instId=BTC-USDT&size=50",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -243,10 +272,18 @@
                 "method": "fetchOHLCV",
                 "url": "https://openapi.blofin.com/api/v1/market/candles?instId=BTC-USDT&bar=1D&limit=5",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "1d",
-                  null,
-                  5
+                    "BTC/USDT:USDT",
+                    "1d",
+                    null,
+                    5
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.blofin.com/api/v1/market/candles?instId=BTC-USDT&bar=1m&limit=100",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -256,7 +293,15 @@
                 "method": "fetchTicker",
                 "url": "https://openapi.blofin.com/api/v1/market/tickers?instId=BTC-USDT",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://openapi.blofin.com/api/v1/market/tickers?instId=BTC-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -266,79 +311,118 @@
                 "method": "fetchTickers",
                 "url": "https://openapi.blofin.com/api/v1/market/tickers",
                 "input": [
-                  [
-                    "BTC/USDT:USDT"
-                  ]
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://openapi.blofin.com/api/v1/market/tickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
                 ]
             }
         ],
         "fetchDeposits": [
-          {
-            "description": "fetch deposits",
-            "method": "fetchDeposits",
-            "url": "https://openapi.blofin.com/api/v1/asset/deposit-history",
-            "input": []
-          }
+            {
+                "description": "fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://openapi.blofin.com/api/v1/asset/deposit-history",
+                "input": []
+            }
         ],
         "fetchWithdrawals": [
-          {
-            "description": "fetch withdrawals",
-            "method": "fetchWithdrawals",
-            "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-history",
-            "input": []
-          }
+            {
+                "description": "fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-history",
+                "input": []
+            }
         ],
         "fetchLedger": [
-          {
-            "description": "fetch USDT ledger",
-            "method": "fetchLedger",
-            "url": "https://openapi.blofin.com/api/v1/asset/bills?currency=USDT",
-            "input": [
-              "USDT"
-            ]
-          }
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://openapi.blofin.com/api/v1/asset/bills?currency=USDT",
+                "input": [
+                    "USDT"
+                ]
+            }
         ],
         "transfer": [
-          {
-            "description": "transfer from swap to funding",
-            "method": "transfer",
-            "url": "https://openapi.blofin.com/api/v1/asset/transfer",
-            "input": [
-              "USDT",
-              1,
-              "swap",
-              "funding"
-            ],
-            "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"fromAccount\":\"futures\",\"toAccount\":\"funding\"}"
-          }
+            {
+                "description": "transfer from swap to funding",
+                "method": "transfer",
+                "url": "https://openapi.blofin.com/api/v1/asset/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "swap",
+                    "funding"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"fromAccount\":\"futures\",\"toAccount\":\"funding\"}"
+            }
         ],
         "fetchFundingRate": [
             {
-              "description": "fetch funding rate",
-              "method": "fetchFundingRate",
-              "url": "https://openapi.blofin.com/api/v1/market/funding-rate?instId=LTC-USDT",
-              "input": [
-                "LTC/USDT:USDT"
-              ]
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://openapi.blofin.com/api/v1/market/funding-rate?instId=LTC-USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://openapi.blofin.com/api/v1/market/funding-rate?instId=BTC-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchBalance": [
-          {
-            "description": "fetch balance using accountType",
-            "method": "fetchBalance",
-            "url": "https://openapi.blofin.com/api/v1/asset/balances?accountType=futures",
-            "input": [
-              {
-                "accountType": "futures"
-              }
-            ]
-          },
-          {
-            "description": "fetchBalance",
-            "method": "fetchBalance",
-            "url": "https://openapi.blofin.com/api/v1/account/balance",
-            "input": []
-          }
+            {
+                "description": "fetch balance using accountType",
+                "method": "fetchBalance",
+                "url": "https://openapi.blofin.com/api/v1/asset/balances?accountType=futures",
+                "input": [
+                    {
+                        "accountType": "futures"
+                    }
+                ]
+            },
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://openapi.blofin.com/api/v1/account/balance",
+                "input": []
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "Fetch the accounts set margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://openapi.blofin.com/api/v1/account/margin-mode",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://openapi.blofin.com/api/v1/market/funding-rate-history?instId=BTC-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

@@ -639,10 +639,10 @@ class bitget(ccxt.async_support.bitget):
             self.trades[symbol] = stored
         data = self.safe_list(message, 'data', [])
         length = len(data)
-        maxLength = max(length - 1, 0)
         # fix chronological order by reversing
-        for i in range(maxLength, 0):
-            rawTrade = data[i]
+        for i in range(0, length):
+            index = length - i - 1
+            rawTrade = data[index]
             parsed = self.parse_ws_trade(rawTrade, market)
             stored.append(parsed)
         messageHash = 'trade:' + symbol
@@ -1523,7 +1523,7 @@ class bitget(ccxt.async_support.bitget):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     async def watch_private(self, messageHash, subscriptionHash, args, params={}):
         await self.authenticate()

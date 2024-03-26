@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.Collections;
 
@@ -49,6 +50,10 @@ public partial class Exchange
         if (result == null)
             return defaultValue;
         if (result is string && ((string)result).IndexOf(".") > -1)
+        {
+            return Convert.ToInt64(Convert.ToDouble(result, CultureInfo.InvariantCulture) * 1000);
+        }
+        else if (result is double && ((double)result).ToString(CultureInfo.InvariantCulture).Contains("."))
         {
             return Convert.ToInt64(Convert.ToDouble(result, CultureInfo.InvariantCulture) * 1000);
         }

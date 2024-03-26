@@ -21,10 +21,10 @@ public partial class hitbtc
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// create a currency deposit address
@@ -814,8 +814,9 @@ public partial class hitbtc
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public List<Dictionary<string, object>> CreateOrderRequest(object market, string marketType, string type, string side, object amount, object price = null, string marginMode = null, Dictionary<string, object> parameters = null)
+    public List<Dictionary<string, object>> CreateOrderRequest(object market, string marketType, string type, string side, double amount, double? price2 = 0, string marginMode = null, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }

@@ -28,6 +28,7 @@ function test_order_book($exchange, $skipped_properties, $method, $orderbook, $s
     if ((is_array($skipped_properties) && array_key_exists('bid', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('ask', $skipped_properties))) {
         return;
     }
+    // todo: check non-emtpy arrays for bids/asks for toptier exchanges
     $bids = $orderbook['bids'];
     $bids_length = count($bids);
     for ($i = 0; $i < $bids_length; $i++) {

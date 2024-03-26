@@ -136,7 +136,7 @@ class bybit(ccxt.async_support.bybit):
         self.options['requestId'] = requestId
         return requestId
 
-    def get_url_by_market_type(self, symbol: Str = None, isPrivate=False, method: str = None, params={}):
+    def get_url_by_market_type(self, symbol: Str = None, isPrivate=False, method: Str = None, params={}):
         accessibility = 'private' if isPrivate else 'public'
         isUsdcSettled = None
         isSpot = None
@@ -197,7 +197,7 @@ class bybit(ccxt.async_support.bybit):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -974,8 +974,21 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_position(rawPosition)
+            side = self.safe_string(position, 'side')
+            # hacky solution to handle closing positions
+            # without crashing, we should handle self properly later
             newPositions.append(position)
-            cache.append(position)
+            if side is None or side == '':
+                # closing update, adding both sides to "reset" both sides
+                # since we don't know which side is being closed
+                position['side'] = 'long'
+                cache.append(position)
+                position['side'] = 'short'
+                cache.append(position)
+                position['side'] = None
+            else:
+                # regular update
+                cache.append(position)
         messageHashes = self.find_message_hashes(client, 'positions::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]

@@ -510,7 +510,7 @@ class digifinex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for digifinex
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1495,7 +1495,8 @@ class digifinex extends Exchange {
             } elseif ($limit !== null) {
                 $endTime = $this->seconds();
                 $duration = $this->parse_timeframe($timeframe);
-                $request['start_time'] = $this->sum($endTime, -$limit * $duration);
+                $auxLimit = $limit; // in c# -$limit is mutating the arg
+                $request['start_time'] = $this->sum($endTime, -$auxLimit * $duration);
             }
             $response = $this->publicSpotGetKline (array_merge($request, $params));
         }
@@ -2861,7 +2862,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): TransferEntry {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code

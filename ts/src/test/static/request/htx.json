@@ -962,11 +962,209 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "fetch OHLCV - spot",
+                "description": "without arguments",
                 "method": "fetchOHLCV",
-                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=ltcusdt",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=btcusdt",
                 "input": [
-                    "LTC/USDT"
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "without arguments",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/linear-swap-ex/market/history/kline?period=1min&from=1710799962&to=1710919902&contract_code=BTC-USDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "without arguments",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/linear-swap-ex/market/history/kline?period=1min&from=1710800086&to=1710920026&contract_code=BTC-USDT-240329",     
+                "input": [
+                  "BTC/USDT:USDT-240329"
+                ]
+            },
+            {
+                "description": "without arguments",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/swap-ex/market/history/kline?period=1min&from=1710800006&to=1710919946&contract_code=BTC-USD",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "without arguments",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/market/history/kline?period=1min&from=1710800037&to=1710919977&symbol=BTC240628",
+                "input": [
+                  "BTC/USD:BTC-240628"
+                ]
+            },
+            {
+                "description": "+1m +since",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&from=1620000000&symbol=btcusdt",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1620000000000
+                ]
+            },
+            {
+                "description": "+1m +since",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/linear-swap-ex/market/history/kline?period=1min&from=1620000000&to=1620119940&contract_code=BTC-USDT",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  1620000000000
+                ]
+            },
+            {
+                "description": "+1m +since",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/linear-swap-ex/market/history/kline?period=1min&from=1620000000&to=1620119940&contract_code=BTC-USDT-240329",     
+                "input": [
+                  "BTC/USDT:USDT-240329",
+                  "1m",
+                  1620000000000
+                ]
+            },
+            {
+                "description": "+1m +since",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/market/history/kline?period=1min&from=1620000000&to=1620119940&symbol=BTC240628",
+                "input": [
+                  "BTC/USD:BTC-240628",
+                  "1m",
+                  1620000000000
+                ]
+            },
+            {
+                "description": "+1m +since +limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=btcusdt&from=1620000000&size=2",      
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1620000000000,
+                  2
+                ]
+            },
+            {
+                "description": "+1m +since +limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/linear-swap-ex/market/history/kline?period=1min&size=2&from=1620000000&to=1620000060&contract_code=BTC-USDT",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  1620000000000,
+                  2
+                ]
+            },
+            {
+                "description": "+1m +since +limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/swap-ex/market/history/kline?period=1min&size=2&from=1620000000&to=1620000060&contract_code=BTC-USD",
+                "input": [
+                  "BTC/USD:BTC",
+                  "1m",
+                  1620000000000,
+                  2
+                ]
+            },
+            {
+                "description": "+1m +since +limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/linear-swap-ex/market/history/kline?period=1min&size=2&from=1620000000&to=1620000060&contract_code=BTC-USDT-240329",
+                "input": [
+                  "BTC/USDT:USDT-240329",
+                  "1m",
+                  1620000000000,
+                  2
+                ]
+            },
+            {
+                "description": "+1m +since +limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/market/history/kline?period=1min&size=2&from=1620000000&to=1620000060&symbol=BTC240628",
+                "input": [
+                  "BTC/USD:BTC-240628",
+                  "1m",
+                  1620000000000,
+                  2
+                ]
+            },
+            {
+                "description": "+1m +since +limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=btcusdt&from=1620000000&size=5&to=1620000090",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1620000000000,
+                  5,
+                  {
+                    "until": 1620000090000
+                  }
+                ]
+            },
+            {
+                "description": "+1m +since -limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&from=1620000000&symbol=btcusdt&to=1620000090",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1620000000000,
+                  null,
+                  {
+                    "until": 1620000090000
+                  }
+                ]
+            },
+            {
+                "description": "+1m -since +limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=btcusdt&to=1620000000&size=5",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  5,
+                  {
+                    "until": 1620000000000
+                  }
+                ]
+            },
+            {
+                "description": "+1m -since -limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=btcusdt&to=1620000000",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  null,
+                  null,
+                  {
+                    "until": 1620000000000
+                  }
+                ]
+            },
+            {
+                "description": "+1m +since +limit +until (without useHistoricalEndpointForSpot)",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1min&symbol=btcusdt&from=1620000000&to=1620000000&size=5&useHistoricalEndpoint=false",
+                "input": [
+                  "BTC/USDT",
+                  "1m",
+                  1620000000000,
+                  5,
+                  {
+                    "until": 1620000000000,
+                    "useHistoricalEndpoint": false
+                  }
                 ]
             },
             {
@@ -986,11 +1184,29 @@
                 ]
             },
             {
-                "description": "fetch OHLCV - future",
+                "description": "fetch OHLCV - future linear",
+                "method": "fetchOHLCV",
+                "url": "https://api.hbdm.com/swap-ex/market/history/kline?period=1min&from=1710798704&to=1710918644&contract_code=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch OHLCV - future inverse",
                 "method": "fetchOHLCV",
                 "url": "https://api.huobi.pro/market/history/kline?period=1min&from=1702411463&to=1702531403&symbol=BTC231124",
                 "input": [
                     "BTC/USD:BTC-231124"
+                ]
+            },
+            {
+                "description": "monthly + since",
+                "method": "fetchOHLCV",
+                "url": "https://api.huobi.pro/market/history/candles?period=1mon&from=1620000000&symbol=btcusdt",
+                "input": [
+                  "BTC/USDT",
+                  "1M",
+                  1620000000000
                 ]
             }
         ],
