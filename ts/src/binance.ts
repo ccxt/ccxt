@@ -2426,15 +2426,6 @@ export default class binance extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    convertExpireDate (date) {
-        // parse YYMMDD to timestamp
-        const year = date.slice (0, 2);
-        const month = date.slice (2, 4);
-        const day = date.slice (4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
-        return reconstructedDate;
-    }
-
     createExpiredOptionMarket (symbol: string) {
         // support expired option contracts
         const settle = 'USDT';
