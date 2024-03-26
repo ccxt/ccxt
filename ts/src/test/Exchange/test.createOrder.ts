@@ -22,6 +22,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     // pre-define some coefficients, which will be used down below
     const limitPriceSafetyMultiplierFromMedian = 1.045; // todo: in future, if ccxt would have "maximum limit price diapason" precisions unified, we can use those coefficients, but at this moment, differet exchanges have different coefficients. for example, unlike spot-market, binance's future market has 5% boundary for limit order prices, which means you can't place limit order higher than current price * 5% (i.e. for BTC/USDT market). So, at this moment, around 5% is acceptable range
     const market = exchange.market (symbol);
+    const isSwapFuture = market['swap'] || market['future'];
 
     // we need fetchBalance method to test out orders correctly
     assert (exchange.has['fetchBalance'], logPrefix + ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
@@ -39,6 +40,10 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     // ****************************************************** //
     // - create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
     await testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
+    // if it's not spot market, then we should test sell orders too
+    if (isSwapFuture) {
+        await testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell', undefined);
+    }
     // ****************************************************** //
     // **************** [Scenario 1 - END ] ***************** //
     // ****************************************************** //
@@ -50,6 +55,10 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     // - create a "limit order" / "market order" which IS GUARANTEED to have a fill (full or partial)
     // - then sell the bought amount
     await testCreateOrderCreateFillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
+    // if it's not spot market, then we should test sell orders too
+    if (isSwapFuture) {
+        await testCreateOrderCreateFillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell', undefined);
+    }
     // ****************************************************** //
     // ***************** [Scenario 2 - END] ***************** //
     // ****************************************************** //
@@ -105,31 +114,39 @@ async function testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix
 }
 
 
-async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, buyOrSell, predefinedAmount = undefined) {
+async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, buyOrSellString, predefinedAmount = undefined) {
     try {
+        const isSwapFuture = market['swap'] || market['future'];
+        const isBuy = (buyOrSellString === 'buy');
+        const entrySide = isBuy ? 'buy' : 'sell';
+        const exitSide = isBuy ? 'sell' : 'buy';
+        const entryorderPrice = isBuy ? bestAsk * limitPriceSafetyMultiplierFromMedian : bestBid / limitPriceSafetyMultiplierFromMedian;
+        const exitorderPrice = isBuy ? bestBid / limitPriceSafetyMultiplierFromMedian : bestAsk * limitPriceSafetyMultiplierFromMedian;  // todo: this can also be used: (getMinimumCostForSymbol (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
+        //
+        //
         const symbol = market['symbol'];
-        const limitBuyPrice_fillable = bestAsk * limitPriceSafetyMultiplierFromMedian;
-        const finalAmountToBuy = getMinimumAmountForLimitPrice (exchange, market, limitBuyPrice_fillable);
-        const buyOrder_fillable = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_fillable, {}, skippedProperties);
-        // try to cancel remnant (if any) of order
-        await testCreateOrderTryCancelOrder (exchange, symbol, buyOrder_fillable, skippedProperties);
+        const entryAmount = getMinimumAmountForLimitPrice (exchange, market, entryorderPrice);
+        const entryorderFilled = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', entrySide, entryAmount, entryorderPrice, {}, skippedProperties);
+        // just for case, cancel any possible unfilled amount (though it is not be expected because the order was fillable)
+        await testCreateOrderTryCancelOrder (exchange, symbol, entryorderFilled, skippedProperties);
         // now, as order is closed/canceled, we can reliably fetch the order information
-        const buyOrder_filled_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, buyOrder_fillable['id'], skippedProperties);
-        // we need to find out the amount of base asset that was bought
-        assert (buyOrder_filled_fetched['filled'] !== undefined, logPrefix + ' order should be filled, but it is not. ' + exchange.json (buyOrder_filled_fetched));
-        const amountToSell = buyOrder_filled_fetched['filled'];
-        // We should use 'reduceOnly' to ensure we don't open a margin-ed position accidentally (i.e. on some exchanges it might lead to margin-sell, so let's be safe by using reduceOnly )
-        const params = {
-            'reduceOnly': true,
-        };
-        const minimumCostForBuy = getMinimumCostForSymbol (exchange, market);
-        const priceForMarketSellOrder = (minimumCostForBuy / amountToSell) * limitPriceSafetyMultiplierFromMedian;
-        const sellOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'market', 'sell', amountToSell, priceForMarketSellOrder, params, skippedProperties);
-        const sellOrder_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, sellOrder['id'], skippedProperties);
+        const entryorderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, entryorderFilled['id'], skippedProperties);
+        testCreateOrderVerifyFilledAmount (exchange, market, logPrefix, entryorderFetched, entryAmount);
+        //
+        // ### close the traded position ###
+        //
+        const amountToClose = exchange.parseToNumeric (exchange.safeString (entryorderFetched, 'filled'));
+        const params = {};
+        // We should use 'reduceOnly' to ensure we don't open a margined position accidentally (i.e. on some exchanges it might lead to margin-sell, so let's be safe by using reduceOnly )
+        if (isSwapFuture) {
+            params['reduceOnly'] = true;
+        }
+        const exitorderFilled = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'market', exitSide, amountToClose, exitorderPrice, params, skippedProperties);
+        const exitorderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, exitorderFilled['id'], skippedProperties);
         // try to test that order was fully filled
-        const isClosedFetched = testSharedMethods.confirmOrderState (exchange, sellOrder_fetched, 'closed');
-        const isOpenFetched = testSharedMethods.confirmOrderState (exchange, sellOrder_fetched, 'open');
-        assert (isClosedFetched || isOpenFetched === undefined, logPrefix + ' order should be filled, but it is not. ' + exchange.json (sellOrder_fetched));
+        const isClosedFetched = testSharedMethods.confirmOrderState (exchange, exitorderFetched, 'closed');
+        const isOpenFetched = testSharedMethods.confirmOrderState (exchange, exitorderFetched, 'open');
+        assert (isClosedFetched || (isOpenFetched === undefined), logPrefix + ' order should be filled, but it is not. ' + exchange.json (exitorderFetched));
         verboseOutput (exchange, symbol, 'SCENARIO 2 PASSED !!!');
     } catch (e) {
         throw new Error ('failed for Scenario 2: ' + e.toString ());
@@ -137,7 +154,19 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
 }
 
 
-
+function testCreateOrderVerifyFilledAmount (exchange, market, logPrefix, order, requestedAmount) {
+    // check filled amount
+    const precisionAmount = exchange.safeString (market['precision'], 'amount');
+    const entryorderAmountString = exchange.numberToString (requestedAmount);
+    const filledString = exchange.safeString (order, 'filled');
+    assert (filledString !== undefined, logPrefix + ' order should be filled, but it is not. ' + exchange.json (order));
+    // filled amount should be whithin the expected range i.e. if you buy 100 DOGECOIN and amount-precision is 1,
+    // and also considering possible roundings in implementation, then filled amount should be between 99 and 101
+    const maxExpectedFilledAmount = Precise.stringAdd (entryorderAmountString, precisionAmount);
+    const minExpectedFilledAmount = Precise.stringSub (entryorderAmountString, precisionAmount);
+    assert (Precise.stringGe (maxExpectedFilledAmount, filledString), logPrefix + ' filled amount is more than expected, possibly some implementation issue. ' + exchange.json (order));
+    assert (Precise.stringLe (minExpectedFilledAmount, filledString), logPrefix + ' filled amount is less than expected, possibly some implementation issue. ' + exchange.json (order));
+}
 
 
 
