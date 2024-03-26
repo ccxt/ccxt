@@ -44,7 +44,7 @@ export default class coinbase extends Exchange {
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
-                'createConversion': true,
+                'createConvertTrade': true,
                 'createDepositAddress': true,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
@@ -68,7 +68,8 @@ export default class coinbase extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
-                'fetchConversion': true,
+                'fetchConvertQuote': true,
+                'fetchConvertTrade': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -113,7 +114,6 @@ export default class coinbase extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'setConversion': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -3805,11 +3805,11 @@ export default class coinbase extends Exchange {
         return this.parseTransaction (data);
     }
 
-    async setConversion (from: string, to: string, amount: number = undefined, params = {}) {
+    async fetchConvertQuote (from: string, to: string, amount: number = undefined, params = {}) {
         /**
          * @method
-         * @name coinbase#setConversion
-         * @description set a quote for converting from one currency to another
+         * @name coinbase#fetchConvertQuote
+         * @description fetch a quote for converting from one currency to another
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_createconvertquote
          * @param {string} from the currency that you want to sell and convert from
          * @param {string} to the currency that you want to buy and convert into
@@ -3831,10 +3831,10 @@ export default class coinbase extends Exchange {
         return this.parseOrder (data, undefined);
     }
 
-    async createConversion (id: string, from: string, to: string, amount: number = undefined, params = {}) {
+    async createConvertTrade (id: string, from: string, to: string, amount: number = undefined, params = {}) {
         /**
          * @method
-         * @name coinbase#createConversion
+         * @name coinbase#createConvertTrade
          * @description convert from one currency to another
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_commitconverttrade
          * @param {string} id the id of the trade that you want to make
@@ -3855,10 +3855,10 @@ export default class coinbase extends Exchange {
         return this.parseOrder (data, undefined);
     }
 
-    async fetchConversion (id: string, from: string, to: string, params = {}) {
+    async fetchConvertTrade (id: string, from: string, to: string, params = {}) {
         /**
          * @method
-         * @name coinbase#fetchConversion
+         * @name coinbase#fetchConvertTrade
          * @description fetch the data for a conversion trade
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade
          * @param {string} id the id of the trade that you want to commit
