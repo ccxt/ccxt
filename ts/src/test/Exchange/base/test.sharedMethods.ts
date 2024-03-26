@@ -440,20 +440,67 @@ async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
     return fetchedOrder;
 }
 
-function confirmOrderState (exchange, order, statusSlug) {
-    const filled_amount = exchange.safeString (order, 'filled');
-    const whole_amount = exchange.safeString (order, 'amount');
-    if (statusSlug === 'open') {
-        if (order['status'] === 'open' || (order['status'] === undefined && filled_amount !== undefined && whole_amount !== undefined && filled_amount < whole_amount)) {
-            return true;
-        }
-    } else if (statusSlug === 'closed') {
-        if (order['status'] === 'closed' || order['status'] === 'canceled' || (order['status'] === undefined && filled_amount !== undefined && whole_amount !== undefined && Precise.stringEq (filled_amount, whole_amount))) {
-            return true;
-        }
+function assertOrderState (exchange, skippedProperties, method, order, assertedStatus, strictCheck) {
+    // note, `strictCheck` is `true` only from "fetchOrder" cases
+    const logText = logTemplate (exchange, method, order);
+    const msg = 'order should be ' + assertedStatus + ', but it was not asserted' + logText;
+    const filled = exchange.safeString (order, 'filled');
+    const amount = exchange.safeString (order, 'amount');
+    // shorthand variables
+    const statusUndefined = (order['status'] === undefined);
+    const statusOpen = (order['status'] === 'open');
+    const statusClosed = (order['status'] === 'closed');
+    const statusClanceled = (order['status'] === 'canceled');
+    const filledDefined = (filled !== undefined);
+    const amountDefined = (amount !== undefined);
+    let condition = undefined;
+    //
+    // ### OPEN STATUS
+    //
+    // if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
+    const strictOpen = statusOpen && (filledDefined && amountDefined && filled < amount);
+    // if non-strict check, then accept & ignore undefined values
+    const nonstrictOpen = (statusOpen || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringLt (filled, amount));
+    // check
+    if (assertedStatus === 'open') {
+        condition = strictCheck ? strictOpen : nonstrictOpen;
+        assert (condition, msg);
+        return;
     }
-    // if above is not obvious, we can't say that it answer should be 'false', because we don't have enough indications to be sure
-    return undefined;
+    //
+    // ### CLOSED STATUS
+    //
+    // if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
+    const closedStrict = statusClosed && (filledDefined && amountDefined && Precise.stringEq (filled, amount));
+    // if non-strict check, then accept & ignore undefined values
+    const closedNonStrict = (statusClosed || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringEq (filled, amount));
+    // check
+    if (assertedStatus === 'closed') {
+        condition = strictCheck ? closedStrict : closedNonStrict;
+        assert (condition, msg);
+        return;
+    }
+    //
+    // ### CANCELED STATUS
+    //
+    // if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
+    const canceledStrict = statusClanceled && (filledDefined && amountDefined && Precise.stringLt (filled, amount));
+    // if non-strict check, then accept & ignore undefined values
+    const canceledNonStrict = (statusClanceled || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringLt (filled, amount));
+    // check
+    if (assertedStatus === 'canceled') {
+        condition = strictCheck ? canceledStrict : canceledNonStrict;
+        assert (condition, msg);
+        return;
+    }
+    //
+    // ### CLOSED_or_CANCELED STATUS
+    //
+    if (assertedStatus === 'closed_or_canceled') {
+        condition = strictCheck ? (closedStrict || canceledStrict) : (closedNonStrict || canceledNonStrict);
+        assert (condition, msg);
+        return;
+    }
 }
 
 function removeProxyOptions (exchange, skippedProperties) {
@@ -521,7 +568,7 @@ export default {
     checkPrecisionAccuracy,
     tryFetchBestBidAsk,
     tryFetchOrder,
-    confirmOrderState,
+    assertOrderState,
     assertValidCurrencyIdAndCode,
     assertType,
     removeProxyOptions,
