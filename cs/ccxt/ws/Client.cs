@@ -354,6 +354,30 @@ public partial class Exchange
                 this.onError(this, ex);
             }
         }
+
+        public async Task Close()
+        {
+            if (this.webSocket.State == WebSocketState.Open)
+            {
+                try
+                {
+                    await this.webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    // Console.WriteLine(e);
+                }
+
+            }
+            foreach (var future in this.futures.Values)
+            {
+                if (!future.task.IsCompleted)
+                {
+                    future.reject(new ExchangeClosedByUser("Connection closed by the user"));
+
+                }
+            }
+        }
     }
 
 }

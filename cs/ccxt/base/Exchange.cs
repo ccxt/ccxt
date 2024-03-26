@@ -556,7 +556,15 @@ public partial class Exchange
 
     public async Task Close()
     {
-        // stub
+        if (this.clients.Keys.Count > 0)
+        {
+            foreach (var key in this.clients.Keys)
+            {
+                var client = this.clients[key];
+                await client.Close();
+                this.clients.TryRemove(key, out _);
+            }
+        }
     }
 
     public async Task close()
