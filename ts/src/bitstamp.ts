@@ -1301,7 +1301,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchDepositWithdrawFees
@@ -1312,65 +1312,34 @@ export default class bitstamp extends Exchange {
          * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+        const response = await this.privatePostFeesWithdrawal (params);
         //
-        //    {
-        //        "yfi_available": "0.00000000",
-        //        "yfi_balance": "0.00000000",
-        //        "yfi_reserved": "0.00000000",
-        //        "yfi_withdrawal_fee": "0.00070000",
-        //        "yfieur_fee": "0.000",
-        //        "yfiusd_fee": "0.000",
-        //        "zrx_available": "0.00000000",
-        //        "zrx_balance": "0.00000000",
-        //        "zrx_reserved": "0.00000000",
-        //        "zrx_withdrawal_fee": "12.00000000",
-        //        "zrxeur_fee": "0.000",
-        //        "zrxusd_fee": "0.000",
-        //        ...
-        //    }
+        //     [
+        //         {
+        //             "currency": "btc",
+        //             "fee": "0.00015000",
+        //             "network": "bitcoin"
+        //         }
+        //         ...
+        //     ]
         //
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
-        //
-        //    {
-        //        "yfi_available": "0.00000000",
-        //        "yfi_balance": "0.00000000",
-        //        "yfi_reserved": "0.00000000",
-        //        "yfi_withdrawal_fee": "0.00070000",
-        //        "yfieur_fee": "0.000",
-        //        "yfiusd_fee": "0.000",
-        //        "zrx_available": "0.00000000",
-        //        "zrx_balance": "0.00000000",
-        //        "zrx_reserved": "0.00000000",
-        //        "zrx_withdrawal_fee": "12.00000000",
-        //        "zrxeur_fee": "0.000",
-        //        "zrxusd_fee": "0.000",
-        //        ...
-        //    }
-        //
+    parseDepositWithdrawFees (response, codes = undefined) {
         const result = {};
-        const ids = Object.keys (response);
+        const currencies = this.indexBy (response, 'currency');
+        const ids = Object.keys (currencies);
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currencyId = id.split ('_')[0];
-            const code = this.safeCurrencyCode (currencyId);
-            const dictValue = this.safeNumber (response, id);
+            const code = ids[i];
+            const fees = this.safeValue (response, i, {});
             if (codes !== undefined && !this.inArray (code, codes)) {
                 continue;
             }
-            if (id.indexOf ('_available') >= 0) {
-                result[code] = this.depositWithdrawFee ({});
-            }
-            if (id.indexOf ('_withdrawal_fee') >= 0) {
-                result[code]['withdraw']['fee'] = dictValue;
-            }
-            const resultValue = this.safeValue (result, code);
-            if (resultValue !== undefined) {
-                result[code]['info'][id] = dictValue;
-            }
+            result[code] = this.depositWithdrawFee ({});
+            result[code]['info'] = fees;
+            result[code]['withdraw']['fee'] = this.safeNumber (fees, 'fee');
+            result[code]['networks'] = this.safeString (fees, 'network');
         }
         return result;
     }
