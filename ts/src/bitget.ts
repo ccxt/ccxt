@@ -5096,9 +5096,15 @@ export default class bitget extends Exchange {
         if (typeof response === 'string') {
             response = JSON.parse (response);
         }
-        const data = this.safeValue (response, 'data');
-        const first = this.safeDict (data, 0, data);
+        const data = this.safeDict (response, 'data');
+        if (data !== undefined) {
+            return this.parseOrder (data, market);
+        }
+        const dataList = this.safeList (response, 'data', []);
+        const first = this.safeDict (dataList, 0, {});
         return this.parseOrder (first, market);
+        // const first = this.safeDict (data, 0, data);
+        // return this.parseOrder (first, market);
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
