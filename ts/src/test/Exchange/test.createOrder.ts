@@ -39,12 +39,14 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     // ****************************************************** //
     // **************** [Scenario 1 - START] **************** //
     // ****************************************************** //
+    debugOutput (exchange, symbol, '### SCENARIO 1 ###');
     // - create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
     await testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
     // if it's not spot market, then we should test sell orders too
     if (isSwapFuture) {
         await testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell', undefined);
     }
+    debugOutput (exchange, symbol, '### SCENARIO 1 PASSED ###');
     // ****************************************************** //
     // **************** [Scenario 1 - END ] ***************** //
     // ****************************************************** //
@@ -53,6 +55,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     // ****************************************************** //
     // **************** [Scenario 2 - START] **************** //
     // ****************************************************** //
+    debugOutput (exchange, symbol, '### SCENARIO 2 ###');
     // - create a "limit order" / "market order" which IS GUARANTEED to have a fill (full or partial)
     // - then sell the bought amount
     await testCreateOrderCreateFillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'buy', undefined);
@@ -60,6 +63,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
     if (isSwapFuture) {
         await testCreateOrderCreateFillableOrder (exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, 'sell', undefined);
     }
+    debugOutput (exchange, symbol, '### SCENARIO 2 PASSED ###');
     // ****************************************************** //
     // ***************** [Scenario 2 - END] ***************** //
     // ****************************************************** //
@@ -109,7 +113,6 @@ async function testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix
         testSharedMethods.assertInArray (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'side', [ undefined, buyOrSell ]);
         // cancel the order
         await testCreateOrderCancelOrder (exchange, symbol, createdOrder['id']);
-        debugOutput (exchange, symbol, 'SCENARIO 1 PASSED !!!');
     } catch (e) {
         throw new Error (logPrefix + ' failed for Scenario 1: ' + e.toString ());
     }
@@ -127,7 +130,7 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
         //
         //
         const symbol = market['symbol'];
-        const entryAmount = getMinimumAmountForLimitPrice (exchange, market, entryorderPrice) * 1.03; // add around 3% for possible spread existence in chosen market, to ensure the market order amount will not be below minimum cost
+        const entryAmount = getMinimumAmountForLimitPrice (exchange, market, entryorderPrice);
         const entryorderFilled = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', entrySide, entryAmount, entryorderPrice, {}, skippedProperties);
         // just for case, cancel any possible unfilled amount (though it is not be expected because the order was fillable)
         await testCreateOrderTryCancelOrder (exchange, symbol, entryorderFilled, skippedProperties);
@@ -143,10 +146,9 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
         if (isSwapFuture) {
             params['reduceOnly'] = true;
         }
-        const exitorderFilled = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'market', exitSide, amountToClose, exitorderPrice, params, skippedProperties);
+        const exitorderFilled = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'market', exitSide, amountToClose, (market['spot'] ? undefined : exitorderPrice), params, skippedProperties);
         const exitorderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, exitorderFilled['id'], skippedProperties);
         testCreateOrderVerifyFullExecution (exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
-        debugOutput (exchange, symbol, 'SCENARIO 2 PASSED !!!');
     } catch (e) {
         throw new Error ('failed for Scenario 2: ' + e.toString ());
     }
@@ -269,6 +271,7 @@ function getMinimumAmountForLimitPrice (exchange, market, price, predefinedAmoun
     }
     // the current value might be too long (i.e. 0.12345678) and inside 'createOrder' it's being truncated down. It might cause our automatic cost calcuation accidentaly to be less than "market->limits->cost>min", so, before it, we should round it up to nearest precision, thus we ensure the overal cost will be above minimum requirements
     finalAmount = finalAmount + amountPrecision;
+    finalAmount = finalAmount * 1.10; // add around 10% for further notional safety
     finalAmount = parseFloat (exchange.decimalToPrecision (finalAmount, 2, market['precision']['amount'], exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for truncate
     return finalAmount;
 }
@@ -278,7 +281,7 @@ async function testCreateOrderTryCancelOrder (exchange, symbol, order, skippedPr
     // fetch order for maximum accuracy
     const orderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, order['id'], skippedProperties);
     // check their status
-    const needsCancel = exchange.inArray (orderFetched['state'], [ 'open', 'pending', undefined ]);
+    const needsCancel = exchange.inArray (orderFetched['status'], [ 'open', 'pending', undefined ]);
     // if it was not reported as closed/filled, then try to cancel it
     if (needsCancel) {
         debugOutput (exchange, symbol, 'trying to cancel the remaining amount of partially filled order...');
@@ -286,7 +289,7 @@ async function testCreateOrderTryCancelOrder (exchange, symbol, order, skippedPr
             await testCreateOrderCancelOrder (exchange, symbol, order['id']);
         } catch (e) {
             // we don't throw exception here, because order might have been closed/filled already, before 'cancelOrder' call reaches server, so it is tolerable
-            console.log (logPrefix + ' order ' + order['id'] + ' a moment ago order was reported as pending, but could not be cancelled at this moment: ' + exchange.json (order) + '. Exception message: ' + e.toString ());
+            debugOutput (exchange, symbol, ' order ' + order['id'] + ' a moment ago order was reported as pending, but could not be cancelled at this moment. Exception message: ' + e.toString () + ' ' +  exchange.json (order));
         }
     } else {
         debugOutput (exchange, symbol, 'order is already closed/filled, no need to cancel it');
