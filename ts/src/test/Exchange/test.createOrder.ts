@@ -103,8 +103,11 @@ async function testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix
         // ensure that order is not filled
         const isClosed = testSharedMethods.confirmOrderState (exchange, nonFillableOrder, 'closed');
         const isClosedFetched = testSharedMethods.confirmOrderState (exchange, nonFillableOrder_fetched, 'closed');
-        assert (!isClosed, logPrefix + ' order should not be filled, but it is. ' + JSON.stringify (nonFillableOrder));
-        assert (!isClosedFetched, logPrefix + ' order should not be filled, but it is. ' + JSON.stringify (nonFillableOrder_fetched));
+        assert (!isClosed, logPrefix + ' createOrder: order should not be filled, but it is. ' + JSON.stringify (nonFillableOrder));
+        assert (!isClosedFetched, logPrefix + ' fetchOrder: order should not be filled, but it is. ' + JSON.stringify (nonFillableOrder_fetched));
+        // ensure that order side matches
+        testSharedMethods.assertInArray (exchange, skippedProperties, 'createOrder', nonFillableOrder, 'side', [ undefined, buyOrSell ]);
+        testSharedMethods.assertInArray (exchange, skippedProperties, 'fetchOrder', nonFillableOrder_fetched, 'side', [ undefined, buyOrSell ]);
         // cancel the order
         await testCreateOrderCancelOrder (exchange, symbol, nonFillableOrder['id']);
         verboseOutput (exchange, symbol, 'SCENARIO 1 PASSED !!!');
@@ -131,7 +134,7 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
         await testCreateOrderTryCancelOrder (exchange, symbol, entryorderFilled, skippedProperties);
         // now, as order is closed/canceled, we can reliably fetch the order information
         const entryorderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, entryorderFilled['id'], skippedProperties);
-        testCreateOrderVerifyFullExecution (exchange, market, logPrefix, entryorderFetched, entryAmount);
+        testCreateOrderVerifyFullExecution (exchange, market, logPrefix, skippedProperties, entryorderFilled, entryorderFetched, entrySide, entryAmount);
         //
         // ### close the traded position ###
         //
@@ -143,7 +146,7 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
         }
         const exitorderFilled = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'market', exitSide, amountToClose, exitorderPrice, params, skippedProperties);
         const exitorderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, exitorderFilled['id'], skippedProperties);
-        testCreateOrderVerifyFullExecution (exchange, market, logPrefix, exitorderFetched, amountToClose);
+        testCreateOrderVerifyFullExecution (exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
         verboseOutput (exchange, symbol, 'SCENARIO 2 PASSED !!!');
     } catch (e) {
         throw new Error ('failed for Scenario 2: ' + e.toString ());
@@ -151,22 +154,25 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
 }
 
 
-function testCreateOrderVerifyFullExecution (exchange, market, logPrefix, order, requestedAmount) {
+function testCreateOrderVerifyFullExecution (exchange, market, logPrefix, skippedProperties, createdOrder, fetchedOrder, requestedSide, requestedAmount) {
     // test filled amount
     const precisionAmount = exchange.safeString (market['precision'], 'amount');
     const entryorderAmountString = exchange.numberToString (requestedAmount);
-    const filledString = exchange.safeString (order, 'filled');
-    assert (filledString !== undefined, logPrefix + ' order should be filled, but it is not. ' + exchange.json (order));
+    const filledString = exchange.safeString (fetchedOrder, 'filled');
+    assert (filledString !== undefined, logPrefix + ' order should be filled, but it is not. ' + exchange.json (fetchedOrder));
     // filled amount should be whithin the expected range i.e. if you buy 100 DOGECOIN and amount-precision is 1,
     // and also considering possible roundings in implementation, then filled amount should be between 99 and 101
     const maxExpectedFilledAmount = Precise.stringAdd (entryorderAmountString, precisionAmount);
     const minExpectedFilledAmount = Precise.stringSub (entryorderAmountString, precisionAmount);
-    assert (Precise.stringGe (maxExpectedFilledAmount, filledString), logPrefix + ' filled amount is more than expected, possibly some implementation issue. ' + exchange.json (order));
-    assert (Precise.stringLe (minExpectedFilledAmount, filledString), logPrefix + ' filled amount is less than expected, possibly some implementation issue. ' + exchange.json (order));
+    assert (Precise.stringGe (maxExpectedFilledAmount, filledString), logPrefix + ' filled amount is more than expected, possibly some implementation issue. ' + exchange.json (fetchedOrder));
+    assert (Precise.stringLe (minExpectedFilledAmount, filledString), logPrefix + ' filled amount is less than expected, possibly some implementation issue. ' + exchange.json (fetchedOrder));
     // order state should be confirmed too
-    const isClosedFetched = testSharedMethods.confirmOrderState (exchange, order, 'closed');
-    const isOpenFetched = testSharedMethods.confirmOrderState (exchange, order, 'open');
-    assert (isClosedFetched || (isOpenFetched === undefined), logPrefix + ' order should be filled, but it is not. ' + exchange.json (order));
+    const isClosedFetched = testSharedMethods.confirmOrderState (exchange, fetchedOrder, 'closed');
+    const isOpenFetched = testSharedMethods.confirmOrderState (exchange, fetchedOrder, 'open');
+    assert (isClosedFetched || (isOpenFetched === undefined), logPrefix + ' order should be filled, but it is not. ' + exchange.json (fetchedOrder));
+    // ensure that order side matches
+    testSharedMethods.assertInArray (exchange, skippedProperties, 'createOrder', createdOrder, 'side', [ undefined, requestedSide ]);
+    testSharedMethods.assertInArray (exchange, skippedProperties, 'fetchOrder', fetchedOrder, 'side', [ undefined, requestedSide ]);
 }
 
 
