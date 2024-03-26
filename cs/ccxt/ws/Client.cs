@@ -359,7 +359,15 @@ public partial class Exchange
         {
             if (this.webSocket.State == WebSocketState.Open)
             {
-                await this.webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+                try
+                {
+                    await this.webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    // Console.WriteLine(e);
+                }
+
             }
             foreach (var future in this.futures.Values)
             {
