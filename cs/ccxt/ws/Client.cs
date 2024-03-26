@@ -212,6 +212,12 @@ public partial class Exchange
         {
             var tcs = this.connected;
             // Run the connection logic in a background task
+
+            if (this.webSocket.State == WebSocketState.Open)
+            {
+                return; // already connected, return. Might happen when we call connect multiple times in a row
+
+            }
             Task.Run(async () =>
             {
                 try
