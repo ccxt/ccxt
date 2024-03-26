@@ -191,7 +191,11 @@ function isNullValue (value) {
 }
 
 async function close (exchange: Exchange) {
-    await exchange.close ();
+    try {
+        await exchange.close ();
+    } catch (e) {
+        dump ('[TEST_WARNING]', 'Exchange close exception', exceptionMessage (e));
+    }
 }
 
 // *********************************
