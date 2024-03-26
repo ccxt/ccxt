@@ -101,8 +101,8 @@ async function testCreateOrderCreateUnfillableOrder (exchange, market, logPrefix
         }
         const fetchedOrder = await testSharedMethods.tryFetchOrder (exchange, symbol, createdOrder['id'], skippedProperties);
         // ensure that order is not filled
-        testSharedMethods.assertOrderState (exchange, skippedProperties, 'createdOrder',  createdOrder, 'canceled', false);
-        testSharedMethods.assertOrderState (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'canceled', true);
+        testSharedMethods.assertOrderState (exchange, skippedProperties, 'createdOrder',  createdOrder, 'open', false);
+        testSharedMethods.assertOrderState (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'open', true);
         // ensure that order side matches
         testSharedMethods.assertInArray (exchange, skippedProperties, 'createdOrder', createdOrder, 'side', [ undefined, buyOrSell ]);
         testSharedMethods.assertInArray (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'side', [ undefined, buyOrSell ]);
@@ -197,6 +197,9 @@ async function testCreateOrderCancelOrder (exchange, symbol, orderId = undefined
         }
     }
     verboseOutput (exchange, symbol, 'canceled order using ' + usedMethod + ' : ' + exchange.json (cancelResult));
+    // todo: assert canceled & closed status
+    // testSharedMethods.assertOrderState (exchange, skippedProperties, 'createdOrder',  createdOrder, 'open', false);
+    // testSharedMethods.assertOrderState (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'open', true);
 }
 
 // ----------------------------------------------------------------------------
