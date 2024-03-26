@@ -131,7 +131,7 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
         await testCreateOrderTryCancelOrder (exchange, symbol, entryorderFilled, skippedProperties);
         // now, as order is closed/canceled, we can reliably fetch the order information
         const entryorderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, entryorderFilled['id'], skippedProperties);
-        testCreateOrderVerifyFilledAmount (exchange, market, logPrefix, entryorderFetched, entryAmount);
+        testCreateOrderVerifyFullExecution (exchange, market, logPrefix, entryorderFetched, entryAmount);
         //
         // ### close the traded position ###
         //
@@ -143,10 +143,7 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
         }
         const exitorderFilled = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'market', exitSide, amountToClose, exitorderPrice, params, skippedProperties);
         const exitorderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, exitorderFilled['id'], skippedProperties);
-        // try to test that order was fully filled
-        const isClosedFetched = testSharedMethods.confirmOrderState (exchange, exitorderFetched, 'closed');
-        const isOpenFetched = testSharedMethods.confirmOrderState (exchange, exitorderFetched, 'open');
-        assert (isClosedFetched || (isOpenFetched === undefined), logPrefix + ' order should be filled, but it is not. ' + exchange.json (exitorderFetched));
+        testCreateOrderVerifyFullExecution (exchange, market, logPrefix, exitorderFetched, amountToClose);
         verboseOutput (exchange, symbol, 'SCENARIO 2 PASSED !!!');
     } catch (e) {
         throw new Error ('failed for Scenario 2: ' + e.toString ());
@@ -154,8 +151,8 @@ async function testCreateOrderCreateFillableOrder (exchange, market, logPrefix, 
 }
 
 
-function testCreateOrderVerifyFilledAmount (exchange, market, logPrefix, order, requestedAmount) {
-    // check filled amount
+function testCreateOrderVerifyFullExecution (exchange, market, logPrefix, order, requestedAmount) {
+    // test filled amount
     const precisionAmount = exchange.safeString (market['precision'], 'amount');
     const entryorderAmountString = exchange.numberToString (requestedAmount);
     const filledString = exchange.safeString (order, 'filled');
@@ -166,6 +163,10 @@ function testCreateOrderVerifyFilledAmount (exchange, market, logPrefix, order, 
     const minExpectedFilledAmount = Precise.stringSub (entryorderAmountString, precisionAmount);
     assert (Precise.stringGe (maxExpectedFilledAmount, filledString), logPrefix + ' filled amount is more than expected, possibly some implementation issue. ' + exchange.json (order));
     assert (Precise.stringLe (minExpectedFilledAmount, filledString), logPrefix + ' filled amount is less than expected, possibly some implementation issue. ' + exchange.json (order));
+    // order state should be confirmed too
+    const isClosedFetched = testSharedMethods.confirmOrderState (exchange, order, 'closed');
+    const isOpenFetched = testSharedMethods.confirmOrderState (exchange, order, 'open');
+    assert (isClosedFetched || (isOpenFetched === undefined), logPrefix + ' order should be filled, but it is not. ' + exchange.json (order));
 }
 
 
