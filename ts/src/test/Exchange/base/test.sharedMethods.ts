@@ -419,8 +419,8 @@ async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
             if (exchange.has[pluralFetchName]) {
                 const orders = await exchange[pluralFetchName] (symbol, sinceTime);
                 let found = false;
-                for (let i = 0; i < orders.length; i++) {
-                    const currentOrder = orders[i];
+                for (let j = 0; j < orders.length; j++) {
+                    const currentOrder = orders[j];
                     if (currentOrder.id === originalId) {
                         fetchedOrder = currentOrder;
                         found = true;
