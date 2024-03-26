@@ -32,6 +32,15 @@
                 "output": "foo=bar"
             }
         ],
+        "fetchTransactionFees": [
+            {
+                "description": "Fetch transaction fees",
+                "method": "fetchTransactionFees",
+                "url": "https://www.bitstamp.net/api/v2/fees/withdrawal/",
+                "input": [],
+                "output": "foo=bar"
+              }
+        ],
         "fetchLedger": [
             {
                 "description": "fetch USDT ledger",
