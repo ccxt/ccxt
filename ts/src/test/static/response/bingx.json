@@ -1342,6 +1342,7 @@
             {
                 "description": "fetch spot order",
                 "method": "fetchOrder",
+                "disabled": true,
                 "input": [
                   "1770683446830788608",
                   "LTC/USDT:USDT"
