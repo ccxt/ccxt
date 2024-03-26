@@ -6232,7 +6232,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         return this.parsePosition (first, market);
     }

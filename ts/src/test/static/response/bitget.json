@@ -1415,6 +1415,51 @@
                     }
                 }
             }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetch position",
+                "method": "fetchPosition",
+                "input": [
+                  "LTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "00000",
+                  "msg": "success",
+                  "requestTime": "1711468344701",
+                  "data": []
+                },
+                "parsedResponse": {
+                  "info": {},
+                  "id": null,
+                  "symbol": "LTC/USDT:USDT",
+                  "notional": null,
+                  "marginMode": null,
+                  "liquidationPrice": null,
+                  "entryPrice": null,
+                  "unrealizedPnl": null,
+                  "realizedPnl": null,
+                  "percentage": null,
+                  "contracts": null,
+                  "contractSize": 1,
+                  "markPrice": null,
+                  "lastPrice": null,
+                  "side": null,
+                  "hedged": null,
+                  "timestamp": null,
+                  "datetime": null,
+                  "lastUpdateTimestamp": null,
+                  "maintenanceMargin": null,
+                  "maintenanceMarginPercentage": null,
+                  "collateral": null,
+                  "initialMargin": null,
+                  "initialMarginPercentage": null,
+                  "leverage": null,
+                  "marginRatio": null,
+                  "stopLossPrice": null,
+                  "takeProfitPrice": null
+                }
+            }
         ]
     }
 }
