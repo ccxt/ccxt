@@ -2510,7 +2510,7 @@ export default class kucoin extends Exchange {
         //             ]
         //         }
         //    }
-        const listData = this.safeList (response, 'data', []);
+        const listData = this.safeList (response, 'data');
         if (listData !== undefined) {
             return this.parseOrders (listData, market, since, limit);
         }

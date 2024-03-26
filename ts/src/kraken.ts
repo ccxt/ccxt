@@ -2174,8 +2174,8 @@ export default class kraken extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const result = this.safeValue (response, 'result', {});
-        const orders = this.safeList (result, 'open', []);
+        const result = this.safeDict (response, 'result', {});
+        const orders = this.safeDict (result, 'open', {});
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2248,8 +2248,8 @@ export default class kraken extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const result = this.safeValue (response, 'result', {});
-        const orders = this.safeList (result, 'closed', []);
+        const result = this.safeDict (response, 'result', {});
+        const orders = this.safeDict (result, 'closed', {});
         return this.parseOrders (orders, market, since, limit);
     }
 
