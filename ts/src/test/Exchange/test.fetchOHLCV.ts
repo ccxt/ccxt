@@ -9,39 +9,32 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
     const logText = testSharedMethods.logTemplate (exchange, method, {});
     assert (timeframeKeys.length, exchange.id + ' ' + method + ' - no timeframes found' + logText);
     // prefer 1m timeframe if available, otherwise return the first one
-    let timeframe = '1m';
-    if (!exchange.inArray (timeframe, timeframeKeys)) {
-        timeframe = timeframeKeys[0];
+    let chosenTimeframeKey = '1m';
+    if (!exchange.inArray (chosenTimeframeKey, timeframeKeys)) {
+        chosenTimeframeKey = timeframeKeys[0];
     }
-<<<<<<< HEAD
-    const durationMs = exchange.parseTimeframe (timeframe) * 1000;
+    const durationMs = exchange.parseTimeframe (chosenTimeframeKey) * 1000;
     //
     // check for all four possible "since" & "limit" combinations, where one of them could be undefined and the other not
     //
     const sinceArray = [ undefined, exchange.milliseconds () - durationMs * 2000 ];// for example, "since" was theoretically from date of 2000 bars back
-    const limitsArray = [ undefined, 50 ];
+    const limitsArray = [ undefined, 50, 25000 ];
     for (let i = 0; i < sinceArray.length; i++) {
-        const since = sinceArray[i];
+        const sinceCurrent = sinceArray[i];
         for (let j = 0; j < limitsArray.length; j++) {
             const limit = limitsArray[j];
-            const ohlcvs = await exchange.fetchOHLCV (symbol, timeframe, since, limit);
-            testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, timeframe, limit, since);
+            const ohlcvs = await exchange.fetchOHLCV (symbol, chosenTimeframeKey, sinceCurrent, limit);
+            testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
+            testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, chosenTimeframeKey, sinceCurrent, limit);
         }
     }
 }
 
-function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, timeframe, limit, since) {
+function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, timeframe, since, limit) {
     const method = 'fetchOHLCV';
     let logText = testSharedMethods.logTemplate (exchange, method, {});
     assert (Array.isArray (ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + logText);
     logText = logText + '' + exchange.json (ohlcvs); // trick transpiler
-=======
-    const limit = 10;
-    const duration = exchange.parseTimeframe (chosenTimeframeKey);
-    const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
-    const ohlcvs = await exchange.fetchOHLCV (symbol, chosenTimeframeKey, since, limit);
-    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
->>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
     const now = exchange.milliseconds ();
     for (let i = 0; i < ohlcvs.length; i++) {
         testOHLCV (exchange, skippedProperties, method, ohlcvs[i], symbol, now);
@@ -87,7 +80,7 @@ function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, tim
                 const diffBetweenCurrentAndPrevious = barTs - previousBarTs;
                 assert (diffBetweenCurrentAndPrevious > 0, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') should be positive' + logText);
                 // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
-                const isRoundNumber = testSharedMethods.hasRoundedValue (diffBetweenCurrentAndPrevious / durationMs);
+                const isRoundNumber = exchange.isRoundNumber (diffBetweenCurrentAndPrevious / durationMs);
                 assert (isRoundNumber, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') is not multiplier of duration (' + durationMs.toString () + ')' + logText);
             }
         }
