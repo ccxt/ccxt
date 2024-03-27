@@ -1,6 +1,7 @@
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testAccount (exchange, skippedProperties, method, entry) {
+function testAccount (exchange: Exchange, skippedProperties: string[], method: string, entry: object) {
     const format = {
         'info': {},
         'code': 'BTC', // todo

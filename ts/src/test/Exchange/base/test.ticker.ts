@@ -1,9 +1,9 @@
-
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
+import { Exchange, Ticker } from "../../../../ccxt";
 import Precise from '../../../base/Precise.js';
+import testSharedMethods from './test.sharedMethods.js';
 
-function testTicker (exchange, skippedProperties, method: string, entry, symbol) {
+function testTicker (exchange: Exchange, skippedProperties: string[], method: string, entry: Ticker, symbol: string) {
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',

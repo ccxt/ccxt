@@ -1,8 +1,8 @@
-
 import assert from 'assert';
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testOHLCV (exchange, skippedProperties, method, entry, symbol, now) {
+function testOHLCV (exchange: Exchange, skippedProperties: string[], method: string, entry: number[], symbol: string, now: number) {
     const format = [
         1638230400000,
         exchange.parseNumber ('0.123'),

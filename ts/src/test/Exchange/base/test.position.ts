@@ -1,7 +1,7 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testPosition (exchange, skippedProperties, method, entry, symbol, now) {
+function testPosition (exchange: Exchange, skippedProperties: string[], method: string, entry: object, symbol: string, now: number) {
     const format = {
         'info': {}, // or []
         'symbol': 'XYZ/USDT',

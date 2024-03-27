@@ -1,7 +1,7 @@
-
+import { Exchange } from "../../../ccxt";
 import testStatus from './base/test.status.js';
 
-async function testFetchStatus (exchange, skippedProperties) {
+async function testFetchStatus (exchange: Exchange, skippedProperties: string[]) {
     const method = 'fetchStatus';
     const status = await exchange.fetchStatus ();
     testStatus (exchange, skippedProperties, method, status, exchange.milliseconds ());

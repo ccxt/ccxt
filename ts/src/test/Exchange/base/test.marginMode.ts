@@ -1,6 +1,7 @@
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testMarginMode (exchange, skippedProperties, method, entry) {
+function testMarginMode (exchange: Exchange, skippedProperties: string[], method: string, entry: object) {
     const format = {
         'info': {},
         'symbol': 'BTC/USDT:USDT',

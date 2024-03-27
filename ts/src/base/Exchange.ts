@@ -2311,7 +2311,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<Dictionary<LeverageTier>> {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<Dictionary<LeverageTier[]>> {
         throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 

@@ -1,8 +1,8 @@
-
 import assert from 'assert';
+import { Exchange } from "../../../ccxt";
 import testOrderBook from './base/test.orderBook.js';
 
-async function testFetchOrderBooks (exchange, skippedProperties) {
+async function testFetchOrderBooks (exchange: Exchange, skippedProperties: string[]) {
     const method = 'fetchOrderBooks';
     const symbol = exchange.symbols[0];
     const orderBooks = await exchange.fetchOrderBooks ([ symbol ]);
