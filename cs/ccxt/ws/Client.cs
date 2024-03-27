@@ -208,6 +208,9 @@ public partial class Exchange
             }
         }
 
+
+        private static readonly SemaphoreSlim _connectSemaphore = new SemaphoreSlim(1, 1);
+
         public void Connect()
         {
             var tcs = this.connected;
@@ -222,6 +225,7 @@ public partial class Exchange
             {
                 try
                 {
+                    await _connectSemaphore.WaitAsync();
                     if (this.webSocket.State == WebSocketState.Open)
                     {
                         return; // already connected, return. Might happen when we call connect multiple times in a row
@@ -240,6 +244,7 @@ public partial class Exchange
                 }
                 catch (Exception ex)
                 {
+                    _connectSemaphore.Release();
                     tcs.SetException(ex); // Set the exception if something goes wrong
                 }
             });
