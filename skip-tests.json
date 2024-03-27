@@ -18,17 +18,13 @@
         }
     },
     "alpaca": {
-<<<<<<< HEAD
-        "skipWs": true,
+        "skip": "private endpoints",
+        "skipWs": "private endpoints",
         "skipMethods": {
             "fetchOHLCV": {
                 "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2165"
             }
         }
-=======
-        "skip": "private endpoints",
-        "skipWs": "private endpoints"
->>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
     },
     "ascendex": {
         "skipMethods": {
@@ -54,20 +50,14 @@
             "loadMarkets": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
             },
-<<<<<<< HEAD
-            "fetchTickers": {
-                "bid":"broken bid-ask",
-                "ask":"broken bid-ask"
-            },
             "fetchOHLCV": {
                 "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2220"
-=======
+            },
             "ticker": {
                 "bid":"broken bid-ask"
             },
             "orderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269129438#L3841"
->>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
             }
         }
     },
@@ -256,20 +246,14 @@
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
             },
-<<<<<<< HEAD
-            "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchOHLCV": {
-                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2264"
-=======
             "orderBook": {
                 "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4074"
             },
             "watchTrades":{
                 "timestamp": "it could be ahead of the current time"
->>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2264"
             }
         }
     },
@@ -369,15 +353,13 @@
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
             },
-<<<<<<< HEAD
             "fetchOHLCV": {
                 "compareTimestampToSince": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2209",
                 "compareAmountToZero": "sometimes zero amount returned"
-=======
+            },
             "watchTicker": "datetime error: https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4373",
             "orderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4373"
->>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
             }
         }
     },
@@ -390,16 +372,14 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-<<<<<<< HEAD
             "fetchOHLCV": {
                 "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2237"
-=======
+            },
             "orderBook":{
                 "bid": "messed bids sequence"
             },
             "fetchTrades": {
                 "emptyResponse": "sometimes response is empty"
->>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
             }
         }
     },
@@ -527,15 +507,11 @@
             "loadMarkets":{
                 "active":"is undefined"
             },
-<<<<<<< HEAD
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same",
             "fetchOHLCV": {
                 "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2308"
-=======
+            },
             "orderBook": {
                 "bid": "messed bid-ask sequence"
->>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
             }
         }
     },
@@ -787,19 +763,9 @@
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "bid": "failing the test"
             },
-<<<<<<< HEAD
-            "fetchTicker": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "ask": "failing the test",
-                "bid": "failing the test"
-            },
-            "fetchOHLCV": "some temporary issues https://app.travis-ci.com/github/ccxt/ccxt/builds/267114353#L2340"
-=======
             "fetchOHLCV": {
                 "4":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269542746#L3512"
             }
->>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
         }
     },
     "deribit": {
@@ -1322,15 +1288,12 @@
         }
     },
     "poloniexfutures": {
-<<<<<<< HEAD
+        "skipCSharp": "too flaky, check the reason later",
         "skipMethods": {
             "fetchOHLCV": {
                 "compareAmountToZero": "sometimes zero amount returned"
             }
         }
-=======
-        "skipCSharp": "too flaky, check the reason later"
->>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
     },
     "okx": {
         "skipCSharp": true,
