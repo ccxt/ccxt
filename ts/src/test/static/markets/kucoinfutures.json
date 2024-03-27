@@ -661,6 +661,234 @@
         },
         "created": 1591086000000
     },
+    "ETH/USD:ETH": {
+        "id": "ETHUSDM",
+        "lowercaseId": null,
+        "symbol": "ETH/USD:ETH",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": "ETH",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": "ETH",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+          "amount": 1,
+          "price": 0.01
+        },
+        "limits": {
+          "leverage": {
+            "min": 1,
+            "max": 50
+          },
+          "amount": {
+            "min": 1,
+            "max": 1000000
+          },
+          "price": {
+            "min": 0.01,
+            "max": 1000000
+          },
+          "cost": {
+            "min": null,
+            "max": null
+          }
+        },
+        "created": 1606737600000,
+        "info": {
+          "symbol": "ETHUSDM",
+          "rootSymbol": "ETH",
+          "type": "FFWCSX",
+          "firstOpenDate": 1606737600000,
+          "expireDate": null,
+          "settleDate": null,
+          "baseCurrency": "ETH",
+          "quoteCurrency": "USD",
+          "settleCurrency": "ETH",
+          "maxOrderQty": 1000000,
+          "maxPrice": 1000000,
+          "lotSize": 1,
+          "tickSize": 0.01,
+          "indexPriceTickSize": 0.01,
+          "multiplier": -1,
+          "initialMargin": 0.02,
+          "maintainMargin": 0.01,
+          "maxRiskLimit": 2000,
+          "minRiskLimit": 2000,
+          "riskStep": 1000,
+          "makerFeeRate": 0.0002,
+          "takerFeeRate": 0.0006,
+          "takerFixFee": 0,
+          "makerFixFee": 0,
+          "settlementFee": null,
+          "isDeleverage": true,
+          "isQuanto": false,
+          "isInverse": true,
+          "markMethod": "FairPrice",
+          "fairMethod": "FundingRate",
+          "fundingBaseSymbol": ".ETHINT8H",
+          "fundingQuoteSymbol": ".USDINT8H",
+          "fundingRateSymbol": ".ETHUSDMFPI8H",
+          "indexSymbol": ".KETHUSD",
+          "settlementSymbol": "",
+          "status": "Open",
+          "fundingFeeRate": 0.000091,
+          "predictedFundingFeeRate": -0.000115,
+          "fundingRateGranularity": 28800000,
+          "openInterest": "20441186",
+          "turnoverOf24h": 2059.22471967,
+          "volumeOf24h": 4065385,
+          "markPrice": 2004.41,
+          "indexPrice": 2004.77,
+          "lastTradePrice": 2004.43,
+          "nextFundingRateTime": 10458846,
+          "maxLeverage": 50,
+          "sourceExchanges": [
+            "coinbase",
+            "bitstamp",
+            "gemini",
+            "bitfinex",
+            "kraken"
+          ],
+          "premiumsSymbol1M": ".ETHUSDMPI",
+          "premiumsSymbol8H": ".ETHUSDMPI8H",
+          "fundingBaseSymbol1M": ".ETHINT",
+          "fundingQuoteSymbol1M": ".USDINT",
+          "lowPrice": 1931,
+          "highPrice": 2021.92,
+          "priceChgPct": -0.0047,
+          "priceChg": -9.63
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+          "taker": [
+            [
+              0,
+              0.0006
+            ],
+            [
+              50,
+              0.0006
+            ],
+            [
+              200,
+              0.0006
+            ],
+            [
+              500,
+              0.0005
+            ],
+            [
+              1000,
+              0.0004
+            ],
+            [
+              2000,
+              0.0004
+            ],
+            [
+              4000,
+              0.00038
+            ],
+            [
+              8000,
+              0.00035
+            ],
+            [
+              15000,
+              0.00032
+            ],
+            [
+              25000,
+              0.0003
+            ],
+            [
+              40000,
+              0.0003
+            ],
+            [
+              60000,
+              0.0003
+            ],
+            [
+              80000,
+              0.0003
+            ]
+          ],
+          "maker": [
+            [
+              0,
+              0.02
+            ],
+            [
+              50,
+              0.015
+            ],
+            [
+              200,
+              0.01
+            ],
+            [
+              500,
+              0.01
+            ],
+            [
+              1000,
+              0.01
+            ],
+            [
+              2000,
+              0
+            ],
+            [
+              4000,
+              0
+            ],
+            [
+              8000,
+              0
+            ],
+            [
+              15000,
+              -0.003
+            ],
+            [
+              25000,
+              -0.006
+            ],
+            [
+              40000,
+              -0.009
+            ],
+            [
+              60000,
+              -0.012
+            ],
+            [
+              80000,
+              -0.015
+            ]
+          ]
+        }
+    },
     "LTC/USDT:USDT": {
         "id": "LTCUSDTM",
         "symbol": "LTC/USDT:USDT",
