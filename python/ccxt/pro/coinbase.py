@@ -6,8 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
 import hashlib
+from ccxt.base.types import Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 
 
 class coinbase(ccxt.async_support.coinbase):
@@ -16,14 +17,23 @@ class coinbase(ccxt.async_support.coinbase):
         return self.deep_extend(super(coinbase, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
+                'watchBalance': False,
+                'watchMyTrades': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
+                'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
-                'watchBalance': False,
-                'watchOrders': True,
-                'watchMyTrades': False,
             },
             'urls': {
                 'api': {
@@ -45,10 +55,10 @@ class coinbase(ccxt.async_support.coinbase):
         """
          * @ignore
         subscribes to a websocket channel
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
         :param str name: the name of the channel
         :param string|str[] [symbol]: unified market symbol
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: subscription to a websocket channel
         """
         await self.load_markets()
@@ -78,30 +88,32 @@ class coinbase(ccxt.async_support.coinbase):
         }
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
         :param str [symbol]: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         name = 'ticker'
         return await self.subscribe(name, symbol, params)
 
-    async def watch_tickers(self, symbols=None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         if symbols is None:
-            raise ArgumentsRequired(self.id + ' watchTickers requires a symbols argument')
+            symbols = self.symbols
         name = 'ticker_batch'
         tickers = await self.subscribe(name, symbols, params)
-        return tickers
+        if self.newUpdates:
+            return tickers
+        return self.tickers
 
     def handle_tickers(self, client, message):
         #
@@ -221,15 +233,15 @@ class coinbase(ccxt.async_support.coinbase):
             'quoteVolume': None,
         })
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -239,15 +251,15 @@ class coinbase(ccxt.async_support.coinbase):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         name = 'user'
@@ -256,14 +268,14 @@ class coinbase(ccxt.async_support.coinbase):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         name = 'level2'
@@ -425,7 +437,8 @@ class coinbase(ccxt.async_support.coinbase):
             side = self.safe_string(self.options['sides'], sideId)
             price = self.safe_number(trade, 'price_level')
             amount = self.safe_number(trade, 'new_quantity')
-            orderbook[side].store(price, amount)
+            orderbookSide = orderbook[side]
+            orderbookSide.store(price, amount)
 
     def handle_order_book(self, client, message):
         #
@@ -487,11 +500,11 @@ class coinbase(ccxt.async_support.coinbase):
     def handle_subscription_status(self, client, message):
         #
         #     {
-        #         type: 'subscriptions',
-        #         channels: [
+        #         "type": "subscriptions",
+        #         "channels": [
         #             {
-        #                 name: 'level2',
-        #                 product_ids: ['ETH-BTC']
+        #                 "name": "level2",
+        #                 "product_ids": ["ETH-BTC"]
         #             }
         #         ]
         #     }
@@ -513,4 +526,4 @@ class coinbase(ccxt.async_support.coinbase):
             errorMessage = self.safe_string(message, 'message')
             raise ExchangeError(errorMessage)
         method = self.safe_value(methods, channel)
-        return method(client, message)
+        method(client, message)

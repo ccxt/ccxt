@@ -12,20 +12,18 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.test.base import test_shared_methods  # noqa E402
 from ccxt.test.base import test_position  # noqa E402
-
 
 async def test_fetch_positions(exchange, skipped_properties, symbol):
     method = 'fetchPositions'
     now = exchange.milliseconds()
     # without symbol
     positions = await exchange.fetch_positions()
-    assert isinstance(positions, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(positions)
+    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, positions, symbol)
     for i in range(0, len(positions)):
         test_position(exchange, skipped_properties, method, positions[i], None, now)
-    test_shared_methods.assert_timestamp_order(exchange, method, None, positions)
+    # testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions); # currently order of positions does not make sense
     # with symbol
     positions_for_symbol = await exchange.fetch_positions([symbol])
     assert isinstance(positions_for_symbol, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(positions_for_symbol)
@@ -33,4 +31,3 @@ async def test_fetch_positions(exchange, skipped_properties, symbol):
     assert positions_for_symbol_length <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json(positions_for_symbol)
     for i in range(0, len(positions_for_symbol)):
         test_position(exchange, skipped_properties, method, positions_for_symbol[i], symbol, now)
-    test_shared_methods.assert_timestamp_order(exchange, method, symbol, positions_for_symbol)

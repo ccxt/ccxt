@@ -12,10 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.base import test_shared_methods  # noqa E402
-
 
 def test_market(exchange, skipped_properties, method, market):
     format = {
@@ -70,7 +68,7 @@ def test_market(exchange, skipped_properties, method, market):
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
     #
-    valid_types = ['spot', 'margin', 'swap', 'future', 'option']
+    valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index']
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'type', valid_types)
     has_index = ('index' in market)  # todo: add in all
     # check if string is consistent with 'type'
@@ -93,6 +91,9 @@ def test_market(exchange, skipped_properties, method, market):
         # otherwise, it must be false or undefined
         test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'margin', [False, None])
     if not ('contractSize' in skipped_properties):
+        if not market['spot']:
+            # if not spot, then contractSize should be defined
+            assert market['contractSize'] is not None, '\"contractSize\" must be defined when \"spot\" is false' + log_text
         test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'contractSize', '0')
     # typical values
     test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'expiry', '0')
@@ -126,12 +127,12 @@ def test_market(exchange, skipped_properties, method, market):
         assert not market['spot'], '\"spot\" must be false when \"contract\" is true' + log_text
     else:
         # linear & inverse needs to be undefined
-        assert (market['linear'] is None) and (market['inverse'] is None), 'market linear and inverse must be undefined when \"contract\" is true' + log_text
+        assert (market['linear'] is None) and (market['inverse'] is None), 'market linear and inverse must be undefined when \"contract\" is false' + log_text
         # contract size should be undefined
         if not ('contractSize' in skipped_properties):
             assert contract_size is None, '\"contractSize\" must be undefined when \"contract\" is false' + log_text
         # settle should be undefined
-        assert (market['settle'] is None) and (market['settleId'] is None), '\"settle\" must be undefined when \"contract\" is true' + log_text
+        assert (market['settle'] is None) and (market['settleId'] is None), '\"settle\" must be undefined when \"contract\" is false' + log_text
         # spot should be true
         assert market['spot'], '\"spot\" must be true when \"contract\" is false' + log_text
     # option fields
@@ -185,7 +186,8 @@ def test_market(exchange, skipped_properties, method, market):
             if min_string is not None:
                 test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, limit_entry, 'max', min_string)
     # check whether valid currency ID and CODE is used
-    if not ('currencyIdAndCode' in skipped_properties):
+    if not ('currency' in skipped_properties) and not ('currencyIdAndCode' in skipped_properties):
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, market, None, 'created')

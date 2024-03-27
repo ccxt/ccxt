@@ -2,12 +2,12 @@ import * as net from 'net';
 import * as tls from 'tls';
 import * as http from 'http';
 import assert from 'assert';
-import createDebug from 'debug';
+// import createDebug from 'debug';
 import type { OutgoingHttpHeaders } from 'http';
 import { Agent, AgentConnectOpts } from './../agent-base/index.js';
 import { parseProxyResponse } from './parse-proxy-response.js';
 
-const debug = createDebug('https-proxy-agent');
+// const debug = createDebug('https-proxy-agent');
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type Protocol<T> = T extends `${infer Protocol}:${infer _}` ? Protocol : never;
@@ -56,7 +56,7 @@ export class HttpsProxyAgent<Uri extends string> extends Agent {
 		this.options = { path: undefined };
 		this.proxy = typeof proxy === 'string' ? new URL(proxy) : proxy;
 		this.proxyHeaders = opts?.headers ?? {};
-		debug('Creating new HttpsProxyAgent instance: %o', this.proxy.href);
+		// debug('Creating new HttpsProxyAgent instance: %o', this.proxy.href);
 
 		// Trim off the brackets from IPv6 addresses
 		const host = (this.proxy.hostname || this.proxy.host).replace(
@@ -94,10 +94,10 @@ export class HttpsProxyAgent<Uri extends string> extends Agent {
 		// Create a socket connection to the proxy server.
 		let socket: net.Socket;
 		if (secureProxy) {
-			debug('Creating `tls.Socket`: %o', this.connectOpts);
+			// debug('Creating `tls.Socket`: %o', this.connectOpts);
 			socket = tls.connect(this.connectOpts);
 		} else {
-			debug('Creating `net.Socket`: %o', this.connectOpts);
+			// debug('Creating `net.Socket`: %o', this.connectOpts);
 			socket = net.connect(this.connectOpts);
 		}
 
@@ -144,7 +144,7 @@ export class HttpsProxyAgent<Uri extends string> extends Agent {
 			if (opts.secureEndpoint) {
 				// The proxy is connecting to a TLS server, so upgrade
 				// this socket connection to a TLS connection.
-				debug('Upgrading socket connection to TLS');
+				// debug('Upgrading socket connection to TLS');
 				const servername = opts.servername || opts.host;
 				return tls.connect({
 					...omit(opts, 'host', 'path', 'port'),
@@ -174,7 +174,7 @@ export class HttpsProxyAgent<Uri extends string> extends Agent {
 
 		// Need to wait for the "socket" event to re-play the "data" events.
 		req.once('socket', (s: net.Socket) => {
-			debug('Replaying proxy buffer for failed request');
+			// debug('Replaying proxy buffer for failed request');
 			assert(s.listenerCount('data') > 0);
 
 			// Replay the "buffered" Buffer onto the fake `socket`, since at

@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinbase extends \ccxt\async\coinbase {
 
@@ -16,14 +16,23 @@ class coinbase extends \ccxt\async\coinbase {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'cancelAllOrdersWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelOrderWs' => false,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchBalanceWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'fetchTradesWs' => false,
+                'watchBalance' => false,
+                'watchMyTrades' => false,
                 'watchOHLCV' => false,
                 'watchOrderBook' => true,
+                'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
-                'watchBalance' => false,
-                'watchOrders' => true,
-                'watchMyTrades' => false,
             ),
             'urls' => array(
                 'api' => array(
@@ -50,7 +59,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#$subscribe
              * @param {string} $name the $name of the channel
              * @param {string|string[]} [$symbol] unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
              */
             Async\await($this->load_markets());
@@ -83,35 +92,38 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
              * @param {string} [$symbol] unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $name = 'ticker';
             return Async\await($this->subscribe($name, $symbol, $params));
         }) ();
     }
 
-    public function watch_tickers($symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
              * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchTickers requires a $symbols argument');
+                $symbols = $this->symbols;
             }
             $name = 'ticker_batch';
             $tickers = Async\await($this->subscribe($name, $symbols, $params));
-            return $tickers;
+            if ($this->newUpdates) {
+                return $tickers;
+            }
+            return $this->tickers;
         }) ();
     }
 
@@ -239,7 +251,7 @@ class coinbase extends \ccxt\async\coinbase {
         ));
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -247,8 +259,8 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -261,16 +273,16 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
              * @param {string} [$symbol] unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $name = 'user';
@@ -282,15 +294,15 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $name = 'level2';
@@ -465,7 +477,8 @@ class coinbase extends \ccxt\async\coinbase {
             $side = $this->safe_string($this->options['sides'], $sideId);
             $price = $this->safe_number($trade, 'price_level');
             $amount = $this->safe_number($trade, 'new_quantity');
-            $orderbook[$side].store ($price, $amount);
+            $orderbookSide = $orderbook[$side];
+            $orderbookSide->store ($price, $amount);
         }
     }
 
@@ -532,11 +545,11 @@ class coinbase extends \ccxt\async\coinbase {
     public function handle_subscription_status($client, $message) {
         //
         //     {
-        //         type => 'subscriptions',
-        //         channels => array(
+        //         "type" => "subscriptions",
+        //         "channels" => array(
         //             {
-        //                 name => 'level2',
-        //                 product_ids => array( 'ETH-BTC' )
+        //                 "name" => "level2",
+        //                 "product_ids" => array( "ETH-BTC" )
         //             }
         //         )
         //     }
@@ -560,6 +573,6 @@ class coinbase extends \ccxt\async\coinbase {
             throw new ExchangeError($errorMessage);
         }
         $method = $this->safe_value($methods, $channel);
-        return $method($client, $message);
+        $method($client, $message);
     }
 }

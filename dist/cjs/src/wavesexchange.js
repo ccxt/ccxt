@@ -4,14 +4,13 @@ var wavesexchange$1 = require('./abstract/wavesexchange.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
-var crypto = require('./base/functions/crypto.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class wavesexchange
- * @extends Exchange
+ * @augments Exchange
  */
 class wavesexchange extends wavesexchange$1 {
     describe() {
@@ -19,7 +18,7 @@ class wavesexchange extends wavesexchange$1 {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': ['CH'],
-            'certified': true,
+            'certified': false,
             'pro': false,
             'has': {
                 'CORS': undefined,
@@ -30,6 +29,8 @@ class wavesexchange extends wavesexchange$1 {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -37,12 +38,11 @@ class wavesexchange extends wavesexchange$1 {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -51,6 +51,8 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -309,7 +311,7 @@ class wavesexchange extends wavesexchange$1 {
                 },
             },
             'currencies': {
-                'WX': this.safeCurrencyStructure({ 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': this.parseNumber('8') }),
+                'WX': this.safeCurrencyStructure({ 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': this.parseToInt('8') }),
             },
             'precisionMode': number.DECIMAL_PLACES,
             'options': {
@@ -393,7 +395,7 @@ class wavesexchange extends wavesexchange$1 {
         //        "matcherFee":"4077612"
         //     }
         //  }
-        const isDiscountFee = this.safeValue(params, 'isDiscountFee', false);
+        const isDiscountFee = this.safeBool(params, 'isDiscountFee', false);
         let mode = undefined;
         if (isDiscountFee) {
             mode = this.safeValue(response, 'discount');
@@ -489,7 +491,7 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#fetchMarkets
          * @description retrieves data on all markets for wavesexchange
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.marketGetTickers();
@@ -578,6 +580,7 @@ class wavesexchange extends wavesexchange$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }
@@ -590,8 +593,8 @@ class wavesexchange extends wavesexchange$1 {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -736,7 +739,7 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#signIn
          * @description sign in, must be called prior to using other authenticated methods
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns response from exchange
          */
         if (!this.safeString(this.options, 'accessToken')) {
@@ -751,7 +754,7 @@ class wavesexchange extends wavesexchange$1 {
             const messageHex = this.binaryToBase16(this.encode(message));
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16(this.base58ToBinary(this.secret));
-            const signature = crypto.eddsa(payload, hexKey, ed25519.ed25519);
+            const signature = this.axolotl(payload, hexKey, ed25519.ed25519);
             const request = {
                 'grant_type': 'password',
                 'scope': 'general',
@@ -760,11 +763,11 @@ class wavesexchange extends wavesexchange$1 {
                 'client_id': clientId,
             };
             const response = await this.privatePostOauth2Token(request);
-            // { access_token: 'eyJhbGciOXJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5MTk3NTA1NywiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkOWI5IiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.B-XwexBnUAzbWknVN68RKT0ZP5w6Qk1SKJ8usL3OIwDEzCUUX9PjW-5TQHmiCRcA4oft8lqXEiCwEoNfsblCo_jTpRo518a1vZkIbHQk0-13Dm1K5ewGxfxAwBk0g49odcbKdjl64TN1yM_PO1VtLVuiTeZP-XF-S42Uj-7fcO-r7AulyQLuTE0uo-Qdep8HDCk47rduZwtJOmhFbCCnSgnLYvKWy3CVTeldsR77qxUY-vy8q9McqeP7Id-_MWnsob8vWXpkeJxaEsw1Fke1dxApJaJam09VU8EB3ZJWpkT7V8PdafIrQGeexx3jhKKxo7rRb4hDV8kfpVoCgkvFan',
-            //   token_type: 'bearer',
-            //   refresh_token: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwiYXRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkXWI5IiwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5Mzk2MjI1OCwiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiM2MzZWRlMTktNjI5My00MTNlLWJmMWUtZTRlZDZlYzUzZTgzIiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.gD1Qj0jfqayfZpBvNY0t3ccMyK5hdbT7dY-_5L6LxwV0Knan4ndEtvygxlTOczmJUKtnA4T1r5GBFgNMZTvtViKZIbqZNysEg2OY8UxwDaF4VPeGJLg_QXEnn8wBeBQdyMafh9UQdwD2ci7x-saM4tOAGmncAygfTDxy80201gwDhfAkAGerb9kL00oWzSJScldxu--pNLDBUEHZt52MSEel10HGrzvZkkvvSh67vcQo5TOGb5KG6nh65UdJCwr41AVz4fbQPP-N2Nkxqy0TE_bqVzZxExXgvcS8TS0Z82T3ijJa_ct7B9wblpylBnvmyj3VycUzufD6uy8MUGq32D',
-            //   expires_in: 604798,
-            //   scope: 'general' }
+            // { access_token: "eyJhbGciOXJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5MTk3NTA1NywiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkOWI5IiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.B-XwexBnUAzbWknVN68RKT0ZP5w6Qk1SKJ8usL3OIwDEzCUUX9PjW-5TQHmiCRcA4oft8lqXEiCwEoNfsblCo_jTpRo518a1vZkIbHQk0-13Dm1K5ewGxfxAwBk0g49odcbKdjl64TN1yM_PO1VtLVuiTeZP-XF-S42Uj-7fcO-r7AulyQLuTE0uo-Qdep8HDCk47rduZwtJOmhFbCCnSgnLYvKWy3CVTeldsR77qxUY-vy8q9McqeP7Id-_MWnsob8vWXpkeJxaEsw1Fke1dxApJaJam09VU8EB3ZJWpkT7V8PdafIrQGeexx3jhKKxo7rRb4hDV8kfpVoCgkvFan",
+            //   "token_type": "bearer",
+            //   "refresh_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwiYXRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkXWI5IiwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5Mzk2MjI1OCwiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiM2MzZWRlMTktNjI5My00MTNlLWJmMWUtZTRlZDZlYzUzZTgzIiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.gD1Qj0jfqayfZpBvNY0t3ccMyK5hdbT7dY-_5L6LxwV0Knan4ndEtvygxlTOczmJUKtnA4T1r5GBFgNMZTvtViKZIbqZNysEg2OY8UxwDaF4VPeGJLg_QXEnn8wBeBQdyMafh9UQdwD2ci7x-saM4tOAGmncAygfTDxy80201gwDhfAkAGerb9kL00oWzSJScldxu--pNLDBUEHZt52MSEel10HGrzvZkkvvSh67vcQo5TOGb5KG6nh65UdJCwr41AVz4fbQPP-N2Nkxqy0TE_bqVzZxExXgvcS8TS0Z82T3ijJa_ct7B9wblpylBnvmyj3VycUzufD6uy8MUGq32D",
+            //   "expires_in": 604798,
+            //   "scope": "general" }
             this.options['accessToken'] = this.safeString(response, 'access_token');
             return this.options['accessToken'];
         }
@@ -799,15 +802,15 @@ class wavesexchange extends wavesexchange$1 {
         //  fetch ticker
         //
         //       {
-        //           firstPrice: '21749',
-        //           lastPrice: '22000',
-        //           volume: '0.73747149',
-        //           quoteVolume: '16409.44564928645471',
-        //           high: '23589.999941',
-        //           low: '21010.000845',
-        //           weightedAveragePrice: '22250.955964',
-        //           txsCount: '148',
-        //           volumeWaves: '0.0000000000680511203072'
+        //           "firstPrice": "21749",
+        //           "lastPrice": "22000",
+        //           "volume": "0.73747149",
+        //           "quoteVolume": "16409.44564928645471",
+        //           "high": "23589.999941",
+        //           "low": "21010.000845",
+        //           "weightedAveragePrice": "22250.955964",
+        //           "txsCount": "148",
+        //           "volumeWaves": "0.0000000000680511203072"
         //       }
         //
         const timestamp = this.safeInteger(ticker, 'timestamp');
@@ -850,8 +853,8 @@ class wavesexchange extends wavesexchange$1 {
          * @name wavesexchange#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -891,10 +894,10 @@ class wavesexchange extends wavesexchange$1 {
         /**
          * @method
          * @name wavesexchange#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the aax api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const response = await this.marketGetTickers(params);
@@ -937,7 +940,7 @@ class wavesexchange extends wavesexchange$1 {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -1023,19 +1026,19 @@ class wavesexchange extends wavesexchange$1 {
     parseOHLCV(ohlcv, market = undefined) {
         //
         //     {
-        //         __type: 'candle',
-        //         data: {
-        //             time: '2020-06-05T20:46:00.000Z',
-        //             open: 240.573975,
-        //             close: 240.573975,
-        //             high: 240.573975,
-        //             low: 240.573975,
-        //             volume: 0.01278413,
-        //             quoteVolume: 3.075528,
-        //             weightedAveragePrice: 240.573975,
-        //             maxHeight: 2093895,
-        //             txsCount: 5,
-        //             timeClose: '2020-06-05T20:46:59.999Z'
+        //         "__type": "candle",
+        //         "data": {
+        //             "time": "2020-06-05T20:46:00.000Z",
+        //             "open": 240.573975,
+        //             "close": 240.573975,
+        //             "high": 240.573975,
+        //             "low": 240.573975,
+        //             "volume": 0.01278413,
+        //             "quoteVolume": 3.075528,
+        //             "weightedAveragePrice": 240.573975,
+        //             "maxHeight": 2093895,
+        //             "txsCount": 5,
+        //             "timeClose": "2020-06-05T20:46:59.999Z"
         //         }
         //     }
         //
@@ -1055,8 +1058,8 @@ class wavesexchange extends wavesexchange$1 {
          * @name wavesexchange#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.signIn();
         const networks = this.safeValue(this.options, 'networks', {});
@@ -1250,7 +1253,8 @@ class wavesexchange extends wavesexchange$1 {
         // precise.decimals should be integer
         precise.decimals = this.parseToInt(Precise["default"].stringSub(this.numberToString(precise.decimals), this.numberToString(scale)));
         precise.reduce();
-        return precise;
+        const stringValue = precise.toString();
+        return stringValue;
     }
     currencyFromPrecision(currency, amount) {
         const scale = this.currencies[currency]['precision'];
@@ -1288,9 +1292,9 @@ class wavesexchange extends wavesexchange$1 {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] The price at which a stop order is triggered at
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredDependencies();
         this.checkRequiredKeys();
@@ -1374,7 +1378,7 @@ class wavesexchange extends wavesexchange$1 {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
         };
-        const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const chainId = (sandboxMode) ? 84 : 87;
         const body = {
             'senderPublicKey': this.apiKey,
@@ -1393,11 +1397,11 @@ class wavesexchange extends wavesexchange$1 {
         if (isStopOrder) {
             //
             // {
-            //     'v': 1, // version (int)
-            //     'c': { // condition (object)
-            //         't': 'sp', // condition type. for now only "stop-price" (string)
-            //         'v': { // value (object)
-            //             'p': '123', // price (long)
+            //     "v": 1, // version (int)
+            //     "c": { // condition (object)
+            //         "t": "sp", // condition type. for now only "stop-price" (string)
+            //         "v": { // value (object)
+            //             "p": "123", // price (long)
             //         },
             //     },
             // }
@@ -1420,7 +1424,7 @@ class wavesexchange extends wavesexchange$1 {
         if ((serializedOrder[0] === '"') && (serializedOrder[(serializedOrder.length - 1)] === '"')) {
             serializedOrder = serializedOrder.slice(1, serializedOrder.length - 1);
         }
-        const signature = crypto.eddsa(this.binaryToBase16(this.base58ToBinary(serializedOrder)), this.binaryToBase16(this.base58ToBinary(this.secret)), ed25519.ed25519);
+        const signature = this.axolotl(this.binaryToBase16(this.base58ToBinary(serializedOrder)), this.binaryToBase16(this.base58ToBinary(this.secret)), ed25519.ed25519);
         body['signature'] = signature;
         //
         //     {
@@ -1471,8 +1475,8 @@ class wavesexchange extends wavesexchange$1 {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredDependencies();
         this.checkRequiredKeys();
@@ -1518,8 +1522,8 @@ class wavesexchange extends wavesexchange$1 {
          * @name wavesexchange#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredDependencies();
         this.checkRequiredKeys();
@@ -1535,7 +1539,7 @@ class wavesexchange extends wavesexchange$1 {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = crypto.eddsa(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
+        const signature = this.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
         const request = {
             'Timestamp': timestamp.toString(),
             'Signature': signature,
@@ -1552,14 +1556,14 @@ class wavesexchange extends wavesexchange$1 {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredDependencies();
         this.checkRequiredKeys();
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires symbol argument');
+            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1570,7 +1574,7 @@ class wavesexchange extends wavesexchange$1 {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = crypto.eddsa(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
+        const signature = this.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
         const request = {
             'Accept': 'application/json',
             'Timestamp': timestamp.toString(),
@@ -1580,21 +1584,21 @@ class wavesexchange extends wavesexchange$1 {
             'quoteId': market['quoteId'],
         };
         const response = await this.matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey(this.extend(request, params));
-        // [ { id: '3KicDeWayY2mdrRoYdCkP3gUAoUZUNT1AA6GAtWuPLfa',
-        //     type: 'sell',
-        //     orderType: 'limit',
-        //     amount: 1,
-        //     fee: 300000,
-        //     price: 100000000,
-        //     timestamp: 1591651254076,
-        //     filled: 0,
-        //     filledFee: 0,
-        //     feeAsset: 'WAVES',
-        //     status: 'Accepted',
-        //     assetPair:
+        // [ { id: "3KicDeWayY2mdrRoYdCkP3gUAoUZUNT1AA6GAtWuPLfa",
+        //     "type": "sell",
+        //     "orderType": "limit",
+        //     "amount": 1,
+        //     "fee": 300000,
+        //     "price": 100000000,
+        //     "timestamp": 1591651254076,
+        //     "filled": 0,
+        //     "filledFee": 0,
+        //     "feeAsset": "WAVES",
+        //     "status": "Accepted",
+        //     "assetPair":
         //      { amountAsset: null,
-        //        priceAsset: '8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS' },
-        //     avgWeighedPrice: 0 }, ... ]
+        //        "priceAsset": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS" },
+        //     "avgWeighedPrice": 0 }, ... ]
         return this.parseOrders(response, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1605,8 +1609,8 @@ class wavesexchange extends wavesexchange$1 {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         await this.signIn();
@@ -1629,9 +1633,9 @@ class wavesexchange extends wavesexchange$1 {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         await this.signIn();
@@ -1687,25 +1691,25 @@ class wavesexchange extends wavesexchange$1 {
         // createOrder
         //
         //     {
-        //         'version': 4,
-        //         'id': 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
-        //         'sender': '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        //         'senderPublicKey': 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        //         'matcherPublicKey': '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //         'assetPair': {
-        //             'amountAsset': '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //             'priceAsset': 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p',
+        //         "version": 4,
+        //         "id": "BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS",
+        //         "sender": "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
+        //         "senderPublicKey": "AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF",
+        //         "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //         "assetPair": {
+        //             "amountAsset": "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
+        //             "priceAsset": "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
         //         },
-        //         'orderType': 'buy',
-        //         'amount': 10000,
-        //         'price': 400000000,
-        //         'timestamp': 1599848586891,
-        //         'expiration': 1602267786891,
-        //         'matcherFee': 3008,
-        //         'matcherFeeAssetId': '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //         'signature': '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
-        //         'proofs': [
-        //             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        //         "orderType": "buy",
+        //         "amount": 10000,
+        //         "price": 400000000,
+        //         "timestamp": 1599848586891,
+        //         "expiration": 1602267786891,
+        //         "matcherFee": 3008,
+        //         "matcherFeeAssetId": "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
+        //         "signature": "3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy",
+        //         "proofs": [
+        //             "3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy",
         //         ],
         //         "attachment":"77rnoyFX5BDr15hqZiUtgXKSN46zsbHHQjVNrTMLZcLz62mmFKr39FJ"
         //     }
@@ -1714,24 +1718,24 @@ class wavesexchange extends wavesexchange$1 {
         // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         //
         //     {
-        //         id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
-        //         type: 'buy',
-        //         orderType: 'limit',
-        //         amount: 30000000000,
-        //         filled: 0,
-        //         price: 1000000,
-        //         fee: 300000,
-        //         filledFee: 0,
-        //         feeAsset: 'WAVES',
-        //         timestamp: 1594303779322,
-        //         status: 'Cancelled',
-        //         assetPair: {
-        //             amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //             priceAsset: 'WAVES'
+        //         "id": "81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8",
+        //         "type": "buy",
+        //         "orderType": "limit",
+        //         "amount": 30000000000,
+        //         "filled": 0,
+        //         "price": 1000000,
+        //         "fee": 300000,
+        //         "filledFee": 0,
+        //         "feeAsset": "WAVES",
+        //         "timestamp": 1594303779322,
+        //         "status": "Cancelled",
+        //         "assetPair": {
+        //             "amountAsset": "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
+        //             "priceAsset": "WAVES"
         //         },
-        //         avgWeighedPrice: 0,
-        //         version: 4,
-        //         totalExecutedPriceAssets: 0,  // in fetchOpenOrder/s
+        //         "avgWeighedPrice": 0,
+        //         "version": 4,
+        //         "totalExecutedPriceAssets": 0,  // in fetchOpenOrder/s
         //         "attachment":"77rnoyFX5BDr15hqZiUtgXKSN46zsbHHQjVNrTMLZcLz62mmFKr39FJ"
         //     }
         //
@@ -1833,8 +1837,8 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         // makes a lot of different requests to get all the data
         // in particular:
@@ -1934,7 +1938,7 @@ class wavesexchange extends wavesexchange$1 {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = crypto.eddsa(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
+        const signature = this.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
         const matcherRequest = {
             'publicKey': this.apiKey,
             'signature': signature,
@@ -1987,8 +1991,8 @@ class wavesexchange extends wavesexchange$1 {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const address = await this.getWavesAddress();
@@ -2079,8 +2083,8 @@ class wavesexchange extends wavesexchange$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2089,7 +2093,7 @@ class wavesexchange extends wavesexchange$1 {
             'priceAsset': market['quoteId'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 100);
         }
         if (since !== undefined) {
             request['timeStart'] = since;
@@ -2166,50 +2170,50 @@ class wavesexchange extends wavesexchange$1 {
     }
     parseTrade(trade, market = undefined) {
         //
-        // { __type: 'transaction',
-        //   data:
-        //    { id: 'HSdruioHqvYHeyn9hhyoHdRWPB2bFA8ujeCPZMK6992c',
-        //      timestamp: '2020-06-09T19:34:51.897Z',
-        //      height: 2099684,
-        //      type: 7,
-        //      version: 2,
-        //      proofs:
-        //       [ '26teDHERQgwjjHqEn4REcDotNG8M21xjou3X42XuDuCvrRkQo6aPyrswByH3UrkWG8v27ZAaVNzoxDg4teNcLtde' ],
-        //      fee: 0.003,
-        //      sender: '3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu',
-        //      senderPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //      buyMatcherFee: 0.00299999,
-        //      sellMatcherFee: 0.00299999,
-        //      price: 0.00012003,
-        //      amount: 60.80421562,
-        //      order1:
-        //       { id: 'CBRwP3ar4oMvvpUiGyfxc1syh41488SDi2GkrjuBDegv',
-        //         senderPublicKey: 'DBXSHBz96NFsMu7xh4fi2eT9ZnyxefAHXsMxUayzgC6a',
-        //         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //         assetPair: [Object],
-        //         orderType: 'buy',
-        //         price: 0.00012003,
-        //         sender: '3PJfFRgVuJ47UY4ckb74EGzEBzkHXtmG1LA',
-        //         amount: 60.80424773,
-        //         timestamp: '2020-06-09T19:34:51.885Z',
-        //         expiration: '2020-06-10T12:31:31.885Z',
-        //         matcherFee: 0.003,
-        //         signature: '4cA3ZAb3XAEEXaFG7caqpto5TRbpR5PkhZpxoNQZ9ZReNvjuJQs5a3THnumv7rcqmVUiVtuHAgk2f67ANcqtKyJ8',
-        //         matcherFeeAssetId: null },
-        //      order2:
-        //       { id: 'CHJSLQ6dfSPs6gu2mAegrMUcRiDEDqaj2GKfvptMjS3M',
-        //         senderPublicKey: '3RUC4NGFZm9H8VJhSSjJyFLdiE42qNiUagDcZPwjgDf8',
-        //         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //         assetPair: [Object],
-        //         orderType: 'sell',
-        //         price: 0.00012003,
-        //         sender: '3P9vKoQpMZtaSkHKpNh977YY9ZPzTuntLAq',
-        //         amount: 60.80424773,
-        //         timestamp: '2020-06-09T19:34:51.887Z',
-        //         expiration: '2020-06-10T12:31:31.887Z',
-        //         matcherFee: 0.003,
-        //         signature: '3SFyrcqzou2ddZyNisnLYaGhLt5qRjKxH8Nw3s4T5U7CEKGX9DDo8dS27RgThPVGbYF1rYET1FwrWoQ2UFZ6SMTR',
-        //         matcherFeeAssetId: null } } }
+        // { __type: "transaction",
+        //   "data":
+        //    { id: "HSdruioHqvYHeyn9hhyoHdRWPB2bFA8ujeCPZMK6992c",
+        //      "timestamp": "2020-06-09T19:34:51.897Z",
+        //      "height": 2099684,
+        //      "type": 7,
+        //      "version": 2,
+        //      "proofs":
+        //       [ "26teDHERQgwjjHqEn4REcDotNG8M21xjou3X42XuDuCvrRkQo6aPyrswByH3UrkWG8v27ZAaVNzoxDg4teNcLtde" ],
+        //      "fee": 0.003,
+        //      "sender": "3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        //      "senderPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //      "buyMatcherFee": 0.00299999,
+        //      "sellMatcherFee": 0.00299999,
+        //      "price": 0.00012003,
+        //      "amount": 60.80421562,
+        //      "order1":
+        //       { id: "CBRwP3ar4oMvvpUiGyfxc1syh41488SDi2GkrjuBDegv",
+        //         "senderPublicKey": "DBXSHBz96NFsMu7xh4fi2eT9ZnyxefAHXsMxUayzgC6a",
+        //         "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //         "assetPair": [Object],
+        //         "orderType": "buy",
+        //         "price": 0.00012003,
+        //         "sender": "3PJfFRgVuJ47UY4ckb74EGzEBzkHXtmG1LA",
+        //         "amount": 60.80424773,
+        //         "timestamp": "2020-06-09T19:34:51.885Z",
+        //         "expiration": "2020-06-10T12:31:31.885Z",
+        //         "matcherFee": 0.003,
+        //         "signature": "4cA3ZAb3XAEEXaFG7caqpto5TRbpR5PkhZpxoNQZ9ZReNvjuJQs5a3THnumv7rcqmVUiVtuHAgk2f67ANcqtKyJ8",
+        //         "matcherFeeAssetId": null },
+        //      "order2":
+        //       { id: "CHJSLQ6dfSPs6gu2mAegrMUcRiDEDqaj2GKfvptMjS3M",
+        //         "senderPublicKey": "3RUC4NGFZm9H8VJhSSjJyFLdiE42qNiUagDcZPwjgDf8",
+        //         "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //         "assetPair": [Object],
+        //         "orderType": "sell",
+        //         "price": 0.00012003,
+        //         "sender": "3P9vKoQpMZtaSkHKpNh977YY9ZPzTuntLAq",
+        //         "amount": 60.80424773,
+        //         "timestamp": "2020-06-09T19:34:51.887Z",
+        //         "expiration": "2020-06-10T12:31:31.887Z",
+        //         "matcherFee": 0.003,
+        //         "signature": "3SFyrcqzou2ddZyNisnLYaGhLt5qRjKxH8Nw3s4T5U7CEKGX9DDo8dS27RgThPVGbYF1rYET1FwrWoQ2UFZ6SMTR",
+        //         "matcherFeeAssetId": null } } }
         //
         const data = this.safeValue(trade, 'data');
         const datetime = this.safeString(data, 'timestamp');
@@ -2336,8 +2340,8 @@ class wavesexchange extends wavesexchange$1 {
          * @see https://docs.wx.network/en/api/gateways/deposit/currencies
          * @see https://docs.wx.network/en/api/gateways/withdraw/currencies
          * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         let data = [];
@@ -2409,7 +2413,7 @@ class wavesexchange extends wavesexchange$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'error');
-        const success = this.safeValue(response, 'success', true);
+        const success = this.safeBool(response, 'success', true);
         const Exception = this.safeValue(this.exceptions, errorCode);
         if (Exception !== undefined) {
             const messageInner = this.safeString(response, 'message');
@@ -2433,8 +2437,8 @@ class wavesexchange extends wavesexchange$1 {
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
-         * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         // currently only works for BTC and WAVES
@@ -2532,7 +2536,7 @@ class wavesexchange extends wavesexchange$1 {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = crypto.eddsa(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
+        const signature = this.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
         const request = {
             'senderPublicKey': this.apiKey,
             'amount': amountInteger,
@@ -2594,6 +2598,7 @@ class wavesexchange extends wavesexchange$1 {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };

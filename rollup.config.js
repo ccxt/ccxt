@@ -1,6 +1,7 @@
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 import execute from 'rollup-plugin-execute';
+import nodeResolve from '@rollup/plugin-node-resolve'
 
 export default [
   {
@@ -13,6 +14,11 @@ export default [
       }
     ],
     plugins: [
+      nodeResolve({
+        preferBuiltins: true,
+        // node resolve generate dist/cjs/js directory 
+        jail: '/src'
+      }),
       json(),
       commonjs({
         transformMixedEsModules: true,
@@ -24,6 +30,11 @@ export default [
       if ( warning.message.indexOf('is implicitly using "default" export mode') > -1 ) return;
       next( warning );
     },
+    external: [
+      'socks-proxy-agent',
+      // node resolve generate dist/cjs/js directory, treat ws, debug as external
+      'ws', 'debug'
+    ]
   },
   {
     inlineDynamicImports: true,
@@ -35,11 +46,15 @@ export default [
       },
     ],
     plugins: [
+      nodeResolve({ preferBuiltins: true }),
       json(),
       commonjs({
         transformMixedEsModules: true,
         dynamicRequireTargets: ["**/js/src/static_dependencies/**/*.cjs"],
       }),
     ],
+    external: [
+      'socks-proxy-agent'
+    ]
   }
 ];

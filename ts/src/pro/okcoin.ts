@@ -5,7 +5,7 @@ import okcoinRest from '../okcoin.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ export default class okcoin extends okcoinRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name okcoin#watchTrades
@@ -75,8 +75,8 @@ export default class okcoin extends okcoinRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -87,16 +87,16 @@ export default class okcoin extends okcoinRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okcoin#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         await this.authenticate ();
@@ -114,37 +114,37 @@ export default class okcoin extends okcoinRest {
     handleOrders (client: Client, message, subscription = undefined) {
         //
         // {
-        //     table: 'spot/order',
-        //     data: [
+        //     "table": "spot/order",
+        //     "data": [
         //       {
-        //         client_oid: '',
-        //         created_at: '2022-03-04T16:44:58.530Z',
-        //         event_code: '0',
-        //         event_message: '',
-        //         fee: '',
-        //         fee_currency: '',
-        //         filled_notional: '0',
-        //         filled_size: '0',
-        //         instrument_id: 'LTC-USD',
-        //         last_amend_result: '',
-        //         last_fill_id: '0',
-        //         last_fill_px: '0',
-        //         last_fill_qty: '0',
-        //         last_fill_time: '1970-01-01T00:00:00.000Z',
-        //         last_request_id: '',
-        //         margin_trading: '1',
-        //         notional: '',
-        //         order_id: '8629537900471296',
-        //         order_type: '0',
-        //         price: '1500',
-        //         rebate: '',
-        //         rebate_currency: '',
-        //         side: 'sell',
-        //         size: '0.0133',
-        //         state: '0',
-        //         status: 'open',
-        //         timestamp: '2022-03-04T16:44:58.530Z',
-        //         type: 'limit'
+        //         "client_oid": '',
+        //         "created_at": "2022-03-04T16:44:58.530Z",
+        //         "event_code": "0",
+        //         "event_message": '',
+        //         "fee": '',
+        //         "fee_currency": '',
+        //         "filled_notional": "0",
+        //         "filled_size": "0",
+        //         "instrument_id": "LTC-USD",
+        //         "last_amend_result": '',
+        //         "last_fill_id": "0",
+        //         "last_fill_px": "0",
+        //         "last_fill_qty": "0",
+        //         "last_fill_time": "1970-01-01T00:00:00.000Z",
+        //         "last_request_id": '',
+        //         "margin_trading": "1",
+        //         "notional": '',
+        //         "order_id": "8629537900471296",
+        //         "order_type": "0",
+        //         "price": "1500",
+        //         "rebate": '',
+        //         "rebate_currency": '',
+        //         "side": "sell",
+        //         "size": "0.0133",
+        //         "state": "0",
+        //         "status": "open",
+        //         "timestamp": "2022-03-04T16:44:58.530Z",
+        //         "type": "limit"
         //       }
         //     ]
         //   }
@@ -175,14 +175,14 @@ export default class okcoin extends okcoinRest {
         }
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name okcoin#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.subscribe ('ticker', symbol, params);
     }
@@ -190,15 +190,15 @@ export default class okcoin extends okcoinRest {
     handleTrade (client: Client, message) {
         //
         //     {
-        //         table: 'spot/trade',
-        //         data: [
+        //         "table": "spot/trade",
+        //         "data": [
         //             {
-        //                 side: 'buy',
-        //                 trade_id: '30770973',
-        //                 price: '4665.4',
-        //                 size: '0.019',
-        //                 instrument_id: 'BTC-USDT',
-        //                 timestamp: '2020-03-16T13:41:46.526Z'
+        //                 "side": "buy",
+        //                 "trade_id": "30770973",
+        //                 "price": "4665.4",
+        //                 "size": "0.019",
+        //                 "instrument_id": "BTC-USDT",
+        //                 "timestamp": "2020-03-16T13:41:46.526Z"
         //             }
         //         ]
         //     }
@@ -225,22 +225,22 @@ export default class okcoin extends okcoinRest {
     handleTicker (client: Client, message) {
         //
         //     {
-        //         table: 'spot/ticker',
-        //         data: [
+        //         "table": "spot/ticker",
+        //         "data": [
         //             {
-        //                 last: '4634.1',
-        //                 open_24h: '5305.6',
-        //                 best_bid: '4631.6',
-        //                 high_24h: '5950',
-        //                 low_24h: '4448.8',
-        //                 base_volume_24h: '147913.11435388',
-        //                 quote_volume_24h: '756850119.99108082',
-        //                 best_ask: '4631.7',
-        //                 instrument_id: 'BTC-USDT',
-        //                 timestamp: '2020-03-16T13:16:25.677Z',
-        //                 best_bid_size: '0.12348942',
-        //                 best_ask_size: '0.00100014',
-        //                 last_qty: '0.00331822'
+        //                 "last": "4634.1",
+        //                 "open_24h": "5305.6",
+        //                 "best_bid": "4631.6",
+        //                 "high_24h": "5950",
+        //                 "low_24h": "4448.8",
+        //                 "base_volume_24h": "147913.11435388",
+        //                 "quote_volume_24h": "756850119.99108082",
+        //                 "best_ask": "4631.7",
+        //                 "instrument_id": "BTC-USDT",
+        //                 "timestamp": "2020-03-16T13:16:25.677Z",
+        //                 "best_bid_size": "0.12348942",
+        //                 "best_ask_size": "0.00100014",
+        //                 "last_qty": "0.00331822"
         //             }
         //         ]
         //     }
@@ -258,7 +258,7 @@ export default class okcoin extends okcoinRest {
         return message;
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name okcoin#watchOHLCV
@@ -267,7 +267,7 @@ export default class okcoin extends okcoinRest {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -284,10 +284,10 @@ export default class okcoin extends okcoinRest {
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         table: "spot/candle60s",
-        //         data: [
+        //         "table": "spot/candle60s",
+        //         "data": [
         //             {
-        //                 candle: [
+        //                 "candle": [
         //                     "2020-03-16T14:29:00.000Z",
         //                     "4948.3",
         //                     "4966.7",
@@ -295,7 +295,7 @@ export default class okcoin extends okcoinRest {
         //                     "4945.3",
         //                     "238.36021657"
         //                 ],
-        //                 instrument_id: "BTC-USDT"
+        //                 "instrument_id": "BTC-USDT"
         //             }
         //         ]
         //     }
@@ -327,15 +327,15 @@ export default class okcoin extends okcoinRest {
         }
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name okcoin#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const depth = this.safeString (options, 'depth', 'depth_l2_tbt');
@@ -358,19 +358,19 @@ export default class okcoin extends okcoinRest {
     handleOrderBookMessage (client: Client, message, orderbook) {
         //
         //     {
-        //         instrument_id: "BTC-USDT",
-        //         asks: [
+        //         "instrument_id": "BTC-USDT",
+        //         "asks": [
         //             ["4568.5", "0.49723138", "2"],
         //             ["4568.7", "0.5013", "1"],
         //             ["4569.1", "0.4398", "1"],
         //         ],
-        //         bids: [
+        //         "bids": [
         //             ["4568.4", "0.84187666", "5"],
         //             ["4568.3", "0.75661506", "6"],
         //             ["4567.8", "2.01", "2"],
         //         ],
-        //         timestamp: "2020-03-16T11:11:43.388Z",
-        //         checksum: 473370408
+        //         "timestamp": "2020-03-16T11:11:43.388Z",
+        //         "checksum": 473370408
         //     }
         //
         const asks = this.safeValue (message, 'asks', []);
@@ -388,23 +388,23 @@ export default class okcoin extends okcoinRest {
         // first message (snapshot)
         //
         //     {
-        //         table: "spot/depth",
-        //         action: "partial",
-        //         data: [
+        //         "table": "spot/depth",
+        //         "action": "partial",
+        //         "data": [
         //             {
-        //                 instrument_id: "BTC-USDT",
-        //                 asks: [
+        //                 "instrument_id": "BTC-USDT",
+        //                 "asks": [
         //                     ["4568.5", "0.49723138", "2"],
         //                     ["4568.7", "0.5013", "1"],
         //                     ["4569.1", "0.4398", "1"],
         //                 ],
-        //                 bids: [
+        //                 "bids": [
         //                     ["4568.4", "0.84187666", "5"],
         //                     ["4568.3", "0.75661506", "6"],
         //                     ["4567.8", "2.01", "2"],
         //                 ],
-        //                 timestamp: "2020-03-16T11:11:43.388Z",
-        //                 checksum: 473370408
+        //                 "timestamp": "2020-03-16T11:11:43.388Z",
+        //                 "checksum": 473370408
         //             }
         //         ]
         //     }
@@ -412,23 +412,23 @@ export default class okcoin extends okcoinRest {
         // subsequent updates
         //
         //     {
-        //         table: "spot/depth",
-        //         action: "update",
-        //         data: [
+        //         "table": "spot/depth",
+        //         "action": "update",
+        //         "data": [
         //             {
-        //                 instrument_id:   "BTC-USDT",
-        //                 asks: [
+        //                 "instrument_id":   "BTC-USDT",
+        //                 "asks": [
         //                     ["4598.8", "0", "0"],
         //                     ["4599.1", "0", "0"],
         //                     ["4600.3", "0", "0"],
         //                 ],
-        //                 bids: [
+        //                 "bids": [
         //                     ["4598.5", "0.08", "1"],
         //                     ["4598.2", "0.0337323", "1"],
         //                     ["4598.1", "0.12681801", "3"],
         //                 ],
-        //                 timestamp: "2020-03-16T11:20:35.139Z",
-        //                 checksum: 740786981
+        //                 "timestamp": "2020-03-16T11:20:35.139Z",
+        //                 "checksum": 740786981
         //             }
         //         ]
         //     }
@@ -495,13 +495,13 @@ export default class okcoin extends okcoinRest {
         return await future;
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name okcoin#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
@@ -567,14 +567,14 @@ export default class okcoin extends okcoinRest {
         // spot
         //
         //     {
-        //         table: 'spot/account',
-        //         data: [
+        //         "table": "spot/account",
+        //         "data": [
         //             {
-        //                 available: '11.044827320825',
-        //                 currency: 'USDT',
-        //                 id: '',
-        //                 balance: '11.044827320825',
-        //                 hold: '0'
+        //                 "available": "11.044827320825",
+        //                 "currency": "USDT",
+        //                 "id": '',
+        //                 "balance": "11.044827320825",
+        //                 "hold": "0"
         //             }
         //         ]
         //     }
@@ -582,15 +582,15 @@ export default class okcoin extends okcoinRest {
         // margin
         //
         //     {
-        //         table: "spot/margin_account",
-        //         data: [
+        //         "table": "spot/margin_account",
+        //         "data": [
         //             {
-        //                 maint_margin_ratio: "0.08",
-        //                 liquidation_price: "0",
-        //                 'currency:USDT': { available: "0", balance: "0", borrowed: "0", hold: "0", lending_fee: "0" },
-        //                 tiers: "1",
-        //                 instrument_id:   "ETH-USDT",
-        //                 'currency:ETH': { available: "0", balance: "0", borrowed: "0", hold: "0", lending_fee: "0" }
+        //                 "maint_margin_ratio": "0.08",
+        //                 "liquidation_price": "0",
+        //                 "currency:USDT": { available: "0", balance: "0", borrowed: "0", hold: "0", lending_fee: "0" },
+        //                 "tiers": "1",
+        //                 "instrument_id":   "ETH-USDT",
+        //                 "currency:ETH": { available: "0", balance: "0", borrowed: "0", hold: "0", lending_fee: "0" }
         //             }
         //         ]
         //     }
@@ -626,7 +626,7 @@ export default class okcoin extends okcoinRest {
 
     handleAuthenticate (client: Client, message) {
         //
-        //     { event: 'login', success: true }
+        //     { event: "login", success: true }
         //
         client.resolve (message, 'authenticated');
         return message;
@@ -645,9 +645,9 @@ export default class okcoin extends okcoinRest {
 
     handleErrorMessage (client: Client, message) {
         //
-        //     { event: 'error', message: 'Invalid sign', errorCode: 30013 }
+        //     { event: "error", message: "Invalid sign", errorCode: 30013 }
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
-        //     { event: 'error', message: "Channel spot/order doesn't exist", errorCode: 30040 }
+        //     { event: "error", message: "Channel spot/order doesn't exist", errorCode: 30040 }
         //
         const errorCode = this.safeString (message, 'errorCode');
         try {
@@ -680,21 +680,21 @@ export default class okcoin extends okcoinRest {
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
         //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
         //     {
-        //         table: "spot/depth",
-        //         action: "partial",
-        //         data: [
+        //         "table": "spot/depth",
+        //         "action": "partial",
+        //         "data": [
         //             {
-        //                 instrument_id:   "BTC-USDT",
-        //                 asks: [
+        //                 "instrument_id":   "BTC-USDT",
+        //                 "asks": [
         //                     ["5301.8", "0.03763319", "1"],
         //                     ["5302.4", "0.00305", "2"],
         //                 ],
-        //                 bids: [
+        //                 "bids": [
         //                     ["5301.7", "0.58911427", "6"],
         //                     ["5301.6", "0.01222922", "4"],
         //                 ],
-        //                 timestamp: "2020-03-16T03:25:00.440Z",
-        //                 checksum: -2088736623
+        //                 "timestamp": "2020-03-16T03:25:00.440Z",
+        //                 "checksum": -2088736623
         //             }
         //         ]
         //     }
@@ -730,7 +730,8 @@ export default class okcoin extends okcoinRest {
         // }
         //
         if (message === 'pong') {
-            return this.handlePong (client, message);
+            this.handlePong (client, message);
+            return;
         }
         const table = this.safeString (message, 'table');
         if (table === undefined) {
@@ -743,10 +744,8 @@ export default class okcoin extends okcoinRest {
                     'subscribe': this.handleSubscriptionStatus,
                 };
                 const method = this.safeValue (methods, event);
-                if (method === undefined) {
-                    return message;
-                } else {
-                    return method.call (this, client, message);
+                if (method !== undefined) {
+                    method.call (this, client, message);
                 }
             }
         } else {
@@ -767,10 +766,8 @@ export default class okcoin extends okcoinRest {
             if (name.indexOf ('candle') >= 0) {
                 method = this.handleOHLCV;
             }
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         }
     }

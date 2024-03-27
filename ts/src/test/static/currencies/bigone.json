@@ -1,0 +1,1423 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "info": {
+            "uuid": "0df9c3c3-255a-46d7-ab82-dedae169fba9",
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "scale": "8",
+            "is_stub": false,
+            "logo": {
+                "default": "https://assets.peatio.com/assets/v1/color/normal/btc.png?v=1696047032",
+                "white": "https://assets.peatio.com/assets/v1/white/normal/btc.png?v=1696047032"
+            },
+            "contract_address": "",
+            "is_deposit_enabled": true,
+            "is_withdrawal_enabled": true,
+            "withdrawal_fee": "0.0005",
+            "is_fiat": false,
+            "is_memo_required": false,
+            "info_link": "",
+            "payments": [],
+            "default_gateway": {
+                "uuid": "a8be32b7-d4d3-448f-84d0-24f76f0f157b",
+                "name": "Bitcoin",
+                "kind": "CHAIN",
+                "required_confirmations": "2",
+                "is_graphene": false
+            },
+            "gateways": [
+                {
+                    "uuid": "a8be32b7-d4d3-448f-84d0-24f76f0f157b",
+                    "name": "Bitcoin",
+                    "kind": "CHAIN",
+                    "required_confirmations": "2",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+                    "name": "Mixin",
+                    "kind": "CHAIN",
+                    "required_confirmations": "0",
+                    "is_graphene": true
+                }
+            ],
+            "binding_gateways": [
+                {
+                    "guid": "0df9c3c3-255a-46d7-ab82-dedae169fba9",
+                    "contract_address": "",
+                    "is_deposit_enabled": true,
+                    "display_name": "",
+                    "gateway_name": "Bitcoin",
+                    "min_withdrawal_amount": "0.001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "0.0009",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "a8be32b7-d4d3-448f-84d0-24f76f0f157b",
+                        "name": "Bitcoin",
+                        "kind": "CHAIN",
+                        "required_confirmations": "2",
+                        "is_graphene": false
+                    }
+                }
+            ]
+        },
+        "name": "Bitcoin",
+        "type": "crypto",
+        "deposit": true,
+        "withdraw": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "BTC": {
+                "id": "Bitcoin",
+                "network": "BTC",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.0009,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": "0"
+                    },
+                    "withdraw": {
+                        "min": "0.001"
+                    }
+                },
+                "info": {
+                    "guid": "0df9c3c3-255a-46d7-ab82-dedae169fba9",
+                    "contract_address": "",
+                    "is_deposit_enabled": true,
+                    "display_name": "",
+                    "gateway_name": "Bitcoin",
+                    "min_withdrawal_amount": "0.001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "0.0009",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "a8be32b7-d4d3-448f-84d0-24f76f0f157b",
+                        "name": "Bitcoin",
+                        "kind": "CHAIN",
+                        "required_confirmations": "2",
+                        "is_graphene": false
+                    }
+                }
+            }
+        }
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "info": {
+            "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+            "symbol": "USDT",
+            "name": "TetherUS",
+            "scale": "12",
+            "is_stub": false,
+            "logo": {
+                "default": "https://assets.peatio.com/assets/v1/color/normal/usdt.png?v=1697885578",
+                "white": "https://assets.peatio.com/assets/v1/white/normal/usdt.png?v=1697885578"
+            },
+            "contract_address": "31",
+            "is_deposit_enabled": true,
+            "is_withdrawal_enabled": true,
+            "withdrawal_fee": "5",
+            "is_fiat": false,
+            "is_memo_required": true,
+            "info_link": "",
+            "payments": [],
+            "default_gateway": {
+                "uuid": "0320e907-cf33-4a84-8aed-019551194607",
+                "name": "EOS",
+                "kind": "CHAIN",
+                "required_confirmations": "1",
+                "is_graphene": true
+            },
+            "gateways": [
+                {
+                    "uuid": "0320e907-cf33-4a84-8aed-019551194607",
+                    "name": "EOS",
+                    "kind": "CHAIN",
+                    "required_confirmations": "1",
+                    "is_graphene": true
+                },
+                {
+                    "uuid": "1132ee8f-425f-4973-88de-a5ae9decb1d5",
+                    "name": "Hecochain",
+                    "kind": "CHAIN",
+                    "required_confirmations": "1",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "9047345e-2c3f-4bac-93f3-260641ae3a78",
+                    "name": "Solana",
+                    "kind": "CHAIN",
+                    "required_confirmations": "32",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "a8be32b7-d4d3-448f-84d0-24f76f0f157b",
+                    "name": "Bitcoin",
+                    "kind": "CHAIN",
+                    "required_confirmations": "2",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                    "name": "Ethereum",
+                    "kind": "CHAIN",
+                    "required_confirmations": "18",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                    "name": "BinanceSmartChain",
+                    "kind": "CHAIN",
+                    "required_confirmations": "1",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+                    "name": "Mixin",
+                    "kind": "CHAIN",
+                    "required_confirmations": "0",
+                    "is_graphene": true
+                },
+                {
+                    "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+                    "name": "Mixin",
+                    "kind": "CHAIN",
+                    "required_confirmations": "0",
+                    "is_graphene": true
+                },
+                {
+                    "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+                    "name": "Tron",
+                    "kind": "CHAIN",
+                    "required_confirmations": "1",
+                    "is_graphene": false
+                }
+            ],
+            "binding_gateways": [
+                {
+                    "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+                    "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                    "is_deposit_enabled": true,
+                    "display_name": "Ethereum(ERC20)",
+                    "gateway_name": "Ethereum",
+                    "min_withdrawal_amount": "0.000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "25",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.000001",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                        "name": "Ethereum",
+                        "kind": "CHAIN",
+                        "required_confirmations": "18",
+                        "is_graphene": false
+                    }
+                },
+                {
+                    "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+                    "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                    "is_deposit_enabled": true,
+                    "display_name": "Tron(TRC20)",
+                    "gateway_name": "Tron",
+                    "min_withdrawal_amount": "0.000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "2",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.000001",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+                        "name": "Tron",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                },
+                {
+                    "guid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                    "contract_address": "31",
+                    "is_deposit_enabled": false,
+                    "display_name": "Omni",
+                    "gateway_name": "Bitcoin",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "40",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "0",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "a8be32b7-d4d3-448f-84d0-24f76f0f157b",
+                        "name": "Bitcoin",
+                        "kind": "CHAIN",
+                        "required_confirmations": "2",
+                        "is_graphene": false
+                    }
+                },
+                {
+                    "guid": "c9072583-022b-4b01-acf4-1510c7d435f4",
+                    "contract_address": "tethertether_USDT",
+                    "is_deposit_enabled": true,
+                    "display_name": "",
+                    "gateway_name": "EOS",
+                    "min_withdrawal_amount": "1",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "5",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "0.00000001",
+                    "is_memo_required": true,
+                    "withdrawal_scale": "4",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "0320e907-cf33-4a84-8aed-019551194607",
+                        "name": "EOS",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": true
+                    }
+                },
+                {
+                    "guid": "cf682a4d-3de8-4f28-a5d4-55807da847a2",
+                    "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "is_deposit_enabled": false,
+                    "display_name": "",
+                    "gateway_name": "Solana",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "5",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "1",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "9047345e-2c3f-4bac-93f3-260641ae3a78",
+                        "name": "Solana",
+                        "kind": "CHAIN",
+                        "required_confirmations": "32",
+                        "is_graphene": false
+                    }
+                },
+                {
+                    "guid": "31f3a9d4-e33e-4fd3-8c68-eacc5d78f1ca",
+                    "contract_address": "0xa71edc38d189767582c38a3145b5873052c3e47a",
+                    "is_deposit_enabled": false,
+                    "display_name": "HECO",
+                    "gateway_name": "Hecochain",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "5",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "1",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "1132ee8f-425f-4973-88de-a5ae9decb1d5",
+                        "name": "Hecochain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                },
+                {
+                    "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+                    "contract_address": "0x55d398326f99059ff775485246999027b3197955",
+                    "is_deposit_enabled": false,
+                    "display_name": "BinanceSmartChain(BEP20)",
+                    "gateway_name": "BinanceSmartChain",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "2.94",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "1",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                        "name": "BinanceSmartChain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            ]
+        },
+        "name": "TetherUS",
+        "type": "crypto",
+        "deposit": true,
+        "withdraw": true,
+        "precision": 1e-12,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "ETH": {
+                "id": "Ethereum",
+                "network": "ETH",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 25,
+                "precision": 0.000001,
+                "limits": {
+                    "deposit": {
+                        "min": "0.000001"
+                    },
+                    "withdraw": {
+                        "min": "0.000001"
+                    }
+                },
+                "info": {
+                    "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+                    "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                    "is_deposit_enabled": true,
+                    "display_name": "Ethereum(ERC20)",
+                    "gateway_name": "Ethereum",
+                    "min_withdrawal_amount": "0.000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "25",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.000001",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                        "name": "Ethereum",
+                        "kind": "CHAIN",
+                        "required_confirmations": "18",
+                        "is_graphene": false
+                    }
+                }
+            },
+            "TRC20": {
+                "id": "Tron",
+                "network": "TRC20",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 2,
+                "precision": 0.000001,
+                "limits": {
+                    "deposit": {
+                        "min": "0.000001"
+                    },
+                    "withdraw": {
+                        "min": "0.000001"
+                    }
+                },
+                "info": {
+                    "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+                    "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                    "is_deposit_enabled": true,
+                    "display_name": "Tron(TRC20)",
+                    "gateway_name": "Tron",
+                    "min_withdrawal_amount": "0.000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "2",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.000001",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+                        "name": "Tron",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            },
+            "BTC": {
+                "id": "Bitcoin",
+                "network": "BTC",
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 40,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": "0"
+                    },
+                    "withdraw": {
+                        "min": "10"
+                    }
+                },
+                "info": {
+                    "guid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                    "contract_address": "31",
+                    "is_deposit_enabled": false,
+                    "display_name": "Omni",
+                    "gateway_name": "Bitcoin",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "40",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "0",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "a8be32b7-d4d3-448f-84d0-24f76f0f157b",
+                        "name": "Bitcoin",
+                        "kind": "CHAIN",
+                        "required_confirmations": "2",
+                        "is_graphene": false
+                    }
+                }
+            },
+            "EOS": {
+                "id": "EOS",
+                "network": "EOS",
+                "deposit": true,
+                "withdraw": false,
+                "active": false,
+                "fee": 5,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": "0.00000001"
+                    },
+                    "withdraw": {
+                        "min": "1"
+                    }
+                },
+                "info": {
+                    "guid": "c9072583-022b-4b01-acf4-1510c7d435f4",
+                    "contract_address": "tethertether_USDT",
+                    "is_deposit_enabled": true,
+                    "display_name": "",
+                    "gateway_name": "EOS",
+                    "min_withdrawal_amount": "1",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "5",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "0.00000001",
+                    "is_memo_required": true,
+                    "withdrawal_scale": "4",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "0320e907-cf33-4a84-8aed-019551194607",
+                        "name": "EOS",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": true
+                    }
+                }
+            },
+            "SOL": {
+                "id": "Solana",
+                "network": "SOL",
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 5,
+                "precision": 0.000001,
+                "limits": {
+                    "deposit": {
+                        "min": "1"
+                    },
+                    "withdraw": {
+                        "min": "10"
+                    }
+                },
+                "info": {
+                    "guid": "cf682a4d-3de8-4f28-a5d4-55807da847a2",
+                    "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "is_deposit_enabled": false,
+                    "display_name": "",
+                    "gateway_name": "Solana",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "5",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "1",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "9047345e-2c3f-4bac-93f3-260641ae3a78",
+                        "name": "Solana",
+                        "kind": "CHAIN",
+                        "required_confirmations": "32",
+                        "is_graphene": false
+                    }
+                }
+            },
+            "HRC20": {
+                "id": "Hecochain",
+                "network": "HRC20",
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 5,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": "1"
+                    },
+                    "withdraw": {
+                        "min": "10"
+                    }
+                },
+                "info": {
+                    "guid": "31f3a9d4-e33e-4fd3-8c68-eacc5d78f1ca",
+                    "contract_address": "0xa71edc38d189767582c38a3145b5873052c3e47a",
+                    "is_deposit_enabled": false,
+                    "display_name": "HECO",
+                    "gateway_name": "Hecochain",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "5",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "1",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "1132ee8f-425f-4973-88de-a5ae9decb1d5",
+                        "name": "Hecochain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            },
+            "BEP20": {
+                "id": "BinanceSmartChain",
+                "network": "BEP20",
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 2.94,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": "1"
+                    },
+                    "withdraw": {
+                        "min": "10"
+                    }
+                },
+                "info": {
+                    "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+                    "contract_address": "0x55d398326f99059ff775485246999027b3197955",
+                    "is_deposit_enabled": false,
+                    "display_name": "BinanceSmartChain(BEP20)",
+                    "gateway_name": "BinanceSmartChain",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "2.94",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "1",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "12",
+                    "gateway": {
+                        "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                        "name": "BinanceSmartChain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            }
+        }
+    },
+    "LTC": {
+        "id": "LTC",
+        "code": "LTC",
+        "info": {
+            "uuid": "1f88c67d-bcb0-45ff-b336-6de3b740b479",
+            "symbol": "LTC",
+            "name": "Litecoin",
+            "scale": "8",
+            "is_stub": false,
+            "logo": {
+                "default": "https://assets.peatio.com/assets/v1/color/normal/ltc.png?v=1687248043",
+                "white": "https://assets.peatio.com/assets/v1/white/normal/ltc.png?v=1687248043"
+            },
+            "contract_address": "",
+            "is_deposit_enabled": true,
+            "is_withdrawal_enabled": true,
+            "withdrawal_fee": "0.002",
+            "is_fiat": false,
+            "is_memo_required": false,
+            "info_link": "",
+            "payments": [],
+            "default_gateway": {
+                "uuid": "2ab499aa-ee08-4f50-b710-27af78cae798",
+                "name": "Litecoin",
+                "kind": "CHAIN",
+                "required_confirmations": "4",
+                "is_graphene": false
+            },
+            "gateways": [
+                {
+                    "uuid": "2ab499aa-ee08-4f50-b710-27af78cae798",
+                    "name": "Litecoin",
+                    "kind": "CHAIN",
+                    "required_confirmations": "4",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+                    "name": "Mixin",
+                    "kind": "CHAIN",
+                    "required_confirmations": "0",
+                    "is_graphene": true
+                }
+            ],
+            "binding_gateways": [
+                {
+                    "guid": "1f88c67d-bcb0-45ff-b336-6de3b740b479",
+                    "contract_address": "",
+                    "is_deposit_enabled": true,
+                    "display_name": "",
+                    "gateway_name": "Litecoin",
+                    "min_withdrawal_amount": "0.00000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "0.0236",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "2ab499aa-ee08-4f50-b710-27af78cae798",
+                        "name": "Litecoin",
+                        "kind": "CHAIN",
+                        "required_confirmations": "4",
+                        "is_graphene": false
+                    }
+                }
+            ]
+        },
+        "name": "Litecoin",
+        "type": "crypto",
+        "deposit": true,
+        "withdraw": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "LTC": {
+                "id": "Litecoin",
+                "network": "LTC",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.0236,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": "0"
+                    },
+                    "withdraw": {
+                        "min": "0.00000001"
+                    }
+                },
+                "info": {
+                    "guid": "1f88c67d-bcb0-45ff-b336-6de3b740b479",
+                    "contract_address": "",
+                    "is_deposit_enabled": true,
+                    "display_name": "",
+                    "gateway_name": "Litecoin",
+                    "min_withdrawal_amount": "0.00000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "0.0236",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "2ab499aa-ee08-4f50-b710-27af78cae798",
+                        "name": "Litecoin",
+                        "kind": "CHAIN",
+                        "required_confirmations": "4",
+                        "is_graphene": false
+                    }
+                }
+            }
+        }
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "info": {
+            "uuid": "c98f5d90-c619-4de2-b643-3d429f622239",
+            "symbol": "ETH",
+            "name": "Ethereum",
+            "scale": "8",
+            "is_stub": false,
+            "logo": {
+                "default": "https://assets.peatio.com/assets/v1/color/normal/eth.png?v=1696047026",
+                "white": "https://assets.peatio.com/assets/v1/white/normal/eth.png?v=1696047026"
+            },
+            "contract_address": "",
+            "is_deposit_enabled": true,
+            "is_withdrawal_enabled": true,
+            "withdrawal_fee": "0.006",
+            "is_fiat": false,
+            "is_memo_required": false,
+            "info_link": "",
+            "payments": [],
+            "default_gateway": {
+                "uuid": "8378329b-0e17-4803-ab85-c59c84b18054",
+                "name": "Optimism",
+                "kind": "CHAIN",
+                "required_confirmations": "1",
+                "is_graphene": false
+            },
+            "gateways": [
+                {
+                    "uuid": "8378329b-0e17-4803-ab85-c59c84b18054",
+                    "name": "Optimism",
+                    "kind": "CHAIN",
+                    "required_confirmations": "1",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                    "name": "Ethereum",
+                    "kind": "CHAIN",
+                    "required_confirmations": "18",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                    "name": "BinanceSmartChain",
+                    "kind": "CHAIN",
+                    "required_confirmations": "1",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+                    "name": "Mixin",
+                    "kind": "CHAIN",
+                    "required_confirmations": "0",
+                    "is_graphene": true
+                }
+            ],
+            "binding_gateways": [
+                {
+                    "guid": "c98f5d90-c619-4de2-b643-3d429f622239",
+                    "contract_address": "",
+                    "is_deposit_enabled": true,
+                    "display_name": "Ethereum(ERC20)",
+                    "gateway_name": "Ethereum",
+                    "min_withdrawal_amount": "0.00000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "0.006",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                        "name": "Ethereum",
+                        "kind": "CHAIN",
+                        "required_confirmations": "18",
+                        "is_graphene": false
+                    }
+                },
+                {
+                    "guid": "116dcb61-4f33-425d-af72-eae2570192d3",
+                    "contract_address": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+                    "is_deposit_enabled": true,
+                    "display_name": "BinanceSmartChain(BEP20)",
+                    "gateway_name": "BinanceSmartChain",
+                    "min_withdrawal_amount": "0.001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "0.0023",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "0.00022",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                        "name": "BinanceSmartChain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            ]
+        },
+        "name": "Ethereum",
+        "type": "crypto",
+        "deposit": true,
+        "withdraw": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "ETH": {
+                "id": "Ethereum",
+                "network": "ETH",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.006,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": "0"
+                    },
+                    "withdraw": {
+                        "min": "0.00000001"
+                    }
+                },
+                "info": {
+                    "guid": "c98f5d90-c619-4de2-b643-3d429f622239",
+                    "contract_address": "",
+                    "is_deposit_enabled": true,
+                    "display_name": "Ethereum(ERC20)",
+                    "gateway_name": "Ethereum",
+                    "min_withdrawal_amount": "0.00000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "0.006",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                        "name": "Ethereum",
+                        "kind": "CHAIN",
+                        "required_confirmations": "18",
+                        "is_graphene": false
+                    }
+                }
+            },
+            "BEP20": {
+                "id": "BinanceSmartChain",
+                "network": "BEP20",
+                "deposit": true,
+                "withdraw": false,
+                "active": false,
+                "fee": 0.0023,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": "0.00022"
+                    },
+                    "withdraw": {
+                        "min": "0.001"
+                    }
+                },
+                "info": {
+                    "guid": "116dcb61-4f33-425d-af72-eae2570192d3",
+                    "contract_address": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+                    "is_deposit_enabled": true,
+                    "display_name": "BinanceSmartChain(BEP20)",
+                    "gateway_name": "BinanceSmartChain",
+                    "min_withdrawal_amount": "0.001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "0.0023",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "0.00022",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                        "name": "BinanceSmartChain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            }
+        }
+    },
+    "ADA": {
+        "id": "ADA",
+        "code": "ADA",
+        "info": {
+            "uuid": "82b4075f-d2a0-4963-b93b-519194eb4bd7",
+            "symbol": "ADA",
+            "name": "Cardano Token",
+            "scale": "8",
+            "is_stub": false,
+            "logo": {
+                "default": "https://assets.peatio.com/assets/v1/color/normal/ada.png?v=1657150841",
+                "white": "https://assets.peatio.com/assets/v1/white/normal/ada.png?v=1657150841"
+            },
+            "contract_address": "",
+            "is_deposit_enabled": false,
+            "is_withdrawal_enabled": false,
+            "withdrawal_fee": "0",
+            "is_fiat": false,
+            "is_memo_required": false,
+            "info_link": "",
+            "payments": [],
+            "default_gateway": {
+                "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                "name": "BinanceSmartChain",
+                "kind": "CHAIN",
+                "required_confirmations": "1",
+                "is_graphene": false
+            },
+            "gateways": [
+                {
+                    "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                    "name": "BinanceSmartChain",
+                    "kind": "CHAIN",
+                    "required_confirmations": "1",
+                    "is_graphene": false
+                }
+            ],
+            "binding_gateways": [
+                {
+                    "guid": "44455ffc-b309-4911-ab77-1179992ab887",
+                    "contract_address": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47",
+                    "is_deposit_enabled": true,
+                    "display_name": "BinanceSmartChain(BEP20)",
+                    "gateway_name": "BinanceSmartChain",
+                    "min_withdrawal_amount": "2",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "8.25",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.5",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                        "name": "BinanceSmartChain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            ]
+        },
+        "name": "Cardano Token",
+        "type": "crypto",
+        "deposit": true,
+        "withdraw": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "BEP20": {
+                "id": "BinanceSmartChain",
+                "network": "BEP20",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 8.25,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": "0.5"
+                    },
+                    "withdraw": {
+                        "min": "2"
+                    }
+                },
+                "info": {
+                    "guid": "44455ffc-b309-4911-ab77-1179992ab887",
+                    "contract_address": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47",
+                    "is_deposit_enabled": true,
+                    "display_name": "BinanceSmartChain(BEP20)",
+                    "gateway_name": "BinanceSmartChain",
+                    "min_withdrawal_amount": "2",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "8.25",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.5",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                        "name": "BinanceSmartChain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            }
+        }
+    },
+    "XRP": {
+        "id": "XRP",
+        "code": "XRP",
+        "info": {
+            "uuid": "51e29e36-7710-49d0-abbb-930d7c60f878",
+            "symbol": "XRP",
+            "name": "Ripple",
+            "scale": "6",
+            "is_stub": false,
+            "logo": {
+                "default": "https://assets.peatio.com/assets/v1/color/normal/xrp.png?v=1696046334",
+                "white": "https://assets.peatio.com/assets/v1/white/normal/xrp.png?v=1696046334"
+            },
+            "contract_address": "",
+            "is_deposit_enabled": true,
+            "is_withdrawal_enabled": true,
+            "withdrawal_fee": "0.1",
+            "is_fiat": false,
+            "is_memo_required": true,
+            "info_link": "",
+            "payments": [],
+            "default_gateway": {
+                "uuid": "9fb8e0eb-bc81-4a8c-870c-8b1d452b543a",
+                "name": "Ripple",
+                "kind": "CHAIN",
+                "required_confirmations": "1",
+                "is_graphene": true
+            },
+            "gateways": [
+                {
+                    "uuid": "9fb8e0eb-bc81-4a8c-870c-8b1d452b543a",
+                    "name": "Ripple",
+                    "kind": "CHAIN",
+                    "required_confirmations": "1",
+                    "is_graphene": true
+                },
+                {
+                    "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+                    "name": "Mixin",
+                    "kind": "CHAIN",
+                    "required_confirmations": "0",
+                    "is_graphene": true
+                }
+            ],
+            "binding_gateways": [
+                {
+                    "guid": "51e29e36-7710-49d0-abbb-930d7c60f878",
+                    "contract_address": "",
+                    "is_deposit_enabled": true,
+                    "display_name": "",
+                    "gateway_name": "Ripple",
+                    "min_withdrawal_amount": "22",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "6.3",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.1",
+                    "is_memo_required": true,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "6",
+                    "gateway": {
+                        "uuid": "9fb8e0eb-bc81-4a8c-870c-8b1d452b543a",
+                        "name": "Ripple",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": true
+                    }
+                }
+            ]
+        },
+        "name": "Ripple",
+        "type": "crypto",
+        "deposit": true,
+        "withdraw": true,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "XRP": {
+                "id": "Ripple",
+                "network": "XRP",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 6.3,
+                "precision": 0.000001,
+                "limits": {
+                    "deposit": {
+                        "min": "0.1"
+                    },
+                    "withdraw": {
+                        "min": "22"
+                    }
+                },
+                "info": {
+                    "guid": "51e29e36-7710-49d0-abbb-930d7c60f878",
+                    "contract_address": "",
+                    "is_deposit_enabled": true,
+                    "display_name": "",
+                    "gateway_name": "Ripple",
+                    "min_withdrawal_amount": "22",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "6.3",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.1",
+                    "is_memo_required": true,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "6",
+                    "gateway": {
+                        "uuid": "9fb8e0eb-bc81-4a8c-870c-8b1d452b543a",
+                        "name": "Ripple",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": true
+                    }
+                }
+            }
+        }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "uuid": "e0e8aa23-2f4a-4b4a-8c97-c0307367f3aa",
+            "symbol": "USDC",
+            "name": "USDC",
+            "scale": "8",
+            "is_stub": false,
+            "logo": {
+                "default": "https://assets.peatio.com/assets/v1/color/normal/usdc.png?v=1699651740",
+                "white": "https://assets.peatio.com/assets/v1/white/normal/usdc.png?v=1699651740"
+            },
+            "contract_address": "",
+            "is_deposit_enabled": true,
+            "is_withdrawal_enabled": true,
+            "withdrawal_fee": "99999",
+            "is_fiat": false,
+            "is_memo_required": false,
+            "info_link": "",
+            "payments": [],
+            "default_gateway": {
+                "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                "name": "Ethereum",
+                "kind": "CHAIN",
+                "required_confirmations": "18",
+                "is_graphene": false
+            },
+            "gateways": [
+                {
+                    "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                    "name": "Ethereum",
+                    "kind": "CHAIN",
+                    "required_confirmations": "18",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                    "name": "BinanceSmartChain",
+                    "kind": "CHAIN",
+                    "required_confirmations": "1",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+                    "name": "Mixin",
+                    "kind": "CHAIN",
+                    "required_confirmations": "0",
+                    "is_graphene": true
+                }
+            ],
+            "binding_gateways": [
+                {
+                    "guid": "4540cae6-a872-459d-a401-c76bb45002f1",
+                    "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "is_deposit_enabled": true,
+                    "display_name": "Ethereum(ERC20)",
+                    "gateway_name": "Ethereum",
+                    "min_withdrawal_amount": "0.000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "25",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.000001",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                        "name": "Ethereum",
+                        "kind": "CHAIN",
+                        "required_confirmations": "18",
+                        "is_graphene": false
+                    }
+                },
+                {
+                    "guid": "b0a4746e-d459-460c-9ad3-86bd43660ebc",
+                    "contract_address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "is_deposit_enabled": false,
+                    "display_name": "BinanceSmartChain(BEP20)",
+                    "gateway_name": "BinanceSmartChain",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "5",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "1",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                        "name": "BinanceSmartChain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            ]
+        },
+        "name": "USDC",
+        "type": "crypto",
+        "deposit": true,
+        "withdraw": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "ETH": {
+                "id": "Ethereum",
+                "network": "ETH",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 25,
+                "precision": 0.000001,
+                "limits": {
+                    "deposit": {
+                        "min": "0.000001"
+                    },
+                    "withdraw": {
+                        "min": "0.000001"
+                    }
+                },
+                "info": {
+                    "guid": "4540cae6-a872-459d-a401-c76bb45002f1",
+                    "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "is_deposit_enabled": true,
+                    "display_name": "Ethereum(ERC20)",
+                    "gateway_name": "Ethereum",
+                    "min_withdrawal_amount": "0.000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "25",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.000001",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                        "name": "Ethereum",
+                        "kind": "CHAIN",
+                        "required_confirmations": "18",
+                        "is_graphene": false
+                    }
+                }
+            },
+            "BEP20": {
+                "id": "BinanceSmartChain",
+                "network": "BEP20",
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 5,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": "1"
+                    },
+                    "withdraw": {
+                        "min": "10"
+                    }
+                },
+                "info": {
+                    "guid": "b0a4746e-d459-460c-9ad3-86bd43660ebc",
+                    "contract_address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "is_deposit_enabled": false,
+                    "display_name": "BinanceSmartChain(BEP20)",
+                    "gateway_name": "BinanceSmartChain",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "5",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "1",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                        "name": "BinanceSmartChain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,856 @@
+{
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 5,
+            "price": 2,
+            "quote": 8
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001,
+                "max": 9000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {},
+            "leverage": {},
+            "market": {
+                "min": 0,
+                "max": 131.10940558
+            }
+        },
+        "info": {
+            "type": "1",
+            "symbol": "BTC_USDT",
+            "baseAsset": "BTC",
+            "basePrecision": "8",
+            "quoteAsset": "USDT",
+            "quotePrecision": "8",
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.01000000",
+                    "maxPrice": "1000000.00000000",
+                    "tickSize": "0.01000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.00001000",
+                    "maxQty": "9000.00000000",
+                    "stepSize": "0.00001000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "ICEBERG_PARTS",
+                    "applyToMarket": false,
+                    "limit": "10"
+                },
+                {
+                    "filterType": "MARKET_LOT_SIZE",
+                    "minQty": "0.00000000",
+                    "maxQty": "131.10940558",
+                    "stepSize": "0.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "TRAILING_DELTA",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                    "bidMultiplierUp": "5",
+                    "bidMultiplierDown": "0.2",
+                    "askMultiplierUp": "5",
+                    "askMultiplierDown": "0.2",
+                    "avgPriceMins": "5",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "NOTIONAL",
+                    "avgPriceMins": "5",
+                    "minNotional": "5.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ORDERS",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                    "applyToMarket": false,
+                    "maxNumAlgoOrders": "5"
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "LIMIT_MAKER",
+                "MARKET",
+                "STOP_LOSS_LIMIT",
+                "TAKE_PROFIT_LIMIT"
+            ],
+            "icebergEnable": "1",
+            "ocoEnable": "1",
+            "spotTradingEnable": "1",
+            "marginTradingEnable": "1",
+            "permissions": [
+                "SPOT",
+                "MARGIN"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0075,
+        "maker": 0.0075,
+        "lowercaseId": "btc_usdt",
+        "delivery": false
+    },
+    "LTC/USDT": {
+        "id": "LTC_USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 3,
+            "price": 2,
+            "quote": 8
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001,
+                "max": 90000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 100000
+            },
+            "cost": {},
+            "leverage": {},
+            "market": {
+                "min": 0,
+                "max": 24935.45064166
+            }
+        },
+        "info": {
+            "type": "1",
+            "symbol": "LTC_USDT",
+            "baseAsset": "LTC",
+            "basePrecision": "8",
+            "quoteAsset": "USDT",
+            "quotePrecision": "8",
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.01000000",
+                    "maxPrice": "100000.00000000",
+                    "tickSize": "0.01000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.00100000",
+                    "maxQty": "90000.00000000",
+                    "stepSize": "0.00100000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "ICEBERG_PARTS",
+                    "applyToMarket": false,
+                    "limit": "10"
+                },
+                {
+                    "filterType": "MARKET_LOT_SIZE",
+                    "minQty": "0.00000000",
+                    "maxQty": "24935.45064166",
+                    "stepSize": "0.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "TRAILING_DELTA",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                    "bidMultiplierUp": "5",
+                    "bidMultiplierDown": "0.2",
+                    "askMultiplierUp": "5",
+                    "askMultiplierDown": "0.2",
+                    "avgPriceMins": "5",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "NOTIONAL",
+                    "avgPriceMins": "5",
+                    "minNotional": "5.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ORDERS",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                    "applyToMarket": false,
+                    "maxNumAlgoOrders": "5"
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "LIMIT_MAKER",
+                "MARKET",
+                "STOP_LOSS_LIMIT",
+                "TAKE_PROFIT_LIMIT"
+            ],
+            "icebergEnable": "1",
+            "ocoEnable": "1",
+            "spotTradingEnable": "1",
+            "marginTradingEnable": "1",
+            "permissions": [
+                "SPOT",
+                "MARGIN"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0075,
+        "maker": 0.0075,
+        "lowercaseId": "ltc_usdt",
+        "delivery": false
+    },
+    "ADA/USDT": {
+        "id": "ADA_USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 4,
+            "quote": 8
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1,
+                "max": 900000
+            },
+            "price": {
+                "min": 0.0001,
+                "max": 1000
+            },
+            "cost": {},
+            "leverage": {},
+            "market": {
+                "min": 0,
+                "max": 3598476.67791666
+            }
+        },
+        "info": {
+            "type": "1",
+            "symbol": "ADA_USDT",
+            "baseAsset": "ADA",
+            "basePrecision": "8",
+            "quoteAsset": "USDT",
+            "quotePrecision": "8",
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.00010000",
+                    "maxPrice": "1000.00000000",
+                    "tickSize": "0.00010000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.10000000",
+                    "maxQty": "900000.00000000",
+                    "stepSize": "0.10000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "ICEBERG_PARTS",
+                    "applyToMarket": false,
+                    "limit": "10"
+                },
+                {
+                    "filterType": "MARKET_LOT_SIZE",
+                    "minQty": "0.00000000",
+                    "maxQty": "3598476.67791666",
+                    "stepSize": "0.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "TRAILING_DELTA",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                    "bidMultiplierUp": "5",
+                    "bidMultiplierDown": "0.2",
+                    "askMultiplierUp": "5",
+                    "askMultiplierDown": "0.2",
+                    "avgPriceMins": "5",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "NOTIONAL",
+                    "avgPriceMins": "5",
+                    "minNotional": "5.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ORDERS",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                    "applyToMarket": false,
+                    "maxNumAlgoOrders": "5"
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "LIMIT_MAKER",
+                "MARKET",
+                "STOP_LOSS_LIMIT",
+                "TAKE_PROFIT_LIMIT"
+            ],
+            "icebergEnable": "1",
+            "ocoEnable": "1",
+            "spotTradingEnable": "1",
+            "marginTradingEnable": "1",
+            "permissions": [
+                "SPOT",
+                "MARGIN"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0075,
+        "maker": 0.0075,
+        "lowercaseId": "ada_usdt",
+        "delivery": false
+    },
+    "XRP/USDT": {
+        "id": "XRP_USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0,
+            "price": 4,
+            "quote": 8
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 9222449
+            },
+            "price": {
+                "min": 0.0001,
+                "max": 10000
+            },
+            "cost": {},
+            "leverage": {},
+            "market": {
+                "min": 0,
+                "max": 7183669.97083333
+            }
+        },
+        "info": {
+            "type": "1",
+            "symbol": "XRP_USDT",
+            "baseAsset": "XRP",
+            "basePrecision": "8",
+            "quoteAsset": "USDT",
+            "quotePrecision": "8",
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.00010000",
+                    "maxPrice": "10000.00000000",
+                    "tickSize": "0.00010000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "1.00000000",
+                    "maxQty": "9222449.00000000",
+                    "stepSize": "1.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "ICEBERG_PARTS",
+                    "applyToMarket": false,
+                    "limit": "10"
+                },
+                {
+                    "filterType": "MARKET_LOT_SIZE",
+                    "minQty": "0.00000000",
+                    "maxQty": "7183669.97083333",
+                    "stepSize": "0.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "TRAILING_DELTA",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                    "bidMultiplierUp": "5",
+                    "bidMultiplierDown": "0.2",
+                    "askMultiplierUp": "5",
+                    "askMultiplierDown": "0.2",
+                    "avgPriceMins": "5",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "NOTIONAL",
+                    "avgPriceMins": "5",
+                    "minNotional": "5.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ORDERS",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                    "applyToMarket": false,
+                    "maxNumAlgoOrders": "5"
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "LIMIT_MAKER",
+                "MARKET",
+                "STOP_LOSS_LIMIT",
+                "TAKE_PROFIT_LIMIT"
+            ],
+            "icebergEnable": "1",
+            "ocoEnable": "1",
+            "spotTradingEnable": "1",
+            "marginTradingEnable": "1",
+            "permissions": [
+                "SPOT",
+                "MARGIN"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0075,
+        "maker": 0.0075,
+        "lowercaseId": "xrp_usdt",
+        "delivery": false
+    },
+    "SOL/USDT": {
+        "id": "SOL_USDT",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 2,
+            "quote": 8
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01,
+                "max": 90000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 10000
+            },
+            "cost": {},
+            "leverage": {},
+            "market": {
+                "min": 0,
+                "max": 136941.96804166
+            }
+        },
+        "info": {
+            "type": "1",
+            "symbol": "SOL_USDT",
+            "baseAsset": "SOL",
+            "basePrecision": "8",
+            "quoteAsset": "USDT",
+            "quotePrecision": "8",
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.01000000",
+                    "maxPrice": "10000.00000000",
+                    "tickSize": "0.01000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.01000000",
+                    "maxQty": "90000.00000000",
+                    "stepSize": "0.01000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "ICEBERG_PARTS",
+                    "applyToMarket": false,
+                    "limit": "10"
+                },
+                {
+                    "filterType": "MARKET_LOT_SIZE",
+                    "minQty": "0.00000000",
+                    "maxQty": "136941.96804166",
+                    "stepSize": "0.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "TRAILING_DELTA",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                    "bidMultiplierUp": "5",
+                    "bidMultiplierDown": "0.2",
+                    "askMultiplierUp": "5",
+                    "askMultiplierDown": "0.2",
+                    "avgPriceMins": "5",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "NOTIONAL",
+                    "avgPriceMins": "5",
+                    "minNotional": "5.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ORDERS",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                    "applyToMarket": false,
+                    "maxNumAlgoOrders": "5"
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "LIMIT_MAKER",
+                "MARKET",
+                "STOP_LOSS_LIMIT",
+                "TAKE_PROFIT_LIMIT"
+            ],
+            "icebergEnable": "1",
+            "ocoEnable": "1",
+            "spotTradingEnable": "1",
+            "marginTradingEnable": "1",
+            "permissions": [
+                "SPOT",
+                "MARGIN"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0075,
+        "maker": 0.0075,
+        "lowercaseId": "sol_usdt",
+        "delivery": false
+    },
+    "TRX/USDT": {
+        "id": "TRX_USDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 5,
+            "quote": 8
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1,
+                "max": 9000000
+            },
+            "price": {
+                "min": 0.00001,
+                "max": 1000
+            },
+            "cost": {},
+            "leverage": {},
+            "market": {
+                "min": 0,
+                "max": 7117448.4627615
+            }
+        },
+        "info": {
+            "type": "1",
+            "symbol": "TRX_USDT",
+            "baseAsset": "TRX",
+            "basePrecision": "8",
+            "quoteAsset": "USDT",
+            "quotePrecision": "8",
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.00001000",
+                    "maxPrice": "1000.00000000",
+                    "tickSize": "0.00001000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.10000000",
+                    "maxQty": "9000000.00000000",
+                    "stepSize": "0.10000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "ICEBERG_PARTS",
+                    "applyToMarket": false,
+                    "limit": "10"
+                },
+                {
+                    "filterType": "MARKET_LOT_SIZE",
+                    "minQty": "0.00000000",
+                    "maxQty": "7117448.46276150",
+                    "stepSize": "0.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "TRAILING_DELTA",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                    "bidMultiplierUp": "5",
+                    "bidMultiplierDown": "0.2",
+                    "askMultiplierUp": "5",
+                    "askMultiplierDown": "0.2",
+                    "avgPriceMins": "5",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "NOTIONAL",
+                    "avgPriceMins": "5",
+                    "minNotional": "5.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ORDERS",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                    "applyToMarket": false,
+                    "maxNumAlgoOrders": "5"
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "LIMIT_MAKER",
+                "MARKET",
+                "STOP_LOSS_LIMIT",
+                "TAKE_PROFIT_LIMIT"
+            ],
+            "icebergEnable": "1",
+            "ocoEnable": "1",
+            "spotTradingEnable": "1",
+            "marginTradingEnable": "1",
+            "permissions": [
+                "SPOT",
+                "MARGIN"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0075,
+        "maker": 0.0075,
+        "lowercaseId": "trx_usdt",
+        "delivery": false
+    },
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "lowercaseId": "eth_usdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0075,
+        "maker": 0.0075,
+        "precision": {
+            "amount": 4,
+            "price": 2,
+            "quote": 8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001,
+                "max": 9000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {},
+            "market": {
+                "min": 0,
+                "max": 1777.7653925
+            }
+        },
+        "info": {
+            "type": "1",
+            "symbol": "ETH_USDT",
+            "baseAsset": "ETH",
+            "basePrecision": "8",
+            "quoteAsset": "USDT",
+            "quotePrecision": "8",
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.01000000",
+                    "maxPrice": "1000000.00000000",
+                    "tickSize": "0.01000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.00010000",
+                    "maxQty": "9000.00000000",
+                    "stepSize": "0.00010000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "ICEBERG_PARTS",
+                    "applyToMarket": false,
+                    "limit": "10"
+                },
+                {
+                    "filterType": "MARKET_LOT_SIZE",
+                    "minQty": "0.00000000",
+                    "maxQty": "1777.76539250",
+                    "stepSize": "0.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "TRAILING_DELTA",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                    "bidMultiplierUp": "5",
+                    "bidMultiplierDown": "0.2",
+                    "askMultiplierUp": "5",
+                    "askMultiplierDown": "0.2",
+                    "avgPriceMins": "5",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "NOTIONAL",
+                    "avgPriceMins": "5",
+                    "minNotional": "5.00000000",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ORDERS",
+                    "applyToMarket": false
+                },
+                {
+                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                    "applyToMarket": false,
+                    "maxNumAlgoOrders": "5"
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "LIMIT_MAKER",
+                "MARKET",
+                "STOP_LOSS_LIMIT",
+                "TAKE_PROFIT_LIMIT"
+            ],
+            "icebergEnable": "1",
+            "ocoEnable": "1",
+            "spotTradingEnable": "1",
+            "marginTradingEnable": "1",
+            "permissions": [
+                "SPOT",
+                "MARGIN"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "delivery": false
+    }
+}

@@ -1,6 +1,5 @@
 <?php
 namespace ccxt;
-use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -8,12 +7,12 @@ use \ccxt\Precise;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/../base/test_funding_rate_history.php';
+include_once PATH_TO_CCXT . '/test/base/test_funding_rate_history.php';
 
 function test_fetch_funding_rate_history($exchange, $skipped_properties, $symbol) {
     $method = 'fetchFundingRateHistory';
     $funding_rates_history = $exchange->fetch_funding_rate_history($symbol);
-    assert(gettype($funding_rates_history) === 'array' && array_keys($funding_rates_history) === array_keys(array_keys($funding_rates_history)), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an array, returned ' . $exchange->json($funding_rates_history));
+    assert_non_emtpy_array($exchange, $skipped_properties, $method, $funding_rates_history, $symbol);
     for ($i = 0; $i < count($funding_rates_history); $i++) {
         test_funding_rate_history($exchange, $skipped_properties, $method, $funding_rates_history[$i], $symbol);
     }

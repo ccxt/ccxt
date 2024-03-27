@@ -2,11 +2,13 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    public_get_feeschedules = publicGetFeeschedules = Entry('feeschedules', 'public', 'GET', {})
     public_get_instruments = publicGetInstruments = Entry('instruments', 'public', 'GET', {})
     public_get_orderbook = publicGetOrderbook = Entry('orderbook', 'public', 'GET', {})
     public_get_tickers = publicGetTickers = Entry('tickers', 'public', 'GET', {})
     public_get_history = publicGetHistory = Entry('history', 'public', 'GET', {})
     public_get_historicalfundingrates = publicGetHistoricalfundingrates = Entry('historicalfundingrates', 'public', 'GET', {})
+    private_get_feeschedules_volumes = privateGetFeeschedulesVolumes = Entry('feeschedules/volumes', 'private', 'GET', {})
     private_get_openpositions = privateGetOpenpositions = Entry('openpositions', 'private', 'GET', {})
     private_get_notifications = privateGetNotifications = Entry('notifications', 'private', 'GET', {})
     private_get_accounts = privateGetAccounts = Entry('accounts', 'private', 'GET', {})
@@ -31,6 +33,6 @@ class ImplicitAPI:
     history_get_executions = historyGetExecutions = Entry('executions', 'history', 'GET', {})
     history_get_triggers = historyGetTriggers = Entry('triggers', 'history', 'GET', {})
     history_get_accountlogcsv = historyGetAccountlogcsv = Entry('accountlogcsv', 'history', 'GET', {})
+    history_get_account_log = historyGetAccountLog = Entry('account-log', 'history', 'GET', {})
     history_get_market_symbol_orders = historyGetMarketSymbolOrders = Entry('market/{symbol}/orders', 'history', 'GET', {})
     history_get_market_symbol_executions = historyGetMarketSymbolExecutions = Entry('market/{symbol}/executions', 'history', 'GET', {})
-    feeschedules_get_volumes = feeschedulesGetVolumes = Entry('volumes', 'feeschedules', 'GET', {})
