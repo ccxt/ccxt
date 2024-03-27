@@ -4321,22 +4321,6 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchStatus() is not supported yet');
     }
 
-    async fetchFundingFee (code: string, params = {}) {
-        const warnOnFetchFundingFee = this.safeBool (this.options, 'warnOnFetchFundingFee', true);
-        if (warnOnFetchFundingFee) {
-            throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
-        }
-        return await this.fetchTransactionFee (code, params);
-    }
-
-    async fetchFundingFees (codes: string[] = undefined, params = {}) {
-        const warnOnFetchFundingFees = this.safeBool (this.options, 'warnOnFetchFundingFees', true);
-        if (warnOnFetchFundingFees) {
-            throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
-        }
-        return await this.fetchTransactionFees (codes, params);
-    }
-
     async fetchTransactionFee (code: string, params = {}) {
         if (!this.has['fetchTransactionFees']) {
             throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
