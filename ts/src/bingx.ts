@@ -1694,19 +1694,27 @@ export default class bingx extends Exchange {
 
     parsePosition (position, market: Market = undefined) {
         //
-        //     {
-        //         "symbol": "BTC-USDT",
-        //         "positionId": "12345678",
-        //         "positionSide": "LONG",
-        //         "isolated": true,
-        //         "positionAmt": "123.33",
-        //         "availableAmt": "128.99",
-        //         "unrealizedProfit": "1.22",
-        //         "realisedProfit": "8.1",
-        //         "initialMargin": "123.33",
-        //         "avgPrice": "2.2",
-        //         "leverage": 10,
-        //     }
+        //    {
+        //        "positionId":"1773122376147623936",
+        //        "symbol":"XRP-USDT",
+        //        "currency":"USDT",
+        //        "positionAmt":"3",
+        //        "availableAmt":"3",
+        //        "positionSide":"LONG",
+        //        "isolated":false,
+        //        "avgPrice":"0.6139",
+        //        "initialMargin":"0.0897",
+        //        "leverage":20,
+        //        "unrealizedProfit":"-0.0023",
+        //        "realisedProfit":"-0.0009",
+        //        "liquidationPrice":0,
+        //        "pnlRatio":"-0.0260",
+        //        "maxMarginReduction":"",
+        //        "riskRate":"",
+        //        "markPrice":"",
+        //        "positionValue":"",
+        //        "onlyOnePosition":false
+        //    }
         //
         // standard position
         //
@@ -1733,7 +1741,7 @@ export default class bingx extends Exchange {
             'info': position,
             'id': this.safeString (position, 'positionId'),
             'symbol': this.safeSymbol (marketId, market, '-', 'swap'),
-            'notional': this.safeNumber (position, 'positionAmt'),
+            'notional': this.safeNumber (position, 'positionValue'),
             'marginMode': marginMode,
             'liquidationPrice': undefined,
             'entryPrice': this.safeNumber2 (position, 'avgPrice', 'entryPrice'),
@@ -1751,7 +1759,7 @@ export default class bingx extends Exchange {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'collateral': this.safeNumber (position, 'positionAmt'),
+            'collateral': undefined,
             'initialMargin': this.safeNumber (position, 'initialMargin'),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
