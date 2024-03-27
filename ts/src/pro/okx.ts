@@ -518,9 +518,9 @@ export default class okx extends okxRest {
         } else if (limit === 400) {
             depth = 'books';
         } else if (limit === 50) {
-            depth = 'books50-l2-tbt'; //  Make sure you have VIP4 and above
+            depth = 'books50-l2-tbt'; // Make sure you have VIP4 and above
         } else if (limit === 4000) {
-            depth = 'books-l2-tbt'; //  Make sure you have VIP5 and above
+            depth = 'books-l2-tbt'; // Make sure you have VIP5 and above
         }
         if ((depth === 'books-l2-tbt') || (depth === 'books50-l2-tbt')) {
             await this.authenticate ({ 'access': 'public' });
