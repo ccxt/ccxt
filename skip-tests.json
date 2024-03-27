@@ -538,7 +538,7 @@
                 "info": "null"
             },
             "orderBook": {
-                "spread":"bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0) <<< btcbox ",
+                "spread":"bids[0][0] (3787971.0) should be < than asks[0][0] (3787971.0)",
                 "timestamp":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4820"
             },
             "ticker": {
