@@ -226,6 +226,7 @@ export default class independentreserve extends independentreserveRest {
             if (calculatedChecksum !== responseChecksum) {
                 const error = new InvalidNonce (this.id + ' invalid checksum');
                 client.reject (error, messageHash);
+                return;
             }
         }
         if (receivedSnapshot) {
