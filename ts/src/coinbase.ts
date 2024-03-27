@@ -3837,14 +3837,15 @@ export default class coinbase extends Exchange {
                     seconds = 1700000000;
                     const nonce = '420fcec8015e447a0a785006c2fc8206';
                     const request = {
-                        'aud': ['retail_rest_api_proxy'],
+                        'aud': [ 'retail_rest_api_proxy' ],
                         'iss': 'coinbase-cloud',
                         'nbf': seconds,
                         'exp': seconds + 120,
                         'sub': this.apiKey,
                         'uri': uri,
+                        'iat': seconds,
                     };
-                    const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256', 'iat': seconds + 120 });
+                    const token = jwt (request, this.encode (this.secret), sha256, true, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     console.log (token);
                     authorizationString = 'Bearer ' + token;
                 } else {

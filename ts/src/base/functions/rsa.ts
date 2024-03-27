@@ -16,7 +16,11 @@ function rsa (request: string, secret: string, hash: CHash) {
 function jwt (request: {}, secret: Uint8Array, hash: CHash, isRSA = false, opts = {}) {
     const alg = (isRSA ? 'RS' : 'HS') + (hash.outputLen * 8)
     const header = Object.assign({ 'alg': alg, 'typ': 'JWT' }, opts);
-    const encodedHeader = urlencodeBase64(stringToBase64(JSON.stringify(header)));
+    if (header['iat'] !== undefined) {
+        request['iat'] = header['iat'];
+        delete header['iat'];
+    }
+    const encodedHeader = urlencodeBase64(stringToBase64 (JSON.stringify(header)));
     const encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)));
     const token = [ encodedHeader, encodedData ].join ('.');
     const algoType = alg.slice (0, 2);
