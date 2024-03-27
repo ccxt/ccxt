@@ -364,28 +364,29 @@ async function tryFetchBestBidAsk (exchange, method, symbol) {
     if (exchange.has['fetchOrderBook']) {
         usedMethod = 'fetchOrderBook';
         const orderbook = await exchange.fetchOrderBook (symbol);
-        bestBid = orderbook.bids[0][0];
-        bestAsk = orderbook.asks[0][0];
-    } else if (exchange.has['fetchTicker']) {
-        usedMethod = 'fetchTicker';
-        const ticker = await exchange.fetchTicker (symbol);
-        bestBid = ticker.bid;
-        bestAsk = ticker.ask;
-    } else if (exchange.has['fetchTickers']) {
-        usedMethod = 'fetchTickers';
-        const tickers = await exchange.fetchTickers ([ symbol ]);
-        bestBid = tickers[symbol].bid;
-        bestAsk = tickers[symbol].ask;
-    } else if (exchange.has['fetchL1OrderBooks']) {
-        usedMethod = 'fetchL1OrderBooks';
-        const tickers = await exchange.fetchL1OrderBooks ([ symbol ]);
-        bestBid = tickers[symbol].bid;
-        bestAsk = tickers[symbol].ask;
+        const bids = exchange.safeList (orderbook, 'bids');
+        const asks = exchange.safeList (orderbook, 'asks');
+        const bestBidArray = exchange.safeList (bids, 0);
+        const bestAskArray = exchange.safeList (asks, 0);
+        bestBid = exchange.safeNumber (bestBidArray, 0);
+        bestAsk = exchange.safeNumber (bestAskArray, 0);
     } else if (exchange.has['fetchBidsAsks']) {
         usedMethod = 'fetchBidsAsks';
         const tickers = await exchange.fetchBidsAsks ([ symbol ]);
-        bestBid = tickers[symbol].bid;
-        bestAsk = tickers[symbol].ask;
+        const ticker = exchange.safeDict (tickers, symbol);
+        bestBid = exchange.safeNumber (ticker, 'bid');
+        bestAsk = exchange.safeNumber (ticker, 'ask');
+    } else if (exchange.has['fetchTicker']) {
+        usedMethod = 'fetchTicker';
+        const ticker = await exchange.fetchTicker (symbol);
+        bestBid = exchange.safeNumber (ticker, 'bid');
+        bestAsk = exchange.safeNumber (ticker, 'ask');
+    } else if (exchange.has['fetchTickers']) {
+        usedMethod = 'fetchTickers';
+        const tickers = await exchange.fetchTickers ([ symbol ]);
+        const ticker = exchange.safeDict (tickers, symbol);
+        bestBid = exchange.safeNumber (ticker, 'bid');
+        bestAsk = exchange.safeNumber (ticker, 'ask');
     }
     //
     assert (bestBid !== undefined && bestAsk !== undefined, logText + ' ' +  exchange.id + ' could not get best bid/ask for ' + symbol + ' using ' + usedMethod + ' while testing ' + method);
