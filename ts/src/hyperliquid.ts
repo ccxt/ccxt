@@ -1969,10 +1969,28 @@ export default class hyperliquid extends Exchange {
         //         'status': 'ok'
         //     }
         //
-        return response;
-        // return this.extend (this.parseMarginModification (response, market), {
-        //     'code': code,
-        // });
+        return this.extend (this.parseMarginModification (response, market), {
+            'code': this.safeString (response, 'status'),
+        });
+    }
+
+    parseMarginModification (data, market: Market = undefined): MarginModification {
+        //
+        //    {
+        //        'type': 'default'
+        //    }
+        //
+        return {
+            'info': data,
+            'symbol': this.safeSymbol (undefined, market),
+            'type': undefined,
+            'amount': undefined,
+            'total': undefined,
+            'code': this.safeString (market, 'settle'),
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
