@@ -247,6 +247,9 @@ public partial class Exchange
             // return tcs.Task;
         }
 
+
+        private static readonly object _sendAsyncLock = new object();
+
         public async Task send(object message)
         {
             var jsonMessage = Exchange.Json(message).ToString();
@@ -256,10 +259,13 @@ public partial class Exchange
             }
             var bytes = Encoding.UTF8.GetBytes(jsonMessage);
             var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
-            await this.webSocket.SendAsync(arraySegment,
+            lock (_sendAsyncLock)
+            {
+                await this.webSocket.SendAsync(arraySegment,
                                 WebSocketMessageType.Text,
                                 true,
                                 CancellationToken.None);
+            }
         }
 
         private static async Task Sending(ClientWebSocket webSocket)
@@ -273,7 +279,10 @@ public partial class Exchange
                     if (!string.IsNullOrEmpty(message))
                     {
                         var bytes = Encoding.UTF8.GetBytes(message);
-                        await webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                        lock (_sendAsyncLock)
+                        {
+                            await webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                        }
                     }
                 }
             }
