@@ -417,7 +417,7 @@ export default class zonda extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
     }
 
@@ -808,7 +808,7 @@ export default class zonda extends Exchange {
         } else {
             throw new BadRequest (this.id + ' fetchTickers params["method"] must be "v1_01PublicGetTradingTicker" or "v1_01PublicGetTradingStats"');
         }
-        const items = this.safeValue (response, 'items');
+        const items = this.safeDict (response, 'items');
         return this.parseTickers (items, symbols);
     }
 
@@ -1235,7 +1235,7 @@ export default class zonda extends Exchange {
         //         ]
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 
@@ -1342,7 +1342,7 @@ export default class zonda extends Exchange {
             request['limit'] = limit; // default - 10, max - 300
         }
         const response = await this.v1_01PublicGetTradingTransactionsSymbol (this.extend (request, params));
-        const items = this.safeValue (response, 'items');
+        const items = this.safeList (response, 'items');
         return this.parseTrades (items, market, since, limit);
     }
 
@@ -1569,7 +1569,7 @@ export default class zonda extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const first = this.safeValue (data, 0);
+        const first = this.safeDict (data, 0);
         return this.parseDepositAddress (first, currency);
     }
 
@@ -1598,7 +1598,7 @@ export default class zonda extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseDepositAddresses (data, codes);
     }
 
@@ -1758,7 +1758,7 @@ export default class zonda extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseTransaction (data, currency);
     }
 
