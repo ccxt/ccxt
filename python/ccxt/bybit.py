@@ -36,7 +36,7 @@ class bybit(Exchange, ImplicitAPI):
             'version': 'v5',
             'userAgent': None,
             'rateLimit': 20,
-            'hostname': 'bybit.com',  # bybit.com, bytick.com
+            'hostname': 'bybit.com',  # bybit.com, bytick.com, bybit.nl, bybit.com.hk
             'pro': True,
             'certified': True,
             'has': {
@@ -482,7 +482,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
                         # asset
-                        'v5/asset/transfer/inter-transfer': 150,  # 1/3/s => cost = 50 / 1/3 = 150
+                        'v5/asset/transfer/inter-transfer': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/save-transfer-sub-member': 150,  # 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account': 5,
@@ -2715,10 +2715,10 @@ class bybit(Exchange, ImplicitAPI):
                 # limit: [1, 25]. Default: 1
                 request['category'] = 'option'
             elif market['linear']:
-                # limit: [1, 200]. Default: 25
+                # limit: [1, 500]. Default: 25
                 request['category'] = 'linear'
             elif market['inverse']:
-                # limit: [1, 200]. Default: 25
+                # limit: [1, 500]. Default: 25
                 request['category'] = 'inverse'
         request['limit'] = limit if (limit is not None) else defaultLimit
         response = self.publicGetV5MarketOrderbook(self.extend(request, params))

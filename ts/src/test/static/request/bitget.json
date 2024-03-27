@@ -1481,6 +1481,40 @@
                         "ETH/USDT:USDT"
                     ]
                 ]
+            },
+            {
+                "description": "subType linear",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v2/mix/market/tickers?productType=USDT-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "subType inverse",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v2/mix/market/tickers?productType=COIN-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "productType usdc",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v2/mix/market/tickers?productType=USDC-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "defaultType": "swap",
+                        "productType": "USDC-FUTURES"
+                    }
+                ]
             }
         ],
         "fetchFundingRateHistory": [

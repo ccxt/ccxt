@@ -25,6 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -441,6 +442,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds,  # {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
+                    'The amount increment is invalid.': BadRequest,
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -2091,6 +2093,13 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(data, 'data', [])
         return self.parse_orders(data)
 
+    def market_order_amount_to_precision(self, symbol: str, amount):
+        market = self.market(symbol)
+        result = self.decimal_to_precision(amount, TRUNCATE, market['info']['quoteIncrement'], self.precisionMode, self.paddingMode)
+        if result == '0':
+            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
+        return result
+
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         # required param, cannot be used twice
@@ -2111,7 +2120,7 @@ class kucoin(Exchange, ImplicitAPI):
             if quoteAmount is not None:
                 params = self.omit(params, ['cost', 'funds'])
                 # kucoin uses base precision even for quote values
-                costString = self.amount_to_precision(symbol, quoteAmount)
+                costString = self.market_order_amount_to_precision(symbol, quoteAmount)
                 request['funds'] = costString
             else:
                 amountString = self.amount_to_precision(symbol, amount)

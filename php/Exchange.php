@@ -38,7 +38,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.2.83';
+$version = '4.2.84';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -57,7 +57,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.2.83';
+    const VERSION = '4.2.84';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -275,8 +275,6 @@ class Exchange {
         'fetchDepositAddresses' => null,
         'fetchDepositAddressesByNetwork' => null,
         'fetchDeposits' => null,
-        'fetchFundingFee' => null,
-        'fetchFundingFees' => null,
         'fetchFundingHistory' => null,
         'fetchFundingRate' => null,
         'fetchFundingRateHistory' => null,
@@ -4739,22 +4737,6 @@ class Exchange {
 
     public function fetch_status($params = array ()) {
         throw new NotSupported($this->id . ' fetchStatus() is not supported yet');
-    }
-
-    public function fetch_funding_fee(string $code, $params = array ()) {
-        $warnOnFetchFundingFee = $this->safe_bool($this->options, 'warnOnFetchFundingFee', true);
-        if ($warnOnFetchFundingFee) {
-            throw new NotSupported($this->id . ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fee($code, $params);
-    }
-
-    public function fetch_funding_fees(?array $codes = null, $params = array ()) {
-        $warnOnFetchFundingFees = $this->safe_bool($this->options, 'warnOnFetchFundingFees', true);
-        if ($warnOnFetchFundingFees) {
-            throw new NotSupported($this->id . ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fees($codes, $params);
     }
 
     public function fetch_transaction_fee(string $code, $params = array ()) {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.2.83'
+__version__ = '4.2.84'
 
 # -----------------------------------------------------------------------------
 
@@ -321,8 +321,6 @@ class Exchange(object):
         'fetchDepositAddresses': None,
         'fetchDepositAddressesByNetwork': None,
         'fetchDeposits': None,
-        'fetchFundingFee': None,
-        'fetchFundingFees': None,
         'fetchFundingHistory': None,
         'fetchFundingRate': None,
         'fetchFundingRateHistory': None,
@@ -1496,13 +1494,6 @@ class Exchange(object):
             currencies = self.fetch_currencies()
         markets = self.fetch_markets(params)
         return self.set_markets(markets, currencies)
-
-    def load_fees(self, reload=False):
-        if not reload:
-            if self.loaded_fees != Exchange.loaded_fees:
-                return self.loaded_fees
-        self.loaded_fees = self.deep_extend(self.loaded_fees, self.fetch_fees())
-        return self.loaded_fees
 
     def fetch_markets(self, params={}):
         # markets are returned as a list
@@ -3833,18 +3824,6 @@ class Exchange(object):
 
     def fetch_status(self, params={}):
         raise NotSupported(self.id + ' fetchStatus() is not supported yet')
-
-    def fetch_funding_fee(self, code: str, params={}):
-        warnOnFetchFundingFee = self.safe_bool(self.options, 'warnOnFetchFundingFee', True)
-        if warnOnFetchFundingFee:
-            raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
-        return self.fetch_transaction_fee(code, params)
-
-    def fetch_funding_fees(self, codes: List[str] = None, params={}):
-        warnOnFetchFundingFees = self.safe_bool(self.options, 'warnOnFetchFundingFees', True)
-        if warnOnFetchFundingFees:
-            raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
-        return self.fetch_transaction_fees(codes, params)
 
     def fetch_transaction_fee(self, code: str, params={}):
         if not self.has['fetchTransactionFees']:

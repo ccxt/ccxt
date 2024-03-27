@@ -4013,8 +4013,7 @@ public partial class coinex : Exchange
         //     }
         //
         object marketId = this.safeString(position, "market");
-        object defaultType = this.safeString(this.options, "defaultType");
-        market = this.safeMarket(marketId, market, null, defaultType);
+        market = this.safeMarket(marketId, market, null, "swap");
         object symbol = getValue(market, "symbol");
         object positionId = this.safeInteger(position, "position_id");
         object marginModeInteger = this.safeInteger(position, "type");
