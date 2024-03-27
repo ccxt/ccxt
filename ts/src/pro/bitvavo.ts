@@ -1324,8 +1324,8 @@ export default class bitvavo extends bitvavoRest {
                     message = message.toString ();
                 }
             }
-            const error = new OperationFailed (this.id + ' WS handleErrorMessage() : ' + message);
-            client.reject (error, messageHash); // todo: maybe exception instead of string
+            const exception = new OperationFailed (this.id + ' WS handleErrorMessage() : ' + message);
+            client.reject (exception, messageHash); // todo: maybe exception instead of string
         }
     }
 
