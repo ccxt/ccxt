@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -3989,7 +3989,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMargin (symbol: string, amount: number, params = {}) {
+    async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name phemex#setMargin
@@ -4026,7 +4026,7 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseMarginModification (data, market: Market = undefined) {
+    parseMarginModification (data, market: Market = undefined): MarginModification {
         //
         //     {
         //         "code": 0,
@@ -4039,12 +4039,14 @@ export default class phemex extends Exchange {
         const codeCurrency = inverse ? 'base' : 'quote';
         return {
             'info': data,
+            'symbol': this.safeSymbol (undefined, market),
             'type': 'set',
             'amount': undefined,
             'total': undefined,
             'code': market[codeCurrency],
-            'symbol': this.safeSymbol (undefined, market),
             'status': this.parseMarginStatus (this.safeString (data, 'code')),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
