@@ -10,6 +10,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <NoWarn>CS1998,CS0168, CS0108, CS8604, CS8600, CS8601, CS8602, CS8603, CS8625, CS8618, CS8981, CA2200, CS8974, CS043, CS0436, CA2200</NoWarn>
+      
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>ccxt-cs</ToolCommandName> 
+    <PackageOutputPath>./nupkg</PackageOutputPath> 
   </PropertyGroup>
 
 </Project>
