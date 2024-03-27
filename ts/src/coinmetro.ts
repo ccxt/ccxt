@@ -546,7 +546,7 @@ export default class coinmetro extends Exchange {
         //         ]
         //     }
         //
-        const candleHistory = this.safeValue (response, 'candleHistory', []);
+        const candleHistory = this.safeList (response, 'candleHistory', []);
         return this.parseOHLCVs (candleHistory, market, timeframe, since, limit);
     }
 
@@ -613,7 +613,7 @@ export default class coinmetro extends Exchange {
         //         ]
         //     }
         //
-        const tickHistory = this.safeValue (response, 'tickHistory', []);
+        const tickHistory = this.safeList (response, 'tickHistory', []);
         return this.parseTrades (tickHistory, market, since, limit);
     }
 
@@ -891,7 +891,7 @@ export default class coinmetro extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetExchangePrices (params);
-        const latestPrices = this.safeValue (response, 'latestPrices', []);
+        const latestPrices = this.safeList (response, 'latestPrices', []);
         return this.parseTickers (latestPrices, symbols);
     }
 
