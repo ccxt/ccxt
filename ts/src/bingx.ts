@@ -3497,7 +3497,30 @@ export default class bingx extends Exchange {
         //        "type": 1
         //    }
         //
-        return response;
+        return this.parseMarginModification (response, market);
+    }
+
+    parseMarginModification (data, market: Market = undefined): MarginModification {
+        //
+        //    {
+        //        "code": 0,
+        //        "msg": "",
+        //        "amount": 1,
+        //        "type": 1
+        //    }
+        //
+        const type = this.safeString (data, 'type');
+        return {
+            'info': data,
+            'symbol': this.safeString (market, 'symbol'),
+            'type': (type === '1') ? 'add' : 'reduce',
+            'amount': this.safeNumber (data, 'amount'),
+            'total': this.safeNumber (data, 'margin'),
+            'code': this.safeString (market, 'settle'),
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
 
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
