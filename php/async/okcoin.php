@@ -617,7 +617,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments

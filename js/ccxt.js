@@ -38,7 +38,7 @@ import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.79';
+const version = '4.2.84';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import ace from './src/ace.js';
@@ -157,6 +157,7 @@ import bitcoincomPro from './src/pro/bitcoincom.js';
 import bitfinexPro from './src/pro/bitfinex.js';
 import bitfinex2Pro from './src/pro/bitfinex2.js';
 import bitgetPro from './src/pro/bitget.js';
+import bithumbPro from './src/pro/bithumb.js';
 import bitmartPro from './src/pro/bitmart.js';
 import bitmexPro from './src/pro/bitmex.js';
 import bitoproPro from './src/pro/bitopro.js';
@@ -326,6 +327,7 @@ const pro = {
     'bitfinex': bitfinexPro,
     'bitfinex2': bitfinex2Pro,
     'bitget': bitgetPro,
+    'bithumb': bithumbPro,
     'bitmart': bitmartPro,
     'bitmex': bitmexPro,
     'bitopro': bitoproPro,

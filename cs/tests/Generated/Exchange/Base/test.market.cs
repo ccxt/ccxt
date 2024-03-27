@@ -94,6 +94,11 @@ public partial class testMainClass : BaseTest
         }
         if (!isTrue((inOp(skippedProperties, "contractSize"))))
         {
+            if (!isTrue(getValue(market, "spot")))
+            {
+                // if not spot, then contractSize should be defined
+                assert(!isEqual(getValue(market, "contractSize"), null), add("\"contractSize\" must be defined when \"spot\" is false", logText));
+            }
             testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "contractSize", "0");
         }
         // typical values

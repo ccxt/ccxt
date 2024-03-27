@@ -9,7 +9,7 @@ export default class phemex extends Exchange {
     parseSafeNumber(value?: any): any;
     parseSwapMarket(market: any): import("./base/types.js").MarketInterface;
     parseSpotMarket(market: any): import("./base/types.js").MarketInterface;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     customParseBidAsk(bidask: any, priceKey?: number, amountKey?: number, market?: Market): number[];
     customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: Market): any;

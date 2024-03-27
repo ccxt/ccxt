@@ -66,6 +66,8 @@ class deribit extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => true,
+                'fetchOptionChain' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
@@ -752,7 +754,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for deribit
          * @see https://docs.deribit.com/#public-get_currencies
@@ -1313,9 +1315,16 @@ class deribit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->paginate] whether to $paginate the results, set to false by default
+         * @param {int} [$params->until] the latest time in ms to fetch ohlcv for
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 5000);
+        }
         $market = $this->market($symbol);
         $request = array(
             'instrument_name' => $market['id'],
@@ -1337,6 +1346,11 @@ class deribit extends Exchange {
             } else {
                 $request['end_timestamp'] = $this->sum($since, $limit * $duration * 1000);
             }
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['end_timestamp'] = $until;
         }
         $response = $this->publicGetGetTradingviewChartData (array_merge($request, $params));
         //
@@ -1462,6 +1476,7 @@ class deribit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $trades for
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
          */
         $this->load_markets();
@@ -1476,8 +1491,13 @@ class deribit extends Exchange {
         if ($limit !== null) {
             $request['count'] = min ($limit, 1000); // default 10
         }
+        $until = $this->safe_integer_2($params, 'until', 'end_timestamp');
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until' ));
+            $request['end_timestamp'] = $until;
+        }
         $response = null;
-        if ($since === null) {
+        if (($since === null) && !(is_array($request) && array_key_exists('end_timestamp', $request))) {
             $response = $this->publicGetGetLastTradesByInstrument (array_merge($request, $params));
         } else {
             $response = $this->publicGetGetLastTradesByInstrumentAndTime (array_merge($request, $params));
@@ -3400,6 +3420,158 @@ class deribit extends Exchange {
             'lastPrice' => $this->safe_number($greeks, 'last_price'),
             'underlyingPrice' => $this->safe_number($greeks, 'underlying_price'),
             'info' => $greeks,
+        );
+    }
+
+    public function fetch_option(string $symbol, $params = array ()): Option {
+        /**
+         * fetches option data that is commonly found in an option $chain
+         * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-$chain-structure option $chain structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument_name' => $market['id'],
+        );
+        $response = $this->publicGetGetBookSummaryByInstrument (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
+        //             {
+        //                 "mid_price" => 0.04025,
+        //                 "volume_usd" => 11045.12,
+        //                 "quote_currency" => "BTC",
+        //                 "estimated_delivery_price" => 65444.72,
+        //                 "creation_timestamp" => 1711100949273,
+        //                 "base_currency" => "BTC",
+        //                 "underlying_index" => "BTC-27DEC24",
+        //                 "underlying_price" => 73742.14,
+        //                 "volume" => 4.0,
+        //                 "interest_rate" => 0.0,
+        //                 "price_change" => -6.9767,
+        //                 "open_interest" => 274.2,
+        //                 "ask_price" => 0.042,
+        //                 "bid_price" => 0.0385,
+        //                 "instrument_name" => "BTC-27DEC24-240000-C",
+        //                 "mark_price" => 0.04007735,
+        //                 "last" => 0.04,
+        //                 "low" => 0.04,
+        //                 "high" => 0.043
+        //             }
+        //         ),
+        //         "usIn" => 1711100949273223,
+        //         "usOut" => 1711100949273580,
+        //         "usDiff" => 357,
+        //         "testnet" => false
+        //     }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        $chain = $this->safe_dict($result, 0, array());
+        return $this->parse_option($chain, null, $market);
+    }
+
+    public function fetch_option_chain(string $code, $params = array ()): OptionChain {
+        /**
+         * fetches data for an underlying asset that is commonly found in an option chain
+         * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+         * @param {string} $currency base $currency to fetch an option chain for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structures~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+            'kind' => 'option',
+        );
+        $response = $this->publicGetGetBookSummaryByCurrency (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
+        //             {
+        //                 "mid_price" => 0.4075,
+        //                 "volume_usd" => 2836.83,
+        //                 "quote_currency" => "BTC",
+        //                 "estimated_delivery_price" => 65479.26,
+        //                 "creation_timestamp" => 1711101594477,
+        //                 "base_currency" => "BTC",
+        //                 "underlying_index" => "BTC-28JUN24",
+        //                 "underlying_price" => 68827.27,
+        //                 "volume" => 0.1,
+        //                 "interest_rate" => 0.0,
+        //                 "price_change" => 0.0,
+        //                 "open_interest" => 364.1,
+        //                 "ask_price" => 0.411,
+        //                 "bid_price" => 0.404,
+        //                 "instrument_name" => "BTC-28JUN24-42000-C",
+        //                 "mark_price" => 0.40752052,
+        //                 "last" => 0.423,
+        //                 "low" => 0.423,
+        //                 "high" => 0.423
+        //             }
+        //         ),
+        //         "usIn" => 1711101594456388,
+        //         "usOut" => 1711101594484065,
+        //         "usDiff" => 27677,
+        //         "testnet" => false
+        //     }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_option_chain($result, 'base_currency', 'instrument_name');
+    }
+
+    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+        //
+        //     {
+        //         "mid_price" => 0.04025,
+        //         "volume_usd" => 11045.12,
+        //         "quote_currency" => "BTC",
+        //         "estimated_delivery_price" => 65444.72,
+        //         "creation_timestamp" => 1711100949273,
+        //         "base_currency" => "BTC",
+        //         "underlying_index" => "BTC-27DEC24",
+        //         "underlying_price" => 73742.14,
+        //         "volume" => 4.0,
+        //         "interest_rate" => 0.0,
+        //         "price_change" => -6.9767,
+        //         "open_interest" => 274.2,
+        //         "ask_price" => 0.042,
+        //         "bid_price" => 0.0385,
+        //         "instrument_name" => "BTC-27DEC24-240000-C",
+        //         "mark_price" => 0.04007735,
+        //         "last" => 0.04,
+        //         "low" => 0.04,
+        //         "high" => 0.043
+        //     }
+        //
+        $marketId = $this->safe_string($chain, 'instrument_name');
+        $market = $this->safe_market($marketId, $market);
+        $currencyId = $this->safe_string($chain, 'base_currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $timestamp = $this->safe_integer($chain, 'timestamp');
+        return array(
+            'info' => $chain,
+            'currency' => $code,
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'impliedVolatility' => null,
+            'openInterest' => $this->safe_number($chain, 'open_interest'),
+            'bidPrice' => $this->safe_number($chain, 'bid_price'),
+            'askPrice' => $this->safe_number($chain, 'ask_price'),
+            'midPrice' => $this->safe_number($chain, 'mid_price'),
+            'markPrice' => $this->safe_number($chain, 'mark_price'),
+            'lastPrice' => $this->safe_number($chain, 'last'),
+            'underlyingPrice' => $this->safe_number($chain, 'underlying_price'),
+            'change' => null,
+            'percentage' => $this->safe_number($chain, 'price_change'),
+            'baseVolume' => $this->safe_number($chain, 'volume'),
+            'quoteVolume' => $this->safe_number($chain, 'volume_usd'),
         );
     }
 

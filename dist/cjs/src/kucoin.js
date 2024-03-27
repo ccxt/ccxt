@@ -423,6 +423,7 @@ class kucoin extends kucoin$1 {
                     'Order size below the minimum requirement.': errors.InvalidOrder,
                     'The withdrawal amount is below the minimum requirement.': errors.ExchangeError,
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': errors.InsufficientFunds,
+                    'The amount increment is invalid.': errors.BadRequest,
                     '400': errors.BadRequest,
                     '401': errors.AuthenticationError,
                     '403': errors.NotSupported,
@@ -2160,6 +2161,14 @@ class kucoin extends kucoin$1 {
         data = this.safeList(data, 'data', []);
         return this.parseOrders(data);
     }
+    marketOrderAmountToPrecision(symbol, amount) {
+        const market = this.market(symbol);
+        const result = this.decimalToPrecision(amount, number.TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new errors.InvalidOrder(this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString(market['precision']['amount']));
+        }
+        return result;
+    }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
         // required param, cannot be used twice
@@ -2180,7 +2189,7 @@ class kucoin extends kucoin$1 {
             if (quoteAmount !== undefined) {
                 params = this.omit(params, ['cost', 'funds']);
                 // kucoin uses base precision even for quote values
-                costString = this.amountToPrecision(symbol, quoteAmount);
+                costString = this.marketOrderAmountToPrecision(symbol, quoteAmount);
                 request['funds'] = costString;
             }
             else {

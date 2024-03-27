@@ -489,7 +489,7 @@ class coinex(Exchange, ImplicitAPI):
             result[code]['limits']['withdraw']['min'] = self.parse_number(minWithdrawString)
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinex
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market002_all_market_info
@@ -3515,8 +3515,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(position, 'market')
-        defaultType = self.safe_string(self.options, 'defaultType')
-        market = self.safe_market(marketId, market, None, defaultType)
+        market = self.safe_market(marketId, market, None, 'swap')
         symbol = market['symbol']
         positionId = self.safe_integer(position, 'position_id')
         marginModeInteger = self.safe_integer(position, 'type')

@@ -180,7 +180,7 @@ class luno(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for luno
         :see: https://www.luno.com/en/developers/api#tag/Market/operation/Markets

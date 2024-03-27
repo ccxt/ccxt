@@ -12,6 +12,7 @@ public partial class bithumb : Exchange
             { "name", "Bithumb" },
             { "countries", new List<object>() {"KR"} },
             { "rateLimit", 500 },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
                 { "spot", true },

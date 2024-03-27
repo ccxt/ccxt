@@ -411,3 +411,13 @@ function assert_non_emtpy_array($exchange, $skipped_properties, $method, $entry,
     }
     assert(count($entry) > 0, 'response is expected to be a non-empty array' . $log_text . ' (add \"emptyResponse\" in skip-tests.json to skip this check)');
 }
+
+
+function assert_round_minute_timestamp($exchange, $skipped_properties, $method, $entry, $key) {
+    if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
+        return;
+    }
+    $log_text = log_template($exchange, $method, $entry);
+    $ts = $exchange->safe_string($entry, $key);
+    assert(Precise::string_mod($ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' . $log_text);
+}

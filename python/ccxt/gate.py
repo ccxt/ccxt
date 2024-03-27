@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, Market, MarketInterface, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -150,6 +150,8 @@ class gate(Exchange, ImplicitAPI):
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrders': True,
+                'fetchOption': True,
+                'fetchOptionChain': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
@@ -964,7 +966,7 @@ class gate(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(gate, self).safe_market(marketId, market, delimiter, marketType)
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for gate
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     # spot
@@ -3959,8 +3961,13 @@ class gate(Exchange, ImplicitAPI):
             'account': account,
         }
         if amount is not None:
-            amountKey = 'amount' if (market['spot']) else 'size'
-            request[amountKey] = self.amount_to_precision(symbol, amount)
+            if market['spot']:
+                request['amount'] = self.amount_to_precision(symbol, amount)
+            else:
+                if side == 'sell':
+                    request['size'] = Precise.string_neg(self.amount_to_precision(symbol, amount))
+                else:
+                    request['size'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         response = None
@@ -4690,8 +4697,8 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None if (symbol is None) else self.market(symbol)
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         request, requestParams = self.multi_order_spot_prepare_request(market, stop, query) if (type == 'spot') else self.prepare_request(market, type, query)
         response = None
@@ -4985,7 +4992,7 @@ class gate(Exchange, ImplicitAPI):
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'realizedPnl': self.safe_number(position, 'realised_pnl'),
             'contracts': self.parse_number(Precise.string_abs(size)),
-            'contractSize': self.safe_value(market, 'contractSize'),
+            'contractSize': self.safe_number(market, 'contractSize'),
             # 'realisedPnl': position['realised_pnl'],
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liq_price'),
@@ -6680,6 +6687,186 @@ class gate(Exchange, ImplicitAPI):
             'marginMode': None,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
+        }
+
+    def fetch_option(self, symbol: str, params={}) -> Option:
+        """
+        fetches option data that is commonly found in an option chain
+        :see: https://www.gate.io/docs/developers/apiv4/en/#query-specified-contract-detail
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'contract': market['id'],
+        }
+        response = self.publicOptionsGetContractsContract(self.extend(request, params))
+        #
+        #     {
+        #         "is_active": True,
+        #         "mark_price_round": "0.01",
+        #         "settle_fee_rate": "0.00015",
+        #         "bid1_size": 30,
+        #         "taker_fee_rate": "0.0003",
+        #         "price_limit_fee_rate": "0.1",
+        #         "order_price_round": "0.1",
+        #         "tag": "month",
+        #         "ref_rebate_rate": "0",
+        #         "name": "ETH_USDT-20240628-4500-C",
+        #         "strike_price": "4500",
+        #         "ask1_price": "280.5",
+        #         "ref_discount_rate": "0",
+        #         "order_price_deviate": "0.2",
+        #         "ask1_size": -19,
+        #         "mark_price_down": "155.45",
+        #         "orderbook_id": 11724695,
+        #         "is_call": True,
+        #         "last_price": "188.7",
+        #         "mark_price": "274.26",
+        #         "underlying": "ETH_USDT",
+        #         "create_time": 1688024882,
+        #         "settle_limit_fee_rate": "0.1",
+        #         "orders_limit": 10,
+        #         "mark_price_up": "403.83",
+        #         "position_size": 80,
+        #         "order_size_max": 10000,
+        #         "position_limit": 100000,
+        #         "multiplier": "0.01",
+        #         "order_size_min": 1,
+        #         "trade_size": 229,
+        #         "underlying_price": "3326.6",
+        #         "maker_fee_rate": "0.0003",
+        #         "expiration_time": 1719561600,
+        #         "trade_id": 15,
+        #         "bid1_price": "269.3"
+        #     }
+        #
+        return self.parse_option(response, None, market)
+
+    def fetch_option_chain(self, code: str, params={}) -> OptionChain:
+        """
+        fetches data for an underlying asset that is commonly found in an option chain
+        :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
+        :param str currency: base currency to fetch an option chain for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.underlying]: the underlying asset, can be obtained from fetchUnderlyingAssets()
+        :param int [params.expiration]: unix timestamp of the expiration time
+        :returns dict: a list of `option chain structures <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'underlying': currency['code'] + '_USDT',
+        }
+        response = self.publicOptionsGetContracts(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "is_active": True,
+        #             "mark_price_round": "0.1",
+        #             "settle_fee_rate": "0.00015",
+        #             "bid1_size": 434,
+        #             "taker_fee_rate": "0.0003",
+        #             "price_limit_fee_rate": "0.1",
+        #             "order_price_round": "1",
+        #             "tag": "day",
+        #             "ref_rebate_rate": "0",
+        #             "name": "BTC_USDT-20240324-63500-P",
+        #             "strike_price": "63500",
+        #             "ask1_price": "387",
+        #             "ref_discount_rate": "0",
+        #             "order_price_deviate": "0.15",
+        #             "ask1_size": -454,
+        #             "mark_price_down": "124.3",
+        #             "orderbook_id": 29600,
+        #             "is_call": False,
+        #             "last_price": "0",
+        #             "mark_price": "366.6",
+        #             "underlying": "BTC_USDT",
+        #             "create_time": 1711118829,
+        #             "settle_limit_fee_rate": "0.1",
+        #             "orders_limit": 10,
+        #             "mark_price_up": "630",
+        #             "position_size": 0,
+        #             "order_size_max": 10000,
+        #             "position_limit": 10000,
+        #             "multiplier": "0.01",
+        #             "order_size_min": 1,
+        #             "trade_size": 0,
+        #             "underlying_price": "64084.65",
+        #             "maker_fee_rate": "0.0003",
+        #             "expiration_time": 1711267200,
+        #             "trade_id": 0,
+        #             "bid1_price": "307"
+        #         },
+        #     ]
+        #
+        return self.parse_option_chain(response, None, 'name')
+
+    def parse_option(self, chain, currency: Currency = None, market: Market = None):
+        #
+        #     {
+        #         "is_active": True,
+        #         "mark_price_round": "0.1",
+        #         "settle_fee_rate": "0.00015",
+        #         "bid1_size": 434,
+        #         "taker_fee_rate": "0.0003",
+        #         "price_limit_fee_rate": "0.1",
+        #         "order_price_round": "1",
+        #         "tag": "day",
+        #         "ref_rebate_rate": "0",
+        #         "name": "BTC_USDT-20240324-63500-P",
+        #         "strike_price": "63500",
+        #         "ask1_price": "387",
+        #         "ref_discount_rate": "0",
+        #         "order_price_deviate": "0.15",
+        #         "ask1_size": -454,
+        #         "mark_price_down": "124.3",
+        #         "orderbook_id": 29600,
+        #         "is_call": False,
+        #         "last_price": "0",
+        #         "mark_price": "366.6",
+        #         "underlying": "BTC_USDT",
+        #         "create_time": 1711118829,
+        #         "settle_limit_fee_rate": "0.1",
+        #         "orders_limit": 10,
+        #         "mark_price_up": "630",
+        #         "position_size": 0,
+        #         "order_size_max": 10000,
+        #         "position_limit": 10000,
+        #         "multiplier": "0.01",
+        #         "order_size_min": 1,
+        #         "trade_size": 0,
+        #         "underlying_price": "64084.65",
+        #         "maker_fee_rate": "0.0003",
+        #         "expiration_time": 1711267200,
+        #         "trade_id": 0,
+        #         "bid1_price": "307"
+        #     }
+        #
+        marketId = self.safe_string(chain, 'name')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_timestamp(chain, 'create_time')
+        return {
+            'info': chain,
+            'currency': None,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'impliedVolatility': None,
+            'openInterest': None,
+            'bidPrice': self.safe_number(chain, 'bid1_price'),
+            'askPrice': self.safe_number(chain, 'ask1_price'),
+            'midPrice': None,
+            'markPrice': self.safe_number(chain, 'mark_price'),
+            'lastPrice': self.safe_number(chain, 'last_price'),
+            'underlyingPrice': self.safe_number(chain, 'underlying_price'),
+            'change': None,
+            'percentage': None,
+            'baseVolume': None,
+            'quoteVolume': None,
         }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

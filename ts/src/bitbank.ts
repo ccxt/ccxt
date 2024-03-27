@@ -159,7 +159,7 @@ export default class bitbank extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitbank#fetchMarkets
@@ -304,7 +304,7 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetPairTicker (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -395,7 +395,7 @@ export default class bitbank extends Exchange {
         };
         const response = await this.publicGetPairTransactions (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'transactions', []);
+        const trades = this.safeList (data, 'transactions', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -528,7 +528,7 @@ export default class bitbank extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const candlestick = this.safeValue (data, 'candlestick', []);
         const first = this.safeValue (candlestick, 0, {});
-        const ohlcv = this.safeValue (first, 'ohlcv', []);
+        const ohlcv = this.safeList (first, 'ohlcv', []);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
@@ -676,7 +676,7 @@ export default class bitbank extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostUserSpotOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -719,7 +719,7 @@ export default class bitbank extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privateGetUserSpotOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
 
@@ -748,7 +748,7 @@ export default class bitbank extends Exchange {
         }
         const response = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (data, 'orders', []);
+        const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -779,7 +779,7 @@ export default class bitbank extends Exchange {
         }
         const response = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'trades', []);
+        const trades = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -854,7 +854,7 @@ export default class bitbank extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 

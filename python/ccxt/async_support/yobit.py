@@ -347,7 +347,7 @@ class yobit(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         :see: https://yobit.net/en/api
         retrieves data on all markets for yobit

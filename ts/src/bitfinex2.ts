@@ -499,7 +499,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitfinex2#fetchMarkets
@@ -1804,7 +1804,7 @@ export default class bitfinex2 extends Exchange {
             'all': 1,
         };
         const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
-        const orders = this.safeValue (response, 4, []);
+        const orders = this.safeList (response, 4, []);
         return this.parseOrders (orders);
     }
 

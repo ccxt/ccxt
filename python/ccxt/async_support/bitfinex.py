@@ -557,7 +557,7 @@ class bitfinex(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitfinex
         :see: https://docs.bitfinex.com/v1/reference/rest-public-symbols

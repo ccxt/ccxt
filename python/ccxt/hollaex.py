@@ -215,7 +215,7 @@ class hollaex(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for hollaex
         :see: https://apidocs.hollaex.com/#constants

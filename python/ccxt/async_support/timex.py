@@ -292,7 +292,7 @@ class timex(Exchange, ImplicitAPI):
         #
         return self.parse_to_int(response) * 1000
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for timex
         :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listMarkets
