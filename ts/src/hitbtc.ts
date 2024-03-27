@@ -1454,15 +1454,16 @@ export default class hitbtc extends Exchange {
         //         ],
         //         "fee": "1.22" // only for WITHDRAW
         //       }
-        //     }
-        //
+        //     },
+        //     "operation_id": "084cfcd5-06b9-4826-882e-fdb75ec3625d", // only for WITHDRAW
+        //     "commit_risk": {}
         // withdraw
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString2 (transaction, 'operation_id', 'id');
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
         const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
