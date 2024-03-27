@@ -1326,7 +1326,7 @@ export default class bitstamp extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseDepositWithdrawFees (response, codes = undefined) {
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
         const result = {};
         const currencies = this.indexBy (response, 'currency');
         const ids = Object.keys (currencies);
