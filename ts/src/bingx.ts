@@ -32,6 +32,7 @@ export default class bingx extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -78,6 +79,7 @@ export default class bingx extends Exchange {
                 'fetchTrades': true,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'setLeverage': true,
                 'setMargin': true,
                 'setMarginMode': true,
@@ -3461,6 +3463,20 @@ export default class bingx extends Exchange {
             'marginType': marginMode,
         };
         return await this.swapV2PrivatePostTradeMarginType (this.extend (request, params));
+    }
+
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        const request = {
+            'type': 1,
+        };
+        return await this.setMargin (symbol, amount, this.extend (request, params));
+    }
+
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        const request = {
+            'type': 2,
+        };
+        return await this.setMargin (symbol, amount, this.extend (request, params));
     }
 
     async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
