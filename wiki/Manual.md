@@ -3549,12 +3549,12 @@ $exchange = new $exchange_class (array (
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
 
 #### API Key Permissions
-When you get errors like `"Invalid API-key, IP, or permissions for action."`, then, most likely, the problem is not within ccxt, please avoid opening issues unless you ensure that:
+When you get errors like `"Invalid API-key, IP, or permissions for action."` or `"API-key format invalid"`, then, most likely, the problem is not within ccxt, please avoid opening a new issue unless you ensure that:
 1) You don't have typos, empty spaces, or quotes in your keys
-2) Your current IP address (check [IPv4](https://api.ipify.org/) or [IPv6](https://api64.ipify.org/)) is added into API-KEY's whitelisted IP addresses
-3) You have selected the correct options in permissions list for that api-key.
+2) Your current IP address (check [IPv4](https://api.ipify.org/) or [IPv6](https://api64.ipify.org/)) is added into API-KEY's whitelist (if you use proxy, consider that too)
+3) You have selected the correct options in permissions list for that api-key
 4) You are not accidentally mixing "testnet" api-keys or "testnet" mode in your script
-5) You have checked already [reported issues](https://github.com/ccxt/ccxt/issues?q=is%3Aissue+%22Invalid+Api-Key+ID%22) about this error.
+5) You have checked already [reported issues](https://github.com/ccxt/ccxt/issues?q=is%3Aissue+%22Invalid+Api-Key+ID%22) about this error
 
 
 #### Sign In
