@@ -351,16 +351,6 @@ function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key
     }
 }
 
-<<<<<<< HEAD
-// this method is similar to isInteger, but this also returns positive for `1.0`, while in other langs, `1.0` is not integer type
-function hasRoundedValue (value) {
-    const isNumeric = (typeof value === 'number');
-    if (isNumeric) {
-        return (value % 1) === 0;
-    } else {
-        return false;
-    }
-=======
 function removeProxyOptions (exchange, skippedProperties) {
     const proxyUrl = exchange.checkProxyUrlSettings ();
     const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
@@ -402,7 +392,6 @@ function assertRoundMinuteTimestamp (exchange, skippedProperties, method, entry,
     const logText = logTemplate (exchange, method, entry);
     const ts = exchange.safeString (entry, key);
     assert (Precise.stringMod (ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
->>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
 }
 
 export default {
@@ -427,12 +416,8 @@ export default {
     checkPrecisionAccuracy,
     assertValidCurrencyIdAndCode,
     assertType,
-<<<<<<< HEAD
-    hasRoundedValue,
-=======
     removeProxyOptions,
     setProxyOptions,
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
->>>>>>> 12eafcfb1a0df69923268d7681f288fe2a3c17a2
 };
