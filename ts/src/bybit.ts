@@ -6319,7 +6319,7 @@ export default class bybit extends Exchange {
         let marginMode = undefined;
         if ((!this.options['enableUnifiedAccount']) || (this.options['enableUnifiedAccount'] && market['inverse'])) {
             // tradeMode would work for classic and UTA(inverse)
-            marginMode = tradeMode ? 'isolated' : 'cross';
+            marginMode = (tradeMode === 1) ? 'isolated' : 'cross';
         }
         let collateralString = this.safeString (position, 'positionBalance');
         const entryPrice = this.omitZero (this.safeString2 (position, 'entryPrice', 'avgPrice'));
